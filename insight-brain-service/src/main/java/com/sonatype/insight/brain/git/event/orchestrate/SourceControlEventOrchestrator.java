@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
@@ -84,6 +84,8 @@ public class SourceControlEventOrchestrator
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private final ApiConfigFeaturesService apiConfigFeaturesService;
+
   private ScheduledExecutorService scheduledExecutorService;
 
   private int otherInstanceEventProcessingIntervalSeconds = 15;
@@ -99,7 +101,8 @@ public class SourceControlEventOrchestrator
       SourceControlEventPublisher sourceControlEventPublisher,
       SourceControlInstanceManager sourceControlInstanceManager,
       IqForScmLicenseChecker licenseChecker,
-      SourceControlUtils sourceControlUtils)
+      SourceControlUtils sourceControlUtils,
+      ApiConfigFeaturesService apiConfigFeaturesService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
@@ -107,6 +110,7 @@ public class SourceControlEventOrchestrator
     this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
+    this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
 
   /**
@@ -123,10 +127,12 @@ public class SourceControlEventOrchestrator
 
   @Override
   public void start() {
-    if (!disableForTesting) {
-      sourceControlEventPublisher.setSourceControlEventListener(this);
-      startEventProcessingExecutorService();
+    if (disableForTesting || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
+      return;
     }
+
+    sourceControlEventPublisher.setSourceControlEventListener(this);
+    startEventProcessingExecutorService();
   }
 
   @Override
@@ -163,19 +169,21 @@ public class SourceControlEventOrchestrator
    * - fetches all untagged new events and routes them to the appropriate UserEventManager for processing
    */
   private void fetchAndRouteEvents() {
-    if (licenseChecker.isIqForScmSupported()) {
-      synchronized (userEventManagerMap) {
-        sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
-        List<SourceControlEvent> sourceControlEvents =
-            sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
-        if (CollectionUtils.isNotEmpty(sourceControlEvents)) {
-          sourceControlEvents.forEach(this::assignEventForProcessing);
-        }
-        log.debug(
-            "Fetched and routed {} events originating from other IQ instances for processing by this instance '{}'",
-            sourceControlEvents.size(), getInstanceId());
-        notifyRoutingComplete();
+    if (!licenseChecker.isIqForScmSupported() || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
+      return;
+    }
+
+    synchronized (userEventManagerMap) {
+      sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
+      List<SourceControlEvent> sourceControlEvents =
+          sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
+      if (CollectionUtils.isNotEmpty(sourceControlEvents)) {
+        sourceControlEvents.forEach(this::assignEventForProcessing);
       }
+      log.debug(
+          "Fetched and routed {} events originating from other IQ instances for processing by this instance '{}'",
+          sourceControlEvents.size(), getInstanceId());
+      notifyRoutingComplete();
     }
   }
 

@@ -14,10 +14,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
+
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
 
 /**
  * @since 1.77
@@ -40,6 +43,7 @@ public class AutomaticSourceControlConfigurationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public AutomaticSourceControlConfiguration get() {
     return automaticSourceControlConfigurationService.get();
   }
@@ -48,6 +52,7 @@ public class AutomaticSourceControlConfigurationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_AUTOMATIC_SOURCE_CONTROL)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public AutomaticSourceControlConfiguration update(AutomaticSourceControlConfiguration configuration) {
     return automaticSourceControlConfigurationService.update(configuration);
   }

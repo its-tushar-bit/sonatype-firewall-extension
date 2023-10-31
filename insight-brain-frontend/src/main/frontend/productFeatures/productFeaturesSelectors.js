@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { and, pipe, prop } from 'ramda';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
 export const selectProductFeatures = createSelector(selectProductFeaturesSlice, prop('productFeatures'));
@@ -89,10 +89,25 @@ export const selectIsAutomaticApplicationConfigurationEnabled = createSelector(
   selectProductFeatures,
   prop('automatic-application-configuration')
 );
-export const selectIsAutomaticScmConfigurationEnabled = createSelector(
+
+export const selectIsScmEnabled = createSelector(
   selectProductFeatures,
-  prop('automatic-scm-configuration')
+  pipe(prop('saas-lifecycle-scm-enabled'), Boolean)
 );
+const _selectIsAutomaticScmConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  pipe(prop('automatic-scm-configuration'), Boolean)
+);
+
+// While _selectIsAutomaticScmConfigurationEnabled strictly checks the automatic-scm-configuration feature flag,
+// this exported selectIsAutomaticScmConfigurationEnabled selector checks that flag in conjunction with whether SCM
+// is enabled overall
+export const selectIsAutomaticScmConfigurationEnabled = createSelector(
+  _selectIsAutomaticScmConfigurationEnabled,
+  selectIsScmEnabled,
+  and
+);
+
 export const selectIsAdvancedSearchConfigurationEnabled = createSelector(
   selectProductFeatures,
   prop('advanced-search-configuration')

@@ -22,7 +22,9 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigFeaturesResourceTest
@@ -64,7 +66,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId(),
-          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId()
+          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
+          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId()
       }
   )).toArray(String[]::new);
 
@@ -252,5 +255,54 @@ public class ConfigFeaturesResourceTest
     return restRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
         .parameter(tenantSlug)
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
+  }
+
+  @Test
+  public void testEnableFeature_saasLifecycleScmEnabled_asTenant() throws Exception {
+    testAsTestTenant(tenant -> {
+      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
+    });
+
+    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+        .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+        .post();
+    assertResponseStatus(204, response);
+
+    testAsTestTenant(tenant -> {
+      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
+    });
+
+    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
+    assertResponseStatus(200, response);
+    String[] features = response.getBody(String[].class);
+
+    assertThat(features).contains(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId());
+  }
+
+  @Test
+  public void testEnableFeature_saasLifecycleScmDisabled_asTenant() throws Exception {
+    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+        .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+        .post();
+    assertResponseStatus(204, response);
+
+    testAsTestTenant(tenant -> {
+      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
+    });
+
+    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
+        .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+        .delete();
+    assertResponseStatus(204, response);
+
+    testAsTestTenant(tenant -> {
+      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
+    });
+
+    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
+    assertResponseStatus(200, response);
+    String[] features = response.getBody(String[].class);
+
+    assertThat(features).containsExactlyInAnyOrder(defaultEnabledFeatures);
   }
 }

@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 
 import com.codahale.metrics.annotation.Timed;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
+
 /**
  * Provides an endpoint for the SCM Validator Service to perform basic validation on a given configuration
  *
@@ -42,6 +44,7 @@ public class DefaultApiCompositeSourceControlConfigValidatorResource implements
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ConfigurationValidationResult validateSourceControlConfig(
       @PathParam("applicationId") String applicationId)
   {

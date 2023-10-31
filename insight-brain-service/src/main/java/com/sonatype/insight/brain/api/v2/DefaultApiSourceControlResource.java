@@ -29,6 +29,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Strings;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
+
 /**
  * @since 1.66
  */
@@ -55,6 +57,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO getSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId)
@@ -68,6 +71,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
   @Path(BY_OWNER)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO addSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
@@ -82,6 +86,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
   @Path(BY_OWNER)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO updateSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
@@ -94,6 +99,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @DELETE
   @Path(BY_OWNER)
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public void deleteSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId)
@@ -105,6 +111,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.AUTO_CREATE_SOURCE_CONTROL)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @QueryParam("publicId") final String publicId,
       @QueryParam("repositoryUrl") final String repositoryUrl)

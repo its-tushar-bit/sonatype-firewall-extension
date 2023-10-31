@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigur
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -64,8 +65,11 @@ public class MTIQFeatureServiceTest
   @Captor
   ArgumentCaptor<String> propertyKeyCaptor;
 
+  private TenantUtil tenantUtil = new TenantUtil();
+
   @Before
   public void setup() {
+    tenantUtil.setGlobalTenant();
     underTest = new TestableMTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
   }
 
@@ -73,7 +77,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(23)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(24)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 

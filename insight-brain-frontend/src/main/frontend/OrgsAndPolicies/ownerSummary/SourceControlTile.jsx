@@ -11,7 +11,10 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions as sourceControlActions } from 'MainRoot/OrgsAndPolicies/sourceControlSlice';
 import { selectIsOrganization, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsScmEnabled,
+  selectIsSourceControlForSourceTileSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { deriveEditRoute } from '../utility/util';
 import {
   selectSourceControl,
@@ -48,6 +51,7 @@ export default function SourceControlTile() {
 
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isScmFeatureEnabled = useSelector(selectIsScmEnabled);
 
   const loadSourceControl = () => dispatch(sourceControlActions.loadSourceControl());
   useEffect(() => {
@@ -85,7 +89,8 @@ export default function SourceControlTile() {
   };
 
   return (
-    isFeatureEnabledForLicense && (
+    isFeatureEnabledForLicense &&
+    isScmFeatureEnabled && (
       <NxTile id="owner-pill-source-control">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadSourceControl}>
           <NxTile.Header>

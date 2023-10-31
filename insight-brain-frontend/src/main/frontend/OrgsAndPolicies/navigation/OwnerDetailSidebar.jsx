@@ -44,6 +44,7 @@ import {
 import {
   selectIsMonitoringSupported,
   selectIsLegacyViolationSupported,
+  selectIsScmEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -86,6 +87,7 @@ export default function OwnerDetailSidebar() {
   const isLegacyViolationsSupported = useSelector(selectIsLegacyViolationSupported);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isScmEnabled = useSelector(selectIsScmEnabled);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const labelsSiblings = useSelector(selectLabelsSiblings);
   const rolesSiblings = useSelector(selectRolesSiblings);
@@ -364,7 +366,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Source Control */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && isScmEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             className={`iq-noncollapsible ${isSourceControl ? 'selected' : ''}`}

@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Duration;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
@@ -38,19 +39,24 @@ public class PullRequestPollingTaskTest
   @Mock
   private IqForScmLicenseChecker licenseChecker;
 
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
   private PullRequestPollingTask underTest;
 
   @Before
   @Override
   public void setup() {
     super.setup();
-    underTest = new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker, 2, 1);
+    underTest = new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker,
+        mockApiConfigFeaturesService, 2, 1);
   }
 
   @Test
   public void testPullRequestPollingTask_register_deregister() {
     testAsNewTenant(tenant -> {
       when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+      when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
       underTest.register();
 
@@ -59,6 +65,17 @@ public class PullRequestPollingTaskTest
       underTest.deregister();
 
       verify(taskSchedulerMock).unscheduleTask(underTest);
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_register_withoutSCMFeature() {
+    testAsNewTenant(tenant -> {
+      when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
+
+      underTest.register();
+
+      verifyNoInteractions(taskSchedulerMock);
     });
   }
 
@@ -75,6 +92,7 @@ public class PullRequestPollingTaskTest
   public void testPullRequestPollingTask_productLicenseChanged_shouldScheduleForSingleTenant() {
     testAsSingleTenant(single -> {
       when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+      when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
       underTest.productLicenseChanged();
 
@@ -86,6 +104,7 @@ public class PullRequestPollingTaskTest
   public void testPullRequestPollingTask_productLicenseChanged_shouldScheduleForGlobalTenant() {
     testAsGlobalTenant(global -> {
       when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+      when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
       underTest.productLicenseChanged();
 

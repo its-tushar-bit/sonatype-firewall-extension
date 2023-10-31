@@ -70,29 +70,36 @@ public class ApiConfigFeaturesServiceTest
         ENABLE_UNAUTHENTICATED_PAGES);
     assertThat(service.getPropertyNameForFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)).isEqualTo(
         INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThat(service.getPropertyNameForFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)).isEqualTo(
+        SAAS_LIFECYCLE_SCM_ENABLED);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
   }
 
   @Test
   public void testGetSystemConfigurationPropertyFeature() {
     for (SystemConfigurationPropertyFeature feature : SystemConfigurationPropertyFeature.values()) {
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.name())).isEqualTo(feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.name().toUpperCase(Locale.ROOT))).isEqualTo(
-          feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.name().toLowerCase(Locale.ROOT))).isEqualTo(
-          feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.getId())).isEqualTo(feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.getId().toUpperCase(Locale.ROOT))).isEqualTo(
-          feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.getId().toLowerCase(Locale.ROOT))).isEqualTo(
-          feature);
-      assertThat(service.getSystemConfigurationPropertyFeature(feature.getPropertyName())).isEqualTo(feature);
-      assertThat(
-          service.getSystemConfigurationPropertyFeature(feature.getPropertyName().toUpperCase(Locale.ROOT))).isEqualTo(
-          feature);
-      assertThat(
-          service.getSystemConfigurationPropertyFeature(feature.getPropertyName().toLowerCase(Locale.ROOT))).isEqualTo(
-          feature);
+      if (NOT_SUPPORTED_SELF_HOSTED_SYSTEM_PROPERTIES.contains(feature.getPropertyName())) {
+        assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature(feature.name()))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("'" + feature.getPropertyName() + "' is not supported for self hosted.");
+      }
+      else {
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.name())).isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.name().toUpperCase(Locale.ROOT)))
+            .isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.name().toLowerCase(Locale.ROOT)))
+            .isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getId())).isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getId().toUpperCase(Locale.ROOT)))
+            .isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getId().toLowerCase(Locale.ROOT)))
+            .isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getPropertyName())).isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getPropertyName().toUpperCase(Locale.ROOT)))
+            .isEqualTo(feature);
+        assertThat(service.getSystemConfigurationPropertyFeature(feature.getPropertyName().toLowerCase(Locale.ROOT)))
+            .isEqualTo(feature);
+      }
     }
     assertThat(service.getSystemConfigurationPropertyFeature(DASHBOARD_DISABLED)).isEqualTo(
         SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED);
@@ -103,7 +110,6 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getSystemConfigurationPropertyFeature(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
         SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
-
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_CODE_INSIGHTS))
         .isEqualTo(SystemConfigurationPropertyFeature.CODE_INSIGHTS);
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE))
@@ -124,6 +130,10 @@ public class ApiConfigFeaturesServiceTest
         .isEqualTo(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES);
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
         .isEqualTo(SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+
+    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
 
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("bogus-feature")).isInstanceOf(
         BadRequestException.class).hasMessage("Feature not supported: bogus-feature");
@@ -777,5 +787,62 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_SaasLifecycleScmEnabled_singleTenant() {
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testEnableFeature_SaasLifecycleScmEnabled_enableForSingleTenant() {
+    assertThatThrownBy(() -> service.enableFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testEnableFeature_SaasLifecycleScmEnabled_disableForSingleTenant() {
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testEnableFeature_SaasLifecycleScmEnabled_setEnabledFalseForSingleTenant() {
+    tempEntity.newSystemConfigurationProperty(SAAS_LIFECYCLE_SCM_ENABLED, "true");
+
+    assertThatThrownBy(() -> SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(false))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testEnableFeature_SaasLifecycleScmEnabled_setEnabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testFeatureHelperMethod_isSaasLifecycleScmEnabled() {
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
+    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testFeatureHelperMethod_isScmAndDefaultBranchMonitoringEnabled() {
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(true);
+    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
+  }
+
+  @Test
+  public void testFeatureHelperMethod_isScmAndDefaultBranchMonitoringEnabled_branchMonitoringFalse() {
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
+    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
   }
 }

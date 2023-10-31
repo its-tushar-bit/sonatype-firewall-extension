@@ -12,11 +12,11 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -32,11 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is the entry point for the pull request discovery flow, part of PR Comments feature.
- * It runs periodically and detects if there are any new open pull requests (PRs) for any repository associated with an
- * SCM configured application, for which we could create PR comments i.e.
- * - there is a policy evaluation run against the source control configured default branch, and
- * - there is a policy evaluation run against the feature/development branch head commit that the PR pertains to.
+ * This class is the entry point for the pull request discovery flow, part of PR Comments feature. It runs periodically
+ * and detects if there are any new open pull requests (PRs) for any repository associated with an SCM configured
+ * application, for which we could create PR comments i.e. - there is a policy evaluation run against the source control
+ * configured default branch, and - there is a policy evaluation run against the feature/development branch head commit
+ * that the PR pertains to.
  */
 @Named
 @Singleton
@@ -59,6 +59,8 @@ public class PullRequestPollingTask
 
   private final TaskScheduler taskScheduler;
 
+  private final ApiConfigFeaturesService apiConfigFeaturesService;
+
   private final int pullRequestPollingTaskIntervalInSeconds;
 
   private final int pullRequestPollingTaskDelayInSeconds;
@@ -67,12 +69,13 @@ public class PullRequestPollingTask
 
   @Inject
   public PullRequestPollingTask(
-      TaskScheduler taskScheduler,
+      final TaskScheduler taskScheduler,
       final PullRequestPollingService pullRequestPollingService,
-      final IqForScmLicenseChecker licenseChecker)
+      final IqForScmLicenseChecker licenseChecker,
+      final ApiConfigFeaturesService apiConfigFeaturesService)
   {
-    this(taskScheduler, pullRequestPollingService, licenseChecker, PULL_REQUEST_POLLING_DELAY_SECONDS,
-        PULL_REQUEST_POLLING_INTERVAL_SECONDS);
+    this(taskScheduler, pullRequestPollingService, licenseChecker, apiConfigFeaturesService,
+        PULL_REQUEST_POLLING_DELAY_SECONDS, PULL_REQUEST_POLLING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
@@ -80,6 +83,7 @@ public class PullRequestPollingTask
       TaskScheduler taskScheduler,
       PullRequestPollingService pullRequestPollingService,
       IqForScmLicenseChecker licenseChecker,
+      ApiConfigFeaturesService apiConfigFeaturesService,
       int pullRequestPollingTaskDelayInSeconds,
       int pullRequestPollingTaskIntervalInSeconds)
   {
@@ -87,6 +91,7 @@ public class PullRequestPollingTask
     this.taskScheduler = taskScheduler;
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
+    this.apiConfigFeaturesService = apiConfigFeaturesService;
     this.pullRequestPollingTaskDelayInSeconds = pullRequestPollingTaskDelayInSeconds;
     this.pullRequestPollingTaskIntervalInSeconds = pullRequestPollingTaskIntervalInSeconds;
   }
@@ -105,9 +110,10 @@ public class PullRequestPollingTask
     if (disableForTesting || !isLicensed()) {
       return;
     }
-    Date startTime = Date.from(
-        LocalDateTime.now().plusSeconds(pullRequestPollingTaskDelayInSeconds).atZone(ZoneId.systemDefault())
-            .toInstant());
+
+    Date startTime = Date.from(LocalDateTime.now().plusSeconds(pullRequestPollingTaskDelayInSeconds)
+        .atZone(ZoneId.systemDefault()).toInstant());
+
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestPollingTaskIntervalInSeconds), startTime);
     log.info("Scheduled SCM pull request polling every {} second(s) starting in {} second(s)",
         pullRequestPollingTaskIntervalInSeconds, pullRequestPollingTaskDelayInSeconds);
@@ -122,6 +128,10 @@ public class PullRequestPollingTask
 
   @Override
   public void executeForTenant(JobExecutionContext context, Tenant tenant) {
+    if (!apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
+      return;
+    }
+
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       fetchAndSendPullRequestsForCommenting();
     }
@@ -178,6 +188,6 @@ public class PullRequestPollingTask
 
   @Override
   public boolean isLicensed() {
-    return licenseChecker.isPullRequestCommentingSupported();
+    return apiConfigFeaturesService.isSaasLifecycleScmEnabled() && licenseChecker.isPullRequestCommentingSupported();
   }
 }

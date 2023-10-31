@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -38,17 +39,21 @@ public class SourceControlEventPublisherTest
   @Mock
   private SourceControlUtils mockSourceControlUtils;
 
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
     sourceControlEventPublisher = new SourceControlEventPublisher(mockSourceControlEventDAO,
-        mockSourceControlInstanceManager, mockSourceControlUtils);
+        mockSourceControlInstanceManager, mockSourceControlUtils, mockApiConfigFeaturesService);
   }
 
   @Test
   public void testPublishEvent_licensedFeature() {
     // given:
     when(mockSourceControlUtils.getScmUserIdForApplication(any())).thenReturn("scmUser");
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
     // when: publish a null event
     sourceControlEventPublisher.publishEvent(null);
@@ -70,6 +75,32 @@ public class SourceControlEventPublisherTest
 
     // and: scm user for event is updated
     assertThat(persistedEvent.getScmUsername()).isEqualTo("scmUser");
+  }
+
+  @Test
+  public void testPublishEvent_whenNull() {
+    // given:
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+
+    // when: publish a null event
+    sourceControlEventPublisher.publishEvent(null);
+
+    // then: nothing saved to DB
+    verify(mockSourceControlEventDAO, never()).insert(any());
+  }
+
+  @Test
+  public void testPublishEvent_whenFeatureIsNotEnabled() {
+    // given:
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
+
+    // and when: publish an event
+    final String appId = "xyz-012";
+    SourceControlEvent event = new SourceControlEvent().setApplicationId(appId);
+    sourceControlEventPublisher.publishEvent(event);
+
+    // then: nothing saved to DB
+    verify(mockSourceControlEventDAO, never()).insert(any());
   }
 
   @Test

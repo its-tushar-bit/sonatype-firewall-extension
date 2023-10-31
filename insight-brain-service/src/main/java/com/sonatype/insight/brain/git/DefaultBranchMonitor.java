@@ -13,13 +13,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -67,6 +66,8 @@ public class DefaultBranchMonitor
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private final ApiConfigFeaturesService apiConfigFeaturesService;
+
   public boolean disableForTesting;
 
   private int intervalInMinutes;
@@ -79,13 +80,15 @@ public class DefaultBranchMonitor
       SourceControlEventPublisher sourceControlEventPublisher,
       Configuration configuration,
       SourceControlDAO sourceControlDAO,
-      IqForScmLicenseChecker licenseChecker)
+      IqForScmLicenseChecker licenseChecker,
+      ApiConfigFeaturesService apiConfigFeaturesService)
   {
     this.taskScheduler = taskScheduler;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.configuration = configuration;
     this.sourceControlDAO = sourceControlDAO;
     this.licenseChecker = licenseChecker;
+    this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
 
   @Override
@@ -93,16 +96,16 @@ public class DefaultBranchMonitor
     if (disableForTesting) {
       return;
     }
-
     scheduleDefaultBranchMonitoring();
   }
 
   public void scheduleDefaultBranchMonitoring() {
     taskScheduler.unscheduleTask(this);
 
-    if (!SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.isEnabled()) {
+    if (!apiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()) {
       return;
     }
+
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60;
 
@@ -116,7 +119,8 @@ public class DefaultBranchMonitor
   @Override
   public void execute(JobExecutionContext context) {
     execute(() -> {
-      if (licenseChecker.isIqForScmSupported()) {
+      if (apiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled() &&
+          licenseChecker.isIqForScmSupported()) {
         updateDefaultBranchScans();
       }
     }, log, SOURCE_SCANS_UPDATE_ERROR);

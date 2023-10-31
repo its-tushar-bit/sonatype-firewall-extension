@@ -37,6 +37,11 @@ const defaultPreloadedState = {
       organizationId: 'ROOT_ORGANIZATION_ID',
     },
   },
+  productFeatures: {
+    productFeatures: {
+      'saas-lifecycle-scm-enabled': true,
+    },
+  },
   orgsAndPolicies: {
     applications: {
       applications: APPS,
@@ -140,6 +145,15 @@ const appsLevelState = {
       applicationPublicId: 'applicationOnePublicID',
     },
   },
+  orgsAndPolicies: {
+    root: {
+      selectedOwner: {
+        id: 'app1',
+        publicId: 'applicationOnePublicID',
+        name: 'App 1',
+      },
+    },
+  },
 };
 
 describe('OwnerDetailSidebar', () => {
@@ -156,6 +170,11 @@ describe('OwnerDetailSidebar', () => {
           id: 'ROOT_ORGANIZATION_ID',
           name: 'Root Organization',
         },
+        applicationOnePublicID: {
+          id: 'app1',
+          publicId: 'applicationOnePublicID',
+          name: 'App 1',
+        },
       },
       topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
     });
@@ -169,6 +188,11 @@ describe('OwnerDetailSidebar', () => {
       productLicense: {
         license: {
           products: ['Firewall'],
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          'saas-lifecycle-scm-enabled': true,
         },
       },
       router: {
@@ -211,6 +235,7 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
     expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
   it('renders correct sidebar with correct list open at Organization levels when not FirewallOnlyLicense only', async () => {
@@ -218,6 +243,11 @@ describe('OwnerDetailSidebar', () => {
       productLicense: {
         license: {
           products: ['SonatypeCLM', 'Firewall'],
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          'saas-lifecycle-scm-enabled': true,
         },
       },
       router: {
@@ -260,7 +290,8 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('Application Evaluator')).toBeVisible();
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
     expect(await screen.findByText('Legacy Violations')).toBeVisible();
-    expect(screen.getByText('Legacy Violations').parentElement).toHaveClassName('disabled');
+    expect(screen.getByRole('link', { name: 'Source Control' })).toBeVisible();
+    expect(screen.getByText('Legacy Violations').parentElement).toHaveClass('disabled');
   });
 
   it('renders correct sidebar with correct list open at Organization levels', async () => {
@@ -275,15 +306,16 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('Application Evaluator')).toBeVisible();
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
     expect(await screen.findByText('Legacy Violations')).toBeVisible();
-    expect(screen.getByText('Legacy Violations').parentElement).toHaveClassName('disabled');
+    expect(screen.getByRole('link', { name: 'Source Control' })).toBeVisible();
+    expect(screen.getByText('Legacy Violations').parentElement).toHaveClass('disabled');
   });
 
   it('renders correct sidebar with correct list open at Repositories', () => {
-    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({
       ownerId: 'REPOSITORY_CONTAINER_ID',
       ownerType: 'repository_container',
     });
-    spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
+    jest.spyOn(routerSelectors, 'selectIsRepositoriesRelated').mockReturnValue(true);
 
     mock
       .onGet(getOwnerDetailsUrl('repository_container', 'REPOSITORY_CONTAINER_ID', true))
@@ -296,15 +328,15 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryAllByText('Policies').length).toBe(1);
     expect(screen.queryAllByText('Component Labels').length).toBe(0);
     expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
-    expect(screen.queryAllByText('Source Control').length).toBe(0);
+    expect(screen.queryAllByRole('link', { name: 'Source Control' }).length).toBe(0);
   });
 
   it('renders correct sidebar modifying Repository Container', () => {
-    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({
       ownerId: 'REPOSITORY_CONTAINER_ID',
       ownerType: 'repository_container',
     });
-    spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
+    jest.spyOn(routerSelectors, 'selectIsRepositoriesRelated').mockReturnValue(true);
 
     mock
       .onGet(getOwnerDetailsUrl('repository_container', 'REPOSITORY_CONTAINER_ID', true))
@@ -313,6 +345,7 @@ describe('OwnerDetailSidebar', () => {
     renderComponent(repositoryState);
     expect(screen.getByText('Access')).toBeVisible();
     expect(screen.queryAllByText('Policies').length).toBe(1);
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
   it('renders correct sidebar with correct list open at Application level', () => {
@@ -323,26 +356,49 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.getByText('Policies')).toBeVisible();
     expect(screen.getByText('Component Labels')).toBeVisible();
     expect(screen.getByText('Access')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Source Control' })).toBeVisible();
 
     expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
+  });
+
+  it('does not render the Source Control link when saas-lifecycle-scm-enabled is false', () => {
+    renderComponent({
+      ...defaultPreloadedState,
+      productFeatures: {
+        productFeatures: { 'saas-lifecycle-scm-enabled': false },
+      },
+    });
+
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+  });
+
+  it('does not render the Source Control link when saas-lifecycle-scm-enabled is missing', () => {
+    renderComponent({
+      ...defaultPreloadedState,
+      productFeatures: {
+        productFeatures: {},
+      },
+    });
+
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
   it('has correct collapse menu behavior', () => {
     renderComponent();
 
-    expect(screen.getAllByRole('group')[0]).toHaveClassName('nx-collapsible-items--expanded');
-    expect(screen.getAllByRole('group')[1]).not.toHaveClassName('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[0]).toHaveClass('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[1]).not.toHaveClass('nx-collapsible-items--expanded');
 
     const secondMenuButton = screen.getByRole('button', { name: 'Policies' });
     fireEvent.click(secondMenuButton);
 
-    expect(screen.getAllByRole('group')[0]).toHaveClassName('nx-collapsible-items--expanded');
-    expect(screen.getAllByRole('group')[1]).toHaveClassName('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[0]).toHaveClass('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[1]).toHaveClass('nx-collapsible-items--expanded');
 
     const firstMenuButton = screen.getByRole('button', { name: 'Application Categories' });
     fireEvent.click(firstMenuButton);
 
-    expect(screen.getAllByRole('group')[0]).not.toHaveClassName('nx-collapsible-items--expanded');
-    expect(screen.getAllByRole('group')[1]).toHaveClassName('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[0]).not.toHaveClass('nx-collapsible-items--expanded');
+    expect(screen.getAllByRole('group')[1]).toHaveClass('nx-collapsible-items--expanded');
   });
 });

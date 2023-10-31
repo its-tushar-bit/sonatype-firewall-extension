@@ -11,9 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
@@ -80,6 +80,9 @@ public class PullRequestMonitorTest
   @Mock
   private SourceControlUtils mockSourceControlUtils;
 
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
@@ -89,11 +92,13 @@ public class PullRequestMonitorTest
   @Override
   public void configure(Binder binder) {
     lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
+    lenient().when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
     binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
     binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
+    binder.bind(ApiConfigFeaturesService.class).toInstance(mockApiConfigFeaturesService);
     super.configure(binder);
   }
 
@@ -127,6 +132,18 @@ public class PullRequestMonitorTest
   @Test
   public void testExecute_Unlicensed() {
     when(mockLicenseChecker.isIqForScmSupported()).thenReturn(false);
+
+    PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      pullRequestMonitorSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(pullRequestMonitorSpy, never()).updatePullRequestDetails();
+  }
+
+  @Test
+  public void testExecute_FeatureIsNotEnabled() {
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
 
     PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {

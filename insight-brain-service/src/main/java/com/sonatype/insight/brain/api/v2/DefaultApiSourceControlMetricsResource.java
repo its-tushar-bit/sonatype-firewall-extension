@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
+
 /**
  * @since 1.97
  */
@@ -46,6 +48,7 @@ public class DefaultApiSourceControlMetricsResource implements ApiSourceControlM
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
+  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiPullRequestResults getSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId)

@@ -10,6 +10,7 @@ import {
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
   selectTenantMode,
+  selectIsScmEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
@@ -23,6 +24,7 @@ export default function OwnerSummaryPills() {
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = !(isFirewallOnlyLicense || isMultiTenant);
+  const isScmEnabled = useSelector(selectIsScmEnabled);
 
   const navList = useMemo(
     () => [
@@ -69,7 +71,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'Source control',
         target: 'owner-pill-source-control',
-        isDisplayed: (isOrg || isApp) && !isFirewallOnlyLicense,
+        isDisplayed: (isOrg || isApp) && !isFirewallOnlyLicense && isScmEnabled,
       },
       {
         label: 'InnerSource repository',

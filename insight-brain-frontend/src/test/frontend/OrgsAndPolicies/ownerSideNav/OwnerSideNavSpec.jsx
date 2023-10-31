@@ -468,6 +468,9 @@ describe('OwnerSideNav', () => {
             organizationId: selectedOrg.id,
           },
         },
+        productFeatures: {
+          productFeatures: { 'saas-lifecycle-scm-enabled': true },
+        },
         orgsAndPolicies: {
           ownerSideNav: {
             filterQuery: rscInitialState(''),
@@ -567,6 +570,30 @@ describe('OwnerSideNav', () => {
         });
 
         expect(within(ownerModal).getByText('New Application')).toBeVisible();
+      });
+
+      it('should not render the Import Application option when saas-lifecycle-scm-enabled is false', async function () {
+        state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'] = false;
+        renderComponent();
+
+        const applicationPlusButton = await screen.findByRole('button', { name: 'Add Application' });
+
+        fireEvent.click(applicationPlusButton);
+
+        expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
+        expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();
+      });
+
+      it('should not render the Import Application option when saas-lifecycle-scm-enabled is missing', async function () {
+        delete state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'];
+        renderComponent();
+
+        const applicationPlusButton = await screen.findByRole('button', { name: 'Add Application' });
+
+        fireEvent.click(applicationPlusButton);
+
+        expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
+        expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();
       });
     });
 

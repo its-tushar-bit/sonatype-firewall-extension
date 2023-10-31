@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.api.v2.HasFeatureMethodInterceptor;
+
 import org.apache.shiro.aop.AnnotationResolver;
 import org.apache.shiro.guice.aop.ShiroAopModule;
 
@@ -22,5 +24,6 @@ public class SecurityAopModule
     bind(AuthorizationChecker.class).toInstance(authzChecker);
     bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker));
     bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker));
+    bindShiroInterceptor(new HasFeatureMethodInterceptor(resolver));
   }
 }

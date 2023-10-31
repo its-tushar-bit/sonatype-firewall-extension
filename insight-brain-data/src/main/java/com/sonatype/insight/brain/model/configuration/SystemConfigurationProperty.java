@@ -205,6 +205,8 @@ public class SystemConfigurationProperty
 
   public static final String ORG_APP_MANAGEMENT_WEBHOOK_EVENT = "ORG_APP_MANAGEMENT_WEBHOOK_EVENT";
 
+  public static final String SAAS_LIFECYCLE_SCM_ENABLED = "SAAS_LIFECYCLE_SCM_ENABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

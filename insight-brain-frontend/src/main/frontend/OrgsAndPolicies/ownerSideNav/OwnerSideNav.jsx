@@ -38,6 +38,7 @@ import {
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsScmEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
@@ -67,6 +68,7 @@ export default function OwnerSideNav() {
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isScmEnabled = useSelector(selectIsScmEnabled);
 
   const uiRouterState = useRouterState();
   const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
@@ -206,9 +208,11 @@ export default function OwnerSideNav() {
         <button onClick={() => openOwnerEditorModal(true)} className="nx-dropdown-button">
           New Application
         </button>
-        <a href={scmOnboardingHref} className="nx-dropdown-button">
-          Import Applications
-        </a>
+        {isScmEnabled && (
+          <a href={scmOnboardingHref} className="nx-dropdown-button">
+            Import Applications
+          </a>
+        )}
       </NxStatefulIconDropdown>
     ) : (
       <></>

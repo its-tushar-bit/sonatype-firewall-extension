@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
@@ -25,19 +26,23 @@ public class SourceControlEventPublisher
 
   private final SourceControlInstanceManager sourceControlInstanceManager;
 
-  private SourceControlEventCreationListener sourceControlEventCreationListener;
-
   private final SourceControlUtils sourceControlUtils;
+
+  private final ApiConfigFeaturesService apiConfigFeaturesService;
+
+  private SourceControlEventCreationListener sourceControlEventCreationListener;
 
   @Inject
   public SourceControlEventPublisher(
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlInstanceManager sourceControlInstanceManager,
-      SourceControlUtils sourceControlUtils)
+      SourceControlUtils sourceControlUtils,
+      ApiConfigFeaturesService apiConfigFeaturesService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.sourceControlUtils = sourceControlUtils;
+    this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
 
   public void setSourceControlEventListener(SourceControlEventCreationListener sourceControlEventCreationListener) {
@@ -50,13 +55,14 @@ public class SourceControlEventPublisher
    * @param event the event to persist
    */
   public void publishEvent(SourceControlEvent event) {
-    if (null != event) {
-      populateScmUsernameIfMissing(event);
-      populateInstanceIdIfProcessingEvents(event);
-      sourceControlEventDAO.insert(event);
-      if (null != sourceControlEventCreationListener) {
-        sourceControlEventCreationListener.onNewEvent(event);
-      }
+    if (null == event || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
+      return;
+    }
+    populateScmUsernameIfMissing(event);
+    populateInstanceIdIfProcessingEvents(event);
+    sourceControlEventDAO.insert(event);
+    if (null != sourceControlEventCreationListener) {
+      sourceControlEventCreationListener.onNewEvent(event);
     }
   }
 

@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
@@ -96,6 +97,8 @@ public class PullRequestMonitor
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private final ApiConfigFeaturesService apiConfigFeaturesService;
+
   private ExecutorService executorService;
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
@@ -113,7 +116,8 @@ public class PullRequestMonitor
       ApplicationDAO applicationDAO,
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
-      PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
+      PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
+      ApiConfigFeaturesService apiConfigFeaturesService)
   {
     super("monitorPRs");
     this.configuration = configuration;
@@ -126,6 +130,7 @@ public class PullRequestMonitor
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
+    this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
 
   private ExecutorService getExecutorService() {
@@ -149,6 +154,9 @@ public class PullRequestMonitor
   }
 
   public void schedulePullRequestMonitor() {
+    if (!apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
+      return;
+    }
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(intervalInSeconds));
@@ -165,7 +173,7 @@ public class PullRequestMonitor
   @Override
   public void execute(JobExecutionContext context) {
     execute(() -> {
-      if (licenseChecker.isIqForScmSupported()) {
+      if (apiConfigFeaturesService.isSaasLifecycleScmEnabled() && licenseChecker.isIqForScmSupported()) {
         updatePullRequestDetails();
       }
     }, log, PULL_REQUEST_DETAILS_UPDATE_ERROR);

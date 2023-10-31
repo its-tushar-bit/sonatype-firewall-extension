@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
@@ -59,6 +60,9 @@ public class SourceControlEventOrchestratorTest
   @Mock
   private IqForScmLicenseChecker mockIqForScmLicenseChecker;
 
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
@@ -70,7 +74,8 @@ public class SourceControlEventOrchestratorTest
     // given: an orchestrator and two events for different scm users
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
@@ -106,7 +111,8 @@ public class SourceControlEventOrchestratorTest
     // given: an orchestrator and two events for the same scm user
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
@@ -142,7 +148,8 @@ public class SourceControlEventOrchestratorTest
     // given: an orchestrator configured not to process events
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(false);
 
@@ -160,6 +167,7 @@ public class SourceControlEventOrchestratorTest
   public void testFetchAndRouteEvents() throws Exception {
     // given: orchestrator configured to run scheduled executor and fetch events from DB
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
             "base-branch", true, true, true, true, false, null);
@@ -167,7 +175,8 @@ public class SourceControlEventOrchestratorTest
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
 
     SourceControlEvent event =
@@ -194,7 +203,8 @@ public class SourceControlEventOrchestratorTest
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
 
     // the orchestrator starts, but it does nothing
@@ -203,10 +213,28 @@ public class SourceControlEventOrchestratorTest
   }
 
   @Test
+  public void testStart_whenFeatureIsNotEnabled() {
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
+
+    SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
+    );
+
+    // the orchestrator starts, but it does nothing
+    sourceControlEventOrchestrator.start();
+
+    verify(mockSourceControlEventPublisher, never()).setSourceControlEventListener(any());
+  }
+
+  @Test
   public void testStop() {
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
     );
     sourceControlEventOrchestrator.stop();
     verify(mockSourceControlEventProcessor, times(1)).shutdown();

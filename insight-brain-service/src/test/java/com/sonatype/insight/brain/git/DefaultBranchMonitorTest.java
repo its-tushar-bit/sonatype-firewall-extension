@@ -11,11 +11,10 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -69,6 +68,9 @@ public class DefaultBranchMonitorTest
   @Mock
   private IqForScmLicenseChecker mockLicenseChecker;
 
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
@@ -76,9 +78,12 @@ public class DefaultBranchMonitorTest
   public void configure(Binder binder) {
     lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
     lenient().when(taskSchedulerMock.isTaskScheduled(any())).thenReturn(true);
+    lenient().when(mockApiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()).thenReturn(true);
+
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
     binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
+    binder.bind(ApiConfigFeaturesService.class).toInstance(mockApiConfigFeaturesService);
     super.configure(binder);
   }
 
@@ -107,6 +112,18 @@ public class DefaultBranchMonitorTest
   @Test
   public void testExecute_Unlicensed() {
     // mockLicenseChecker.isIqForScmSupported() returns false by default
+
+    DefaultBranchMonitor defaultBranchMonitorSpy = spy(defaultBranchMonitor);
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      defaultBranchMonitorSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(defaultBranchMonitorSpy, never()).updateDefaultBranchScans();
+  }
+
+  @Test
+  public void testExecute_SaasLifecycleSCMFeatureDisabled() {
+    when(mockApiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()).thenReturn(false);
 
     DefaultBranchMonitor defaultBranchMonitorSpy = spy(defaultBranchMonitor);
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
@@ -148,7 +165,16 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testStart_FeatureDisabled() {
-    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
+    when(mockApiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()).thenReturn(false);
+    defaultBranchMonitor.register();
+
+    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
+    verify(taskSchedulerMock).unscheduleTask(defaultBranchMonitor);
+  }
+
+  @Test
+  public void testStart_SaasLifecycleSCMFeatureDisabled() {
+    when(mockApiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()).thenReturn(false);
     defaultBranchMonitor.register();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());

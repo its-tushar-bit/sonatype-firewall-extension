@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { assocPath } from 'ramda';
 import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
@@ -31,6 +32,8 @@ import {
   selectIsBaseUrlConfigurationEnabled,
   selectIsIntegratedEnterpriseReportingEnabled,
   selectTenantScmProviderTypes,
+  selectIsScmEnabled,
+  selectIsAutomaticScmConfigurationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -260,6 +263,53 @@ describe('productFeaturesSelectors', () => {
     it('returns all providers in single-tenant mode', () => {
       mockState.productFeatures.productFeatures['single-tenant'] = true;
       expect(selectTenantScmProviderTypes(mockState)).toHaveSize(4);
+    });
+  });
+
+  describe('selectIsAutomaticScmConfigurationEnabled', () => {
+    it('returns true iff saas-lifecycle-scm-enabled and automatic-scm-configuration are both true, and false otherwise', () => {
+      // undefined, undefined -> false
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+
+      // true, undefined -> false
+      mockState = assocPath(['productFeatures', 'productFeatures', 'automatic-scm-configuration'], true, mockState);
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+
+      // true, false -> false
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], false, mockState);
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+
+      // true, true -> true
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], true, mockState);
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeTrue();
+
+      // false, true -> false
+      mockState = assocPath(['productFeatures', 'productFeatures', 'automatic-scm-configuration'], false, mockState);
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+
+      // undefined, true -> false
+      mockState = assocPath(
+        ['productFeatures', 'productFeatures', 'automatic-scm-configuration'],
+        undefined,
+        mockState
+      );
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+
+      // undefined, false -> false
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], false, mockState);
+      expect(selectIsAutomaticScmConfigurationEnabled(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectIsScmEnabled', () => {
+    it('returns true iff saas-lifecycle-scm-enabled is true, and false otherwise', () => {
+      expect(selectIsScmEnabled(mockState)).toBeFalse();
+
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], false, mockState);
+      expect(selectIsScmEnabled(mockState)).toBeFalse();
+
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], true, mockState);
+      expect(selectIsScmEnabled(mockState)).toBeTrue();
     });
   });
 });

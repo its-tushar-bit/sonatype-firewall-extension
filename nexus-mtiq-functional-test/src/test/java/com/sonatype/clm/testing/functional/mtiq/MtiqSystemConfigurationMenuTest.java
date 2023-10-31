@@ -57,7 +57,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.roles().shouldBe(visible);
     mtiqSystemConfigMenu.administrators().shouldBe(visible);
     mtiqSystemConfigMenu.webhooks().shouldBe(visible);
-    mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }
@@ -77,7 +77,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.roles().shouldBe(visible);
     mtiqSystemConfigMenu.administrators().shouldBe(visible);
     mtiqSystemConfigMenu.webhooks().shouldBe(visible);
-    mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }

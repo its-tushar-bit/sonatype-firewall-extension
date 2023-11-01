@@ -76,7 +76,7 @@ export default function PolicyViolationsTableRow({
         })}
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
-        <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
+        <LegacyViolationsAndWaiverIndicators violation={violation} />
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>
@@ -103,7 +103,7 @@ export const violationPropTypes = {
       ),
     })
   ),
-  grandfathered: PropTypes.bool,
+  legacyViolation: PropTypes.bool,
   waived: PropTypes.bool,
   applicableWaivers: PropTypes.arrayOf(PropTypes.string),
 };
@@ -114,12 +114,12 @@ PolicyViolationsTableRow.propTypes = {
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
 };
 
-/* Helper component for grandfathering and waiver indicators. */
-const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
+/* Helper component for legacy violations and waiver indicators. */
+const LegacyViolationsAndWaiverIndicators = ({ violation }) => {
   const { waived, legacyViolation, applicableWaivers = [] } = violation;
   const numberOfWaivers = applicableWaivers.length;
 
-  const grandfatheredIndicator = legacyViolation ? (
+  const legacyViolationIndicator = legacyViolation ? (
     <div>
       <NxFontAwesomeIcon icon={faHistory} />
       <span>Legacy</span>
@@ -131,10 +131,10 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
       {numberOfWaivers > 0 && (
         <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
       )}
-      {grandfatheredIndicator}
+      {legacyViolationIndicator}
     </Fragment>
   );
 };
 
-PolicyViolationsTableRow.indicators = PolicyViolationsGrandfatheringAndWaiverIndicators;
-PolicyViolationsGrandfatheringAndWaiverIndicators.propTypes = { violation: PropTypes.shape(violationPropTypes) };
+PolicyViolationsTableRow.indicators = LegacyViolationsAndWaiverIndicators;
+LegacyViolationsAndWaiverIndicators.propTypes = { violation: PropTypes.shape(violationPropTypes) };

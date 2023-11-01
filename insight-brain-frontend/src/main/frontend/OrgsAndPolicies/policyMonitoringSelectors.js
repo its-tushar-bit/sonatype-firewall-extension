@@ -27,11 +27,11 @@ export const selectPolicyMonitoringMonitoredStage = createSelector(selectPolicyM
 export const selectIsMonitoringSupported = createSelector(selectPolicyMonitoringSlice, prop('isMonitoringSupported'));
 export const selectIsLegacyViolationSupported = createSelector(
   selectPolicyMonitoringSlice,
-  prop('isGrandfatheringSupported')
+  prop('isLegacyViolationSupported')
 );
-export const selectGrandfatheringStatusMessage = createSelector(
+export const selectLegacyViolationStatusMessage = createSelector(
   selectPolicyMonitoringSlice,
-  prop('grandfatheringStatusMessage')
+  prop('legacyViolationStatusMessage')
 );
 
 export const selectOriginalMonitoredStageFromFetchedData = createSelector(

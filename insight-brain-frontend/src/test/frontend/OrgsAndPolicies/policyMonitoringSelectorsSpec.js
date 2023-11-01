@@ -8,7 +8,7 @@ import {
   selectPolicyMonitoringLoadError,
   selectPolicyMonitoringLoading,
   selectPolicyMonitoringSubmitError,
-  selectGrandfatheringStatusMessage,
+  selectLegacyViolationStatusMessage,
   selectIsLegacyViolationSupported,
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
@@ -25,8 +25,8 @@ describe('policyMonitoringSelectors', () => {
           submitError: 'submitError',
           loading: false,
           isMonitoringSupported: false,
-          isGrandfatheringSupported: false,
-          grandfatheringStatusMessage: 'grandfathering status message',
+          isLegacyViolationSupported: false,
+          legacyViolationStatusMessage: 'legacy violation status message',
           monitoredStage: 'monitored stage',
           localProprietaryCount: 10,
           inheritedProprietaryCount: 10,
@@ -116,9 +116,9 @@ describe('policyMonitoringSelectors', () => {
     });
   });
 
-  describe('selectGrandfatheringStatusMessage', () => {
-    it('returns grandfatheringStatusMessage', () => {
-      expect(selectGrandfatheringStatusMessage(mockState)).toBe('grandfathering status message');
+  describe('selectLegacyViolationStatusMessage', () => {
+    it('returns legacyViolationStatusMessage', () => {
+      expect(selectLegacyViolationStatusMessage(mockState)).toBe('legacy violation status message');
     });
   });
 });

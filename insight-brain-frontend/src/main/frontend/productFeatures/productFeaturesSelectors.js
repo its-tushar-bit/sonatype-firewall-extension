@@ -13,6 +13,7 @@ export const selectLoadErrorFeatures = createSelector(selectProductFeaturesSlice
 export const selectIsEnforcementSupported = createSelector(selectProductFeatures, prop('enforcement'));
 export const selectIsFirewallSupported = createSelector(selectProductFeatures, prop('firewall'));
 export const selectIsMonitoringSupported = createSelector(selectProductFeatures, prop('policy-monitoring'));
+// this selector will need to be updated in CLM-28105
 export const selectIsLegacyViolationSupported = createSelector(selectProductFeatures, prop('policy-grandfathering'));
 export const selectIsNotificationsSupported = createSelector(selectProductFeatures, prop('notifications'));
 import { selectIsRepositories, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';

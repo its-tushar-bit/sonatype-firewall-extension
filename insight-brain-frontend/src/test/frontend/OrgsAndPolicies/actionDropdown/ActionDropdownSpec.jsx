@@ -233,9 +233,8 @@ describe('ActionDropdown', () => {
               parentOrganizationId: null,
               name: 'Root Organization',
               nameLowercaseNoWhitespace: 'rootorganization',
-              policyViolationGrandfatheringEnabled: false,
-              legacyPolicyViolationEnabled: false,
-              allowPolicyViolationGrandfatheringOverride: true,
+              legacyViolationEnabled: false,
+              allowLegacyViolationOverride: true,
               repositoryConnectionEnabled: null,
               allowRepositoryConnectionOverride: true,
               artifactoryConnectionEnabled: null,
@@ -314,9 +313,9 @@ describe('ActionDropdown', () => {
         renderComponent();
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(grandfatherButton).not.toHaveClassName('disabled');
-        fireEvent.mouseOver(grandfatherButton);
+        const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
+        expect(legacyButton).not.toHaveClassName('disabled');
+        fireEvent.mouseOver(legacyButton);
         const tooltip = screen.queryByRole('tooltip');
         expect(tooltip).not.toBeInTheDocument();
       });
@@ -353,9 +352,9 @@ describe('ActionDropdown', () => {
         });
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(grandfatherButton).toHaveClassName('disabled');
-        fireEvent.mouseOver(grandfatherButton);
+        const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
+        expect(legacyButton).toHaveClassName('disabled');
+        fireEvent.mouseOver(legacyButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Legacy Violations are not supported by your license')).toBeInTheDocument();
       });
@@ -397,9 +396,9 @@ describe('ActionDropdown', () => {
         });
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(grandfatherButton).toHaveClassName('disabled');
-        fireEvent.mouseOver(grandfatherButton);
+        const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
+        expect(legacyButton).toHaveClassName('disabled');
+        fireEvent.mouseOver(legacyButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(
           within(tooltip).getByText('Legacy Violations are not enabled for this application.')

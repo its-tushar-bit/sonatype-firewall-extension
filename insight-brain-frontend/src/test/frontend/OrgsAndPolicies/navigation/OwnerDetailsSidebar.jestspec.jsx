@@ -56,7 +56,7 @@ const defaultPreloadedState = {
       },
     },
     policyMonitoring: {
-      isGrandfatheringSupported: false,
+      isLegacyViolationSupported: false,
       isMonitoringSupported: true,
     },
   },
@@ -218,7 +218,7 @@ describe('OwnerDetailSidebar', () => {
           },
         },
         policyMonitoring: {
-          isGrandfatheringSupported: false,
+          isLegacyViolationSupported: false,
           isMonitoringSupported: true,
         },
       },
@@ -273,7 +273,7 @@ describe('OwnerDetailSidebar', () => {
           },
         },
         policyMonitoring: {
-          isGrandfatheringSupported: false,
+          isLegacyViolationSupported: false,
           isMonitoringSupported: true,
         },
       },

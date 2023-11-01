@@ -73,7 +73,7 @@ export default function SourceControlTile() {
     return (
       <NxTile.Content>
         <NxH3>Configuration</NxH3>
-        <NxList id="policy-violation-grandfathering">
+        <NxList id="legacy-violations">
           <NxList.LinkItem href={href}>
             {showText && (
               <>

@@ -27,7 +27,7 @@ export const initialState = {
   actionStages: null,
   monitoredStage: null,
   originalStage: null,
-  grandfatheringStatusMessage: null,
+  legacyViolationStatusMessage: null,
   isDirty: false,
   submitMaskState: null,
 };

@@ -113,7 +113,7 @@ describe('productFeaturesSelectors', () => {
   });
 
   describe('selectIsLegacyViolationSupported', () => {
-    it('returns true if policy-grandfathering enabled', () => {
+    it('returns true if policy-grandfathering is enabled', () => {
       expect(selectIsLegacyViolationSupported(mockState)).toBeTrue();
     });
   });

@@ -33,7 +33,7 @@ import {
   selectIsRepositoriesRelated,
   selectIsCategory,
   selectIsPolicy,
-  selectIsGrandfathering,
+  selectIsLegacyViolation,
   selectIsMonitoring,
   selectIsProprietary,
   selectIsLabel,
@@ -77,7 +77,7 @@ export default function OwnerDetailSidebar() {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isCategory = useSelector(selectIsCategory);
   const isPolicy = useSelector(selectIsPolicy);
-  const isLegacyViolations = useSelector(selectIsGrandfathering);
+  const isLegacyViolations = useSelector(selectIsLegacyViolation);
   const isMonitoring = useSelector(selectIsMonitoring);
   const isProprietary = useSelector(selectIsProprietary);
   const isLabel = useSelector(selectIsLabel);
@@ -257,7 +257,7 @@ export default function OwnerDetailSidebar() {
           ))}
       </NxCollapsibleItems>
 
-      {/* Grandfathering */}
+      {/* Legacy Violations */}
       {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxTooltip title={!isLegacyViolationsSupported ? 'Legacy Violations are not supported by your license' : ''}>
           <NxCollapsibleItems.Child>

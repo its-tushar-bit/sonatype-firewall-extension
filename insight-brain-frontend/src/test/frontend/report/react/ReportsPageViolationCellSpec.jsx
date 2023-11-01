@@ -45,7 +45,7 @@ describe('ReportsPageViolationCell', () => {
             criticalPolicyViolationCount: 709,
             severePolicyViolationCount: 152,
             moderatePolicyViolationCount: 7,
-            grandfatheredPolicyViolationCount: 0,
+            legacyViolationCount: 0,
             totalComponentCount: 1157,
           },
         },
@@ -75,7 +75,7 @@ describe('ReportsPageViolationCell', () => {
           criticalPolicyViolationCount: 709,
           severePolicyViolationCount: 152,
           moderatePolicyViolationCount: 7,
-          grandfatheredPolicyViolationCount: 0,
+          legacyViolationCount: 0,
           totalComponentCount: 1157,
         },
       };

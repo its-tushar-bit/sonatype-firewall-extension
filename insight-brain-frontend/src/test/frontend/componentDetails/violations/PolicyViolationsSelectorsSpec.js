@@ -17,7 +17,7 @@ describe('policyViolationsSelectors', () => {
     policyName: 'Security-High',
     policyThreatLevel: 10,
     waived: false,
-    grandfathered: false,
+    legacyViolation: false,
     policyThreatCategory: 'SECURITY',
     constraints: [
       {

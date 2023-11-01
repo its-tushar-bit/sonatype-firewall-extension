@@ -44,7 +44,7 @@ export const applicablePolicies = {
               name: 'Custom Pol',
               ownerId: 'REPOSITORY_CONTAINER_ID',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: false,
+              allowLegacyViolationOverride: false,
               constraints: [
                 {
                   id: 'aa9baccd1e9f4a1ca2f45363a29f8624',
@@ -126,7 +126,7 @@ export const applicablePolicies = {
               name: 'License-Banned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              allowLegacyViolationOverride: false,
               constraints: [
                 {
                   id: 'e42e5a263ebd4c0da8df3503e583cad3',
@@ -161,7 +161,7 @@ export const applicablePolicies = {
               name: 'Security-Malicious',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              allowLegacyViolationOverride: false,
               constraints: [
                 {
                   id: 'a8485c2b06b04e1facb3d75736238e6a',

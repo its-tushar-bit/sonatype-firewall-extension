@@ -25,7 +25,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 9,
       policyName: 'Policy 4',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'bar',
       displayName: {
         parts: [
@@ -44,7 +44,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 4,
       policyName: 'Policy 2',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'baz',
       derivedComponentName: 'junit.junit.4.8',
     },
@@ -54,7 +54,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 3,
       policyName: 'Policy 3',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'baz',
       derivedComponentName: 'ant.ant.1.62',
     },
@@ -64,7 +64,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 4,
       policyName: 'Policy 1',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'bar',
       derivedComponentName: 'junit.junit.4.12',
     },
@@ -74,7 +74,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 4,
       policyName: 'Policy 5',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'qux',
       displayName: {
         parts: [
@@ -93,7 +93,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 8,
       policyName: 'Policy 6',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'bar',
       derivedComponentName: 'junit.junit.4.12',
     },
@@ -103,7 +103,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 9,
       policyName: 'Policy 9',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'bar',
       displayName: {
         parts: [
@@ -122,7 +122,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 5,
       policyName: 'Policy 7',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'qux',
       displayName: {
         parts: [
@@ -141,7 +141,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 4,
       policyName: 'Policy 8',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'qux',
       displayName: {
         parts: [
@@ -160,7 +160,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 0,
       policyName: 'None',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'apache',
       derivedComponentName: 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
     },
@@ -170,7 +170,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 3,
       policyName: 'Policy 11',
       waived: false,
-      grandfathered: true,
+      legacyViolation: true,
       componentIdentifier: 'foo',
       displayName: {
         parts: [
@@ -189,7 +189,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 2,
       policyName: 'Policy 10',
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'foo',
       derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
     },
@@ -199,7 +199,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 5,
       policyName: 'Policy 12',
       waived: false,
-      grandfathered: true,
+      legacyViolation: true,
       componentIdentifier: 'foo',
       displayName: {
         parts: [
@@ -218,7 +218,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 5,
       policyName: 'Policy 12',
       waived: false,
-      grandfathered: true,
+      legacyViolation: true,
       componentIdentifier: 'foo2',
       displayName: {
         parts: [
@@ -237,7 +237,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 5,
       policyName: 'Policy 13',
       waived: false,
-      grandfathered: true,
+      legacyViolation: true,
       componentIdentifier: 'foo3',
       displayName: {
         parts: [
@@ -255,7 +255,7 @@ describe('sortUtils specs', function () {
       policyThreatLevel: 6,
       policyName: 'Policy 14',
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       componentIdentifier: 'foo3',
       displayName: {
         parts: [

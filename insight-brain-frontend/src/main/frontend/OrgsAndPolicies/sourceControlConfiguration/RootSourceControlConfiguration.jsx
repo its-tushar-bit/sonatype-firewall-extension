@@ -18,7 +18,6 @@ import {
 import {
   getValidationMessage,
   providerNeedsUsername,
-  SOURCE_CONTROL_OPTIONS,
   DEFAULT_BRANCH_SUBLABEL,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,7 +25,10 @@ import {
   selectSourceControlConfigurationSlice,
   selectValidationError,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
-import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAutomationSupported,
+  selectTenantScmOptionsTypes,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 
@@ -43,6 +45,8 @@ const RootSourceControlConfiguration = () => {
   } = useSelector(selectSourceControlConfigurationSlice);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
+  const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
+
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
@@ -130,7 +134,7 @@ const RootSourceControlConfiguration = () => {
         </NxFormGroup>
       </NxTooltip>
 
-      {SOURCE_CONTROL_OPTIONS.map(({ id, title, description, optionName }) => {
+      {sourceControlOptions.map(({ id, title, description, optionName }) => {
         return (
           <NxTooltip
             key={id}

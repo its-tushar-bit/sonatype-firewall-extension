@@ -76,6 +76,15 @@ public class ApiSourceControlAdapter
     }
   }
 
+  private static Boolean convertRemediationPullRequestsEnabled(Boolean remediationPullRequestsEnabled) {
+    if (new TenantUtil().isMultiTenant()) {
+      return false;
+    }
+    else {
+      return remediationPullRequestsEnabled;
+    }
+  }
+
   @SuppressWarnings("deprecation")
   static SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
@@ -86,7 +95,10 @@ public class ApiSourceControlAdapter
         .setRepositoryUrl(dto.repositoryUrl).setUsername(dto.username).setToken(dto.token)
         .setProvider(getSourceControlProvider(dto.provider))
         .setRemediationPullRequestsEnabled(
-            dto.remediationPullRequestsEnabled != null ? dto.remediationPullRequestsEnabled : dto.enablePullRequests)
+            convertRemediationPullRequestsEnabled(
+                dto.remediationPullRequestsEnabled != null ? dto.remediationPullRequestsEnabled : dto.enablePullRequests
+            )
+        )
         .setStatusChecksEnabled(dto.statusChecksEnabled != null ? dto.statusChecksEnabled : dto.enableStatusChecks)
         .setBaseBranch(dto.baseBranch)
         .setPullRequestCommentingEnabled(dto.pullRequestCommentingEnabled)

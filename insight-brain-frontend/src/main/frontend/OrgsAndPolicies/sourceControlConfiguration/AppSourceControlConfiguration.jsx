@@ -25,7 +25,6 @@ import {
   isAccessTokenRequiredOnNode,
   providerNeedsUsername,
   PROVIDERS_WITH_USERNAME,
-  SOURCE_CONTROL_OPTIONS,
   SCM_FEATURE_UNSUPPORTED_MESSAGE,
   DEFAULT_BRANCH_SUBLABEL,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
@@ -34,7 +33,10 @@ import {
   selectSourceControlConfigurationSlice,
   selectValidationError,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
-import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAutomationSupported,
+  selectTenantScmOptionsTypes,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -58,6 +60,7 @@ const AppSourceControlConfiguration = () => {
   const validationError = useSelector(selectValidationError);
   const isApp = useSelector(selectIsApplication);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
+  const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
 
   const doLoad = () => dispatch(actions.load());
   const showResetModal = () => dispatch(actions.showResetModal());
@@ -308,7 +311,7 @@ const AppSourceControlConfiguration = () => {
           </NxFormGroup>
         </NxFieldset>
       </NxTooltip>
-      {SOURCE_CONTROL_OPTIONS.map(({ id, title, description, optionName }) => {
+      {sourceControlOptions.map(({ id, title, description, optionName }) => {
         return (
           <SourceControlInheritedInput
             id={id}

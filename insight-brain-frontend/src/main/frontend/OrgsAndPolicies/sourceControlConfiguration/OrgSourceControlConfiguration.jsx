@@ -23,11 +23,13 @@ import {
   getValidationMessage,
   providerNeedsUsername,
   PROVIDERS_WITH_USERNAME,
-  SOURCE_CONTROL_OPTIONS,
   SCM_FEATURE_UNSUPPORTED_MESSAGE,
   DEFAULT_BRANCH_SUBLABEL,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
-import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAutomationSupported,
+  selectTenantScmOptionsTypes,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectSourceControlConfigurationSlice,
   selectValidationError,
@@ -49,6 +51,7 @@ const OrgSourceControlConfiguration = () => {
   } = useSelector(selectSourceControlConfigurationSlice);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
+  const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
 
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -273,7 +276,7 @@ const OrgSourceControlConfiguration = () => {
           </NxFormGroup>
         </NxFieldset>
       </NxTooltip>
-      {SOURCE_CONTROL_OPTIONS.map(({ id, title, description, optionName }) => {
+      {sourceControlOptions.map(({ id, title, description, optionName }) => {
         return (
           <SourceControlInheritedInput
             key={id}

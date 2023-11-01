@@ -16,7 +16,7 @@ export const selectIsMonitoringSupported = createSelector(selectProductFeatures,
 export const selectIsLegacyViolationSupported = createSelector(selectProductFeatures, prop('policy-grandfathering'));
 export const selectIsNotificationsSupported = createSelector(selectProductFeatures, prop('notifications'));
 import { selectIsRepositories, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { PROVIDER_TYPES } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
+import { PROVIDER_TYPES, SOURCE_CONTROL_OPTIONS } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 export const selectIsWebhooksSupported = createSelector(
   selectProductFeatures,
   (features) => features['webhooks-for-applications'] || features['webhooks-for-repositories']
@@ -142,6 +142,14 @@ export const selectTenantScmProviderTypes = createSelector(selectTenantMode, (mo
     return PROVIDER_TYPES.filter((provider) => provider.value.toLocaleLowerCase() === 'github');
   } else {
     return PROVIDER_TYPES;
+  }
+});
+
+export const selectTenantScmOptionsTypes = createSelector(selectTenantMode, (mode) => {
+  if (mode === MULTI_TENANT) {
+    return SOURCE_CONTROL_OPTIONS.filter((option) => option.id !== 'source-control-remediation-pull-requests');
+  } else {
+    return SOURCE_CONTROL_OPTIONS;
   }
 });
 

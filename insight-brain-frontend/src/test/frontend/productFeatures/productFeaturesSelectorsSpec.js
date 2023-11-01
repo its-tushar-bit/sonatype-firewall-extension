@@ -34,6 +34,7 @@ import {
   selectTenantScmProviderTypes,
   selectIsScmEnabled,
   selectIsAutomaticScmConfigurationEnabled,
+  selectTenantScmOptionsTypes,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -310,6 +311,18 @@ describe('productFeaturesSelectors', () => {
 
       mockState = assocPath(['productFeatures', 'productFeatures', 'saas-lifecycle-scm-enabled'], true, mockState);
       expect(selectIsScmEnabled(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectSourceControlOptions', () => {
+    it('returns all with the exception of auto remediated PR in multi-tenant mode', () => {
+      mockState.productFeatures.productFeatures['multi-tenant'] = true;
+      expect(selectTenantScmOptionsTypes(mockState)).toHaveSize(4);
+    });
+
+    it('returns all option in single-tenant mode', () => {
+      mockState.productFeatures.productFeatures['single-tenant'] = true;
+      expect(selectTenantScmOptionsTypes(mockState)).toHaveSize(5);
     });
   });
 });

@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -618,7 +619,7 @@ public class RepositoryPolicyEvaluator
     return null;
   }
 
-  public ComponentEvaluationDataList getComponentDetailsFromHds(
+  private ComponentEvaluationDataList getComponentDetailsFromHds(
       Repository repository,
       boolean withQuarantine,
       final RepositoryComponentEvaluationDataRequestList hdsRequest,

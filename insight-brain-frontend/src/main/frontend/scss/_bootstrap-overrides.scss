@@ -10,6 +10,7 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use './variables' as *;
+@use './mixins';
 
 .nx-list {
   ul,
@@ -155,12 +156,27 @@
   line-height: var(--nx-line-height);
 }
 
-.nx-text-link,
-.nx-list__link {
-  &:hover,
-  &:focus {
-    color: inherit;
+// Override Bootstrap's styling of <a> elements.
+a {
+  @include mixins.text-link;
+}
+
+.nx-breadcrumb__link--current {
+  text-decoration: none;
+}
+
+.nx-global-sidebar__navigation-link {
+  &:hover {
     text-decoration: none;
+  }
+}
+
+.nx-list__item--clickable {
+  .nx-text-link,
+  .nx-list__link {
+    &:hover {
+      text-decoration: none;
+    }
   }
 }
 

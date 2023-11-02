@@ -16,10 +16,10 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import moment from 'moment';
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
-import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 
@@ -74,7 +74,7 @@ describe('ListWaiversTable', function () {
     expect(tableBody).toHaveProp('emptyMessage');
 
     const emptyMessageShallowRender = shallow(tableBody.prop('emptyMessage'));
-    expect(emptyMessageShallowRender.find(NxExternalLink)).toHaveProp(
+    expect(emptyMessageShallowRender.find(NxTextLink)).toHaveProp(
       'href',
       'http://links.sonatype.com/products/nxiq/doc/waivers'
     );

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxTableCell } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTextLink } from '@sonatype/react-shared-components';
 
 import DashboardApplicationsTableStageRiskRow from 'MainRoot/dashboard/results/applications/DashboardApplicationsTableStageRiskRow';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
@@ -30,7 +30,7 @@ describe('DashboardApplicationsTableStageRiskRow', function () {
   it('renders a link to the related stage report in the stage name', function () {
     const row = getShallow(),
       stageNameCell = row.find(NxTableCell).at(0),
-      link = stageNameCell.find('a');
+      link = stageNameCell.find(NxTextLink);
 
     expect(hrefSpy).toHaveBeenCalledWith('applicationReport.policy', {
       publicId: 'appId',

@@ -6,6 +6,7 @@
 
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
+import { NxTextLink } from '@sonatype/react-shared-components';
 import ownerConstant from '../../../utility/services/owner.constant';
 import { displayName } from '../utils/providers';
 
@@ -52,7 +53,7 @@ function CredentialsError(props) {
 
   const hostUrlBlock = () => {
     if (hostUrlClicked !== undefined) {
-      return <a onClick={hostUrlClicked}>different host URL</a>;
+      return <NxTextLink onClick={hostUrlClicked}>different host URL</NxTextLink>;
     }
     return 'different host URL';
   };
@@ -65,7 +66,7 @@ function CredentialsError(props) {
         <strong>{errorShortDescription()}. </strong>
       )}
       {errorDetailDescription()} You may try a {hostUrlBlock()} or manage your SCM configuration in the{' '}
-      <a href={scmConfigurationHref}>Orgs & Policies</a> page.
+      <NxTextLink href={scmConfigurationHref}>Orgs & Policies</NxTextLink> page.
     </Fragment>
   );
 }

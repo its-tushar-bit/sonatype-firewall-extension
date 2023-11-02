@@ -163,6 +163,7 @@
     // override bootstrap css for printed <a> tags
     a {
       color: $iq-link-color !important;
+      text-decoration: none;
 
       &::after {
         content: normal;

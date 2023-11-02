@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicenseFilesTile from '../../../../../main/frontend/legal/files/licenses/LicenseFilesTile';
-import { NxButton, NxFontAwesomeIcon, NxAccordion } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion, NxTextLink } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('LicenseFilesTile', function () {
@@ -92,7 +92,7 @@ describe('LicenseFilesTile', function () {
 
   it('renders the given license file links by hash', function () {
     const wrapper = getShallowComponent();
-    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
     let licenseFileLink = licenseFileLinks.at(0);
     expect(licenseFileLink).toHaveProp(
@@ -113,7 +113,7 @@ describe('LicenseFilesTile', function () {
       hash: undefined,
       componentIdentifier: 'testComponentIdentifier',
     });
-    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
     let licenseFileLink = licenseFileLinks.at(0);
     expect(licenseFileLink).toHaveProp(

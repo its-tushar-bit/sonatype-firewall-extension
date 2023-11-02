@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxH1, NxPageTitle, NxLoadWrapper, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxH1, NxPageTitle, NxLoadWrapper, NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { getOwnerImageUrl } from 'MainRoot/utilAngular/CLMContextLocation';
@@ -85,9 +85,9 @@ export default function OwnerSummary() {
         {isApp && repositoryUrl && (
           <div className="page-repository-url nx-truncate-ellipsis">
             <NxFontAwesomeIcon icon={findIconDefinition({ prefix: 'fab', iconName: scmProviderIcon })} />
-            <a href={repositoryUrl} target="_blank" rel="noreferrer">
+            <NxTextLink external href={repositoryUrl}>
               {repositoryUrl}
-            </a>
+            </NxTextLink>
           </div>
         )}
         <OwnerSummaryPills />

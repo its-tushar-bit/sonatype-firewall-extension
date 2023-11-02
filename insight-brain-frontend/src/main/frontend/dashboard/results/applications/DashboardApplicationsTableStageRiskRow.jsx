@@ -5,9 +5,8 @@
  */
 import React from 'react';
 
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow, NxTextLink } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import classNames from 'classnames';
 
@@ -28,10 +27,9 @@ export default function DashboardApplicationsTableStageRiskRow(props) {
   return (
     <NxTableRow id={stageRowAutomationId} className={rowClassNames} key={stageRisk.scanId}>
       <NxTableCell>
-        <a href={reportRef} target="_blank" rel="noopener noreferrer">
-          <NxFontAwesomeIcon icon={faExternalLink} />
+        <NxTextLink external href={reportRef}>
           {stageRisk.stageTypeName}
-        </a>
+        </NxTextLink>
       </NxTableCell>
       <NxTableCell className="nx-cell--num">{stageRisk.risk.totalRisk}</NxTableCell>
       <NxTableCell className="nx-cell--num">{stageRisk.risk.criticalRisk}</NxTableCell>

@@ -6,8 +6,7 @@
 
 import React, { Fragment } from 'react';
 import { faCaretDown, faCaretRight, faLightbulb } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import NxExternalLink from '../react/NxExternalLink';
+import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 export default function AdvancedSearchHelp(props) {
@@ -58,15 +57,15 @@ export default function AdvancedSearchHelp(props) {
       <p>
         <span className="iq-adv-search-help__explanation">
           Read additional{' '}
-          <NxExternalLink href="https://links.sonatype.com/products/nxiq/doc/advanced-search">
+          <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/advanced-search">
             documentation
-          </NxExternalLink>
+          </NxTextLink>
         </span>
         <span className="iq-adv-search-help__explanation">
           Send feedback to the{' '}
-          <NxExternalLink href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">
+          <NxTextLink external href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">
             community board
-          </NxExternalLink>
+          </NxTextLink>
         </span>
       </p>
     </div>

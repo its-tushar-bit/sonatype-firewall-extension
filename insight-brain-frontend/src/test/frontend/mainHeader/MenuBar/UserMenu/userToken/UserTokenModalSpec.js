@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxButton, NxModal, NxSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxSubmitMask, NxWarningAlert, NxTextLink } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../../enzymeUtils';
 import LoadError from '../../../../../../main/frontend/react/LoadError';
 import LoadWrapper from '../../../../../../main/frontend/react/LoadWrapper';
-import NxExternalLink from '../../../../../../main/frontend/react/NxExternalLink';
 import UserTokenDisplay from '../../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserToken/UserTokenDisplay';
 import UserTokenModal from '../../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserToken/UserTokenModal';
 
@@ -178,10 +177,10 @@ describe('UserTokenModal', function () {
 
       expect(paragraphs.at(1)).toHaveText(
         'Should you forget or lose your user token credentials, you should delete your ' +
-          'user token and create a new one. To learn more about User Tokens please see the <DeprecatedNxExternalLinkContainer />'
+          'user token and create a new one. To learn more about User Tokens please see the help documentation.'
       );
 
-      const externalDocumentationLink = paragraphs.at(1).find(NxExternalLink);
+      const externalDocumentationLink = paragraphs.at(1).find(NxTextLink);
       expect(externalDocumentationLink).toHaveProp('href', 'http://links.sonatype.com/products/nxiq/doc/user-tokens');
       expect(externalDocumentationLink).toHaveProp('children', 'help documentation.');
     });

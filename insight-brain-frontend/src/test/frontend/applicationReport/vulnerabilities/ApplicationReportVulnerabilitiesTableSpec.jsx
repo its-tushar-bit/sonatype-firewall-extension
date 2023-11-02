@@ -10,6 +10,7 @@ import {
   NxTableBody,
   NxTableCell,
   NxThreatIndicator,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
@@ -92,9 +93,9 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
     expect(thirdRowTds.at(0).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 1);
     expect(thirdRowTds.at(0).find('.nx-threat-number')).toHaveText('1');
 
-    expect(firstRowTds.at(1).find('a').first()).toHaveText('CVE-1234');
-    expect(secondRowTds.at(1).find('a').first()).toHaveText('CVE-0000');
-    expect(thirdRowTds.at(1).find('a').first()).toHaveText('CVE-1235');
+    expect(firstRowTds.at(1).find(NxTextLink).first()).toHaveText('CVE-1234');
+    expect(secondRowTds.at(1).find(NxTextLink).first()).toHaveText('CVE-0000');
+    expect(thirdRowTds.at(1).find(NxTextLink).first()).toHaveText('CVE-1235');
 
     expect(firstRowTds.at(2).children()).toHaveText('5.9');
     expect(secondRowTds.at(2).children()).toHaveText('10.0');
@@ -185,8 +186,8 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
       ],
       render = getShallowComponent({ vulnerabilities }),
       rows = render.find(NxTableBody).find(NxTableRow),
-      firstRowLinks = rows.at(0).find(NxTableCell).at(1).find('a'),
-      secondRowLinks = rows.at(1).find(NxTableCell).at(1).find('a');
+      firstRowLinks = rows.at(0).find(NxTableCell).at(1).find(NxTextLink),
+      secondRowLinks = rows.at(1).find(NxTableCell).at(1).find(NxTextLink);
 
     expect(firstRowLinks.first()).not.toHaveClassName('iq-vulnerability-printable-link');
     expect(firstRowLinks.first()).toHaveClassName('iq-vulnerability-refid-link');

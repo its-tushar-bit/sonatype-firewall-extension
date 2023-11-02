@@ -228,7 +228,7 @@ describe('OverviewComponentInformation', () => {
       expect(OcurrencesLabel).toHaveText('Occurrences');
       expect(OcurrencesValue).toHaveText('2 Files');
 
-      const viewOcurrancesLink = OcurrencesValue.find('a');
+      const viewOcurrancesLink = OcurrencesValue.find(NxTextLink);
       expect(viewOcurrancesLink).toExist();
 
       viewOcurrancesLink.simulate('keydown', { key: 'A' });
@@ -281,7 +281,7 @@ describe('OverviewComponentInformation', () => {
       expect(matchStateLabel).toHaveText('Match State');
       expect(matchStateValue).toHaveText('Similar (View Similar Matches)');
 
-      const viewSimilarMatchesLink = matchStateValue.find('a');
+      const viewSimilarMatchesLink = matchStateValue.find(NxTextLink);
       expect(viewSimilarMatchesLink).toExist();
 
       viewSimilarMatchesLink.simulate('keydown', { key: 'A' });

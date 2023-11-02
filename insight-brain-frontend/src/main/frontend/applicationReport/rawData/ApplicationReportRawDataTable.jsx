@@ -12,6 +12,7 @@ import {
   NxTableHead,
   NxTableRow,
   NxFilterInput,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import RawLicenseDisplay from './RawLicenseDisplay';
@@ -55,7 +56,7 @@ function createRow(entry, openModal) {
       <NxTableCell>{derivedComponentName}</NxTableCell>
       <NxTableCell>{license && <RawLicenseDisplay license={license} />}</NxTableCell>
       <NxTableCell>
-        <a onClick={() => openModal(entry)}>{securityCode}</a>
+        <NxTextLink onClick={() => openModal(entry)}>{securityCode}</NxTextLink>
       </NxTableCell>
       <NxTableCell>{cvssScore}</NxTableCell>
     </NxTableRow>

@@ -5,7 +5,7 @@
  */
 
 import * as enzymeUtils from '../../../enzymeUtils';
-import { NxInfoAlert } from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
 import InnerSourceProducerAlert from '../../../../../main/frontend/componentDetails/overview/InnerSourceProducerAlert/InnerSourceProducerAlert';
 
 describe('InnerSourceProducerAlert', () => {
@@ -78,7 +78,7 @@ describe('InnerSourceProducerAlert', () => {
 
   it('renders a single a tag with text "View the latest report"', () => {
     const wrapper = getShallowComponent();
-    const aTag = wrapper.find('a');
+    const aTag = wrapper.find(NxTextLink);
 
     expect(aTag).toExist();
     expect(aTag).toHaveText('View the latest report');
@@ -86,7 +86,7 @@ describe('InnerSourceProducerAlert', () => {
 
   it('calls onClick when clicking on the a tag', () => {
     const wrapper = getShallowComponent();
-    const aTag = wrapper.find('a');
+    const aTag = wrapper.find(NxTextLink);
 
     aTag.simulate('click');
 

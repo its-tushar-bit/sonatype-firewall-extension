@@ -9,7 +9,7 @@ import React, { Fragment, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { organizationPropType, repositoryPropType } from '../scmPropTypes';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import { NxFontAwesomeIcon, NxTooltip, NxSubmitMask } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTooltip, NxSubmitMask, NxTextLink } from '@sonatype/react-shared-components';
 import { faPlus, faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
@@ -76,9 +76,9 @@ export default function RepositoryPane(props) {
     return (
       <span>
         We could not find a token. You can configure a token to be shared across organizations in the Root
-        Organization&apos;s <a href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</a> page, or you can
-        provide a custom token for the <a href={orgsAndPoliciesHref}>{selectedOrganization.organization.name}</a>{' '}
-        Organization.
+        Organization&apos;s <NxTextLink href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</NxTextLink>{' '}
+        page, or you can provide a custom token for the{' '}
+        <NxTextLink href={orgsAndPoliciesHref}>{selectedOrganization.organization.name}</NxTextLink> Organization.
       </span>
     );
   };
@@ -100,7 +100,7 @@ export default function RepositoryPane(props) {
   const scmUrlLink = (addModalLink) => {
     const linkText = 'provide a SCM URL';
     if (addModalLink) {
-      return <a onClick={() => setShowHostDialog(true)}>{linkText}</a>;
+      return <NxTextLink onClick={() => setShowHostDialog(true)}>{linkText}</NxTextLink>;
     }
     return linkText;
   };
@@ -111,7 +111,7 @@ export default function RepositoryPane(props) {
         <p>
           IQ Server was unable to connect to {defaultHostUrl} using the credentials associated with the{' '}
           {selectedOrganization.organization.name} Organization. You may try a different host URL or manage your SCM
-          configuration in the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
+          configuration in the <NxTextLink href={orgsAndPoliciesHref}>Orgs & Policies</NxTextLink> page.
         </p>
       );
     }
@@ -119,7 +119,7 @@ export default function RepositoryPane(props) {
       return (
         <span>
           IQ Server was unable to connect to {defaultHostUrl}. You may try a different host URL or manage your SCM
-          configuration in the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
+          configuration in the <NxTextLink href={orgsAndPoliciesHref}>Orgs & Policies</NxTextLink> page.
         </span>
       );
     }
@@ -131,7 +131,7 @@ export default function RepositoryPane(props) {
         <Fragment>
           {errorText}
           <p>
-            <a onClick={() => setShowHostDialog(true)}>Click here</a> to change the git host URL.
+            <NxTextLink onClick={() => setShowHostDialog(true)}>Click here</NxTextLink> to change the git host URL.
           </p>
         </Fragment>
       );

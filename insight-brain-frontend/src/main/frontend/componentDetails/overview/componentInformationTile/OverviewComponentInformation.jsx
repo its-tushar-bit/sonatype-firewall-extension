@@ -52,7 +52,7 @@ export default function OverviewComponentInformation({
   const viewSimilarMatchesLink = similarMatches?.length > 0 && (
     <span>
       {/* required space before link */ ' '}
-      <a
+      <NxTextLink
         className="iq-identification-info-definition-list__similar-matches-link"
         onClick={toggleShowSimilarMatches}
         tabIndex="0"
@@ -63,7 +63,7 @@ export default function OverviewComponentInformation({
         }}
       >
         (View Similar Matches)
-      </a>
+      </NxTextLink>
     </span>
   );
 
@@ -93,7 +93,7 @@ export default function OverviewComponentInformation({
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Occurrences</dt>
         <dd className="nx-read-only__data">
-          <a
+          <NxTextLink
             className="iq-identification-info-definition-list__occurrences-link"
             onClick={toggleShowOccurrencesPopover}
             tabIndex="0"
@@ -104,7 +104,7 @@ export default function OverviewComponentInformation({
             }}
           >
             {pathnames.length + (pathnames.length > 1 ? ' Files' : ' File')}
-          </a>
+          </NxTextLink>
         </dd>
       </div>
       <div className="nx-read-only__item">

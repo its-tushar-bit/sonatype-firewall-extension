@@ -15,6 +15,7 @@ import {
   NxWarningAlert,
   NxFontAwesomeIcon,
   NxFormGroup,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
@@ -162,7 +163,8 @@ export default function ProxyConfig({
             {/* most likely they want to navigate to license install page next. */}
             {!licensed && (
               <p id="proxy-config-product-license-navigation" className="nx-p">
-                Continue installing your license <a onClick={() => stateGo('productlicense')}>here.</a>
+                Continue installing your license{' '}
+                <NxTextLink onClick={() => stateGo('productlicense')}>here.</NxTextLink>
               </p>
             )}
             {field(hostnameState, setHostname, 'proxy.server', 'proxy-config-hostname', 'Hostname')}

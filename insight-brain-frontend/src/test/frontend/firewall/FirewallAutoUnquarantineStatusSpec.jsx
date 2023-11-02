@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { NxTextLink } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 import StatusIndicatorIcon from '../../../main/frontend/react/statusIndicatorIcon/StatusIndicatorIcon';
 
@@ -77,7 +78,7 @@ describe('FirewallAutoUnquarantineStatus', function () {
     const component = getShallowComponent();
     const footer = component.find('.nx-card__footer');
     expect(footer).toExist();
-    const configureLink = component.find('.nx-text-link');
+    const configureLink = component.find(NxTextLink);
     expect(configureLink).toHaveText('Configure');
     configureLink.simulate('click');
     expect(openConfigurationModalSpy).toHaveBeenCalled();

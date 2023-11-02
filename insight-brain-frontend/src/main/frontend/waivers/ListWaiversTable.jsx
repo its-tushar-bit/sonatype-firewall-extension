@@ -17,13 +17,13 @@ import {
   NxTableRow,
   NxButton,
   NxFontAwesomeIcon,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 
 import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
-import NxExternalLink from '../react/NxExternalLink';
 import { Messages } from '../utilAngular/CommonServices';
 import { waiverType, displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
 import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
@@ -85,7 +85,9 @@ export default function ListWaiversTable(props) {
   const emptyMessage = (
     <span>
       You don&apos;t have any waivers: to learn more about waivers you can check our{' '}
-      <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/waivers">help documentation.</NxExternalLink>
+      <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/waivers">
+        help documentation.
+      </NxTextLink>
     </span>
   );
 

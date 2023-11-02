@@ -7,7 +7,6 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
-import NxExternalLink from '../../react/NxExternalLink';
 import LoadError from '../../react/LoadError';
 import {
   NxPageMain,
@@ -19,6 +18,7 @@ import {
   NxCheckbox,
   NxFieldset,
   NxFontAwesomeIcon,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
@@ -130,9 +130,9 @@ export default function AdvancedSearchConfig(props) {
               <NxP>
                 You can combine multiple search terms to craft an even more targeted search. For more information on how
                 to use this feature,{' '}
-                <NxExternalLink href="https://links.sonatype.com/products/nxiq/doc/advanced-search">
+                <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/advanced-search">
                   check out the documentation
-                </NxExternalLink>
+                </NxTextLink>
                 .
               </NxP>
               <NxFieldset label="Advanced Search Status">

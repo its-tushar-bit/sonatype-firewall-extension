@@ -16,6 +16,7 @@ import {
   NxFormSelect,
   NxTooltip,
   NxStatefulForm,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -228,7 +229,7 @@ export default function AddWaiverForm(props) {
 
         {vulnerabilityId && (
           <div className="iq-add-waiver-form__vulnerability_details_link">
-            <a onClick={onVulnerabilityDetailsClick}>See Security Vulnerability Details</a>
+            <NxTextLink onClick={onVulnerabilityDetailsClick}>See Security Vulnerability Details</NxTextLink>
             <VulnerabilityDetailsModalContainer />
           </div>
         )}

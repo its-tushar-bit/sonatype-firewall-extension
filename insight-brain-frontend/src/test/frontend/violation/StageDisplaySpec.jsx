@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('StageDisplay', function () {
@@ -85,7 +85,7 @@ describe('StageDisplay', function () {
 
     it('renders a link computed via $state showing the stage shortName and how long ago it was', function () {
       const component = getComponentWithData(),
-        link = component.find('a');
+        link = component.find(NxTextLink);
 
       expect(stateGetMock).toHaveBeenCalledWith('applicationReport');
       expect(stateHrefMock).toHaveBeenCalledWith('theState', {

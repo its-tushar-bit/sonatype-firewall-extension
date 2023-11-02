@@ -7,6 +7,7 @@
 import React from 'react';
 import StatusIndicatorIcon from '../react/statusIndicatorIcon/StatusIndicatorIcon';
 import * as PropTypes from 'prop-types';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 export default function FirewallAutoUnquarantineStatus(props) {
   // Actions
@@ -33,9 +34,9 @@ export default function FirewallAutoUnquarantineStatus(props) {
         </div>
       </div>
       <footer className="nx-card__footer">
-        <a className="nx-text-link" onClick={openConfigurationModal}>
+        <NxTextLink onClick={openConfigurationModal}>
           Configure
-        </a>
+        </NxTextLink>
       </footer>
     </section>
   );

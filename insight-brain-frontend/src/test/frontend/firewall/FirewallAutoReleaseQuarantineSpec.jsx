@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { NxTextLink } from '@sonatype/react-shared-components';
+
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('FirewallAutoReleaseQuarantine', function () {
@@ -48,7 +50,7 @@ describe('FirewallAutoReleaseQuarantine', function () {
     const component = getShallowComponent();
     const footer = component.find('.nx-card__footer');
     expect(footer).toExist();
-    const link = component.find('.nx-text-link');
+    const link = component.find(NxTextLink);
     expect(link).toHaveText('View Auto Release Quarantine');
     expect(link).toHaveProp('href', 'href');
     link.simulate('click');

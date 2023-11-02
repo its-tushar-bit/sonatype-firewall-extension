@@ -15,6 +15,7 @@ import {
   NxStatefulForm,
   NxTextInput,
   NxTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
@@ -193,7 +194,7 @@ describe('AddWaiverForm', function () {
   it('renders a link to see vulnerability details and opens the modal on click', function () {
     const component = getShallowComponent(),
       vulnerabilityDetailsSection = component.find('.iq-add-waiver-form__vulnerability_details_link'),
-      vulnerabilityDetailsLink = vulnerabilityDetailsSection.find('a');
+      vulnerabilityDetailsLink = vulnerabilityDetailsSection.find(NxTextLink);
 
     expect(vulnerabilityDetailsLink).toHaveText('See Security Vulnerability Details');
     expect(openVulnerabilityDetailsModalSpy).not.toHaveBeenCalled();

@@ -5,10 +5,9 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxModal, NxSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxSubmitMask, NxWarningAlert, NxTextLink } from '@sonatype/react-shared-components';
 
 import UserTokenDisplay, { userTokenType } from './UserTokenDisplay';
-import NxExternalLink from '../../../../react/NxExternalLink';
 import LoadWrapper from '../../../../react/LoadWrapper';
 import LoadError from '../../../../react/LoadError';
 
@@ -67,9 +66,9 @@ export default function UserTokenModal(props) {
           <p className="iq-user-token-modal__info-paragraph">
             Should you forget or lose your user token credentials, you should delete your user token and create a new
             one. To learn more about User Tokens please see the{' '}
-            <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/user-tokens">
+            <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/user-tokens">
               help documentation.
-            </NxExternalLink>
+            </NxTextLink>
           </p>
           {userToken === true && (
             <NxWarningAlert id="user-token-modal-token-exists-alert">

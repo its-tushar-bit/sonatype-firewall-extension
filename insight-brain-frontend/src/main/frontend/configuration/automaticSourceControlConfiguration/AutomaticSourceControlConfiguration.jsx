@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxStatefulForm, NxButton, NxToggle } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxButton, NxToggle, NxTextLink } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { displayName } from '../scmOnboarding/utils/providers';
@@ -71,10 +71,11 @@ export default function AutomaticSourceControlConfiguration({
             {automaticApplicationsEnabled && scmProvider && (
               <p className="nx-p" id="automatic-source-control-automatic-applications-explanation">
                 Because you have selected{' '}
-                <a href={$state.href('automaticApplicationsConfiguration')}>Automatic Applications</a>, the applications
-                will all be imported into {parentOrganization.name} Organization which uses {displayName(scmProvider)}.
-                If you wish to use a different provider, you will need to manually create the application first. You may
-                wish to use the <a href={$state.href('scmOnboarding')}>Easy SCM Onboarding tool</a> to create the IQ
+                <NxTextLink href={$state.href('automaticApplicationsConfiguration')}>Automatic Applications</NxTextLink>
+                , the applications will all be imported into {parentOrganization.name} Organization which uses{' '}
+                {displayName(scmProvider)}. If you wish to use a different provider, you will need to manually create
+                the application first. You may wish to use the{' '}
+                <NxTextLink href={$state.href('scmOnboarding')}>Easy SCM Onboarding tool</NxTextLink> to create the IQ
                 Applications.
               </p>
             )}

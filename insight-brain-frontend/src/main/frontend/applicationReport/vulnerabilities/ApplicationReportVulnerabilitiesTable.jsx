@@ -13,6 +13,7 @@ import {
   NxTableHead,
   NxTableCell,
   NxThreatIndicator,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
@@ -31,15 +32,15 @@ function createRow(data, uiRouterState) {
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </NxTableCell>
       <NxTableCell>
-        <a
+        <NxTextLink
           className="iq-vulnerability-refid-link"
           href={uiRouterState.href('vulnerabilitySearchDetail', { id: securityCode })}
         >
           {securityCode}
-        </a>
-        <a className="iq-vulnerability-printable-link" href={linkUrl}>
+        </NxTextLink>
+        <NxTextLink className="iq-vulnerability-printable-link" href={linkUrl}>
           {linkUrl}
-        </a>
+        </NxTextLink>
       </NxTableCell>
       <NxTableCell isNumeric>{cvssScore.toFixed(1)}</NxTableCell>
       <NxTableCell>

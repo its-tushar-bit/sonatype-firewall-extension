@@ -6,6 +6,7 @@
 
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 export default function FirewallAutoReleaseQuarantine(props) {
   // viewState
@@ -25,9 +26,9 @@ export default function FirewallAutoReleaseQuarantine(props) {
         <div className="nx-card__text">components released month-to-date</div>
       </div>
       <footer className="nx-card__footer">
-        <a href={$state.href('firewall.firewallAutoUnquarantinePage')} className="nx-text-link">
+        <NxTextLink href={$state.href('firewall.firewallAutoUnquarantinePage')}>
           View Auto Release Quarantine
-        </a>
+        </NxTextLink>
       </footer>
     </section>
   );

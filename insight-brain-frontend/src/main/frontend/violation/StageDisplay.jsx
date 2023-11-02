@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 
 import { terseAgo } from '../utilAngular/CommonServices';
 
@@ -33,9 +33,9 @@ export default function StageDisplay({ $state, stageType, stageData, application
     return (
       <span className="iq-violation-details__stage">
         {icon && <NxFontAwesomeIcon icon={icon} className={iconClassName} />}
-        <a href={href}>
+        <NxTextLink href={href}>
           {displayName} {displayTime}
-        </a>
+        </NxTextLink>
       </span>
     );
   } else {

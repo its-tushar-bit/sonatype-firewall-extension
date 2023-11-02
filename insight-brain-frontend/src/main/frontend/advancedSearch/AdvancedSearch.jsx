@@ -7,7 +7,7 @@
 import React, { useEffect } from 'react';
 import LoadWrapper from '../react/LoadWrapper';
 import * as PropTypes from 'prop-types';
-import { NxButtonBar } from '@sonatype/react-shared-components';
+import { NxButtonBar, NxTextLink } from '@sonatype/react-shared-components';
 
 import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
@@ -81,7 +81,7 @@ export default function AdvancedSearch(props) {
           {additionalInfo && <p className="nx-p">{additionalInfo}</p>}
           {(groupIdentifier === 'VULNERABILITY_ID' || groupIdentifier === 'VULNERABILITY_DESCRIPTION') && (
             <p className="nx-p">
-              <a href={detailedInfoHref}>Click here for detailed information.</a>
+              <NxTextLink href={detailedInfoHref}>Click here for detailed information.</NxTextLink>
             </p>
           )}
           {searchResultItemDTOS.map((searchResultItem) => (

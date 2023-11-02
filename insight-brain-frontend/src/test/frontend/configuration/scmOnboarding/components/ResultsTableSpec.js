@@ -18,8 +18,8 @@ import {
   NxTableHead,
   NxTableRow,
   NxTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
-import NxExternalLink from '../../../../../main/frontend/react/NxExternalLink';
 import { createRepo } from './utils';
 
 describe('ResultsTable', function () {
@@ -128,7 +128,7 @@ describe('ResultsTable', function () {
           // and the cells to contain the expected text
           expect(namespaceCell.text()).toEqual('namespace');
           expect(projectCell.text().trim()).toEqual('project');
-          expect(projectCell.find(NxExternalLink).prop('href')).toEqual('https://example.com/');
+          expect(projectCell.find(NxTextLink).prop('href')).toEqual('https://example.com/');
           expect(descriptionCell.text()).toEqual('description');
         });
 
@@ -379,7 +379,7 @@ describe('ResultsTable', function () {
       const row = component.find(NxTableRow),
         defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
         description = row.find('.iq-scm-repository-description').first(),
-        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        project = row.find('.iq-scm-repository-project').find(NxTextLink).first(),
         namespace = row.find('.iq-scm-repository-namespace').first(),
         defaultBranchTooltip = defaultBranch.find(NxTooltip),
         descriptionTooltip = description.find(NxOverflowTooltip),
@@ -402,7 +402,7 @@ describe('ResultsTable', function () {
       const row = component.find(NxTableRow),
         defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
         description = row.find('.iq-scm-repository-description').first(),
-        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        project = row.find('.iq-scm-repository-project').find(NxTextLink).first(),
         namespace = row.find('.iq-scm-repository-namespace').first(),
         defaultBranchTooltip = defaultBranch.find(NxTooltip);
 
@@ -419,7 +419,7 @@ describe('ResultsTable', function () {
       const row = component.find(NxTableRow),
         defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
         description = row.find('.iq-scm-repository-description').first(),
-        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        project = row.find('.iq-scm-repository-project').find(NxTextLink).first(),
         namespace = row.find('.iq-scm-repository-namespace').first(),
         defaultBranchTooltip = defaultBranch.find(NxTooltip);
 

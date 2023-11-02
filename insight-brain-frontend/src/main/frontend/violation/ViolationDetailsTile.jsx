@@ -8,7 +8,13 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxStatefulSegmentedButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxStatefulSegmentedButton,
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTooltip,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
 import { faEye } from '@fortawesome/pro-solid-svg-icons';
 
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -233,7 +239,7 @@ export default function ViolationDetailsTile(props) {
                       id: policyOwner.ownerId,
                     })}
                   />
-                  <a href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</a>
+                  <NxTextLink href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</NxTextLink>
                 </Fragment>
               ) : (
                 'Policy no longer exists'

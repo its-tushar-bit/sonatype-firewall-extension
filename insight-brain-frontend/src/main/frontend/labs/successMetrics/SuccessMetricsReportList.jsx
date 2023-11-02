@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import LoadWrapper from '../../react/LoadWrapper';
 import SuccessMetricsReportListItem from './SuccessMetricsReportListItem';
@@ -30,7 +30,7 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
             <h3 className="nx-h3">
               Success Metrics is an experimental feature providing high-level statistics on the past performance of
               Sonatype Lifecycle. If you want to take action on your current policy violations, start with the{' '}
-              <a href={uiRouterState.href('dashboard.overview.violations')}>Dashboard.</a>
+              <NxTextLink href={uiRouterState.href('dashboard.overview.violations')}>Dashboard.</NxTextLink>
             </h3>
           </div>
         </div>
@@ -42,13 +42,12 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
               </div>
               <div className="nx-tile-header__subtitle">
                 Success Metrics data is also accessible via the{' '}
-                <a
-                  target="_blank"
-                  rel="noreferrer"
+                <NxTextLink 
+                  external 
                   href="http://links.sonatype.com/products/nxiq/doc/success-metrics-data-rest-api/v2"
                 >
-                  Success Metrics Data API. <i className="fa fa-external-link fa-fw"></i>
-                </a>
+                  Success Metrics Data API.
+                </NxTextLink>
               </div>
               <div className="nx-tile__actions">
                 <NxButton variant="tertiary" id="add-success-metrics-report-btn" onClick={toggleAddModal}>

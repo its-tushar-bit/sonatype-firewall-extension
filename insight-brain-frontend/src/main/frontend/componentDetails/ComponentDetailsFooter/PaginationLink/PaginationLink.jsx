@@ -7,15 +7,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 
 export const PaginationLink = ({ text, href, direction = 'next' }) => (
   <div className={classnames('iq-pagination-link', { 'iq-pagination-link--disabled': !href })}>
-    <a className={classnames('nx-text-link', `iq-pagination-link__${direction}`)} href={href}>
+    <NxTextLink className={classnames('nx-text-link', `iq-pagination-link__${direction}`)} href={href}>
       {direction === 'prev' && <NxFontAwesomeIcon icon={faChevronLeft} />}
       <span>{text || direction}</span>
       {direction === 'next' && <NxFontAwesomeIcon icon={faChevronRight} />}
-    </a>
+    </NxTextLink>
   </div>
 );
 

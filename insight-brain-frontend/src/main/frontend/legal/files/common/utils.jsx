@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faAngleRight } from '@fortawesome/pro-solid-svg-icons';
 import React from 'react';
 import { assoc, keys, reduce } from 'ramda';
@@ -18,10 +18,10 @@ export const createLegalFileTileItem = (legalFileType, object, index, $state, ta
       <div className="legal-file-content">{object.originalContent}</div>
     </blockquote>
     <div id="legal-file-section-view-more-details">
-      <a href={$state.href(targetStateName, routeParams)}>
+      <NxTextLink href={$state.href(targetStateName, routeParams)}>
         <span>View More Details</span>
         <NxFontAwesomeIcon icon={faAngleRight} />
-      </a>
+      </NxTextLink>
     </div>
   </section>
 );

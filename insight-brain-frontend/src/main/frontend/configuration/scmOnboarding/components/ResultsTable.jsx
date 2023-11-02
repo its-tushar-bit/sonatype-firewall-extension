@@ -15,12 +15,12 @@ import {
   NxPagination,
   NxFontAwesomeIcon,
   NxOverflowTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { repositoryPropType } from '../scmPropTypes';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
-import NxExternalLink from '../../../react/NxExternalLink';
 import { propSet } from '../../../util/jsUtil';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 
@@ -357,7 +357,9 @@ export function RepositoryRow(props) {
       <NxTableCell className="iq-scm-repository-project iq-scmonboarding-overflow-tooltip-cell">
         <NxOverflowTooltip className="iq-scm-repo-project-tooltip">
           <div className="nx-truncate-ellipsis">
-            <NxExternalLink href={repo.httpCloneUrl}>{repo.project}</NxExternalLink>
+            <NxTextLink external href={repo.httpCloneUrl}>
+              {repo.project}
+            </NxTextLink>
           </div>
         </NxOverflowTooltip>
       </NxTableCell>

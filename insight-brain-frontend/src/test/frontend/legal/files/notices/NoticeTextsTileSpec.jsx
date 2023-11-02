@@ -6,7 +6,7 @@
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticeTextsTile from '../../../../../main/frontend/legal/files/notices/NoticeTextsTile';
-import { NxButton, NxFontAwesomeIcon, NxAccordion } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion, NxTextLink } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('NoticeTextsTile', function () {
@@ -94,7 +94,7 @@ describe('NoticeTextsTile', function () {
 
   it('renders the given notice file links by hash', function () {
     const wrapper = getShallowComponent();
-    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
     let noticeFileLink = noticeFileLinks.at(0);
     expect(noticeFileLink).toHaveProp(
@@ -115,7 +115,7 @@ describe('NoticeTextsTile', function () {
       hash: undefined,
       componentIdentifier: 'testComponentIdentifier',
     });
-    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details').find(NxTextLink);
 
     let noticeFileLink = noticeFileLinks.at(0);
     expect(noticeFileLink).toHaveProp(

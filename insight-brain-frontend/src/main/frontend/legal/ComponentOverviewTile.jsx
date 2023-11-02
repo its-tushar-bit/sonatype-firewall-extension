@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { componentPropType } from './advancedLegalPropTypes';
 import { terseAgo, timeAgo } from '../utilAngular/CommonServices';
 import { EFFECTIVELY_UNSPECIFIED_LICENSES, STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_ID } from './advancedLegalConstants';
-import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
+import { NxPolicyViolationIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
 
 export default function ComponentOverviewTile(props) {
@@ -114,9 +114,9 @@ export default function ComponentOverviewTile(props) {
       key={stageScan.stageName}
     >
       {stageScan.scanId ? (
-        <a href={getStageScanHref(stageScan)}>
+        <NxTextLink href={getStageScanHref(stageScan)}>
           {STAGE_NAME_TO_DISPLAY[stageScan.stageName]} {terseAgo(stageScan.scanDate)}
-        </a>
+        </NxTextLink>
       ) : (
         <span className="no-stage-scan">{STAGE_NAME_TO_DISPLAY[stageScan.stageName]}</span>
       )}

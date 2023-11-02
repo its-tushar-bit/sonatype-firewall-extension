@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxButton, NxModal } from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxTextLink } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 function EulaModal({ closeModal, updateLicense }) {
@@ -236,9 +236,9 @@ function EulaModal({ closeModal, updateLicense }) {
         <p>
           Sonatype will provide support and maintenance for the Products (&quot;Product Maintenance&quot;) pursuant to
           the terms of the support policy set forth at{' '}
-          <a target="_blank" rel="noreferrer" href="https://links.sonatype.com/terms/support">
+          <NxTextLink external rel="noreferrer" href="https://links.sonatype.com/terms/support">
             https://links.sonatype.com/terms/support
-          </a>
+          </NxTextLink>
           . Company hereby acknowledges and agrees that Sonatype reserves the right to compile, maintain and use
           technical, statistical, metric and performance information regarding Company&apos;s use of the Products (the
           &quot;Usage Information&quot;), and Company understands and acknowledges that the Products may contain a

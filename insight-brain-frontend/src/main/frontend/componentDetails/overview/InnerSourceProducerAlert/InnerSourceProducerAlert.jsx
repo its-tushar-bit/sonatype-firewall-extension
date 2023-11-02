@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxInfoAlert } from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, ownerApplicationName, onClick }) => {
@@ -19,9 +19,9 @@ const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, owne
   return (
     <NxInfoAlert id="inner-source-producer-alert">
       This InnerSource component was produced by the application <b>{ownerApplicationName}</b>.{' '}
-      <a className="nx-text-link" onClick={onClick}>
+      <NxTextLink onClick={onClick}>
         View the latest report
-      </a>{' '}
+      </NxTextLink>{' '}
     </NxInfoAlert>
   );
 };

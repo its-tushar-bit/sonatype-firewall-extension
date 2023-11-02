@@ -8,7 +8,7 @@ import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import ViolationDetailsSubtitle from 'MainRoot/violation/ViolationDetailsSubtitle';
 import StageDisplay from 'MainRoot/violation/StageDisplay';
 import { pathSet } from 'MainRoot/util/jsUtil';
-import { NxStatefulSegmentedButton, NxTooltip } from '@sonatype/react-shared-components';
+import { NxStatefulSegmentedButton, NxTooltip, NxTextLink } from '@sonatype/react-shared-components';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 
 describe('ViolationDetailsTile', function () {
@@ -520,7 +520,7 @@ describe('ViolationDetailsTile', function () {
 
       expect(component.find('dt')).toExist();
       expect(component.find('dd img')).toExist();
-      expect(component.find('dd a')).toExist();
+      expect(component.find('dd').find(NxTextLink)).toExist();
     });
 
     it('sets the iq-violation-details__policy-owner-icon class on the icon', function () {
@@ -530,12 +530,15 @@ describe('ViolationDetailsTile', function () {
     });
 
     it('displays the ownerName within the link', function () {
-      expect(getShallowComponent().find('.iq-violation-details__policy-owner a')).toHaveText('polOwner');
+      expect(getShallowComponent().find('.iq-violation-details__policy-owner').find(NxTextLink)).toHaveText('polOwner');
     });
 
     describe('when the policy owner is an org', function () {
       it('sets the link href using the management.view.organization state and the org id', function () {
-        expect(getShallowComponent().find('.iq-violation-details__policy-owner a')).toHaveProp('href', '#/foo');
+        expect(getShallowComponent().find('.iq-violation-details__policy-owner').find(NxTextLink)).toHaveProp(
+          'href',
+          '#/foo'
+        );
         expect(stateGetMock).toHaveBeenCalledWith('management.view.organization');
         expect(stateHrefMock).toHaveBeenCalledWith('theState', {
           organizationId: '1234',
@@ -568,7 +571,10 @@ describe('ViolationDetailsTile', function () {
         );
 
       it('sets the link href using the management.view.application state and the app public id', function () {
-        expect(getComponentWithAppProps().find('.iq-violation-details__policy-owner a')).toHaveProp('href', '#/foo');
+        expect(getComponentWithAppProps().find('.iq-violation-details__policy-owner').find(NxTextLink)).toHaveProp(
+          'href',
+          '#/foo'
+        );
         expect(stateGetMock).toHaveBeenCalledWith('management.view.application');
         expect(stateHrefMock).toHaveBeenCalledWith('theState', {
           applicationPublicId: 'app2',

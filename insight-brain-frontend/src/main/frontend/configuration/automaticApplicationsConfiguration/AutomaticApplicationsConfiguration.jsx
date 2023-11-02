@@ -12,6 +12,7 @@ import {
   NxFormGroup,
   NxButton,
   NxErrorAlert,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { displayName } from '../scmOnboarding/utils/providers';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
@@ -75,7 +76,10 @@ export default function AutomaticApplicationsConfiguration(props) {
               automatically-created applications.
             </p>
             <p id="auto-app-config-source-control-explanation" className="nx-p">
-              If you are using <a href={$state.href('automaticSourceControlConfiguration')}>Automatic Source Control</a>{' '}
+              If you are using{' '}
+              <NxTextLink href={$state.href('automaticSourceControlConfiguration')}>
+                Automatic Source Control
+              </NxTextLink>{' '}
               with Automatic Applications, the new applications will be imported into the below Parent Organization
               {scmProvider && (
                 <>
@@ -88,8 +92,8 @@ export default function AutomaticApplicationsConfiguration(props) {
             </p>
 
             <p id="auto-app-config-scm-onboarding-explanation" className="nx-p">
-              Instead, you can use <a href={$state.href('scmOnboarding')}>Easy SCM Onboarding</a> to explicitly import
-              your source control applications into IQ.
+              Instead, you can use <NxTextLink href={$state.href('scmOnboarding')}>Easy SCM Onboarding</NxTextLink> to
+              explicitly import your source control applications into IQ.
             </p>
             <NxToggle
               id="auto-app-config-toggle-checkbox"

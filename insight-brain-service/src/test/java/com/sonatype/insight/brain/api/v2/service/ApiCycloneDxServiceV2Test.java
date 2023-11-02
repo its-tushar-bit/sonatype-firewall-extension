@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -47,6 +47,7 @@ import com.github.packageurl.PackageURL.StandardTypes;
 import com.google.inject.Binder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
@@ -152,6 +153,11 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_xml_15() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_15, true);
+  }
+
+  @Test
   public void testGetByScanId_json_12() throws Exception {
     testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_12, false);
   }
@@ -170,6 +176,11 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void testGetByScanId_json_14() throws Exception {
     testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_14, true);
+  }
+
+  @Test
+  public void testGetByScanId_json_15() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_15, true);
   }
 
   private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
@@ -194,11 +205,12 @@ public class ApiCycloneDxServiceV2Test
     assertMetadata(bom, application, scanId, Version.VERSION_11, null);
     assertThat(bom.getExternalReferences()).hasSize(1);
 
-    Component component =
-        createComponent(Version.VERSION_11, "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df", "MIT",
-            "Not-Supported");
-
-    assertThat(bom.getComponents()).contains(component);
+    assertThat(bom.getComponents()).hasSize(1);
+    Component component = bom.getComponents().get(0);
+    assertThat(component.getPurl()).isEqualTo("pkg:npm/lodash@4.17.19");
+    List<String> licenseNames = component.getLicenseChoice().getLicenses().stream()
+        .map(l -> StringUtils.isEmpty(l.getId()) ? l.getName() : l.getId()).collect(Collectors.toList());
+    assertThat(licenseNames).containsExactlyInAnyOrder("MIT", "Not Supported");
   }
 
   @Test

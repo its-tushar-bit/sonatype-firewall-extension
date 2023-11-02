@@ -201,12 +201,12 @@ public class ApiCycloneDxServiceV2
 
       Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
 
-      //New vulnerability information is available from SBoM 1.4
-      if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.getVersion() >= 1.4) {
+      //New vulnerability information is available from CycloneDx 1.4
+      if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.compareTo(Version.VERSION_14) >= 0) {
         bom.setVulnerabilities(getVulnerabilityInformation(data.components, components));
       }
 
-      if (version.getVersion() >= 1.2) {
+      if (version.compareTo(Version.VERSION_12) >= 0) {
         PolicyEvaluation policyEvaluation =
             policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
         ApiDependencyTreeNodeDTO dependenciesData =
@@ -275,7 +275,7 @@ public class ApiCycloneDxServiceV2
   {
     if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
       List<Dependency> dependencies = convert(dependenciesData, components);
-      if (dependencies.size() > 0) {
+      if (!dependencies.isEmpty()) {
         bom.setDependencies(new ArrayList<>(dependencies));
       }
     }

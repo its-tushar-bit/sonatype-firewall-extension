@@ -62,8 +62,8 @@ public class ApiCycloneDxResourceV2AuditTest
   }
 
   @Test
-  public void testGetLatest_With_Version_1_2() throws Exception {
-    getHttpRequestLatest("1.2/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
+  public void testGetLatest_With_Version_1_5() throws Exception {
+    getHttpRequestLatest("1.5/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_15,
         MediaType.APPLICATION_XML).get();
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -95,8 +95,8 @@ public class ApiCycloneDxResourceV2AuditTest
   }
 
   @Test
-  public void testGetByReportId_With_Version_1_2() throws Exception {
-    getHttpRequestByReportId("1.2/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
+  public void testGetByReportId_With_Version_1_5() throws Exception {
+    getHttpRequestByReportId("1.5/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_15,
         MediaType.APPLICATION_XML).get();
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);

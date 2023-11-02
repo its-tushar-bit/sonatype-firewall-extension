@@ -39,7 +39,8 @@ public class ApiCycloneDxResourceV2
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";
 
-  static final String GET_BY_STAGE_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3|1.4}/{applicationId}/stages/{stageId}";
+  static final String GET_BY_STAGE_PATH_WITH_VERSION =
+      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5}/{applicationId}/stages/{stageId}";
 
   static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
 
@@ -48,7 +49,7 @@ public class ApiCycloneDxResourceV2
    * {@link UserInterfaceLinksResource#linkToSbom(String, String)} as well.
    */
   static final String GET_BY_REPORT_PATH_WITH_VERSION =
-      "{cdxVersion: 1.1|1.2|1.3|1.4}/{applicationId}/reports/{reportId}";
+      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5}/{applicationId}/reports/{reportId}";
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;
 
@@ -61,6 +62,7 @@ public class ApiCycloneDxResourceV2
   @Path(GET_BY_STAGE_PATH)
   @Produces(MediaType.APPLICATION_XML)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @Deprecated
   public Response getLatest(
       @PathParam("applicationId") String applicationId,
       @PathParam("stageId") String stageId)
@@ -87,6 +89,7 @@ public class ApiCycloneDxResourceV2
   @Path(GET_BY_REPORT_PATH)
   @Produces(MediaType.APPLICATION_XML)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @Deprecated
   public Response getByReportId(
       @PathParam("applicationId") String applicationId,
       @PathParam("reportId") String reportId)

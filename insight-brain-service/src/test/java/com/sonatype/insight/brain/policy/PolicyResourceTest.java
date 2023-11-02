@@ -203,26 +203,50 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testUpdateOverrides_Add_ForActions() throws Exception {
+  public void testUpdateOverrides_Add_ForActions_Organization() throws Exception {
+    testUpdateOverrides_Add_ForActions(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_Application() throws Exception {
+    testUpdateOverrides_Add_ForActions(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Add_ForActions(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_RepositoryManager() throws Exception {
+    testUpdateOverrides_Add_ForActions(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_Repository() throws Exception {
+    testUpdateOverrides_Add_ForActions(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Add_ForActions(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
     policyDAO.update(policy);
-
-    Application app = tempEntity.newApplicationWithParent();
 
     Map<String, String> actionsOverride = new LinkedHashMap<>();
     actionsOverride.put("stage-release", "fail");
     actionsOverride.put("release", "fail");
     actionsOverride.put("build", "warn");
 
-    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId())
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
+    HttpResponse response = restRequest(owner.getType(), ownerId)
         .path(policy.getId(), "overrides")
         .body(new PolicyOverridesDTO(actionsOverride))
         .put();
 
     assertResponseStatus(200, response);
     final Policy updatedPolicy = response.getBody(Policy.class);
-    Map<String, String> savedActionsOverride = updatedPolicy.getPolicyActionsOverrides().get(app.getId());
+    Map<String, String> savedActionsOverride = updatedPolicy.getPolicyActionsOverrides().get(owner.getId());
     assertThat(savedActionsOverride).isNotNull();
     assertThat(savedActionsOverride.size()).isEqualTo(3);
     assertThat(savedActionsOverride.get("stage-release")).isEqualTo("fail");
@@ -231,22 +255,47 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testUpdateOverrides_Add_ForNotifications() throws Exception {
+  public void testUpdateOverrides_Add_ForNotifications_Organization() throws Exception {
+    testUpdateOverrides_Add_ForNotifications(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForNotifications_Application() throws Exception {
+    testUpdateOverrides_Add_ForNotifications(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForNotifications_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Add_ForNotifications(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForNotifications_RepositoryManager() throws Exception {
+    testUpdateOverrides_Add_ForNotifications(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForNotifications_Repository() throws Exception {
+    testUpdateOverrides_Add_ForNotifications(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Add_ForNotifications(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyNotificationsOverrideAllowed(true);
     policyDAO.update(policy);
-    Application app = tempEntity.newApplicationWithParent();
     Notifications notificationsOverride = new Notifications();
     notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
 
-    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId())
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
+    HttpResponse response = restRequest(owner.getType(), ownerId)
         .path(policy.getId(), "overrides")
         .body(new PolicyOverridesDTO(notificationsOverride))
         .put();
 
     assertResponseStatus(200, response);
     Policy updatedPolicy = response.getBody(Policy.class);
-    Notifications savedNotificationsOverride = updatedPolicy.getPolicyNotificationsOverrides().get(app.getId());
+    Notifications savedNotificationsOverride = updatedPolicy.getPolicyNotificationsOverrides().get(owner.getId());
     assertThat(notificationsOverride).usingRecursiveComparison().isEqualTo(savedNotificationsOverride);
   }
 
@@ -358,26 +407,50 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testUpdateOverrides_Delete_ForActions() throws Exception {
+  public void testUpdateOverrides_Delete_ForActions_Organization() throws Exception {
+    testUpdateOverrides_Delete_ForActions(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_Application() throws Exception {
+    testUpdateOverrides_Delete_ForActions(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Delete_ForActions(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_RepositoryManager() throws Exception {
+    testUpdateOverrides_Delete_ForActions(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_Repository() throws Exception {
+    testUpdateOverrides_Delete_ForActions(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Delete_ForActions(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
-    Organization testOrg = tempEntity.newOrganization();
-    Application testApp = tempEntity.newApplication(testOrg.getId());
 
-    Map<String, String> applicationActionsOverrides = new LinkedHashMap<>();
-    applicationActionsOverrides.put("stage-release", "fail");
-    applicationActionsOverrides.put("release", "fail");
-    applicationActionsOverrides.put("build", "warn");
+    Map<String, String> ownerActionsOverrides = new LinkedHashMap<>();
+    ownerActionsOverrides.put("stage-release", "fail");
+    ownerActionsOverrides.put("release", "fail");
+    ownerActionsOverrides.put("build", "warn");
 
-    Map<String, String> organizationActionsOverrides = new LinkedHashMap<>();
-    organizationActionsOverrides.put("stage-release", "warn");
-    organizationActionsOverrides.put("release", "warn");
+    Map<String, String> parentOwnerActionsOverrides = new LinkedHashMap<>();
+    parentOwnerActionsOverrides.put("stage-release", "warn");
+    parentOwnerActionsOverrides.put("release", "warn");
 
-    policy.addPolicyActionsOverride(testApp.getId(), applicationActionsOverrides);
-    policy.addPolicyActionsOverride(testOrg.getId(), organizationActionsOverrides);
+    policy.addPolicyActionsOverride(owner.getId(), ownerActionsOverrides);
+    policy.addPolicyActionsOverride(owner.getParentOwnerId(), parentOwnerActionsOverrides);
     policyDAO.update(policy);
 
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, testApp.getPublicId())
+        restRequest(owner.getType(), ownerId)
             .path(policy.getId(), "overrides")
             .body(createDeleteBody(true, false))
             .put();
@@ -385,35 +458,57 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     final Policy updatedPolicy = response.getBody(Policy.class);
     assertThat(updatedPolicy.getPolicyActionsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
 
     Policy policyOnDB = new PolicyDAO().getById(policy.getId());
     assertThat(policyOnDB.getPolicyActionsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
   }
 
   @Test
-  public void testUpdateOverrides_Delete_ForNotifications() throws Exception {
+  public void testUpdateOverrides_Delete_ForNotifications_Organization() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_Application() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_RepositoryManager() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_Repository() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Delete_ForNotifications(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
-    Organization testOrg = tempEntity.newOrganization();
-    Application testApp = tempEntity.newApplication(testOrg.getId());
 
-    Notifications applicationNotificationsOverride = new Notifications();
-    applicationNotificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
+    Notifications ownerNotificationsOverride = new Notifications();
+    ownerNotificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
 
-    Notifications organizationNotificationsOverride = new Notifications();
-    organizationNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
+    Notifications parentOwnerNotificationsOverride = new Notifications();
+    parentOwnerNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
 
-    policy.addPolicyNotificationsOverride(testApp.getId(), applicationNotificationsOverride);
-    policy.addPolicyNotificationsOverride(testOrg.getId(), organizationNotificationsOverride);
+    policy.addPolicyNotificationsOverride(owner.getId(), ownerNotificationsOverride);
+    policy.addPolicyNotificationsOverride(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
     policyDAO.update(policy);
 
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, testApp.getPublicId())
+        restRequest(owner.getType(), ownerId)
             .path(policy.getId(), "overrides")
             .body(createDeleteBody(false, true))
             .put();
@@ -421,32 +516,54 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     Policy updatedPolicy = response.getBody(Policy.class);
     assertThat(updatedPolicy.getPolicyNotificationsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
 
     Policy policyOnDB = new PolicyDAO().getById(policy.getId());
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
   }
 
   @Test
-  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist() throws Exception {
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist_Organization() throws Exception {
+    testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist_Application() throws Exception {
+    testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist_RepositoryManager() throws Exception {
+    testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist_Repository() throws Exception {
+    testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
-    Organization testOrg = tempEntity.newOrganization();
-    Application testApp = tempEntity.newApplication(testOrg.getId());
 
-    Map<String, String> organizationActionsOverrides = new LinkedHashMap<>();
-    organizationActionsOverrides.put("stage-release", "warn");
-    organizationActionsOverrides.put("release", "warn");
+    Map<String, String> parentOwnerActionsOverrides = new LinkedHashMap<>();
+    parentOwnerActionsOverrides.put("stage-release", "warn");
+    parentOwnerActionsOverrides.put("release", "warn");
 
-    policy.addPolicyActionsOverride(testOrg.getId(), organizationActionsOverrides);
+    policy.addPolicyActionsOverride(owner.getParentOwnerId(), parentOwnerActionsOverrides);
     policyDAO.update(policy);
 
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, testApp.getPublicId())
+        restRequest(owner.getType(), ownerId)
             .path(policy.getId(), "overrides")
             .body(createDeleteBody(true, false))
             .put();
@@ -454,31 +571,53 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     final Policy updatedPolicy = response.getBody(Policy.class);
     assertThat(updatedPolicy.getPolicyActionsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
 
     Policy policyOnDB = new PolicyDAO().getById(policy.getId());
     assertThat(policyOnDB.getPolicyActionsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
   }
 
   @Test
-  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist() throws Exception {
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist_Organization() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(tempEntity.newOrganization());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist_Application() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist_RepositoryContainer() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist_RepositoryManager() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist_Repository() throws Exception {
+    testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(tempEntity.newRepository());
+  }
+
+  private void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist(Owner owner) throws Exception {
+    // The policy is create for the root org.
     Policy policy = tempEntity.newPolicy();
-    Organization testOrg = tempEntity.newOrganization();
-    Application testApp = tempEntity.newApplication(testOrg.getId());
 
-    Notifications organizationNotificationsOverride = new Notifications();
-    organizationNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
+    Notifications parentOwnerNotificationsOverride = new Notifications();
+    parentOwnerNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
 
-    policy.addPolicyNotificationsOverride(testOrg.getId(), organizationNotificationsOverride);
+    policy.addPolicyNotificationsOverride(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
     policyDAO.update(policy);
 
+    String ownerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, testApp.getPublicId())
+        restRequest(owner.getType(), ownerId)
             .path(policy.getId(), "overrides")
             .body(createDeleteBody(false, true))
             .put();
@@ -486,15 +625,13 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     Policy updatedPolicy = response.getBody(Policy.class);
     assertThat(updatedPolicy.getPolicyNotificationsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
 
     Policy policyOnDB = new PolicyDAO().getById(policy.getId());
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
-        .isNotNull()
         .hasSize(1)
-        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+        .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
   }
 
   private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)

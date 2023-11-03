@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -120,11 +120,6 @@ class SidebarService
       final List<Repository> repositories)
   {
     return new OwnerHierarchy(orgs, apps, repositoryManagers, repositories);
-  }
-
-  private OwnerHierarchy createOrganizationHierarchy(List<Organization> orgs, List<Application> apps) {
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, Collections.emptyList(), Collections.emptyList());
-    return hierarchy;
   }
 
   private void calculateChildrenSize(OwnerHierarchy hierarchy, OwnerHierarchyOrganizationDTO organization) {

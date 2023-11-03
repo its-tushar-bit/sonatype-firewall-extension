@@ -6,7 +6,6 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxGlobalSidebarFooter } from '@sonatype/react-shared-components';
-import { SINGLE_TENANT } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function IqSidebarNavFooter({ releaseNumber, isShowVersionEnabled }) {
   const releaseText = <Fragment>{displayVersion()}</Fragment>;

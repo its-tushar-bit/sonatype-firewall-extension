@@ -16,7 +16,8 @@ iq-sidebar-nav {
     // We want it to wrap as needed but we want the first line to stay the same distance from the bottom.
     // By enforcing a single-line height here we force the first line to stay in place. The second line
     // overflows out of the bottom of the element but there's nothing else visible down there so that's fine
-    height: calc(1em * var(--nx-line-height));
+    height: calc(1em * var(--nx-line-height) + var(--nx-spacing-8x));
+    margin-bottom: 0;
   }
 }
 

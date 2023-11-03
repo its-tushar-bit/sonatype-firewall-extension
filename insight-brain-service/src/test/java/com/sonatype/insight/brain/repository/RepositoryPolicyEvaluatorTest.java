@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -31,6 +35,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -51,12 +56,14 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
@@ -69,6 +76,8 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -100,9 +109,11 @@ import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.Mock;
 import org.mockito.hamcrest.MockitoHamcrest;
 
+import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.extractProperty;
@@ -162,6 +173,13 @@ public class RepositoryPolicyEvaluatorTest
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+    setBaseUrl("http://localhost");
+
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("127.0.0.1");
+    mailConfiguration.setPort(587);
+    mailConfiguration.setSystemEmail("NexusIQServer@localhost");
+    new MailConfigurationDAO().set(mailConfiguration);
   }
 
   private void mockHdsRequest(
@@ -245,7 +263,7 @@ public class RepositoryPolicyEvaluatorTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
-    tempEntity.newPolicy(repository.getParentOwnerId());
+    tempEntity.newPolicy(repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -275,7 +293,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // Add a new policy and evaluate again. Only the new policy violations should be logged.
     Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
-    Policy newPolicy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy newPolicy = tempEntity.newPolicy(repository.getId());
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
@@ -299,7 +317,7 @@ public class RepositoryPolicyEvaluatorTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy = tempEntity.newPolicy(repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -348,8 +366,8 @@ public class RepositoryPolicyEvaluatorTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
-    Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
-    Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy1 = tempEntity.newPolicy(repository.getId());
+    Policy policy2 = tempEntity.newPolicy(repository.getId());
     PolicyWaiver policy2Waiver = tempEntity.newWaiver(policy2.getId(), repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -412,8 +430,8 @@ public class RepositoryPolicyEvaluatorTest
   public void testEvaluate_WaiverDetails() {
     Repository repository = tempEntity.newRepository();
 
-    Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
-    Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy1 = tempEntity.newPolicy(repository.getId());
+    Policy policy2 = tempEntity.newPolicy(repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -511,7 +529,7 @@ public class RepositoryPolicyEvaluatorTest
     Repository repository = tempEntity.newRepository();
 
     Policy policy = new Policy(null, "test");
-    policy.setOwnerId(repository.getParentOwnerId());
+    policy.setOwnerId(repository.getId());
     Constraint constraint = new Constraint(null, "constraint", LogicalOperator.AND);
     com.sonatype.insight.brain.model.policy.Condition condition =
         new com.sonatype.insight.brain.model.policy.Condition(MatchStateConditionType.ID, "is",
@@ -586,7 +604,7 @@ public class RepositoryPolicyEvaluatorTest
     Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager().getId(), "my_repo", "maven2");
     RepositoryComponent ignorableComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "some/path/sha", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), false);
-    tempEntity.newPolicy(repository.getParentOwnerId(), "some_policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
+    tempEntity.newPolicy(repository.getId(), "some_policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     firewallIgnorePatterns.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha"));
@@ -673,7 +691,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   private void createPolicyDataSourceFeature(Repository repository) {
-    tempEntity.newPolicy(repository.getParentOwnerId(), 5, LogicalOperator.AND, new Condition(
+    tempEntity.newPolicy(repository.getId(), 5, LogicalOperator.AND, new Condition(
         DataSourceConditionType.ID, DataSourceConditionType.HAS_SUPPORT_FOR, ComponentDataSource.IDENTITY.getId()));
   }
 
@@ -728,7 +746,7 @@ public class RepositoryPolicyEvaluatorTest
     Policy policy = new Policy(null, "Namespace Confusion");
     policy.setAction(Stage.ID_PROXY, Action.ID_FAIL);
     policy.setThreatLevel(10);
-    policy.setOwnerId(repo.getParentOwnerId());
+    policy.setOwnerId(repo.getId());
     Constraint constraint = new Constraint(null, "No Conflicting Name", LogicalOperator.OR);
     constraint.addCondition(
         new Condition(ProprietaryNameConflictConditionType.ID, ProprietaryNameConflictConditionType.OP_IS_PRESENT));
@@ -769,7 +787,7 @@ public class RepositoryPolicyEvaluatorTest
   public void testEvaluate_Telemetry_SendNotificationsForNewComponent() {
     Repository repository = tempEntity.newRepository();
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy = tempEntity.newPolicy(repository.getId());
     policy.setAction("proxy", "fail");
     new PolicyDAO().update(policy);
 
@@ -802,7 +820,7 @@ public class RepositoryPolicyEvaluatorTest
   public void testEvaluate_Telemetry_DontSendNotificationsForExistingComponent() {
     Repository repository = tempEntity.newRepository();
 
-    tempEntity.newPolicy(repository.getParentOwnerId());
+    tempEntity.newPolicy(repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -833,7 +851,7 @@ public class RepositoryPolicyEvaluatorTest
   public void testEvaluate_UnquarantinesComponent() {
     Repository repository = tempEntity.newRepository();
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy = tempEntity.newPolicy(repository.getId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
     new PolicyDAO().update(policy);
 
@@ -1093,7 +1111,7 @@ public class RepositoryPolicyEvaluatorTest
   {
     String componentPath = "testPath";
 
-    Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, 5 /* threatLevel */,
+    Policy policy = tempEntity.newPolicy(repository.getId(), 5 /* threatLevel */,
         LogicalOperator.AND, policyCondition);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1119,5 +1137,189 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(policyViolations).hasSize(1);
     RepositoryPolicyViolation policyViolation = policyViolations.get(0);
     assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
+  }
+
+  @Test
+  public void testEvaluate_PolicyAtRootOrgLevel() {
+    Repository repository = tempEntity.newRepository();
+    
+    testEvaluate(repository, Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testEvaluate_RepositoryContainerLevel() {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate(repository, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testEvaluate_PolicyAtRepositoryManager() {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate(repository, repository.getRepositoryManagerId());
+  }
+
+  @Test
+  public void testEvaluate_PolicyAtRepository() {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate(repository, repository.getId());
+  }
+
+  private void testEvaluate(Repository repository, String policyOwnerId) {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    String componentPath = "testPath";
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+
+    Policy policy = tempEntity.newPolicy(policyOwnerId);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT;
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", componentPath, componentHash);
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(componentIdentifier, componentHash,
+        MatchState.EXACT, 0, null, null, Collections.singletonList(securityVulnerability), 1);
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components.add(componentEvaluationData);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> policyViolations =
+        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+
+    assertThat(policyViolations).hasSize(1);
+    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyViolation.getActionTypeId()).isNull();
+  }
+
+  @Test
+  public void testEvaluate_ActionAndNotificationOverrides_AtRepositoryContainerLevel() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate_ActionAndNotificationOverrides(repository, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testEvaluate_ActionAndNotificationOverrides_AtRepositoryManagerLevel() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate_ActionAndNotificationOverrides(repository, repository.getRepositoryManagerId());
+  }
+
+  @Test
+  public void testEvaluate_ActionAndNotificationOverrides_AtRepositoryLevel() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    testEvaluate_ActionAndNotificationOverrides(repository, repository.getId());
+  }
+
+  private void testEvaluate_ActionAndNotificationOverrides(
+      Repository repository,
+      String ownerIdForOverrides) throws Exception
+  {
+    String userEmailAddress = "testuser@sonatype.com";
+
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    policy.setPolicyActionsOverrideAllowed(true);
+    Map<String, String> actionsOverride = new LinkedHashMap<>();
+    actionsOverride.put(ProxyStageType.ID, FailActionType.ID);
+    policy.addPolicyActionsOverride(ownerIdForOverrides, actionsOverride);
+
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    Notifications notificationsOverride = new Notifications();
+    notificationsOverride.add(new UserNotification(userEmailAddress, ProxyStageType.ID));
+    policy.addPolicyNotificationsOverride(ownerIdForOverrides, notificationsOverride);
+    new PolicyDAO().update(policy);
+
+    // Prepare request and mock the HDS request
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    String componentPath = "testPath";
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", componentPath, componentHash);
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(componentIdentifier, componentHash,
+        MatchState.EXACT, 0, null, null, securityVulnerabilities, 1);
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components.add(componentEvaluationData);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    List<Message> notificationsUser = Mailbox.get(userEmailAddress);
+    notificationsUser.clear();
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> policyViolations =
+        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+
+    assertThat(policyViolations).hasSize(1);
+    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyViolation.getActionTypeId()).isEqualTo(FailActionType.ID);
+    assertNotifications(notificationsUser, 1, 5000);
+  }
+
+  @Test
+  public void testEvaluate_NewComponentViolationNotifications() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    String user1EmailAddress = "user1@sonatype.com";
+    String user2EmailAddress = "user2@sonatype.com";
+    tempEntity.newPolicy(repository.getId(), "Test Policy", 10, null, null,
+        new Notifications(new UserNotification(user1EmailAddress, Stage.ID_PROXY)));
+    Policy waivedPolicy = tempEntity.newPolicy(repository.getId(), "Waived Policy", 10, null, null,
+        new Notifications(new UserNotification(user2EmailAddress, Stage.ID_PROXY)));
+    tempEntity.newWaiver(waivedPolicy.getId(), repository.getId());
+
+    // Prepare request and mock the HDS request
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
+
+    String hash1 = "hash1";
+    String hash2 = "hash2";
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "pathname1", hash1));
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "pathname2", hash2));
+    hdsResult.components
+        .add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        hash1, MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
+    hdsResult.components
+        .add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"),
+        hash2, MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    List<Message> notificationsUser1 = Mailbox.get(user1EmailAddress);
+    notificationsUser1.clear();
+    List<Message> notificationsUser2 = Mailbox.get(user2EmailAddress);
+    notificationsUser2.clear();
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> policyViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    assertThat(policyViolations).hasSize(4);
+
+    // Notification message should have been sent
+    assertNotifications(notificationsUser1, 1, 5000);
+    assertNotifications(notificationsUser2, 0, 1000);
   }
 }

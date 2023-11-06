@@ -53,11 +53,11 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_InvalidPageOrPageSizeThrowsException() {
-    assertThatThrownBy(() -> integrationService.getIntegrationStatuses(-1, 100, null, null))
+    assertThatThrownBy(() -> integrationService.getIntegrationStatuses(-1, 100, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Page and Page size must be greater than 0");
 
-    assertThatThrownBy(() -> integrationService.getIntegrationStatuses(2, 0, null, null))
+    assertThatThrownBy(() -> integrationService.getIntegrationStatuses(2, 0, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Page and Page size must be greater than 0");
   }
@@ -70,7 +70,7 @@ public class IntegrationServiceTest
     int page = 1;
     final int pageSize = 3;
     final ApiPageResult<IntegrationStatusDTO> pageOneResult =
-        integrationService.getIntegrationStatuses(page, pageSize, null, null);
+        integrationService.getIntegrationStatuses(page, pageSize, null, null, null, null);
 
     assertThat(pageOneResult.getPage())
         .isEqualTo(page);
@@ -103,7 +103,7 @@ public class IntegrationServiceTest
     // PAGE TWO
     page = 2;
     final ApiPageResult<IntegrationStatusDTO> pageTwoResult =
-        integrationService.getIntegrationStatuses(page, pageSize, null, null);
+        integrationService.getIntegrationStatuses(page, pageSize, null, null, null, null);
 
     assertThat(pageTwoResult.getPage())
         .isEqualTo(page);
@@ -133,7 +133,7 @@ public class IntegrationServiceTest
     int page = 1;
     final int pageSize = 100;
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(page, pageSize, null, null);
+        integrationService.getIntegrationStatuses(page, pageSize, null, null, null, null);
 
     assertThat(result.getPage())
         .isEqualTo(page);
@@ -176,7 +176,7 @@ public class IntegrationServiceTest
     int page = 100;
     final int pageSize = 100;
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(page, pageSize, null, null);
+        integrationService.getIntegrationStatuses(page, pageSize, null, null, null, null);
 
     assertThat(result.getPage())
         .isEqualTo(page);
@@ -198,7 +198,7 @@ public class IntegrationServiceTest
     setUpAppsWithRisk();
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, "-NAME", null);
+        integrationService.getIntegrationStatuses(1, 100, "-NAME", null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);
@@ -238,7 +238,7 @@ public class IntegrationServiceTest
 
     // ASC
     final ApiPageResult<IntegrationStatusDTO> ascResult =
-        integrationService.getIntegrationStatuses(1, 100, "COMMIT", null);
+        integrationService.getIntegrationStatuses(1, 100, "COMMIT", null, null, null);
     final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
     assertThat(ascAppSummaries)
         .hasSize(4);
@@ -253,7 +253,7 @@ public class IntegrationServiceTest
 
     // DESC
     final ApiPageResult<IntegrationStatusDTO> descResult =
-        integrationService.getIntegrationStatuses(1, 100, "-COMMIT", null);
+        integrationService.getIntegrationStatuses(1, 100, "-COMMIT", null, null, null);
     final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
     assertThat(descAppSummaries)
         .hasSize(4);
@@ -285,7 +285,7 @@ public class IntegrationServiceTest
 
     // ASC
     final ApiPageResult<IntegrationStatusDTO> ascResult =
-        integrationService.getIntegrationStatuses(1, 100, "EVALUATION", null);
+        integrationService.getIntegrationStatuses(1, 100, "EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
     assertThat(ascAppSummaries)
         .hasSize(4);
@@ -300,7 +300,7 @@ public class IntegrationServiceTest
 
     // DESC
     final ApiPageResult<IntegrationStatusDTO> descResult =
-        integrationService.getIntegrationStatuses(1, 100, "-EVALUATION", null);
+        integrationService.getIntegrationStatuses(1, 100, "-EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
     assertThat(descAppSummaries)
         .hasSize(4);
@@ -325,7 +325,7 @@ public class IntegrationServiceTest
 
     // ASC
     final ApiPageResult<IntegrationStatusDTO> ascResult =
-        integrationService.getIntegrationStatuses(1, 100, "TOTAL_RISK", null);
+        integrationService.getIntegrationStatuses(1, 100, "TOTAL_RISK", null, null, null);
     final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
     assertThat(ascAppSummaries)
         .hasSize(4);
@@ -340,7 +340,7 @@ public class IntegrationServiceTest
 
     // DESC
     final ApiPageResult<IntegrationStatusDTO> descResult =
-        integrationService.getIntegrationStatuses(1, 100, "-TOTAL_RISK", null);
+        integrationService.getIntegrationStatuses(1, 100, "-TOTAL_RISK", null, null, null);
     final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
     assertThat(descAppSummaries)
         .hasSize(4);
@@ -365,7 +365,7 @@ public class IntegrationServiceTest
 
     // CONTAINS
     final ApiPageResult<IntegrationStatusDTO> containsResult =
-        integrationService.getIntegrationStatuses(1, 100, null, "ea");
+        integrationService.getIntegrationStatuses(1, 100, null, "ea", null, null);
     final List<IntegrationStatusDTO> appSummaries = containsResult.getResults();
     assertThat(appSummaries)
         .hasSize(2);
@@ -379,9 +379,68 @@ public class IntegrationServiceTest
 
     // DOES NOT CONTAIN
     final ApiPageResult<IntegrationStatusDTO> notContainsResult =
-        integrationService.getIntegrationStatuses(1, 100, null, "298df");
+        integrationService.getIntegrationStatuses(1, 100, null, "298df", null, null);
     assertThat(notContainsResult.getResults())
         .isEmpty();
+  }
+
+  @Test
+  public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus()  throws Exception {
+    setUpAppsWithRisk();
+    final String repoUrl = "https://example.com/organization/project";
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
+            SourceControlProvider.GITHUB);
+    // Set ASCF to false for app 1
+    tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
+            null, null, null, true, true, "/target/*", true, false);
+    // Set ASCF to true for app 2
+    tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
+            null, null, null, true, true, "/target/*", true, true);
+    // App 3 source control record does not exist == source control disabled == ASCF disabled
+
+    final ApiPageResult<IntegrationStatusDTO> resultOne =
+            integrationService.getIntegrationStatuses(1, 100, null, null, false, null);
+    final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
+    assertThat(appSummariesOne).hasSize(2);
+
+    final IntegrationStatusDTO app1Dto = appSummariesOne.get(0);
+    assertThat(app1Dto.getApplicationId()).isEqualTo(app1.getId());
+    assertThat(app1Dto.isAutomatedSourceControlFeedbackEnabled()).isFalse();
+
+    final IntegrationStatusDTO app3Dto = appSummariesOne.get(1);
+    assertThat(app3Dto.getApplicationId()).isEqualTo(app3.getId());
+    assertThat(app3Dto.isAutomatedSourceControlFeedbackEnabled()).isFalse();
+
+    final ApiPageResult<IntegrationStatusDTO> resultTwo =
+            integrationService.getIntegrationStatuses(1, 100, null, null, true, null);
+    final List<IntegrationStatusDTO> appSummariesTwo = resultTwo.getResults();
+    assertThat(appSummariesTwo).hasSize(1);
+
+    final IntegrationStatusDTO app2Dto = appSummariesTwo.get(0);
+    assertThat(app2Dto.getApplicationId()).isEqualTo(app2.getId());
+    assertThat(app2Dto.isAutomatedSourceControlFeedbackEnabled()).isTrue();
+  }
+
+  @Test
+  public void testGetIntegrationSummaries_FilterOnCiIntegrationStatus() {
+    setUpAppsWithRisk();
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
+            false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    final ApiPageResult<IntegrationStatusDTO> resultOne =
+            integrationService.getIntegrationStatuses(1, 100, null, null, null, false);
+    final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
+
+    assertThat(appSummariesOne).hasSize(2);
+    assertThat(appSummariesOne.get(0).isCiIntegrationEnabled()).isFalse();
+    assertThat(appSummariesOne.get(1).isCiIntegrationEnabled()).isFalse();
+
+    final ApiPageResult<IntegrationStatusDTO> resultTwo =
+            integrationService.getIntegrationStatuses(1, 100, null, null, null, true);
+    final List<IntegrationStatusDTO> appSummariesTwo = resultTwo.getResults();
+
+    assertThat(appSummariesTwo).hasSize(1);
+    assertThat(appSummariesTwo.get(0).isCiIntegrationEnabled()).isTrue();
   }
 
   @Test
@@ -393,7 +452,7 @@ public class IntegrationServiceTest
             false, false, false, new Date(), "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null);
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);
@@ -436,7 +495,7 @@ public class IntegrationServiceTest
     // App 3 source control record does not exist == source control disabled == ASCF disabled
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null);
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);
@@ -491,7 +550,7 @@ public class IntegrationServiceTest
     tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit2", latestCommitTime2, null);
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null);
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);
@@ -546,7 +605,7 @@ public class IntegrationServiceTest
     tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime2);
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null);
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);
@@ -594,7 +653,7 @@ public class IntegrationServiceTest
     // App 4 = 0 total risk
 
     final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null);
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
         .hasSize(4);

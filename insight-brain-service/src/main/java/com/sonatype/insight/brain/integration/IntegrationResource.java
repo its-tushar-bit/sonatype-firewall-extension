@@ -52,11 +52,14 @@ public class IntegrationResource
       @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
       @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
       @QueryParam("optionalOrderBy") final String optionalOrderBy,
-      @QueryParam("optionalFilterApplicationNamesBy") final String optionalFilterApplicationNamesBy)
+      @QueryParam("optionalFilterApplicationNamesBy") final String optionalFilterApplicationNamesBy,
+      @QueryParam("optionalFilterScmIsIntegrated") final Boolean optionalFilterAppsByScmIntegration,
+      @QueryParam("optionalFilterCiCdIsIntegrated") final Boolean optionalFilterAppsByCiCdIntegration
+  )
   {
     final ApiPageResult<IntegrationStatusDTO> results =
         integrationService.getIntegrationStatuses(page, pageSize, optionalOrderBy,
-            optionalFilterApplicationNamesBy);
+            optionalFilterApplicationNamesBy, optionalFilterAppsByScmIntegration, optionalFilterAppsByCiCdIntegration);
     return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize, results)
         .queryParameters(uriInfo.getQueryParameters())
         .build();

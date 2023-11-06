@@ -25,20 +25,20 @@ public class IntegrationServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPercentageOfAppsWithCITriggeredEvaluations__Unauthenticated() {
-    integrationService.getIntegrationStatuses(1, 100, null, null);
+    integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPercentageOfAppsWithCITriggeredEvaluations_Unauthorized() {
     login();
-    integrationService.getIntegrationStatuses(1, 100, null, null);
+    integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
   }
 
   @Test
   public void testGetPercentageOfAppsWithCITriggeredEvaluations_Authorized() {
     grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
     assertThatCode(() ->
-        integrationService.getIntegrationStatuses(1, 100, null, null))
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null))
         .doesNotThrowAnyException();
   }
 }

@@ -62,7 +62,11 @@ public class IntegrationService
       final int page,
       final int pageSize,
       final String optionalOrderBy,
-      final String optionalFilterApplicationNamesBy)
+      final String optionalFilterApplicationNamesBy,
+      final Boolean optionalFilterAppsByScmIntegration,
+      final Boolean optionalFilterAppsByCiCdIntegration
+
+  )
   {
     final IntegrationStatusFilter filter =
         getIntegrationStatusFilter(page, pageSize, optionalOrderBy, optionalFilterApplicationNamesBy);
@@ -109,6 +113,12 @@ public class IntegrationService
               Collections.singleton(statusDTO.getApplicationId()));
           return statusDTO.setLastEvaluationTimestamp(getLatestEvaluation(policyEvaluations));
         })
+        .filter(statusDTO ->
+                optionalFilterAppsByScmIntegration == null ||
+                statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
+        .filter(statusDTO ->
+                optionalFilterAppsByCiCdIntegration == null ||
+                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
         .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
         .skip(skipCount)
         .limit(filter.getPageSize())

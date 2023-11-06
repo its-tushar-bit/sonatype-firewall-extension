@@ -1,0 +1,16 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-integrations-scm-wizard-card {
+  &.nx-card {
+    text-align: left;
+    max-width: unset;
+  }
+}
+
+.iq-integrations-scm-wizard-card-sections {
+  transform: translateY(calc(0px - var(--nx-spacing-8x)));
+}

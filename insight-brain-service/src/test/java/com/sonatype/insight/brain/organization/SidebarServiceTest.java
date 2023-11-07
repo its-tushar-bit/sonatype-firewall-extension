@@ -5,11 +5,21 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -251,5 +261,80 @@ public class SidebarServiceTest
     assertThat(repositoryThreeDTO.id).isEqualTo(repositoryThree.getId());
     assertThat(repositoryThreeDTO.name).isEqualTo(repositoryThree.getName());
     assertThat(repositoryThreeDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+  }
+
+  @Test
+  public void testGetOwnerList_ChildOrganizationIdsAreOrderedAlphabetically() {
+    // Generate 100 orgs with random names. The child org ids must be ordered by org name in the hierarchy.
+    for (int iOrg = 0; iOrg < 100; iOrg++) {
+      // The new org has a random name
+      tempEntity.newOrganization();
+    }
+    List<Organization> orgs =
+        sortOwners(new OrganizationDAO().getByParentOrganizationId(Organization.ROOT_ORGANIZATION_ID));
+    List<String> expectedIdsOrderedByName = orgs.stream().map(Organization::getId).collect(Collectors.toList());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    OwnerHierarchyOrganizationDTO rootOrgDTO =
+        (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(ownerHierarchyDTO.topParentOrganizationId);
+    assertThat(rootOrgDTO.getChildIds(OwnerType.ORGANIZATION)).isEqualTo(expectedIdsOrderedByName);
+  }
+
+  @Test
+  public void testGetOwnerList_ChildApplicationIdsAreOrderedAlphabetically() {
+    Organization org = tempEntity.newOrganization();
+    // Generate 100 apps with random names. The child app ids must be ordered by app name in the hierarchy.
+    for (int iEntity = 0; iEntity < 100; iEntity++) {
+      // The new app has a random name
+      tempEntity.newApplication(org.getId());
+    }
+    List<Application> apps = sortOwners(new ApplicationDAO().getByOrganizationId(org.getId()));
+    List<String> expectedIdsOrderedByName = apps.stream().map(Application::getPublicId).collect(Collectors.toList());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    OwnerHierarchyOrganizationDTO orgDTO = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(org.getId());
+    assertThat(orgDTO.getChildIds(OwnerType.APPLICATION)).isEqualTo(expectedIdsOrderedByName);
+  }
+
+  @Test
+  public void testGetOwnerList_ChildRepositoryManagerIdsAreOrderedAlphabetically() {
+    // Generate 100 repo managers with random names. The child repo manager ids must be ordered by repo manager name in
+    // the hierarchy.
+    for (int iEntity = 0; iEntity < 100; iEntity++) {
+      // The new repo manager has a random name
+      tempEntity.newRepositoryManager();
+    }
+    List<RepositoryManager> repoManagers = sortOwners(new RepositoryManagerDAO().getAll());
+    List<String> expectedIdsOrderedByName =
+        repoManagers.stream().map(RepositoryManager::getId).collect(Collectors.toList());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    OwnerHierarchyRepositoryContainerDTO repoContainerDTO =
+        (OwnerHierarchyRepositoryContainerDTO) ownerHierarchyDTO.ownersMap
+            .get(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repoContainerDTO.getChildIds(OwnerType.REPOSITORY_MANAGER)).isEqualTo(expectedIdsOrderedByName);
+  }
+
+  @Test
+  public void testGetOwnerList_ChildRepositoryIdsAreOrderedAlphabetically() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    // Generate 100 repos with random names. The child repo ids must be ordered by repo name in the hierarchy.
+    for (int iEntity = 0; iEntity < 100; iEntity++) {
+      // The new repo has a random name
+      tempEntity.newRepository(repoManager);
+    }
+    List<Repository> repos = sortOwners(new RepositoryDAO().getAll());
+    List<String> expectedIdsOrderedByName = repos.stream().map(Repository::getId).collect(Collectors.toList());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    OwnerHierarchyRepositoryManagerDTO repoManagerDTO =
+        (OwnerHierarchyRepositoryManagerDTO) ownerHierarchyDTO.ownersMap.get(repoManager.getId());
+    assertThat(repoManagerDTO.getChildIds(OwnerType.REPOSITORY)).isEqualTo(expectedIdsOrderedByName);
+  }
+
+  private <T extends Owner> List<T> sortOwners(List<T> owners) {
+    List<T> result = new ArrayList<>(owners);
+    result.sort(Comparator.comparing(Owner::getName, String.CASE_INSENSITIVE_ORDER));
+    return result;
   }
 }

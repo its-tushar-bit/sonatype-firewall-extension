@@ -90,7 +90,7 @@ public class RepositoryDAOTest
 
   @Test
   public void testInsert_ValidateNullPublicId() {
-    assertThatThrownBy(() -> tempEntity.newRepository(null /* publicId */))
+    assertThatThrownBy(() -> tempEntity.newRepository((String) null /* publicId */))
         .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 

@@ -2559,6 +2559,10 @@ public class TemporaryEntity
     return repository;
   }
 
+  public Repository newRepository(RepositoryManager repositoryManager) {
+    return newRepository(repositoryManager, uuid());
+  }
+
   public Repository newRepository(String repositoryManagerInstanceId, String publicId) {
     return newRepository(repositoryManagerInstanceId, publicId, null);
   }

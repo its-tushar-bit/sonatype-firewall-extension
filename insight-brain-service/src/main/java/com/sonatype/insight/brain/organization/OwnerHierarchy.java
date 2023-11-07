@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +22,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -68,15 +68,22 @@ public class OwnerHierarchy
     this.organizationDAO = new OrganizationDAO();
     this.syntheticOrganizationMap = new HashMap<>();
     this.applicationMap = new HashMap<>();
+    this.repositoryManagerMap = new HashMap<>();
     this.repositoryMap = new HashMap<>();
 
     initSidebarOrganizationMap(orgs);
     addAppsToParentOrgs(apps);
-    initSidebarRepositoryManagerMap(repositoryManagers);
+    repositoryContainer = new OwnerHierarchyRepositoryContainerDTO();
+    addRepositoryManagersToParent(repositoryManagers);
     addRepositoriesToParent(repositories);
     createOrganizationHierarchy();
-    createRepositoriesHierarchy();
     removeUnauthorizedAncestor();
+  }
+
+  private <T extends Owner> List<T> sortOwners(List<T> owners) {
+    List<T> result = new ArrayList<>(owners);
+    result.sort(Comparator.comparing(Owner::getName, String.CASE_INSENSITIVE_ORDER));
+    return result;
   }
 
   public OwnerHierarchyOrganizationDTO root() {
@@ -174,12 +181,6 @@ public class OwnerHierarchy
     }
   }
 
-  private void forEachOrgSorted(Consumer<OwnerHierarchyOrganizationDTO> consumer) {
-    List<OwnerHierarchyOrganizationDTO> organizations = new ArrayList<>(this.organizationMap.values());
-    Collections.sort(organizations, Comparator.comparing(o -> o.name, String.CASE_INSENSITIVE_ORDER));
-    organizations.forEach(consumer);
-  }
-
   private HashSet<String> filterOrganizationIdsBy(Predicate<OwnerHierarchyOrganizationDTO> predicate) {
     HashSet<String> organizationIds = new HashSet<>();
     Queue<String> organizationsToSearch = new LinkedList<>();
@@ -222,10 +223,6 @@ public class OwnerHierarchy
     organizationMap = initializeEntityMap(organizations, transformToOrganizationDTO);
   }
 
-  private void initSidebarRepositoryManagerMap(final List<RepositoryManager> repositoryManagers) {
-    repositoryManagerMap = initializeEntityMap(repositoryManagers, transformToRepositoryManagerDTO);
-  }
-
   private <T, R extends OwnerHierarchyEntityDTO> Map<String, R> initializeEntityMap(
       final List<T> entities,
       final Function<T, R> transform)
@@ -236,13 +233,22 @@ public class OwnerHierarchy
   }
 
   private void addAppsToParentOrgs(List<Application> apps) {
+    apps = sortOwners(apps);
     convertToMapAndUpdateParents(apps, transformToApplicationDTO, this::getOrComputeApplicationHolderIfAbsent)
         .forEach(application -> applicationMap.put(application.publicId, application));
   }
 
   private void addRepositoriesToParent(List<Repository> repositories) {
+    repositories = sortOwners(repositories);
     convertToMapAndUpdateParents(repositories, transformToRepositoryDTO, this::getRepositoryManager)
         .forEach(repository -> repositoryMap.put(repository.id, repository));
+  }
+
+  private void addRepositoryManagersToParent(List<RepositoryManager> repositoryManagers) {
+    repositoryManagers = sortOwners(repositoryManagers);
+    convertToMapAndUpdateParents(repositoryManagers, transformToRepositoryManagerDTO,
+        repoManager -> getRepositoryContainer())
+        .forEach(repositoryManager -> repositoryManagerMap.put(repositoryManager.id, repositoryManager));
   }
 
   private <T, R extends OwnerHierarchyEntityDTO> Stream<R> convertToMapAndUpdateParents(
@@ -263,24 +269,21 @@ public class OwnerHierarchy
   }
 
   private void createOrganizationHierarchy() {
-    this.forEachOrgSorted(currentOrganizationDTO -> {
-      String parentOrganizationId = currentOrganizationDTO.parentOrganizationId;
+    List<OwnerHierarchyOrganizationDTO> organizations = new ArrayList<>(organizationMap.values());
+    organizations.sort(Comparator.comparing(o -> o.name, String.CASE_INSENSITIVE_ORDER));
+    organizations.forEach(organizationDTO -> {
+      String parentOrganizationId = organizationDTO.parentOrganizationId;
       if (parentOrganizationId == null) {
         return;
       }
 
       OwnerHierarchyOrganizationDTO parentOrganization = getOrComputeIfAbsent(parentOrganizationId);
-      addChildToParentIfAbsent(currentOrganizationDTO, parentOrganization);
+      addChildToParentIfAbsent(organizationDTO, parentOrganization);
 
       if (parentOrganization.synthetic) {
         createMissingAncestors(parentOrganization);
       }
     });
-  }
-
-  private void createRepositoriesHierarchy() {
-    repositoryContainer = new OwnerHierarchyRepositoryContainerDTO();
-    repositoryManagerMap.forEach((key, value) -> addChildToParentIfAbsent(value, repositoryContainer));
   }
 
   // creates synthetic ancestors all the way up to ROOT_ORGANIZATION

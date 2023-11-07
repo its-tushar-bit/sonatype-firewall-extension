@@ -6,10 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import static java.util.Collections.emptySet;
-
 /**
  * @since 1.20.0
  */
@@ -47,6 +44,7 @@ public class OwnerHierarchyDTO
       @Type(value = OwnerHierarchyRepositoryManagerDTO.class, name = "repository_manager"),
       @Type(value = OwnerHierarchyRepositoryDTO.class, name = "repository")
   })
+
   public abstract static class OwnerHierarchyEntityDTO
   {
     public String id;
@@ -55,7 +53,7 @@ public class OwnerHierarchyDTO
 
     abstract String getParentId();
 
-    abstract Set<String> getChildIds(OwnerType... types);
+    abstract List<String> getChildIds(OwnerType... types);
 
     public abstract void addChild(OwnerHierarchyEntityDTO child);
   }
@@ -105,7 +103,7 @@ public class OwnerHierarchyDTO
     }
 
     @Override
-    Set<String> getChildIds(OwnerType... types) {
+    List<String> getChildIds(OwnerType... types) {
       return Stream.of(types == null ? OwnerType.values() : types)
           .flatMap(type -> {
             if (type.equals(OwnerType.APPLICATION)) {
@@ -118,7 +116,7 @@ public class OwnerHierarchyDTO
               return Stream.empty();
             }
           })
-          .collect(Collectors.toSet());
+          .collect(Collectors.toList());
     }
 
     @Override
@@ -166,8 +164,8 @@ public class OwnerHierarchyDTO
     }
 
     @Override
-    Set<String> getChildIds(OwnerType... types) {
-      return emptySet();
+    List<String> getChildIds(OwnerType... types) {
+      return Collections.emptyList();
     }
 
     @Override
@@ -184,7 +182,7 @@ public class OwnerHierarchyDTO
   public static class OwnerHierarchyRepositoryContainerDTO
       extends OwnerHierarchyEntityDTO
   {
-    public Set<String> repositoryManagerIds = new HashSet<>();
+    public List<String> repositoryManagerIds = new ArrayList<>();
 
     OwnerHierarchyRepositoryContainerDTO() {
       id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
@@ -197,7 +195,7 @@ public class OwnerHierarchyDTO
     }
 
     @Override
-    Set<String> getChildIds(OwnerType... ignored) {
+    List<String> getChildIds(OwnerType... ignored) {
       return repositoryManagerIds;
     }
 
@@ -212,7 +210,7 @@ public class OwnerHierarchyDTO
   {
     public String instanceId;
 
-    public Set<String> repositoryIds = new HashSet<>();
+    public List<String> repositoryIds = new ArrayList<>();
 
     @Override
     public String getParentId() {
@@ -220,7 +218,7 @@ public class OwnerHierarchyDTO
     }
 
     @Override
-    Set<String> getChildIds(OwnerType... ignored) {
+    List<String> getChildIds(OwnerType... ignored) {
       return repositoryIds;
     }
 
@@ -259,8 +257,8 @@ public class OwnerHierarchyDTO
     }
 
     @Override
-    Set<String> getChildIds(OwnerType... ignored) {
-      return emptySet();
+    List<String> getChildIds(OwnerType... ignored) {
+      return Collections.emptyList();
     }
 
     @Override

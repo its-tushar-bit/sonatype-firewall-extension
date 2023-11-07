@@ -5,9 +5,18 @@
  */
 package com.sonatype.insight.brain.looker;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,6 +27,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -25,12 +35,15 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.InternalServerException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -48,15 +61,25 @@ public class LookerService
 
   private static final Logger log = LoggerFactory.getLogger(LookerService.class);
 
+  public static final String IER_BASE_PATH = "rest/enterpriseReporting";
+
   public static final String LOOKER_SSO_EMBED_URL_PATH = "rest/looker/ssoEmbedUrl";
 
   public static final String LOOKER_CONFIG_PATH = "rest/looker/config";
 
+  public static final String LOOKER_DASHBOARDS_METADATA_PATH = IER_BASE_PATH + "/dashboards";
+
+  public static final String LOOKER_ICONS_PATH = IER_BASE_PATH + "/icons";
+
   public static final String DEFAULT_CONFIG_CACHE_KEY = "default";
+
+  public static final String DEFAULT_DASHBOARD_CACHE_KEY = "default";
 
   private static final Duration MAX_AGE = Duration.ofDays(1);
 
   private final LoadingCache<String, LookerConfigDTO> lookerConfigCache;
+
+  private final LoadingCache<String, IerDashboardMetadataListDTO> lookerDashboardMetadataCache;
 
   private final UserDAO userDAO;
 
@@ -64,20 +87,26 @@ public class LookerService
 
   private final SamlUserDAO samlUserDAO;
 
+  private final InsightWork insightWork;
+
   @Inject
   public LookerService(
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
-      final MembershipMappingService membershipMappingService)
+      final MembershipMappingService membershipMappingService,
+      final InsightWork insightWork)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
+    this.insightWork = insightWork;
     this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE).build(newLookerConfigCacheLoader());
+    this.lookerDashboardMetadataCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE)
+        .build(newLookerDashboardMetadataLoader());
   }
 
   //for testing only
@@ -87,14 +116,18 @@ public class LookerService
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
-      final LoadingCache<String, LookerConfigDTO> cache)
+      final InsightWork insightWork,
+      final LoadingCache<String, LookerConfigDTO> configCache,
+      final LoadingCache<String, IerDashboardMetadataListDTO> dashboardCache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
-    this.lookerConfigCache = cache;
+    this.insightWork = insightWork;
+    this.lookerConfigCache = configCache;
+    this.lookerDashboardMetadataCache = dashboardCache;
   }
 
   private CacheLoader<String, LookerConfigDTO> newLookerConfigCacheLoader() {
@@ -103,6 +136,19 @@ public class LookerService
       @Override
       public LookerConfigDTO load(@NotNull final String key) {
         return hdsClient.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH);
+      }
+    };
+  }
+
+  private CacheLoader<String, IerDashboardMetadataListDTO> newLookerDashboardMetadataLoader() {
+    return new CacheLoader<String, IerDashboardMetadataListDTO>()
+    {
+      @Override
+      public IerDashboardMetadataListDTO load(@NotNull final String key) {
+        IerDashboardMetadataListDTO ierDashboardMetadataListDTO =
+            hdsClient.get(IerDashboardMetadataListDTO.class, LOOKER_DASHBOARDS_METADATA_PATH);
+        downloadAndCacheDashboardIcons();
+        return ierDashboardMetadataListDTO;
       }
     };
   }
@@ -123,7 +169,18 @@ public class LookerService
       return lookerConfigCache.get(DEFAULT_CONFIG_CACHE_KEY).baseUrl;
     }
     catch (ExecutionException e) {
-      throw new InternalServerErrorException("unable to load looker configuration from sonatype data services", e);
+      throw new InternalServerException("unable to load Enterprise Reporting configuration from " +
+          "Sonatype Data Services", e);
+    }
+  }
+
+  public IerDashboardMetadataListDTO getLookerDashboardMetadata() {
+    try {
+      return lookerDashboardMetadataCache.get(DEFAULT_DASHBOARD_CACHE_KEY);
+    }
+    catch (ExecutionException e) {
+      throw new InternalServerErrorException("unable to load Integrated Enterprise Reporting metadata from " +
+          "Sonatype Data Services", e);
     }
   }
 
@@ -135,7 +192,8 @@ public class LookerService
   }
 
   private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
-    log.debug("Submitting Looker SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
+    log.debug("Submitting Integrated Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", requestId,
+        lookerDashboard);
     Pair<String, String> names = getUserFirstAndLastnames();
     final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
@@ -176,6 +234,45 @@ public class LookerService
     if (!SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       throw new NotAuthorizedException(SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId()
           + " feature is disabled.");
+    }
+  }
+
+  void downloadAndCacheDashboardIcons() {
+    try (InputStream is = hdsClient.get(InputStream.class, LOOKER_ICONS_PATH)) {
+      byte[] fetchedIcons = IOUtils.toByteArray(is);
+      deleteDashboardIcons();
+      extractIconFiles(fetchedIcons);
+    }
+    catch (IOException e ) {
+      log.debug("Error when saving dashboard icons", e);
+    }
+  }
+
+  private void deleteDashboardIcons() {
+    File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
+    if (iconsDirectory.exists()) {
+      try (Stream<Path> paths = Files.walk(iconsDirectory.toPath())) {
+        log.debug("Deleting cached dashboard icon files located in {}", iconsDirectory.getPath());
+        paths.map(it -> new File(String.valueOf(it))).forEach(File::delete);
+      }
+      catch (IOException e) {
+        log.debug("Error deleting dashboard icon(s)", e);
+      }
+    }
+  }
+
+  private void extractIconFiles(byte[] iconsZipFile) {
+    try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(iconsZipFile))) {
+      for (ZipEntry ze; (ze = zipIn.getNextEntry()) != null; ) {
+        File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
+        Path iconPath = iconsDirectory.toPath().resolve(ze.getName()).normalize();
+        Files.createDirectories(iconPath.getParent());
+        Files.copy(zipIn, iconPath);
+        log.debug("Cached dashboard icon {}", iconPath);
+      }
+    }
+    catch (IOException e) {
+      log.debug("Error caching dashboard icon", e);
     }
   }
 }

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.looker;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.ier.IerDashboardMetadataDTO;
+import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -71,5 +73,49 @@ public class LookerResourceTest
     assertResponseStatus(200, response);
     String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":\"" + baseUrl + "\"}";
     assertThat(response.getBodyText()).contains(expectedResponse);
+  }
+
+  @Test
+  public void testGetLookerDashboardMetadata_Success() throws Exception {
+    hdsMockServer.respondWith("{\n" +
+        "  \"dashboardMetadata\": [\n" +
+        "    {\n" +
+        "      \"dashboardId\": \"sbom-scorecard\",\n" +
+        "      \"title\": \"Sbom Report Overview\",\n" +
+        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
+        "      \"features\": [\n" +
+        "        \"Graphs\",\n" +
+        "        \"Tables\"\n" +
+        "      ],\n" +
+        "      \"accessButtonText\": \"Open Dashboard\",\n" +
+        "      \"previewImage\": \"preview001.jpg\",\n" +
+        "      \"priority\": 1,\n" +
+        "      \"spotlight\": true\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}").atUri("rest/enterpriseReporting/dashboards");
+    hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons");
+    HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    assertResponseStatus(200, response);
+    IerDashboardMetadataListDTO responseList = response.getBody(IerDashboardMetadataListDTO.class);
+    assertThat(responseList).isNotNull();
+    assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
+    IerDashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata.get(0);
+    assertThat(dashboardMetadataDTO.dashboardId).isEqualTo("sbom-scorecard");
+    assertThat(dashboardMetadataDTO.title).isEqualTo("Sbom Report Overview");
+    assertThat(dashboardMetadataDTO.description).isEqualTo("A comprehensive view of monthly sboms");
+    assertThat(dashboardMetadataDTO.features.size()).isEqualTo(2);
+    assertThat(dashboardMetadataDTO.accessButtonText).isEqualTo("Open Dashboard");
+    assertThat(dashboardMetadataDTO.previewImage).isEqualTo("preview001.jpg");
+    assertThat(dashboardMetadataDTO.priority).isEqualTo(1);
+    assertThat(dashboardMetadataDTO.spotlight).isTrue();
+  }
+
+  @Test
+  public void testGetLookerDashboardMetadata_Error() throws Exception {
+    hdsMockServer.respondWith("error").andStatus(502).atUri("rest/enterpriseReporting/dashboards");
+    hdsMockServer.respondWith(new byte[0]).andStatus(200).atUri("rest/enterpriseReporting/icons");
+    HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    assertResponseStatus(502, response);
   }
 }

@@ -151,4 +151,11 @@ public class InsightWork
   public File getTemporaryDirectory() {
     return new File(insightConfig.getSonatypeWork(), "temp");
   }
+
+  /**
+   * @since 1.170
+   */
+  public File getIerDashboardIconsDirectory() {
+    return new File(insightConfig.getSonatypeWork(), "enterpriseReportingDashboardIcons");
+  }
 }

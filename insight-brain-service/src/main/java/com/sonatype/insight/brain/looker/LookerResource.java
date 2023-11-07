@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.looker;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -29,6 +31,8 @@ public class LookerResource
 
   public static final String CONFIG_PATH = "config";
 
+  public static final String DASHBOARDS_METADATA_PATH = "dashboards";
+
   private final LookerService lookerHdsService;
 
   @Inject
@@ -43,5 +47,12 @@ public class LookerResource
   @Audited(AuditEvent.VIEW_INTEGRATED_ENTERPRISE_REPORTING_DASHBOARD)
   public SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboardDTO) {
     return lookerHdsService.createSSOEmbedUrl(lookerDashboardDTO);
+  }
+
+  @GET
+  @Path(DASHBOARDS_METADATA_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public IerDashboardMetadataListDTO getLookerDashboardMetadata() {
+    return lookerHdsService.getLookerDashboardMetadata();
   }
 }

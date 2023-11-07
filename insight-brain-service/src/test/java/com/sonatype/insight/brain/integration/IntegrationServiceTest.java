@@ -401,7 +401,7 @@ public class IntegrationServiceTest
     final ApiPageResult<IntegrationStatusDTO> resultOne =
             integrationService.getIntegrationStatuses(1, 100, null, null, false, null);
     final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
-    assertThat(appSummariesOne).hasSize(2);
+    assertThat(appSummariesOne).hasSize(3);
 
     final IntegrationStatusDTO app1Dto = appSummariesOne.get(0);
     assertThat(app1Dto.getApplicationId()).isEqualTo(app1.getId());
@@ -431,7 +431,7 @@ public class IntegrationServiceTest
             integrationService.getIntegrationStatuses(1, 100, null, null, null, false);
     final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
 
-    assertThat(appSummariesOne).hasSize(2);
+    assertThat(appSummariesOne).hasSize(3);
     assertThat(appSummariesOne.get(0).isCiIntegrationEnabled()).isFalse();
     assertThat(appSummariesOne.get(1).isCiIntegrationEnabled()).isFalse();
 

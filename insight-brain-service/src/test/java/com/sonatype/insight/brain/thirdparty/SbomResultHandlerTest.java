@@ -476,83 +476,32 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_14() throws Exception {
-    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-v1_4.xml");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-vulnerabilities-v1_4.xml", null, null, null, sbomContent);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_4.xml"), "sbom-vulnerabilities-v1_4.xml",
+        SbomFormat.XML);
+  }
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
-
-    List<Component> components = filteredSbom.getComponents();
-
-    List<ThirdPartyFileCoordinate> coordinates =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(1);
-
-    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
-      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
-      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
-          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(1);
-      assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          SbomFormat.XML, true, false);
-    }
+  @Test
+  public void testHandleAndFilterContents_withVulnerabilities_xml_15() throws Exception {
+    testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_5.xml"), "sbom-vulnerabilities-v1_5.xml",
+        SbomFormat.XML);
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilitiesRatings_json_14() throws Exception {
-    String sbomContent = getSbomJsonFile("sbom-vulnerabilities-ratings-v1-4.json");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-vulnerabilities-ratings-v1-4.json", null, null, null, sbomContent);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
-
-    List<Component> components = filteredSbom.getComponents();
-
-    List<ThirdPartyFileCoordinate> coordinates =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(1);
-
-    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
-      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
-      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
-          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(1);
-      assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          SbomFormat.JSON, true, false);
-    }
+    testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-ratings-v1-4.json"),
+        "sbom-vulnerabilities-ratings-v1-4.json", SbomFormat.JSON);
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_json_14() throws Exception {
-    String sbomContent = getSbomJsonFile("sbom-vulnerabilities-v1-4.json");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-vulnerabilities-v1-4.json", null, null, null, sbomContent);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-v1-4.json"), "sbom-vulnerabilities-v1-4.json",
+        SbomFormat.JSON);
+  }
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
-
-    List<Component> components = filteredSbom.getComponents();
-
-    List<ThirdPartyFileCoordinate> coordinates =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(1);
-
-    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
-      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
-      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
-          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(1);
-      assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          SbomFormat.JSON, true, false);
-    }
+  @Test
+  public void testHandleAndFilterContents_withVulnerabilities_json_15() throws Exception {
+    testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-v1-5.json"), "sbom-vulnerabilities-v1-5.json",
+        SbomFormat.JSON);
   }
 
   @Test
@@ -563,6 +512,30 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_noSeverity() throws Exception {
     assertVulnerabilityInformation("sbom-vulnerabilities-no-severity.xml");
+  }
+
+  private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat) throws Exception {
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesSecurity).hasSize(1);
+      assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
+          sbomFormat, true, false);
+    }
   }
 
   private void assertVulnerabilityInformation(final String filename) throws Exception {
@@ -803,6 +776,15 @@ public class SbomResultHandlerTest
   public void testHandleAndFilterContents_v1_4_json() throws Exception {
     String sbomContent = getSbomJsonFile("sbom-simple-v1-4.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_v1_5_json() throws Exception {
+    String sbomContent = getSbomJsonFile("sbom-simple-v1-5.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_5.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);

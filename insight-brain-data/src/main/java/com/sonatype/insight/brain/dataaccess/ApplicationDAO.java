@@ -146,6 +146,11 @@ public class ApplicationDAO
     return getList(tx, sQuery, organizationId);
   }
 
+  public List<Application> getByOrganizationIds(Set<String> organizationIds) {
+    String sQuery = "SELECT entity FROM Application entity WHERE entity.organizationId IN ?1";
+    return getList(sQuery, organizationIds);
+  }
+
   public List<Application> getByOrganizationId(String organizationId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOrganizationId(tx, organizationId);

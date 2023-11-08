@@ -291,11 +291,10 @@ public class ApplicationService
 
   public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {
     Set<String> applicationIds = new HashSet<>();
-    if (organizationIds != null) {
-      for (String organizationId : organizationIds) {
-        for (Application application : applicationDAO.getByOrganizationId(organizationId)) {
-          applicationIds.add(application.getId());
-        }
+    if (organizationIds != null  && !organizationIds.isEmpty()) {
+      List<Application> applications = applicationDAO.getByOrganizationIds(organizationIds);
+      for (Application application : applications) {
+        applicationIds.add(application.getId());
       }
     }
     return applicationIds;

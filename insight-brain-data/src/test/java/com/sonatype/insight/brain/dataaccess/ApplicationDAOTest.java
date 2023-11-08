@@ -1208,4 +1208,29 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
 
     assertThat(appsWithoutCI).isEmpty();
   }
+
+  @Test
+  public void testGetByOrganizationIds() {
+    assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(tempEntity.newOrganization().getId()))).isEmpty();
+
+    Organization org1 = tempEntity.newOrganization("org-1");
+    Application app11 = tempEntity.newApplication(org1.getId());
+    Application app12 = tempEntity.newApplication(org1.getId());
+
+    Organization org2 = tempEntity.newOrganization("org-2");
+    Application app21 = tempEntity.newApplication(org2.getId());
+    Application app22 = tempEntity.newApplication(org2.getId());
+
+    assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(org1.getId())))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId());
+
+    assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(org2.getId())))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app21.getId(), app22.getId());
+
+    assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(org1.getId(), org2.getId())))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app21.getId(), app22.getId());
+  }
 }

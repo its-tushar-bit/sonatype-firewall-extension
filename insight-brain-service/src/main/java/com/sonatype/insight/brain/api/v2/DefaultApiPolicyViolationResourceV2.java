@@ -73,8 +73,12 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_POLICY_VIOLATIONS)
-  public ApiApplicationViolationListDTOV2 getPolicyViolations(@QueryParam("p") final Set<String> policyIds) {
-    return apiPolicyViolationService.getPolicyViolations(policyIds);
+  public ApiApplicationViolationListDTOV2 getPolicyViolations(
+      @QueryParam("p") final Set<String> policyIds,
+      @QueryParam("openTimeAfter") final String openTimeAfter,
+      @QueryParam("openTimeBefore") final String openTimeBefore)
+  {
+    return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore);
   }
 
   @Override

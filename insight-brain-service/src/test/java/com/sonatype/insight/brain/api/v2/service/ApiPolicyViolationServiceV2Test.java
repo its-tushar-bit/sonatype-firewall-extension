@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,12 +92,26 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
+  public void testGetPolicyViolations_MalformedAfterDate() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), "invalid-date", null))
+        .withMessageContaining("Provided value for openTimeAfter is not a valid date.");
+  }
+
+  @Test
+  public void testGetPolicyViolations_MalformedBeforeDate() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), null, "invalid-date"))
+        .withMessageContaining("Provided value for openTimeBefore is not a valid date.");
+  }
+
+  @Test
   public void testGetPolicyViolations_noPolicyIds() {
     createPolicyTestData("scanId1App1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1", "f1.jar");
 
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(Collections.emptySet());
+        .getPolicyViolations(Collections.emptySet(), null, null);
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
   }
@@ -113,7 +128,7 @@ public class ApiPolicyViolationServiceV2Test
     // Get the policy violations for two (out of three) policies
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId(), appPolicyData2.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(2);
@@ -121,6 +136,34 @@ public class ApiPolicyViolationServiceV2Test
         .get(0);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO2 = apiApplicationViolationListDTO.applicationViolations
         .get(1);
+    if (appPolicyData1.application.getId().equals(apiApplicationViolationDTO1.application.id)) {
+      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1, PACKAGE_URL_MAVEN_V1);
+      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData2, PACKAGE_URL_MAVEN_V2);
+    }
+    else {
+      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData2, PACKAGE_URL_MAVEN_V2);
+      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData1, PACKAGE_URL_MAVEN_V1);
+    }
+
+    // Assert violations not returned due to after date
+    apiApplicationViolationListDTO = apiPolicyViolationService.getPolicyViolations(policyIds, "2040-01-01", null);
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
+
+    // Assert violations not returned due to before date
+    apiApplicationViolationListDTO = apiPolicyViolationService.getPolicyViolations(policyIds, null, "2010-12-31");
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
+
+    // Assert violations loaded when provided dates are in range
+    apiApplicationViolationListDTO =
+        apiPolicyViolationService.getPolicyViolations(policyIds, LocalDate.now().minusDays(1).toString(),
+            LocalDate.now().plusDays(1).toString());
+
+    assertThat(apiApplicationViolationListDTO).isNotNull();
+    assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(2);
+    apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations.get(0);
+    apiApplicationViolationDTO2 = apiApplicationViolationListDTO.applicationViolations.get(1);
     if (appPolicyData1.application.getId().equals(apiApplicationViolationDTO1.application.id)) {
       assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1, PACKAGE_URL_MAVEN_V1);
       assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData2, PACKAGE_URL_MAVEN_V2);
@@ -140,7 +183,7 @@ public class ApiPolicyViolationServiceV2Test
 
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
@@ -156,7 +199,7 @@ public class ApiPolicyViolationServiceV2Test
 
     Set<String> policyIds = Collections.singleton(appPolicyData.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
@@ -173,7 +216,7 @@ public class ApiPolicyViolationServiceV2Test
 
     Set<String> policyIds = Collections.singleton(policyData.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations

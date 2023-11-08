@@ -69,6 +69,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +120,32 @@ public class ApiPolicyViolationServiceV2
     this.stageTypeService = stageTypeService;
   }
 
-  public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
+  public ApiApplicationViolationListDTOV2 getPolicyViolations(
+      final Set<String> policyIds,
+      String openTimeAfter,
+      String openTimeBefore)
+  {
+    Date openTimeAfterDate = null;
+    Date openTimeBeforeDate = null;
+
+    if (openTimeAfter != null) {
+      try {
+        openTimeAfterDate = Instant.parse(openTimeAfter).toDate();
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException("Provided value for openTimeAfter is not a valid date.");
+      }
+    }
+
+    if (openTimeBefore != null) {
+      try {
+        openTimeBeforeDate = Instant.parse(openTimeBefore).toDate();
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException("Provided value for openTimeBefore is not a valid date.");
+      }
+    }
+
     if (policyIds == null || policyIds.isEmpty()) {
       return new ApiApplicationViolationListDTOV2();
     }
@@ -140,7 +166,9 @@ public class ApiPolicyViolationServiceV2
     // Filter app ids to those that have policy evaluations
     applicationIds = policyEvaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
 
-    Collection<PolicyViolation> policyViolations = loadPolicyViolations(applicationIds, policyIds);
+    Collection<PolicyViolation> policyViolations =
+        loadPolicyViolations(applicationIds, policyIds, openTimeAfterDate, openTimeBeforeDate);
+
     Map<String, List<PolicyViolation>> policyViolationsByAppId =
         policyViolations.stream().collect(Collectors.groupingBy(PolicyViolation::getApplicationId));
 
@@ -183,11 +211,17 @@ public class ApiPolicyViolationServiceV2
     }
   }
 
-  private Collection<PolicyViolation> loadPolicyViolations(Set<String> applicationIds, Set<String> policyIds) {
+  private Collection<PolicyViolation> loadPolicyViolations(
+      Set<String> applicationIds,
+      Set<String> policyIds,
+      Date openTimeAfter,
+      Date openTimeBefore)
+  {
     long start = System.currentTimeMillis();
 
     Collection<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdsAndPolicyIds(applicationIds, policyIds);
+        policyViolationDAO.getActiveByApplicationIdsAndPolicyIds(applicationIds, policyIds, openTimeAfter,
+            openTimeBefore);
     log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
         applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 

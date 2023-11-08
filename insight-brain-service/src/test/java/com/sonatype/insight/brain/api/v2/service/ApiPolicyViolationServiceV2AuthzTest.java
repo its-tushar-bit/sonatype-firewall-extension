@@ -85,7 +85,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
@@ -134,7 +134,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations)
         .extracting(applicationViolations -> applicationViolations.application.id)
@@ -155,7 +155,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
   private void assertEmptyWhenUnauthorizedOrAuthenticated() {
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
-        .getPolicyViolations(policyIds);
+        .getPolicyViolations(policyIds, null, null);
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
   }

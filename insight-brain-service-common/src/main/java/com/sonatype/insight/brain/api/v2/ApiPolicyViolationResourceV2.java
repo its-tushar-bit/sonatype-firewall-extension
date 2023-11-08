@@ -19,7 +19,10 @@ import com.sonatype.insight.brain.model.OwnerType;
  */
 public interface ApiPolicyViolationResourceV2
 {
-  ApiApplicationViolationListDTOV2 getPolicyViolations(Set<String> policyIds);
+  ApiApplicationViolationListDTOV2 getPolicyViolations(
+      Set<String> policyIds,
+      String openTimeBefore,
+      String openTimeAfter);
 
   /**
    * @since 1.86.0

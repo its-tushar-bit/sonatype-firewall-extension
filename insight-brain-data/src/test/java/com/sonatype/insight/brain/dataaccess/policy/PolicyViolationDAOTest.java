@@ -37,6 +37,7 @@ import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
+import static java.util.Arrays.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationDAOTest
@@ -649,9 +650,74 @@ public class PolicyViolationDAOTest
 
     List<PolicyViolation> violations =
         dao.getActiveByApplicationIdsAndPolicyIds(Collections.singletonList(application.getId()),
-            Collections.singletonList(policy1.getId()));
+            Collections.singletonList(policy1.getId()), null, null);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdsAndPolicyIds_BeforeDate() {
+    String appId = application.getId();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+
+    PolicyEvaluation eval;
+    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + tempEntity.uuid(), asDate("2023-01-01"));
+    String jan01 = tempEntity.newPolicyViolation(eval, policy).getId();
+
+    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + tempEntity.uuid(), asDate("2023-01-15"));
+    String jan15 = tempEntity.newPolicyViolation(eval, policy).getId();
+
+    List<String> app = asList(appId);
+    List<String> policyId = asList(policy.getId());
+
+    // Test openTimeAfter and openTimeBefore both null
+    List<PolicyViolation> result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, null);
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
+
+    // Test openTimeAfter
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), null);
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), null);
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-15"), null);
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-16"), null);
+    assertThat(result).isEmpty();
+
+    // Test openTimeBefore
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-15"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-14"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-01"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2022-12-31"));
+    assertThat(result).extracting(PolicyViolation::getId).isEmpty();
+
+    // Test openTimeAfter AND openTimeBefore
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-15"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-15"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-14"));
+    assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
+
+    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-14"));
+    assertThat(result).isEmpty();
+  }
+
+  private Date asDate(String dateString) {
+    return org.joda.time.Instant.parse(dateString).toDate();
   }
 
   private String addViolation(

@@ -306,14 +306,37 @@ public class PolicyViolationDAO
 
   public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(
       Collection<String> applicationIds,
-      Collection<String> policyIds)
+      Collection<String> policyIds,
+      Date openTimeAfter,
+      Date openTimeBefore)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.policyId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.waiveTime IS NULL" + //
         " AND entity.legacyViolationTime IS NULL";
-    return getUnfixed(sQuery, applicationIds, policyIds);
+
+    int nextIndex = 3;
+    if (openTimeAfter != null) {
+      sQuery += " AND entity.openTime >= ?" + nextIndex++;
+    }
+
+    if (openTimeBefore != null) {
+      sQuery += " AND entity.openTime <= ?" + nextIndex;
+    }
+
+    if (openTimeAfter != null) {
+      if (openTimeBefore != null) {
+        return getUnfixed(sQuery, applicationIds, policyIds, openTimeAfter, openTimeBefore);
+      }
+      return getUnfixed(sQuery, applicationIds, policyIds, openTimeAfter);
+    }
+    else {
+      if (openTimeBefore != null) {
+        return getUnfixed(sQuery, applicationIds, policyIds, openTimeBefore);
+      }
+      return getUnfixed(sQuery, applicationIds, policyIds);
+    }
   }
 
   private List<PolicyViolation> getUnfixed(String sQuery,

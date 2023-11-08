@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -183,7 +184,7 @@ public class ReportResource
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId,
       @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest) throws IOException
+      @Context final HttpServletRequest httpRequest)
   {
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
@@ -256,7 +257,7 @@ public class ReportResource
     return reportEntry;
   }
 
-  private ReportEntry removeBomPathnames(ReportEntry reportEntry) throws IOException {
+  private ReportEntry removeBomPathnames(ReportEntry reportEntry) {
     byte[] jsonWithoutFieldBuf = JsonUtils.setFieldToEmptyArray(reportEntry.buf, "pathnames");
     return new ReportEntry(reportEntry.name, reportEntry.time, jsonWithoutFieldBuf);
   }

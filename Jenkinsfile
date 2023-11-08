@@ -23,10 +23,18 @@ make(
       }
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
-      runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+      withSonatypeDockerRegistry() {
+        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+          runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+        }
+      }
     },
     releaseBuild: { Map<String, ?> mavenCommon, String keystoreCredentialsId, boolean useInstall4J ->
-      buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
+      withSonatypeDockerRegistry() {
+        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+          buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
+        }
+      }
     },
     releaseFromCommit: true,
     snapshotProjectName: 'insight/insight-brain/master-snapshot',

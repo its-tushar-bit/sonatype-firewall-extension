@@ -85,7 +85,6 @@ public class IntegrationService
                 riskScoreDTO -> matchesFilter(riskScoreDTO.applicationName,
                     filter.getOptionalFilterApplicationNamesBy()))
             .collect(Collectors.toList()) : apps;
-    final int totalSize = filteredApps.size();
 
     final List<IntegrationStatusDTO> summaries = filteredApps.stream()
         // Set application and total risk
@@ -120,11 +119,15 @@ public class IntegrationService
                 optionalFilterAppsByCiCdIntegration == null ||
                 statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
         .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
-        .skip(skipCount)
-        .limit(filter.getPageSize())
         .collect(Collectors.toList());
 
-    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), summaries);
+    final int totalSize = summaries.size();
+    final List<IntegrationStatusDTO> paginatedSummaries = summaries.stream()
+            .skip(skipCount)
+            .limit(filter.getPageSize())
+            .collect(Collectors.toList());
+
+    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), paginatedSummaries);
   }
 
   @Authorize(permission = Permission.READ)

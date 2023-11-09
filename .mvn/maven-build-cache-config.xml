@@ -8,6 +8,19 @@
         <local>
             <maxBuildsCached>10</maxBuildsCached>
         </local>
+        <attachedOutputs>
+            <dirNames>
+                <dirName>classes</dirName>
+                <dirName>generated-sources</dirName>
+                <dirName>generated-resources</dirName>
+                <dirName>generated-test-sources</dirName>
+                <dirName>maven-archiver</dirName>
+                <dirName>sonatype-clm</dirName>
+                <dirName>test-classes</dirName>
+                <dirName>maven-status</dirName>
+                <dirName>webpack-modules</dirName>
+            </dirNames>
+        </attachedOutputs>
     </configuration>
 
     <input>
@@ -19,6 +32,11 @@
     </input>
 
     <executionControl>
+        <runAlways>
+            <plugins>
+                <plugin groupId="org.apache.openjpa" artifactId="openjpa-maven-plugin"/>
+            </plugins>
+        </runAlways>
         <reconcile>
             <plugins>
                 <plugin artifactId="maven-surefire-plugin" goal="test">

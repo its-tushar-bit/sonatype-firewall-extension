@@ -27,8 +27,8 @@ public class AssetsTest
 
   @Test
   public void testCssUrlsRelative() throws Exception {
-    final List<String> CSS_PATHS = Arrays.asList("audit-report.css", "cip.css", "style.css", "cip-loader.css",
-        "version.graph.app.css", "viewdetails.css");
+    final List<String> CSS_PATHS = Arrays.asList("style.css", "cip-loader.css", "version.graph.app.css",
+        "viewdetails.css");
     final List<String> failingCssPaths = new ArrayList<>();
     for (String cssPath : CSS_PATHS) {
       HttpResponse response = restRequest().path(cssPath).get();

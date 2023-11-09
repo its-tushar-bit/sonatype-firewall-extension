@@ -264,9 +264,6 @@ module.exports = function (env) {
     // loading of multiple copies of jquery
     jqueryExternals = {
       jquery: 'jQuery',
-    },
-    angularExternals = {
-      angular: 'angular',
     };
 
   if (env.brainOnly) {
@@ -282,30 +279,11 @@ module.exports = function (env) {
     versionGraphConfig,
     versionGraphAppConfig,
     config({
-      entryPath: './audit-report/audit-report-index.js',
-      outputPath: 'audit-report.js',
-      cssOutputPath: 'audit-report.css',
-      env,
-      externals: Object.assign({}, jqueryExternals, angularExternals),
-    }),
-    config({
       entryPath: './cip/cip-loader-index.js',
       outputPath: 'cip-loader.js',
       cssOutputPath: 'cip-loader.css',
       env,
       externals: jqueryExternals,
-    }),
-    config({
-      entryPath: './cip/cip-index.js',
-      outputPath: 'cip.js',
-      cssOutputPath: 'cip.css',
-      env,
-      externals: Object.assign({}, jqueryExternals, angularExternals),
-    }),
-    config({
-      entryPath: './audit-report/external-index.js',
-      outputPath: 'external.js',
-      env,
     }),
   ];
 };

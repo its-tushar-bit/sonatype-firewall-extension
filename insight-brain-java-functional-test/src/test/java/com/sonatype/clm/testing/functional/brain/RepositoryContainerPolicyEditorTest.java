@@ -376,7 +376,7 @@ public class RepositoryContainerPolicyEditorTest
   }
 
   @Test
-  public void testGrandfatheringIsDisabledInAddPageAndEditPage() {
+  public void testLegacyViolationIsDisabledInAddPageAndEditPage() {
     createPolicy();
     refresh();
 

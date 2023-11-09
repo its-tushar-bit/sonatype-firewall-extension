@@ -146,6 +146,7 @@ public class ApiThirdPartyScanResourceTest
     assertEvaluationResultCounter(resultDTO.componentsAffected);
     assertEvaluationResultCounter(resultDTO.openPolicyViolations);
     assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(0);
+    assertThat(resultDTO.legacyViolations).isEqualTo(0);
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
         .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);

@@ -125,7 +125,7 @@ public class ApplicationCloneServiceTest
     String clonedAppPublicId = "clonedAppPublicId";
     String contactUsername = "testuser";
     sourceApp.setContactInternalName(contactUsername);
-    // The application cloning is supposed to disable grandfathering for the cloned app.
+    // The application cloning is supposed to disable legacy violation for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
     sourceApp.setLegacyViolationEnabled(true);
@@ -161,7 +161,7 @@ public class ApplicationCloneServiceTest
     String clonedAppPublicId = "clonedAppPublicId";
     String contactUsername = "testuser";
     sourceApp.setContactInternalName(contactUsername);
-    // The application cloning is supposed to disable grandfathering for the cloned app.
+    // The application cloning is supposed to disable legacy violation for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
     sourceApp.setLegacyViolationEnabled(true);

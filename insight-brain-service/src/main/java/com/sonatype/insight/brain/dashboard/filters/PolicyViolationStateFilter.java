@@ -69,7 +69,7 @@ public class PolicyViolationStateFilter
           states.add(PolicyViolationState.WAIVED);
         }
         if (policyViolation.isLegacyViolation()) {
-          states.add(PolicyViolationState.GRANDFATHERED);
+          states.add(PolicyViolationState.LEGACY_VIOLATION);
         }
         if (states.isEmpty()) {
           states.add(PolicyViolationState.OPEN);

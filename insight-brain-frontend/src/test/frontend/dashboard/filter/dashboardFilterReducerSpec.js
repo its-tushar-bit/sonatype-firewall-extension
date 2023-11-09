@@ -232,7 +232,7 @@ describe('dashboardFilterReducer', () => {
         stageTypeFilters: ['release', 'stage-release', 'build'],
         tagFilters: ['tagId1', 'tagId2', null],
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
-        policyViolationStates: ['OPEN', 'WAIVED', 'GRANDFATHERED'],
+        policyViolationStates: ['OPEN', 'WAIVED', 'LEGACY_VIOLATION'],
         maxDaysOld: 90,
         minPolicyThreatLevel: 3,
         maxPolicyThreatLevel: 6,
@@ -309,7 +309,7 @@ describe('dashboardFilterReducer', () => {
           new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR'])
         );
 
-        expect(selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED', 'GRANDFATHERED']));
+        expect(selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED', 'LEGACY_VIOLATION']));
 
         expect(selected.maxDaysOld).toBe(90);
         expect(selected.policyThreatLevels).toEqual([3, 6]);

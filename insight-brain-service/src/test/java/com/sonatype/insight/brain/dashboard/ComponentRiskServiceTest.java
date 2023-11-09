@@ -300,15 +300,15 @@ public class ComponentRiskServiceTest
     assertThat(policyViolationDTOs).hasSize(1);
     assertPolicyViolationDTO(policyViolationDTOs, waivedViolation, app1, app1PolicyEvaluation, app1Policy);
 
-    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1.getId(), "policy Grandfather", 5);
-    PolicyViolation grandfatherViolation = tempEntity
-        .newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
+    Policy app1LegacyViolationPolicy = tempEntity.newPolicy(app1.getId(), "Legacy Violation Policy", 5);
+    PolicyViolation legacyViolation = tempEntity
+        .newLegacyPolicyViolation(app1PolicyEvaluation, app1LegacyViolationPolicy,
             ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED));
+        new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION));
     assertThat(policyViolationDTOs).hasSize(1);
-    assertPolicyViolationDTO(policyViolationDTOs, grandfatherViolation, app1, app1PolicyEvaluation,
-        app1GrandfatherPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, legacyViolation, app1, app1PolicyEvaluation,
+        app1LegacyViolationPolicy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.OPEN));
@@ -318,15 +318,15 @@ public class ComponentRiskServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
             PolicyViolationState.OPEN));
     assertThat(policyViolationDTOs).hasSize(5);
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, waivedViolation, app1, app1PolicyEvaluation, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, grandfatherViolation, app1, app1PolicyEvaluation,
-        app1GrandfatherPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, legacyViolation, app1, app1PolicyEvaluation,
+        app1LegacyViolationPolicy);
   }
 
   @Test

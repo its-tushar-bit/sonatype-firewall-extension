@@ -44,7 +44,7 @@ export const policyViolationStates = [
     name: 'Waived',
   },
   {
-    id: 'GRANDFATHERED',
+    id: 'LEGACY_VIOLATION',
     name: 'Legacy',
   },
 ];

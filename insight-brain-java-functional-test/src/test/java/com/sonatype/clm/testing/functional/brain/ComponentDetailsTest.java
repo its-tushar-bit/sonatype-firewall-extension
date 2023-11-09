@@ -569,7 +569,7 @@ public class ComponentDetailsTest
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver", ""));
-    testGrandfatheringIndicator(componentDetailsPage);
+    testLegacyViolationIndicator(componentDetailsPage);
   }
 
   @Test
@@ -1132,15 +1132,15 @@ public class ComponentDetailsTest
   }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */
-  private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
-    // Configure grandfathering indicator for the first violation in the report and reload it
+  private void testLegacyViolationIndicator(final ComponentDetailsPage componentDetailsPage) {
+    // Configure legacy violation indicator for the first violation in the report and reload it
     componentDetailsPage.backButton().click();
-    activateGrandfathering();
+    activateLegacyViolation();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     reportPage.aggregateByComponentToggle().click();
-    SelenideElement firstGrandfatheredViolation = reportPage.resultRows().first();
-    firstGrandfatheredViolation.click();
+    SelenideElement firstLegacyViolation = reportPage.resultRows().first();
+    firstLegacyViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
 
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
@@ -1151,7 +1151,7 @@ public class ComponentDetailsTest
     indicatorsCell.shouldHave(text("Legacy"));
   }
 
-  private void activateGrandfathering() {
+  private void activateLegacyViolation() {
     Policy licenseBannedPolicy = new PolicyDAO().getByName("License-Banned").get(0);
 
     app.setLegacyViolationEnabled(true);

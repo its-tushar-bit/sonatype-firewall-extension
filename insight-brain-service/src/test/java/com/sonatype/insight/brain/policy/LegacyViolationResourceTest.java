@@ -38,7 +38,7 @@ public class LegacyViolationResourceTest
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
     Policy policy = tempEntity.newPolicy();
-    PolicyViolation policyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
+    PolicyViolation policyViolation = tempEntity.newLegacyPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.REVOKE_PATH)
         .parameter(application.getPublicId()).put();

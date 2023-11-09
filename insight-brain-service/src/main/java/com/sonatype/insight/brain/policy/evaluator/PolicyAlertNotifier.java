@@ -72,11 +72,11 @@ public class PolicyAlertNotifier
       final String scanId = results.evaluation.getScanId();
       final Stage stage = makeStage(results.evaluation.getStageTypeId());
 
-      int grandfatheredPolicyViolationCount = getGrandfatheredPolicyViolationCount(results);
+      int legacyViolationPolicyCount = getLegacyPolicyViolationCount(results);
 
       try {
         policyAlertEmailer
-            .sendNotifications(app, scanId, stage, policyNotifications, grandfatheredPolicyViolationCount);
+            .sendNotifications(app, scanId, stage, policyNotifications, legacyViolationPolicyCount);
       }
       catch (Exception e) {
         log.error("Email notification failed", e);
@@ -103,14 +103,14 @@ public class PolicyAlertNotifier
     }
   }
 
-  private int getGrandfatheredPolicyViolationCount(final ScanPolicyEvaluatorResults results) {
-    int grandfatheredPolicyViolationCount = 0;
+  private int getLegacyPolicyViolationCount(final ScanPolicyEvaluatorResults results) {
+    int legacyViolationPolicyCount = 0;
     for (PolicyViolation policyViolation : results.allViolations) {
       if (policyViolation.isLegacyViolation()) {
-        grandfatheredPolicyViolationCount++;
+        legacyViolationPolicyCount++;
       }
     }
-    return grandfatheredPolicyViolationCount;
+    return legacyViolationPolicyCount;
   }
 
   /**

@@ -107,7 +107,7 @@ public class SuccessMetricsPurgerTest
       namedViolations.put(app.getId() + "-fixed1", violation1);
       namedViolations.put(app.getId() + "-open", tempEntity.newPolicyViolation(evaluation1, policy));
       namedViolations.put(app.getId() + "-grandfathered",
-          tempEntity.newGrandfatheredPolicyViolation(evaluation1, policy));
+          tempEntity.newLegacyPolicyViolation(evaluation1, policy));
       namedViolations.put(app.getId() + "-waived",
           tempEntity.newWaivedPolicyViolation(evaluation1, policy, tempEntity.newWaiver(policy.getId(), app.getId())));
 

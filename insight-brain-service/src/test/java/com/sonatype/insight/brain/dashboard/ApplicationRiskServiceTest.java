@@ -166,18 +166,18 @@ public class ApplicationRiskServiceTest
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(app1Policy.getThreatLevel());
 
-    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1);
-    tempEntity.newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
+    Policy app1LegacyViolationPolicy = tempEntity.newPolicy(app1);
+    tempEntity.newLegacyPolicyViolation(app1PolicyEvaluation, app1LegacyViolationPolicy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), "-TOTAL_RISK", 0, 100);
+            new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(app1GrandfatherPolicy.getThreatLevel());
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(app1LegacyViolationPolicy.getThreatLevel());
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
@@ -192,7 +192,7 @@ public class ApplicationRiskServiceTest
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
                 PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -200,7 +200,7 @@ public class ApplicationRiskServiceTest
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(
-        orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2 + app1GrandfatherPolicy.getThreatLevel());
+        orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2 + app1LegacyViolationPolicy.getThreatLevel());
   }
 
   @Test

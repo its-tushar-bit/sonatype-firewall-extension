@@ -374,7 +374,7 @@ public class DashboardFilters
       return checkboxItem(3);
     }
 
-    public NxCheckbox grandfathered() {
+    public NxCheckbox legacyViolation() {
       return checkboxItem(4);
     }
   }

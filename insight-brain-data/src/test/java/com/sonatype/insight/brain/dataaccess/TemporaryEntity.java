@@ -2195,14 +2195,6 @@ public class TemporaryEntity
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), "hash", policyWaiver);
   }
 
-  public PolicyViolation newGrandfatheredPolicyViolation(
-      PolicyEvaluation evaluation,
-      Policy policy)
-  {
-    return newGrandfatheredPolicyViolation(evaluation, policy, ComponentIdentifier.createNpmCoordinates(uuid(), uuid()),
-        newRandomHash());
-  }
-
   public PolicyViolation newLegacyPolicyViolation(
       PolicyEvaluation evaluation,
       Policy policy)
@@ -2213,28 +2205,6 @@ public class TemporaryEntity
 
   public String newRandomHash() {
     return uuid().substring(0, 20);
-  }
-
-  public PolicyViolation newGrandfatheredPolicyViolation(
-      PolicyEvaluation evaluation,
-      Policy policy,
-      ComponentIdentifier componentIdentifier,
-      String hash)
-  {
-    Constraint constraint = policy.getConstraints().get(0);
-    Condition condition = constraint.getConditions().get(0);
-    ConstraintFact constraintFact =
-        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
-    ConditionFact conditionFact =
-        new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
-    constraintFact.addConditionFact(conditionFact);
-
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier,
-        Collections.singletonList(constraintFact), "unknown.jar");
-    policyViolation.setLegacyViolationTime(evaluation.getTime());
-    policyViolationDAO.insert(policyViolation);
-    return policyViolation;
   }
 
   public PolicyViolation newLegacyPolicyViolation(

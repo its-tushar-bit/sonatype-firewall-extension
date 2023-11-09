@@ -1955,7 +1955,7 @@ public class ScanPolicyEvaluatorTest
     newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
 
     // Evaluate policies. There should be two policy violations, one active and one legacy.
-    // Both violations should have a CREATE event logged. Only one should have a GRANDFATHER event.
+    // Both violations should have a CREATE event logged. Only one should have a GRANT_LEGACY_STATUS event.
     String scanId = simulateReportIsAvailable(
         "testEvaluate_PolicyViolationLogger_LegacyGrantedAndRevokedPolicyViolations/report");
     ScanPolicyEvaluatorResults results =
@@ -1970,6 +1970,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(legacyViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, results.evaluation.getTime(), legacyViolations,
         currentUser.getUsernameOrSystem());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, results.evaluation.getTime(),
+        legacyViolations, currentUser.getUsernameOrSystem());
   }
 
   @Test

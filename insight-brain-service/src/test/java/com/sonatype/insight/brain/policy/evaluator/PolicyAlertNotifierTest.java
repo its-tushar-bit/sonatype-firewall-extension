@@ -81,11 +81,11 @@ public class PolicyAlertNotifierTest
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
-    PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
+    PolicyViolation legacyViolation = tempEntity.newLegacyPolicyViolation(eval, tempEntity.newPolicy());
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
     results.notifiableViolations = Collections.singletonList(violation);
-    results.allViolations = Arrays.asList(violation, grandfatheredViolation);
+    results.allViolations = Arrays.asList(violation, legacyViolation);
 
     // when we send a notification
     notifier.sendNotifications(app, results);
@@ -105,11 +105,11 @@ public class PolicyAlertNotifierTest
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
-    PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
+    PolicyViolation legacyViolation = tempEntity.newLegacyPolicyViolation(eval, tempEntity.newPolicy());
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
     results.notifiableViolations = Collections.singletonList(violation);
-    results.allViolations = Arrays.asList(violation, grandfatheredViolation);
+    results.allViolations = Arrays.asList(violation, legacyViolation);
 
     // given each notifier throws an exception
     doThrow(new RuntimeException("oh no in email!")).when(policyAlertEmailer)

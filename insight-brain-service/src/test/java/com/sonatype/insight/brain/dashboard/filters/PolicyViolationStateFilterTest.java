@@ -33,7 +33,7 @@ public class PolicyViolationStateFilterTest
   @Test
   public void testMultiplePolicyViolationStates() {
     PolicyViolationStateFilter filter = new PolicyViolationStateFilter(PolicyViolationState.OPEN,
-        PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED);
+        PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION);
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(null);
@@ -53,24 +53,25 @@ public class PolicyViolationStateFilterTest
   }
 
   @Test
-  public void testGrandfatheredAndWaivedSet() {
-    PolicyViolationStateFilter grandfatherFilter = new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED);
+  public void testLegacyViolationAndWaivedSet() {
+    PolicyViolationStateFilter legacyViolationFilter
+        = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
     PolicyViolationStateFilter waivedFilter = new PolicyViolationStateFilter(PolicyViolationState.WAIVED);
     PolicyViolationStateFilter bothFilter = new PolicyViolationStateFilter(PolicyViolationState.WAIVED,
-        PolicyViolationState.GRANDFATHERED);
+        PolicyViolationState.LEGACY_VIOLATION);
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(new Date());
     v1.setLegacyViolationTime(new Date());
 
-    assertThat(grandfatherFilter.asPolicyViolationPredicate().test(v1)).isTrue();
+    assertThat(legacyViolationFilter.asPolicyViolationPredicate().test(v1)).isTrue();
     assertThat(waivedFilter.asPolicyViolationPredicate().test(v1)).isTrue();
     assertThat(bothFilter.asPolicyViolationPredicate().test(v1)).isTrue();
   }
 
   @Test
-  public void testGrandfatheredViolationStates() {
-    PolicyViolationStateFilter filter = new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED);
+  public void testLegacyViolationStates() {
+    PolicyViolationStateFilter filter = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(null);

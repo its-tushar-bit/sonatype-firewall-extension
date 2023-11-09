@@ -479,6 +479,7 @@ public class ScanPolicyEvaluator
           if (newPolicyViolation.isLegacyViolation()) {
             telemetryCollector.addTelemetryForLegacyViolation(newPolicyViolation, component);
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, newPolicyViolation);
           }
         }
         // Fixed policy violations.
@@ -544,7 +545,7 @@ public class ScanPolicyEvaluator
             }
             else if (!oldPolicyViolation.isLegacyViolation() &&
                 oldPolicyViolation.isLegacyViolationApplied()) {
-              // Grandfathering was revoked
+              // legacy violation was revoked
               oldPolicyViolation.setLegacyViolationApplied(false);
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
@@ -632,7 +633,7 @@ public class ScanPolicyEvaluator
     }
     else {
       List<PolicyViolation> legacyViolations =
-          policyViolationDAO.getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+          policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
       if (!legacyViolations.isEmpty()) {
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
             .digestPolicyViolations(legacyViolations, policyViolations);

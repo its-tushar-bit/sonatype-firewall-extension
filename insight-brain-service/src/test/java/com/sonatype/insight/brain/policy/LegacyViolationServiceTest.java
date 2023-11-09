@@ -72,14 +72,14 @@ public class LegacyViolationServiceTest
     PolicyEvaluation policyEvaluationApp1 = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scanId1");
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation fixedLegacyViolation =
-        tempEntity.newGrandfatheredPolicyViolation(policyEvaluationApp1, policyFixed);
+        tempEntity.newLegacyPolicyViolation(policyEvaluationApp1, policyFixed);
     fixedLegacyViolation.setFixTime(new Date());
     policyViolationDAO.update(fixedLegacyViolation);
     PolicyViolation legacyViolation1 =
-        tempEntity.newGrandfatheredPolicyViolation(policyEvaluationApp1, policyForLegacyViolation);
+        tempEntity.newLegacyPolicyViolation(policyEvaluationApp1, policyForLegacyViolation);
     PolicyEvaluation policyEvaluationApp2 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scanId2");
     PolicyViolation legacyViolation2 =
-        tempEntity.newGrandfatheredPolicyViolation(policyEvaluationApp2, policyForLegacyViolation);
+        tempEntity.newLegacyPolicyViolation(policyEvaluationApp2, policyForLegacyViolation);
 
     Date before = new Date();
     legacyViolationService.revokeLegacyViolationStatus(app1.getPublicId());
@@ -90,6 +90,8 @@ public class LegacyViolationServiceTest
     assertThat(policyViolationDAO.getById(legacyViolation2.getId()).isLegacyViolation()).isTrue();
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNGRANDFATHER, app1, before, after,
+        Collections.singletonList(legacyViolation1), currentUser.getUsernameOrSystem());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.REVOKE_LEGACY_STATUS, app1, before, after,
         Collections.singletonList(legacyViolation1), currentUser.getUsernameOrSystem());
   }
 
@@ -160,12 +162,16 @@ public class LegacyViolationServiceTest
     unfixedPolicyViolation1PolicyDoesNotExist =
         policyViolationDAO.getById(unfixedPolicyViolation1PolicyDoesNotExist.getId());
     if (legacyViolationsAllowed) {
-      assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1, before, after);
-      assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
-      assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
+      assertPolicyLegacyViolationTime(unfixedPolicyViolation1, before, after);
+      assertPolicyLegacyViolationTime(waivedPolicyViolation1, before, after);
+      assertPolicyLegacyViolationTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
 
       Date legacyViolationTime = unfixedPolicyViolation1.getLegacyViolationTime();
       assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, app, legacyViolationTime,
+          legacyViolationTime,
+          Arrays.asList(unfixedPolicyViolation1, waivedPolicyViolation1, unfixedPolicyViolation1PolicyDoesNotExist),
+          currentUser.getUsernameOrSystem());
+      assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, app, legacyViolationTime,
           legacyViolationTime,
           Arrays.asList(unfixedPolicyViolation1, waivedPolicyViolation1, unfixedPolicyViolation1PolicyDoesNotExist),
           currentUser.getUsernameOrSystem());
@@ -298,7 +304,7 @@ public class LegacyViolationServiceTest
         () -> legacyViolationService.grantLegacyViolationStatus("APPID"));
   }
 
-  private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
+  private void assertPolicyLegacyViolationTime(PolicyViolation policyViolation, Date before, Date after) {
     assertThat(policyViolation.getLegacyViolationTime()).isAfterOrEqualTo(before);
     assertThat(policyViolation.getLegacyViolationTime()).isBeforeOrEqualTo(after);
   }

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dashboard;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 /**
  * The state for a violation policy is based on the conditions in the constraints of that violation policy.
  *
@@ -16,5 +18,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
  */
 public enum PolicyViolationState
 {
-  OPEN, WAIVED, GRANDFATHERED
+  OPEN,
+  WAIVED,
+  @JsonAlias("GRANDFATHERED")
+  LEGACY_VIOLATION,
 }

@@ -329,7 +329,7 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Test
   public void testAddTelemetryForLegacyViolation() {
-    // setup : create a grandfathered policy violation
+    // setup : create a legacy policy violation
     final int threatLevel = 7;
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
     final boolean isScmEnabled = false;

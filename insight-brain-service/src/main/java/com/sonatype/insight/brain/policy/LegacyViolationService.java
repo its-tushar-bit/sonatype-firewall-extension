@@ -94,12 +94,13 @@ public class LegacyViolationService
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> legacyViolations =
-          policyViolationDAO.getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+          policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
       for (PolicyViolation legacyViolation : legacyViolations) {
         legacyViolation.setLegacyViolationTime(null);
         policyViolationDAO.update(tx, legacyViolation);
 
         policyViolationLogger.add(PolicyViolationLogEvent.UNGRANDFATHER, legacyViolation);
+        policyViolationLogger.add(PolicyViolationLogEvent.REVOKE_LEGACY_STATUS, legacyViolation);
       }
 
       tx.commit();
@@ -138,8 +139,8 @@ public class LegacyViolationService
           if (policy == null || policy.isLegacyViolationAllowed()) {
             policyViolation.setLegacyViolationTime(now);
             policyViolationDAO.update(tx, policyViolation);
-
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, policyViolation);
 
             changedPolicyViolationCount++;
           }

@@ -11,10 +11,28 @@ package com.sonatype.insight.brain.policy.violation;
 public enum PolicyViolationLogEvent
 {
   CREATE, //
+
   FIX, //
+
+  /**
+   * @deprecated use GRANT_LEGACY_STATUS instead
+   */
+  @Deprecated
   GRANDFATHER, //
+
+  /**
+   * @deprecated use REVOKE_LEGACY_STATUS instead
+   */
+  @Deprecated
   UNGRANDFATHER, //
+
+  GRANT_LEGACY_STATUS, //
+
+  REVOKE_LEGACY_STATUS,//
+
   WAIVE, //
+
   UNWAIVE, //
+
   CLEAR
 }

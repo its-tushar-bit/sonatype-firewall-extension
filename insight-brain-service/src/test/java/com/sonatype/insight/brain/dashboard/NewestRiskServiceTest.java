@@ -226,17 +226,17 @@ public class NewestRiskServiceTest
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app1, org1, waivedViolation, app1PolicyEvaluation.getTime());
 
-    Policy app1GrandfatherPolicy = tempEntity.newPolicy(app1.getId(), "policy Grandfather", 1);
-    PolicyViolation grandfatherViolation = tempEntity
-        .newGrandfatheredPolicyViolation(app1PolicyEvaluation, app1GrandfatherPolicy,
+    Policy app1LegacyViolationPolicy = tempEntity.newPolicy(app1.getId(), "Legacy Violation Policy", 1);
+    PolicyViolation legacyViolation = tempEntity
+        .newLegacyPolicyViolation(app1PolicyEvaluation, app1LegacyViolationPolicy,
             ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
     result = newestRiskService.getNewestRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), null,
+        new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION), null,
         DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
-    assertNewestRiskDTO(riskDTO, app1, org1, grandfatherViolation, app1PolicyEvaluation.getTime());
+    assertNewestRiskDTO(riskDTO, app1, org1, legacyViolation, app1PolicyEvaluation.getTime());
 
     result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.OPEN),
@@ -250,7 +250,7 @@ public class NewestRiskServiceTest
     assertNewestRiskDTO(result.dashboardResults.get(2), app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
 
     result = newestRiskService.getNewestRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
             PolicyViolationState.OPEN), "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(5);
     assertThat(result.numResults).isEqualTo(5);
@@ -260,7 +260,7 @@ public class NewestRiskServiceTest
         app1PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(2), app1, org1, waivedViolation, app1PolicyEvaluation.getTime());
     assertNewestRiskDTO(result.dashboardResults.get(3), app1, org1, orgPolicyViolation, app1PolicyEvaluation.getTime());
-    assertNewestRiskDTO(result.dashboardResults.get(4), app1, org1, grandfatherViolation,
+    assertNewestRiskDTO(result.dashboardResults.get(4), app1, org1, legacyViolation,
         app1PolicyEvaluation.getTime());
   }
 

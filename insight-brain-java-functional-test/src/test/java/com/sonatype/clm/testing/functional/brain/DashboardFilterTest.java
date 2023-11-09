@@ -221,9 +221,10 @@ public class DashboardFilterTest
     tempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
 
-    Policy grandfatherPolicy = tempEntity.newPolicy(org.getId(), "GrandfatherTestPolicy");
-    tempEntity.newGrandfatheredPolicyViolation(secondPolicyEvaluation, grandfatherPolicy,
-        ComponentIdentifier.createMavenCoordinates("Group3", "ArtifactGrandfather", "Version3"), "hash-grandfathered");
+    Policy legacyViolationPolicy = tempEntity.newPolicy(org.getId(), "LegacyViolationTestPolicy");
+    tempEntity.newLegacyPolicyViolation(secondPolicyEvaluation, legacyViolationPolicy,
+        ComponentIdentifier.createMavenCoordinates("Group3", "ArtifactLegacyViolation", "Version3"),
+        "hash-legacy");
   }
 
   @Before
@@ -556,7 +557,7 @@ public class DashboardFilterTest
             "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
             "  \"stageTypeFilters\" : [ \"release\" ],\n" +
             "  \"maxDaysOld\" : 30,\n" +
-            "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ],\n" +
+            "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"LEGACY_VIOLATION\" ],\n" +
             "  \"expirationDate\" : \"ALL\",\n" +
             "  \"repositoryFilters\" : [ ]\n" +
             "}");
@@ -714,33 +715,33 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testFilters_shouldFilterGrandfatheredViolations() {
+  public void testFilters_shouldFilterLegacyViolations() {
     DashboardPage.componentsTab().click();
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     selectDefaultFilter();
 
-    // filter GRANDFATHERED only
+    // filter Legacy Violation only
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().open().click();
-    DashboardFilters.policyViolationStateFilter().grandfathered().click();
+    DashboardFilters.policyViolationStateFilter().legacyViolation().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardPage.componentsView().resultsMask().shouldBe(visible);
 
     DashboardFilters.apply();
     DashboardPage.componentsView().resultsMask().shouldBe(hidden);
 
-    // components tab should have only grandfathered component
+    // components tab should have only legacy component
     DashboardPage.componentsView().results().components().shouldHaveSize(1);
-    DashboardPage.componentsView().results().firstComponent().shouldHave(text("ArtifactGrandfather"));
+    DashboardPage.componentsView().results().firstComponent().shouldHave(text("ArtifactLegacyViolation"));
 
-    // violations tab should have only grandfathered violation
+    // violations tab should have only legacy violation
     DashboardPage.violationsTab().click();
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
-    ViolationTile grandfatheredViolation = DashboardPage.violationsView().results().firstViolation();
-    grandfatheredViolation.component().shouldHave(text("ArtifactGrandfather"));
+    ViolationTile legacyViolation = DashboardPage.violationsView().results().firstViolation();
+    legacyViolation.component().shouldHave(text("ArtifactLegacyViolation"));
 
-    // applications tab should have only grandfathered violation app
+    // applications tab should have only legacy violation app
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
@@ -1770,7 +1771,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
-    DashboardFilters.policyViolationStateFilter().grandfathered().click();
+    DashboardFilters.policyViolationStateFilter().legacyViolation().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 7);
@@ -1875,7 +1876,7 @@ public class DashboardFilterTest
     policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     policyViolationStateFilter.open().shouldBe(selected).label().shouldHave(text("Open"));
     policyViolationStateFilter.waived().shouldNotBe(selected).label().shouldHave(text("Waived"));
-    policyViolationStateFilter.grandfathered().shouldNotBe(selected).label().shouldHave(text("Legacy"));
+    policyViolationStateFilter.legacyViolation().shouldNotBe(selected).label().shouldHave(text("Legacy"));
     policyViolationStateFilter.twisty().click();
   }
 

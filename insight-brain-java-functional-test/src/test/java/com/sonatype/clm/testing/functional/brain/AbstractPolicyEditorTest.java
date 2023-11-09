@@ -1595,12 +1595,12 @@ public abstract class AbstractPolicyEditorTest
       boolean actionsReadOnly,
       boolean notificationsReadOnly,
       boolean proxyActionReadOnly,
-      boolean grandfatheringReadOnly)
+      boolean legacyViolationReadOnly)
   {
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
     PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
 
-    assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly, grandfatheringReadOnly);
+    assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly, legacyViolationReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
     assertEditPolicyStateIsCorrect_actionsSection(isReadOnly, actionsReadOnly, proxyActionReadOnly);
     assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly, notificationsReadOnly, proxyActionReadOnly);
@@ -1610,16 +1610,16 @@ public abstract class AbstractPolicyEditorTest
   private void assertEditPolicyStateIsCorrect_summarySection(
       Policy policy,
       boolean isReadOnly,
-      boolean grandfatheringReadOnly)
+      boolean legacyViolationReadOnly)
   {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(value(policy.getName()));
     summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
     assertThreatDropdownSelectorState(policy.getThreatLevel(), isReadOnly);
 
-    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
+    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || legacyViolationReadOnly ? disabled : enabled;
     summary.legacyViolationCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
-    if (grandfatheringReadOnly) {
+    if (legacyViolationReadOnly) {
       String expectedText = "Legacy Violations are not supported by your license";
       PolicyEditorPage.disabledLegacyViolationMessage().shouldBe(text(expectedText));
     }

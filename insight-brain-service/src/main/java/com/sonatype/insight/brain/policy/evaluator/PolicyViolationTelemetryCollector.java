@@ -51,7 +51,7 @@ public class PolicyViolationTelemetryCollector
 
   static final String WAIVE_TIME = "waive_time";
 
-  static final String LEGACY_VIOLATION_TIME = "grandfather_time";
+  static final String LEGACY_VIOLATION_TIME = "legacy_violation_time";
 
   static final String INNERSOURCE_DEPENDENCY = "innersource_dependency";
 

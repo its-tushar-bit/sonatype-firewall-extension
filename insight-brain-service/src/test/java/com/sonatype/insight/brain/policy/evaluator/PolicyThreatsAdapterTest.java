@@ -111,7 +111,7 @@ public class PolicyThreatsAdapterTest
   }
   
   @Test
-  public void testCreatePolicyThreats_Grandfathered() {
+  public void testCreatePolicyThreats_LegacyViolation() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
@@ -221,7 +221,7 @@ public class PolicyThreatsAdapterTest
                                                int threatLevel,
                                                ComponentIdentifier componentIdentifier,
                                                boolean waived,
-                                               boolean grandfathered,
+                                               boolean legacyViolation,
                                                String actionType)
   {
     PolicyEvaluation evaluation =
@@ -233,7 +233,7 @@ public class PolicyThreatsAdapterTest
     if (waived) {
       violation.setWaiveTime(violation.getOpenTime());
     }
-    if (grandfathered) {
+    if (legacyViolation) {
       violation.setLegacyViolationTime(new Date());
     }
     violation.setActionTypeId(actionType);

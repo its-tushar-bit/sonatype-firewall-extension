@@ -157,7 +157,7 @@ public class ApplicationPolicyViolationLoggerTest
   }
 
   @Test
-  public void testLog_NoStagePolicyActionForCreateEventWithGrandfatheredViolation() throws Exception {
+  public void testLog_NoStagePolicyActionForCreateEventWithLegacyViolation() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
         new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);

@@ -92,7 +92,7 @@ public class LegacyViolationResourceAuditTest
 
   @Test
   public void testRevokeLegacyViolationStatus() throws Exception {
-    tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, tempEntity.newPolicy());
+    tempEntity.newLegacyPolicyViolation(policyEvaluation, tempEntity.newPolicy());
 
     restRequest().path(LegacyViolationResource.REVOKE_PATH).parameter(application.getPublicId()).put();
 

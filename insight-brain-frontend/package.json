@@ -6,7 +6,6 @@
     "start-mtiq": "webpack-dev-server --env brainOnly --allowed-hosts all",
     "start-all": "webpack-dev-server",
     "start-version-graph": "webpack-dev-server --env versionGraphOnly",
-    "start-gallery": "webpack-dev-server --config webpack.config.gallery.js",
     "build": "webpack --mode=production --env production",
     "test": "npm-run-all jest test-compile karma",
     "test-compile": "npm-run-all test-lint test-webpack",

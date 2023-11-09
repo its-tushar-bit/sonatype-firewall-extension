@@ -297,7 +297,7 @@ thead {
 
 // a page utilizing a fixed header table will require a modified ".iq-scrollable", e.g. ".iq-scrollable--mypage".
 // This custom ".iq-scrollable--mypage" should invoke the `table-fixed-widths` mixin with the desired number
-// of columns in order to get width styles for that many equal-width columns. See the gallery for an example
+// of columns in order to get width styles for that many equal-width columns.
 
 .iq-tile-content--fixed-table {
   position: relative;

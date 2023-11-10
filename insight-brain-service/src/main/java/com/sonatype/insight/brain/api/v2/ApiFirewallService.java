@@ -591,6 +591,13 @@ public class ApiFirewallService
     }
   }
 
+  @Authorize(permission = Permission.READ)
+  public ApiRepositoryManagerDTO getRepositoryManager(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId)
+  {
+    return fromRepositoryManager(repositoryManagerDAO.getById(repositoryManagerId));
+  }
+
   public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     checkWritePermission(RepositoryContainer.SINGLETON);

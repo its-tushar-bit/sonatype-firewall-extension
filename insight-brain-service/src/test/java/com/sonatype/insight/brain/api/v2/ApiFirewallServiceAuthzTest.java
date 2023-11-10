@@ -214,6 +214,23 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
+  public void testGetRepositoryManager_Authorized() {
+    grantReadPermission(repositoryManager.getId());
+    apiFirewallService.getRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRepositoryManager_Unauthorized() {
+    login();
+    apiFirewallService.getRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRepositoryManager_Unauthenticated() {
+    apiFirewallService.getRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test
   public void testAddRepositoryManager_Authorized() {
     grantWritePermission(RepositoryContainer.SINGLETON.getId());
 

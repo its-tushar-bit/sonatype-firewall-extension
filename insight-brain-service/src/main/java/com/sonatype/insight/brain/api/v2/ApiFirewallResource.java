@@ -92,6 +92,8 @@ public class ApiFirewallResource
 
   private static final String REPOSITORY_ID_PATH = "{repositoryId}";
 
+  static final String GET_REPOSITORY_MANAGER_PATH = REPOSITORY_MANAGERS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
+
   // Visible for testing
   static final String REPOSITORIES_CONFIGURATION_PATH =
       REPOSITORIES_PATH + "/" + CONFIGURATION_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
@@ -197,6 +199,13 @@ public class ApiFirewallResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApiRepositoryManagerListDTO getRepositoryManagers() {
     return apiFirewallService.getRepositoryManagers();
+  }
+
+  @GET
+  @Path(GET_REPOSITORY_MANAGER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiRepositoryManagerDTO getRepositoryManager(@PathParam("repositoryManagerId") String repositoryManagerId) {
+    return apiFirewallService.getRepositoryManager(repositoryManagerId);
   }
 
   @POST

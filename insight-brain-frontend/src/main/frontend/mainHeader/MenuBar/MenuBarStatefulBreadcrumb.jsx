@@ -14,6 +14,7 @@ import {
   selectIsRepositories,
   selectCurrentRouteTitle,
   selectCurrentRouteName,
+  selectIsRepositoryContainer,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -29,6 +30,7 @@ const getBreadcrumb = (
   ownersMap,
   displayedOrganization,
   isRepositories,
+  isRepositoryContainer,
   isApplication,
   applicationPublicId,
   pageTitle,
@@ -40,6 +42,15 @@ const getBreadcrumb = (
     breadcrumb.unshift({
       name: 'Repositories',
       href: uiRouterState.href('management.view.repositories'),
+    });
+  }
+
+  if (isRepositoryContainer) {
+    breadcrumb.unshift({
+      name: 'All Repositories',
+      href: uiRouterState.href('management.view.repository_container', {
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      }),
     });
   }
 
@@ -95,6 +106,7 @@ const MenuBarStatefulBreadcrumb = () => {
   const displayedOrganization = useSelector(selectDisplayedOrganization);
   const isApplication = useSelector(selectIsApplication);
   const isRepositories = useSelector(selectIsRepositories);
+  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const applicationPublicId = useSelector(selectApplicationId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const routeName = useSelector(selectCurrentRouteName);
@@ -108,6 +120,7 @@ const MenuBarStatefulBreadcrumb = () => {
     ownersMap,
     displayedOrganization,
     isRepositories,
+    isRepositoryContainer,
     isApplication,
     applicationPublicId,
     pageTitle,

@@ -101,7 +101,7 @@ describe('ownerSideNavSelectors', () => {
       expect(selectOwnerById.dependencies).toEqual([
         selectOwnersMap,
         selectTopParentOrganizationId,
-        jasmine.any(Function),
+        expect.any(Function),
       ]);
     });
 
@@ -146,7 +146,7 @@ describe('ownerSideNavSelectors', () => {
 
   describe('selectAllDescendantsByParentId', () => {
     it('is composed from the following selector', () => {
-      expect(selectAllDescendantsByParentId.dependencies).toEqual([selectOwnersMap, jasmine.any(Function)]);
+      expect(selectAllDescendantsByParentId.dependencies).toEqual([selectOwnersMap, expect.any(Function)]);
     });
 
     it('selects all descentand apps and orgs for a given parent org', () => {

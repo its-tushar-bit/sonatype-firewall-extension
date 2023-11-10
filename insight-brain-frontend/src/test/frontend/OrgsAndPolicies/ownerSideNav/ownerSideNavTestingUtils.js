@@ -53,7 +53,7 @@ export const verifyOwnersMenuSection = (ownerMenu, children, ownerType, selected
     expect(triggerButton).not.toBeDisabled();
 
     const menuItems = within(ownerMenu).getAllByRole('menuitem');
-    expect(menuItems).toHaveSize(children.length);
+    expect(menuItems).toHaveLength(children.length);
 
     children.forEach((owner) => {
       const ownerItem = within(ownerMenu).getByRole('menuitem', {

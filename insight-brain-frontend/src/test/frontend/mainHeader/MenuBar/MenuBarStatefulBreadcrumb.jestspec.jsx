@@ -9,15 +9,17 @@ import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatef
 import { render, screen } from 'TestRoot/SpecUtil';
 import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
 
-const setupPortalContainer = () => {
-  const breadCrumbContainer = global.document.createElement('div');
-  breadCrumbContainer.setAttribute('id', 'menu-bar__bread-crumb-container');
-  const body = global.document.querySelector('body');
-  body.appendChild(breadCrumbContainer);
+export const setupMenuBarBreadcrumbsPortalContainer = () => {
+  if (!global.document.getElementById('menu-bar__bread-crumb-container')) {
+    const breadCrumbContainer = global.document.createElement('div');
+    breadCrumbContainer.setAttribute('id', 'menu-bar__bread-crumb-container');
+    const body = global.document.querySelector('body');
+    body.appendChild(breadCrumbContainer);
+  }
 };
 
 describe('MenuBarStatefulBreadcrumb', () => {
-  setupPortalContainer();
+  setupMenuBarBreadcrumbsPortalContainer();
 
   let state;
   let renderComponent;
@@ -55,6 +57,24 @@ describe('MenuBarStatefulBreadcrumb', () => {
       'organization name 2',
       'application name 2 at organization 2',
     ];
+
+    expectedBreadCrumbs.forEach((breadCrumbName) => {
+      expect(screen.getByText(breadCrumbName)).toBeVisible();
+    });
+  });
+
+  it('renders bread crumbs for all repositories page', async () => {
+    const stateWithRouterInRepoContainerPage = {
+      ...state,
+      router: {
+        currentState: { name: 'management.view.repository_container' },
+        currentParams: { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' },
+      },
+    };
+
+    renderComponent(stateWithRouterInRepoContainerPage);
+
+    const expectedBreadCrumbs = ['ROOT_ORGANIZATION_NAME', 'All Repositories'];
 
     expectedBreadCrumbs.forEach((breadCrumbName) => {
       expect(screen.getByText(breadCrumbName)).toBeVisible();

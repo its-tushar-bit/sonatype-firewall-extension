@@ -29,6 +29,7 @@ import { actions } from './ownerSideNavSlice';
 import { selectOwnerSideNavSlice, selectIsOrganizationTopOfHierarchyForUser } from './ownerSideNavSelectors';
 import Application from './Application';
 import Organization from './Organization';
+import RepositoryManager from './RepositoryManager';
 import {
   selectIsRootOrganization,
   selectIsOrganization,
@@ -37,6 +38,7 @@ import {
   selectIsManagementViewRouterState,
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
+  selectIsRepositoryContainer,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -53,14 +55,17 @@ export default function OwnerSideNav() {
     displayedOrganization,
     toggleOrganizationsCheck,
     toggleApplicationsCheck,
+    toggleRepositoryManagersCheck,
     filterQuery,
     filteredEntries,
     filterLoading,
+    ownersMap,
   } = useSelector(selectOwnerSideNavSlice);
   const isRootOrganization = useSelector(selectIsRootOrganization);
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isApplication = useSelector(selectIsApplication);
   const showRepositoriesLink = showRepositories && (isOrganizationTopOfHierarchyForUser || isRepositoriesRelated);
   const selectedApplicationId = useSelector(selectApplicationId);
@@ -84,6 +89,9 @@ export default function OwnerSideNav() {
   };
   const onToggleApplicationsCollapse = () => {
     dispatch(actions.toggleApplicationsCollapse());
+  };
+  const onToggleRepositoryManagersCollapse = () => {
+    dispatch(actions.toggleRepositoryManagersCollapse());
   };
 
   const load = () => {
@@ -127,11 +135,39 @@ export default function OwnerSideNav() {
     });
     return (
       <a className={repositoriesClassnames} href={goToRepositoriesUrl}>
-        <div className="iq-owner-name">Repositories</div>
+        <div className="iq-owner-name">All Repositories</div>
         <div className="iq-children-counter">
           <span>({repositoriesCounter})</span>
         </div>
       </a>
+    );
+  };
+
+  const renderRepositoryManagers = (organization = {}) => {
+    if (!isRepositoryContainer || !organization || !ownersMap) return null;
+
+    const repositoryContainer = ownersMap[organization.repositoryContainerId] || {};
+
+    if (!repositoryContainer) return null;
+
+    const repositoryManagerIds = repositoryContainer.repositoryManagerIds || [];
+
+    return (
+      <NxCollapsibleItems
+        role="menu"
+        onToggleCollapse={onToggleRepositoryManagersCollapse}
+        isOpen={toggleRepositoryManagersCheck}
+        id="repository-managers-collapsible"
+        triggerContent="Repository Managers"
+      >
+        {repositoryManagerIds.map((repositoryManagerId) => {
+          return (
+            <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
+              <RepositoryManager repositoryManagerId={repositoryManagerId} />
+            </NxCollapsibleItems.Child>
+          );
+        })}
+      </NxCollapsibleItems>
     );
   };
 
@@ -140,12 +176,16 @@ export default function OwnerSideNav() {
       return <NxLoadingSpinner />;
     }
 
-    if (isNilOrEmpty(entries.organizations) && isNilOrEmpty(entries.applications)) {
+    if (
+      (!isRepositoryContainer && isNilOrEmpty(entries.organizations) && isNilOrEmpty(entries.applications)) ||
+      (isRepositoryContainer && isNilOrEmpty(entries.repositoryManagers))
+    ) {
       return <div className="iq-orgs-and-policies-summary-sidebar__filtered-not-found">No Results Found</div>;
     }
 
     return (
       <>
+        {renderFilteredRepositoryManagers(entries.repositoryManagers)}
         {renderFilteredOrganizations(entries.organizations)}
         {renderFilteredApplications(entries.applications)}
       </>
@@ -153,7 +193,7 @@ export default function OwnerSideNav() {
   };
 
   const renderFilteredOrganizations = (organizations) => {
-    if (isEmpty(organizations)) {
+    if (isRepositoryContainer || isEmpty(organizations)) {
       return null;
     }
 
@@ -191,6 +231,28 @@ export default function OwnerSideNav() {
             <Application applicationPublicId={publicId} isFilteredResult />
           </NxCollapsibleItems.Child>
         ))}
+      </NxCollapsibleItems>
+    );
+  };
+
+  const renderFilteredRepositoryManagers = (repositoryManagers) => {
+    if (!isRepositoryContainer || isEmpty(repositoryManagers)) return null;
+
+    return (
+      <NxCollapsibleItems
+        role="menu"
+        onToggleCollapse={onToggleRepositoryManagersCollapse}
+        isOpen={toggleRepositoryManagersCheck}
+        id="repository-managers-collapsible"
+        triggerContent="Repository Managers"
+      >
+        {repositoryManagers.map((repositoryManager) => {
+          return (
+            <NxCollapsibleItems.Child role="menuitem" key={repositoryManager.id}>
+              <RepositoryManager repositoryManagerId={repositoryManager.id} />
+            </NxCollapsibleItems.Child>
+          );
+        })}
       </NxCollapsibleItems>
     );
   };
@@ -245,6 +307,8 @@ export default function OwnerSideNav() {
   };
 
   const renderOrganizations = (organization) => {
+    if (isRepositoryContainer) return null;
+
     const childOrganizationIds = organization.organizationIds ?? [];
 
     const plusButton = !organization.synthetic ? (
@@ -319,6 +383,7 @@ export default function OwnerSideNav() {
                     {renderRepositoriesNavigationItem()}
                     {isOrgsAndAppsEnabled && (
                       <>
+                        {renderRepositoryManagers(displayedOrganization)}
                         {renderOrganizations(displayedOrganization)}
                         {renderApplications(displayedOrganization)}
                       </>

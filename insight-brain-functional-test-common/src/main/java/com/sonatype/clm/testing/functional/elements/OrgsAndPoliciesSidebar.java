@@ -17,10 +17,13 @@ public class OrgsAndPoliciesSidebar
 
   private final NxCollapsible applicationList;
 
+  private final NxCollapsible repoManagersList;
+
   public OrgsAndPoliciesSidebar() {
     super(".iq-orgs-and-policies-summary-sidebar");
     organizationList = new NxCollapsible(childSelector("#organizations-collapsible"));
     applicationList = new NxCollapsible(childSelector("#applications-collapsible"));
+    repoManagersList = new NxCollapsible(childSelector("#repository-managers-collapsible"));
   }
 
   public SelenideElement selectedOrg() {
@@ -33,6 +36,10 @@ public class OrgsAndPoliciesSidebar
 
   public SelenideElement filterInput() {
     return child("#owner-sidebar-filter");
+  }
+
+  public NxCollapsible getRepoManagerList() {
+    return repoManagersList;
   }
 
   public NxCollapsible getOrganizationList() {

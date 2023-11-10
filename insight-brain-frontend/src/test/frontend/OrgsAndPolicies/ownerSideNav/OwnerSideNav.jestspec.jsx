@@ -13,6 +13,7 @@ import RouterStateContext from 'MainRoot/react/RouterStateContext';
 import { PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { fakeRouterState, verifyOwnersMenuSection } from './ownerSideNavTestingUtils';
 import { FILTER_DEBOUNCE } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
+import { setupMenuBarBreadcrumbsPortalContainer } from '../../mainHeader/MenuBar/MenuBarStatefulBreadcrumb.jestspec';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
@@ -79,6 +80,7 @@ describe('OwnerSideNav', () => {
 
   beforeAll(() => {
     mockAxiosCalls = axiosMockAdapter();
+    setupMenuBarBreadcrumbsPortalContainer();
   });
 
   beforeEach(() => {
@@ -109,8 +111,8 @@ describe('OwnerSideNav', () => {
       },
     };
 
-    routerContext = { href: null };
-    spyOn(routerContext, 'href').and.callFake(fakeRouterState);
+    routerContext = { href: () => {} };
+    jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
     mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, []);
@@ -171,8 +173,7 @@ describe('OwnerSideNav', () => {
     });
 
     it('renders no results found if there is no entries found', async () => {
-      jasmine.clock().install();
-      jasmine.clock().mockDate();
+      jest.useFakeTimers();
 
       renderComponent();
 
@@ -180,16 +181,15 @@ describe('OwnerSideNav', () => {
 
       fireEvent.change(searchInput, { target: { value: 'ababahalamaha' } });
 
-      jasmine.clock().tick(FILTER_DEBOUNCE);
-      jasmine.clock().uninstall();
+      jest.advanceTimersByTime(FILTER_DEBOUNCE);
+      jest.useRealTimers();
 
       const noResults = await screen.findByText('No Results Found');
       expect(noResults).toBeVisible();
     });
 
     it('renders matching results', async () => {
-      jasmine.clock().install();
-      jasmine.clock().mockDate();
+      jest.useFakeTimers();
 
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
@@ -212,6 +212,7 @@ describe('OwnerSideNav', () => {
             filteredEntries: {
               applications: [],
               organizations: [],
+              repositoryManagers: [],
             },
             displayedOrganization: {
               type: 'organization',
@@ -230,11 +231,11 @@ describe('OwnerSideNav', () => {
       const filteredHeader = screen.getByText('Filtered Results:');
       expect(filteredHeader).toBeVisible();
 
-      jasmine.clock().tick(FILTER_DEBOUNCE);
-      jasmine.clock().uninstall();
+      jest.advanceTimersByTime(FILTER_DEBOUNCE);
+      jest.useRealTimers();
 
       const results = await screen.findAllByRole('menuitem');
-      expect(results).toHaveSize(5);
+      expect(results).toHaveLength(5);
 
       expect(results[0]).toHaveTextContent('organization name 3');
       expect(results[1]).toHaveTextContent('application name 3 at organization 1');
@@ -295,7 +296,7 @@ describe('OwnerSideNav', () => {
         renderComponent();
         const currentOrg = await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
         expect(currentOrg).toBeVisible();
-        expect(currentOrg).toHaveClassName('iq-navbar-item iq-selected-org active');
+        expect(currentOrg).toHaveClass('iq-navbar-item iq-selected-org active');
       });
     });
 
@@ -308,7 +309,7 @@ describe('OwnerSideNav', () => {
         it('renders Repositories link with the correct counter value', async () => {
           renderComponent();
           const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
-          expect(goToRepositoriesLink).toHaveClassName('iq-navbar-item iq-repositories-link');
+          expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link');
           expect(goToRepositoriesLink).toBeVisible();
           expect(goToRepositoriesLink).toHaveTextContent('(3)');
         });
@@ -325,7 +326,7 @@ describe('OwnerSideNav', () => {
         it('renders only child organizations collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
-          expect(childMenus).toHaveSize(1);
+          expect(childMenus).toHaveLength(1);
         });
 
         it('child organizations menu sections is not empty ', async () => {
@@ -336,7 +337,6 @@ describe('OwnerSideNav', () => {
         });
 
         it('renders children counter', async () => {
-          SpecUtil.requestIdleCallbackInvokeImmediate();
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
           const menuItems = within(childMenus[0]).getAllByRole('menuitem');
@@ -349,14 +349,14 @@ describe('OwnerSideNav', () => {
       it('renders tree view link', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });
@@ -421,7 +421,7 @@ describe('OwnerSideNav', () => {
         const navbarHeader = await screen.findByTestId('sidebar-header');
         const currentOrgLink = within(navbarHeader).getByRole('link', { name: selectedOrg.name });
         expect(currentOrgLink).toBeVisible();
-        expect(currentOrgLink).toHaveClassName('iq-navbar-item iq-selected-org');
+        expect(currentOrgLink).toHaveClass('iq-navbar-item iq-selected-org');
         expect(currentOrgLink).toHaveAttribute('href', `#/management/view/organization/${selectedOrg.id}`);
       });
     });
@@ -431,7 +431,7 @@ describe('OwnerSideNav', () => {
         it('renders Repositories link with selected item class', async () => {
           renderComponent();
           const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
-          expect(goToRepositoriesLink).toHaveClassName('iq-navbar-item iq-repositories-link active');
+          expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link active');
           expect(goToRepositoriesLink).toBeVisible();
         });
 
@@ -446,7 +446,7 @@ describe('OwnerSideNav', () => {
         it('renders only child organizations collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
-          expect(childMenus).toHaveSize(1);
+          expect(childMenus).toHaveLength(1);
         });
 
         it('child organizations menu sections is not empty ', async () => {
@@ -462,14 +462,224 @@ describe('OwnerSideNav', () => {
       it('renders tree view link', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
+      });
+    });
+  });
+
+  describe('Current owner is Repositories Container', () => {
+    let selectedOrg;
+    const repositoryManagerIds = ['repositoryManagerThree', 'repositoryManagerOne', 'repositoryManagerTwo'];
+
+    beforeEach(() => {
+      selectedOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
+      const ownersMapWithRepositoryContainer = {
+        ...ownersMap,
+        [topParentOrganizationId]: selectedOrg,
+        REPOSITORY_CONTAINER_ID: { repositoryManagerIds },
+        repositoryManagerOne: { name: 'repositoryManagerOne 1.0', type: 'repository_manager' },
+        repositoryManagerTwo: { name: 'repositoryManagerTwo 2.0', type: 'repository_manager' },
+        repositoryManagerThree: { name: '1.0 repositoryManagerThree', type: 'repository_manager' },
+      };
+      state = {
+        router: {
+          currentState: {
+            name: 'management.view.repository_container',
+          },
+          currentParams: { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: {
+              type: 'organization',
+              id: selectedOrg.id,
+              name: selectedOrg.name,
+            },
+          },
+        },
+      };
+      const ownerListPayload = { topParentOrganizationId, ownersMap: ownersMapWithRepositoryContainer };
+      mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
+      mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, permissionsPayload);
+    });
+
+    it('renders breadcrumb', async () => {
+      renderComponent();
+
+      const navigation = await screen.findByRole('navigation', {
+        name: /breadcrumbs/i,
+      });
+
+      const ancestorBreadcrumb = within(navigation).getByText('ROOT_ORGANIZATION_NAME');
+      expect(ancestorBreadcrumb).toBeVisible();
+      expect(ancestorBreadcrumb.closest('a')).toHaveAttribute(
+        'href',
+        '#/management/view/organization/ROOT_ORGANIZATION_ID'
+      );
+
+      const currentBreadcrumb = within(navigation).getByText('All Repositories');
+      expect(currentBreadcrumb).toBeVisible();
+      expect(currentBreadcrumb.closest('a')).not.toHaveAttribute('href');
+    });
+
+    describe('owner sidenav header', () => {
+      it("renders current organization's name as a link with displayed organization class", async () => {
+        renderComponent();
+        const navbarHeader = await screen.findByTestId('sidebar-header');
+        const currentOrgLink = within(navbarHeader).getByRole('link', { name: selectedOrg.name });
+        expect(currentOrgLink).toBeVisible();
+        expect(currentOrgLink).toHaveClass('iq-navbar-item iq-selected-org');
+        expect(currentOrgLink).toHaveAttribute('href', `#/management/view/organization/${selectedOrg.id}`);
+      });
+    });
+
+    describe('owner sidenav content', () => {
+      describe('repositories menu item', () => {
+        it('renders Repositories link with selected item class', async () => {
+          renderComponent();
+          const goToRepositoriesLink = await screen.findByRole('link', { name: /(All Repositories)/ });
+          expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link active');
+          expect(goToRepositoriesLink).toBeVisible();
+        });
+
+        it('contains correct href to navigate to repository configuration', async () => {
+          renderComponent();
+          const goToRepositoriesLink = await screen.findByRole('link', { name: /(All Repositories)/ });
+          expect(goToRepositoriesLink).toHaveAttribute('href');
+        });
+      });
+
+      it('should render repository managers menu item', async () => {
+        renderComponent(state);
+        const repoManagersMenu = await screen.findByRole('button', { name: 'Repository Managers' });
+        expect(repoManagersMenu).toBeVisible();
+      });
+
+      describe('children menu items', () => {
+        it('renders repository managers and organizations collapsible menu sections', async () => {
+          renderComponent();
+          const childMenus = await screen.findAllByRole('menu');
+          expect(childMenus).toHaveLength(1);
+          expect(screen.getByRole('button', { name: /Repository Managers/ })).toBeVisible();
+          expect(screen.queryByRole('button', { name: /Organizations/ })).toBeNull();
+        });
+
+        it('child organizations menu sections is not empty ', async () => {
+          renderComponent();
+          const childMenus = await screen.findAllByRole('group');
+          const menuItems = within(childMenus[0]).getAllByRole('menuitem');
+
+          expect(menuItems).toHaveLength(3);
+
+          const sortedByNameRepositoryManagersIds = [
+            '1.0 repositoryManagerThree',
+            'repositoryManagerOne',
+            'repositoryManagerTwo',
+          ];
+
+          sortedByNameRepositoryManagersIds.forEach((repositoryManagerId, index) => {
+            expect(menuItems[index]).toBeVisible();
+            expect(menuItems[index]).toHaveTextContent(repositoryManagerId);
+          });
+        });
+      });
+
+      it('renders matching results when filter is active', async () => {
+        const rootOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
+        const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
+        const ownersMapWithRepositoryContainer = {
+          ...ownersMap,
+          [topParentOrganizationId]: rootOrg,
+          REPOSITORY_CONTAINER_ID: { repositoryManagerIds },
+          repositoryManagerOne: {
+            id: 'repositoryManagerOne',
+            name: 'repositoryManagerOne',
+            type: 'repository_manager',
+          },
+          repositoryManagerTwo: {
+            id: 'repositoryManagerTwo',
+            name: 'repositoryManagerTwo',
+            type: 'repository_manager',
+          },
+        };
+        state = {
+          router: {
+            currentState: {
+              name: 'management.view.repository_container',
+            },
+            currentParams: {
+              repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+            },
+          },
+          orgsAndPolicies: {
+            ownerSideNav: {
+              filterQuery: rscInitialState(''),
+              filteredEntries: {
+                applications: [],
+                organizations: [],
+                repositoryManagers: [],
+              },
+              displayedOrganization: {
+                type: 'organization',
+                id: rootOrg.id,
+                name: rootOrg.name,
+              },
+            },
+          },
+        };
+        const ownerListPayload = { topParentOrganizationId, ownersMap: ownersMapWithRepositoryContainer };
+        mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
+        renderComponent();
+
+        const searchInput = await screen.findByRole('textbox');
+
+        fireEvent.change(searchInput, { target: { value: 'one' } });
+
+        const filteredHeader = screen.getByText('Filtered Results:');
+        expect(filteredHeader).toBeVisible();
+
+        const results = await screen.findAllByRole('menuitem');
+        expect(results).toHaveLength(1);
+
+        expect(results[0]).toHaveTextContent('repositoryManagerOne');
+
+        fireEvent.change(searchInput, { target: { value: 'empty' } });
+
+        expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
+        expect(await screen.findByText('No Results Found')).toBeVisible();
+
+        fireEvent.change(searchInput, { target: { value: 'name' } });
+
+        expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
+        expect(await screen.findByText('No Results Found')).toBeVisible();
+      });
+    });
+
+    describe('owner sidenav footer', () => {
+      it('renders tree view link', async () => {
+        renderComponent();
+        const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toBeVisible();
+      });
+
+      it('contains correct href to navigate to tree view page', async () => {
+        renderComponent();
+        const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });
@@ -537,10 +747,11 @@ describe('OwnerSideNav', () => {
           name: /breadcrumbs/i,
         });
 
-        const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
+        const header = await screen.findByRole('banner');
+        const selectedOrganization = await within(header).findByText(selectedOrg.name);
         // first match is the breadcrumb.
-        expect(matchingOrgNames[1]).toBeVisible();
-        expect(matchingOrgNames[1]).toHaveClassName('iq-navbar-item iq-selected-org active');
+        expect(selectedOrganization).toBeVisible();
+        expect(selectedOrganization).toHaveClass('iq-navbar-item iq-selected-org active');
       });
     });
 
@@ -633,11 +844,19 @@ describe('OwnerSideNav', () => {
         });
       });
 
+      describe('repository managers menu item', () => {
+        it('is not rendered', async () => {
+          renderComponent();
+          const repoManagersMenu = await screen.queryByRole('button', { name: 'Repository Managers' });
+          expect(repoManagersMenu).toBeNull();
+        });
+      });
+
       describe('children menu items', () => {
         it('renders child organizations and applications collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
-          expect(childMenus).toHaveSize(2);
+          expect(childMenus).toHaveLength(2);
         });
 
         it('child organizations menu section contains links to each child', async () => {
@@ -660,14 +879,14 @@ describe('OwnerSideNav', () => {
       it('renders tree view link', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });
@@ -720,7 +939,7 @@ describe('OwnerSideNav', () => {
         const navbarHeader = await screen.findByTestId('sidebar-header');
         const currentOrgLink = within(navbarHeader).getByRole('link', { name: selectedOrg.name });
         expect(currentOrgLink).toBeVisible();
-        expect(currentOrgLink).toHaveClassName('iq-navbar-item iq-selected-org');
+        expect(currentOrgLink).toHaveClass('iq-navbar-item iq-selected-org');
         expect(currentOrgLink).toHaveAttribute('href', `#/management/view/organization/${selectedOrg.id}`);
       });
     });
@@ -734,11 +953,19 @@ describe('OwnerSideNav', () => {
         });
       });
 
+      describe('repository managers menu item', () => {
+        it('is not rendered', async () => {
+          renderComponent();
+          const repoManagersMenu = await screen.queryByRole('button', { name: 'Repository Managers' });
+          expect(repoManagersMenu).toBeNull();
+        });
+      });
+
       describe('children menu items', () => {
         it('renders child organizations and applications collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
-          expect(childMenus).toHaveSize(2);
+          expect(childMenus).toHaveLength(2);
         });
 
         it('child organizations menu section contains links to each child', async () => {
@@ -761,14 +988,14 @@ describe('OwnerSideNav', () => {
       it('renders tree view link', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });
@@ -826,7 +1053,7 @@ describe('OwnerSideNav', () => {
         const navbarHeader = await screen.findByTestId('sidebar-header');
         const currentOrgLink = within(navbarHeader).getByRole('link', { name: selectedOrg.name });
         expect(currentOrgLink).toBeVisible();
-        expect(currentOrgLink).toHaveClassName('iq-navbar-item iq-selected-org');
+        expect(currentOrgLink).toHaveClass('iq-navbar-item iq-selected-org');
         expect(currentOrgLink).toHaveAttribute('href', `#/management/view/organization/${selectedOrg.id}`);
       });
     });
@@ -840,13 +1067,21 @@ describe('OwnerSideNav', () => {
         });
       });
 
+      describe('repository managers menu item', () => {
+        it('is not rendered', async () => {
+          renderComponent();
+          const repoManagersMenu = await screen.queryByRole('button', { name: 'Repository Managers' });
+          expect(repoManagersMenu).toBeNull();
+        });
+      });
+
       describe('children menu items', () => {
         it('renders only applications collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
 
-          expect(within(childMenus[0]).queryAllByRole('menuitem')).toHaveSize(0);
-          expect(within(childMenus[1]).getAllByRole('menuitem')).toHaveSize(4);
+          expect(within(childMenus[0]).queryAllByRole('menuitem')).toHaveLength(0);
+          expect(within(childMenus[1]).getAllByRole('menuitem')).toHaveLength(4);
         });
 
         it('child applications menu section contains links to each child and selected app is marked', async () => {
@@ -862,14 +1097,14 @@ describe('OwnerSideNav', () => {
       it('renders tree view link', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });
@@ -919,13 +1154,11 @@ describe('OwnerSideNav', () => {
     describe('owner sidenav header', () => {
       it("renders current organization's name as a paragraph with selected item class", async () => {
         renderComponent();
-        await screen.findByRole('navigation', {
-          name: /breadcrumbs/i,
-        });
-        const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
-        // first match is the breadcrumb.
-        expect(matchingOrgNames[1]).toBeVisible();
-        expect(matchingOrgNames[1]).toHaveClassName('iq-navbar-item iq-selected-org active');
+        const header = await screen.findByRole('banner');
+        const selectedOrganization = await within(header).findByText(selectedOrg.name);
+
+        expect(selectedOrganization).toBeVisible();
+        expect(selectedOrganization).toHaveClass('iq-navbar-item iq-selected-org active');
       });
     });
 
@@ -938,17 +1171,25 @@ describe('OwnerSideNav', () => {
         });
       });
 
+      describe('repository managers menu item', () => {
+        it('is not rendered', async () => {
+          renderComponent();
+          const repoManagersMenu = await screen.queryByRole('button', { name: 'Repository Managers' });
+          expect(repoManagersMenu).toBeNull();
+        });
+      });
+
       it('first menu section is for child organizations, but renders only disabled trigger button', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toBeVisible();
       });
 
       it('contains correct href to navigate to tree view page', async () => {
         renderComponent();
         const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
-        expect(goToTreeViewLink).toHaveClassName('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
         expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
       });
     });

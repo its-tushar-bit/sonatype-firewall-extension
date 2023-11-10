@@ -25,7 +25,7 @@ describe('ownerSideNav utils', () => {
         },
       ];
       const sortedList = sortOwnerByName(owners);
-      expect(sortedList).toHaveSize(3);
+      expect(sortedList).toHaveLength(3);
       const nameOrder = sortedList.map((item) => item.name);
       expect(nameOrder).toEqual(['An organization', 'testing Org 2', 'Testing Org 5']);
     });
@@ -37,11 +37,25 @@ describe('ownerSideNav utils', () => {
   });
 
   describe('flatEntries', () => {
-    it('flatten the list of organizations and applications', () => {
+    it('flatten the list of organizations, applications and repo managers', () => {
       const owners = getOwnersMap(4);
-      const flatten = flatEntries(owners, { applications: [], organizations: [] });
+      const rootOrg = owners.ROOT_ORGANIZATION_ID;
+      const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
+      const ownersMapWithRepositoryContainer = {
+        ...owners,
+        ROOT_ORGANIZATION_ID: rootOrg,
+        REPOSITORY_CONTAINER_ID: { repositoryManagerIds },
+        repositoryManagerOne: { id: 'repositoryManagerOne', name: 'repositoryManagerOne', type: 'repository_manager' },
+        repositoryManagerTwo: { id: 'repositoryManagerTwo', name: 'repositoryManagerTwo', type: 'repository_manager' },
+      };
+      const flatten = flatEntries(ownersMapWithRepositoryContainer, {
+        applications: [],
+        organizations: [],
+        repositoryManagers: [],
+      });
       expect(flatten.applications.length).toBe(16);
       expect(flatten.organizations.length).toBe(5);
+      expect(flatten.repositoryManagers.length).toBe(2);
     });
   });
 

@@ -16,7 +16,7 @@ describe('ownerSideNavSlice reducer', () => {
         type: 'ownerSideNav/toggleOrganizationsCollapse',
       });
 
-      expect(toggleOrganizationsCheck).toBeFalse();
+      expect(toggleOrganizationsCheck).toBeFalsy();
     });
 
     it('sets toggleOrganizationsCheck, to true if it was set to false', () => {
@@ -28,7 +28,7 @@ describe('ownerSideNavSlice reducer', () => {
         type: 'ownerSideNav/toggleOrganizationsCollapse',
       });
 
-      expect(toggleOrganizationsCheck).toBeTrue();
+      expect(toggleOrganizationsCheck).toBeTruthy();
     });
   });
 
@@ -42,7 +42,7 @@ describe('ownerSideNavSlice reducer', () => {
         type: 'ownerSideNav/toggleApplicationsCollapse',
       });
 
-      expect(toggleApplicationsCheck).toBeFalse();
+      expect(toggleApplicationsCheck).toBeFalsy();
     });
 
     it('sets toggleApplicationsCollapse, to true if it was set to false', () => {
@@ -54,7 +54,29 @@ describe('ownerSideNavSlice reducer', () => {
         type: 'ownerSideNav/toggleApplicationsCollapse',
       });
 
-      expect(toggleApplicationsCheck).toBeTrue();
+      expect(toggleApplicationsCheck).toBeTruthy();
+    });
+  });
+
+  describe('ownerSideNav/toggleRepositoryManagersCollapse', () => {
+    it('sets toggleRepositoryManagersCheck to false if it was set to true', () => {
+      const state = Object.freeze({ toggleRepositoryManagersCheck: true });
+
+      const { toggleRepositoryManagersCheck } = reducer(state, {
+        type: 'ownerSideNav/toggleRepositoryManagersCollapse',
+      });
+
+      expect(toggleRepositoryManagersCheck).toBeFalsy();
+    });
+
+    it('sets toggleRepositoryManagersCheck to true if it was set to false', () => {
+      const state = Object.freeze({ toggleRepositoryManagersCheck: false });
+
+      const { toggleRepositoryManagersCheck } = reducer(state, {
+        type: 'ownerSideNav/toggleRepositoryManagersCollapse',
+      });
+
+      expect(toggleRepositoryManagersCheck).toBeTruthy();
     });
   });
 
@@ -76,20 +98,52 @@ describe('ownerSideNavSlice reducer', () => {
       const root = {
         id: 'root',
         name: 'root org',
+        type: 'organization',
         applicationIds: [],
         organizationIds: ['childOrg1', 'childOrg2'],
         totalApps: 6,
         subOrgs: 5,
       };
-      const app1 = { id: 'app1', publicId: 'app1', name: 'app1', organizationId: 'childOrg1' };
-      const app2 = { id: 'app2', publicId: 'app2', name: 'app2', organizationId: 'grandGrandChildOrg1' };
-      const app3 = { id: 'app3', publicId: 'app3', name: 'app3', organizationId: 'grandGrandChildOrg1' };
-      const app4 = { id: 'app4', publicId: 'app4', name: 'z app', organizationId: 'grandChildOrg2' };
-      const app5 = { id: 'app5', publicId: 'app5', name: 'm app', organizationId: 'grandGrandChildOrg1' };
-      const app6 = { id: 'app6', publicId: 'app6', name: 'a app', organizationId: 'grandChildOrg2' };
+      const app1 = { id: 'app1', publicId: 'app1', name: 'app1', type: 'application', organizationId: 'childOrg1' };
+      const app2 = {
+        id: 'app2',
+        publicId: 'app2',
+        name: 'app2',
+        type: 'application',
+        organizationId: 'grandGrandChildOrg1',
+      };
+      const app3 = {
+        id: 'app3',
+        publicId: 'app3',
+        name: 'app3',
+        type: 'application',
+        organizationId: 'grandGrandChildOrg1',
+      };
+      const app4 = {
+        id: 'app4',
+        publicId: 'app4',
+        name: 'z app',
+        type: 'application',
+        organizationId: 'grandChildOrg2',
+      };
+      const app5 = {
+        id: 'app5',
+        publicId: 'app5',
+        name: 'm app',
+        type: 'application',
+        organizationId: 'grandGrandChildOrg1',
+      };
+      const app6 = {
+        id: 'app6',
+        publicId: 'app6',
+        name: 'a app',
+        type: 'application',
+        organizationId: 'grandChildOrg2',
+      };
       const childOrg1 = {
         id: 'childOrg1',
         name: 'childOrg1',
+        type: 'organization',
         parentOrganizationId: 'root',
         organizationIds: ['grandChildOrg1'],
         applicationIds: ['app1'],
@@ -99,6 +153,7 @@ describe('ownerSideNavSlice reducer', () => {
       const grandChildOrg1 = {
         id: 'grandChildOrg1',
         name: 'grandChildOrg1',
+        type: 'organization',
         parentOrganizationId: 'childOrg1',
         organizationIds: ['grandGrandChildOrg1'],
         applicationIds: [],
@@ -108,6 +163,7 @@ describe('ownerSideNavSlice reducer', () => {
       const grandGrandChildOrg1 = {
         id: 'grandGrandChildOrg1',
         name: 'grandGrandChildOrg1',
+        type: 'organization',
         parentOrganizationId: 'grandChildOrg1',
         applicationIds: ['app2', 'app3', 'app5'],
         organizationIds: [],
@@ -117,6 +173,7 @@ describe('ownerSideNavSlice reducer', () => {
       const childOrg2 = {
         id: 'childOrg2',
         name: 'childOrg2',
+        type: 'organization',
         parentOrganizationId: 'root',
         organizationIds: ['grandChildOrg2'],
         applicationIds: [],
@@ -126,6 +183,7 @@ describe('ownerSideNavSlice reducer', () => {
       const grandChildOrg2 = {
         id: 'grandChildOrg2',
         name: 'New parent',
+        type: 'organization',
         parentOrganizationId: 'childOrg2',
         applicationIds: ['app4', 'app6'],
         totalApps: 2,
@@ -220,18 +278,18 @@ describe('ownerSideNavSlice reducer', () => {
 
         expect(flattenEntries.organizations.length).toBe(4);
         expect(flattenEntries.organizations).toEqual(
-          jasmine.arrayContaining([
-            jasmine.objectContaining({ id: 'root' }),
-            jasmine.objectContaining({ id: 'childOrg1' }),
-            jasmine.objectContaining({ id: 'childOrg2' }),
-            jasmine.objectContaining({ id: 'grandChildOrg2' }),
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'root' }),
+            expect.objectContaining({ id: 'childOrg1' }),
+            expect.objectContaining({ id: 'childOrg2' }),
+            expect.objectContaining({ id: 'grandChildOrg2' }),
           ])
         );
         expect(flattenEntries.applications.length).toBe(3);
         expect(flattenEntries.applications).toEqual([
-          jasmine.objectContaining({ id: 'app1' }),
-          jasmine.objectContaining({ id: 'app4' }),
-          jasmine.objectContaining({ id: 'app6' }),
+          expect.objectContaining({ id: 'app1' }),
+          expect.objectContaining({ id: 'app4' }),
+          expect.objectContaining({ id: 'app6' }),
         ]);
 
         expect(ownersMap.childOrg1.totalApps).toBe(1);
@@ -279,11 +337,11 @@ describe('ownerSideNavSlice reducer', () => {
         expect(flattenEntries.organizations.length).toBe(6);
         expect(flattenEntries.applications.length).toBe(5);
         expect(flattenEntries.applications).toEqual([
-          jasmine.objectContaining({ id: 'app1' }),
-          jasmine.objectContaining({ id: 'app3' }),
-          jasmine.objectContaining({ id: 'app4' }),
-          jasmine.objectContaining({ id: 'app5' }),
-          jasmine.objectContaining({ id: 'app6' }),
+          expect.objectContaining({ id: 'app1' }),
+          expect.objectContaining({ id: 'app3' }),
+          expect.objectContaining({ id: 'app4' }),
+          expect.objectContaining({ id: 'app5' }),
+          expect.objectContaining({ id: 'app6' }),
         ]);
 
         expect(ownersMap.grandGrandChildOrg1.applicationIds.length).toBe(2);
@@ -323,13 +381,13 @@ describe('ownerSideNavSlice reducer', () => {
 
         expect(flattenEntries.applications.length).toBe(7);
         expect(flattenEntries.applications).toEqual([
-          jasmine.objectContaining({ id: 'app1' }),
-          jasmine.objectContaining({ id: 'app2' }),
-          jasmine.objectContaining({ id: 'app3' }),
-          jasmine.objectContaining({ id: 'app4' }),
-          jasmine.objectContaining({ id: 'app5' }),
-          jasmine.objectContaining({ id: 'app6' }),
-          jasmine.objectContaining({ id: 'newApp' }),
+          expect.objectContaining({ id: 'app1' }),
+          expect.objectContaining({ id: 'app2' }),
+          expect.objectContaining({ id: 'app3' }),
+          expect.objectContaining({ id: 'app4' }),
+          expect.objectContaining({ id: 'app5' }),
+          expect.objectContaining({ id: 'app6' }),
+          expect.objectContaining({ id: 'newApp' }),
         ]);
 
         expect(ownersMap.grandGrandChildOrg1.applicationIds.length).toBe(4);
@@ -376,7 +434,7 @@ describe('ownerSideNavSlice reducer', () => {
 
         expect(flattenEntries.organizations.length).toBe(7);
         expect(flattenEntries.organizations).toEqual(
-          jasmine.arrayContaining([jasmine.objectContaining({ id: 'newOrg' })])
+          expect.arrayContaining([expect.objectContaining({ id: 'newOrg' })])
         );
 
         const createdOrg = ownersMap['newOrg'];
@@ -425,7 +483,7 @@ describe('ownerSideNavSlice reducer', () => {
 
         expect(flattenEntries.organizations.length).toBe(4);
         expect(flattenEntries.organizations).toEqual(
-          jasmine.arrayContaining([jasmine.objectContaining({ id: 'newOrg' })])
+          expect.arrayContaining([expect.objectContaining({ id: 'newOrg' })])
         );
 
         const createdOrg = ownersMap['newOrg'];

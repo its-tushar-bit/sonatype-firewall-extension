@@ -24,7 +24,7 @@ export default function RepositoriesSummaryView() {
     <NxPageMain id="repository-page">
       <header>
         <NxPageTitle id="repositories-summary">
-          <NxH1>Repositories</NxH1>
+          <NxH1>All Repositories</NxH1>
           <RepositoriesPills />
         </NxPageTitle>
       </header>

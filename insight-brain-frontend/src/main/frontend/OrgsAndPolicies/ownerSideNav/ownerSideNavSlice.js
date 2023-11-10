@@ -37,9 +37,11 @@ export const initialState = {
   showRepositories: false,
   toggleOrganizationsCheck: true,
   toggleApplicationsCheck: true,
+  toggleRepositoryManagersCheck: true,
   filteredEntries: {
     applications: [],
     organizations: [],
+    repositoryManagers: [],
   },
   filterQuery: rscInitialState(''),
   filterLoading: false,
@@ -64,6 +66,7 @@ const loadOwnerList = createAsyncThunk(
 
 const loadOwnerListFulfilled = (state, { payload = {} }) => {
   const { ownersMap, topParentOrganizationId } = payload;
+
   state.ownersMap = ownersMap;
   state.topParentOrganizationId = topParentOrganizationId;
 };
@@ -75,7 +78,6 @@ const loadIfNeeded = (forceReload) => (dispatch, getState) => {
   if (forceReload || !ownersMapExistInMemory) {
     return dispatch(load());
   }
-
   return Promise.resolve({});
 };
 
@@ -155,6 +157,7 @@ const onRouterFinish = (state, { payload }) => {
     );
     state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
     state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
+    state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
     resetFilter(state);
   }
 };
@@ -170,6 +173,7 @@ const loadFulfilled = (state, { payload }) => {
   state.showRepositories = payload.showRepositories;
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
+  state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
   state.flattenEntries = payload.flattenEntries;
 };
 
@@ -235,15 +239,18 @@ const filterEntries = (entries, term) => {
 
   let filteredOrganizations = [];
   let filteredApplications = [];
+  let filteredRepositoryManagers = [];
 
   if (term && term.length >= 3) {
     filteredOrganizations = fuzzyFilter(entries.organizations, term, 'name');
     filteredApplications = fuzzyFilter(entries.applications, term, 'name');
+    filteredRepositoryManagers = fuzzyFilter(entries.repositoryManagers, term, 'name');
   }
 
   return {
     organizations: sortOwnerByName(filteredOrganizations),
     applications: sortOwnerByName(filteredApplications),
+    repositoryManagers: sortOwnerByName(filteredRepositoryManagers),
   };
 };
 
@@ -361,6 +368,7 @@ const ownerSideNavSlice = createSlice({
     removeApplicationFromOwnerHierarchy,
     toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
+    toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),
     setDisplayedOrganization: propSet('displayedOrganization'),
     setFilterQuery,
     setFilteredEntries,

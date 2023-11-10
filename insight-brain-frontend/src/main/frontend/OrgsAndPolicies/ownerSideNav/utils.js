@@ -41,14 +41,17 @@ export const fuzzyFilter = (input, term, searchField, resultField) => {
  * @returns separate flat lists of organizations and applications
  */
 export const flatEntries = (ownersMap, res) => {
-  res = res || { organizations: [], applications: [] };
+  res = res || { organizations: [], applications: [], repositoryManagers: [] };
 
-  const isApplication = (owner) => !!owner.organizationId;
+  const isApplication = (owner) => owner.type === 'application';
+  const isOrganization = (owner) => owner.type === 'organization';
+  const isRepositoryManager = (owner) => owner.type === 'repository_manager';
 
   for (const ownerId in ownersMap) {
     const owner = ownersMap[ownerId];
     if (isApplication(owner)) res.applications.push(owner);
-    else res.organizations.push(owner);
+    if (isRepositoryManager(owner)) res.repositoryManagers.push(owner);
+    if (isOrganization(owner)) res.organizations.push(owner);
   }
 
   return res;

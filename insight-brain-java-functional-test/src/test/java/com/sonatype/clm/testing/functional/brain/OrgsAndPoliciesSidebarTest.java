@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -86,6 +87,30 @@ public class OrgsAndPoliciesSidebarTest
 
     selectedOrg = findFirstOrgChild(selectedOrg.getId(), organizations.get(0));
     testSideNavbarContent(selectedOrg, 0, 0);
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_repoManagersMenu() {
+    RepositoryManager repositoryA = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA");
+    tempEntity.newRepository(repositoryA, "a123", false);
+    RepositoryManager repositoryB = tempEntity.newRepositoryManager("P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
+    tempEntity.newRepository(repositoryB, "b123", true);
+    tempEntity.newRepositoryManager("AB9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
+    tempEntity.newRepositoryManager("XY9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
+    tempEntity.newRepositoryManager("1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
+    RepositoryManager namedRepositoryManager = tempEntity.newRepositoryManager(
+        "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0"
+    );
+
+    refresh();
+
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+    orgsAndPoliciesSidebar.repositories().click();
+    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.children().shouldHaveSize(6);
+    repoManagerList.shouldHave(text(namedRepositoryManager.getName()));
+
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Container level");
   }
 
   @Test

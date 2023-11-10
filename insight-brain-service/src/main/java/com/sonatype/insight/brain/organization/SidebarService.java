@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -84,7 +84,7 @@ class SidebarService
       ownerDetailsDTO.tags = tagDAO.getByOrganizationId(internalOwnerId);
     }
     else {
-      ownerDetailsDTO.tags = new ArrayList<>();
+      ownerDetailsDTO.tags = Collections.emptyList();
     }
     ownerDetailsDTO.policies = policyDAO.getByOwnerId(internalOwnerId);
     ownerDetailsDTO.labels = labelDAO.getByOwnerId(internalOwnerId);

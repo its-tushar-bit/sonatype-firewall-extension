@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.clm.testing.functional;
+package com.sonatype.clm.testing.functional.developer;
 
 import java.util.Calendar;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -179,6 +180,47 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 10, 2023"));
     totalRisk(0).shouldHave(text("5"));
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
+
+    //Showing all rows
+    applicationFilterInput().clear();
+    applicationFilterInput().sendKeys("a");
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+
+    //Filtering by SCM
+    appIntegrationsScmFilter().click();
+    appIntegrationsScmFilterConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
+    appIntegrationsScmFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsScmFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+
+    //Filtering by CI/CD
+    appIntegrationsCiCdFilter().click();
+    appIntegrationsCiCdFilterConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
+    appIntegrationsCiCdFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsCiCdFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+
+    // Filtering both at the same time
+    appIntegrationsScmFilter().click();
+    appIntegrationsScmFilterConfiguredInput().click();
+    appIntegrationsCiCdFilter().click();
+    appIntegrationsCiCdFilterConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
+    appIntegrationsScmFilter().click();
+    appIntegrationsScmFilterNotConfiguredInput().click();
+    appIntegrationsCiCdFilter().click();
+    appIntegrationsCiCdFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsScmFilter().click();
+    appIntegrationsScmFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsCiCdFilter().click();
+    appIntegrationsCiCdFilterNotConfiguredInput().click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
   }
 
   @Test
@@ -337,6 +379,30 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement appIntegrationsAndRiskTable() {
     return $("#iq-developer-app-integrations-and-risk-table");
+  }
+
+  private SelenideElement appIntegrationsScmFilter() {
+    return $("#iq-developer-app-integrations-scm-filter");
+  }
+
+  private SelenideElement appIntegrationsScmFilterConfiguredInput() {
+    return appIntegrationsScmFilter().$(".nx-checkbox:nth-child(1)");
+  }
+
+  private SelenideElement appIntegrationsScmFilterNotConfiguredInput() {
+    return appIntegrationsScmFilter().$(".nx-checkbox:nth-child(2)");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilter() {
+    return $("#iq-developer-app-integrations-cicd-filter");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilterConfiguredInput() {
+    return appIntegrationsCiCdFilter().$(".nx-checkbox:nth-child(1)");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilterNotConfiguredInput() {
+    return appIntegrationsCiCdFilter().$(".nx-checkbox:nth-child(2)");
   }
 
   private ElementsCollection appIntegrationsAndRiskTableDataRows() {

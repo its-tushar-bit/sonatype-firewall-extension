@@ -12,7 +12,9 @@ import {
   selectCurrentPage,
   selectPageSize,
   selectSort,
-  selectFilter,
+  selectNameFilter,
+  selectScmFilter,
+  selectCiCdFilter,
 } from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSelectors';
 
 const REDUCER_NAME = 'appsIntegrationsAndRisk';
@@ -53,9 +55,16 @@ const setSort = (state, { payload }) => {
   state.sort = state.sort.includes('-') ? payload : `-${payload}`;
 };
 
-const setFilter = (state, { payload }) => {
-  state.loading = true;
-  state.filter = payload;
+const setNameFilter = (state, { payload }) => {
+  state.nameFilter = payload;
+};
+
+const setCiCdFilter = (state, { payload }) => {
+  state.ciCdFilter = payload;
+};
+
+const setSCMFilter = (state, { payload }) => {
+  state.scmFilter = payload;
 };
 
 const loadAppIntegrationsAndRisk = createAsyncThunk(
@@ -69,7 +78,9 @@ const loadAppIntegrationsAndRisk = createAsyncThunk(
           page: selectCurrentPage(state) + 1,
           pageSize: selectPageSize(state),
           optionalOrderBy: selectSort(state),
-          optionalFilterApplicationNamesBy: selectFilter(state),
+          optionalFilterApplicationNamesBy: selectNameFilter(state),
+          optionalFilterScmIsIntegrated: selectScmFilter(state),
+          optionalFilterCiCdIsIntegrated: selectCiCdFilter(state),
         },
       })
       .then(({ data }) => data)
@@ -80,7 +91,7 @@ const loadAppIntegrationsAndRisk = createAsyncThunk(
 const appIntegrationsAndRiskSlice = createSlice({
   name: REDUCER_NAME,
   initialState: initialState(),
-  reducers: { setCurrentPage, setSort, setFilter },
+  reducers: { setCurrentPage, setSort, setNameFilter, setCiCdFilter, setSCMFilter },
   extraReducers: {
     [loadAppIntegrationsAndRisk.pending]: loadAppIntegrationsAndRiskRequested,
     [loadAppIntegrationsAndRisk.fulfilled]: loadAppIntegrationsAndRiskFulfilled,
@@ -97,7 +108,9 @@ function initialState() {
     pageSize: PAGE_SIZE,
     currentPage: 0,
     sort: `-${COLUMNS.TOTAL_RISK}`,
-    filter: '',
+    nameFilter: '',
+    scmFilter: null,
+    ciCdFilter: null,
   };
 }
 

@@ -16,4 +16,8 @@ export const selectCurrentPage = createSelector(selectAppIntegrationsAndRiskSlic
 
 export const selectSort = createSelector(selectAppIntegrationsAndRiskSlice, prop('sort'));
 
-export const selectFilter = createSelector(selectAppIntegrationsAndRiskSlice, prop('filter'));
+export const selectNameFilter = createSelector(selectAppIntegrationsAndRiskSlice, prop('nameFilter'));
+
+export const selectCiCdFilter = createSelector(selectAppIntegrationsAndRiskSlice, prop('ciCdFilter'));
+
+export const selectScmFilter = createSelector(selectAppIntegrationsAndRiskSlice, prop('scmFilter'));

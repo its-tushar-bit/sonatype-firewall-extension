@@ -153,3 +153,13 @@ svg.nx-icon.iq-total-risk-info-icon {
 .iq-integrations-and-risk-disabled {
   color: var(--nx-swatch-red-40);
 }
+
+#iq-developer-app-integrations-and-risk-table {
+  .nx-cell--header {
+    position: static;
+  }
+
+  .nx-dropdown {
+    width: 100%;
+  }
+}

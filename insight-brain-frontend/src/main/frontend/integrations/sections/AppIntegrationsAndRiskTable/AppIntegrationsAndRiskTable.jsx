@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   NxFilterInput,
   NxFontAwesomeIcon,
@@ -11,6 +11,8 @@ import {
   NxTable,
   NxTableContainer,
   NX_STANDARD_DEBOUNCE_TIME,
+  NxFilterDropdown,
+  NxStatefulFilterDropdown,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions, COLUMNS } from './appIntegrationsAndRiskSlice';
@@ -22,29 +24,26 @@ const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-
 const DisabledIcon = () => <NxFontAwesomeIcon icon={faTimesCircle} className="iq-integrations-and-risk-disabled" />;
 
 export default function AppIntegrationsAndRiskTable() {
+  const scmFilterOptions = [
+    { id: 'withScm', displayName: 'Configured apps' },
+    { id: 'withoutScm', displayName: 'Non-configured apps' },
+  ];
+
+  const ciCdFilterOptions = [
+    { id: 'withCiCd', displayName: 'Configured apps' },
+    { id: 'withoutCiCd', displayName: 'Non-configured apps' },
+  ];
+
   const appIntegrationsAndRiskSlice = useSelector(selectAppIntegrationsAndRiskSlice);
-  const { tableData, loading, loadError, currentPage, pageCount, sort, filter } = appIntegrationsAndRiskSlice;
+  const { tableData, loading, loadError, currentPage, pageCount, sort, nameFilter } = appIntegrationsAndRiskSlice;
 
   const dispatch = useDispatch();
-
-  const handleChange = (page) => {
-    dispatch(actions.setCurrentPage({ currentPage: page }));
-    dispatch(actions.loadAppIntegrationsAndRisk());
-  };
+  const [scmFilterValues, setSCMFilters] = useState(new Set());
+  const [ciCdFilterValues, setCiCdFilters] = useState(new Set());
 
   useEffect(() => {
     dispatch(actions.loadAppIntegrationsAndRisk());
   }, []);
-
-  const handleSort = (name) => {
-    dispatch(actions.setSort(name));
-    dispatch(actions.loadAppIntegrationsAndRisk());
-  };
-
-  const getSortDir = (name) => {
-    if (!sort.includes(name)) return null;
-    return sort.includes('-') ? 'desc' : 'asc';
-  };
 
   const debouncedFilterNameChange = useCallback(
     debounce((value) => {
@@ -52,11 +51,6 @@ export default function AppIntegrationsAndRiskTable() {
     }, NX_STANDARD_DEBOUNCE_TIME),
     []
   );
-
-  const onFilterNameChange = (filter) => {
-    dispatch(actions.setFilter(filter));
-    debouncedFilterNameChange(filter);
-  };
 
   return (
     <NxTableContainer id="iq-developer-app-integrations-and-risk-table">
@@ -66,8 +60,8 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell isSortable onClick={() => handleSort(COLUMNS.NAME)} sortDir={getSortDir(COLUMNS.NAME)}>
               APPLICATIONS
             </NxTable.Cell>
-            <NxTable.Cell className="iq-developer-app-integrations-header">CI/CD</NxTable.Cell>
-            <NxTable.Cell className="iq-developer-app-integrations-header">SCM Feedback</NxTable.Cell>
+            <NxTable.Cell>CI/CD</NxTable.Cell>
+            <NxTable.Cell>SCM Feedback</NxTable.Cell>
             <NxTable.Cell isSortable onClick={() => handleSort(COLUMNS.COMMIT)} sortDir={getSortDir(COLUMNS.COMMIT)}>
               LAST COMMIT
             </NxTable.Cell>
@@ -88,10 +82,30 @@ export default function AppIntegrationsAndRiskTable() {
           </NxTable.Row>
           <NxTable.Row isFilterHeader>
             <NxTable.Cell>
-              <NxFilterInput searchIcon placeholder="Filter" onChange={onFilterNameChange} value={filter} />
+              <NxFilterInput searchIcon placeholder="Search by name" onChange={onFilterNameChange} value={nameFilter} />
             </NxTable.Cell>
-            <NxTable.Cell />
-            <NxTable.Cell />
+            <NxTable.Cell className="iq-developer-dashboard-filter-cell">
+              <NxStatefulFilterDropdown
+                placeholder="Filter"
+                id="iq-developer-app-integrations-cicd-filter"
+                data-testid="cicd-filter"
+                showReset={false}
+                options={ciCdFilterOptions}
+                selectedIds={ciCdFilterValues}
+                onChange={onCiCdFilterChange}
+              />
+            </NxTable.Cell>
+            <NxTable.Cell className="iq-developer-dashboard-filter-cell">
+              <NxStatefulFilterDropdown
+                placeholder="Filter"
+                id="iq-developer-app-integrations-scm-filter"
+                data-testid="scm-filter"
+                showReset={false}
+                options={scmFilterOptions}
+                selectedIds={scmFilterValues}
+                onChange={onSCMFilterChange}
+              />
+            </NxTable.Cell>
             <NxTable.Cell />
             <NxTable.Cell />
             <NxTable.Cell />
@@ -133,12 +147,70 @@ export default function AppIntegrationsAndRiskTable() {
     </NxTableContainer>
   );
 
+  function onFilterNameChange(filter) {
+    dispatch(actions.setNameFilter(filter));
+    debouncedFilterNameChange(filter);
+  }
+
+  function handleChange(page) {
+    dispatch(actions.setCurrentPage({ currentPage: page }));
+    dispatch(actions.loadAppIntegrationsAndRisk());
+  }
+
+  function handleSort(name) {
+    dispatch(actions.setSort(name));
+    dispatch(actions.loadAppIntegrationsAndRisk());
+  }
+
+  function getSortDir(name) {
+    if (!sort.includes(name)) return null;
+    return sort.includes('-') ? 'desc' : 'asc';
+  }
+
+  function onSCMFilterChange(filter) {
+    // Only none or one of the filter options can be selected at once
+    const newScmFilterValue =
+      scmFilterValues != null && filter.size > 1 ? new Set([...filter].filter((x) => !scmFilterValues.has(x))) : filter;
+
+    setSCMFilters(newScmFilterValue);
+    dispatch(actions.setSCMFilter(getBooleanFromFilterSet(newScmFilterValue)));
+    dispatch(actions.loadAppIntegrationsAndRisk());
+  }
+
+  function onCiCdFilterChange(filter) {
+    // Only none or one of the filter options can be selected at once
+    const newCiCdFilterValues =
+      ciCdFilterValues != null && filter.size > 1
+        ? new Set([...filter].filter((x) => !ciCdFilterValues.has(x)))
+        : filter;
+
+    setCiCdFilters(newCiCdFilterValues);
+    dispatch(actions.setCiCdFilter(getBooleanFromFilterSet(newCiCdFilterValues)));
+    dispatch(actions.loadAppIntegrationsAndRisk());
+  }
+
   function getCurrentPage() {
     if (pageCount === 0) {
       // NxPagination does not allow currentPage to numeric if pageCount is 0
       return null;
     } else {
+      if (currentPage > pageCount) {
+        dispatch(actions.setCurrentPage({ currentPage: 0 }));
+        dispatch(actions.loadAppIntegrationsAndRisk());
+
+        return null;
+      }
       return currentPage;
+    }
+  }
+
+  function getBooleanFromFilterSet(filterSet) {
+    if (filterSet === null || filterSet.size === 0) {
+      return null;
+    } else {
+      const [firstValue] = filterSet;
+      // If the set value contains the element 'without' then it should be false
+      return !firstValue.includes('without');
     }
   }
 }

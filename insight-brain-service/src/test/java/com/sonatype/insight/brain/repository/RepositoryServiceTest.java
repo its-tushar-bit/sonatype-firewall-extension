@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -1440,5 +1441,106 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     assertThat(repoManagers).usingRecursiveComparison().ignoringCollectionOrder()
         .isEqualTo(Arrays.asList(repoManagerOne, repoManagerTwo));
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner() {
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager();
+    Repository repo1 =
+        tempEntity.newRepository(repoManager1, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "testNamePattern1");
+    ProprietaryComponentNamePattern pattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern2", "testNamePattern2");
+
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager();
+    Repository repo2 =
+        tempEntity.newRepository(repoManager2, "testPublicId1", RepositoryType.hosted,
+            ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern3 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern3", "testNamePattern3");
+    Repository repo3 =
+        tempEntity.newRepository(repoManager2, "testPublicId2", RepositoryType.hosted,
+            ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern4 =
+        tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern4", "testNamePattern4");
+
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 2;
+    request.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        "testNamePattern"));
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
+
+    //Repository Level - result must include only patterns of repo1
+    ProprietaryComponentNamePatternsPage result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo1.getId(), request);
+    assertThat(result.hasNextPage).isFalse();
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
+
+    request.pageSize = 3;
+
+    //Repository Manager Level - result must include only patterns of repos in repoManager2
+    result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER, repoManager2.getId(),
+            request);
+    assertThat(result.hasNextPage).isFalse();
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern3);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern4);
+
+    //Repository Container Level - result must include patterns of all repos
+    result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID, request);
+    assertThat(result.hasNextPage).isTrue();
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(3);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(2), pattern3);
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_InvalidOwnerType() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(
+            () -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.APPLICATION, "invalid",
+                request))
+        .withMessage("Invalid owner type: " + OwnerType.APPLICATION);
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_InvalidRepositoryManagerId() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER, "invalid",
+                request))
+        .withMessage("RepositoryManager with ID invalid does not exist.");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_InvalidRepositoryId() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, "invalid",
+                request))
+        .withMessage("Repository with ID invalid does not exist.");
   }
 }

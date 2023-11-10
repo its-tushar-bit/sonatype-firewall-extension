@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentName
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
@@ -72,6 +73,9 @@ public class RepositoryResource
   static final String CONFIGURE_FIREWALL_ONBOARDING_PATH = "configureFirewallOnboarding";
 
   static final String UPDATE_REPOSITORY_MANAGER_NAME_PATH = "repositoryManager/{repositoryManagerId}/{name}";
+
+  static final String PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH =
+      "{ownerType: repository_container|repository_manager|repository}/{ownerId}/proprietaryComponentNamePatterns";
 
   private RepositoryService repositoryService;
 
@@ -268,5 +272,21 @@ public class RepositoryResource
           @PathParam("name") String name)
   {
     repositoryService.updateName(repositoryManagerId, name);
+  }
+
+  /**
+   * @since 1.170
+   */
+  @POST
+  @Path(PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      ProprietaryComponentNamePatternRequest request)
+  {
+    return repositoryService.getProprietaryComponentNamePatternsByOwner(ownerType, ownerId, request);
   }
 }

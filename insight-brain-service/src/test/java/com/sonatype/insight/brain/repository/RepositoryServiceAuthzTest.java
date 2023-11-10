@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -19,6 +20,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -34,7 +36,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryServiceAuthzTest
@@ -588,5 +590,63 @@ public class RepositoryServiceAuthzTest
     assertThat(allRepositoryManagersIds).containsExactlyInAnyOrder(
         repositoryManagerOne.getId(),
         repositoryManagerTwo.getId());
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_Authorized() {
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager();
+    Repository repo1 =
+        tempEntity.newRepository(repoManager1, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "testNamePattern1");
+    Repository repo2 =
+        tempEntity.newRepository(repoManager1, "testPublicId1", RepositoryType.hosted,
+            ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern3", "testNamePattern3");
+
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager();
+    Repository repo3 =
+        tempEntity.newRepository(repoManager2, "testPublicId2", RepositoryType.hosted,
+            ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern3 =
+        tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern4", "testNamePattern4");
+
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 3;
+
+    grantReadPermission(repo1.getId());
+    //Repository Level - result must include only patterns of repo1
+    ProprietaryComponentNamePatternsPage result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo1.getId(), request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
+    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern1.getId());
+
+    result = repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo2.getId(), request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(0);
+
+    grantReadPermission(repoManager1.getId());
+    //Repository Manager Level - result must include only patterns of repos in repoManager1
+    result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER, repoManager1.getId(),
+            request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern1.getId());
+    assertThat(result.proprietaryComponentNamePatterns.get(1).id).isEqualTo(pattern2.getId());
+
+    result =
+        repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER, repoManager2.getId(),
+            request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(0);
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    //Repository Container Level - result must include patterns of all repos
+    result = repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(3);
+    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern1.getId());
+    assertThat(result.proprietaryComponentNamePatterns.get(1).id).isEqualTo(pattern2.getId());
+    assertThat(result.proprietaryComponentNamePatterns.get(2).id).isEqualTo(pattern3.getId());
   }
 }

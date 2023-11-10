@@ -705,4 +705,27 @@ public class RepositoryDAOTest
     assertThat(hostedRepos).hasSize(1);
     assertThat(hostedRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(hostedRepo);
   }
+
+  @Test
+  public void getByRepositoryManagerIdAndRepositoryType() {
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager();
+    Repository hostedRepo = tempEntity.newHostedRepository(repoManager1, "testHostedRepo", "npm", true);
+    Repository proxyRepo = tempEntity.newProxyRepository(repoManager1, "testProxyRepo", "maven", true, false);
+
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager();
+    tempEntity.newHostedRepository(repoManager2, "testHostedRepo", "npm", true);
+    tempEntity.newProxyRepository(repoManager2, "testProxyRepo", "maven", true, false);
+
+    // result must include only hostedRepo of repoManager1
+    List<Repository> hostedRepos =
+        dao.getByRepositoryManagerIdAndRepositoryType(repoManager1.getId(), RepositoryType.hosted);
+    assertThat(hostedRepos).hasSize(1);
+    assertThat(hostedRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(hostedRepo);
+
+    // result must include only proxyRepo of repoManager1
+    List<Repository> proxyRepos =
+        dao.getByRepositoryManagerIdAndRepositoryType(repoManager1.getId(), RepositoryType.proxy);
+    assertThat(proxyRepos).hasSize(1);
+    assertThat(proxyRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(proxyRepo);
+  }
 }

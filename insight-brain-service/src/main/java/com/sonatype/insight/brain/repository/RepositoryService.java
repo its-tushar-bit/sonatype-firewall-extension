@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -785,5 +786,58 @@ public class RepositoryService
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
   public List<RepositoryManager> getRepositoryManagers() {
     return repositoryManagerDAO.getAll();
+  }
+
+  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(
+      OwnerType ownerType,
+      String ownerId,
+      ProprietaryComponentNamePatternRequest request)
+  {
+    log.debug("Getting proprietary component name patterns for {} id {}", ownerType, ownerId);
+
+    if (request == null) {
+      throw new BadRequestException("Missing request parameters");
+    }
+
+    ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
+
+    List<Repository> repositories;
+
+    if (ownerType.equals(OwnerType.REPOSITORY)) {
+      repositories = Collections.singletonList(repositoryDAO.getByIdNotNull(ownerId));
+    }
+    else if (ownerType.equals(OwnerType.REPOSITORY_MANAGER)) {
+      ownerId = repositoryManagerDAO.getByIdNotNull(ownerId).getId();
+      repositories = repositoryDAO.getByRepositoryManagerIdAndRepositoryType(ownerId, RepositoryType.hosted);
+    }
+    else if (ownerType.equals(OwnerType.REPOSITORY_CONTAINER)) {
+      repositories = repositoryDAO.getByRepositoryType(RepositoryType.hosted);
+    }
+    else {
+      throw new IllegalStateException("Invalid owner type: " + ownerType);
+    }
+
+    List<Repository> hostedRepositoriesWithReadPermission = filterRepositoriesWithReadPermission(repositories);
+    Set<String> repositoryIds =
+        hostedRepositoriesWithReadPermission.stream().map(Repository::getId).collect(Collectors.toSet());
+    List<ProprietaryComponentNamePatternDTO> proprietaryComponentNamePatterns =
+        proprietaryComponentNamePatternDAO.getByFilter(repositoryIds, filter);
+
+    ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
+
+    int iPattern = 1;
+    for (ProprietaryComponentNamePatternDTO proprietaryComponentNamePattern : proprietaryComponentNamePatterns) {
+      if (iPattern <= request.pageSize) {
+        result.proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
+      }
+      else {
+        result.hasNextPage = true;
+        break;
+      }
+
+      iPattern++;
+    }
+
+    return result;
   }
 }

@@ -409,4 +409,105 @@ public class RepositoryResourceTest
 
     assertThat(repositoryManagerResult.getName()).isEqualTo("name2");
   }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner() throws Exception {
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager();
+    Repository repo1 =
+        tempEntity.newRepository(repoManager1, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "testNamePattern1");
+
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager();
+    Repository repo2 =
+        tempEntity.newRepository(repoManager2, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern pattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern2", "testNamePattern2");
+
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+    request.searchFilters = Collections
+        .singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+            ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+            "testNamePattern"));
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
+
+    // Rest request at Repository Level, response must include only patterns of repo1
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH,
+                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            .parameter(OwnerType.REPOSITORY, repo1.getId())
+            .body(request).post();
+
+    assertResponseStatus(200, response);
+    ProprietaryComponentNamePatternsPage proprietaryComponentNamePatternsPage =
+        response.getBody(ProprietaryComponentNamePatternsPage.class);
+    assertThat(proprietaryComponentNamePatternsPage.hasNextPage).isFalse();
+    assertThat(proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns).hasSize(1);
+    ProprietaryComponentNamePatternDTO patternDTO =
+        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
+    assertThat(patternDTO.id).isEqualTo(pattern1.getId());
+    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo(repoManager1.getInstanceId());
+    assertThat(patternDTO.repositoryPublicId).isEqualTo(repo1.getPublicId());
+    assertThat(patternDTO.format).isEqualTo(pattern1.getFormat());
+    assertThat(patternDTO.namespacePattern).isEqualTo(pattern1.getNamespacePattern());
+    assertThat(patternDTO.namePattern).isEqualTo(pattern1.getNamePattern());
+    assertThat(patternDTO.enabled).isEqualTo(pattern1.isEnabled());
+
+    // Rest request at Repository Manager Level, response must include only patterns of repos in repoManager2
+    response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH,
+                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            .parameter(OwnerType.REPOSITORY_MANAGER, repoManager2.getId())
+            .body(request).post();
+
+    assertResponseStatus(200, response);
+    proprietaryComponentNamePatternsPage = response.getBody(ProprietaryComponentNamePatternsPage.class);
+    assertThat(proprietaryComponentNamePatternsPage.hasNextPage).isFalse();
+    assertThat(proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns).hasSize(1);
+    patternDTO =
+        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
+    assertThat(patternDTO.id).isEqualTo(pattern2.getId());
+    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo(repoManager2.getInstanceId());
+    assertThat(patternDTO.repositoryPublicId).isEqualTo(repo2.getPublicId());
+    assertThat(patternDTO.format).isEqualTo(pattern2.getFormat());
+    assertThat(patternDTO.namespacePattern).isEqualTo(pattern2.getNamespacePattern());
+    assertThat(patternDTO.namePattern).isEqualTo(pattern2.getNamePattern());
+    assertThat(patternDTO.enabled).isEqualTo(pattern2.isEnabled());
+
+    // Rest request at Repository Container Level, response must include patterns of all repos
+    request.pageSize = 2;
+    response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH,
+                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            .parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+            .body(request).post();
+
+    assertResponseStatus(200, response);
+    proprietaryComponentNamePatternsPage = response.getBody(ProprietaryComponentNamePatternsPage.class);
+    assertThat(proprietaryComponentNamePatternsPage.hasNextPage).isFalse();
+    assertThat(proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns).hasSize(2);
+    ProprietaryComponentNamePatternDTO patternDTO1 =
+        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
+    assertThat(patternDTO1.id).isEqualTo(pattern1.getId());
+    assertThat(patternDTO1.repositoryManagerInstanceId).isEqualTo(repoManager1.getInstanceId());
+    assertThat(patternDTO1.repositoryPublicId).isEqualTo(repo1.getPublicId());
+    assertThat(patternDTO1.format).isEqualTo(pattern1.getFormat());
+    assertThat(patternDTO1.namespacePattern).isEqualTo(pattern1.getNamespacePattern());
+    assertThat(patternDTO1.namePattern).isEqualTo(pattern1.getNamePattern());
+    assertThat(patternDTO1.enabled).isEqualTo(pattern1.isEnabled());
+
+    ProprietaryComponentNamePatternDTO patternDTO2 =
+        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(1);
+    assertThat(patternDTO2.id).isEqualTo(pattern2.getId());
+    assertThat(patternDTO2.repositoryManagerInstanceId).isEqualTo(repoManager2.getInstanceId());
+    assertThat(patternDTO2.repositoryPublicId).isEqualTo(repo2.getPublicId());
+    assertThat(patternDTO2.format).isEqualTo(pattern2.getFormat());
+    assertThat(patternDTO2.namespacePattern).isEqualTo(pattern2.getNamespacePattern());
+    assertThat(patternDTO2.namePattern).isEqualTo(pattern2.getNamePattern());
+    assertThat(patternDTO2.enabled).isEqualTo(pattern2.isEnabled());
+  }
 }

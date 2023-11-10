@@ -290,4 +290,13 @@ public class RepositoryDAO
         " WHERE entity.repositoryType=?1";
     return getList(sQuery, repositoryType);
   }
+
+  public List<Repository> getByRepositoryManagerIdAndRepositoryType(
+      String repositoryManagerId,
+      RepositoryType repositoryType)
+  {
+    String sQuery = "SELECT entity FROM Repository entity" + //
+        " WHERE entity.repositoryManagerId=?1 AND entity.repositoryType=?2";
+    return getList(sQuery, repositoryManagerId, repositoryType);
+  }
 }

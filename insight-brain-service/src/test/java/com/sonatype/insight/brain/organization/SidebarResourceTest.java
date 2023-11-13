@@ -9,6 +9,8 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -52,9 +54,27 @@ public class SidebarResourceTest
   }
 
   @Test
-  public void testGetOwnerDetails_Repositories() throws Exception {
+  public void testGetOwnerDetails_RepositoryContaier() throws Exception {
     HttpResponse response = restRequest().path(SidebarResource.GET_GLOBAL_OWNER_DETAILS_PATH)
         .parameter(OwnerType.REPOSITORY_CONTAINER).get();
+
+    assertValidOwnerDetailsDTO(response);
+  }
+
+  @Test
+  public void testGetOwnerDetails_RepositoryManager() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
+        .parameter(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).get();
+
+    assertValidOwnerDetailsDTO(response);
+  }
+
+  @Test
+  public void testGetOwnerDetails_Repository() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    HttpResponse response =
+        restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH).parameter(OwnerType.REPOSITORY, repo.getId()).get();
 
     assertValidOwnerDetailsDTO(response);
   }

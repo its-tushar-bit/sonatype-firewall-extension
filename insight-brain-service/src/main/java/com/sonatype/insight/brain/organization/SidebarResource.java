@@ -28,7 +28,8 @@ public class SidebarResource
 {
   public static final String RESOURCE_PATH = "rest/sidebar";
 
-  public static final String GET_OWNER_DETAILS_PATH = "/{ownerType:application|organization}/{ownerId}/details";
+  public static final String GET_OWNER_DETAILS_PATH =
+      "/{ownerType:application|organization|repository_manager|repository}/{ownerId}/details";
 
   public static final String GET_GLOBAL_OWNER_DETAILS_PATH = "/{ownerType:repository_container}/details";
 

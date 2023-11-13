@@ -113,9 +113,11 @@ public class MembershipMappingResourceTest
       assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
       assertThat(membersByRole.membersByOwner).hasSize(3);
       assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(app.getPublicId());
-      assertThat(membersByRole.membersByOwner.get(0).members).isNotNull();
+      assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
       assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(org.getId());
+      assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
       assertThat(membersByRole.membersByOwner.get(2).ownerId).isEqualTo(org.getParentOrganizationId());
+      assertThat(membersByRole.membersByOwner.get(2).members).isEmpty();
     }
 
     // Create
@@ -207,8 +209,9 @@ public class MembershipMappingResourceTest
       assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
       assertThat(membersByRole.membersByOwner).hasSize(2);
       assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-      assertThat(membersByRole.membersByOwner.get(0).members).isNotNull();
+      assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
       assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(org.getParentOrganizationId());
+      assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
     }
 
     // Create
@@ -285,7 +288,7 @@ public class MembershipMappingResourceTest
 
     // Initial state
     HttpResponse response = get(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
-    List<Role> roles = testInitialGlobalState(response);
+    List<Role> roles = assertInitialGlobalState(response);
 
     // Create
     response = put(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID,
@@ -327,7 +330,7 @@ public class MembershipMappingResourceTest
   public void testCRUD_GlobalRoles() throws Exception {
     // Initial state
     HttpResponse response = get(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
-    List<Role> roles = testInitialGlobalState(response);
+    List<Role> roles = assertInitialGlobalState(response);
 
     // Create
     response = put(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
@@ -378,7 +381,7 @@ public class MembershipMappingResourceTest
     assertResponseStatus(204, response);
   }
 
-  private List<Role> testInitialGlobalState(HttpResponse response) {
+  private List<Role> assertInitialGlobalState(HttpResponse response) {
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable).isNotNull();

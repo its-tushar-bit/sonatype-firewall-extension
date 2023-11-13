@@ -31,20 +31,20 @@ public class ApiThirdPartyScanServiceAuthzTest
   private ApiThirdPartyScanService apiThirdPartyEvaluationService;
 
   @Test
-  public void testEvaluateComponents_Authorized() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml");
+  public void testScanComponents_Authorized() throws Exception {
+    String bom = getBomFile("/" + getClass().getSimpleName() + "/valid_sbom.xml");
 
     grantEvaluateApplicationPermission(app.getId());
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testEvaluateComponents_Unauthenticated() {
+  public void testScanComponents_Unauthenticated() {
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, SbomFormat.XML);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testEvaluateComponents_Unauthorized() {
+  public void testScanComponents_Unauthorized() {
     login();
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, SbomFormat.XML);
   }

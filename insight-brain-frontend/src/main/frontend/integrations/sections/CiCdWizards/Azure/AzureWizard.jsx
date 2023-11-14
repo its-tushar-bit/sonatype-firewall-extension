@@ -132,7 +132,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
       </NxDescriptionList>
       <NxP>
         <b>For more information, visit </b>
-        <NxTextLink newTab={true} href="https://links.sonatype.com/products/nxiq/doc/integrations/jenkins">
+        <NxTextLink newTab={true} href="https://links.sonatype.com/products/nxiq/doc/integrations/azure-devops">
           Sonatype Documentation
         </NxTextLink>
       </NxP>

@@ -227,6 +227,18 @@ public class PolicyEvaluationDAO
     delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
   }
 
+  public int getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(final Date upperBoundDate) {
+    String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
+        " FROM PolicyEvaluation entity" +
+        " WHERE entity.scanTriggerType = ?1" +
+        " AND entity.isReevaluation = false" +
+        " AND entity.isForMonitoring = false" +
+        " AND entity.isForObsoleteScan = false" +
+        " AND entity.time <= ?2";
+    return getSingle(Number.class, sQuery, ScanTriggerType.CONTINUOUS_INTEGRATION, upperBoundDate)
+        .intValue();
+  }
+
   private void delete(final TransactionContext tx,
                       PolicyEvaluation policyEvaluation,
                       boolean updateLastPolicyEvaluation)

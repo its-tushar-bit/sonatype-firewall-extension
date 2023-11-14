@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -22,11 +23,14 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.integration.IntegrationResource.DEFAULT_PAGE;
 import static com.sonatype.insight.brain.integration.IntegrationResource.DEFAULT_PAGE_SIZE;
+import static com.sonatype.insight.brain.integration.IntegrationResource.FIVE_YEARS_IN_MS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IntegrationResourceTest
     extends AbstractResourceTest
 {
+  static final String GET_CI_CD_USAGE_PATH = IntegrationResource.RESOURCE_PATH + "/stats/cicd/usage-over-time";
+
   @Test
   public void testGetApplicationIntegrationSummaries_UseDefault_WhenNoParametersProvided() throws Exception {
     final Organization org = tempEntity.newOrganization();
@@ -84,6 +88,72 @@ public class IntegrationResourceTest
     // 2 apps were set up, but asking for 2nd page with a page size of 2, so page 2 should be empty
     assertThat(results)
         .isEmpty();
+  }
+
+  @Test
+  public void testGetCiCdUsageStatIncrementsOverTime_UseDefault_WhenNoParametersProvided() throws Exception {
+    final HttpResponse httpResponse =
+        restRequest().path(GET_CI_CD_USAGE_PATH).get();
+    assertResponseStatus(200, httpResponse);
+
+    final List<ApiIntegrationsCiCdStatIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
+        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>() { });
+
+    assertThat(response).isNotNull();
+    assertThat(response.size()).isEqualTo(12);
+  }
+
+  @Test
+  public void testGetCiCdUsageStatIncrementsOverTime_UseDefault_AcceptsValidQueryParameters() throws Exception {
+    final HttpResponse httpResponse =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("incrementSizeMillis", 1)
+            .query("numberOfIncrements", 24)
+            .get();
+    assertResponseStatus(200, httpResponse);
+
+    final List<ApiIntegrationsCiCdStatIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
+        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>() { });
+
+    assertThat(response).isNotNull();
+    assertThat(response.size()).isEqualTo(24);
+
+    // assert each entry is incremented by 1
+    for (int i = 1; i < response.size(); i++) {
+      long lastTimeStamp = response.get(i - 1).getDateTimeMillis();
+      long currentTimeStamp = response.get(i).getDateTimeMillis();
+
+      assertThat(currentTimeStamp - lastTimeStamp).isEqualTo(1);
+    }
+  }
+
+  @Test
+  public void testGetCiCdUsageStatIncrementsOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds()
+      throws Exception
+  {
+    final HttpResponse givenQueryAskTooSmallOfIncrementSize =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("incrementSizeMillis", 0)
+            .get();
+    assertResponseStatus(400, givenQueryAskTooSmallOfIncrementSize);
+
+    final HttpResponse givenQueryAskTooLargeOfIncrementSize =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("incrementSizeMillis", FIVE_YEARS_IN_MS + 1)
+            .get();
+    assertResponseStatus(400, givenQueryAskTooLargeOfIncrementSize);
+
+    final HttpResponse givenQueryAsksForTooFewIncrements =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("numberOfIncrements", 0)
+            .get();
+    assertResponseStatus(400, givenQueryAsksForTooFewIncrements);
+
+    final HttpResponse givenQueryAsksForTooManyIncrements =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("numberOfIncrements", 53)
+            .get();
+    assertResponseStatus(400, givenQueryAsksForTooManyIncrements);
   }
 
   private <T> T getBodyByTypeReference(final byte[] bodyBytes, final TypeReference<T> typeRef) {

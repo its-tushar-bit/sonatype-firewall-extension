@@ -38,6 +38,7 @@ public class ApplicationCountHistoryDAO
         " WHERE entity.updatedDate <= ?1" +
         " ORDER BY entity.updatedDate DESC";
     Query<ApplicationCountHistory> query = createQuery(sQuery, timestamp);
+
     query.forceSingleResult();
     Optional<Integer> countIfFound =
         query.getList().stream().findFirst().map(ApplicationCountHistory::getApplicationCount);

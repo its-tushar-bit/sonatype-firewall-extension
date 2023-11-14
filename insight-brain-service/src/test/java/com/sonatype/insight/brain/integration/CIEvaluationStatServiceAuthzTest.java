@@ -6,14 +6,19 @@
 
 package com.sonatype.insight.brain.integration;
 
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CIEvaluationStatServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -38,5 +43,29 @@ public class CIEvaluationStatServiceAuthzTest
   public void testGetPercentageOfAppsWithCITriggeredEvaluations_Authorized() {
     grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
     ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(CUT_OFF_DATE_MILLIS);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetCiCdUsageStatsOverTime__Unauthenticated() {
+    ciEvaluationStatService.getCiCdUsageStatsOverTime(anyNumber(), anyNumber());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetCiCdUsageStatsOverTime_Unauthorized() {
+    login();
+    ciEvaluationStatService.getCiCdUsageStatsOverTime(anyNumber(), anyNumber());
+  }
+
+  @Test
+  public void testGetCiCdUsageStatsOverTime_Authorized() {
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    final List<ApiIntegrationsCiCdStatIncrementDto> apiIntegrationsCiCdStatIncrementDtoList =
+        ciEvaluationStatService.getCiCdUsageStatsOverTime(anyNumber(), anyNumber());
+
+    assertThat(apiIntegrationsCiCdStatIncrementDtoList).isNotNull();
+  }
+
+  private int anyNumber() {
+    return ThreadLocalRandom.current().nextInt(1, 10);
   }
 }

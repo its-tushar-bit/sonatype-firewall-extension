@@ -150,6 +150,7 @@ import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -4389,5 +4390,12 @@ public class TemporaryEntity
       String username)
   {
     userIdePolicyEvaluationDAO.upsert(username);
+  }
+
+  public void newApplicationCountHistoryEntry(final Date date, final int applicationCount) {
+    final ApplicationCountHistory applicationCountHistory = new ApplicationCountHistory();
+    applicationCountHistory.setUpdatedDate(date);
+    applicationCountHistory.setApplicationCount(applicationCount);
+    applicationCountHistoryDAO.insert(applicationCountHistory);
   }
 }

@@ -6,11 +6,16 @@
 
 package com.sonatype.insight.brain.integration;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.CIEvaluationStatDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationCountHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -35,10 +40,18 @@ class CIEvaluationStatService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApplicationCountHistoryDAO applicationCountHistoryDAO;
+
   @Inject
-  public CIEvaluationStatService(PolicyEvaluationDAO policyEvaluationDAO, ApplicationDAO applicationDAO) {
+  public CIEvaluationStatService(
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApplicationDAO applicationDAO,
+      final ApplicationCountHistoryDAO applicationCountHistoryDAO
+  )
+  {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
+    this.applicationCountHistoryDAO = applicationCountHistoryDAO;
   }
 
   CIEvaluationStatDTO getDataForAppsWithoutCITriggeredEvaluations(final long sinceUtcTimestamp) {
@@ -55,10 +68,47 @@ class CIEvaluationStatService
     return new CIEvaluationStatDTO(numAppsWithoutCI, numTotalApps);
   }
 
+  List<ApiIntegrationsCiCdStatIncrementDto> getCiCdUsageStatsOverTime(
+      final long incrementSizeMillis,
+      final int numberOfIncrements
+  )
+  {
+    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+
+    final List<ApiIntegrationsCiCdStatIncrementDto> results = new ArrayList<>();
+
+    final long now = getCurrentTimeMs();
+
+    long currentUpperBound = now - (incrementSizeMillis * numberOfIncrements) + incrementSizeMillis;
+
+    for (int i = 0; i < numberOfIncrements; i++) {
+      final Date timeOfIncrement = new Date(currentUpperBound);
+
+      final int totalNumberOfAppsAtTime =
+          applicationCountHistoryDAO.getApplicationCountAtOrDefault(timeOfIncrement);
+
+      final int totalNumberOfAppsUsingCiCDAtTime =
+          policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(timeOfIncrement);
+
+      results.add(new ApiIntegrationsCiCdStatIncrementDto(
+          currentUpperBound,
+          totalNumberOfAppsAtTime,
+          totalNumberOfAppsUsingCiCDAtTime));
+
+      currentUpperBound += incrementSizeMillis;
+    }
+
+    return results;
+  }
+
   @Authorize(permission = Permission.READ)
   void checkReadPermission(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
   {
+  }
+
+  Long getCurrentTimeMs() {
+    return Instant.now().toEpochMilli();
   }
 }

@@ -6,24 +6,41 @@
 
 package com.sonatype.insight.brain.integration;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.CIEvaluationStatDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.drools.core.util.StringUtils.uuid;
+import static org.mockito.Mockito.mockStatic;
 
 public class CIEvaluationStatServiceTest
     extends AbstractComponentTest
 {
+  private static final long ONE_DAY_IN_MS = 86_400_000L;
+
+  private static final long ONE_WEEK_IN_MS = 604_800_000L;
+
   @Inject
   private CIEvaluationStatService ciEvaluationStatService;
 
@@ -69,6 +86,125 @@ public class CIEvaluationStatServiceTest
     assertThat(ciEvaluationStatDTO.numTotalApps).isZero();
   }
 
+  @Test
+  public void testGetCiCdUsageStatsOverTime_ShouldReturnCorrectValuesGivenAnIncrementSizeAndNumber() {
+    // === Given ===
+    // Clock frozen at 2023-11-03T15:51:56.287Z
+    final long nowMs = 1699027090422L;
+    final Clock fixedClock = Clock.fixed(Instant.ofEpochMilli(nowMs), ZoneId.systemDefault());
+
+    final Date fiveWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-35));
+
+    final Date fourWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-28));
+    createApplicationsWithCiCdEvaluationsAtMomentInTime(3, fourWeeksAgo);
+    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 64);
+
+    final Date threeWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-21));
+    createApplicationsWithCiCdEvaluationsAtMomentInTime(5, threeWeeksAgo);
+    tempEntity.newApplicationCountHistoryEntry(threeWeeksAgo, 72);
+
+    final Date twoWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-14));
+    createApplicationsWithCiCdEvaluationsAtMomentInTime(12, twoWeeksAgo);
+    tempEntity.newApplicationCountHistoryEntry(twoWeeksAgo, 102);
+
+    final Date oneWeekAgo = getDateFromOffset(fixedClock, Duration.ofDays(-7));
+    createApplicationsWithCiCdEvaluationsAtMomentInTime(2, oneWeekAgo);
+    tempEntity.newApplicationCountHistoryEntry(oneWeekAgo, 100);
+
+    final Date current = new Date(nowMs);
+    createApplicationsWithCiCdEvaluationsAtMomentInTime(1, current);
+    tempEntity.newApplicationCountHistoryEntry(current, 123);
+
+    // === Given ===
+    final Instant now = Instant.ofEpochMilli(nowMs);
+    MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS);
+    mockedStatic.when(Instant::now).thenReturn(now);
+
+    // === Then ===
+    final List<ApiIntegrationsCiCdStatIncrementDto> fiveWeeksByWeeklyIncrements =
+        ciEvaluationStatService.getCiCdUsageStatsOverTime(ONE_WEEK_IN_MS, 6);
+
+    assertThat(fiveWeeksByWeeklyIncrements).isEqualTo(
+        Lists.newArrayList(
+            new ApiIntegrationsCiCdStatIncrementDto(fiveWeeksAgo.getTime(), 0, 0),
+            new ApiIntegrationsCiCdStatIncrementDto(fourWeeksAgo.getTime(), 64, 3),
+            new ApiIntegrationsCiCdStatIncrementDto(threeWeeksAgo.getTime(), 72, 8),
+            new ApiIntegrationsCiCdStatIncrementDto(twoWeeksAgo.getTime(), 102, 20),
+            new ApiIntegrationsCiCdStatIncrementDto(oneWeekAgo.getTime(), 100, 22),
+            new ApiIntegrationsCiCdStatIncrementDto(nowMs, 123, 23)));
+
+    final List<ApiIntegrationsCiCdStatIncrementDto> twoWeeksByDailyIncrements =
+        ciEvaluationStatService.getCiCdUsageStatsOverTime(ONE_DAY_IN_MS, 14);
+
+    assertThat(twoWeeksByDailyIncrements).isEqualTo(
+        Lists.newArrayList(
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -13).getTime(),
+                102,
+                20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -12).getTime(),
+                102,
+                20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -11).getTime(),
+                102, 20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -10).getTime(),
+                102,
+                20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -9).getTime(),
+                102,
+                20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -8).getTime(),
+                102,
+                20
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -7).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -6).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -5).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -4).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -3).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -2).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(
+                getDateFromOffset(fixedClock, -1).getTime(),
+                100,
+                22
+            ),
+            new ApiIntegrationsCiCdStatIncrementDto(nowMs, 123, 23)));
+  }
+
   private void setUpApplications(final int maxApplications, final boolean includeEvaluations) {
     Organization organization = tempEntity.newOrganization();
 
@@ -92,7 +228,50 @@ public class CIEvaluationStatServiceTest
     }
 
     int effectiveMax = includeEvaluations ? maxApplications - 2 : maxApplications;
-    IntStream.range(0, effectiveMax)
-        .forEach(i -> tempEntity.newApplication(organization.getId()));
+    createApplications(effectiveMax, organization);
+  }
+
+  private void createApplicationsWithCiCdEvaluationsAtMomentInTime(final int numberOfApplications, final Date date) {
+    final List<Application> applications = createApplications(numberOfApplications);
+    applications.forEach(app -> {
+      tempEntity.newPolicyEvaluation(
+          app.getId(),
+          Stage.ID_BUILD,
+          uuid(),
+          false,
+          false,
+          false,
+          date,
+          uuid(),
+          ScanTriggerType.CONTINUOUS_INTEGRATION
+      );
+    });
+  }
+
+  private List<Application> createApplications(final int numberOfApplications) {
+    return createApplications(numberOfApplications, null);
+  }
+
+  private List<Application> createApplications(final int numberOfApplications, Organization optionalOrganization) {
+    final Organization organization;
+
+    if (optionalOrganization == null) {
+      organization = tempEntity.newOrganization();
+    }
+    else {
+      organization = optionalOrganization;
+    }
+
+    return IntStream.range(0, numberOfApplications)
+        .mapToObj(i -> tempEntity.newApplication(organization.getId()))
+        .collect(toList());
+  }
+
+  private Date getDateFromOffset(final Clock baseClock, final int numberOfDays) {
+    return getDateFromOffset(baseClock, Duration.ofDays(numberOfDays));
+  }
+
+  private Date getDateFromOffset(final Clock baseClock, final Duration offset) {
+    return Date.from(Clock.offset(baseClock, offset).instant());
   }
 }

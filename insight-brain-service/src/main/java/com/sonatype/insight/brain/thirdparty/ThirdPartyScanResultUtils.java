@@ -32,7 +32,7 @@ public class ThirdPartyScanResultUtils
 
   public static final int RATING_METHOD_MAX_LENGTH = 10;
 
-  public static final int REFID_MAX_LENGTH = 20;
+  public static final int REFID_MAX_LENGTH = 255;
 
   public static final int IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
   

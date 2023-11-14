@@ -71,7 +71,6 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ID
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.LINK_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.NAME_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PURL_MAX_LENGTH;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.REFID_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1373,10 +1372,10 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getSeverityDescription()).isNotNull();
     assertThat(coordinateSecurity.getRatingMethod()).isNotNull();
     assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
-    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).isEqualTo("CVE-2018-7489CVE-2018-7489");
     assertThat(coordinateSecurity.getVulnerabilitySource()).hasSize(VULNERABILITY_SOURCE_MAX_LENGTH);
     assertThat(coordinateSecurity.getAttackVector()).hasSize(ATTACK_VECTOR_MAX_LENGTH);
-    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).hasSize("CVE-2018-7489CVE-2018-7489".length());
   }
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {

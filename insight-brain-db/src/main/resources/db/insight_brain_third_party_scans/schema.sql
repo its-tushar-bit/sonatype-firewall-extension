@@ -40,7 +40,7 @@ CREATE TABLE file_coordinate (
 CREATE TABLE coordinate_security (
   coordinate_security_id VARCHAR(50) NOT NULL,
   file_coordinate_id VARCHAR(50) NOT NULL,
-  ref_id VARCHAR(20) NOT NULL,
+  ref_id VARCHAR(255) NOT NULL,
   description TEXT,
   link VARCHAR(200),
   severity FLOAT NOT NULL,
@@ -71,7 +71,7 @@ CREATE INDEX coordinate_license_file_coordinate_id ON coordinate_license (file_c
 
 CREATE TABLE third_party_vulnerability (
   third_party_vulnerability_id VARCHAR(50) NOT NULL,
-  ref_id VARCHAR(20) NOT NULL,
+  ref_id VARCHAR(255) NOT NULL,
   description TEXT,
   link VARCHAR(200),
   severity FLOAT NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE third_party_vulnerability (
 CREATE TABLE vulnerability_exploitability (
   vulnerability_exploitability_id VARCHAR(50) NOT NULL,
   coordinate_security_id VARCHAR(50) NOT NULL,
-  ref_id VARCHAR(20) NOT NULL,
+  ref_id VARCHAR(255) NOT NULL,
   state VARCHAR(50),
   justification VARCHAR(200),
   response VARCHAR(50),

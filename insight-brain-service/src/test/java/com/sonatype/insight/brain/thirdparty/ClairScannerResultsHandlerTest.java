@@ -84,7 +84,8 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
     assertThat(coordinateSecurity.getFixedBy()).hasSize(FIXED_BY_MAX_LENGTH);
     assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
-    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).isEqualTo(
+        "CSV-test-1" + StringUtils.repeat("*", REFID_MAX_LENGTH - "CSV-test-1".length()));
   }
 
   @Test

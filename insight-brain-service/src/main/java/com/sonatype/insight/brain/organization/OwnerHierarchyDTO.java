@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -51,7 +50,19 @@ public class OwnerHierarchyDTO
 
     public String name;
 
-    abstract String getParentId();
+    public abstract String getParentId();
+
+    /**
+     * The getParentId method is implemented for each owner type, usually returning the value from another field that
+     * denotes the parent ID. For ex, the parent org ID for apps or the parent repository manager ID for repositories.
+     * 
+     * @deprecated This method is declared here only to allow json deserialization of the parentId field.
+     */
+    @SuppressWarnings("unused")
+    @Deprecated
+    private void setParentId(@SuppressWarnings("unused") String unused) {
+      // No-op
+    }
 
     abstract List<String> getChildIds(OwnerType... types);
 
@@ -98,7 +109,7 @@ public class OwnerHierarchyDTO
         };
 
     @Override
-    String getParentId() {
+    public String getParentId() {
       return parentOrganizationId;
     }
 
@@ -159,7 +170,7 @@ public class OwnerHierarchyDTO
     };
 
     @Override
-    String getParentId() {
+    public String getParentId() {
       return organizationId;
     }
 
@@ -186,10 +197,10 @@ public class OwnerHierarchyDTO
 
     OwnerHierarchyRepositoryContainerDTO() {
       id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
+      name = RepositoryContainer.SINGLETON.getName();
     }
 
     @Override
-    @JsonIgnore
     public String getParentId() {
       return Organization.ROOT_ORGANIZATION_ID;
     }
@@ -252,7 +263,7 @@ public class OwnerHierarchyDTO
     };
 
     @Override
-    String getParentId() {
+    public String getParentId() {
       return repositoryManagerId;
     }
 

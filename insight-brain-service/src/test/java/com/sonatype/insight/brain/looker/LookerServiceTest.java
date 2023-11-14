@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -58,6 +59,7 @@ import static com.sonatype.insight.brain.looker.LookerService.DEFAULT_DASHBOARD_
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -384,5 +386,33 @@ public class LookerServiceTest
     assertThat(actualIconImageFile.exists()).isTrue();
     assertThat(actualIconImageFile.isFile()).isTrue();
     assertThat(actualIconsImageFileBytes).containsExactly(expectedIconsImageBytes);
+  }
+
+  @Test
+  public void testGetIcon_valid() throws URISyntaxException {
+    mockDashboardIconsDirectory();
+    byte[] iconImage = lookerService.getIcon("rolling-recap.svg");
+    assertNotNull(iconImage);
+  }
+
+  @Test
+  public void testGetIcon_notFound() throws URISyntaxException {
+    mockDashboardIconsDirectory();
+    assertThatThrownBy(() -> lookerService.getIcon("rolling-recap1.svg"))
+        .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  public void testGetIcon_badRequest() {
+    assertThatThrownBy(() -> lookerService.getIcon("../rolling-recap1.svg"))
+        .isInstanceOf(BadRequestException.class);
+  }
+
+  private void mockDashboardIconsDirectory() throws URISyntaxException {
+    InsightWork mockInsightWork = mock(InsightWork.class);
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
+        mockMembershipMappingService, mockInsightWork, mockConfigCache, mockDashboardCache);
+    when(mockInsightWork.getIerDashboardIconsDirectory()).thenReturn(new
+        File(getClass().getResource("/LookerServiceTest/").toURI()));
   }
 }

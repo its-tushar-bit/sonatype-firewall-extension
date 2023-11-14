@@ -11,8 +11,10 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -32,6 +34,8 @@ public class LookerResource
   public static final String CONFIG_PATH = "config";
 
   public static final String DASHBOARDS_METADATA_PATH = "dashboards";
+
+  public static final String GET_IER_ICON_PATH = "dashboard/icons/{iconName}";
 
   private final LookerService lookerHdsService;
 
@@ -54,5 +58,12 @@ public class LookerResource
   @Produces(MediaType.APPLICATION_JSON)
   public IerDashboardMetadataListDTO getLookerDashboardMetadata() {
     return lookerHdsService.getLookerDashboardMetadata();
+  }
+
+  @GET
+  @Path(GET_IER_ICON_PATH)
+  @Produces("image/svg+xml")
+  public Response getIcon(@PathParam("iconName") final String iconName) {
+    return Response.ok(lookerHdsService.getIcon(iconName)).build();
   }
 }

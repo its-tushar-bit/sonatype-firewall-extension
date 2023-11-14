@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.looker;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -77,23 +81,7 @@ public class LookerResourceTest
 
   @Test
   public void testGetLookerDashboardMetadata_Success() throws Exception {
-    hdsMockServer.respondWith("{\n" +
-        "  \"dashboardMetadata\": [\n" +
-        "    {\n" +
-        "      \"dashboardId\": \"sbom-scorecard\",\n" +
-        "      \"title\": \"Sbom Report Overview\",\n" +
-        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
-        "      \"features\": [\n" +
-        "        \"Graphs\",\n" +
-        "        \"Tables\"\n" +
-        "      ],\n" +
-        "      \"accessButtonText\": \"Open Dashboard\",\n" +
-        "      \"previewImage\": \"preview001.jpg\",\n" +
-        "      \"priority\": 1,\n" +
-        "      \"spotlight\": true\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}").atUri("rest/enterpriseReporting/dashboards");
+    hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons");
     HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(200, response);
@@ -117,5 +105,55 @@ public class LookerResourceTest
     hdsMockServer.respondWith(new byte[0]).andStatus(200).atUri("rest/enterpriseReporting/icons");
     HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(502, response);
+  }
+
+  @Test
+  public void testGetIcon_Success() throws Exception {
+    assertTestGetIcon(200, "rolling-recap.svg");
+  }
+
+  @Test
+  public void testGetIcon_404_NotFound() throws Exception {
+    assertTestGetIcon(404, "fake-icon-name.svg");
+  }
+
+  @Test
+  public void testGetIcon_400_BadRequest() throws Exception {
+    assertTestGetIcon(400, "..\\fake-icon-name.svg");
+  }
+
+  private void assertTestGetIcon(int expectedStatus, String iconName) throws Exception {
+    hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
+    hdsMockServer.respondWith(getBytesFromIconsZip()).atUri("rest/enterpriseReporting/icons");
+    restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    HttpResponse response = restRequest()
+        .path(LookerResource.GET_IER_ICON_PATH)
+        .parameter(iconName)
+        .get();
+    assertResponseStatus(expectedStatus, response);
+  }
+
+  private String createDashboardMetadataJsonList() {
+    return "{\n" +
+        "  \"dashboardMetadata\": [\n" +
+        "    {\n" +
+        "      \"dashboardId\": \"sbom-scorecard\",\n" +
+        "      \"title\": \"Sbom Report Overview\",\n" +
+        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
+        "      \"features\": [\n" +
+        "        \"Graphs\",\n" +
+        "        \"Tables\"\n" +
+        "      ],\n" +
+        "      \"accessButtonText\": \"Open Dashboard\",\n" +
+        "      \"previewImage\": \"preview001.jpg\",\n" +
+        "      \"priority\": 1,\n" +
+        "      \"spotlight\": true\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+  }
+
+  private byte[] getBytesFromIconsZip() throws IOException {
+    return Files.readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icons_svg.zip").getPath()));
   }
 }

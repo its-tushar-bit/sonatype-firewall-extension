@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.InternalServerException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -274,5 +276,27 @@ public class LookerService
     catch (IOException e) {
       log.debug("Error caching dashboard icon", e);
     }
+  }
+
+  public byte[] getIcon(String iconName) {
+    Path basePath = Paths.get(insightWork.getIerDashboardIconsDirectory().getPath());
+    Path filePath = basePath.resolve(iconName).normalize();
+    if (!filePath.startsWith(basePath)) {
+      throw new BadRequestException("Icon name cannot contain ../ or ..\\");
+    }
+    return getIconImage(iconName);
+  }
+
+  private byte[] getIconImage(String iconName) {
+    File iconImage = new File(insightWork.getIerDashboardIconsDirectory(), iconName);
+    if (iconImage.exists()) {
+      try {
+        return Files.readAllBytes(Paths.get(iconImage.toURI()));
+      }
+      catch (IOException e) {
+        throw new InternalServerException("Could not read icon image", e);
+      }
+    }
+    throw new NotFoundException("Icon named " + iconName + " was not found");
   }
 }

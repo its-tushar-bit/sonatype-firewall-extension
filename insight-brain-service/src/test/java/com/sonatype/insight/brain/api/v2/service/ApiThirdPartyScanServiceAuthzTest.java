@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -21,6 +23,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 public class ApiThirdPartyScanServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -35,7 +38,27 @@ public class ApiThirdPartyScanServiceAuthzTest
     String bom = getBomFile("/" + getClass().getSimpleName() + "/valid_sbom.xml");
 
     grantEvaluateApplicationPermission(app.getId());
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO =
+        apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
+
+    // Wait for the policy evaluation (started async) to finish, otherwise we cannot cleanup properly after the test.
+    String scanRequestId = getScanRequestId(apiThirdPartyScanTicketDTO);
+    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> isCompleted(app.getId(), scanRequestId));
+  }
+
+  private boolean isCompleted(String appId, String scanRequestId) {
+    try {
+      apiThirdPartyEvaluationService.getScanStatus(appId, scanRequestId);
+      return true;
+    }
+    catch (NotFoundException e) {
+      return false;
+    }
+  }
+
+  private String getScanRequestId(ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO) {
+    String statusUrl = apiThirdPartyScanTicketDTO.statusUrl;
+    return statusUrl.substring(statusUrl.lastIndexOf('/'));
   }
 
   @Test(expected = UnauthenticatedException.class)

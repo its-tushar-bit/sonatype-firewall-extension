@@ -26,6 +26,10 @@
 }
 
 .iq-integrations-description-list-cicd {
+  font-size: 14px;
+  height: 300px;
+  overflow: hidden;
+  overflow-y: scroll;
   .nx-list__item {
     & .nx-list__description {
       border-left: var(--nx-border-default);

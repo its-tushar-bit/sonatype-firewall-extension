@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import React from 'react';
+import { render, screen } from 'TestRoot/SpecUtil';
+import GitlabWizard from 'MainRoot/integrations/sections/CiCdWizards/GitLab/GitlabWizard';
+
+describe('GitlabWizard', () => {
+  it('renders the correct configure URL link', () => {
+    renderComponent();
+    const expectedInstallUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
+    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute('href', expectedInstallUrl);
+  });
+
+  it('renders the correct connection information URL link', () => {
+    renderComponent();
+    const connectUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
+    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute('href', connectUrl);
+  });
+
+  it('renders the correct dockerhub image link', () => {
+    const dockerUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
+    renderComponent();
+    expect(screen.getByRole('link', { name: 'documentation provided with the image on Docker Hub' })).toHaveAttribute(
+      'href',
+      dockerUrl
+    );
+  });
+
+  it('renders the correct sonatype documentation link', () => {
+    const docUrl = `http://links.sonatype.com/products/nxiq/doc/integrations/gitlab`;
+    renderComponent();
+    expect(screen.getByRole('link', { name: 'Sonatype Documentation' })).toHaveAttribute('href', docUrl);
+  });
+
+  it('renders the correct iq application in code snippet', () => {
+    const expectedIqApplication = 'test-public-id';
+    renderComponent();
+    expect(screen.getByText(expectedIqApplication)).toBeInTheDocument();
+  });
+
+  function renderComponent() {
+    const mockIqApplicationPublicId = 'test-public-id';
+    render(<GitlabWizard applicationPublicId={mockIqApplicationPublicId} />);
+  }
+});

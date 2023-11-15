@@ -18,10 +18,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -249,6 +251,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationI
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
+import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
+import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -1172,6 +1176,14 @@ public class TemporaryEntity
       }
     }
     return orgName;
+  }
+
+  public FirewallMetrics newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value, Date lastUpdatedDate ) {
+    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
+    FirewallMetrics firewallMetrics = new FirewallMetrics(testDate, firewallMetricsName, value);
+    firewallMetrics.setMetricsLastUpdatedAt(lastUpdatedDate);
+    firewallMetricsDAO.insert(firewallMetrics);
+    return firewallMetrics;
   }
 
   public Application newApplicationWithParent() {

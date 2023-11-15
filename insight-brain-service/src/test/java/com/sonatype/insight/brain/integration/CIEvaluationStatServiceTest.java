@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Lists;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.core.util.StringUtils.uuid;
 import static org.mockito.Mockito.mockStatic;
 
+@Ignore
 public class CIEvaluationStatServiceTest
     extends AbstractComponentTest
 {

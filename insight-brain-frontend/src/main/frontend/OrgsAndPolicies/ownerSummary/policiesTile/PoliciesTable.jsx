@@ -149,6 +149,7 @@ export default function PoliciesTable({
             headerTitle={`Local to ${local?.ownerName}`}
             noItemsMessage={`No local policies defined`}
             isCollapsible={false}
+            textEllipsis={true}
           >
             {renderPolicies(local?.policies)}
           </IqCollapsibleRow>

@@ -25,6 +25,7 @@ function CollapsibleRow({
   rowBtnIcon,
   rowBtnTitle,
   rowBtnAction,
+  textEllipsis = false,
   children,
 }) {
   const [open, toggleOpen] = useToggle(true);
@@ -51,7 +52,9 @@ function CollapsibleRow({
             {isClickable && (
               <NxFontAwesomeIcon icon={iconCollapse} className="iq-collapsible-row__header-icon" color="black" />
             )}
-            <NxH3 className="iq-collapsible-row__header-title">{headerTitle}</NxH3>
+            <NxH3 className={`iq-collapsible-row__header-title ${textEllipsis ? 'iq-truncate-ellipsis' : ''}`}>
+              {headerTitle}
+            </NxH3>
           </span>
         </NxTableCell>
         {rowBtnIcon && rowBtnTitle && rowBtnAction && (
@@ -77,6 +80,7 @@ CollapsibleRow.propTypes = {
   rowBtnIcon: PropTypes.object,
   rowBtnTitle: PropTypes.string,
   rowBtnAction: PropTypes.func,
+  textEllipsis: PropTypes.bool,
   children: PropTypes.node,
 };
 

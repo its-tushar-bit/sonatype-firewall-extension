@@ -80,6 +80,10 @@
   white-space: nowrap;
 }
 
+.iq-truncate-ellipsis {
+  @include nx-text-helpers.truncate-ellipsis;
+}
+
 .ui-match {
   @include nx-text-helpers.bold;
 }

@@ -259,7 +259,10 @@ const applyFilter = ({ filter }) => (state) => {
 
   const stages = new Set(filter.stageTypeFilters);
   const policyTypes = new Set(filter.policyThreatCategoryFilters);
-  const policyViolationStates = new Set(filter.policyViolationStates);
+  const policyViolationStates = new Set(
+    // For backward compatibility.
+    filter.policyViolationStates.map((state) => (state === 'GRANDFATHERED' ? 'LEGACY_VIOLATION' : state))
+  );
   const expirationDate = getExpiration(state, filter.expirationDate);
   const maxDaysOld = getAge(state, filter.maxDaysOld);
   const policyThreatLevels = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel];

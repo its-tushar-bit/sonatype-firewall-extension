@@ -289,6 +289,13 @@ describe('dashboardFilterReducer', () => {
         expect(other).toBe(otherObject);
       });
 
+      it('replaces GRANDFATHERED state to LEGACY_VIOLATION for backward compatibility', () => {
+        filterJson.policyViolationStates = ['OPEN', 'WAIVED', 'GRANDFATHERED'];
+        const state = Object.freeze(initState);
+        const { appliedFilter } = reduce(state, action);
+        expect(appliedFilter.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED', 'LEGACY_VIOLATION']));
+      });
+
       it('sets selected and appliedFilter', () => {
         const state = Object.freeze(initState);
         const { other, selected, appliedFilter } = reduce(state, action);

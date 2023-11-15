@@ -9,8 +9,6 @@ CREATE TABLE organization (
   parent_organization_id varchar(50) NULL,
   name varchar(200) NOT NULL,
   name_lowercase_no_whitespace varchar(200) NOT NULL,
-  policy_violation_grandfathering_enabled boolean,
-  allow_policy_violation_grandfathering_override boolean, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
   repository_connection_enabled boolean,
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
@@ -32,7 +30,6 @@ CREATE TABLE application (
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
-  policy_violation_grandfathering_enabled boolean,
   repository_connection_enabled boolean,
   artifactory_connection_enabled boolean,
   legacy_violation_enabled boolean,
@@ -104,7 +101,6 @@ CREATE TABLE policy (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint NOT NULL,
-  policy_violation_grandfathering_allowed boolean,
   content text NOT NULL,
   drools_code text NOT NULL,
   legacy_violation_allowed boolean NOT NULL,
@@ -414,7 +410,6 @@ CREATE TABLE policy_violation (
   -- timestamps recording the state and transitions thereof for the violation
   open_time timestamp NOT NULL,    -- when the violation first occurred
   waive_time timestamp NULL,       -- when the violation was waived
-  grandfather_time timestamp NULL, -- when the violation was grandfathered
   fix_time timestamp NULL,         -- when the violation disappeared entirely
 
   -- details of the waiver that suppressed this violation
@@ -426,8 +421,7 @@ CREATE TABLE policy_violation (
   -- whether the violation was ever encountered during policy monitoring, supports separate notifications for policy monitoring
   seen_by_monitoring_evaluation bool NOT NULL,
 
-  -- whether the grandfather was applied by a new evaluation or a re-evaluation of a report
-  grandfather_applied bool,
+  -- whether the legacy violation was applied by a new evaluation or a re-evaluation of a report
   legacy_violation_time timestamp NULL, -- when there is a legacy policy violation
   legacy_violation_applied bool NOT NULL DEFAULT false,
 

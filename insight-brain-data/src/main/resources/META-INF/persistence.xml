@@ -113,6 +113,9 @@
     <class>com.sonatype.insight.brain.model.ide.UserIdePolicyEvaluation</class>
     <class>com.sonatype.insight.brain.model.tenancy.DeletedTenant</class>
     <class>com.sonatype.insight.brain.model.security.TenantMetadata</class>
+    <class>com.sonatype.insight.brain.model.sast.SastScan</class>
+    <class>com.sonatype.insight.brain.model.sast.SastFinding</class>
+    <class>com.sonatype.insight.brain.model.sast.SastRemediation</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

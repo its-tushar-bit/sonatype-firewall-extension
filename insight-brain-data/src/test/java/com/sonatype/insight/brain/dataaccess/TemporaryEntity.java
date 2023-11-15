@@ -100,6 +100,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -227,6 +228,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
+import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -543,12 +545,14 @@ public class TemporaryEntity
       new SourceControlOrganizationImportEventDAO();
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
-  
+
   private final LockDAO lockDAO = new LockDAO();
 
   private final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
 
   private final ApplicationCountHistoryDAO applicationCountHistoryDAO = new ApplicationCountHistoryDAO();
+
+  private final SastScanDAO sastScanDAO = new SastScanDAO();
 
   private Collection<String> persistedUserSessionIds;
 
@@ -711,6 +715,7 @@ public class TemporaryEntity
     // - RepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
+    // - SastScan: cascaded from Application
     // - SourceControlDefaultBranchCommitHistory: cascaded from Application
     // - SourceControlPullRequestComment: cascaded from PolicyEvaluation
     // - SourceControlPullRequestResult: cascaded from Application
@@ -4390,6 +4395,12 @@ public class TemporaryEntity
       String username)
   {
     userIdePolicyEvaluationDAO.upsert(username);
+  }
+
+  public SastScan newSastScan(final String applicationId) {
+    final SastScan sastScan = new SastScan(applicationId);
+    sastScanDAO.insert(sastScan);
+    return sastScan;
   }
 
   public void newApplicationCountHistoryEntry(final Date date, final int applicationCount) {

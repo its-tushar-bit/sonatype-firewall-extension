@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -70,6 +71,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -1077,6 +1079,18 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     vulnerabilityCustomRemediationList =
         new VulnerabilityCustomRemediationDAO().getByOwnerId(application.getId());
     assertThat(vulnerabilityCustomRemediationList).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToSastScan() {
+    final Application application = tempEntity.newApplicationWithParent();
+    final SastScanDAO sastScanDAO = new SastScanDAO();
+    final SastScan sastScan = tempEntity.newSastScan(application.getId());
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
   }
 
   @Test

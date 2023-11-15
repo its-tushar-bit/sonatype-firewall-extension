@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -379,6 +380,9 @@ public class ApplicationDAO
     for (InnerSourceComponent innerSourceComponent : innerSourceComponents) {
       innerSourceComponentDAO.delete(tx, innerSourceComponent);
     }
+
+    // Cascade to SastScan table
+    new SastScanDAO().deleteByApplicationId(tx, application.getId());
 
     super.delete(tx, application);
 

@@ -25,17 +25,16 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Lists;
-import org.junit.Ignore;
+import com.google.inject.Binder;
+
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.core.util.StringUtils.uuid;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
-@Ignore
 public class CIEvaluationStatServiceTest
     extends AbstractComponentTest
 {
@@ -43,8 +42,17 @@ public class CIEvaluationStatServiceTest
 
   private static final long ONE_WEEK_IN_MS = 604_800_000L;
 
+  @Mock
+  private DateTimeService dateTimeService;
+
   @Inject
   private CIEvaluationStatService ciEvaluationStatService;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(DateTimeService.class).toInstance(dateTimeService);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetDataForAppsWithoutCITriggeredEvaluations() {
@@ -118,9 +126,7 @@ public class CIEvaluationStatServiceTest
     tempEntity.newApplicationCountHistoryEntry(current, 123);
 
     // === Given ===
-    final Instant now = Instant.ofEpochMilli(nowMs);
-    MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS);
-    mockedStatic.when(Instant::now).thenReturn(now);
+    when(dateTimeService.getCurrentTimeMs()).thenReturn(nowMs);
 
     // === Then ===
     final List<ApiIntegrationsCiCdStatIncrementDto> fiveWeeksByWeeklyIncrements =

@@ -6,7 +6,6 @@
 
 package com.sonatype.insight.brain.integration;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,16 +41,20 @@ class CIEvaluationStatService
 
   private final ApplicationCountHistoryDAO applicationCountHistoryDAO;
 
+  private final DateTimeService dateTimeService;
+
   @Inject
   public CIEvaluationStatService(
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationDAO applicationDAO,
-      final ApplicationCountHistoryDAO applicationCountHistoryDAO
+      final ApplicationCountHistoryDAO applicationCountHistoryDAO,
+      final DateTimeService dateTimeService
   )
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
     this.applicationCountHistoryDAO = applicationCountHistoryDAO;
+    this.dateTimeService = dateTimeService;
   }
 
   CIEvaluationStatDTO getDataForAppsWithoutCITriggeredEvaluations(final long sinceUtcTimestamp) {
@@ -77,7 +80,7 @@ class CIEvaluationStatService
 
     final List<ApiIntegrationsCiCdStatIncrementDto> results = new ArrayList<>();
 
-    final long now = getCurrentTimeMs();
+    final long now = dateTimeService.getCurrentTimeMs();
 
     long currentUpperBound = now - (incrementSizeMillis * numberOfIncrements) + incrementSizeMillis;
 
@@ -106,9 +109,5 @@ class CIEvaluationStatService
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
   {
-  }
-
-  Long getCurrentTimeMs() {
-    return Instant.now().toEpochMilli();
   }
 }

@@ -43,23 +43,23 @@ public class ThirdPartyCoordinateSecurityDAO
     return getList(tx, sQuery, coordinateFileId);
   }
 
-  public int deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
-    String sQuery = "DELETE from ThirdPartyCoordinateSecurity entity WHERE entity.fileCoordinateId=?1";
-    Query<ThirdPartyCoordinateSecurity> query = createQuery(sQuery, fileCoordinateId);
-
-    ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDao = new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
-    // cascade delete vulnerability exploitability exchanges
-    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = getByFileCoordinateId(tx, fileCoordinateId);
-    for (ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity : thirdPartyCoordinateSecurityList) {
-      vexDao.deleteByCoordinateSecurityId(tx, thirdPartyCoordinateSecurity.getId());
-    }
-
-    return query.executeUpdate(tx);
+  public void deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
+    List<ThirdPartyCoordinateSecurity> coordinateSecurityFiles = getByFileCoordinateId(tx, fileCoordinateId);
+    coordinateSecurityFiles.forEach(entity -> delete(tx, entity));
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateId(final String fileCoordinateId) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
         " WHERE entity.fileCoordinateId=?1";
     return getList(sQuery, fileCoordinateId);
+  }
+
+  @Override
+  public void delete(TransactionContext tx, ThirdPartyCoordinateSecurity coordinateSecurity) {
+    // cascade delete vulnerability exploitability exchanges records
+    new ThirdPartyVulnerabilityExploitabilityExchangeDAO().deleteByCoordinateSecurityId(tx, coordinateSecurity.getId());
+
+    // lastly delete this entity
+    super.delete(tx, coordinateSecurity);
   }
 }

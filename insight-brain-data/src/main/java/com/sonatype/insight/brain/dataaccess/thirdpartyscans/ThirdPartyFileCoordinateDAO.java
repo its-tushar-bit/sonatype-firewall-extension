@@ -71,7 +71,13 @@ public class ThirdPartyFileCoordinateDAO
 
   @Override
   public void delete(TransactionContext tx, ThirdPartyFileCoordinate fileCoordinate) {
+    // cascade delete coordinate security records
     new ThirdPartyCoordinateSecurityDAO().deleteByFileCoordinateId(tx, fileCoordinate.getId());
+
+    // cascade delete coordinate license records
+    new ThirdPartyCoordinateLicenseDAO().deleteByFileCoordinateId(tx, fileCoordinate.getId());
+
+    // lastly delete this entity
     super.delete(tx, fileCoordinate);
   }
 }

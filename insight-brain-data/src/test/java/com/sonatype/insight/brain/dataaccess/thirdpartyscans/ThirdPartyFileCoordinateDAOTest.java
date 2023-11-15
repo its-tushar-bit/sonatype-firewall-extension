@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -131,6 +132,26 @@ public class ThirdPartyFileCoordinateDAOTest
     final ThirdPartyCoordinateSecurityDAO securityDAO = new ThirdPartyCoordinateSecurityDAO();
     assertThat(securityDAO.getById(sec1.getId())).isNull();
     assertThat(securityDAO.getById(sec2.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_Cascade() {
+    final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    final ThirdPartyFileCoordinate coordinate =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+    final ThirdPartyCoordinateSecurity sec =
+        tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r1", "d1", "l1", 1.1f, "2.1", "CVE", "v:1", "Low",
+            "<dd>c1</>", "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>");
+    final ThirdPartyCoordinateLicense lic =
+        tempEntity.newThirdPartyCoordinateLicense(coordinate, "lic1", "name1", "url");
+
+    thirdPartyFileCoordinateDAO.delete(coordinate);
+
+    assertThat(thirdPartyFileCoordinateDAO.getById(coordinate.getId())).isNull();
+    final ThirdPartyCoordinateSecurityDAO securityDAO = new ThirdPartyCoordinateSecurityDAO();
+    assertThat(securityDAO.getById(sec.getId())).isNull();
+    final ThirdPartyCoordinateLicenseDAO licenseDAO = new ThirdPartyCoordinateLicenseDAO();
+    assertThat(licenseDAO.getById(lic.getId())).isNull();
   }
 
   @Test

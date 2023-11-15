@@ -111,19 +111,15 @@ public class ThirdPartyCoordinateSecurityDAOTest
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordSec2, "r2", "state2",
             "justification2", "response2", "detail2");
 
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.deleteByFileCoordinateId(tx, coord1.getId());
-      tx.commit();
-    }
+    dao.delete(coordSec1);
 
     ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO =
         new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
 
     assertThat(dao.getById(coordSec1.getId())).isNull();
-    assertThat(dao.getById(coordSec2.getId())).isNull();
+    assertThat(dao.getById(coordSec2.getId())).isNotNull();
     assertThat(vexDAO.getById(vexData.getId())).isNull();
-    assertThat(vexDAO.getById(vexData2.getId())).isNull();
+    assertThat(vexDAO.getById(vexData2.getId())).isNotNull();
   }
 
   @Test

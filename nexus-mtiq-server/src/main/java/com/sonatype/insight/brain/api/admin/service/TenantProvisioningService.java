@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.api.admin.service;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -51,6 +53,8 @@ public class TenantProvisioningService
 
   private final UserDAO userDAO;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   private final MultiTenantInsightConfig config;
 
   @Inject
@@ -62,6 +66,7 @@ public class TenantProvisioningService
       TenantDeregistrationJob tenantDeregistrationJob,
       DeletedTenantDAO deletedTenantDAO,
       UserDAO userDAO,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       MultiTenantInsightConfig config)
   {
     this.insightConfig = insightConfig;
@@ -71,6 +76,7 @@ public class TenantProvisioningService
     this.tenantDeregistrationJob = tenantDeregistrationJob;
     this.deletedTenantDAO = deletedTenantDAO;
     this.userDAO = userDAO;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.config = config;
 
     databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
@@ -96,11 +102,23 @@ public class TenantProvisioningService
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
     log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
+    adjustDefaultTenantData();
+  }
+
+  /**
+   * Make adjustments to the rows that the database scripts add to the database. Some of these rows add default
+   * entities that are not appropriate for SaaS tenants
+   */
+  private void adjustDefaultTenantData() {
     // Delete the built-in default admin if configuration is set
     User admin = userDAO.getById("ADMIN");
     if (admin != null && config.isDeleteBuiltInAdmin()) {
       userDAO.delete(admin);
     }
+
+    // Disable advanced search. This configuration is not exposed via the Features REST API and so can't be
+    // controlled via MTIQFeatureService
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "false");
   }
 
   /**

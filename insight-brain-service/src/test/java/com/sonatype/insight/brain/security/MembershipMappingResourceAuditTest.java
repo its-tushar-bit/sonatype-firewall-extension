@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -123,6 +125,50 @@ public class MembershipMappingResourceAuditTest
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, 1, "bad-request");
     assertThat(auditDTOs).hasSize(1);
     assertGlobalData(auditDTOs.get(0));
+  }
+
+  @Test
+  public void testSetMembershipMappingForRole_RepositoryOwner() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
+    setMembershipMappingRequest(OwnerType.REPOSITORY, repo.getId(), Role.OWNER_ROLE_ID, members).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, null);
+    assertRepositoryData(auditDTO, repo);
+    assertRoleMembershipData(auditDTO, Role.OWNER_ROLE_ID, members);
+  }
+
+  @Test
+  public void testSetMembershipMappingForRole_RepositoryOwner_Unauthorized() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
+    setMembershipMappingRequest(OwnerType.REPOSITORY, repo.getId(), Role.OWNER_ROLE_ID, members)
+        .with(unauthorizedUser()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, "unauthorized");
+    assertRepositoryData(auditDTO, repo);
+  }
+
+  @Test
+  public void testSetMembershipMappingForRole_RepositoryManagerOwner() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+
+    setMembershipMappingRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), Role.OWNER_ROLE_ID, members).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, null);
+    assertRepositoryManagerData(auditDTO, repoManager);
+    assertRoleMembershipData(auditDTO, Role.OWNER_ROLE_ID, members);
+  }
+
+  @Test
+  public void testSetMembershipMappingForRole_RepositoryManagerOwner_Unauthorized() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+
+    setMembershipMappingRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), Role.OWNER_ROLE_ID, members)
+        .with(unauthorizedUser()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, "unauthorized");
+    assertRepositoryManagerData(auditDTO, repoManager);
   }
 
   private Member member(MemberType memberType) {

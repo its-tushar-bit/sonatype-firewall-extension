@@ -36,15 +36,16 @@ import com.codahale.metrics.annotation.Timed;
 @Path(MembershipMappingResource.RESOURCE_PATH)
 public class MembershipMappingResource
 {
-  public static final String RESOURCE_PATH = "rest/membershipMapping";
+  static final String RESOURCE_PATH = "rest/membershipMapping";
 
-  public static final String APPLICABLE_MAPPINGS_PATH = "{ownerType: global|application|organization}/{ownerId}";
+  static final String APPLICABLE_MAPPINGS_PATH =
+      "{ownerType: global|application|organization|repository_manager|repository}/{ownerId}";
 
-  public static final String SINGLETON_APPLICABLE_MAPPINGS_PATH = "{ownerType: repository_container}";
+  static final String SINGLETON_APPLICABLE_MAPPINGS_PATH = "{ownerType: repository_container}";
 
-  public static final String ROLE_PATH = APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
+  static final String ROLE_PATH = APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
 
-  public static final String SINGLETON_ROLE_PATH = SINGLETON_APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
+  static final String SINGLETON_ROLE_PATH = SINGLETON_APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
 
   private final MembershipMappingService membershipMappingService;
 

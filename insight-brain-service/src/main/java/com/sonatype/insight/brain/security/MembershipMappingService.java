@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -255,7 +256,12 @@ public class MembershipMappingService
       Map<String, MembersByOwner> membersByOwnerByRoleId =
           loadMembers(owner.getId(), owner.getName(), owner.getType(), roles);
       for (Map.Entry<String, MembersByOwner> entry : membersByOwnerByRoleId.entrySet()) {
-        entry.getValue().ownerId = owner.getPublicId();
+        if (OwnerType.APPLICATION.equals(owner.getType())) {
+          entry.getValue().ownerId = owner.getPublicId();
+        }
+        else {
+          entry.getValue().ownerId = owner.getId();
+        }
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
     }

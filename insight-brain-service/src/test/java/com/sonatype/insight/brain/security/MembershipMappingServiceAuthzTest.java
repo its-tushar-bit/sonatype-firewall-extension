@@ -10,6 +10,7 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -63,6 +64,60 @@ public class MembershipMappingServiceAuthzTest
   }
 
   @Test
+  public void testGetApplicableMembershipMappings_RepositoryContainer_Authorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableMembershipMappings_RepositoryContainer_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_RepositoryContainer_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_RepositoryManager_Authorized() {
+    grantReadPermission(repositoryManager.getId());
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableMembershipMappings_RepositoryManager_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_RepositoryManager_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_Repository_Authorized() {
+    grantReadPermission(repository.getId());
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableMembershipMappings_Repository_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_Repository_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
   public void testGetApplicableMembershipMappings_Global_Authorized() {
     grantConfigureSystemPermission();
     membershipMappingService.getApplicableMembershipMappings(OwnerType.GLOBAL, "ownerId");
@@ -111,6 +166,63 @@ public class MembershipMappingServiceAuthzTest
   public void testSetMembershipMappings_Organization_Unauthorized() {
     login();
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, org.getId(), Collections.emptyMap());
+  }
+
+  @Test
+  public void testSetMembershipMappings_RepositoryContainer_Authorized() {
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.EDIT_ACCESS_CONTROL);
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetMembershipMappings_RepositoryContainer_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetMembershipMappings_RepositoryContainer_Unauthorized() {
+    login();
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Collections.emptyMap());
+  }
+
+  @Test
+  public void testSetMembershipMappings_RepositoryManager_Authorized() {
+    grantPermission(repositoryManager.getId(), Permission.EDIT_ACCESS_CONTROL);
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+        Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetMembershipMappings_RepositoryManager_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+        Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetMembershipMappings_RepositoryManager_Unauthorized() {
+    login();
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+        Collections.emptyMap());
+  }
+
+  @Test
+  public void testSetMembershipMappings_Repository_Authorized() {
+    grantPermission(repository.getId(), Permission.EDIT_ACCESS_CONTROL);
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY, repository.getId(), Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetMembershipMappings_Repository_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY, repository.getId(), Collections.emptyMap());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetMembershipMappings_Repository_Unauthorized() {
+    login();
+    membershipMappingService.setMembershipMappings(OwnerType.REPOSITORY, repository.getId(), Collections.emptyMap());
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,7 +21,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -95,7 +98,9 @@ public class MembershipMappingResourceTest
   }
 
   @Test
-  public void testCRUD_AppRoles() throws Exception {
+  public void testCRUD_Application() throws Exception {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    User userD = tempEntity.newUser("user-d", "User", "D", "userd@example.com");
     // Initial state
     HttpResponse response = get(OwnerType.APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
@@ -103,11 +108,11 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> appRoles = roleDAO.getApplicationRoles();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
-    for (int i = 0; i < appRoles.size(); i++) {
+    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+    for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
-      Role role = appRoles.get(i);
+      Role role = nonGlobalRoles.get(i);
       assertThat(membersByRole.roleId).isEqualTo(role.getId());
       assertThat(membersByRole.roleName).isEqualTo(role.getName());
       assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
@@ -121,77 +126,369 @@ public class MembershipMappingResourceTest
     }
 
     // Create
-    response = put(OwnerType.ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId(),
-        newMember(MemberType.USER, userB.getUsername()));
-    assertResponseStatus(204, response);
-    response = put(OwnerType.ORGANIZATION, org.getParentOrganizationId(), appRoles.get(0).getId(),
+    response = put(OwnerType.APPLICATION, app.getPublicId(), nonGlobalRoles.get(0).getId(),
         newMember(MemberType.USER, userC.getUsername()));
     assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, org.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
 
-    // Read for created data
-    response = get(OwnerType.ORGANIZATION, app.getOrganizationId());
+    // Read
+    response = get(OwnerType.APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
     applicable = response.getBody(ApplicableMembershipMappings.class);
 
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
 
     MembersByRole membersByRole = applicable.membersByRole.get(0);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(0).getId());
-    assertThat(membersByRole.membersByOwner).hasSize(2);
-    MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, org, getMembersForUsers(userB));
-
-    // Check the parent org
-    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(3);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), app, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), org, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
 
     // Update
-    response = put(OwnerType.APPLICATION, app.getPublicId(), appRoles.get(0).getId(),
-        newMember(MemberType.USER, userA.getUsername()));
-    assertResponseStatus(204, response);
-    response = put(OwnerType.APPLICATION, app.getPublicId(), appRoles.get(1).getId(),
-        newMember(MemberType.USER, userB.getUsername()));
+    response = put(OwnerType.APPLICATION, app.getPublicId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userD.getUsername()));
     assertResponseStatus(204, response);
 
-    // Read for updated data
+    // Read
     response = get(OwnerType.APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
     applicable = response.getBody(ApplicableMembershipMappings.class);
+
     assertThat(applicable).isNotNull();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
 
     membersByRole = applicable.membersByRole.get(0);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(0).getId());
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
     assertThat(membersByRole.membersByOwner).hasSize(3);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), app, getMembersForUsers(userD));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), org, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
 
-    membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, app, getMembersForUsers(userA));
+    // Delete
+    response = put(OwnerType.APPLICATION, app.getPublicId(), nonGlobalRoles.get(0).getId(), new Member[0]);
+    assertResponseStatus(204, response);
 
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, org, getMembersForUsers(userB));
+    // Read
+    response = get(OwnerType.APPLICATION, app.getPublicId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
 
-    membersByOwner = membersByRole.membersByOwner.get(2);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
 
-    membersByRole = applicable.membersByRole.get(1);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(1).getId());
-    assertThat(membersByRole.membersByOwner).isNotNull();
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
     assertThat(membersByRole.membersByOwner).hasSize(3);
-    membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, app, getMembersForUsers(userB));
-
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, org, getMembersForUsers());
-
-    membersByOwner = membersByRole.membersByOwner.get(2);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers());
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), app, Collections.emptyList());
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), org, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
   }
 
   @Test
-  public void testCRUD_RepositoryContainerRoles() throws Exception {
+  public void testCRUD_Organization() throws Exception {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    // Initial state
+    HttpResponse response = get(OwnerType.ORGANIZATION, org.getId());
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+
+    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+    for (int i = 0; i < nonGlobalRoles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = nonGlobalRoles.get(i);
+      assertThat(membersByRole.roleId).isEqualTo(role.getId());
+      assertThat(membersByRole.roleName).isEqualTo(role.getName());
+      assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
+      assertThat(membersByRole.membersByOwner).hasSize(2);
+      assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(org.getId());
+      assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(org.getParentOrganizationId());
+      assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
+    }
+
+    // Create
+    response = put(OwnerType.ORGANIZATION, org.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.ORGANIZATION, org.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(2);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), org, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
+
+    // Update
+    response = put(OwnerType.ORGANIZATION, org.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.ORGANIZATION, org.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(2);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), org, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
+
+    // Delete
+    response = put(OwnerType.ORGANIZATION, org.getId(), nonGlobalRoles.get(0).getId(), new Member[0]);
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.ORGANIZATION, org.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(2);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), org, Collections.emptyList());
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
+  }
+
+  @Test
+  public void testCRUD_Repository() throws Exception {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repoManager);
+    User userD = tempEntity.newUser("user-d", "User", "D", "userd@example.com");
+    // Initial state
+    HttpResponse response = get(OwnerType.REPOSITORY, repo.getId());
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+
+    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+    for (int i = 0; i < nonGlobalRoles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = nonGlobalRoles.get(i);
+      assertThat(membersByRole.roleId).isEqualTo(role.getId());
+      assertThat(membersByRole.roleName).isEqualTo(role.getName());
+      assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
+      assertThat(membersByRole.membersByOwner).hasSize(4);
+      assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(repo.getId());
+      assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(repoManager.getId());
+      assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(2).ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      assertThat(membersByRole.membersByOwner.get(2).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(3).ownerId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+      assertThat(membersByRole.membersByOwner.get(3).members).isEmpty();
+    }
+
+    // Create
+    response = put(OwnerType.REPOSITORY, repo.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userD.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.REPOSITORY_CONTAINER, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY, repo.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(4);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repo, getMembersForUsers(userD));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), repoManager, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(3), rootOrg, getMembersForUsers(userA));
+
+    // Update
+    response = put(OwnerType.REPOSITORY, repo.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY, repo.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(4);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repo, getMembersForUsers(userA));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), repoManager, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(3), rootOrg, getMembersForUsers(userA));
+
+    // Delete
+    response = put(OwnerType.REPOSITORY, repo.getId(), nonGlobalRoles.get(0).getId(), new Member[0]);
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY, repo.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(4);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repo, Collections.emptyList());
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), repoManager, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(3), rootOrg, getMembersForUsers(userA));
+  }
+
+  @Test
+  public void testCRUD_RepositoryManager() throws Exception {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    // Initial state
+    HttpResponse response = get(OwnerType.REPOSITORY_MANAGER, repoManager.getId());
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+
+    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+    for (int i = 0; i < nonGlobalRoles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = nonGlobalRoles.get(i);
+      assertThat(membersByRole.roleId).isEqualTo(role.getId());
+      assertThat(membersByRole.roleName).isEqualTo(role.getName());
+      assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
+      assertThat(membersByRole.membersByOwner).hasSize(3);
+      assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(repoManager.getId());
+      assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
+      assertThat(membersByRole.membersByOwner.get(2).ownerId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+      assertThat(membersByRole.membersByOwner.get(2).members).isEmpty();
+    }
+
+    // Create
+    response = put(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.REPOSITORY_CONTAINER, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY_MANAGER, repoManager.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(3);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repoManager, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
+
+    // Update
+    response = put(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY_MANAGER, repoManager.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(3);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repoManager, getMembersForUsers(userA));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
+
+    // Delete
+    response = put(OwnerType.REPOSITORY_MANAGER, repoManager.getId(), nonGlobalRoles.get(0).getId(), new Member[0]);
+    assertResponseStatus(204, response);
+
+    // Read
+    response = get(OwnerType.REPOSITORY_MANAGER, repoManager.getId());
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
+    assertThat(membersByRole.membersByOwner).hasSize(3);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), repoManager, Collections.emptyList());
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(2), rootOrg, getMembersForUsers(userA));
+  }
+
+  @Test
+  public void testCRUD_RepositoryContainer() throws Exception {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     // Initial state
     HttpResponse response = get(OwnerType.REPOSITORY_CONTAINER);
     assertResponseStatus(200, response);
@@ -199,82 +496,82 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> appRoles = roleDAO.getApplicationRoles();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
-    for (int i = 0; i < appRoles.size(); i++) {
+    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+    for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
-      Role role = appRoles.get(i);
+      Role role = nonGlobalRoles.get(i);
       assertThat(membersByRole.roleId).isEqualTo(role.getId());
       assertThat(membersByRole.roleName).isEqualTo(role.getName());
       assertThat(membersByRole.roleDescription).isEqualTo(role.getDescription());
       assertThat(membersByRole.membersByOwner).hasSize(2);
       assertThat(membersByRole.membersByOwner.get(0).ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       assertThat(membersByRole.membersByOwner.get(0).members).isEmpty();
-      assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(org.getParentOrganizationId());
+      assertThat(membersByRole.membersByOwner.get(1).ownerId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
       assertThat(membersByRole.membersByOwner.get(1).members).isEmpty();
     }
 
     // Create
-    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(0).getId(),
+    response = put(OwnerType.REPOSITORY_CONTAINER, nonGlobalRoles.get(0).getId(),
         newMember(MemberType.USER, userB.getUsername()));
     assertResponseStatus(204, response);
-    response = put(OwnerType.ORGANIZATION, org.getParentOrganizationId(), appRoles.get(0).getId(),
-        newMember(MemberType.USER, userC.getUsername()));
+    response = put(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
     assertResponseStatus(204, response);
 
-    // Read for created data
+    // Read
     response = get(OwnerType.REPOSITORY_CONTAINER);
     assertResponseStatus(200, response);
     applicable = response.getBody(ApplicableMembershipMappings.class);
 
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
 
     MembersByRole membersByRole = applicable.membersByRole.get(0);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(0).getId());
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
     assertThat(membersByRole.membersByOwner).hasSize(2);
-    MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userB));
-
-    // Check the parent org
-    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
 
     // Update
-    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(0).getId(),
-        newMember(MemberType.USER, userA.getUsername()));
-    assertResponseStatus(204, response);
-    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(1).getId(),
-        newMember(MemberType.USER, userB.getUsername()));
+    response = put(OwnerType.REPOSITORY_CONTAINER, nonGlobalRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
     assertResponseStatus(204, response);
 
-    // Read for updated data
+    // Read
     response = get(OwnerType.REPOSITORY_CONTAINER);
     assertResponseStatus(200, response);
     applicable = response.getBody(ApplicableMembershipMappings.class);
+
     assertThat(applicable).isNotNull();
-    assertThat(applicable.membersByRole).hasSameSizeAs(appRoles);
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
 
     membersByRole = applicable.membersByRole.get(0);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(0).getId());
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
     assertThat(membersByRole.membersByOwner).hasSize(2);
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), RepositoryContainer.SINGLETON, getMembersForUsers(userC));
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
 
-    membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userA));
+    // Delete
+    response = put(OwnerType.REPOSITORY_CONTAINER, nonGlobalRoles.get(0).getId(), new Member[0]);
+    assertResponseStatus(204, response);
 
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+    // Read
+    response = get(OwnerType.REPOSITORY_CONTAINER);
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
 
-    membersByRole = applicable.membersByRole.get(1);
-    assertThat(membersByRole.roleId).isEqualTo(appRoles.get(1).getId());
+    assertThat(applicable).isNotNull();
+    assertThat(applicable.membersByRole).isNotNull();
+    assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId).isEqualTo(nonGlobalRoles.get(0).getId());
     assertThat(membersByRole.membersByOwner).hasSize(2);
-    membersByOwner = membersByRole.membersByOwner.get(0);
-    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userB));
-
-    membersByOwner = membersByRole.membersByOwner.get(1);
-    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers());
+    assertMembersByOwner(membersByRole.membersByOwner.get(0), RepositoryContainer.SINGLETON, Collections.emptyList());
+    assertMembersByOwner(membersByRole.membersByOwner.get(1), rootOrg, getMembersForUsers(userA));
   }
 
   @Test
@@ -429,9 +726,14 @@ public class MembershipMappingResourceTest
                                     final Owner expectedOwner,
                                     final List<Member> expectedMembers)
   {
-    assertThat(membersByOwner.ownerId).isEqualTo(expectedOwner.getPublicId());
-    assertThat(membersByOwner.ownerName).isEqualTo(expectedOwner.getName());
     assertThat(membersByOwner.ownerType).isEqualTo(expectedOwner.getType());
+    if (OwnerType.APPLICATION.equals(expectedOwner.getType())) {
+      assertThat(membersByOwner.ownerId).isEqualTo(expectedOwner.getPublicId());
+    }
+    else {
+      assertThat(membersByOwner.ownerId).isEqualTo(expectedOwner.getId());
+    }
+    assertThat(membersByOwner.ownerName).isEqualTo(expectedOwner.getName());
 
     assertMembers(membersByOwner.members, expectedMembers);
   }

@@ -131,6 +131,21 @@ public class MembershipMappingServiceTest
     testGetApplicableMembershipMappings(tempEntity.newOrganization());
   }
 
+  @Test
+  public void testGetApplicableMembershipMappings_RepositoryContainerContext() throws Exception {
+    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON);
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_RepositoryManagerContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager());
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_RepositoryContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newRepository());
+  }
+
   private void testGetApplicableMembershipMappings(Owner owner) throws Exception {
     startLdapServer();
 
@@ -141,7 +156,7 @@ public class MembershipMappingServiceTest
         MemberType.USER);
 
     ApplicableMembershipMappings applicableMembershipMappings =
-        membershipMappingService.getApplicableMembershipMappings(OwnerType.APPLICATION, owner.getId());
+        membershipMappingService.getApplicableMembershipMappings(owner.getType(), owner.getId());
 
     assertThat(applicableMembershipMappings.membersByRole).hasSize(5);
 
@@ -206,9 +221,14 @@ public class MembershipMappingServiceTest
     int ownerHierarchyDepth = 0;
     for (Owner owner : new OwnerDAO().walkHierarchy(expectedOwner)) {
       MembersByOwner membersByOwner = membersByRoles.membersByOwner.get(ownerHierarchyDepth);
-      assertThat(membersByOwner.ownerId).isEqualTo(owner.getPublicId());
-      assertThat(membersByOwner.ownerName).isEqualTo(owner.getName());
       assertThat(membersByOwner.ownerType).isEqualTo(owner.getType());
+      if (OwnerType.APPLICATION.equals(owner.getType())) {
+        assertThat(membersByOwner.ownerId).isEqualTo(owner.getPublicId());
+      }
+      else {
+        assertThat(membersByOwner.ownerId).isEqualTo(owner.getId());
+      }
+      assertThat(membersByOwner.ownerName).isEqualTo(owner.getName());
 
       if (expectedOwner.getId().equals(owner.getId()) && expectedMember != null) {
         assertThat(membersByOwner.members).hasSize(1);

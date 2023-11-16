@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.util.Set;
 
-public class LookerSSOEmbedUrlHdsRequest
+public class SSOEmbedUrlRequest
 {
   public String requestId;
 
@@ -21,11 +21,11 @@ public class LookerSSOEmbedUrlHdsRequest
 
   public Set<String> applicationIds;
 
-  public LookerSSOEmbedUrlHdsRequest() {
+  public SSOEmbedUrlRequest() {
     //for jackson
   }
 
-  public LookerSSOEmbedUrlHdsRequest(
+  public SSOEmbedUrlRequest(
       String requestId,
       String userFirstName,
       String userLastName,

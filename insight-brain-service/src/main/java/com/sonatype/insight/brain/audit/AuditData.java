@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
-import com.sonatype.insight.brain.looker.LookerDashboardDTO;
+import com.sonatype.insight.brain.enterprise.reporting.DashboardRequestDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -452,9 +452,9 @@ public abstract class AuditData
     return this;
   }
 
-  public AuditData setLookerDashboard(final LookerDashboardDTO lookerDashboardDTO) {
-    if (lookerDashboardDTO != null) {
-      setData("dashboard", lookerDashboardDTO.dashboard);
+  public AuditData setLookerDashboard(final DashboardRequestDTO dashboardRequestDTO) {
+    if (dashboardRequestDTO != null) {
+      setData("dashboard", dashboardRequestDTO.dashboard);
     }
     return this;
   }

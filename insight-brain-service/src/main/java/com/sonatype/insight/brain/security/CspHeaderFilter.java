@@ -19,7 +19,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.looker.LookerService;
+import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.service.Configuration;
 
 /**
@@ -33,12 +33,12 @@ public class CspHeaderFilter
 
   private final Configuration configuration;
 
-  private final LookerService lookerService;
+  private final EnterpriseReportingService enterpriseReportingService;
 
   @Inject
-  public CspHeaderFilter(Configuration configuration, LookerService lookerService) {
+  public CspHeaderFilter(Configuration configuration, EnterpriseReportingService enterpriseReportingService) {
     this.configuration = configuration;
-    this.lookerService = lookerService;
+    this.enterpriseReportingService = enterpriseReportingService;
   }
 
   @Override
@@ -69,7 +69,7 @@ public class CspHeaderFilter
       return "";
     }
 
-    String lookerHost = getUrlHost(lookerService.getBaseUrl());
+    String lookerHost = getUrlHost(enterpriseReportingService.getBaseUrl());
     return lookerHost != null ? String.format(" frame-src 'self' %s;", lookerHost) : "";
   }
 

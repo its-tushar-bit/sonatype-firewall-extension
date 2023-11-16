@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.looker.LookerService;
+import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.service.Configuration;
 
 import org.junit.After;
@@ -30,26 +30,26 @@ public class CspHeaderFilterTest
   private Configuration configuration;
 
   @Mock
-  private LookerService lookerService;
+  private EnterpriseReportingService enterpriseReportingService;
 
   private CspHeaderFilter cspHeaderFilter;
 
   @Before
   public void before() {
-    cspHeaderFilter = new CspHeaderFilter(configuration, lookerService);
+    cspHeaderFilter = new CspHeaderFilter(configuration, enterpriseReportingService);
   }
 
   @Test
   public void testGetFrameSrc_Valid_FeatureEnabled() {
     SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-    when(lookerService.getBaseUrl()).thenReturn("https://sonatypeexternaldev.cloud.looker.com/");
+    when(enterpriseReportingService.getBaseUrl()).thenReturn("https://sonatypeexternaldev.cloud.looker.com/");
     assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo(" frame-src 'self' sonatypeexternaldev.cloud.looker.com;");
   }
 
   @Test
   public void testGetFrameSrc_Invalid_FeatureEnabled() {
     SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-    when(lookerService.getBaseUrl()).thenReturn("blah");
+    when(enterpriseReportingService.getBaseUrl()).thenReturn("blah");
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
   }
 

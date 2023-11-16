@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,14 +17,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
-import com.sonatype.insight.brain.ier.IerDashboardMetadataDTO;
-import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -50,12 +47,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.looker.LookerService.LOOKER_SSO_EMBED_URL_PATH;
-import static com.sonatype.insight.brain.looker.LookerService.LOOKER_CONFIG_PATH;
-import static com.sonatype.insight.brain.looker.LookerService.LOOKER_ICONS_PATH;
-import static com.sonatype.insight.brain.looker.LookerService.LOOKER_DASHBOARDS_METADATA_PATH;
-import static com.sonatype.insight.brain.looker.LookerService.DEFAULT_CONFIG_CACHE_KEY;
-import static com.sonatype.insight.brain.looker.LookerService.DEFAULT_DASHBOARD_CACHE_KEY;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_CONFIG_CACHE_KEY;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_DASHBOARD_CACHE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -67,7 +64,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LookerServiceTest
+public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
 {
   @Mock
@@ -86,17 +83,18 @@ public class LookerServiceTest
   private SamlUserDAO mockSamlUserDAO;
 
   @Inject
-  private LookerService lookerService;
+  private EnterpriseReportingService enterpriseReportingService;
 
   @Inject
   private InsightWork insightWork;
 
   @Captor
-  private ArgumentCaptor<LookerSSOEmbedUrlHdsRequest> lookerSSOEmbedUrlHdsRequestArgumentCaptor;
+  private ArgumentCaptor<SSOEmbedUrlRequest> lookerSSOEmbedUrlHdsRequestArgumentCaptor;
 
-  private LoadingCache<String, LookerConfigDTO> mockConfigCache = mock(LoadingCache.class);
+  private final LoadingCache<String, EnterpriseReportingConfigDTO> mockConfigCache = mock(LoadingCache.class);
 
-  private LoadingCache<String, IerDashboardMetadataListDTO> mockDashboardCache = mock(LoadingCache.class);
+  private final LoadingCache<String, DashboardMetadataListDTO> mockDashboardCache =
+      mock(LoadingCache.class);
 
   @Override
   public void configure(Binder binder) {
@@ -138,8 +136,8 @@ public class LookerServiceTest
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_ConfigError() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
-        mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
+    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
     String expectedUrl = "looker.url.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
@@ -149,7 +147,7 @@ public class LookerServiceTest
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
     assertThatExceptionOfType(InternalServerException.class)
-        .isThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")))
+        .isThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
         .withMessage("unable to load Enterprise Reporting configuration from Sonatype Data Services");
   }
 
@@ -157,12 +155,12 @@ public class LookerServiceTest
   public void testCreateSSOEmbedUrl_FeatureDisabled() {
     disableFeature();
     assertThatExceptionOfType(NotAuthorizedException.class).isThrownBy(
-        () -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")));
+        () -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")));
   }
 
   @Test
   public void testCreateSSOEmbedUrl_MissingDashboardKey() {
-    assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO(null)))
+    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO(null)))
         .isInstanceOf(BadRequestException.class).hasMessage("Dashboard is null or empty");
   }
 
@@ -173,7 +171,7 @@ public class LookerServiceTest
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
-    assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")))
+    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
         .isInstanceOf(BadRequestException.class).hasMessage("Bad request");
   }
 
@@ -184,7 +182,7 @@ public class LookerServiceTest
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
-    assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")))
+    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
         .isInstanceOf(NotFoundException.class).hasMessage("Not found");
   }
 
@@ -196,7 +194,7 @@ public class LookerServiceTest
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
-    assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")))
+    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
         .isInstanceOf(ConflictException.class)
         .hasMessage(hdsError);
   }
@@ -204,55 +202,57 @@ public class LookerServiceTest
   @Test
   public void testGetBaseUrl() {
     String expectedBaseUrl = "https://sonatypeexternaldev.cloud.looker.com/";
-    when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
-        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
-    assertThat(lookerService.getBaseUrl()).isEqualTo(expectedBaseUrl);
+    when(hdsClientMock.get(EnterpriseReportingConfigDTO.class,
+        EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
+        .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
+    assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedBaseUrl);
   }
 
   @Test
   public void testGetLookerConfig_Error() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
-        mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
+    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
     when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
-    assertThatExceptionOfType(InternalServerException.class).isThrownBy(() -> lookerService.getBaseUrl())
+    assertThatExceptionOfType(InternalServerException.class).isThrownBy(() -> enterpriseReportingService.getBaseUrl())
         .withMessage("unable to load Enterprise Reporting configuration from Sonatype Data Services");
   }
 
   @Test
   public void testGetLookerDashboardMetadata() {
-    IerDashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH)).thenReturn(new ByteArrayInputStream(new byte[0]));
-    when(hdsClientMock.get(IerDashboardMetadataListDTO.class, LOOKER_DASHBOARDS_METADATA_PATH))
-        .thenReturn(expected);
+    DashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
+        .thenReturn(new ByteArrayInputStream(new byte[0]));
+    when(hdsClientMock.get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected);
 
-    assertThat(lookerService.getLookerDashboardMetadata().dashboardMetadata)
+    assertThat(enterpriseReportingService.getLookerDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.dashboardMetadata);
   }
 
   @Test
   public void testGetLookerDashboardMetadata_Error() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
-        mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
+    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
     when(mockDashboardCache.get(DEFAULT_DASHBOARD_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
-    assertThatExceptionOfType(InternalServerErrorException.class).isThrownBy(() ->
-            lookerService.getLookerDashboardMetadata())
+    assertThatExceptionOfType(InternalServerException.class).isThrownBy(() ->
+            enterpriseReportingService.getLookerDashboardMetadata())
         .withMessage("unable to load Integrated Enterprise Reporting metadata from Sonatype Data Services");
   }
 
   @Test
   public void testEvaluateDashboardIcons_FirstCacheLoad() throws IOException {
     String expectedIconImageFileName = "icon-1.png";
-    byte[] expectedIconsZipFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icon-1.zip").getPath()));
-    byte[] expectedIconImageFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/" + expectedIconImageFileName).getPath()));
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+    byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
 
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
@@ -261,16 +261,15 @@ public class LookerServiceTest
   public void testEvaluateDashboardIcons_FirstCacheLoad_MultipleIcons() throws IOException {
     String expectedIconImageFileName = "icon-1.png";
     String expectedSecondIconImageFileName = "icon-2.png";
-    byte[] expectedIconsZipFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icons.zip").getPath()));
-    byte[] expectedIconImageFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/" + expectedIconImageFileName).getPath()));
-    byte[] expectedSecondIconImageFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/" + expectedSecondIconImageFileName)
-            .getPath()));
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icons.zip").getPath()));
+    byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+    byte[] expectedSecondIconImageFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/" + expectedSecondIconImageFileName).getPath()));
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
 
     assertDashboardIconImage(expectedSecondIconImageFile, expectedSecondIconImageFileName);
   }
@@ -278,16 +277,16 @@ public class LookerServiceTest
   @Test
   public void testEvaluateDashboardIcons_CacheReloadWithNoIconUpdates() throws IOException {
     String expectedIconImageFileName = "icon-1.png";
-    byte[] expectedIconsZipFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icon-1.zip").getPath()));
-    byte[] expectedIconImageFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/" + expectedIconImageFileName).getPath()));
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+    byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
 
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
@@ -298,20 +297,20 @@ public class LookerServiceTest
     String expectedIconImageFileName = "icon-2.png";
     File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
     File firstIconImageFile = new File(iconsDirectory, firstIconImageFileName);
-    byte[] firstIconZipFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icon-1.zip").getPath()));
-    byte[] expectedIconsZipFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icon-2.zip").getPath()));
-    byte[] expectedIconImageFile = Files
-        .readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/" + expectedIconImageFileName).getPath()));
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+    byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icon-2.zip").getPath()));
+    byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
     assertThat(firstIconImageFile.exists()).isTrue();
 
-    when(hdsClientMock.get(InputStream.class, LOOKER_ICONS_PATH))
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    lookerService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.downloadAndCacheDashboardIcons();
 
     assertThat(firstIconImageFile.exists()).isFalse();
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
@@ -322,8 +321,8 @@ public class LookerServiceTest
     String expectedBaseUrl = "base.looker.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
-        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
+    when(hdsClientMock.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH))
+        .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
     final Set<String> permissionsForUserPrincipalMock = mockGetPermissionsForUserPrincipal();
@@ -334,11 +333,11 @@ public class LookerServiceTest
         .thenReturn(permissionsForUserPrincipalMock);
     when(mockMembershipMappingService.getApplicationIdsForUser(any(), any()))
         .thenReturn(applicationIdsForUserMock);
-    SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test"));
+    SSOEmbedUrlDTO result = enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test"));
 
-    verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH),
+    verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH),
         lookerSSOEmbedUrlHdsRequestArgumentCaptor.capture());
-    LookerSSOEmbedUrlHdsRequest actual = lookerSSOEmbedUrlHdsRequestArgumentCaptor.getValue();
+    SSOEmbedUrlRequest actual = lookerSSOEmbedUrlHdsRequestArgumentCaptor.getValue();
     assertThat(actual).isNotNull();
     assertThat(actual.userPermissions).containsExactlyInAnyOrderElementsOf(permissionsForUserPrincipalMock);
     assertThat(actual.applicationIds).containsExactlyInAnyOrderElementsOf(applicationIdsForUserMock);
@@ -366,13 +365,13 @@ public class LookerServiceTest
     return new HashSet<>(Arrays.asList("appId1", "appId2"));
   }
 
-  private static IerDashboardMetadataListDTO mockGetLookerDashboardMetadata() {
-    return new IerDashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
+  private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
+    return new DashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
         generateLookerDashboardMetadata(), generateLookerDashboardMetadata()));
   }
 
-  private static IerDashboardMetadataDTO generateLookerDashboardMetadata() {
-    return new IerDashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8),
+  private static DashboardMetadataDTO generateLookerDashboardMetadata() {
+    return new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8),
         RandomStringUtils.random(8), Collections.singletonList(RandomStringUtils.random(8)),
         RandomStringUtils.random(8), RandomStringUtils.random(8), 1, false);
   }
@@ -390,29 +389,29 @@ public class LookerServiceTest
 
   @Test
   public void testGetIcon_valid() throws URISyntaxException {
-    mockDashboardIconsDirectory();
-    byte[] iconImage = lookerService.getIcon("rolling-recap.svg");
+    mockDashboardIconsZip();
+    byte[] iconImage = enterpriseReportingService.getIcon("rolling-recap.svg");
     assertNotNull(iconImage);
   }
 
   @Test
   public void testGetIcon_notFound() throws URISyntaxException {
-    mockDashboardIconsDirectory();
-    assertThatThrownBy(() -> lookerService.getIcon("rolling-recap1.svg"))
+    mockDashboardIconsZip();
+    assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void testGetIcon_badRequest() {
-    assertThatThrownBy(() -> lookerService.getIcon("../rolling-recap1.svg"))
+    assertThatThrownBy(() -> enterpriseReportingService.getIcon("../rolling-recap1.svg"))
         .isInstanceOf(BadRequestException.class);
   }
 
-  private void mockDashboardIconsDirectory() throws URISyntaxException {
+  private void mockDashboardIconsZip() throws  URISyntaxException {
     InsightWork mockInsightWork = mock(InsightWork.class);
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
-        mockMembershipMappingService, mockInsightWork, mockConfigCache, mockDashboardCache);
+    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
+        mockSamlUserDAO, mockMembershipMappingService, mockInsightWork, mockConfigCache, mockDashboardCache);
     when(mockInsightWork.getIerDashboardIconsDirectory()).thenReturn(new
-        File(getClass().getResource("/LookerServiceTest/").toURI()));
+        File(getClass().getResource("/EnterpriseReportingServiceTest/").toURI()));
   }
 }

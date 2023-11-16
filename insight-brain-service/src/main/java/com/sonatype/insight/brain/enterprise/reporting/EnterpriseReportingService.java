@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -21,14 +21,12 @@ import java.util.zip.ZipInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -55,23 +53,24 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class LookerService
+public class EnterpriseReportingService
 {
   private final HdsClient hdsClient;
 
   private final CurrentUser currentUser;
 
-  private static final Logger log = LoggerFactory.getLogger(LookerService.class);
+  private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
-  public static final String IER_BASE_PATH = "rest/enterpriseReporting";
+  public static final String ENTERPRISE_REPORTING_BASE_PATH = "rest/enterpriseReporting";
 
-  public static final String LOOKER_SSO_EMBED_URL_PATH = "rest/looker/ssoEmbedUrl";
+  public static final String ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/ssoEmbedUrl";
 
-  public static final String LOOKER_CONFIG_PATH = "rest/looker/config";
+  public static final String ENTERPRISE_REPORTING_CONFIG_PATH = ENTERPRISE_REPORTING_BASE_PATH  + "/config";
 
-  public static final String LOOKER_DASHBOARDS_METADATA_PATH = IER_BASE_PATH + "/dashboards";
+  public static final String ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH =
+      ENTERPRISE_REPORTING_BASE_PATH + "/dashboards";
 
-  public static final String LOOKER_ICONS_PATH = IER_BASE_PATH + "/icons";
+  public static final String ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/icons";
 
   public static final String DEFAULT_CONFIG_CACHE_KEY = "default";
 
@@ -79,9 +78,9 @@ public class LookerService
 
   private static final Duration MAX_AGE = Duration.ofDays(1);
 
-  private final LoadingCache<String, LookerConfigDTO> lookerConfigCache;
+  private final LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
 
-  private final LoadingCache<String, IerDashboardMetadataListDTO> lookerDashboardMetadataCache;
+  private final LoadingCache<String, DashboardMetadataListDTO> lookerDashboardMetadataCache;
 
   private final UserDAO userDAO;
 
@@ -92,7 +91,7 @@ public class LookerService
   private final InsightWork insightWork;
 
   @Inject
-  public LookerService(
+  public EnterpriseReportingService(
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
@@ -106,21 +105,22 @@ public class LookerService
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
     this.insightWork = insightWork;
-    this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE).build(newLookerConfigCacheLoader());
+    this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE)
+        .build(newEnterpriseReportingConfigCacheLoader());
     this.lookerDashboardMetadataCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE)
         .build(newLookerDashboardMetadataLoader());
   }
 
   //for testing only
-  LookerService(
+  EnterpriseReportingService(
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
       final InsightWork insightWork,
-      final LoadingCache<String, LookerConfigDTO> configCache,
-      final LoadingCache<String, IerDashboardMetadataListDTO> dashboardCache)
+      final LoadingCache<String, EnterpriseReportingConfigDTO> configCache,
+      final LoadingCache<String, DashboardMetadataListDTO> dashboardCache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -132,35 +132,36 @@ public class LookerService
     this.lookerDashboardMetadataCache = dashboardCache;
   }
 
-  private CacheLoader<String, LookerConfigDTO> newLookerConfigCacheLoader() {
-    return new CacheLoader<String, LookerConfigDTO>()
+  private CacheLoader<String, EnterpriseReportingConfigDTO> newEnterpriseReportingConfigCacheLoader() {
+    return new CacheLoader<String, EnterpriseReportingConfigDTO>()
     {
       @Override
-      public LookerConfigDTO load(@NotNull final String key) {
-        return hdsClient.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH);
+      public EnterpriseReportingConfigDTO load(@NotNull final String key) {
+        return hdsClient.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH);
       }
     };
   }
 
-  private CacheLoader<String, IerDashboardMetadataListDTO> newLookerDashboardMetadataLoader() {
-    return new CacheLoader<String, IerDashboardMetadataListDTO>()
+  private CacheLoader<String, DashboardMetadataListDTO> newLookerDashboardMetadataLoader() {
+    return new CacheLoader<String, DashboardMetadataListDTO>()
     {
       @Override
-      public IerDashboardMetadataListDTO load(@NotNull final String key) {
-        IerDashboardMetadataListDTO ierDashboardMetadataListDTO =
-            hdsClient.get(IerDashboardMetadataListDTO.class, LOOKER_DASHBOARDS_METADATA_PATH);
+      public DashboardMetadataListDTO load(@NotNull final String key) {
+        DashboardMetadataListDTO dashboardMetadataListDTO =
+            hdsClient.get(DashboardMetadataListDTO.class,
+                ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
         downloadAndCacheDashboardIcons();
-        return ierDashboardMetadataListDTO;
+        return dashboardMetadataListDTO;
       }
     };
   }
 
-  SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboard) {
+  SSOEmbedUrlDTO createSSOEmbedUrl(DashboardRequestDTO lookerDashboard) {
     AuditData.get().setLookerDashboard(lookerDashboard);
     checkLookerIntegratedEnterpriseReportingEnabled();
     validateLookerDashboardValue(lookerDashboard);
     String requestId = UUID.randomUUID().toString().replace("-", "");
-    SSOEmbedUrlDTO result = hdsClient.post(SSOEmbedUrlDTO.class, LOOKER_SSO_EMBED_URL_PATH,
+    SSOEmbedUrlDTO result = hdsClient.post(SSOEmbedUrlDTO.class, ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH,
         buildRequest(requestId, lookerDashboard.dashboard));
     result.baseUrl = getBaseUrl();
     return result;
@@ -176,30 +177,29 @@ public class LookerService
     }
   }
 
-  public IerDashboardMetadataListDTO getLookerDashboardMetadata() {
+  public DashboardMetadataListDTO getLookerDashboardMetadata() {
     try {
       return lookerDashboardMetadataCache.get(DEFAULT_DASHBOARD_CACHE_KEY);
     }
     catch (ExecutionException e) {
-      throw new InternalServerErrorException("unable to load Integrated Enterprise Reporting metadata from " +
+      throw new InternalServerException("unable to load Integrated Enterprise Reporting metadata from " +
           "Sonatype Data Services", e);
     }
   }
 
-  private void validateLookerDashboardValue(LookerDashboardDTO lookerDashboard) {
+  private void validateLookerDashboardValue(DashboardRequestDTO lookerDashboard) {
     if (lookerDashboard == null || StringUtils.isBlank(lookerDashboard.dashboard)) {
       log.debug("Bad data in request dashboard is null or empty");
       throw new BadRequestException("Dashboard is null or empty");
     }
   }
 
-  private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
-    log.debug("Submitting Integrated Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", requestId,
-        lookerDashboard);
+  private SSOEmbedUrlRequest buildRequest(String requestId, String lookerDashboard) {
+    log.debug("Submitting Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
     Pair<String, String> names = getUserFirstAndLastnames();
     final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
-    return new LookerSSOEmbedUrlHdsRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard,
+    return new SSOEmbedUrlRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard,
         membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
             userPrincipal.getMembership()),
         membershipMappingService.getApplicationIdsForUser(userPrincipal.getUsername(), userPrincipal.getMembership()));
@@ -240,7 +240,7 @@ public class LookerService
   }
 
   void downloadAndCacheDashboardIcons() {
-    try (InputStream is = hdsClient.get(InputStream.class, LOOKER_ICONS_PATH)) {
+    try (InputStream is = hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH)) {
       byte[] fetchedIcons = IOUtils.toByteArray(is);
       deleteDashboardIcons();
       extractIconFiles(fetchedIcons);

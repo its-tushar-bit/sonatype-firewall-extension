@@ -3,19 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.ier;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.util.List;
 
-public class IerDashboardMetadataListDTO
+public class DashboardMetadataListDTO
 {
-  public List<IerDashboardMetadataDTO> dashboardMetadata;
+  public List<DashboardMetadataDTO> dashboardMetadata;
 
-  public IerDashboardMetadataListDTO() {
+  public DashboardMetadataListDTO() {
     //for jackson
   }
 
-  public IerDashboardMetadataListDTO(List<IerDashboardMetadataDTO> dashboardMetadata) {
+  public DashboardMetadataListDTO(List<DashboardMetadataDTO> dashboardMetadata) {
     this.dashboardMetadata = dashboardMetadata;
   }
 }

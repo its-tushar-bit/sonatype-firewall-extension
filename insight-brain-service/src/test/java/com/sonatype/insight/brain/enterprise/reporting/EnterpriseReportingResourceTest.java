@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,8 +12,6 @@ import java.nio.file.Paths;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.ier.IerDashboardMetadataDTO;
-import com.sonatype.insight.brain.ier.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -25,12 +23,12 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class LookerResourceTest
+public class EnterpriseReportingResourceTest
     extends AbstractResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(LookerResource.RESOURCE_PATH);
+    return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);
   }
 
   @Before
@@ -47,9 +45,9 @@ public class LookerResourceTest
 
   @Test
   public void testCreateSSOEmbedUrl_LookerError() throws Exception {
-    hdsMockServer.respondWith("error").andStatus(409).atUri("rest/looker/ssoEmbedUrl");
-    HttpResponse response =
-        restRequest().path(LookerResource.SSO_EMBED_URL_PATH).body(new LookerDashboardDTO("rolling_recap")).post();
+    hdsMockServer.respondWith("error").andStatus(409).atUri("rest/enterpriseReporting/ssoEmbedUrl");
+    HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
+            .body(new DashboardRequestDTO("rolling_recap")).post();
     assertResponseStatus(409, response);
   }
 
@@ -69,11 +67,13 @@ public class LookerResourceTest
 
     String lookerSSOUrl = "looker.someurl.com";
     String baseUrl = "https://looker.example.com";
-    hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/looker/ssoEmbedUrl");
-    hdsMockServer.respondWith("{\"baseUrl\":\"" + baseUrl + "\"}").atUri("rest/looker/config");
-    LookerDashboardDTO lookerDashboardDTO = new LookerDashboardDTO("rolling_recap");
+    hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/enterpriseReporting/ssoEmbedUrl");
+    hdsMockServer.respondWith("{\"baseUrl\":\"" + baseUrl + "\"}").atUri("rest/enterpriseReporting/config");
+    DashboardRequestDTO dashboardRequestDTO =
+        new DashboardRequestDTO("rolling_recap");
 
-    HttpResponse response = restRequest().path(LookerResource.SSO_EMBED_URL_PATH).body(lookerDashboardDTO).post();
+    HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
+        .body(dashboardRequestDTO).post();
     assertResponseStatus(200, response);
     String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":\"" + baseUrl + "\"}";
     assertThat(response.getBodyText()).contains(expectedResponse);
@@ -83,12 +83,13 @@ public class LookerResourceTest
   public void testGetLookerDashboardMetadata_Success() throws Exception {
     hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons");
-    HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(200, response);
-    IerDashboardMetadataListDTO responseList = response.getBody(IerDashboardMetadataListDTO.class);
+    DashboardMetadataListDTO responseList =
+        response.getBody(DashboardMetadataListDTO.class);
     assertThat(responseList).isNotNull();
     assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
-    IerDashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata.get(0);
+    DashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata.get(0);
     assertThat(dashboardMetadataDTO.dashboardId).isEqualTo("sbom-scorecard");
     assertThat(dashboardMetadataDTO.title).isEqualTo("Sbom Report Overview");
     assertThat(dashboardMetadataDTO.description).isEqualTo("A comprehensive view of monthly sboms");
@@ -103,7 +104,7 @@ public class LookerResourceTest
   public void testGetLookerDashboardMetadata_Error() throws Exception {
     hdsMockServer.respondWith("error").andStatus(502).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(new byte[0]).andStatus(200).atUri("rest/enterpriseReporting/icons");
-    HttpResponse response = restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(502, response);
   }
 
@@ -125,9 +126,9 @@ public class LookerResourceTest
   private void assertTestGetIcon(int expectedStatus, String iconName) throws Exception {
     hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(getBytesFromIconsZip()).atUri("rest/enterpriseReporting/icons");
-    restRequest().path(LookerResource.DASHBOARDS_METADATA_PATH).get();
+    restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     HttpResponse response = restRequest()
-        .path(LookerResource.GET_IER_ICON_PATH)
+        .path(EnterpriseReportingResource.GET_IER_ICON_PATH)
         .parameter(iconName)
         .get();
     assertResponseStatus(expectedStatus, response);
@@ -154,6 +155,7 @@ public class LookerResourceTest
   }
 
   private byte[] getBytesFromIconsZip() throws IOException {
-    return Files.readAllBytes(Paths.get(getClass().getResource("/LookerServiceTest/icons_svg.zip").getPath()));
+    return Files.readAllBytes(Paths.get(getClass()
+        .getResource("/EnterpriseReportingServiceTest/icons_svg.zip").getPath()));
   }
 }

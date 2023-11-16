@@ -3,17 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
-public class LookerDashboardDTO
+public class DashboardRequestDTO
 {
   public String dashboard;
 
-  public LookerDashboardDTO() {
+  public DashboardRequestDTO() {
     //for jackson;
   }
 
-  public LookerDashboardDTO(final String dashboard) {
+  public DashboardRequestDTO(final String dashboard) {
     this.dashboard = dashboard;
   }
 }

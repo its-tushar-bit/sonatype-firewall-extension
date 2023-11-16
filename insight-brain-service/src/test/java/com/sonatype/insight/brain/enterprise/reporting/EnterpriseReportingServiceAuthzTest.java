@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import javax.inject.Inject;
 
@@ -16,11 +16,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LookerServiceAuthzTest
+public class EnterpriseReportingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private LookerService lookerService;
+  private EnterpriseReportingService enterpriseReportingService;
 
   @Before
   public void before() {
@@ -34,13 +34,13 @@ public class LookerServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testCreateSSOEmbedUrl_UnAuthenticated() {
-    lookerService.createSSOEmbedUrl(new LookerDashboardDTO("rolling-recap"));
+    enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("rolling-recap"));
   }
 
   @Test(expected = BadRequestException.class)
   public void testCreateSSOEmbedUrl_UnAuthorized() {
     login();
-    lookerService.createSSOEmbedUrl(new LookerDashboardDTO(null));
+    enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO(null));
   }
 
   private void enableFeature() {

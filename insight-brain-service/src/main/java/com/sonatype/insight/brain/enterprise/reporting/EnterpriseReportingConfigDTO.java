@@ -3,19 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.looker;
+package com.sonatype.insight.brain.enterprise.reporting;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class LookerConfigDTO
+public class EnterpriseReportingConfigDTO
 {
   public String baseUrl;
 
-  public LookerConfigDTO() {
+  public EnterpriseReportingConfigDTO() {
     //for jackson
   }
 
-  public LookerConfigDTO(@JsonProperty("baseUrl") final String baseUrl) {
+  public EnterpriseReportingConfigDTO(@JsonProperty("baseUrl") final String baseUrl) {
     this.baseUrl = baseUrl;
   }
 }

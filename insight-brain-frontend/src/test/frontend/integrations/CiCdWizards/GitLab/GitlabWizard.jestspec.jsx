@@ -42,6 +42,30 @@ describe('GitlabWizard', () => {
     expect(screen.getByText(expectedIqApplication)).toBeInTheDocument();
   });
 
+  it('renders the correct data analytics id for the more information link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Sonatype Documentation' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-gitlab-more-info'
+    );
+  });
+
+  it('renders the correct data analytics id for the create pipeline link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-gitlab-create-pipeline-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the configure link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-gitlab-configure-card'
+    );
+  });
+
   function renderComponent() {
     const mockIqApplicationPublicId = 'test-public-id';
     render(<GitlabWizard applicationPublicId={mockIqApplicationPublicId} />);

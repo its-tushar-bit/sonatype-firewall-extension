@@ -38,7 +38,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab href={installUrl}>
+            <NxTextLink newTab href={installUrl} data-analytics-id="sonatype-developer-cicd-jenkins-install-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -51,7 +51,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab href={connectUrl}>
+            <NxTextLink newTab href={connectUrl} data-analytics-id="sonatype-developer-cicd-jenkins-connect-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -66,7 +66,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab href={evaluationUrl}>
+            <NxTextLink newTab href={evaluationUrl} data-analytics-id="sonatype-developer-cicd-jenkins-review-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -113,7 +113,10 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
       </NxDescriptionList>
       <NxP>
         <b>For more information, visit </b>
-        <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/integrations/jenkins">
+        <NxTextLink
+          data-analytics-id="sonatype-developer-cicd-jenkins-more-info"
+          href="https://links.sonatype.com/products/nxiq/doc/integrations/jenkins"
+        >
           Sonatype Documentation
         </NxTextLink>
       </NxP>

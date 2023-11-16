@@ -37,6 +37,60 @@ describe('ScmWizard', () => {
       const expectedTokenDocUrl = getSCMProviderTokenDocUrl(scmProvider);
       expect(screen.getAllByRole('link', { name: 'here' })[0]).toHaveAttribute('href', expectedTokenDocUrl);
     });
+
+    it(`renders the correct data analytics id for token link for the provider ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdToken = `sonatype-developer-scm-${scmProvider}-token`;
+      expect(screen.getAllByRole('link', { name: 'here' })[0]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdToken
+      );
+    });
+
+    it(`renders the correct data analytics id for permission link for ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdPermission = `sonatype-developer-scm-${scmProvider}-permission`;
+      expect(screen.getAllByRole('link', { name: 'Check required permissions here' })[0]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdPermission
+      );
+    });
+
+    it(`renders the correct data analytics id for application source control link for ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdApplicationSourceControl = `sonatype-developer-scm-${scmProvider}-application-source-control`;
+      expect(screen.getAllByRole('link', { name: 'Click here' })[1]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdApplicationSourceControl
+      );
+    });
+
+    it(`renders the correct data analytics id for automatic source control link for ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdAutomaticSourceControlConf = `sonatype-developer-scm-${scmProvider}-automatic-source-control-configuration`;
+      expect(screen.getAllByRole('link', { name: 'Automatic Source Control' })[0]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdAutomaticSourceControlConf
+      );
+    });
+
+    it(`renders the correct data analytics id for base url link for ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdBaseUrl = `sonatype-developer-scm-${scmProvider}-base-url`;
+      expect(screen.getAllByRole('link', { name: 'Click here' })[0]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdBaseUrl
+      );
+    });
+
+    it(`renders the correct data analytics id for help link for ${scmProvider}`, () => {
+      renderComponent(scmProvider, mockApplicationPublicId);
+      const dataAnalyticsIdHelp = `sonatype-developer-scm-${scmProvider}-configuration-source-control-help-link`;
+      expect(screen.getAllByRole('link', { name: 'here' })[1]).toHaveAttribute(
+        'data-analytics-id',
+        dataAnalyticsIdHelp
+      );
+    });
   });
 
   it('renders the correct permission URL link', () => {

@@ -39,6 +39,38 @@ describe('BambooWizard', () => {
     expect(screen.getAllByText(expectedIqApplication)[0]).toBeInTheDocument();
   });
 
+  it('renders the correct data analytics id for the more information link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Sonatype Documentation' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-bamboo-more-info'
+    );
+  });
+
+  it('renders the correct data analytics id for the download link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-bamboo-download-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the install link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-bamboo-install-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the review link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[2]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-bamboo-review-card'
+    );
+  });
+
   function renderComponent() {
     const mockIqOrganization = 'iqOrganization';
     const mockIqApplication = 'iqApplication';

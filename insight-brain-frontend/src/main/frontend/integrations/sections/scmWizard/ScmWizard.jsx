@@ -24,6 +24,13 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
   const automaticSourceControlConfigurationPage = '/assets/#/automaticSourceControlConfiguration';
   const configureSourceControlHelpLink = 'http://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
 
+  const dataAnalyticsIdToken = `sonatype-developer-scm-${scmProvider}-token`;
+  const dataAnalyticsIdPermission = `sonatype-developer-scm-${scmProvider}-permission`;
+  const dataAnalyticsIdApplicationSourceControl = `sonatype-developer-scm-${scmProvider}-application-source-control`;
+  const dataAnalyticsIdAutomaticSourceControlConf = `sonatype-developer-scm-${scmProvider}-automatic-source-control-configuration`;
+  const dataAnalyticsIdHelp = `sonatype-developer-scm-${scmProvider}-configuration-source-control-help-link`;
+  const dataAnalyticsIdBaseUrl = `sonatype-developer-scm-${scmProvider}-base-url`;
+
   return (
     <NxCard className="iq-integrations-scm-wizard-card" aria-label="SCM Wizard">
       <div className="iq-integrations-scm-wizard-card-sections">
@@ -34,12 +41,12 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
           </NxList.Item>
           <NxList.Item>
             You can find more information about how to create access token in{' '}
-            <NxTextLink href={tokenDocUrl} newTab>
+            <NxTextLink href={tokenDocUrl} newTab data-analytics-id={dataAnalyticsIdToken}>
               here
             </NxTextLink>
           </NxList.Item>
           <NxList.Item>
-            <NxTextLink href={permissionUrl} newTab>
+            <NxTextLink href={permissionUrl} newTab data-analytics-id={dataAnalyticsIdPermission}>
               Check required permissions here
             </NxTextLink>
           </NxList.Item>
@@ -51,7 +58,7 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
           <NxH3>Configure Base URL</NxH3>
           <NxList bulleted>
             <NxList.Item>
-              <NxTextLink href="/assets/#/baseUrl" newTab>
+              <NxTextLink href="/assets/#/baseUrl" newTab data-analytics-id={dataAnalyticsIdBaseUrl}>
                 Click here{' '}
               </NxTextLink>
               to configure base URL for the organization
@@ -65,7 +72,11 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
           <NxList.Item>
             <NxList.Text>
               You can{' '}
-              <NxTextLink href={applicationSourceControlPage} newTab>
+              <NxTextLink
+                href={applicationSourceControlPage}
+                newTab
+                data-analytics-id={dataAnalyticsIdApplicationSourceControl}
+              >
                 Click here{' '}
               </NxTextLink>
               to go to your application source control configuration page
@@ -79,7 +90,11 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
               <NxList.Item>Double check the default branch name is correct</NxList.Item>
               <NxList.Item>
                 You can also enable{' '}
-                <NxTextLink href={automaticSourceControlConfigurationPage} newTab>
+                <NxTextLink
+                  href={automaticSourceControlConfigurationPage}
+                  newTab
+                  data-analytics-id={dataAnalyticsIdAutomaticSourceControlConf}
+                >
                   Automatic Source Control
                 </NxTextLink>{' '}
                 , which the repository URL will be automatically discovered from the git project information and
@@ -87,7 +102,7 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
               </NxList.Item>
               <NxList.Item>
                 More information about how to configure source control for your application can be found{' '}
-                <NxTextLink href={configureSourceControlHelpLink} newTab>
+                <NxTextLink href={configureSourceControlHelpLink} newTab data-analytics-id={dataAnalyticsIdHelp}>
                   here
                 </NxTextLink>
               </NxList.Item>

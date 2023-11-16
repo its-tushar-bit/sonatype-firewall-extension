@@ -31,7 +31,11 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={downloadUrl}>
+            <NxTextLink
+              newTab={true}
+              href={downloadUrl}
+              data-analytics-id="sonatype-developer-cicd-azure-download-card"
+            >
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -44,7 +48,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={installUrl}>
+            <NxTextLink newTab={true} href={installUrl} data-analytics-id="sonatype-developer-cicd-azure-install-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -57,7 +61,11 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={evaluationUrl}>
+            <NxTextLink
+              newTab={true}
+              href={evaluationUrl}
+              data-analytics-id="sonatype-developer-cicd-azure-review-card"
+            >
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -132,7 +140,11 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
       </NxDescriptionList>
       <NxP>
         <b>For more information, visit </b>
-        <NxTextLink newTab={true} href="https://links.sonatype.com/products/nxiq/doc/integrations/azure-devops">
+        <NxTextLink
+          data-analytics-id="sonatype-developer-cicd-azure-more-info"
+          newTab={true}
+          href="https://links.sonatype.com/products/nxiq/doc/integrations/azure-devops"
+        >
           Sonatype Documentation
         </NxTextLink>
       </NxP>

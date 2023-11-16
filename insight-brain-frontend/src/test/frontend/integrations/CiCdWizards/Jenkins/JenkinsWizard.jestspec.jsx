@@ -39,6 +39,38 @@ describe('JenkinsWizard', () => {
     expect(screen.getByText(expectedIqApplication)).toBeInTheDocument();
   });
 
+  it('renders the correct data analytics id for the more information link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Sonatype Documentation' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-jenkins-more-info'
+    );
+  });
+
+  it('renders the correct data analytics id for the install link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-jenkins-install-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the connect link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-jenkins-connect-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the review link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[2]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-jenkins-review-card'
+    );
+  });
+
   function renderComponent() {
     const mockIqOrganization = 'iqOrganization';
     const mockIqApplication = 'iqApplication';

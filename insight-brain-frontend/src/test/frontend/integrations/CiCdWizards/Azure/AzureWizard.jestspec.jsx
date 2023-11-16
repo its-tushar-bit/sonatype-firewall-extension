@@ -39,6 +39,38 @@ describe('AzureWizard', () => {
     expect(screen.getByText(expectedIqApplication)).toBeInTheDocument();
   });
 
+  it('renders the correct data analytics id for the more information link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Sonatype Documentation' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-azure-more-info'
+    );
+  });
+
+  it('renders the correct data analytics id for the download link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-azure-download-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the install link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-azure-install-card'
+    );
+  });
+
+  it('renders the correct data analytics id for the evaluation link', () => {
+    renderComponent();
+    expect(screen.getAllByRole('link', { name: 'Link' })[2]).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-cicd-azure-review-card'
+    );
+  });
+
   function renderComponent() {
     const mockIqOrganization = 'mockIqOrganization';
     const mockIqApplication = 'mockIqApplication';

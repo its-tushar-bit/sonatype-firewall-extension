@@ -54,7 +54,11 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={downloadUrl}>
+            <NxTextLink
+              newTab={true}
+              href={downloadUrl}
+              data-analytics-id="sonatype-developer-cicd-bamboo-download-card"
+            >
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -69,7 +73,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={installUrl}>
+            <NxTextLink newTab={true} href={installUrl} data-analytics-id="sonatype-developer-cicd-bamboo-install-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -84,7 +88,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab={true} href={reviewUrl}>
+            <NxTextLink newTab={true} href={reviewUrl} data-analytics-id="sonatype-developer-cicd-bamboo-review-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -174,7 +178,10 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
       </NxDescriptionList>
       <NxP>
         <b>For more information, visit </b>
-        <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/integrations/bamboo">
+        <NxTextLink
+          data-analytics-id="sonatype-developer-cicd-bamboo-more-info"
+          href="https://links.sonatype.com/products/nxiq/doc/integrations/bamboo"
+        >
           Sonatype Documentation
         </NxTextLink>
       </NxP>

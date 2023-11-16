@@ -38,7 +38,11 @@ export default function GitlabWizard({ applicationPublicId }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab href={configureUrl}>
+            <NxTextLink
+              newTab
+              href={configureUrl}
+              data-analytics-id="sonatype-developer-cicd-gitlab-create-pipeline-card"
+            >
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -51,7 +55,7 @@ export default function GitlabWizard({ applicationPublicId }) {
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
-            <NxTextLink newTab href={connectUrl}>
+            <NxTextLink newTab href={connectUrl} data-analytics-id="sonatype-developer-cicd-gitlab-configure-card">
               Link
             </NxTextLink>
           </NxCard.Footer>
@@ -96,7 +100,7 @@ export default function GitlabWizard({ applicationPublicId }) {
       </NxDescriptionList>
       <NxP>
         See the
-        <NxTextLink newTab href={dockerUrl}>
+        <NxTextLink newTab href={dockerUrl} data-analytics-id="sonatype-developer-cicd-gitlab-docker-url">
           {' '}
           documentation provided with the image on Docker Hub{' '}
         </NxTextLink>
@@ -104,7 +108,11 @@ export default function GitlabWizard({ applicationPublicId }) {
       </NxP>
       <NxP>
         <b>For more information, visit </b>
-        <NxTextLink newTab href="http://links.sonatype.com/products/nxiq/doc/integrations/gitlab">
+        <NxTextLink
+          newTab
+          data-analytics-id="sonatype-developer-cicd-gitlab-more-info"
+          href="http://links.sonatype.com/products/nxiq/doc/integrations/gitlab"
+        >
           Sonatype Documentation
         </NxTextLink>
       </NxP>

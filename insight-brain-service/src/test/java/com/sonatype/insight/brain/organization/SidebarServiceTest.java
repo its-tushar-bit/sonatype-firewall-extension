@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -163,10 +164,13 @@ public class SidebarServiceTest
     Organization orgTwo = tempEntity.newOrganization(orgOne);
     Application appThree = tempEntity.newApplication(orgTwo.getId());
     RepositoryManager repositoryManagerOne = tempEntity.newRepositoryManager();
-    Repository repositoryOne = tempEntity.newRepository(repositoryManagerOne, "repository-one");
+    Repository repositoryOne =
+        tempEntity.newRepository(repositoryManagerOne, "repository-one", RepositoryType.proxy, "maven");
     RepositoryManager repositoryManagerTwo = tempEntity.newRepositoryManager();
-    Repository repositoryTwo = tempEntity.newRepository(repositoryManagerTwo, "repository-two");
-    Repository repositoryThree = tempEntity.newRepository(repositoryManagerTwo, "repository-three");
+    Repository repositoryTwo =
+        tempEntity.newRepository(repositoryManagerTwo, "repository-two", RepositoryType.hosted, "npm");
+    Repository repositoryThree =
+        tempEntity.newRepository(repositoryManagerTwo, "repository-three", RepositoryType.proxy, "nuget");
 
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
     assertThat(ownerHierarchyDTO.ownersMap).hasSize(12);
@@ -258,6 +262,7 @@ public class SidebarServiceTest
     assertThat(repositoryOneDTO.name).isEqualTo(repositoryOne.getName());
     assertThat(repositoryOneDTO.getParentId()).isEqualTo(repositoryOne.getParentOwnerId());
     assertThat(repositoryOneDTO.repositoryManagerId).isEqualTo(repositoryManagerOne.getId());
+    assertThat(repositoryOneDTO.repositoryType).isEqualTo(repositoryOne.getRepositoryType().name());
 
     // repository two
     OwnerHierarchyRepositoryDTO repositoryTwoDTO =
@@ -266,6 +271,7 @@ public class SidebarServiceTest
     assertThat(repositoryTwoDTO.name).isEqualTo(repositoryTwo.getName());
     assertThat(repositoryTwoDTO.getParentId()).isEqualTo(repositoryTwo.getParentOwnerId());
     assertThat(repositoryTwoDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+    assertThat(repositoryTwoDTO.repositoryType).isEqualTo(repositoryTwo.getRepositoryType().name());
 
     // repository three
     OwnerHierarchyRepositoryDTO repositoryThreeDTO =
@@ -274,6 +280,7 @@ public class SidebarServiceTest
     assertThat(repositoryThreeDTO.name).isEqualTo(repositoryThree.getName());
     assertThat(repositoryThreeDTO.getParentId()).isEqualTo(repositoryThree.getParentOwnerId());
     assertThat(repositoryThreeDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+    assertThat(repositoryThreeDTO.repositoryType).isEqualTo(repositoryThree.getRepositoryType().name());
   }
 
   @Test

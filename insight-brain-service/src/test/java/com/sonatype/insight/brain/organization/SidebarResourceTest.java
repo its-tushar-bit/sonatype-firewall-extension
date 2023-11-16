@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -42,10 +43,13 @@ public class SidebarResourceTest
     Organization orgTwo = tempEntity.newOrganization(orgOne);
     Application appThree = tempEntity.newApplication(orgTwo.getId());
     RepositoryManager repositoryManagerOne = tempEntity.newRepositoryManager();
-    Repository repositoryOne = tempEntity.newRepository(repositoryManagerOne, "repository-one");
+    Repository repositoryOne =
+        tempEntity.newRepository(repositoryManagerOne, "repository-one", RepositoryType.proxy, "maven");
     RepositoryManager repositoryManagerTwo = tempEntity.newRepositoryManager();
-    Repository repositoryTwo = tempEntity.newRepository(repositoryManagerTwo, "repository-two");
-    Repository repositoryThree = tempEntity.newRepository(repositoryManagerTwo, "repository-three");
+    Repository repositoryTwo =
+        tempEntity.newRepository(repositoryManagerTwo, "repository-two", RepositoryType.hosted, "npm");
+    Repository repositoryThree =
+        tempEntity.newRepository(repositoryManagerTwo, "repository-three", RepositoryType.proxy, "maven");
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
@@ -132,6 +136,7 @@ public class SidebarResourceTest
     assertThat(repositoryOneDTO.name).isEqualTo(repositoryOne.getName());
     assertThat(repositoryOneDTO.getParentId()).isEqualTo(repositoryOne.getParentOwnerId());
     assertThat(repositoryOneDTO.repositoryManagerId).isEqualTo(repositoryManagerOne.getId());
+    assertThat(repositoryOneDTO.repositoryType).isEqualTo(repositoryOne.getRepositoryType().name());
 
     // repository two
     OwnerHierarchyRepositoryDTO repositoryTwoDTO =
@@ -140,6 +145,7 @@ public class SidebarResourceTest
     assertThat(repositoryTwoDTO.name).isEqualTo(repositoryTwo.getName());
     assertThat(repositoryTwoDTO.getParentId()).isEqualTo(repositoryTwo.getParentOwnerId());
     assertThat(repositoryTwoDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+    assertThat(repositoryTwoDTO.repositoryType).isEqualTo(repositoryTwo.getRepositoryType().name());
 
     // repository three
     OwnerHierarchyRepositoryDTO repositoryThreeDTO =
@@ -148,6 +154,7 @@ public class SidebarResourceTest
     assertThat(repositoryThreeDTO.name).isEqualTo(repositoryThree.getName());
     assertThat(repositoryThreeDTO.getParentId()).isEqualTo(repositoryThree.getParentOwnerId());
     assertThat(repositoryThreeDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+    assertThat(repositoryThreeDTO.repositoryType).isEqualTo(repositoryThree.getRepositoryType().name());
   }
 
   @Test

@@ -254,11 +254,14 @@ public class OwnerHierarchyDTO
   {
     public String repositoryManagerId;
 
+    public String repositoryType;
+
     public static Function<Repository, OwnerHierarchyRepositoryDTO> transformToRepositoryDTO = repository -> {
       OwnerHierarchyRepositoryDTO ownerHierarchyRepositoryDTO = new OwnerHierarchyRepositoryDTO();
       ownerHierarchyRepositoryDTO.id = repository.getId();
       ownerHierarchyRepositoryDTO.name = repository.getName();
       ownerHierarchyRepositoryDTO.repositoryManagerId = repository.getRepositoryManagerId();
+      ownerHierarchyRepositoryDTO.repositoryType = repository.getRepositoryType().name();
       return ownerHierarchyRepositoryDTO;
     };
 

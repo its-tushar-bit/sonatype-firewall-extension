@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.successmetrics;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -77,10 +76,6 @@ public class FirewallMetrics
 
   public void setMetricsValue(final int metricsValue) {
     this.metricsValue = metricsValue;
-  }
-
-  public void incrementMetricsValue(final int value) {
-    metricsValue += value;
   }
 
   public Date getMetricsLastUpdatedAt() {

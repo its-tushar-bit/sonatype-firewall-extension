@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -147,25 +145,6 @@ public class RepositoryComponentDAO
     return getList(sQuery, repositoryId, date);
   }
 
-  @SuppressWarnings("unchecked")
-  public Map<Date, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
-    String sQuery = "SELECT CAST(rc.quarantine_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
-        " WHERE rc.repository_id = ?1" + //
-        " AND rc.quarantine_time >= ?2" + //
-        " GROUP BY CAST(rc.quarantine_time AS DATE)";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
-      query.setParameter(1, repositoryId);
-      query.setParameter(2, date);
-
-      Stream<Object[]> result = query.getResultStream();
-      return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
-    }
-  }
-
   public Date getOldestComponentEvaluationTimeByRepositoryId(String repositoryId) {
     String sQuery = "SELECT MIN(entity.lastEvaluationTime) FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1";
@@ -188,27 +167,6 @@ public class RepositoryComponentDAO
         + " AND component.autoUnquarantined = true", EPOCH_START);
 
     return getSingle(Number.class, sQuery, date).longValue();
-  }
-
-  @SuppressWarnings("unchecked")
-  public Map<Date, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
-    String sQuery = "SELECT CAST(rc.unquarantine_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
-        " WHERE rc.repository_id = ?1" + //
-        " AND rc.unquarantine_time >= ?2" + //
-        " AND rc.auto_unquarantined = ?3" + //
-        " GROUP BY CAST(rc.unquarantine_time AS DATE)";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
-      query.setParameter(1, repositoryId);
-      query.setParameter(2, date);
-      query.setParameter(3, true);
-
-      Stream<Object[]> result = query.getResultStream();
-      return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
-    }
   }
 
   public List<RepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {

@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -32,10 +30,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -1045,28 +1041,5 @@ public class PolicyWaiverDAOTest
         .extracting(PolicyWaiver::getId)
         .contains(policy2ActiveWaiver1.getId(), policy2ActiveWaiver2.getId(), policy2ExpiredWaiver1.getId())
         .doesNotContain(policy1Waiver1.getId());
-  }
-
-  @Test
-  public void testGetCountByOwnerIdAndDate() {
-    Date now = new Date();
-    Date oneYearAgo = DateUtils.addYears(now, -1);
-    Date moreThanOneYearAgo = DateUtils.addDays(oneYearAgo, -1);
-
-    Policy policy = tempEntity.newPolicy(repository);
-
-    tempEntity.newWaiver("hash1", policy.getId(), repository.getId(), Collections.emptyList(), "now-waived-1", now);
-    tempEntity.newWaiver("hash2", policy.getId(), repository.getId(), Collections.emptyList(), "now-waived-2", now);
-    tempEntity.newWaiver("hash3", policy.getId(), repository.getId(), Collections.emptyList(), "1-year-ago-waived",
-        oneYearAgo);
-    tempEntity.newWaiver("hash4", policy.getId(), repository.getId(), Collections.emptyList(), "+1-year-ago-waived",
-        moreThanOneYearAgo);
-
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
-    Map<Date, Long> results = dao.getCountByOwnerIdAndDate(repository.getId(), oneYearAgo);
-
-    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
-        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 2L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 1L));
   }
 }

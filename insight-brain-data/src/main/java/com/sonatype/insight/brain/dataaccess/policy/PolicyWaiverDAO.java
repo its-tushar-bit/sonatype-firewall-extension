@@ -9,19 +9,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -269,25 +266,6 @@ public class PolicyWaiverDAO
   public PolicyWaiver getByIdAndOwnerIdNotNull(String policyWaiverId, String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByIdAndOwnerIdNotNull(tx, policyWaiverId, ownerId);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public Map<Date, Long> getCountByOwnerIdAndDate(String ownerId, Date date) {
-    String sQuery = "SELECT CAST(pw.create_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_waiver pw" + //
-        " WHERE pw.owner_id = ?1" + //
-        " AND pw.create_time >= ?2" + //
-        " GROUP BY CAST(pw.create_time AS DATE)";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
-      query.setParameter(1, ownerId);
-      query.setParameter(2, date);
-
-      Stream<Object[]> result = query.getResultStream();
-      return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
     }
   }
 

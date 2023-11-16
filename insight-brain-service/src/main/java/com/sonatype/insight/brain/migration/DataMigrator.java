@@ -64,8 +64,6 @@ public class DataMigrator
 
   private final SamlUserGroupMigrator samlUserGroupMigrator;
 
-  private final FirewallMetricsMigrator firewallMetricsMigrator;
-
   @Inject
   public DataMigrator(
       PolicyJsonMigrator policyJsonMigrator,
@@ -89,8 +87,7 @@ public class DataMigrator
       SimpleConfigurationMigrator simpleConfigurationMigrator,
       PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator,
       RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator,
-      SamlUserGroupMigrator samlUserGroupMigrator,
-      FirewallMetricsMigrator firewallMetricsMigrator)
+      SamlUserGroupMigrator samlUserGroupMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -114,7 +111,6 @@ public class DataMigrator
     this.policyWaiverComponentPurlMigrator = policyWaiverComponentPurlMigrator;
     this.repositoryComponentDisplayNameMigrator = repositoryComponentDisplayNameMigrator;
     this.samlUserGroupMigrator = samlUserGroupMigrator;
-    this.firewallMetricsMigrator = firewallMetricsMigrator;
   }
 
   /**
@@ -151,6 +147,5 @@ public class DataMigrator
     policyWaiverComponentPurlMigrator.migrate();
     repositoryComponentDisplayNameMigrator.migrate();
     samlUserGroupMigrator.migrate();
-    firewallMetricsMigrator.migrate();
   }
 }

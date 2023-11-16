@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +41,15 @@ import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
@@ -96,6 +104,10 @@ public class PolicyResource
     this.managementEventService = managementEventService;
   }
 
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
@@ -111,6 +123,66 @@ public class PolicyResource
   }
 
   /**
+   * @since 170
+   */
+  @GET
+  @Path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode")
+  @Produces(MediaType.APPLICATION_JSON)
+  public ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies
+      getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
+  {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+    List<Policy> policies = getApplicableByOwnerIdWithHierarchy(
+        OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    List<Policy> proprietaryNameConflictPolicies = new ArrayList<>();
+    List<Policy> securityVulnerabilityCategoryMaliciousCodePolicies = new ArrayList<>();
+    for (Policy policy : policies) {
+      boolean hasSecurityVulnerabilityCategoryMaliciousCode = false;
+      boolean hasProprietaryNameConflict = false;
+      for (Iterator<Constraint> iterator = policy.getConstraints().iterator();
+          !hasSecurityVulnerabilityCategoryMaliciousCode && !hasProprietaryNameConflict && iterator.hasNext();)
+      {
+        Constraint constraint = iterator.next();
+        for (Condition condition : constraint.getConditions()) {
+          if (
+              condition.getConditionTypeId().equals(ProprietaryNameConflictConditionType.ID)
+              && condition.getOperator().equals(ProprietaryNameConflictConditionType.OP_IS_PRESENT)
+          ) {
+            hasProprietaryNameConflict = true;
+          }
+          else if (
+              condition.getConditionTypeId().equals(SecurityVulnerabilityCategoryConditionType.ID)
+              && condition.getOperator().equals(
+                  ConditionTypes.SecurityVulnerabilityCategoryConditionType.getSupportedOperators().get(0))
+              && condition.getValue().equals(SecurityVulnerabilityCategory.MALICIOUS_CODE.getId())
+          ) {
+            hasSecurityVulnerabilityCategoryMaliciousCode = true;
+          }
+          if (hasProprietaryNameConflict && hasSecurityVulnerabilityCategoryMaliciousCode) {
+            break;
+          }
+        }
+      }
+      if (hasProprietaryNameConflict) {
+        proprietaryNameConflictPolicies.add(policy);
+      }
+      if (hasSecurityVulnerabilityCategoryMaliciousCode) {
+        securityVulnerabilityCategoryMaliciousCodePolicies.add(policy);
+      }
+    }
+
+    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result
+        = new ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies();
+    result.proprietaryNameConflictPolicies = new ArrayList<>();
+    result.proprietaryNameConflictPolicies.addAll(proprietaryNameConflictPolicies);
+    result.securityVulnerabilityCategoryMaliciousCodePolicies = new ArrayList<>();
+    result.securityVulnerabilityCategoryMaliciousCodePolicies.addAll(
+        securityVulnerabilityCategoryMaliciousCodePolicies
+    );
+    return result;
+  }
+
+  /**
    * @since 1.6
    */
   @GET
@@ -123,10 +195,9 @@ public class PolicyResource
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
 
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
     // Get all applicable policies
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
+    List<Policy> policies = getApplicableByOwnerIdWithHierarchy(ownerType, ownerId);
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Init the result structure
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
@@ -339,6 +410,12 @@ public class PolicyResource
     });
   }
 
+  private List<Policy> getApplicableByOwnerIdWithHierarchy(final OwnerType ownerType, String ownerId) {
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    return new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
+  }
+
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {
     if (OwnerType.ORGANIZATION.equals(ownerType)) {
       PolicyExportResult exportDTO = readPolicyExportResult(in);
@@ -387,6 +464,13 @@ public class PolicyResource
   public static class ApplicablePolicies
   {
     public List<PoliciesByOwner> policiesByOwner;
+  }
+
+  public static class ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies
+  {
+    public List<Policy> proprietaryNameConflictPolicies;
+
+    public List<Policy> securityVulnerabilityCategoryMaliciousCodePolicies;
   }
 
   public static class PoliciesByOwner

@@ -66,6 +66,18 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
+  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
+      throws Exception
+  {
+    HttpRequest request = restRequest().path(
+        "withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode");
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    testAuthzGet(request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
+  }
+
+  @Test
   public void testGetPolicies_Repo() throws Exception {
     grantReadPermission(repo.getId());
 

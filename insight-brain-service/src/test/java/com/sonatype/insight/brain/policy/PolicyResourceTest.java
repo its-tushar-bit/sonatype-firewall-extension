@@ -21,7 +21,10 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -33,6 +36,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
+import com.sonatype.insight.brain.policy.PolicyResource.ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -667,6 +671,38 @@ public class PolicyResourceTest
   }
 
   @Test
+  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
+      throws Exception
+  {
+    // Test policy with a condition that should not be included in the filter.
+    Policy policy = new Policy();
+    policy.setName("test-policy-0");
+    policy.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
+
+    createTestPolicyWithCondition("test-policy-1", false, false);
+    createTestPolicyWithCondition("test-policy-2", true, false);
+    createTestPolicyWithCondition("test-policy-3", false, true);
+    createTestPolicyWithCondition("test-policy-4", true, true);
+
+    HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode").get();
+    assertResponseStatus(200, response);
+    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result
+        = response.getBody(ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies.class);
+    assertThat(result.proprietaryNameConflictPolicies).hasSize(2);
+    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies).hasSize(2);
+
+    assertThat(result.proprietaryNameConflictPolicies.get(0).getName()).isEqualTo("test-policy-3");
+    assertThat(result.proprietaryNameConflictPolicies.get(1).getName()).isEqualTo("test-policy-4");
+    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies.get(0).getName()).isEqualTo("test-policy-2");
+    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies.get(1).getName()).isEqualTo("test-policy-4");
+  }
+
+  @Test
   public void testGetApplicablePolicies_OrgsAndApps() throws Exception {
     // Create an organization and an application
     String orgName = "testGetApplicablePoliciesOrg";
@@ -1194,7 +1230,7 @@ public class PolicyResourceTest
   private void testCreatePolicy_PolicyNotificationsOverrideAllowed(Owner owner) throws Exception {
     Policy policy = createPolicy();
     policy.setPolicyNotificationsOverrideAllowed(true);
-    
+
     HttpResponse response;
     List<Policy> result;
 
@@ -1205,7 +1241,7 @@ public class PolicyResourceTest
     assertThat(result).hasSize(1);
     policy = result.get(0);
     assertThat(policy.isPolicyNotificationsOverrideAllowed()).isTrue();
-    
+
     // Update
     policy.setPolicyNotificationsOverrideAllowed(false);
     response = restRequest(owner.getType(), owner.getPublicId()).body(policy).put();
@@ -1223,5 +1259,24 @@ public class PolicyResourceTest
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     return policy;
+  }
+
+  private void createTestPolicyWithCondition(
+        String name,
+        boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
+        boolean withProprietaryNameConflictCondition)
+  {
+    Policy policy = new Policy(name, name);
+    policy.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    Constraint constraint = new Constraint("test-constraint", "Test Constraint", LogicalOperator.OR);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    if (withSecurityVulnerabilityCategoryMaliciousCodeCondition) {
+      constraint.addCondition(new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code"));
+    }
+    if (withProprietaryNameConflictCondition) {
+      constraint.addCondition(new Condition(ProprietaryNameConflictConditionType.ID, "is present"));
+    }
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
   }
 }

@@ -167,6 +167,7 @@
                   <exclude>*:slf4j-api</exclude>
                   <exclude>*:httpcore</exclude>
                   <exclude>*:httpclient</exclude>
+                  <exclude>*:groovy</exclude>
                   <!-- for smooth interop with RHC, let these through as is -->
                   <exclude>*:insight-scanner-core</exclude>
                   <exclude>*:insight-scanner-model</exclude>
@@ -217,7 +218,6 @@
                     <exclude>org.slf4j.**</exclude>
                     <exclude>org.w3c.**</exclude>
                     <exclude>org.xml.**</exclude>
-                    <exclude>org.codehaus.groovy.**</exclude>
                   </excludes>
                 </relocation>
               </relocations>

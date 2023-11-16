@@ -65,7 +65,7 @@
     "jquery": "^3.5.0",
     "jquery.browser": "^0.1.0",
     "moment": "^2.29.4",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.43",
     "ng-redux": "^4.4.3",
     "plottable": "^3.7.0",
     "prop-types": "^15.7.2",

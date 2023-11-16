@@ -81,6 +81,8 @@ describe('repositoriesConfigurationSliceActions', () => {
           {
             type: 'namespaceConfusionProtectionTile/getComponentNamePatterns/pending',
           },
+          { type: 'ownerSideNav/load/pending' },
+          { type: 'ownerSideNav/loadOwnerList/pending' },
         ]);
         done();
       });

@@ -72,6 +72,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
+import static com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.sidebar;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -223,6 +224,7 @@ public class RepositoriesSummaryViewTest
 
     configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
     configurationTable.row(2, 1).managerId().shouldHave(text(repositoryManager2.getInstanceId()));
+    sidebar().getRepoManagerList().children().get(0).shouldHave(text("customName"));
 
     configurationTable.row(1, 1).editRepositoryManagerNameButton().click();
     editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").shouldHave(value("customName"));
@@ -240,7 +242,9 @@ public class RepositoriesSummaryViewTest
     editRepositoryManagerNameModal.getElement().$(".nx-load-error__retry").click();
 
     configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
+    sidebar().getRepoManagerList().children().get(0).shouldHave(text("customName"));
     configurationTable.row(2, 1).managerId().shouldHave(text("customName2"));
+    sidebar().getRepoManagerList().children().get(1).shouldHave(text("customName2"));
   }
 
   @Test

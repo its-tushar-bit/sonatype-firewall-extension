@@ -15,6 +15,7 @@ import {
   selectOriginalRepositories,
 } from './repositoriesConfigurationSelectors';
 import { actions as namespaceConfusionProtectionTileSliceActions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
+import { actions as ownerSideNavSliceActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { ascend, descend, path, pathOr, prop, sortWith, toLower } from 'ramda';
 
 const REDUCER_NAME = 'repositories';
@@ -210,6 +211,7 @@ const editRepositoryManagerName = createAsyncThunk(
           dispatch(actions.setShowEditRepositoryManagerNameModal(false));
           dispatch(loadRepositories());
           dispatch(namespaceConfusionProtectionTileSliceActions.getComponentNamePatterns());
+          dispatch(ownerSideNavSliceActions.loadIfNeeded(true));
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch(rejectWithValue);

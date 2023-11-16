@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,7 +43,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -365,6 +369,29 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
+  public void testGetQuarantinedCountByRepositoryIdAndDate() {
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date moreThanOneYearAgo = DateUtils.addDays(oneYearAgo, -1);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "now-quarantined-path", "hash1",
+        ComponentIdentifier.createNpmCoordinates("p1", "v1"), now, now);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "not-quarantined-path", "hash2",
+        ComponentIdentifier.createNpmCoordinates("p2", "v2"), now, null /* quarantine time */);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "1-year-ago-quarantined-path-1", "hash3",
+        ComponentIdentifier.createNpmCoordinates("p3", "v3"), oneYearAgo, oneYearAgo);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "1-year-ago-quarantined-path-2", "hash4",
+        ComponentIdentifier.createNpmCoordinates("p4", "v4"), oneYearAgo, oneYearAgo);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "+1-year-ago-quarantined-path", "hash5",
+        ComponentIdentifier.createNpmCoordinates("p5", "v5"), moreThanOneYearAgo, moreThanOneYearAgo);
+
+    Map<Date, Long> results = dao.getQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
+
+    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
+        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 1L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 2L));
+  }
+
+  @Test
   public void testGetAutoReleaseQuarantinedCountByDate() {
     final Date oneYearAgo = Date.from(
         (LocalDate.now().minusYears(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -379,6 +406,26 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
 
     assertThat(dao.getAutoReleaseQuarantinedCountByDate(startOfCurMonth)).isOne();
+  }
+
+  @Test
+  public void testGetAutoReleaseQuarantinedCountByRepositoryIdAndDate() {
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date moreThanOneYearAgo = DateUtils.addDays(oneYearAgo, -1);
+
+    tempEntity.newRepositoryComponent(repository.getId(), "now-auto-released-path-1", now, now, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "now-auto-released-path-2", now, now, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "not-auto-released-path", now, now, false);
+    tempEntity.newRepositoryComponent(repository.getId(), "1-year-ago-auto-released-path-2", oneYearAgo, oneYearAgo,
+        true);
+    tempEntity.newRepositoryComponent(repository.getId(), "+1-year-ago-auto-released-path-2", moreThanOneYearAgo,
+        moreThanOneYearAgo, true);
+
+    Map<Date, Long> results = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
+
+    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
+        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 2L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 1L));
   }
 
   @Test

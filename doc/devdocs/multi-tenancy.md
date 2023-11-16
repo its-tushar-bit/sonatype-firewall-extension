@@ -351,7 +351,7 @@ port. This level of isolation give us a couple of benefits:
 - We avoid any accidental exposure of the admin endpoints thorough the vanity URLs
 
 To check the existing Admin Endpoints, you can check the resources 
-[here](../nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/api/admin)
+[here](../../nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/api/admin)
 
 ### Authorization
 
@@ -370,7 +370,7 @@ For local development, if you want to avoid the creation and setup of a custom A
 will switch the **Auth0 JWK provider** to a **Local JWK provider**, which will be using a custom local public key to
 perform all request authorization validations.
 
-Custom keys are stored in the [nexus-mtiq-server resources folder](../nexus-mtiq-server/src/main/resources), and
+Custom keys are stored in the [nexus-mtiq-server resources folder](../../nexus-mtiq-server/src/main/resources), and
 you can generate a JWT using the public and private keys. Optionally you can use the following long-duration token for
 your requests, keeping in mind that the **auth0Domain** property must be set to _"local/"_:
 

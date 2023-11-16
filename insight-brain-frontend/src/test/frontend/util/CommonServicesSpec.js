@@ -110,6 +110,22 @@ describe('CommonServices', () => {
         ).toEqual('Internal Error');
       });
 
+      it('uses property.message if data property is an object', () => {
+        expect(
+          Messages.getHttpErrorMessage({
+            response: { data: { server: 'jersey', message: 'Invalid Request', status: 400 }, status: 400 },
+          })
+        ).toEqual('Invalid Request');
+      });
+
+      it('uses generic message if data property does not contain message', () => {
+        expect(
+          Messages.getHttpErrorMessage({
+            response: { data: { server: 'jersey', info: 'Some Error' }, status: 999 },
+          })
+        ).toEqual('Error');
+      });
+
       it('uses canned status messages if content-type is text/html', () => {
         const data = '<html>Error</html>';
         const headers = () => ({ 'content-type': 'text/html' });

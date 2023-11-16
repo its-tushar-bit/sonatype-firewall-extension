@@ -37,6 +37,10 @@ export const Messages = {
         (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1)
       ) {
         message = args.data;
+
+        if (typeof message === 'object') {
+          message = message.message || 'Error';
+        }
       }
       // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
       // , so at least ensure message for typical proxy errors

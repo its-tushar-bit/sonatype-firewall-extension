@@ -17,6 +17,7 @@
     * [ Building ](#building)
     * [ Deployment ](#deployment)
     * [ Running Tests ](#running-tests)
+* [ API Guidelines ](./doc/devdocs/api-guide-lines.md)
 
 ## About Nexus IQ Server ##
 

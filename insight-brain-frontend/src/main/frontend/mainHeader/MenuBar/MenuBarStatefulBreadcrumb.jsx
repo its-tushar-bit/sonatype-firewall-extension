@@ -11,10 +11,8 @@ import { useSelector } from 'react-redux';
 import {
   selectIsApplication,
   selectApplicationId,
-  selectIsRepositories,
   selectCurrentRouteTitle,
   selectCurrentRouteName,
-  selectIsRepositoryContainer,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -22,6 +20,7 @@ import {
   selectOwnersMap,
   selectDisplayedOrganization,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 
 const BREAD_CRUMB_CONTAINER_ID = 'menu-bar__bread-crumb-container';
 
@@ -29,30 +28,12 @@ const getBreadcrumb = (
   uiRouterState,
   ownersMap,
   displayedOrganization,
-  isRepositories,
-  isRepositoryContainer,
   isApplication,
   applicationPublicId,
   pageTitle,
   currentRouteName
 ) => {
   const breadcrumb = [];
-
-  if (isRepositories) {
-    breadcrumb.unshift({
-      name: 'Repositories',
-      href: uiRouterState.href('management.view.repositories'),
-    });
-  }
-
-  if (isRepositoryContainer) {
-    breadcrumb.unshift({
-      name: 'All Repositories',
-      href: uiRouterState.href('management.view.repository_container', {
-        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
-      }),
-    });
-  }
 
   if (currentRouteName.includes('management.edit')) {
     const id = isApplication ? ownersMap[applicationPublicId]?.publicId : displayedOrganization.id;
@@ -71,25 +52,16 @@ const getBreadcrumb = (
     });
   }
 
-  let currentOrganizationToAdd = displayedOrganization;
-  breadcrumb.unshift({
-    name: currentOrganizationToAdd.name,
-    href: uiRouterState.href(`management.view.organization`, {
-      organizationId: currentOrganizationToAdd.id,
-    }),
-  });
+  let currentOwner = displayedOrganization;
 
-  // add all ancestors to breadcrumb
-  while (currentOrganizationToAdd?.parentOrganizationId) {
-    currentOrganizationToAdd = ownersMap[currentOrganizationToAdd.parentOrganizationId];
-    if (!isNilOrEmpty(currentOrganizationToAdd)) {
-      breadcrumb.unshift({
-        name: currentOrganizationToAdd.name,
-        href: uiRouterState.href(`management.view.organization`, {
-          organizationId: currentOrganizationToAdd.id,
-        }),
-      });
-    }
+  while (!isNilOrEmpty(currentOwner)) {
+    const [parentEntityIdKey, routeParams] = getOwnerInfo(currentOwner);
+    breadcrumb.unshift({
+      name: currentOwner.name,
+      href: uiRouterState.href(`management.view.${currentOwner.type}`, routeParams),
+    });
+
+    currentOwner = ownersMap[currentOwner[parentEntityIdKey]];
   }
 
   return breadcrumb;
@@ -105,8 +77,6 @@ const MenuBarStatefulBreadcrumb = () => {
   const ownersMap = useSelector(selectOwnersMap);
   const displayedOrganization = useSelector(selectDisplayedOrganization);
   const isApplication = useSelector(selectIsApplication);
-  const isRepositories = useSelector(selectIsRepositories);
-  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const applicationPublicId = useSelector(selectApplicationId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const routeName = useSelector(selectCurrentRouteName);
@@ -119,8 +89,6 @@ const MenuBarStatefulBreadcrumb = () => {
     uiRouterState,
     ownersMap,
     displayedOrganization,
-    isRepositories,
-    isRepositoryContainer,
     isApplication,
     applicationPublicId,
     pageTitle,

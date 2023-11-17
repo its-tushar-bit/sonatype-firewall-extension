@@ -56,3 +56,11 @@ export const flatEntries = (ownersMap, res) => {
 
   return res;
 };
+
+export const getOwnerInfo = (owner) => {
+  const { id } = owner || {};
+
+  if (owner.type === 'repository_manager') return ['parentId', { repositoryManagerId: id }];
+  if (owner.type === 'repository_container') return ['parentId', { repositoryContainerId: id }];
+  return ['parentOrganizationId', { organizationId: id }];
+};

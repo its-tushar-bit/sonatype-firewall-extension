@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { sortOwnerByName, fuzzyFilter, flatEntries } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
+import { sortOwnerByName, fuzzyFilter, flatEntries, getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 import { getOwnersMap } from './nLevelMockData';
 
 describe('ownerSideNav utils', () => {
@@ -91,6 +91,23 @@ describe('ownerSideNav utils', () => {
           'id'
         )
       ).toEqual(['id-1', 'id-2']);
+    });
+  });
+
+  describe('getOwnerInfo', () => {
+    it('flatten the list of organizations, applications and repo managers', () => {
+      expect(getOwnerInfo({ type: 'repository_manager', id: 'rmid' })).toEqual([
+        'parentId',
+        { repositoryManagerId: 'rmid' },
+      ]);
+      expect(getOwnerInfo({ type: 'repository_container', id: 'rcid' })).toEqual([
+        'parentId',
+        { repositoryContainerId: 'rcid' },
+      ]);
+      expect(getOwnerInfo({ type: 'organization', id: 'oid' })).toEqual([
+        'parentOrganizationId',
+        { organizationId: 'oid' },
+      ]);
     });
   });
 });

@@ -78,6 +78,10 @@ public class OrgsAndPoliciesSidebar
     return new OwnerItem(applicationList.children().get(index));
   }
 
+  public OwnerItem getRepositoryManagerLink(int index) {
+    return new OwnerItem(repoManagersList.children().get(index));
+  }
+
   public class OwnerItem
       extends BasicElement<OwnerItem>
   {

@@ -25,6 +25,10 @@ export const fakeRouterState = (url, params) => {
         return applicationPublicId
           ? `#/management/view/application/${applicationPublicId}`
           : '#/management/view/application/';
+      } else if (url.includes('repository_container')) {
+        return `#/management/view/repository_container/${params.repositoryContainerId}`;
+      } else if (url.includes('repository_manager')) {
+        return `#/management/view/repository_manager/${params.repositoryManagerId}`;
       } else {
         return '#';
       }

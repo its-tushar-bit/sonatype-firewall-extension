@@ -135,9 +135,22 @@ const getDisplayedOrganization = (ownersMap, topParentOrganizationId = 'ROOT_ORG
   }
   let displayedOrganization;
 
-  const { organizationId = '', applicationPublicId = '' } = routerParams;
+  const {
+    organizationId = '',
+    applicationPublicId = '',
+    repositoryManagerId = '',
+    repositoryContainerId = '',
+  } = routerParams;
   if (organizationId) {
     displayedOrganization = ownersMap[organizationId];
+  }
+
+  if (repositoryManagerId) {
+    displayedOrganization = ownersMap[repositoryManagerId];
+  }
+
+  if (repositoryContainerId) {
+    displayedOrganization = ownersMap[repositoryContainerId];
   }
 
   if (applicationPublicId) {

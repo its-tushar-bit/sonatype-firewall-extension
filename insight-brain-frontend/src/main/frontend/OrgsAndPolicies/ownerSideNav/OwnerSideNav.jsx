@@ -39,11 +39,13 @@ import {
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
+  selectIsRepositoryManager,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
+import { getOwnerInfo } from './utils';
 
 export default function OwnerSideNav() {
   const dispatch = useDispatch();
@@ -65,9 +67,10 @@ export default function OwnerSideNav() {
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isApplication = useSelector(selectIsApplication);
-  const showRepositoriesLink = showRepositories && (isOrganizationTopOfHierarchyForUser || isRepositoriesRelated);
+  const showRepositoriesLink = showRepositories && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated;
   const selectedApplicationId = useSelector(selectApplicationId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
@@ -78,7 +81,9 @@ export default function OwnerSideNav() {
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
 
   const uiRouterState = useRouterState();
-  const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
+  const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container', {
+    repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+  });
   const treeViewPageHref = uiRouterState.href('management.tree');
 
   const onSearch = (query) => dispatch(actions.filterSidebarEntries(query));
@@ -109,12 +114,11 @@ export default function OwnerSideNav() {
 
   const renderParentOrganizationItem = (displayedOrganization) => {
     const orgClassnames = classnames('iq-navbar-item iq-selected-org', {
-      active: isOrganization,
+      active: isOrganization || isRepositoryContainer || isRepositoryManager,
     });
 
-    const organizationUrl = uiRouterState.href('management.view.organization', {
-      organizationId: displayedOrganization.id,
-    });
+    const [, routeParams] = getOwnerInfo(displayedOrganization);
+    const organizationUrl = uiRouterState.href(`management.view.${displayedOrganization.type}`, routeParams);
 
     return (
       <>
@@ -143,14 +147,10 @@ export default function OwnerSideNav() {
     );
   };
 
-  const renderRepositoryManagers = (organization = {}) => {
-    if (!isRepositoryContainer || !organization || !ownersMap) return null;
+  const renderRepositoryManagers = (owner = {}) => {
+    if (!isRepositoryContainer || !owner || !ownersMap) return null;
 
-    const repositoryContainer = ownersMap[organization.repositoryContainerId] || {};
-
-    if (!repositoryContainer) return null;
-
-    const repositoryManagerIds = repositoryContainer.repositoryManagerIds || [];
+    const repositoryManagerIds = owner.repositoryManagerIds || [];
 
     return (
       <NxCollapsibleItems
@@ -193,7 +193,7 @@ export default function OwnerSideNav() {
   };
 
   const renderFilteredOrganizations = (organizations) => {
-    if (isRepositoryContainer || isEmpty(organizations)) {
+    if (isRepositoriesRelated || isEmpty(organizations)) {
       return null;
     }
 
@@ -214,7 +214,7 @@ export default function OwnerSideNav() {
   };
 
   const renderFilteredApplications = (applications) => {
-    if (isEmpty(applications)) {
+    if (isRepositoriesRelated || isEmpty(applications)) {
       return null;
     }
 
@@ -307,7 +307,7 @@ export default function OwnerSideNav() {
   };
 
   const renderOrganizations = (organization) => {
-    if (isRepositoryContainer) return null;
+    if (isRepositoryContainer || isRepositoryManager) return null;
 
     const childOrganizationIds = organization.organizationIds ?? [];
 

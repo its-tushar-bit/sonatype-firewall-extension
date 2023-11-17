@@ -28,6 +28,7 @@ const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePart('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
+const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');
 const nameIncludesPolicy = includesNamePart('policy');
 const nameIncludesLegacyViolations = includesNamePart('legacyViolations');
@@ -44,6 +45,7 @@ export const selectIsRepositories = createSelector(selectCurrentRouteName, nameI
 export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);
 export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
 export const selectIsRepositoryContainer = createSelector(selectCurrentRouteName, nameIncludesRepositoryContainer);
+export const selectIsRepositoryManager = createSelector(selectCurrentRouteName, nameIncludesRepositoryManager);
 export const selectIsCategory = createSelector(selectRouterStateUrl, nameIncludesCategory);
 export const selectIsLegacyViolation = createSelector(selectRouterStateUrl, nameIncludesLegacyViolations);
 export const selectIsPolicy = createSelector(selectRouterStateUrl, nameIncludesPolicy);
@@ -104,14 +106,31 @@ export const selectOwnerInfo = createSelector(
   selectIsOrganization,
   selectIsApplication,
   selectIsRepositories,
+  selectIsRepositoryManager,
   selectOrganizationId,
   selectApplicationId,
-  (isOrganization, isApplication, isRepositories, organizationId, applicationId) => {
-    const ownerId = isApplication ? applicationId : isOrganization ? organizationId : 'global';
+  (
+    isOrganization,
+    isApplication,
+    isRepositories,
+    isRepositoryManager,
+    organizationId,
+    applicationId,
+    repositoryManagerId
+  ) => {
+    const ownerId = isApplication
+      ? applicationId
+      : isOrganization
+      ? organizationId
+      : isRepositoryManager
+      ? repositoryManagerId
+      : 'global';
     const ownerType = isApplication
       ? 'application'
       : isOrganization
       ? 'organization'
+      : isRepositoryManager
+      ? 'repository_manager'
       : isRepositories
       ? 'repository_container'
       : 'global';

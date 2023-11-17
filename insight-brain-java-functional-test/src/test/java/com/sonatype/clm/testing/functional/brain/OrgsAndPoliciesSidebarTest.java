@@ -97,7 +97,9 @@ public class OrgsAndPoliciesSidebarTest
     tempEntity.newRepository(repositoryB, "b123", true);
     tempEntity.newRepositoryManager("AB9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     tempEntity.newRepositoryManager("XY9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    tempEntity.newRepositoryManager("1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
+    RepositoryManager firstRepositoryManagerInSortedList = tempEntity.newRepositoryManager(
+        "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
+    );
     RepositoryManager namedRepositoryManager = tempEntity.newRepositoryManager(
         "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0"
     );
@@ -111,6 +113,11 @@ public class OrgsAndPoliciesSidebarTest
     repoManagerList.shouldHave(text(namedRepositoryManager.getName()));
 
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Container level");
+
+    orgsAndPoliciesSidebar.getRepositoryManagerLink(0).click();
+    waitUntilUrl(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
+
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Manager level");
   }
 
   @Test

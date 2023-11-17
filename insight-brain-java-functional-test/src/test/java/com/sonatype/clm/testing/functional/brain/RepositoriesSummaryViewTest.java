@@ -136,7 +136,7 @@ public class RepositoriesSummaryViewTest
     eyesWatcher.eyesCheck("Repositories visible");
 
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
-    orgsAndPoliciesSidebar.repositories().shouldHave(text("(2)"));
+    orgsAndPoliciesSidebar.repositories().shouldBe(hidden);
 
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();

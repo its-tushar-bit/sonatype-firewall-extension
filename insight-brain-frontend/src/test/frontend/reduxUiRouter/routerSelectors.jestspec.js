@@ -15,6 +15,8 @@ import {
   selectOrganizationId,
   selectApplicationId,
   selectIsRootOrganization,
+  selectIsRepositoryManager,
+  selectIsRepositoryContainer,
   selectRouteParamsFromSecurityTab,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -94,7 +96,7 @@ describe('routerSelectors', function () {
     it('selects if current url name includes `organization`', () => {
       const actualSelection = selectIsOrganization.resultFunc('management.edit.organization.policy');
 
-      expect(actualSelection).toBeTrue();
+      expect(actualSelection).toBeTruthy();
     });
   });
 
@@ -106,7 +108,7 @@ describe('routerSelectors', function () {
     it('selects if current url name includes `application`', () => {
       const actualSelection = selectIsApplication.resultFunc('management.edit.application');
 
-      expect(actualSelection).toBeTrue();
+      expect(actualSelection).toBeTruthy();
     });
   });
 
@@ -145,7 +147,33 @@ describe('routerSelectors', function () {
       };
       const selection = selectIsRootOrganization.resultFunc(currentRouterParams);
 
-      expect(selection).toBeTrue();
+      expect(selection).toBeTruthy();
+    });
+  });
+
+  describe('selectIsRepositoryContainer', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsRepositoryContainer.dependencies).toEqual([selectCurrentRouteName]);
+    });
+
+    it('selects if current url name includes `organization`', () => {
+      expect(selectIsRepositoryContainer.resultFunc('management.edit.repository_container.policy')).toBeTruthy();
+      expect(selectIsRepositoryContainer.resultFunc('management.edit.repository_manager.policy')).toBeFalsy();
+      expect(selectIsRepositoryContainer.resultFunc('management.edit.organization.policy')).toBeFalsy();
+      expect(selectIsRepositoryContainer.resultFunc('management.edit.application.policy')).toBeFalsy();
+    });
+  });
+
+  describe('selectIsRepositoryManager', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsRepositoryManager.dependencies).toEqual([selectCurrentRouteName]);
+    });
+
+    it('selects if current url name includes `organization`', () => {
+      expect(selectIsRepositoryManager.resultFunc('management.edit.repository_manager.policy')).toBeTruthy();
+      expect(selectIsRepositoryManager.resultFunc('management.edit.repository_container.policy')).toBeFalsy();
+      expect(selectIsRepositoryManager.resultFunc('management.edit.organization.policy')).toBeFalsy();
+      expect(selectIsRepositoryManager.resultFunc('management.edit.application.policy')).toBeFalsy();
     });
   });
 

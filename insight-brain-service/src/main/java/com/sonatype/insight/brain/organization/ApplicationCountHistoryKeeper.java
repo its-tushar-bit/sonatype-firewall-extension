@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationCountHistoryDAO;
+import com.sonatype.insight.brain.integration.ApplicationCountHistoryService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
@@ -31,7 +31,7 @@ public class ApplicationCountHistoryKeeper implements InsightJob
 
   private static final String JOB_ERROR = "Unable to record the application count history today!";
 
-  private final ApplicationCountHistoryDAO applicationCountHistoryDao;
+  private final ApplicationCountHistoryService applicationCountHistoryService;
 
   private final TaskScheduler taskScheduler;
 
@@ -39,10 +39,11 @@ public class ApplicationCountHistoryKeeper implements InsightJob
 
   @Inject
   public ApplicationCountHistoryKeeper(
-      ApplicationCountHistoryDAO applicationCountHistoryDao,
-      TaskScheduler taskScheduler)
+      ApplicationCountHistoryService applicationCountHistoryService,
+      TaskScheduler taskScheduler
+  )
   {
-    this.applicationCountHistoryDao = applicationCountHistoryDao;
+    this.applicationCountHistoryService = applicationCountHistoryService;
     this.taskScheduler = taskScheduler;
   }
 
@@ -66,7 +67,7 @@ public class ApplicationCountHistoryKeeper implements InsightJob
   @Override
   public void execute(JobExecutionContext context) {
     log.debug("Starting execution of job {}", NAME);
-    execute(applicationCountHistoryDao::recordApplicationCount, log, JOB_ERROR);
+    execute(applicationCountHistoryService::recordApplicationCount, log, JOB_ERROR);
   }
 
   @Override

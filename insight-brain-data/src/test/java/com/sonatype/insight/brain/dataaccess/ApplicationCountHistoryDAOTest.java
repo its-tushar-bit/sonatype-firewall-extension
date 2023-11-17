@@ -22,39 +22,41 @@ public class ApplicationCountHistoryDAOTest
   private final ApplicationCountHistoryDAO applicationCountHistoryDAO = new ApplicationCountHistoryDAO();
 
   @Test
-  public void testRecordApplicationCount_shouldInsertOneRowEachDayWithoutModifyingPrevious() {
-    // The "initialization" row
-    assertThat(applicationCountHistoryDAO.getCount()).isEqualTo(1);
-    assertThat(applicationCountHistoryDAO.getAll().get(0).getId()).isEqualTo("initialization");
-
-    applicationCountHistoryDAO.recordApplicationCount();
-    applicationCountHistoryDAO.recordApplicationCount();
-    assertThat(applicationCountHistoryDAO.getCount()).isEqualTo(3);
-  }
-
-  @Test
-  public void testgetApplicationCountAtOrDefault_shouldBeAbleToGetUpdatedCount() {
-    tempEntity.newApplicationWithParent();
-    applicationCountHistoryDAO.recordApplicationCount();
-
+  public void testGetApplicationCountAtOrDefault_shouldBeAbleToGetUpdatedCount_GivenOnlyInitialEntry() {
     // One created above, another created by AbstractDbDAOTest.setup()
-    assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(new Date())).isEqualTo(2);
+    assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(new Date())).isEqualTo(0);
   }
 
   @Test
-  public void testgetApplicationCountAtOrDefault_shouldBeAbleToGetHistoryCount() {
-    tempEntity.newApplicationWithParent();
-    applicationCountHistoryDAO.recordApplicationCount();
+  public void testGetApplicationCountAtOrDefault_shouldGetClosestPastCount() {
+    final Date now = new Date();
+    final Date aWeekAgo = Date.from(Instant.now().minus(7, ChronoUnit.DAYS));
+
+    tempEntity.newApplicationCountHistoryEntry(aWeekAgo, 133);
+    tempEntity.newApplicationCountHistoryEntry(now, 145);
+
+    assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(now))
+        .isEqualTo(145);
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
-        Date.from(Instant.now().minus(1, ChronoUnit.DAYS))))
+        Date.from(Instant.now().plus(1, ChronoUnit.DAYS))))
+        .isEqualTo(145);
+
+    assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
+        Date.from(Instant.now().minus(3, ChronoUnit.DAYS))))
+        .isEqualTo(133);
+
+    assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
+        Date.from(Instant.now().minus(14, ChronoUnit.DAYS))))
         .isEqualTo(0);
   }
 
   @Test
-  public void testgetApplicationCountAtOrDefault_supportHistoryNoOlderThanEpoch() {
-    tempEntity.newApplicationWithParent();
-    applicationCountHistoryDAO.recordApplicationCount();
+  public void testGetApplicationCountAtOrDefault_supportHistoryNoOlderThanEpoch() {
+    final Date givenDate = new Date();
+    final int givenGivenTotalCount = 1344;
+
+    tempEntity.newApplicationCountHistoryEntry(givenDate, givenGivenTotalCount);
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
         Date.from(LocalDate.of(1970,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant())))

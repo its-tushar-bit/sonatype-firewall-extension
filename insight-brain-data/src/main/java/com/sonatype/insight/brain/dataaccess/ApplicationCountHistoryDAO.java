@@ -15,43 +15,49 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ApplicationCountHistoryDAO
     extends AbstractOperationalSqlDAO<ApplicationCountHistory>
 {
-  private ApplicationDAO appDAO = new ApplicationDAO();
-
   @Override
   public void update(TransactionContext tx, ApplicationCountHistory entity) {
     throw new UnsupportedOperationException("ApplicationCountHistory does not support update operations");
   }
 
-  private int getInitialApplicationCount() {
+  // there should always be at least one entry as we will create an initial entry via the schema or migration
+  public ApplicationCountHistory getInitialApplicationHistoryCount() {
     String sQuery = "SELECT entity" +
         " FROM ApplicationCountHistory entity" +
         " WHERE entity.id = 'initialization'";
     Query<ApplicationCountHistory> query = createQuery(sQuery);
     query.forceSingleResult();
-    ApplicationCountHistory applicationCountHistory = query.get();
-    return applicationCountHistory.getApplicationCount();
+
+    return query.get();
   }
 
   private Optional<Integer> getApplicationCountAt(Date timestamp) {
-    String sQuery = "SELECT entity" +
+    final ApplicationCountHistory applicationCountHistory = getApplicationHistoryCount(timestamp);
+
+    if (applicationCountHistory == null) {
+      return Optional.empty();
+    }
+    else {
+      return Optional.of(applicationCountHistory.getApplicationCount());
+    }
+  }
+
+  public ApplicationCountHistory getApplicationHistoryCount(final Date date) {
+    final String sQuery = "SELECT entity" +
         " FROM ApplicationCountHistory entity" +
         " WHERE entity.updatedDate <= ?1" +
         " ORDER BY entity.updatedDate DESC";
-    Query<ApplicationCountHistory> query = createQuery(sQuery, timestamp);
 
-    query.forceSingleResult();
-    Optional<Integer> countIfFound =
-        query.getList().stream().findFirst().map(ApplicationCountHistory::getApplicationCount);
-    return countIfFound;
+    final Query<ApplicationCountHistory> query = createQuery(sQuery, date);
+
+    return query.forceSingleResult().getList().stream().findFirst().orElse(null);
   }
 
   public int getApplicationCountAtOrDefault(Date timestamp) {
     return getApplicationCountAt(timestamp).orElseGet(this::getInitialApplicationCount);
   }
 
-  public void recordApplicationCount() {
-    int currentAppCount = (int) appDAO.getCount();
-    ApplicationCountHistory countHistory = new ApplicationCountHistory(currentAppCount, new Date());
-    insert(countHistory);
+  private int getInitialApplicationCount() {
+    return getInitialApplicationHistoryCount().getApplicationCount();
   }
 }

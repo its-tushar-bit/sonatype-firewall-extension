@@ -36,6 +36,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -4416,9 +4417,33 @@ public class TemporaryEntity
   }
 
   public void newApplicationCountHistoryEntry(final Date date, final int applicationCount) {
+    newApplicationCountHistoryEntry(date, applicationCount, 0);
+  }
+
+  public void newApplicationCountHistoryEntry(final Date date, final int applicationCount, final int scmFeedBackCount) {
     final ApplicationCountHistory applicationCountHistory = new ApplicationCountHistory();
     applicationCountHistory.setUpdatedDate(date);
     applicationCountHistory.setApplicationCount(applicationCount);
+    applicationCountHistory.setScmFeedbackEnabledCount(scmFeedBackCount);
     applicationCountHistoryDAO.insert(applicationCountHistory);
+  }
+
+  public List<ApplicationCountHistory> getAllApplicationHistoryCountRows() {
+    return applicationCountHistoryDAO.getAll();
+  }
+
+  public List<Application> createApplications(final int numberOfApplications, Organization optionalOrganization) {
+    final Organization organization;
+
+    if (optionalOrganization == null) {
+      organization = newOrganization();
+    }
+    else {
+      organization = optionalOrganization;
+    }
+
+    return IntStream.range(0, numberOfApplications)
+        .mapToObj(i -> newApplication(organization.getId()))
+        .collect(toList());
   }
 }

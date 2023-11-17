@@ -59,6 +59,7 @@ public class CIEvaluationStatServiceAuthzTest
   @Test
   public void testGetCiCdUsageStatsOverTime_Authorized() {
     grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+
     final List<ApiIntegrationsCiCdStatIncrementDto> apiIntegrationsCiCdStatIncrementDtoList =
         ciEvaluationStatService.getCiCdUsageStatsOverTime(anyNumber(), anyNumber());
 

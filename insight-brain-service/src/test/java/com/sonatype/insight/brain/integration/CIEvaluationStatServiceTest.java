@@ -13,7 +13,6 @@ import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -30,7 +29,6 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.core.util.StringUtils.uuid;
 import static org.mockito.Mockito.when;
@@ -236,7 +234,7 @@ public class CIEvaluationStatServiceTest
     }
 
     int effectiveMax = includeEvaluations ? maxApplications - 2 : maxApplications;
-    createApplications(effectiveMax, organization);
+    tempEntity.createApplications(effectiveMax, organization);
   }
 
   private void createApplicationsWithCiCdEvaluationsAtMomentInTime(final int numberOfApplications, final Date date) {
@@ -257,22 +255,7 @@ public class CIEvaluationStatServiceTest
   }
 
   private List<Application> createApplications(final int numberOfApplications) {
-    return createApplications(numberOfApplications, null);
-  }
-
-  private List<Application> createApplications(final int numberOfApplications, Organization optionalOrganization) {
-    final Organization organization;
-
-    if (optionalOrganization == null) {
-      organization = tempEntity.newOrganization();
-    }
-    else {
-      organization = optionalOrganization;
-    }
-
-    return IntStream.range(0, numberOfApplications)
-        .mapToObj(i -> tempEntity.newApplication(organization.getId()))
-        .collect(toList());
+    return tempEntity.createApplications(numberOfApplications, null);
   }
 
   private Date getDateFromOffset(final Clock baseClock, final int numberOfDays) {

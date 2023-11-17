@@ -1459,6 +1459,7 @@ CREATE TABLE application_count_history
   application_count_history_id   varchar(50) NOT NULL,
   application_count              integer     NOT NULL,
   updated_date                   timestamp   NOT NULL,
+  scm_feedback_enabled_count     integer     NOT NULL,
   CONSTRAINT application_count_history_pk PRIMARY KEY (application_count_history_id)
 );
 
@@ -1466,8 +1467,10 @@ CREATE INDEX application_count_history_updated_date ON application_count_history
 
 INSERT INTO application_count_history (application_count_history_id,
                                        application_count,
+                                       scm_feedback_enabled_count,
                                        updated_date)
 VALUES ('initialization',
+       0,
        0,
        NOW());
 

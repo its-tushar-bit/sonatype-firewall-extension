@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
+import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
@@ -39,6 +40,12 @@ public class IntegrationResource
 
   static final String GET_CICD_USAGE_STAT_INCREMENTS_OVERTIME_PATH = "/stats/cicd/usage-over-time";
 
+  static final String GET_SCM_FEEDBACK_USAGE_STAT_INCREMENTS_OVER_TIME_PATH = "/stats/scm-feedback/usage-over-time";
+
+  static final String DEFAULT_ONE_WEEK_IN_MS = "604800000";
+
+  static final String DEFAULT_NUMBER_OF_INCREMENTS = "12";
+
   static final String DEFAULT_PAGE = "1";
 
   static final String DEFAULT_PAGE_SIZE = "10";
@@ -49,14 +56,18 @@ public class IntegrationResource
 
   private final CIEvaluationStatService ciEvaluationStatService;
 
+  private final ScmStatService scmStatService;
+
   @Inject
   public IntegrationResource(
       final IntegrationService integrationService,
-      final CIEvaluationStatService ciEvaluationStatService
+      final CIEvaluationStatService ciEvaluationStatService,
+      final ScmStatService scmStatService
   )
   {
     this.integrationService = integrationService;
     this.ciEvaluationStatService = ciEvaluationStatService;
+    this.scmStatService = scmStatService;
   }
 
   @GET
@@ -85,14 +96,37 @@ public class IntegrationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiIntegrationsCiCdStatIncrementDto> getCiCdUsageStatIncrementsOverTime(
       // one week default, maximum internal size of 5 years
-      @DefaultValue("604800000")
-      @Min(1) @Max(FIVE_YEARS_IN_MS)
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
+      @Min(1)
+      @Max(FIVE_YEARS_IN_MS)
       @QueryParam("incrementSizeMillis")
       long incrementSizeMillis,
       // 3 months default
-      @DefaultValue("12") @Min(1) @Max(52) @QueryParam("numberOfIncrements") int numberOfIncrements
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
+      @Min(1)
+      @Max(52)
+      @QueryParam("numberOfIncrements") int numberOfIncrements
   )
   {
     return ciEvaluationStatService.getCiCdUsageStatsOverTime(incrementSizeMillis, numberOfIncrements);
+  }
+
+  @GET
+  @Path(GET_SCM_FEEDBACK_USAGE_STAT_INCREMENTS_OVER_TIME_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiIntegrationsScmFeedbackStatIncrementDto> getScmFeedbackUsageStatIncrementsOverTime(
+      // one week default
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
+      @Min(1)
+      @QueryParam("incrementSizeMillis") long incrementSizeMillis,
+
+      // 3 months default
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
+      @Min(1)
+      @Max(52)
+      @QueryParam("numberOfIncrements") int numberOfIncrements
+  )
+  {
+    return scmStatService.getScmFeedbackUsageStatsOverTime(incrementSizeMillis, numberOfIncrements);
   }
 }

@@ -20,14 +20,6 @@ import com.sonatype.insight.model.HasStringId;
 public class ApplicationCountHistory
     implements HasStringId
 {
-  public ApplicationCountHistory() {
-  }
-
-  public ApplicationCountHistory(final int applicationCount, Date updatedDate) {
-    this.applicationCount = applicationCount;
-    this.updatedDate = updatedDate;
-  }
-
   @Id
   @Column(name = "application_count_history_id")
   private String id;
@@ -35,8 +27,25 @@ public class ApplicationCountHistory
   @Column(name = "application_count")
   private int applicationCount;
 
+  @Column(name = "scm_feedback_enabled_count")
+  private int scmFeedbackEnabledCount;
+
   @Column(name = "updated_date")
   private Date updatedDate;
+
+  public ApplicationCountHistory() {
+  }
+
+  public ApplicationCountHistory(
+      final Date updatedDate,
+      final int applicationCount,
+      final int scmFeedbackEnabledCount
+  )
+  {
+    this.applicationCount = applicationCount;
+    this.updatedDate = updatedDate;
+    this.scmFeedbackEnabledCount = scmFeedbackEnabledCount;
+  }
 
   @Override
   public String getId() {
@@ -56,6 +65,14 @@ public class ApplicationCountHistory
     this.applicationCount = applicationCount;
   }
 
+  public void setScmFeedbackEnabledCount(final int scmFeedBackEnabledCount) {
+    this.scmFeedbackEnabledCount = scmFeedBackEnabledCount;
+  }
+
+  public int getScmFeedbackEnabledCount() {
+    return scmFeedbackEnabledCount;
+  }
+
   public Date getUpdatedDate() {
     return updatedDate;
   }
@@ -70,6 +87,7 @@ public class ApplicationCountHistory
         .add("id='" + id + "'")
         .add("applicationCount=" + applicationCount)
         .add("updatedDate=" + updatedDate)
+        .add("scmFeedbackEnabledCount=" + scmFeedbackEnabledCount)
         .toString();
   }
 }

@@ -4252,10 +4252,10 @@ core-js@^2.4.0, core-js@^2.5.0:
   resolved "https://repo.sonatype.com/repository/npm-all/core-js/-/core-js-2.6.11.tgz"
   integrity sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg==
 
-core-js@^3.13.1:
-  version "3.13.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/core-js/-/core-js-3.13.1.tgz"
-  integrity sha512-JqveUc4igkqwStL2RTRn/EPFGBOfEZHxJl/8ej1mXJR75V3go2mFF4bmUYkEIT1rveHKnkUlcJX/c+f1TyIovQ==
+core-js@^3.33.2:
+  version "3.33.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/core-js/-/core-js-3.33.2.tgz#312bbf6996a3a517c04c99b9909cdd27138d1ceb"
+  integrity sha512-XeBzWI6QL3nJQiHmdzbAOiMYqjrb7hwU7A39Qhvd/POSa/t9E1AeZyEZx3fNvp/vtM8zXwhoL0FsiS0hD0pruQ==
 
 core-js@^3.6.4:
   version "3.32.1"

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.integration;
+package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,9 +21,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.integration.IntegrationResource.DEFAULT_PAGE;
-import static com.sonatype.insight.brain.integration.IntegrationResource.DEFAULT_PAGE_SIZE;
-import static com.sonatype.insight.brain.integration.IntegrationResource.FIVE_YEARS_IN_MS;
+import static com.sonatype.insight.brain.developer.integrationdashboard.IntegrationResource.DEFAULT_PAGE;
+import static com.sonatype.insight.brain.developer.integrationdashboard.IntegrationResource.DEFAULT_PAGE_SIZE;
+import static com.sonatype.insight.brain.developer.integrationdashboard.IntegrationResource.FIVE_YEARS_IN_MS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IntegrationResourceTest

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.integration;
+package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.util.Calendar;
 import java.util.stream.IntStream;

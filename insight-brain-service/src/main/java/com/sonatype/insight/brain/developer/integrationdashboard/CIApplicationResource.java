@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.integration;
+package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import javax.inject.Inject;
 import javax.inject.Named;

@@ -68,7 +68,7 @@
     "moment-timezone": "^0.5.43",
     "ng-redux": "^4.4.3",
     "plottable": "^3.13.0",
-    "prop-types": "^15.7.2",
+    "prop-types": "^15.8.1",
     "query-string": "^5.1.1",
     "ramda": "^0.27.2",
     "react": "^16.8.6",

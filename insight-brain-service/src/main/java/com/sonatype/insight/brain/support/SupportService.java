@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,12 +44,15 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
+import com.google.common.collect.Sets;
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -56,8 +61,8 @@ import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +102,8 @@ public class SupportService
 
   private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
+  private final Set<File> excludedDirs;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -106,7 +113,8 @@ public class SupportService
                         final DbData dbData,
                         final SystemInfo systemInfo,
                         final ConfigurationInfo configurationInfo,
-                        final SourceControlConfigurationInfo sourceControlConfigurationInfo)
+                        final SourceControlConfigurationInfo sourceControlConfigurationInfo,
+                        final InsightWork work)
   {
     this.config = config;
     this.configuration = configuration;
@@ -117,6 +125,12 @@ public class SupportService
     this.systemInfo = systemInfo;
     this.configurationInfo = configurationInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
+    this.excludedDirs = Sets.newHashSet(
+        work.getReportDir(),
+        work.getCacheDir(),
+        work.getDataDir(),
+        work.getTrashDir(),
+        work.getScanDir());
   }
 
   File getWorkDir() {
@@ -446,10 +460,10 @@ public class SupportService
     File clusterDirectory = config.getClusterDirectory();
     String clusterLogFileRegex = configuration.getSupportClusterLogFileRegex();
     RegexFileFilter clusterLogRegexFileFilter =
-        new RegexFileFilter(Pattern.compile(clusterLogFileRegex), path -> path.toString());
+        new RegexFileFilter(Pattern.compile(clusterLogFileRegex), Path::toString);
     try {
       Collection<File> clusterLogFiles =
-          FileUtils.listFiles(clusterDirectory, clusterLogRegexFileFilter, TrueFileFilter.INSTANCE);
+          FileUtils.listFiles(clusterDirectory, clusterLogRegexFileFilter, excludeDirFilter());
       log.debug("Found {} cluster log files matching the regex {}.", clusterLogFiles.size(), clusterLogFileRegex);
       for (File clusterLogFile : clusterLogFiles) {
         addFileIfExists(filesToZip, clusterLogFile, clusterLogFile.getName(), SupportFileType.CLUSTER_LOG, false);
@@ -459,5 +473,22 @@ public class SupportService
       log.error("Unable to add cluster log files matching the regex {} to the support zip {}.", clusterLogFileRegex,
           e.getMessage(), e);
     }
+  }
+
+  @VisibleForTesting
+  IOFileFilter excludeDirFilter() {
+    return new IOFileFilter() {
+
+      @Override
+      public boolean accept(File file) {
+        return excludedDirs.stream().noneMatch(excludeDir ->
+            file.getAbsolutePath().startsWith(excludeDir.getAbsolutePath()));
+      }
+
+      @Override
+      public boolean accept(File dir, String name) {
+        return accept(new File(dir, name));
+      }
+    };
   }
 }

@@ -45,7 +45,11 @@ public class InsightWork
 
   public File getScanDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(insightConfig.getClusterDirectory(), "scan/" + appId);
+    return new File(getScanDir(), appId);
+  }
+
+  public File getScanDir() {
+    return new File(insightConfig.getClusterDirectory(), "scan");
   }
 
   public File getScanFile(final String appId, final String scanId) {

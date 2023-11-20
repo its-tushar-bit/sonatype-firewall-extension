@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -38,8 +39,10 @@ import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.commons.io.filefilter.IOFileFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,6 +65,9 @@ public class SupportServiceTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private InsightWork insightWork;
 
   private File originalConfigFile;
 
@@ -343,6 +349,22 @@ public class SupportServiceTest
       assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry2), StandardCharsets.UTF_8)).isEqualTo("b");
       assertThat(otherEntry).isNull();
     }
+  }
+
+  @Test
+  public void testExcludeDirFilter() {
+    IOFileFilter dirFilter = supportService.excludeDirFilter();
+
+    Assert.assertFalse(dirFilter.accept(insightWork.getReportDir()));
+    Assert.assertTrue(dirFilter.accept(new File("test-work/clm-cluster/logs/server/file.log")));
+  }
+
+  @Test
+  public void testExcludeDirFilter_WithNestedDirectories() {
+    IOFileFilter dirFilter = supportService.excludeDirFilter();
+
+    Assert.assertFalse(dirFilter.accept(insightWork.getCacheDir()));
+    Assert.assertFalse(dirFilter.accept(new File(insightWork.getCacheDir() + "/test")));
   }
 
   private File createFile(int sizeInBytes) throws Exception {

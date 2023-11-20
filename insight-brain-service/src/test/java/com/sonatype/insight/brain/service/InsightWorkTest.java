@@ -193,4 +193,9 @@ public class InsightWorkTest
   public void testGetCacheDir() {
     assertThat(work.getCacheDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "cache"));
   }
+
+  @Test
+  public void testGetScanDir_WithoutAppId() {
+    assertThat(work.getScanDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "scan"));
+  }
 }

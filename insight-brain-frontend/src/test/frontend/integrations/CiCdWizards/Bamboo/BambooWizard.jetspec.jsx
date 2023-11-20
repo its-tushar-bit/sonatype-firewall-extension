@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
-import BambooWizard from 'MainRoot/integrations/sections/CiCdWizards/BambooWizard/BambooWizard';
+import BambooWizard from 'MainRoot/integrations/sections/CiCdWizards/Bamboo/BambooWizard';
 
 describe('BambooWizard', () => {
   it('renders the correct install URL link', () => {

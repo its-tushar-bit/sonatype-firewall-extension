@@ -68,6 +68,6 @@ describe('GitlabWizard', () => {
 
   function renderComponent() {
     const mockIqApplicationPublicId = 'test-public-id';
-    render(<GitlabWizard applicationPublicId={mockIqApplicationPublicId} />);
+    render(<GitlabWizard iqApplication={mockIqApplicationPublicId} />);
   }
 });

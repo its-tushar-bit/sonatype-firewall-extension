@@ -17,8 +17,8 @@ describe('scmWizardUtils', () => {
       expect(getSCMProviderTokenUrl('gitlab')).toBe('https://gitlab.com/-/profile/personal_access_tokens');
     });
 
-    it('should return the correct url for azure', () => {
-      expect(getSCMProviderTokenUrl('azure')).toBe('https://dev.azure.com/{organization}/_usersSettings/tokens');
+    it('should return the correct url for azure devops', () => {
+      expect(getSCMProviderTokenUrl('azure devops')).toBe('https://dev.azure.com/{organization}/_usersSettings/tokens');
     });
 
     it('should return the correct url for bitbucket', () => {
@@ -45,8 +45,8 @@ describe('scmWizardUtils', () => {
       );
     });
 
-    it('should return the correct url for azure', () => {
-      expect(getSCMProviderTokenDocUrl('azure')).toBe(
+    it('should return the correct url for azure devops', () => {
+      expect(getSCMProviderTokenDocUrl('azure devops')).toBe(
         'https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops'
       );
     });
@@ -70,8 +70,8 @@ describe('scmWizardUtils', () => {
     });
 
     it('should return the correct format for azure', () => {
-      expect(formatSCMProvider('AZURE')).toBe('Azure DevOps');
-      expect(formatSCMProvider('azure')).toBe('Azure DevOps');
+      expect(formatSCMProvider('AZURE DEVOPS')).toBe('Azure DevOps');
+      expect(formatSCMProvider('azure devops')).toBe('Azure DevOps');
     });
 
     it('should return the correct format for bitbucket', () => {

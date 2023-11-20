@@ -5,9 +5,8 @@
  */
 import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import DeveloperConfigurationModal, {
-  createTabConfiguration,
-} from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfigurationModal';
+import DeveloperConfigurationModal from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfigurationModal';
+import { createTabConfiguration } from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfiguratgionModalUtils';
 
 describe('DeveloperConfigurationModal', () => {
   const mockOnClose = jest.fn();

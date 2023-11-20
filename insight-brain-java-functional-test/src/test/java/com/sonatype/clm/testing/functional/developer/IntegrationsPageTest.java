@@ -28,9 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -116,26 +114,38 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_FOR_INTEGRATION_AND_RISKS);
 
     applicationName(0).shouldHave(text("appName9"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
     totalRisk(0).shouldHave(text("9"));
 
     applicationName(9).shouldHave(text("appName0"));
-    cicdStatus(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackStatus(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(9).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(9).shouldHave(text("0"));
 
     eyesWatcher.eyesCheck();
 
+    //click cicd configure button
+    appIntegrationsCicdConfigureButton(0).click();
+    appIntegrationsConfigurationModal().shouldBe(visible);
+    appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
+    appIntegrationsConfigurationModal().shouldBe(hidden);
+
+    //click scm configure button
+    appIntegrationsScmConfigureButton(0).click();
+    appIntegrationsConfigurationModal().shouldBe(visible);
+    appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
+    appIntegrationsConfigurationModal().shouldBe(hidden);
+
     //Sorting by total risk
     totalRiskColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -143,8 +153,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     //Sorting by app name
     applicationColumnHeader().click();
     applicationName(0).shouldHave(text("appName9"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
     totalRisk(0).shouldHave(text("9"));
@@ -154,8 +164,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     //Sorting by last commit
     lastCommitColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -165,8 +175,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     //Sorting by last evaluation
     lastEvaluationColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -174,8 +184,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     //Searching for application
     applicationFilterInput().sendKeys("appName5");
     applicationName(0).shouldHave(text("appName5"));
-    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
-    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 7, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 10, 2023"));
     totalRisk(0).shouldHave(text("5"));
@@ -221,6 +231,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsCiCdFilter().click();
     appIntegrationsCiCdFilterNotConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+
   }
 
   @Test
@@ -333,12 +344,28 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
   }
 
-  private SelenideElement cicdStatus(int rowNum) {
+  private SelenideElement cicdEnabledIcon(int rowNum) {
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(2) svg");
   }
 
-  private SelenideElement scmFeedbackStatus(int rowNum) {
+  private SelenideElement scmFeedbackEnabledIcon(int rowNum) {
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(3) svg");
+  }
+
+  private SelenideElement appIntegrationsCicdConfigureButton(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(2) button");
+  }
+
+  private SelenideElement appIntegrationsScmConfigureButton(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(3) button");
+  }
+
+  private SelenideElement appIntegrationsConfigurationModalCloseButton() {
+    return $(".iq-integrations-developer-configuration-close-button");
+  }
+
+  private SelenideElement appIntegrationsConfigurationModal() {
+    return $("#iq-integrations-developer-configuration-modal");
   }
 
   private SelenideElement lastCommitDate(int rowNum) {

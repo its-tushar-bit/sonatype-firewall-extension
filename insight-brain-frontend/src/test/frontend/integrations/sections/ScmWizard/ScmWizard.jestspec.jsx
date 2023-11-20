@@ -15,7 +15,7 @@ import {
 
 describe('ScmWizard', () => {
   let selectShouldDisplayNotice;
-  const ScmProvider = ['github', 'gitlab', 'azure', 'bitbucket'];
+  const ScmProvider = ['github', 'gitlab', 'azure devops', 'bitbucket'];
   const mockScmProvider = 'github';
   const mockApplicationPublicId = 'test-application-1';
 
@@ -59,7 +59,7 @@ describe('ScmWizard', () => {
     it(`renders the correct data analytics id for application source control link for ${scmProvider}`, () => {
       renderComponent(scmProvider, mockApplicationPublicId);
       const dataAnalyticsIdApplicationSourceControl = `sonatype-developer-scm-${scmProvider}-application-source-control`;
-      expect(screen.getAllByRole('link', { name: 'Click here' })[1]).toHaveAttribute(
+      expect(screen.getAllByRole('link', { name: 'click here' })[0]).toHaveAttribute(
         'data-analytics-id',
         dataAnalyticsIdApplicationSourceControl
       );
@@ -112,7 +112,7 @@ describe('ScmWizard', () => {
   it('renders the correct application source control configuration page base on publicId', () => {
     const expectedApplicationSourceControlPage = `/assets/#/management/edit/application/${mockApplicationPublicId}/source-control`;
     renderComponent(mockScmProvider, mockApplicationPublicId);
-    expect(screen.getAllByRole('link', { name: 'Click here' })[1]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'click here' })[0]).toHaveAttribute(
       'href',
       expectedApplicationSourceControlPage
     );

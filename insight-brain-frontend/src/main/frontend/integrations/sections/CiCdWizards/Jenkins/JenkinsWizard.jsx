@@ -22,15 +22,15 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
   const evaluationUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/jenkins/evaluation';
 
   return (
-    <div id="iq-integrations-cicd-jenkins">
-      <NxH3>Overview</NxH3>
-      <NxP className="iq-integrations-cicd-jenkins__full-width-text">
+    <div id="iq-integrations-cicd-wizard">
+      <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
+      <NxP id="iq-integrations-cicd-wizard-paragraph">
         A Jenkins administrator is required to install and connect the Sonatype Platform plugin for Jenkins to IQ server
         for the first time. Follow the steps in the documentation for details.
       </NxP>
-      <NxH3>Easy steps for Jenkins Configuration</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Jenkins Configuration</NxH3>
       <NxCard.Container>
-        <NxCard className="iq-integrations-card-cicd" aria-label="Install / Configure">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Install / Configure</NxH3>
@@ -43,7 +43,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
-        <NxCard className="iq-integrations-card-cicd" aria-label="Connect">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Connect">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Connect</NxH3>
@@ -56,7 +56,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
-        <NxCard className="iq-integrations-card-cicd" aria-label="Review">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Review">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Review</NxH3>
@@ -78,7 +78,7 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
         id="jenkins-pipeline-script"
         content={snippet}
       />
-      <NxH3>Parameter Description</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Parameter Description</NxH3>
       <NxDescriptionList className="iq-integrations-description-list-cicd">
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>IQ Application</NxDescriptionList.Term>
@@ -111,11 +111,12 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
       </NxDescriptionList>
-      <NxP>
+      <NxP className="iq-integration-cicd-wizard-p">
         <b>For more information, visit </b>
         <NxTextLink
           data-analytics-id="sonatype-developer-cicd-jenkins-more-info"
           href="https://links.sonatype.com/products/nxiq/doc/integrations/jenkins"
+          newTab
         >
           Sonatype Documentation
         </NxTextLink>

@@ -13,16 +13,20 @@ import {
   NX_STANDARD_DEBOUNCE_TIME,
   NxFilterDropdown,
   NxStatefulFilterDropdown,
+  NxButton,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions, COLUMNS } from './appIntegrationsAndRiskSlice';
 import { selectAppIntegrationsAndRiskSlice } from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSelectors';
 import { debounce } from 'debounce';
 import { faCheckCircle, faTimesCircle } from '@fortawesome/pro-solid-svg-icons';
+import DeveloperConfigurationModal from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfigurationModal';
+import {
+  createCiCdTabs,
+  createScmTabs,
+} from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfiguratgionModalUtils';
 
 const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-integrations-and-risk-enabled" />;
-const DisabledIcon = () => <NxFontAwesomeIcon icon={faTimesCircle} className="iq-integrations-and-risk-disabled" />;
-
 export default function AppIntegrationsAndRiskTable() {
   const scmFilterOptions = [
     { id: 'withScm', displayName: 'Configured apps' },
@@ -36,10 +40,24 @@ export default function AppIntegrationsAndRiskTable() {
 
   const appIntegrationsAndRiskSlice = useSelector(selectAppIntegrationsAndRiskSlice);
   const { tableData, loading, loadError, currentPage, pageCount, sort, nameFilter } = appIntegrationsAndRiskSlice;
-
   const dispatch = useDispatch();
   const [scmFilterValues, setSCMFilters] = useState(new Set());
   const [ciCdFilterValues, setCiCdFilters] = useState(new Set());
+
+  const [selectedAppId, setSelectedAppId] = useState('');
+  const [showScmModal, setScmShowModal] = useState(false);
+  const [showCicdModal, setCicdShowModal] = useState(false);
+  const cicdModalCloseHandler = () => setCicdShowModal(false);
+  const scmModalCloseHandler = () => setScmShowModal(false);
+
+  const setModalDetails = (type, appId) => {
+    if (type === 'cicd') {
+      setCicdShowModal(true);
+    } else if (type === 'scm') {
+      setScmShowModal(true);
+    }
+    setSelectedAppId(appId);
+  };
 
   useEffect(() => {
     dispatch(actions.loadAppIntegrationsAndRisk());
@@ -115,6 +133,8 @@ export default function AppIntegrationsAndRiskTable() {
           {tableData.map(
             ({
               applicationName,
+              applicationPublicId,
+              organizationId,
               ciIntegrationEnabled,
               automatedSourceControlFeedbackEnabled,
               lastCommitTimestamp,
@@ -127,10 +147,49 @@ export default function AppIntegrationsAndRiskTable() {
                     {applicationName}
                   </NxTable.Cell>
                   <NxTable.Cell className="iq-developer-app-integrations-header">
-                    {ciIntegrationEnabled ? <EnabledIcon /> : <DisabledIcon />}
+                    {ciIntegrationEnabled ? (
+                      <EnabledIcon />
+                    ) : (
+                      <>
+                        {' '}
+                        <NxButton
+                          id="iq-developer-app-integrations-cicd-configure-button"
+                          onClick={() => setModalDetails('cicd', applicationPublicId)}
+                          variant="tertiary"
+                        >
+                          Configure
+                        </NxButton>
+                        <DeveloperConfigurationModal
+                          id="iq-developer-app-integrations-cicd-configuration-modal"
+                          title="CI/CD Configuration"
+                          tabs={createCiCdTabs(applicationPublicId, organizationId)}
+                          showModal={showCicdModal && selectedAppId === applicationPublicId}
+                          onClose={cicdModalCloseHandler}
+                        />
+                      </>
+                    )}
                   </NxTable.Cell>
                   <NxTable.Cell className="iq-developer-app-integrations-header">
-                    {automatedSourceControlFeedbackEnabled ? <EnabledIcon /> : <DisabledIcon />}
+                    {automatedSourceControlFeedbackEnabled ? (
+                      <EnabledIcon />
+                    ) : (
+                      <>
+                        <NxButton
+                          id="iq-developer-app-integrations-scm-configure-button"
+                          onClick={() => setModalDetails('scm', applicationPublicId)}
+                          variant="tertiary"
+                        >
+                          Configure
+                        </NxButton>
+                        <DeveloperConfigurationModal
+                          id="iq-developer-app-integrations-scm-configuration-modal"
+                          title="SCM Integrations"
+                          tabs={createScmTabs(applicationPublicId)}
+                          showModal={showScmModal && selectedAppId === applicationPublicId}
+                          onClose={scmModalCloseHandler}
+                        />
+                      </>
+                    )}
                   </NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastCommitTimestamp)}</NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastEvaluationTimestamp)}</NxTable.Cell>

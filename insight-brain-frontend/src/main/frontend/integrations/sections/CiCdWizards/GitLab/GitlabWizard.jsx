@@ -9,7 +9,7 @@ import React from 'react';
 import '../CiCdWizard.scss';
 import PropTypes from 'prop-types';
 
-export default function GitlabWizard({ applicationPublicId }) {
+export default function GitlabWizard({ iqApplication }) {
   const configureUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
   const connectUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
   const dockerUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
@@ -19,18 +19,18 @@ export default function GitlabWizard({ applicationPublicId }) {
   stage: test
   image: sonatype/gitlab-nexus-iq-pipeline:latest 
   script:
-    /sonatype/evaluate -i ${applicationPublicId} target/web-app-x.war
+    /sonatype/evaluate -i ${iqApplication} target/{target_file}
   `;
   return (
-    <div className="iq-integrations-cicd-wizard-gitlab">
-      <NxH3>Overview</NxH3>
-      <NxP className="iq-integrations-cicd-wizrd-gitlab-paragraph">
+    <div id="iq-integrations-cicd-wizard">
+      <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
+      <NxP id="iq-integrations-cicd-wizard-paragraph">
         The Docker image for Nexus IQ Policy Evaluation allows you to perform policy evaluations against one or more
         build artifacts during a GitLab CI/CD pipeline run.
       </NxP>
-      <NxH3>Easy steps for GitLab Configuration</NxH3>
-      <NxCard.Container className="iq-integrations-card-container">
-        <NxCard className="iq-integrations-card" aria-label="Install / Configure">
+      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for GitLab Configuration</NxH3>
+      <NxCard.Container>
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Create</NxH3>
@@ -47,7 +47,7 @@ export default function GitlabWizard({ applicationPublicId }) {
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
-        <NxCard className="iq-integrations-card" aria-label="Connect">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Connect">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Configure</NxH3>
@@ -61,9 +61,14 @@ export default function GitlabWizard({ applicationPublicId }) {
           </NxCard.Footer>
         </NxCard>
       </NxCard.Container>
-      <NxCopyToClipboard label="Example script" id="jenkins-pipeline-script" content={snippet} />
-      <NxH3>Parameter Description</NxH3>
-      <NxDescriptionList>
+      <NxCopyToClipboard
+        label="Example script"
+        className="iq-integrations-copy-to-clipboard-cicd"
+        id="gitlab-pipeline-script"
+        content={snippet}
+      />
+      <NxH3 className="iq-integrations-cicd-wizard-header">Parameter Description</NxH3>
+      <NxDescriptionList className="iq-integrations-description-list-cicd">
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>Name</NxDescriptionList.Term>
           <NxDescriptionList.Description>policyEval</NxDescriptionList.Description>
@@ -85,7 +90,7 @@ export default function GitlabWizard({ applicationPublicId }) {
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>ApplicationId</NxDescriptionList.Term>
-          <NxDescriptionList.Description>{applicationPublicId}</NxDescriptionList.Description>
+          <NxDescriptionList.Description>{iqApplication}</NxDescriptionList.Description>
           <NxDescriptionList.Description>
             The unique Id of the application being evaluated
           </NxDescriptionList.Description>
@@ -98,7 +103,7 @@ export default function GitlabWizard({ applicationPublicId }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
       </NxDescriptionList>
-      <NxP>
+      <NxP className="iq-integration-cicd-wizard-p">
         See the
         <NxTextLink newTab href={dockerUrl} data-analytics-id="sonatype-developer-cicd-gitlab-docker-url">
           {' '}
@@ -106,7 +111,7 @@ export default function GitlabWizard({ applicationPublicId }) {
         </NxTextLink>
         for details about other options available during policy evaluation
       </NxP>
-      <NxP>
+      <NxP className="iq-integration-cicd-wizard-p">
         <b>For more information, visit </b>
         <NxTextLink
           newTab
@@ -121,5 +126,5 @@ export default function GitlabWizard({ applicationPublicId }) {
 }
 
 GitlabWizard.propTypes = {
-  applicationPublicId: PropTypes.string.isRequired,
+  iqApplication: PropTypes.string.isRequired,
 };

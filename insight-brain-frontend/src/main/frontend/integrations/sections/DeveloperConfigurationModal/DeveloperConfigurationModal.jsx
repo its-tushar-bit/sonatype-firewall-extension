@@ -22,43 +22,37 @@ export default function DeveloperConfigurationModal({ title, tabs, showModal, on
 
   return (
     <>
-      <div>
-        {showModal && (
-          <NxModal id="iq-integrations-developer-configuration-modal" onCancel={onClose}>
-            <NxH1 className="iq-integrations-developer-configuration-modal-title">{title}</NxH1>
-            <NxModal.Content className="nx-modal-content--tabs">
-              <NxTabs activeTab={activeTabId} onTabSelect={setActiveTabId}>
-                <NxTabList>
-                  {tabs.map((tab, index) => (
-                    <NxTab key={index} className="iq-integrations-developer-configuration-tab">
-                      {tab.name}
-                    </NxTab>
-                  ))}
-                </NxTabList>
-                {tabs.map((tab) => (
-                  <NxTabPanel key={tab.name} className="iq-integrations-developer-configuration-tab-panel">
-                    {tab.component}
-                  </NxTabPanel>
+      {showModal && (
+        <NxModal id="iq-integrations-developer-configuration-modal" variant="normal" onCancel={onClose}>
+          <NxH1 id="iq-integrations-developer-configuration-title">{title}</NxH1>
+          <NxModal.Content className="nx-modal-content--tabs">
+            <NxTabs activeTab={activeTabId} onTabSelect={setActiveTabId}>
+              <NxTabList>
+                {tabs.map((tab, index) => (
+                  <NxTab key={index} className="iq-integrations-developer-configuration-tab">
+                    {tab.name}
+                  </NxTab>
                 ))}
-              </NxTabs>
-            </NxModal.Content>
-            <NxFooter>
-              <div className="nx-btn-bar">
-                <NxButton onClick={onClose}>Close</NxButton>
-              </div>
-            </NxFooter>
-          </NxModal>
-        )}
-      </div>
+              </NxTabList>
+              {tabs.map((tab) => (
+                <NxTabPanel key={tab.name} className="iq-integrations-developer-configuration-tab-panel">
+                  {tab.component}
+                </NxTabPanel>
+              ))}
+            </NxTabs>
+          </NxModal.Content>
+          <NxFooter>
+            <div className="nx-btn-bar">
+              <NxButton className="iq-integrations-developer-configuration-close-button" onClick={onClose}>
+                Close
+              </NxButton>
+            </div>
+          </NxFooter>
+        </NxModal>
+      )}
     </>
   );
 }
-
-//util function for creating tab configuration objects
-export const createTabConfiguration = (name, component) => ({
-  name,
-  component,
-});
 
 DeveloperConfigurationModal.propTypes = {
   title: PropTypes.string.isRequired,

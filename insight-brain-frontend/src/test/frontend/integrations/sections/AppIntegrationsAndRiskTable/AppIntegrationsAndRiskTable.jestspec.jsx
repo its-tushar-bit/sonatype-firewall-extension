@@ -8,7 +8,7 @@ import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/Sp
 import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import AppIntegrationsAndRiskTable from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
 import { map, range } from 'ramda';
-import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
+import { NX_STANDARD_DEBOUNCE_TIME, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 describe('AppIntegrationsAndRisk Table', () => {
   let axiosMock;
@@ -794,7 +794,49 @@ describe('AppIntegrationsAndRisk Table', () => {
     });
   });
 
-  function createAppArrayWithLength(length, startIndex = 0) {
+  it('renders the configure button if the user has not enabled the CICD and SCM configuration', async () => {
+    const totalDataRows = 10;
+    axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+      results: createAppArrayWithLength(totalDataRows).reverse(),
+      numResults: 10,
+      total: 10,
+      page: 1,
+      pageSize: 10,
+      pageCount: 1,
+    });
+    render(<AppIntegrationsAndRiskTable />);
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+
+    let rows = await screen.findAllByRole('row');
+    expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+    for (let i = 0; i < totalDataRows; i++) {
+      expect(within(rows[i + 2]).queryAllByRole('cell', { name: 'Configure' })[0]).toBeInTheDocument();
+      expect(within(rows[i + 2]).queryAllByRole('cell', { name: 'Configure' })[1]).toBeInTheDocument();
+    }
+  });
+
+  it('renders the enabled icon if the user has enabled the SCM and CICD configuration', async () => {
+    const totalDataRows = 10;
+    axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+      results: createAppArrayWithLength(totalDataRows, 0, true, true).reverse(),
+      numResults: 10,
+      total: 10,
+      page: 1,
+      pageSize: 10,
+      pageCount: 1,
+    });
+    render(<AppIntegrationsAndRiskTable />);
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+
+    let rows = await screen.findAllByRole('row');
+    for (let i = 0; i < totalDataRows; i++) {
+      expect(within(rows[i + 2]).queryAllByRole('cell', { name: NxFontAwesomeIcon.name })[0]).toBeInTheDocument();
+      expect(within(rows[i + 2]).queryAllByRole('cell', { name: NxFontAwesomeIcon.name })[1]).toBeInTheDocument();
+    }
+  });
+
+  function createAppArrayWithLength(length, startIndex = 0, cicdEnabled = false, scmEnabled = false) {
     // Create a date object for January 1, 2023
     const date = new Date('January 1, 2023');
 
@@ -811,8 +853,9 @@ describe('AppIntegrationsAndRisk Table', () => {
         lastCommitTimestamp: timestamp + i * oneDayMilliseconds,
         lastEvaluationTimestamp: timestamp + i * oneDayMilliseconds,
         totalRiskScore: i,
-        ciIntegrationEnabled: false,
-        automatedSourceControlFeedbackEnabled: false,
+        ciIntegrationEnabled: cicdEnabled,
+        automatedSourceControlFeedbackEnabled: scmEnabled,
+        organizationId: `OrgId${i}`,
       }),
       range(startIndex, startIndex + length)
     );

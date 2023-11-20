@@ -77,7 +77,7 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
                 newTab
                 data-analytics-id={dataAnalyticsIdApplicationSourceControl}
               >
-                Click here{' '}
+                click here{' '}
               </NxTextLink>
               to go to your application source control configuration page
             </NxList.Text>

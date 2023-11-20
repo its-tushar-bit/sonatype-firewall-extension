@@ -5,15 +5,7 @@
  */
 
 import React from 'react';
-import {
-  NxH3,
-  NxP,
-  NxTextLink,
-  NxCopyToClipboard,
-  NxCard,
-  NxTable,
-  NxDescriptionList,
-} from '@sonatype/react-shared-components';
+import { NxH3, NxP, NxTextLink, NxCopyToClipboard, NxCard, NxDescriptionList } from '@sonatype/react-shared-components';
 import '../CiCdWizard.scss';
 import PropTypes from 'prop-types';
 
@@ -38,15 +30,15 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
   const reviewUrl = 'https://links.sonatype.com//products/clm/bamboo/docs/evaluate-policies-review-results';
 
   return (
-    <div id="iq-integrations-cicd-Bamboo">
-      <NxH3>Overview</NxH3>
-      <NxP className="iq-integrations__full-width-text">
+    <div id="iq-integrations-cicd-wizard">
+      <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
+      <NxP id="iq-integrations-cicd-wizard-paragraph">
         Sonatype IQ for Bamboo integrates with Atlassian Bamboo to run policy evaluations in the build workspace. It
         provides instant analysis of open-source components used in every Bamboo build.
       </NxP>
-      <NxH3>Easy steps for Bamboo Configuration</NxH3>
-      <NxCard.Container className="iq-integrations-card-container">
-        <NxCard className="iq-integrations-card-cicd" aria-label="Install / Configure">
+      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Bamboo Configuration</NxH3>
+      <NxCard.Container>
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Download</NxH3>
@@ -63,7 +55,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
-        <NxCard className="iq-integrations-card-cicd" aria-label="Configure">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Install & Configure</NxH3>
@@ -78,7 +70,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
-        <NxCard className="iq-integrations-card-cicd" aria-label="Review">
+        <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Review">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Review</NxH3>
@@ -100,7 +92,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
         id="Bamboo-pipeline-script"
         content={snippet}
       />
-      <NxH3>Parameter Description</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Parameter Description</NxH3>
       <NxDescriptionList className="iq-integrations-description-list-cicd">
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>IQ Application (clmAppId)</NxDescriptionList.Term>
@@ -176,11 +168,12 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
       </NxDescriptionList>
-      <NxP>
+      <NxP className="iq-integration-cicd-wizard-p">
         <b>For more information, visit </b>
         <NxTextLink
           data-analytics-id="sonatype-developer-cicd-bamboo-more-info"
           href="https://links.sonatype.com/products/nxiq/doc/integrations/bamboo"
+          newTab
         >
           Sonatype Documentation
         </NxTextLink>

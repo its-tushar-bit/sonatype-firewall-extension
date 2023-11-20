@@ -19,6 +19,10 @@ public class RepositoriesSummaryPage
     return BaseUrl.resolvePageUrl("/management/view/repository_container/REPOSITORY_CONTAINER_ID");
   }
 
+  public static String repositoryManagerUrl(String repositoryManagerId) {
+    return BaseUrl.resolvePageUrl("/management/view/repository_manager/" + repositoryManagerId);
+  }
+
   public static RepositoriesSummaryTile summaryTile() {
     return new RepositoriesSummaryTile();
   }

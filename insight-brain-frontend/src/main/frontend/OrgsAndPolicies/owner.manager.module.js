@@ -24,7 +24,7 @@ import viewTemplate from 'MainRoot/owner.manager/state/owner.manager.view.html';
 import editTemplate from 'MainRoot/owner.manager/state/owner.manager.edit.html';
 import SourceControlService from './sourceControlConfiguration/source.control.service';
 import RepositoriesSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesSummaryView';
-import RepositoryManagerSummary from 'MainRoot/OrgsAndPolicies/repositoryManagerSummary/RepositoryManagerSummary';
+import RepositoryManagerSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerSummaryView';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
@@ -66,7 +66,7 @@ export default angular
   .service('SourceControlService', SourceControlService)
   .component('ownerSummary', iqReact2Angular(OwnerSummary, [], ['$ngRedux', '$state']))
   .component('repositoriesSummaryView', iqReact2Angular(RepositoriesSummaryView, [], ['$ngRedux', '$state']))
-  .component('repositoryManagerSummary', iqReact2Angular(RepositoryManagerSummary, [], ['$ngRedux', '$state']))
+  .component('repositoryManagerSummaryView', iqReact2Angular(RepositoryManagerSummaryView, [], ['$ngRedux', '$state']))
   .component('licenseThreatGroupEditor', iqReact2Angular(LicenseThreatGroupEditor, [], ['$ngRedux']))
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
@@ -101,6 +101,11 @@ export default angular
           name: 'Repositories',
           id: 'repositoryContainerId',
         },
+        {
+          type: 'repository_manager',
+          name: 'Repository manager',
+          id: 'repositoryManagerId',
+        },
       ];
 
       $stateProvider
@@ -132,14 +137,6 @@ export default angular
             viewportSized: true,
           },
           component: 'repositoriesSummaryView',
-        })
-        .state('management.view.repository_manager', {
-          url: '/repository_manager/{repositoryManagerId}',
-          data: {
-            title: 'Repository Manager Management',
-            viewportSized: true,
-          },
-          component: 'repositoryManagerSummary',
         });
 
       ownerTypes.forEach(function (ownerType) {
@@ -150,7 +147,7 @@ export default angular
               title: ownerType.name + ' Management',
               viewportSized: true,
             },
-            component: 'ownerSummary',
+            component: ownerType.type === 'repository_manager' ? 'repositoryManagerSummaryView' : 'ownerSummary',
           });
         }
         $stateProvider

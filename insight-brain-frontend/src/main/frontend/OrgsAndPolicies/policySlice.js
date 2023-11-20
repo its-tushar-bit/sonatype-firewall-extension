@@ -51,6 +51,7 @@ import {
   selectRouterCurrentParams,
   selectOwnerInfo,
   selectIsRepositoriesRelated,
+  selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
@@ -538,8 +539,9 @@ const checkEditIqPermission = createAsyncThunk(
   (_, { rejectWithValue, getState }) => {
     const state = getState();
     const isRepositories = selectIsRepositoriesRelated(state);
+    const isRepositoryManager = selectIsRepositoryManager(state);
     const ownerType = getOwnerType(state);
-    const ownerId = isRepositories ? 'REPOSITORY_CONTAINER_ID' : selectSelectedOwnerId(state);
+    const ownerId = isRepositories && !isRepositoryManager ? 'REPOSITORY_CONTAINER_ID' : selectSelectedOwnerId(state);
     return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
   }
 );

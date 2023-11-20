@@ -8,12 +8,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { path, prop } from 'ramda';
 
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
-import { getApplicablePolicies, getApplicationSummaryUrl, getOrganizationUrl } from '../util/CLMLocation';
+import {
+  getApplicablePolicies,
+  getApplicationSummaryUrl,
+  getOrganizationUrl,
+  getRepositoryManagerById,
+} from '../util/CLMLocation';
 import { selectEntityId, selectOwnerProperties, selectSelectedOwner } from './orgsAndPoliciesSelectors';
 import {
   selectCurrentRouteName,
   selectIsApplication,
   selectIsRepositoriesRelated,
+  selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
@@ -44,6 +50,7 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
   (_, { getState, rejectWithValue }) => {
     let ownerType, ownerId;
     const currentRouteName = selectCurrentRouteName(getState());
+
     if (currentRouteName === 'management.view.repository_container') {
       ownerType = 'repository_container';
       ownerId = 'REPOSITORY_CONTAINER_ID';
@@ -52,6 +59,7 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
       ownerType = ownerProperties.ownerType;
       ownerId = ownerProperties.ownerId;
     }
+
     return axios
       .get(getApplicablePolicies(ownerType, ownerId))
       .then(path(['data', 'policiesByOwner']))
@@ -65,14 +73,19 @@ const loadSelectedOwner = createAsyncThunk(
     const state = getState();
     const isApp = selectIsApplication(state);
     const isRepositories = selectIsRepositoriesRelated(state);
+    const isRepositoryManager = selectIsRepositoryManager(state);
     const entityId = selectEntityId(state);
     const selectedOwner = selectSelectedOwner(state);
     const shouldReloadOwner = forceReload || entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id);
+
     if (!shouldReloadOwner) {
       return Promise.resolve(selectedOwner);
     }
 
     if (isRepositories) {
+      if (isRepositoryManager) {
+        return axios.get(getRepositoryManagerById(entityId)).then(prop('data')).catch(rejectWithValue);
+      }
       return Promise.resolve({ name: 'Repositories', id: 'REPOSITORY_CONTAINER_ID' });
     }
 

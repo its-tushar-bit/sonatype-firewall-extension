@@ -8,9 +8,12 @@ import { prop, has } from 'ramda';
 import {
   selectRouterCurrentParams,
   selectApplicationId,
+  selectIsOrganization,
   selectIsApplication,
   selectOrganizationId,
   selectIsRepositories,
+  selectIsRepositoryManager,
+  selectRepositoryManagerId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectOrgsAndPoliciesSlice = prop('orgsAndPolicies');
@@ -34,11 +37,21 @@ export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('polic
 export const selectOwnerProperties = createSelector(
   selectRouterCurrentParams,
   selectIsRepositories,
-  ({ applicationPublicId, organizationId, applicationId, repositoryContainerId }, isRepositories) => {
+  selectIsRepositoryManager,
+  (
+    { applicationPublicId, organizationId, applicationId, repositoryContainerId, repositoryManagerId },
+    isRepositories,
+    isReposityManager
+  ) => {
     if (repositoryContainerId || isRepositories) {
       return {
         ownerType: 'repository_container',
         ownerId: repositoryContainerId || 'REPOSITORY_CONTAINER_ID',
+      };
+    } else if (isReposityManager) {
+      return {
+        ownerType: 'repository_manager',
+        ownerId: repositoryManagerId,
       };
     } else {
       return {
@@ -50,10 +63,14 @@ export const selectOwnerProperties = createSelector(
 );
 
 export const selectEntityId = createSelector(
+  selectIsOrganization,
   selectIsApplication,
+  selectIsRepositoryManager,
   selectOrganizationId,
   selectApplicationId,
-  (isApplication, orgId, appId) => (isApplication ? appId : orgId ? orgId : 'global')
+  selectRepositoryManagerId,
+  (isOrganization, isApplication, isRepositoryManager, orgId, appId, selectRepositoryManagerId) =>
+    isApplication ? appId : isOrganization ? orgId : isRepositoryManager ? selectRepositoryManagerId : 'global'
 );
 
 export const selectSelectedOwnerTypeAndId = createSelector(selectSelectedOwner, (owner) => ({

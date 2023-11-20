@@ -69,12 +69,15 @@ export const selectIsRepositoriesRelated = createSelector(
   selectIsRepository,
   selectIsRepositories,
   selectIsRepositoryContainer,
-  (isRepository, isRepositories, isRepositoryContainer) => isRepository || isRepositories || isRepositoryContainer
+  selectIsRepositoryManager,
+  (isRepository, isRepositories, isRepositoryContainer, isRepositoryManager) =>
+    isRepository || isRepositories || isRepositoryContainer || isRepositoryManager
 );
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
+export const selectRepositoryManagerId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryManagerId'));
 export const selectViolationId = createSelector(selectRouterCurrentParams, propOr('', 'violationId'));
 export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryPolicyId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryPolicyId'));
@@ -109,6 +112,7 @@ export const selectOwnerInfo = createSelector(
   selectIsRepositoryManager,
   selectOrganizationId,
   selectApplicationId,
+  selectRepositoryManagerId,
   (
     isOrganization,
     isApplication,
@@ -133,6 +137,8 @@ export const selectOwnerInfo = createSelector(
       ? 'repository_manager'
       : isRepositories
       ? 'repository_container'
+      : isRepositoryManager
+      ? 'repository_manager'
       : 'global';
 
     if (isRepositories) {

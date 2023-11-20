@@ -1327,6 +1327,9 @@ export const getRepositoryListUrl = (repositoryManagerId) =>
 
 export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integration/repositories/evaluate/ignorePatterns`;
 
+export const getRepositoryManagerById = (repositoryManagerId) =>
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}`;
+
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
   uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
 

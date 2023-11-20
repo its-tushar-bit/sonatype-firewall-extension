@@ -12,6 +12,7 @@ import {
   selectPoliciesByOwner,
   selectRootSlice,
   selectSelectedOwnerParentId,
+  selectOwnerProperties,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
@@ -32,7 +33,11 @@ describe('orgsAndPoliciesSelectors', () => {
         currentState: {
           name: 'management.view.application',
         },
-        currentParams: { organizationId: 'orgId', applicationPublicId: 'alpine-test' },
+        currentParams: {
+          organizationId: 'orgId',
+          applicationPublicId: 'alpine-test',
+          repositoryManagerId: 'repoManagerId',
+        },
       },
     };
   });
@@ -97,6 +102,11 @@ describe('orgsAndPoliciesSelectors', () => {
       mockState.router.currentState.name = 'management.view.organization';
       expect(selectEntityId(mockState)).toBe('orgId');
     });
+
+    it('returns repository manager id', () => {
+      mockState.router.currentState.name = 'management.view.repository_manager';
+      expect(selectEntityId(mockState)).toBe('repoManagerId');
+    });
   });
 
   describe('selectPoliciesByOwner', () => {
@@ -106,8 +116,44 @@ describe('orgsAndPoliciesSelectors', () => {
 
     it('selects policiesByOwner', () => {
       const actualSelection = selectPoliciesByOwner.resultFunc({ policiesByOwner: null });
-
       expect(actualSelection).toBeNull();
+    });
+  });
+
+  describe('selectOwnerProperties', () => {
+    it('returns application ownerType and ownerId', () => {
+      mockState.router.currentParams = { applicationPublicId: 'alpine-test' };
+      expect(selectOwnerProperties(mockState)).toEqual({
+        ownerType: 'application',
+        ownerId: 'alpine-test',
+      });
+    });
+
+    it('returns organization ownerType and ownerId', () => {
+      mockState.router.currentState.name = 'management.view.organization';
+      mockState.router.currentParams = { organizationId: 'orgId' };
+      expect(selectOwnerProperties(mockState)).toEqual({
+        ownerType: 'organization',
+        ownerId: 'orgId',
+      });
+    });
+
+    it('returns repository manager ownerType and ownerId', () => {
+      mockState.router.currentState.name = 'management.view.repository_manager';
+      mockState.router.currentParams = { repositoryManagerId: 'repoManagerId' };
+      expect(selectOwnerProperties(mockState)).toEqual({
+        ownerType: 'repository_manager',
+        ownerId: 'repoManagerId',
+      });
+    });
+
+    it('returns repository container ownerType and ownerId if router name includes repositories', () => {
+      mockState.router.currentState.name = '/repositories';
+      mockState.router.currentParams = {};
+      expect(selectOwnerProperties(mockState)).toEqual({
+        ownerType: 'repository_container',
+        ownerId: 'REPOSITORY_CONTAINER_ID',
+      });
     });
   });
 });

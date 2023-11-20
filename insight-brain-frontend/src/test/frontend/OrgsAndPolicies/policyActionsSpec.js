@@ -31,7 +31,14 @@ describe('policySlice actions', () => {
 
   beforeEach(function () {
     store = SpecUtil.mockReduxStore({
-      router: { currentParams: { organizationId: 'e270271429f747ef9bebf4ca88f5e6c0' } },
+      router: {
+        currentParams: {
+          organizationId: 'e270271429f747ef9bebf4ca88f5e6c0',
+        },
+        currentState: {
+          name: 'management.view.organization',
+        },
+      },
       orgsAndPolicies: {
         organizations: { organizations: [] },
         root: {
@@ -714,15 +721,16 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'policy/removePolicy/pending',
           'policy/resetIsDirty',
           'policy/goToCreatePolicy/pending',
-          'policy/goToCreatePolicy/rejected',
+          '@@reduxUiRouter/stateGo',
+          'policy/goToCreatePolicy/fulfilled',
           'policy/removePolicy/fulfilled',
         ]);
-        expect(actions[4].payload).toBe(currentPolicyId);
+        expect(actions[5].payload).toBe(currentPolicyId);
 
         done();
       });

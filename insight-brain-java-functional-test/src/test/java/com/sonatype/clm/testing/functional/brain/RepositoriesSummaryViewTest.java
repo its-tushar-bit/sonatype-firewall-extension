@@ -288,7 +288,7 @@ public class RepositoriesSummaryViewTest
 
     configurationTable.repositoryFormatFilter().click();
     configurationTable.repositoryFormatFilter().$(".nx-radio-checkbox").click();
-    
+
     configurationTable.rows().shouldHaveSize(6);
     configurationTable.row(1, 2).publicId().shouldHave(text("r11"));
     configurationTable.row(2, 2).publicId().shouldHave(text("r22"));
@@ -619,7 +619,7 @@ public class RepositoriesSummaryViewTest
 
     SelenideElement toggle = namespaceConfusionProtectionTile.enabledToggleIndicators().get(0);
     ScrollUtil.scrollIntoView(toggle, false);
-    
+
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(selected);
     assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm").get(0).isEnabled()).isTrue();
 
@@ -676,7 +676,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
-    
+
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
@@ -689,7 +689,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
-    
+
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[12]));
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
@@ -697,7 +697,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
-    
+
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
@@ -711,7 +711,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
-    
+
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
     namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
@@ -1029,7 +1029,7 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().click();
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
         attribute("aria-label", "Format descending"));
-    
+
     assertRowOrder("rm2", "h", "a", "j", "f", "c", "rm1", "g", "d", "i", "e", "b");
   }
 
@@ -1156,5 +1156,50 @@ public class RepositoriesSummaryViewTest
     accessTile.shouldBe(visible);
     AccessTileList list = accessTile.accessList(0);
     list.emptyDescriptor().should(exist);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_policyTile() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+
+    Owner rootOrgOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+
+    List<Policy> localToRepositoryManagerPolicies = new ArrayList<>();
+    localToRepositoryManagerPolicies.add(tempEntity.newPolicy(repositoryManager.getId(),
+        "Policy local 1 " + repositoryManager.getName(), 10, Action.ID_FAIL, Stage.ID_BUILD, null));
+
+    List<Policy> inheritedFromRootOrgPolicies = new ArrayList<>();
+    inheritedFromRootOrgPolicies.add(tempEntity.newPolicy(rootOrgOwner.getId(), "Policy 1 " + rootOrgOwner.getName(),
+        10, Action.ID_FAIL, Stage.ID_BUILD, null));
+    inheritedFromRootOrgPolicies.add(tempEntity.newPolicy(rootOrgOwner.getId(), "Policy 2 " + rootOrgOwner.getName(),
+        5, Action.ID_WARN, Stage.ID_BUILD, null));
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.name().shouldBe(visible).shouldHave(text(repositoryManager.getName()));
+
+    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
+    policyTile.shouldBe(visible);
+    policyTile.policyLists().shouldHaveSize(3);
+
+    PolicyTileList policyTileLocalList = policyTile.policyList(0);
+    policyTileLocalList.ownerName().shouldHave(text("Local to " + repositoryManager.getName()));
+    policyTileLocalList.rows().shouldHaveSize(localToRepositoryManagerPolicies.size() + 1);
+
+    String repositoryContainerName = RepositoryContainer.SINGLETON.getName();
+    PolicyTileList policyTileRepositoryContainerList = policyTile.policyList(1);
+    policyTileRepositoryContainerList.ownerName().shouldHave(text("Inherited from " + repositoryContainerName));
+    policyTileRepositoryContainerList.rows().shouldHaveSize(2);
+    policyTileRepositoryContainerList.emptyDescriptor()
+        .shouldHave(text("No " + repositoryContainerName + " policies defined"));
+
+    PolicyTileList policyTileInheritedList = policyTile.policyList(2);
+    policyTileInheritedList.ownerName().shouldHave(text("Inherited from " + rootOrgOwner.getName()));
+    policyTileInheritedList.rows().shouldHaveSize(inheritedFromRootOrgPolicies.size() + 1);
+
+    eyesWatcher.eyesCheck("repository manager policies tile");
   }
 }

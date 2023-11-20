@@ -22,6 +22,7 @@ import {
   selectPolicyTileLoadError,
   selectPolicyTileSortingCollapsible,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { selectIsRepositoryManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
   selectIsEnforcementSupported,
@@ -41,6 +42,7 @@ export default function PoliciesTile() {
   const loadError = useSelector(selectPolicyTileLoadError);
   const entityId = useSelector(selectEntityId);
   const collapsibleSorting = useSelector(selectPolicyTileSortingCollapsible);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -66,10 +68,12 @@ export default function PoliciesTile() {
             </NxTile.HeaderTitle>
           </NxTile.Headings>
           <NxTile.HeaderActions>
-            <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              <span>Add a Policy</span>
-            </NxButton>
+            {!isRepositoryManager && (
+              <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>Add a Policy</span>
+              </NxButton>
+            )}
           </NxTile.HeaderActions>
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>
@@ -85,6 +89,7 @@ export default function PoliciesTile() {
                   isFirewallSupported={isFirewallSupported}
                   isEnforcementSupported={isEnforcementSupported}
                   collapsibleSorting={collapsibleSorting}
+                  isRepositories={isRepositoryManager}
                 />
               </NxTableContainer>
             )}

@@ -123,7 +123,7 @@ public class RepositoryService
    * @since 1.19.0
    */
   @Authorize(permission = Permission.WRITE)
-  public void unquarantineComponent(
+  void unquarantineComponent(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final String pathname,
       final String clientUserAgent)
@@ -220,7 +220,7 @@ public class RepositoryService
   private final Executor reevalExecutor = createReevaluationExecutor();
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+  void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     AuditData.get().continueAsync(reevalExecutor, new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator,
         reevalExecutor, MAX_REPOSITORY_EVALUATION_REQUEST_SIZE));
@@ -237,7 +237,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+  void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     repositoryDAO.delete(repository);
     AuditData.get().setData("repositoryManagerInstanceId",
@@ -292,9 +292,10 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public void reevaluateComponent(@AuthzContext(Key.REPOSITORY_ID) String repositoryId,
-                                  String hash,
-                                  final String clientUserAgent)
+  void reevaluateComponent(
+      @AuthzContext(Key.REPOSITORY_ID) String repositoryId,
+      String hash,
+      final String clientUserAgent)
   {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
@@ -438,45 +439,14 @@ public class RepositoryService
         repositoryPolicyViolation.getTime());
   }
 
-  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
+  ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
       ProprietaryComponentNamePatternRequest request)
   {
-    log.debug("Getting proprietary component name patterns");
-
-    if (request == null) {
-      throw new BadRequestException("Missing request parameters");
-    }
-
-    ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
-
-    List<Repository> hostedRepositoriesWithReadPermission =
-        filterRepositoriesWithReadPermission(repositoryDAO.getByRepositoryType(RepositoryType.hosted));
-    Set<String> repositoryIds =
-        hostedRepositoriesWithReadPermission.stream().map(Repository::getId).collect(Collectors.toSet());
-    List<ProprietaryComponentNamePatternDTO> proprietaryComponentNamePatterns =
-        proprietaryComponentNamePatternDAO.getByFilter(repositoryIds, filter);
-
-    ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
-
-    int iPattern = 1;
-    for (ProprietaryComponentNamePatternDTO proprietaryComponentNamePattern : proprietaryComponentNamePatterns) {
-      if (iPattern <= request.pageSize) {
-        result.proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
-      }
-      else {
-        result.hasNextPage = true;
-        break;
-      }
-
-      iPattern++;
-    }
-
-    return result;
+    return getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, request);
   }
 
-  public void updateProprietaryComponentNamePattern(
-      ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
-  {
+  void updateProprietaryComponentNamePattern(ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO) {
     if (proprietaryComponentNamePatternDTO == null) {
       throw new BadRequestException("Missing request parameters");
     }
@@ -572,7 +542,7 @@ public class RepositoryService
     return unconfiguredRepositoryManagers;
   }
 
-  public static int compareVersions(String version1, String version2) {
+  private static int compareVersions(String version1, String version2) {
     try {
       GenericVersionScheme scheme = new GenericVersionScheme();
       Version ver1 = scheme.parseVersion(version1);
@@ -788,7 +758,7 @@ public class RepositoryService
     return repositoryManagerDAO.getAll();
   }
 
-  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(
+  ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(
       OwnerType ownerType,
       String ownerId,
       ProprietaryComponentNamePatternRequest request)

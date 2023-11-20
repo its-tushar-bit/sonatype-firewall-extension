@@ -91,7 +91,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>Stage</NxDescriptionList.Term>
           <NxDescriptionList.Description>options [build, stage, release, operate]</NxDescriptionList.Description>
-          <NxDescriptionList.Description>Stage in IQ for the evaluation</NxDescriptionList.Description>
+          <NxDescriptionList.Description>Stage in Sonatype for the evaluation</NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>Scan Targets</NxDescriptionList.Term>
@@ -111,7 +111,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>Ignore IQ Server's system errors</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Ignore Sonatype's system errors</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
           <NxDescriptionList.Description>
             Controls the pipeline outcome when the scan or evaluation fails to produce results for some (possibly
@@ -119,7 +119,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>Ignore IQ Server's Scanning errors</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Ignore Sonatype's Scanning errors</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
           <NxDescriptionList.Description>
             Controls the pipeline outcome when there are scanning errors such as malformed files
@@ -128,7 +128,9 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>Enable Debug Logging</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
-          <NxDescriptionList.Description>Enables debug logging for IQ policy evaluation</NxDescriptionList.Description>
+          <NxDescriptionList.Description>
+            Enables debug logging for Sonatype policy evaluation
+          </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>Java System Properties</NxDescriptionList.Term>

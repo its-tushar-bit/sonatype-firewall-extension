@@ -19,10 +19,10 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
 
   const shouldDisplayNotice = useSelector(selectShouldDisplayNotice);
 
-  const permissionUrl = 'http://links.sonatype.com/products/nxiq/doc/scm-token-permissions';
+  const permissionUrl = 'https://links.sonatype.com/products/nxiq/doc/scm-token-permissions';
   const applicationSourceControlPage = `/assets/#/management/edit/application/${applicationPublicId}/source-control`;
   const automaticSourceControlConfigurationPage = '/assets/#/automaticSourceControlConfiguration';
-  const configureSourceControlHelpLink = 'http://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
+  const configureSourceControlHelpLink = 'https://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
 
   const dataAnalyticsIdToken = `sonatype-developer-scm-${scmProvider}-token`;
   const dataAnalyticsIdPermission = `sonatype-developer-scm-${scmProvider}-permission`;
@@ -33,6 +33,24 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
 
   return (
     <NxCard className="iq-integrations-scm-wizard-card" aria-label="SCM Wizard">
+      <div className="iq-integrations-scm-wizard-card-sections">
+        <NxH3>Enable automatic source control</NxH3>
+        <NxList bulleted>
+          <NxList.Item>
+            You can enable{' '}
+            <NxTextLink
+              href={automaticSourceControlConfigurationPage}
+              newTab
+              data-analytics-id={dataAnalyticsIdAutomaticSourceControlConf}
+            >
+              Automatic Source Control
+            </NxTextLink>{' '}
+            , which the repository URL will be automatically discovered from the git project information and configured
+            for the Sonatype application
+          </NxList.Item>
+        </NxList>
+      </div>
+
       <div className="iq-integrations-scm-wizard-card-sections">
         <NxH3>Create Access Token</NxH3>
         <NxList bulleted>
@@ -88,18 +106,6 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
               </NxList.Item>
               <NxList.Item>Make sure your access token is set up with the required permissions</NxList.Item>
               <NxList.Item>Double check the default branch name is correct</NxList.Item>
-              <NxList.Item>
-                You can also enable{' '}
-                <NxTextLink
-                  href={automaticSourceControlConfigurationPage}
-                  newTab
-                  data-analytics-id={dataAnalyticsIdAutomaticSourceControlConf}
-                >
-                  Automatic Source Control
-                </NxTextLink>{' '}
-                , which the repository URL will be automatically discovered from the git project information and
-                configured for the IQ application
-              </NxList.Item>
               <NxList.Item>
                 More information about how to configure source control for your application can be found{' '}
                 <NxTextLink href={configureSourceControlHelpLink} newTab data-analytics-id={dataAnalyticsIdHelp}>

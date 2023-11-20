@@ -11,18 +11,18 @@ import GitlabWizard from 'MainRoot/integrations/sections/CiCdWizards/GitLab/Gitl
 describe('GitlabWizard', () => {
   it('renders the correct configure URL link', () => {
     renderComponent();
-    const expectedInstallUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
+    const expectedInstallUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
     expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute('href', expectedInstallUrl);
   });
 
   it('renders the correct connection information URL link', () => {
     renderComponent();
-    const connectUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
+    const connectUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
     expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute('href', connectUrl);
   });
 
   it('renders the correct dockerhub image link', () => {
-    const dockerUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
+    const dockerUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
     renderComponent();
     expect(screen.getByRole('link', { name: 'documentation provided with the image on Docker Hub' })).toHaveAttribute(
       'href',
@@ -31,7 +31,7 @@ describe('GitlabWizard', () => {
   });
 
   it('renders the correct sonatype documentation link', () => {
-    const docUrl = `http://links.sonatype.com/products/nxiq/doc/integrations/gitlab`;
+    const docUrl = `https://links.sonatype.com/products/nxiq/doc/integrations/gitlab`;
     renderComponent();
     expect(screen.getByRole('link', { name: 'Sonatype Documentation' })).toHaveAttribute('href', docUrl);
   });

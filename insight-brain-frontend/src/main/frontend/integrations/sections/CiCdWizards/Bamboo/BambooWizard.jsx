@@ -33,7 +33,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
     <div id="iq-integrations-cicd-wizard">
       <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
       <NxP id="iq-integrations-cicd-wizard-paragraph">
-        Sonatype IQ for Bamboo integrates with Atlassian Bamboo to run policy evaluations in the build workspace. It
+        Sonatype for Bamboo integrates with Atlassian Bamboo to run policy evaluations in the build workspace. It
         provides instant analysis of open-source components used in every Bamboo build.
       </NxP>
       <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Bamboo Configuration</NxH3>
@@ -42,7 +42,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
               <NxH3>Download</NxH3>
-              <NxP>Install & Start IQ Server</NxP>
+              <NxP>Download add-on</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
@@ -93,38 +93,38 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
         content={snippet}
       />
       <NxH3 className="iq-integrations-cicd-wizard-header">Parameter Description</NxH3>
-      <NxDescriptionList className="iq-integrations-description-list-cicd">
+      <NxDescriptionList className="iq-integrations-description-list-cicd nx-scrollable">
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Application (clmAppId)</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Application ID (clmAppId)</NxDescriptionList.Term>
           <NxDescriptionList.Description>{iqApplication}</NxDescriptionList.Description>
-          <NxDescriptionList.Description>The IQ Server identifier for applications</NxDescriptionList.Description>
+          <NxDescriptionList.Description>The Server identifier for applications</NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Scan patterns</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Scan patterns</NxDescriptionList.Term>
           <NxDescriptionList.Description>**/*.jar</NxDescriptionList.Description>
           <NxDescriptionList.Description>
             A comma-separated list of Ant-style patterns to analyze
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Stage</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Stage</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
           <NxDescriptionList.Description>
             Options [develop, source, build, stage, release, operate]
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Org ID (clmOrgId)</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Org ID (clmOrgId)</NxDescriptionList.Term>
           <NxDescriptionList.Description>{iqOrganization}</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            the IQ Server identifier to the applications organization.
+            The Server identifier to the applications organization.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>plugin-key</NxDescriptionList.Term>
           <NxDescriptionList.Description>com.sonatype.clm.ci.bamboo:clm-scan-task</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            The plugin identifier within Bamboo: The plugin's module used in the task. You can find the Nexus IQ plugin
+            The plugin identifier within Bamboo: The plugin's module used in the task. You can find the Sonatype plugin
             information in the Add-ons/apps administration section in Bamboo.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
@@ -132,7 +132,7 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
           <NxDescriptionList.Term>failOnClmFailures</NxDescriptionList.Term>
           <NxDescriptionList.Description>true or false(default)</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            If set to true the build will fail when an IQ evaluation can’t be performed or if for any reason the
+            If set to true the build will fail when an Sonatype evaluation can’t be performed or if for any reason the
             evaluation is not generated.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
@@ -147,16 +147,16 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
           <NxDescriptionList.Term>clmOrgIdType</NxDescriptionList.Term>
           <NxDescriptionList.Description>specified (default) or selected</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            Whether the Nexus IQ Organization ID is specified or selected from a list. In the Bamboo Specs scope any of
-            the accepted values is valid.
+            Whether the Organization ID is specified or selected from a list. In the Bamboo Specs scope any of the
+            accepted values is valid.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>clmAppIdType</NxDescriptionList.Term>
           <NxDescriptionList.Description>specified or selected</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            Whether the Nexus IQ Application ID is specified or selected from a list. In the Bamboo Specs scope any of
-            the accepted values is valid.
+            Whether the Application ID is specified or selected from a list. In the Bamboo Specs scope any of the
+            accepted values is valid.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>

@@ -25,8 +25,8 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
     <div id="iq-integrations-cicd-wizard">
       <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
       <NxP id="iq-integrations-cicd-wizard-paragraph">
-        A Jenkins administrator is required to install and connect the Sonatype Platform plugin for Jenkins to IQ server
-        for the first time. Follow the steps in the documentation for details.
+        A Jenkins administrator is required to install and connect the Sonatype Platform plugin for Jenkins to Sonatype
+        server for the first time. Follow the steps in the documentation for details.
       </NxP>
       <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Jenkins Configuration</NxH3>
       <NxCard.Container>
@@ -81,33 +81,35 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
       <NxH3 className="iq-integrations-cicd-wizard-header">Parameter Description</NxH3>
       <NxDescriptionList className="iq-integrations-description-list-cicd">
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Application</NxDescriptionList.Term>
-          <NxDescriptionList.Description>the IQ server identifier for applications</NxDescriptionList.Description>
+          <NxDescriptionList.Term>Application ID</NxDescriptionList.Term>
+          <NxDescriptionList.Description>The server identifier for applications</NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>IQ Instance</NxDescriptionList.Term>
-          <NxDescriptionList.Description>the Jenkins configuration setting for IQ Server</NxDescriptionList.Description>
-        </NxDescriptionList.Item>
-        <NxDescriptionList.Item>
-          <NxDescriptionList.Term>
-            IQ Scan patterns <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
-          </NxDescriptionList.Term>
+          <NxDescriptionList.Term>Instance</NxDescriptionList.Term>
           <NxDescriptionList.Description>
-            ecosystem specific patterns to match components to analyze
+            The Jenkins configuration setting for Sonatype Server
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>
-            IQ Stage <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
+            Scan patterns <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
           </NxDescriptionList.Term>
-          <NxDescriptionList.Description>options [build, stage, release, operate]</NxDescriptionList.Description>
+          <NxDescriptionList.Description>
+            Ecosystem specific patterns to match components to analyze
+          </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
           <NxDescriptionList.Term>
-            IQ Organization <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
+            Stage <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
+          </NxDescriptionList.Term>
+          <NxDescriptionList.Description>Options [build, stage, release, operate]</NxDescriptionList.Description>
+        </NxDescriptionList.Item>
+        <NxDescriptionList.Item>
+          <NxDescriptionList.Term>
+            Organization <div className="iq-integrations-description-list-thinner-text">(Optional)</div>
           </NxDescriptionList.Term>
           <NxDescriptionList.Description>
-            the IQ Server identifier to the applications organization.
+            The Server identifier to the applications organization.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
       </NxDescriptionList>

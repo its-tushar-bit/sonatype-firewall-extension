@@ -95,7 +95,7 @@ describe('ScmWizard', () => {
 
   it('renders the correct permission URL link', () => {
     renderComponent(mockScmProvider, mockApplicationPublicId);
-    const expectedPermissionUrl = 'http://links.sonatype.com/products/nxiq/doc/scm-token-permissions';
+    const expectedPermissionUrl = 'https://links.sonatype.com/products/nxiq/doc/scm-token-permissions';
     expect(screen.getByRole('link', { name: 'Check required permissions here' })).toHaveAttribute(
       'href',
       expectedPermissionUrl
@@ -128,7 +128,7 @@ describe('ScmWizard', () => {
 
   it('renders the correct configure source control help link', () => {
     renderComponent(mockScmProvider, mockApplicationPublicId);
-    const expectedConfigureSourceControlHelpLink = 'http://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
+    const expectedConfigureSourceControlHelpLink = 'https://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
     expect(screen.getAllByRole('link', { name: 'here' })[1]).toHaveAttribute(
       'href',
       expectedConfigureSourceControlHelpLink

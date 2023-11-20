@@ -10,17 +10,20 @@ import '../CiCdWizard.scss';
 import PropTypes from 'prop-types';
 
 export default function GitlabWizard({ iqApplication }) {
-  const configureUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
-  const connectUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
-  const dockerUrl = 'http://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
+  const configureUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
+  const connectUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
+  const dockerUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-docker-image';
 
   const snippet = String.raw`
-  policyEval:
-  stage: test
-  image: sonatype/gitlab-nexus-iq-pipeline:latest 
-  script:
-    /sonatype/evaluate -i ${iqApplication} target/{target_file}
-  `;
+  iq_policy_eval:
+      stage: test
+      image: sonatype/gitlab-nexus-iq-pipeline:latest
+      script:
+          - /sonatype/evaluate -i ${iqApplication} target/{target_file}
+    artifacts:
+        name: "policy-eval-$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+        paths:
+            - ${iqApplication}-policy-eval-report.html`;
   return (
     <div id="iq-integrations-cicd-wizard">
       <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
@@ -116,7 +119,7 @@ export default function GitlabWizard({ iqApplication }) {
         <NxTextLink
           newTab
           data-analytics-id="sonatype-developer-cicd-gitlab-more-info"
-          href="http://links.sonatype.com/products/nxiq/doc/integrations/gitlab"
+          href="https://links.sonatype.com/products/nxiq/doc/integrations/gitlab"
         >
           Sonatype Documentation
         </NxTextLink>

@@ -212,9 +212,8 @@ public class SpdxResultHandler
       componentIdentifier = resolvedComponent.getLeft();
     }
 
-    String fakeHash = ThirdPartyScanResultUtils.hash(
-        componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
-    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
+    String hash = getOrCreateFakeHash(component, componentIdentifier);
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);

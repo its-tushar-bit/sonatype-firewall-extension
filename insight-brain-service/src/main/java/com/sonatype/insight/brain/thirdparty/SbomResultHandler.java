@@ -454,15 +454,24 @@ public class SbomResultHandler
       componentIdentifier = resolvedComponent.getLeft();
     }
 
-    String fakeHash = ThirdPartyScanResultUtils.hash(
-        componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
-    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
+    String hash = getOrCreateFakeHash(component, componentIdentifier);
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
     saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
     return fileCoordinate.getId();
+  }
+
+  protected String getOrCreateFakeHash(Component component, ComponentIdentifier componentIdentifier) {
+    String sha1 = SbomUtils.getSha1(component);
+    if (StringUtils.isEmpty(sha1)) {
+      // generate a hash from the component identifier
+      sha1 = ThirdPartyScanResultUtils.hash(
+          StringUtils.join(componentIdentifier.getFormat(), componentIdentifier.getCoordinates().values(), ":"));
+    }
+    return sha1;
   }
 
   private void saveVulnerabilitiesExtension(

@@ -227,6 +227,26 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withSha1PresentInInput() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-purl-hashes-coordinates-components.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-component-purl-hashes-coordinates-components.xml",
+        null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 4);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(4);
+
+    ThirdPartyFileCoordinate coordinate = coordinates.get(0);
+    assertThat(coordinate.getName()).isEqualTo("tomcat-catalina");
+    // the saved hash matches the one in the input
+    assertThat(coordinate.getHash()).isEqualTo("e7b1000b94e835ffd37f");
+  }
+
+  @Test
   public void testHandleAndFilterContents_withVulnerabilitiesAndNoPurl() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-vulnerabilities-no-purl.xml");
     ThirdPartyScanContent content =

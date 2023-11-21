@@ -77,6 +77,23 @@ public class TenantSupportInfoServiceTest
       when(supportInfoFiles.withSystemConfigurationInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withSystemNoticeInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withWebhookInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withOrganizationInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withApplicationInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withApplicationTagInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withTagInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withPolicyTagInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withComponentLabelInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withLabelInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withDataRetentionPolicyInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withLicenseInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withMultiLicenseInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withLicenseThreatGroupInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withLicenseThreatGroupLicenseInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withProprietaryConfigInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withScmInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSourceControlInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withPolicyMonitoringInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withMigrationTrackerInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
       when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
           new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));

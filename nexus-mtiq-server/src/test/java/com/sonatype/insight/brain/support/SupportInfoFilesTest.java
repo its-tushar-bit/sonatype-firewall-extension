@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.support;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +19,25 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -32,11 +48,16 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -75,6 +96,9 @@ public class SupportInfoFilesTest
   private SystemInfo systemInfo;
 
   @Mock
+  private SourceControlConfigurationInfo sourceControlConfigurationInfo;
+
+  @Mock
   private SupportInfoUtil supportInfoUtil;
 
   private SupportInfoFiles supportInfoFiles;
@@ -84,7 +108,8 @@ public class SupportInfoFilesTest
   public void setup() {
     super.setup();
     supportInfoFiles =
-        new SupportInfoFiles(versionService, dbData, samlUserDao, configurationInfo, systemInfo, supportInfoUtil);
+        new SupportInfoFiles(versionService, dbData, samlUserDao, configurationInfo, systemInfo,
+            sourceControlConfigurationInfo, supportInfoUtil);
   }
 
   @AfterClass
@@ -526,6 +551,448 @@ public class SupportInfoFilesTest
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
     assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(webhook));
+  }
+
+  @Test
+  public void shouldProvideOrganizationInfo() throws IOException {
+    // Given
+    Organization organization1 = new Organization();
+    organization1.setParentOrganizationId("ROOT_ORGANIZATION_ID");
+    organization1.setName("Test Organization 1");
+    Organization organization2 = new Organization();
+    organization2.setParentOrganizationId("ROOT_ORGANIZATION_ID");
+    organization2.setName("Test Organization 2");
+    List<Organization> organizations = Arrays.asList(organization1, organization2);
+    Map<String, Object> expectedOrganizations = new HashMap<>();
+    expectedOrganizations.put("organization", organizations);
+
+    // When
+    when(dbData.getOrganization()).thenReturn(wrapEntry("organization", expectedOrganizations));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedOrganizations), "organization.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withOrganizationInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedOrganizations));
+  }
+
+  @Test
+  public void shouldProvideApplicationInfo() throws IOException {
+    // Given
+    Application application1 = new Application();
+    application1.setName("Test Application 1");
+    application1.setPublicId("test-application-1");
+    Application application2 = new Application();
+    application2.setName("Test Application 2");
+    application2.setPublicId("test-application-2");
+    List<Application> applications = Arrays.asList(application1, application2);
+    Map<String, Object> expectedApplications = new HashMap<>();
+    expectedApplications.put("application", applications);
+
+    // When
+    when(dbData.getApplication()).thenReturn(wrapEntry("application", expectedApplications));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedApplications), "application.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withApplicationInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedApplications));
+  }
+
+  @Test
+  public void shouldProvideApplicationTagInfo() throws IOException {
+    // Given
+    ApplicationTag applicationTag1 = new ApplicationTag();
+    applicationTag1.setApplicationId("1234");
+    applicationTag1.setTagId("5678");
+    List<ApplicationTag> applicationTags = Collections.singletonList(applicationTag1);
+    Map<String, Object> expectedApplicationTags = new HashMap<>();
+    expectedApplicationTags.put("applicationTag", applicationTags);
+
+    // When
+    when(dbData.getApplicationTag()).thenReturn(wrapEntry("applicationTag", expectedApplicationTags));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedApplicationTags), "applicationTag.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withApplicationTagInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedApplicationTags));
+  }
+
+  @Test
+  public void shouldProvideTagInfo() throws IOException {
+    // Given
+    Tag tag1 = new Tag();
+    tag1.setName("Test tag 1");
+    tag1.setOrganizationId("ROOT_ORGANIZATION_ID");
+    Tag tag2 = new Tag();
+    tag2.setName("Test tag 2");
+    tag2.setOrganizationId("ROOT_ORGANIZATION_ID");
+    List<Tag> tags = Arrays.asList(tag1, tag2);
+    Map<String, Object> expectedTags = new HashMap<>();
+    expectedTags.put("tags", tags);
+
+    // When
+    when(dbData.getTag()).thenReturn(wrapEntry("tag", expectedTags));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedTags), "tag.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withTagInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedTags));
+  }
+
+  @Test
+  public void shouldProvidePolicyTagInfo() throws IOException {
+    // Given
+    PolicyTag policyTag = new PolicyTag();
+    policyTag.setPolicyId("1234");
+    policyTag.setTagId("5678");
+    List<PolicyTag> policyTags = Collections.singletonList(policyTag);
+    Map<String, Object> expectedPolicyTags = new HashMap<>();
+    expectedPolicyTags.put("policyTags", policyTags);
+
+    // When
+    when(dbData.getPolicyTag()).thenReturn(wrapEntry("policyTags", expectedPolicyTags));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicyTags), "policyTag.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withPolicyTagInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedPolicyTags));
+  }
+
+  @Test
+  public void shouldProvideComponentLabelInfo() throws IOException {
+    // Given
+    ComponentLabel componentLabel = new ComponentLabel();
+    componentLabel.setLabelId("1234");
+    componentLabel.setId("5678");
+    List<ComponentLabel> componentLabels = Collections.singletonList(componentLabel);
+    Map<String, Object> expectedComponentLabels = new HashMap<>();
+    expectedComponentLabels.put("componentLabel", componentLabels);
+
+    // When
+    when(dbData.getComponentLabel()).thenReturn(wrapEntry("componentLabel", expectedComponentLabels));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedComponentLabels), "componentLabel.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withComponentLabelInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedComponentLabels));
+  }
+
+  @Test
+  public void shouldProvideLabelInfo() throws IOException {
+    // Given
+    Label label1 = new Label();
+    label1.setLabel("Test Label 1");
+    label1.setColor(Color.dark_blue);
+    Label label2 = new Label();
+    label2.setLabel("Test Label 2");
+    label2.setColor(Color.light_purple);
+    List<Label> labels = Arrays.asList(label1, label2);
+    Map<String, Object> expectedLabels = new HashMap<>();
+    expectedLabels.put("label", labels);
+
+    // When
+    when(dbData.getLabel()).thenReturn(wrapEntry("label", expectedLabels));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLabels), "label.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withLabelInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedLabels));
+  }
+
+  @Test
+  public void shouldProvideDataRetentionPolicyInfo() throws IOException {
+    // Given
+    DataRetentionPolicy dataRetentionPolicy1 = new DataRetentionPolicy();
+    dataRetentionPolicy1.setOwnerId("ROOT_ORGANIZATION_ID");
+    dataRetentionPolicy1.setContextId("continuous-monitoring");
+    DataRetentionPolicy dataRetentionPolicy2 = new DataRetentionPolicy();
+    dataRetentionPolicy2.setOwnerId("ROOT_ORGANIZATION_ID");
+    dataRetentionPolicy2.setContextId("build");
+    DataRetentionPolicy dataRetentionPolicy3 = new DataRetentionPolicy();
+    dataRetentionPolicy3.setOwnerId("ROOT_ORGANIZATION_ID");
+    dataRetentionPolicy3.setContextId("develop");
+    List<DataRetentionPolicy> dataRetentionPolicies =
+        Arrays.asList(dataRetentionPolicy1, dataRetentionPolicy2, dataRetentionPolicy3);
+    Map<String, Object> expectedDataRetentionPolicies = new HashMap<>();
+    expectedDataRetentionPolicies.put("dataRetentionPolicy", dataRetentionPolicies);
+
+    // When
+    when(dbData.getDataRetentionPolicy()).thenReturn(wrapEntry("dataRetentionPolicy", expectedDataRetentionPolicies));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedDataRetentionPolicies), "dataRetentionPolicy.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withDataRetentionPolicyInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedDataRetentionPolicies));
+  }
+
+  @Test
+  public void shouldProvideLicenseInfo() throws IOException {
+    // Given
+    License license1 = new License();
+    license1.setLongDisplayName("BSD Zero Clause License");
+    License license2 = new License();
+    license2.setLongDisplayName("10tec Company License Agreement");
+    License license3 = new License();
+    license3.setLongDisplayName("123 Open-Source MIT Public License v2.0");
+    List<License> licenses = Arrays.asList(license1, license2, license3);
+    Map<String, Object> expectedLicenses = new HashMap<>();
+    expectedLicenses.put("label", licenses);
+
+    // When
+    when(dbData.getLicense()).thenReturn(wrapEntry("license", expectedLicenses));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenses), "license.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withLicenseInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedLicenses));
+  }
+
+  @Test
+  public void shouldProvideMultiLicenseInfo() throws IOException {
+    // Given
+    MultiLicense multiLicense1 = new MultiLicense();
+    multiLicense1.setShortDisplayName("0BSD");
+    MultiLicense multiLicense2 = new MultiLicense();
+    multiLicense2.setShortDisplayName("ZZZ-Projects-LA");
+    MultiLicense multiLicense3 = new MultiLicense();
+    multiLicense3.setShortDisplayName("Zuora-Inc-DTLA");
+
+    List<MultiLicense> multiLicenses = Arrays.asList(multiLicense1, multiLicense2, multiLicense3);
+    Map<String, Object> expectedMultiLicences = new HashMap<>();
+    expectedMultiLicences.put("multiLicense", multiLicenses);
+
+    // When
+    when(dbData.getMultiLicense()).thenReturn(wrapEntry("multiLicense", expectedMultiLicences));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMultiLicences), "multiLicense.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withMultiLicenseInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedMultiLicences));
+  }
+
+  @Test
+  public void shouldProvideLicenseThreatGroupInfo() throws IOException {
+    // Given
+    LicenseThreatGroup licenseThreatGroup1 = new LicenseThreatGroup();
+    licenseThreatGroup1.setName("Commercial");
+    licenseThreatGroup1.setOwnerId("ROOT_ORGANIZATION_ID");
+    LicenseThreatGroup licenseThreatGroup2 = new LicenseThreatGroup();
+    licenseThreatGroup2.setName("Copyleft");
+    licenseThreatGroup2.setOwnerId("ROOT_ORGANIZATION_ID");
+    List<LicenseThreatGroup> licenseThreatGroups = Arrays.asList(licenseThreatGroup1, licenseThreatGroup2);
+    Map<String, Object> expectedLicenseTreatGroups = new HashMap<>();
+    expectedLicenseTreatGroups.put("licenseThreatGroup", licenseThreatGroups);
+
+    // When
+    when(dbData.getLicenseThreatGroup()).thenReturn(wrapEntry("licenseThreatGroup", expectedLicenseTreatGroups));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenseTreatGroups), "licenseThreatGroup.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withLicenseThreatGroupInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedLicenseTreatGroups));
+  }
+
+  @Test
+  public void shouldProvideLicenseThreatGroupLicenseInfo() throws IOException {
+    // Given
+    LicenseThreatGroupLicense licenseThreatGroupLicense1 = new LicenseThreatGroupLicense();
+    licenseThreatGroupLicense1.setLicenseId("SNIA");
+    licenseThreatGroupLicense1.setOwnerId("ROOT_ORGANIZATION_ID");
+    LicenseThreatGroupLicense licenseThreatGroupLicense2 = new LicenseThreatGroupLicense();
+    licenseThreatGroupLicense2.setLicenseId("psutils");
+    licenseThreatGroupLicense2.setOwnerId("ROOT_ORGANIZATION_ID");
+    LicenseThreatGroupLicense licenseThreatGroupLicense3 = new LicenseThreatGroupLicense();
+    licenseThreatGroupLicense3.setLicenseId("AGPL-1.0");
+    licenseThreatGroupLicense3.setOwnerId("ROOT_ORGANIZATION_ID");
+    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses =
+        Arrays.asList(licenseThreatGroupLicense1, licenseThreatGroupLicense2, licenseThreatGroupLicense3);
+    Map<String, Object> expectedLicenseTreatGroupLicenses = new HashMap<>();
+    expectedLicenseTreatGroupLicenses.put("licenseThreatGroupLicense", licenseThreatGroupLicenses);
+
+    // When
+    when(dbData.getLicenseThreatGroupLicense()).thenReturn(
+        wrapEntry("licenseThreatGroupLicense", expectedLicenseTreatGroupLicenses));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenseTreatGroupLicenses),
+            "licenseThreatGroupLicense.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withLicenseThreatGroupLicenseInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedLicenseTreatGroupLicenses));
+  }
+
+  @Test
+  public void shouldProvideProprietaryConfigInfo() throws IOException {
+    // Given
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setOwnerId("ROOT_ORGANIZATION_ID");
+    proprietaryConfig.setPackages(Arrays.asList("hello-foo.jar", "my-component.zip"));
+    proprietaryConfig.setRegexes(Arrays.asList("test\\.zip", "hello-foo\\.jar"));
+
+    List<ProprietaryConfig> proprietaryConfigs = Collections.singletonList(proprietaryConfig);
+    Map<String, Object> expectedProprietaryConfigs = new HashMap<>();
+    expectedProprietaryConfigs.put("proprietaryConfig", proprietaryConfigs);
+
+    // When
+    when(dbData.getProprietaryConfig()).thenReturn(wrapEntry("proprietaryConfig", expectedProprietaryConfigs));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedProprietaryConfigs), "proprietaryConfig.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withProprietaryConfigInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedProprietaryConfigs));
+  }
+
+  @Test
+  public void shouldProvideScmInfo() throws IOException {
+    // Given
+    SortedMap<String, Object> entries = new TreeMap<>();
+    entries.put("cloneDirectory", "source-control");
+    entries.put("defaultBranchMonitoringIntervalHours", 24);
+    entries.put("pullRequestMonitoringIntervalSeconds", 60);
+    entries.put("useUsernameInRepositoryCloneUrl", false);
+    String scmInfo = new ObjectMapper().writeValueAsString(entries);
+
+    // When
+    when(sourceControlConfigurationInfo.getSourceControlConfigurationInfo()).thenReturn(scmInfo);
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(writeFile(WORK_DIR, scmInfo, "scm.json"));
+    SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withScmInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo("{\"cloneDirectory\":\"source-control\"," +
+        "\"defaultBranchMonitoringIntervalHours\":24,\"pullRequestMonitoringIntervalSeconds\":60," +
+        "\"useUsernameInRepositoryCloneUrl\":false}");
+  }
+
+  @Test
+  public void shouldProvideSourceControlInfo() throws IOException {
+    // Given
+    SourceControl sourceControl1 = new SourceControl();
+    sourceControl1.setOwnerId("ROOT_ORGANIZATION_ID");
+    sourceControl1.setProvider(SourceControlProvider.GITHUB);
+    sourceControl1.setPullRequestCommentingEnabled(true);
+    SourceControl sourceControl2 = new SourceControl();
+    sourceControl2.setOwnerId("123456");
+    sourceControl2.setRepositoryUrl("https://github.com/sonatype/project");
+    sourceControl2.setPullRequestPollTime(Date.from(Instant.now()));
+    List<SourceControl> sourceControls = Arrays.asList(sourceControl1, sourceControl2);
+    Map<String, Object> expectedSourceControls = new HashMap<>();
+    expectedSourceControls.put("sourceControl", sourceControls);
+
+    // When
+    when(dbData.getSourceControl()).thenReturn(wrapEntry("sourceControl", expectedSourceControls));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedSourceControls), "sourceControl.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withSourceControlInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedSourceControls));
+  }
+
+  @Test
+  public void shouldProvidePolicyMonitoringInfo() throws IOException {
+    // Given
+    PolicyMonitoring policyMonitoring1 = new PolicyMonitoring();
+    policyMonitoring1.setStageTypeId(Stage.ID_BUILD);
+    policyMonitoring1.setOwnerId("ROOT_ORGANIZATION_ID");
+    PolicyMonitoring policyMonitoring2 = new PolicyMonitoring();
+    policyMonitoring2.setStageTypeId(Stage.ID_STAGE_RELEASE);
+    policyMonitoring2.setOwnerId("ROOT_ORGANIZATION_ID");
+    List<PolicyMonitoring> policyMonitoring = Arrays.asList(policyMonitoring1, policyMonitoring2);
+    Map<String, Object> expectedPolicyMonitoring = new HashMap<>();
+    expectedPolicyMonitoring.put("policyMonitoring", policyMonitoring);
+
+    // When
+    when(dbData.getPolicyMonitoring()).thenReturn(wrapEntry("policyMonitoring", expectedPolicyMonitoring));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicyMonitoring), "policyMonitoring.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withPolicyMonitoringInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedPolicyMonitoring));
+  }
+
+  @Test
+  public void shouldProvideMigrationTrackerInfo() throws IOException {
+    // Given
+    MigrationTracker migrationTracker1 = new MigrationTracker();
+    migrationTracker1.setId("policy-json");
+    migrationTracker1.setVersion(1);
+    MigrationTracker migrationTracker2 = new MigrationTracker();
+    migrationTracker2.setId("policy-drools-code");
+    migrationTracker2.setVersion(5);
+    List<MigrationTracker> migrationTrackers = Arrays.asList(migrationTracker1, migrationTracker2);
+    Map<String, Object> expectedMigrationTrackers = new HashMap<>();
+    expectedMigrationTrackers.put("migrationTracker", migrationTrackers);
+
+    // When
+    when(dbData.getMigrationTracker()).thenReturn(wrapEntry("migrationTracker", expectedMigrationTrackers));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMigrationTrackers), "migrationTracker.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withMigrationTrackerInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedMigrationTrackers));
   }
 
   private Entry<String, SortedMap<String, Object>> wrapEntry(String entryName, SortedMap<String, Object> objectToPut) {

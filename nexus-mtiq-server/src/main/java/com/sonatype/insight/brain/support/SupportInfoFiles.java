@@ -75,6 +75,40 @@ public class SupportInfoFiles
 
   private static final String WEBHOOK_FILE = "webhook.json";
 
+  private static final String ORGANIZATION_FILE = "organization.json";
+
+  private static final String APPLICATION_FILE = "application.json";
+
+  private static final String APPLICATION_TAG_FILE = "applicationTag.json";
+
+  private static final String TAG_FILE = "tag.json";
+
+  private static final String POLICY_TAG_FILE = "policyTag.json";
+
+  private static final String COMPONENT_LABEL_FILE = "componentLabel.json";
+
+  private static final String LABEL_FILE = "label.json";
+
+  private static final String DATA_RETENTION_POLICY_FILE = "dataRetentionPolicy.json";
+
+  private static final String LICENSE_FILE = "license.json";
+
+  private static final String MULTI_LICENSE_FILE = "multiLicense.json";
+
+  private static final String LICENSE_THREAT_GROUP_FILE = "licenseThreatGroup.json";
+
+  private static final String LICENSE_THREAT_GROUP_LICENSE_FILE = "licenseThreatGroupLicense.json";
+
+  private static final String PROPRIETARY_CONFIG_FILE = "proprietaryConfig.json";
+
+  private static final String SCM_FILE = "scm.json";
+
+  private static final String SOURCE_CONTROL_FILE = "sourceControl.json";
+
+  private static final String POLICY_MONITORING_FILE = "policyMonitoring.json";
+
+  private static final String MIGRATION_TRACKER_FILE = "migrationTracker.json";
+
   private final VersionService versionService;
 
   private final DbData dbData;
@@ -84,6 +118,8 @@ public class SupportInfoFiles
   private final ConfigurationInfo configurationInfo;
 
   private final SystemInfo systemInfo;
+
+  private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
   private final SupportInfoUtil supportInfoUtil;
 
@@ -96,6 +132,7 @@ public class SupportInfoFiles
       SamlUserDAO samlUserDao,
       ConfigurationInfo configurationInfo,
       SystemInfo systemInfo,
+      SourceControlConfigurationInfo sourceControlConfigurationInfo,
       SupportInfoUtil supportInfoUtil)
   {
     this.versionService = versionService;
@@ -103,6 +140,7 @@ public class SupportInfoFiles
     this.samlUserDao = samlUserDao;
     this.configurationInfo = configurationInfo;
     this.systemInfo = systemInfo;
+    this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
     this.supportInfoUtil = supportInfoUtil;
   }
 
@@ -226,9 +264,9 @@ public class SupportInfoFiles
 
   public SupportInfoFiles withWaivers() {
     Entry<String, Object> waivers = dbData.getWaiver();
-    String policiesJson = JsonUtils.format(waivers);
+    String waiversJson = JsonUtils.format(waivers);
 
-    createAndAddSupportFile(policiesJson, WAIVER_FILE, SupportFileType.DB);
+    createAndAddSupportFile(waiversJson, WAIVER_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -284,6 +322,158 @@ public class SupportInfoFiles
     String webhookJson = JsonUtils.format(webhook);
 
     createAndAddSupportFile(webhookJson, WEBHOOK_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withOrganizationInfo() {
+    Entry<String, Object> organizations = dbData.getOrganization();
+    String organizationsJson = JsonUtils.format(organizations);
+
+    createAndAddSupportFile(organizationsJson, ORGANIZATION_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withApplicationInfo() {
+    Entry<String, Object> applications = dbData.getApplication();
+    String applicationsJson = JsonUtils.format(applications);
+
+    createAndAddSupportFile(applicationsJson, APPLICATION_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withApplicationTagInfo() {
+    Entry<String, Object> applicationTags = dbData.getApplicationTag();
+    String applicationTagsJson = JsonUtils.format(applicationTags);
+
+    createAndAddSupportFile(applicationTagsJson, APPLICATION_TAG_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withTagInfo() {
+    Entry<String, Object> tags = dbData.getTag();
+    String tagsJson = JsonUtils.format(tags);
+
+    createAndAddSupportFile(tagsJson, TAG_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withPolicyTagInfo() {
+    Entry<String, Object> policyTags = dbData.getPolicyTag();
+    String policyTagsJson = JsonUtils.format(policyTags);
+
+    createAndAddSupportFile(policyTagsJson, POLICY_TAG_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withComponentLabelInfo() {
+    Entry<String, Object> componentLabels = dbData.getComponentLabel();
+    String componentLabelsJson = JsonUtils.format(componentLabels);
+
+    createAndAddSupportFile(componentLabelsJson, COMPONENT_LABEL_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withLabelInfo() {
+    Entry<String, Object> labels = dbData.getLabel();
+    String labelsJson = JsonUtils.format(labels);
+
+    createAndAddSupportFile(labelsJson, LABEL_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withDataRetentionPolicyInfo() {
+    Entry<String, Object> dataRetentionPolicy = dbData.getDataRetentionPolicy();
+    String dataRetentionPolicyJson = JsonUtils.format(dataRetentionPolicy);
+
+    createAndAddSupportFile(dataRetentionPolicyJson, DATA_RETENTION_POLICY_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withLicenseInfo() {
+    Entry<String, Object> license = dbData.getLicense();
+    String licenseJson = JsonUtils.format(license);
+
+    createAndAddSupportFile(licenseJson, LICENSE_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withMultiLicenseInfo() {
+    Entry<String, Object> multiLicense = dbData.getMultiLicense();
+    String multiLicenseJson = JsonUtils.format(multiLicense);
+
+    createAndAddSupportFile(multiLicenseJson, MULTI_LICENSE_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withLicenseThreatGroupInfo() {
+    Entry<String, Object> licenseThreatGroup = dbData.getLicenseThreatGroup();
+    String licenseThreatGroupJson = JsonUtils.format(licenseThreatGroup);
+
+    createAndAddSupportFile(licenseThreatGroupJson, LICENSE_THREAT_GROUP_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withLicenseThreatGroupLicenseInfo() {
+    Entry<String, Object> licenseThreatGroupLicense = dbData.getLicenseThreatGroupLicense();
+    String licenseThreatLicenseGroupJson = JsonUtils.format(licenseThreatGroupLicense);
+
+    createAndAddSupportFile(licenseThreatLicenseGroupJson, LICENSE_THREAT_GROUP_LICENSE_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withProprietaryConfigInfo() {
+    Entry<String, Object> proprietaryConfig = dbData.getProprietaryConfig();
+    String proprietaryConfigJson = JsonUtils.format(proprietaryConfig);
+
+    createAndAddSupportFile(proprietaryConfigJson, PROPRIETARY_CONFIG_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withScmInfo() {
+    String scmJson = sourceControlConfigurationInfo.getSourceControlConfigurationInfo();
+
+    createAndAddSupportFile(scmJson, SCM_FILE, SupportFileType.CONFIG);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSourceControlInfo() {
+    Entry<String, Object> sourceControl = dbData.getSourceControl();
+    String sourceControlJson = JsonUtils.format(sourceControl);
+
+    createAndAddSupportFile(sourceControlJson, SOURCE_CONTROL_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withPolicyMonitoringInfo() {
+    Entry<String, Object> policyMonitoring = dbData.getPolicyMonitoring();
+    String policyMonitoringJson = JsonUtils.format(policyMonitoring);
+
+    createAndAddSupportFile(policyMonitoringJson, POLICY_MONITORING_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withMigrationTrackerInfo() {
+    Entry<String, Object> migrationTracker = dbData.getMigrationTracker();
+    String migrationTrackerJson = JsonUtils.format(migrationTracker);
+
+    createAndAddSupportFile(migrationTrackerJson, MIGRATION_TRACKER_FILE, SupportFileType.DB);
 
     return this;
   }

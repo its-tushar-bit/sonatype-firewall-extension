@@ -82,6 +82,23 @@ public class TenantSupportInfoService
         .withSystemConfigurationInfo()
         .withSystemNoticeInfo()
         .withWebhookInfo()
+        .withOrganizationInfo()
+        .withApplicationInfo()
+        .withApplicationTagInfo()
+        .withTagInfo()
+        .withPolicyTagInfo()
+        .withComponentLabelInfo()
+        .withLabelInfo()
+        .withDataRetentionPolicyInfo()
+        .withLicenseInfo()
+        .withMultiLicenseInfo()
+        .withLicenseThreatGroupInfo()
+        .withLicenseThreatGroupLicenseInfo()
+        .withProprietaryConfigInfo()
+        .withScmInfo()
+        .withSourceControlInfo()
+        .withPolicyMonitoringInfo()
+        .withMigrationTrackerInfo()
         .build();
 
     return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);

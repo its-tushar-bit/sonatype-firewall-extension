@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import io.dropwizard.Configuration;
 import io.dropwizard.util.Duration;
 import org.junit.Rule;
@@ -144,6 +145,8 @@ public class InsightConfigTest
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
     objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+    objectMapper.registerModule(new Jdk8Module());
+
     InsightConfig insightConfig = new InsightConfig();
     JsonNode allJsonNode = objectMapper.valueToTree(insightConfig);
     Set<String> allFieldNames = new TreeSet<>();

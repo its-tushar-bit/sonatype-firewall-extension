@@ -192,7 +192,16 @@ public class RestClientFactory
      * @since 1.72
      */
     public void addOrUpdateSourceControlRecord(String publicId, String repositoryUrl) throws IOException {
-      new SourceControlClient(config).addOrUpdateSourceControlRecord(publicId, repositoryUrl);
+      addOrUpdateSourceControlRecord(publicId, repositoryUrl, null);
+    }
+
+    /*
+     * @since 1.170
+     */
+    public void addOrUpdateSourceControlRecord(String publicId, String repositoryUrl, String repositoryPath)
+        throws IOException
+    {
+      new SourceControlClient(config).addOrUpdateSourceControlRecord(publicId, repositoryUrl, repositoryPath);
     }
 
     public Set<String> getLicensedFeatures() throws IOException {

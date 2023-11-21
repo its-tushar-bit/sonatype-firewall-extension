@@ -20,14 +20,14 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.base.Strings;
+import io.swagger.v3.oas.annotations.Hidden;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
 
@@ -110,18 +110,16 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.AUTO_CREATE_SOURCE_CONTROL)
   @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @Hidden
   public ApiSourceControlDTO addOrUpdateSourceControl(
-      @QueryParam("publicId") final String publicId,
-      @QueryParam("repositoryUrl") final String repositoryUrl)
+      @Deprecated @QueryParam("publicId") final String publicId,
+      @Deprecated @QueryParam("repositoryUrl") final String repositoryUrl,
+      final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO)
   {
-    if (Strings.isNullOrEmpty(publicId)) {
-      throw new BadRequestException("Query parameter 'publicId' is required");
-    }
-    if (Strings.isNullOrEmpty(repositoryUrl)) {
-      throw new BadRequestException("Query parameter 'repositoryUrl' is required");
-    }
-    return sourceControlService.addOrUpdateSourceControlFromAppEvaluation(publicId, repositoryUrl);
+    return sourceControlService.addOrUpdateSourceControlFromAppEvaluation(publicId, repositoryUrl,
+        apiSourceControlRepoUserDTO);
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
 /**
@@ -23,5 +24,7 @@ public interface ApiSourceControlResource
 
   void deleteSourceControl(OwnerType ownerType, String internalOwnerId);
 
-  ApiSourceControlDTO addOrUpdateSourceControl(String publicId, String repositoryUrl);
+  ApiSourceControlDTO addOrUpdateSourceControl(String publicId,
+                                               String repositoryUrl,
+                                               ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO);
 }

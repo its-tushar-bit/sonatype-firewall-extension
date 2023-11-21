@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -84,6 +86,8 @@ public class ApiSourceControlService
 
   static final String ENC = "CMMDwoV";
 
+  private static final int EMAIL_AND_COMMIT_DATE_MAP_LIMIT = 1000;
+
   private final PlexusCipher plexusCipher;
 
   private final SourceControlDAO sourceControlDAO;
@@ -110,6 +114,8 @@ public class ApiSourceControlService
 
   private final GitClientFactory gitClientFactory;
 
+  private final SourceControlUserActivityService sourceControlUserActivityService;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -124,7 +130,8 @@ public class ApiSourceControlService
       final InsightWork insightWork,
       final FileCleaner fileCleaner,
       final SourceControlRepositoryUtils sourceControlRepositoryUtils,
-      final GitClientFactory gitClientFactory)
+      final GitClientFactory gitClientFactory,
+      final SourceControlUserActivityService sourceControlUserActivityService)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -139,6 +146,7 @@ public class ApiSourceControlService
     this.fileCleaner = fileCleaner;
     this.sourceControlRepositoryUtils = sourceControlRepositoryUtils;
     this.gitClientFactory = gitClientFactory;
+    this.sourceControlUserActivityService = sourceControlUserActivityService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -151,12 +159,39 @@ public class ApiSourceControlService
         .collect(Collectors.toList());
   }
 
+  @Deprecated
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiSourceControlDTO addOrUpdateSourceControlFromAppEvaluation(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl)
   {
+    validatePublicIdAndRepoUrl(publicId, repositoryUrl, true);
     return addOrUpdateSourceControl(publicId, repositoryUrl, false);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiSourceControlDTO addOrUpdateSourceControlFromAppEvaluation(
+      final String publicId,
+      final String repositoryUrl,
+      final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO)
+  {
+    if (apiSourceControlRepoUserDTO == null) {
+      validatePublicIdAndRepoUrl(publicId, repositoryUrl, true);
+      return addOrUpdateSourceControl(publicId, repositoryUrl, false);
+    }
+    else {
+      validatePublicIdAndRepoUrl(
+          apiSourceControlRepoUserDTO.publicId,
+          apiSourceControlRepoUserDTO.repositoryUrl,
+          false);
+
+      trySaveRepoUserActivityOrFailSilently(apiSourceControlRepoUserDTO);
+
+      return addOrUpdateSourceControl(
+          apiSourceControlRepoUserDTO.publicId,
+          apiSourceControlRepoUserDTO.repositoryUrl,
+          false);
+    }
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
@@ -401,6 +436,15 @@ public class ApiSourceControlService
     }
   }
 
+  private static void validatePublicIdAndRepoUrl(String publicId, String repositoryUrl, boolean isQueryParam) {
+    if (isBlank(publicId)) {
+      throw new BadRequestException((isQueryParam ? "Query p" : "P") + "arameter 'publicId' is required");
+    }
+    if (isBlank(repositoryUrl)) {
+      throw new BadRequestException((isQueryParam ? "Query p" : "P") + "arameter 'repositoryUrl' is required");
+    }
+  }
+
   private void decryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
@@ -592,6 +636,22 @@ public class ApiSourceControlService
 
   private String getUser(GitRepositoryInfo gitRepositoryInfo) {
     return gitClientFactory.createApiClient(gitRepositoryInfo).getUserId();
+  }
+
+  private void trySaveRepoUserActivityOrFailSilently(final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO) {
+    if (Objects.nonNull(apiSourceControlRepoUserDTO.emailAndCommitDateMap)
+        && apiSourceControlRepoUserDTO.emailAndCommitDateMap.size() > EMAIL_AND_COMMIT_DATE_MAP_LIMIT) {
+      log.warn("Email and commit date map must have " + EMAIL_AND_COMMIT_DATE_MAP_LIMIT + " or less entries");
+    }
+    else {
+      try {
+        sourceControlUserActivityService.saveRepoUserList(apiSourceControlRepoUserDTO.publicId,
+            apiSourceControlRepoUserDTO.emailAndCommitDateMap);
+      }
+      catch (Exception e) {
+        log.warn("Unable to save the repository user activity.", e);
+      }
+    }
   }
 
   enum METHOD

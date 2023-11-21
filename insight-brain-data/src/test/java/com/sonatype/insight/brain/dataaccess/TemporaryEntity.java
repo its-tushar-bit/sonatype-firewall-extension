@@ -123,6 +123,8 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganiza
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserActivityDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
@@ -475,6 +477,10 @@ public class TemporaryEntity
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
       new SourceControlDefaultBranchCommitHistoryDAO();
 
+  private final SourceControlUserDAO sourceControlUserDAO = new SourceControlUserDAO();
+
+  private final SourceControlUserActivityDAO sourceControlUserActivityDAO = new SourceControlUserActivityDAO();
+
   private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
 
   private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO = new FirewallIgnorePatternsDAO();
@@ -776,6 +782,8 @@ public class TemporaryEntity
       delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
       delete(firewallMetricsDAO.getAll(), firewallMetricsDAO);
       delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
+      delete(sourceControlUserActivityDAO.getAll(), sourceControlUserActivityDAO);
+      delete(sourceControlUserDAO.getAll(), sourceControlUserDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
       samlConfigurationDAO.delete();
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);

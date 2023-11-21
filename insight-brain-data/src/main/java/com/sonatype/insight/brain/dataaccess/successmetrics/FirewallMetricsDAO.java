@@ -11,10 +11,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
+import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
-import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
-
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import static java.util.stream.Collectors.toMap;
@@ -56,9 +55,17 @@ public class FirewallMetricsDAO
     return FirewallMetricsName.valueOf(firewallMetricsName);
   }
 
-  private static ApiFirewallMetricsResultDTO getTotalFirewallMetricsValueAndLatestUpdatedTime(int firewallMetricsValue,
-                                                                                      Date latestUpdatedTime)
+  private static ApiFirewallMetricsResultDTO getTotalFirewallMetricsValueAndLatestUpdatedTime(
+      int firewallMetricsValue,
+      Date latestUpdatedTime)
   {
     return new ApiFirewallMetricsResultDTO(firewallMetricsValue, latestUpdatedTime);
+  }
+
+  public Date getEarliestMetricDateByName(FirewallMetricsName metricsName) {
+    String sQuery = "SELECT MIN(entity.metricsDate)" + //
+        " FROM FirewallMetrics entity" + //
+        " WHERE entity.metricsName = ?1";
+    return getSingle(Date.class, sQuery, metricsName);
   }
 }

@@ -9,9 +9,10 @@ import { render, screen } from 'TestRoot/SpecUtil';
 import { fireEvent } from '@testing-library/react';
 import * as repositoriesResultsSummaryPageSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
+import { actions } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 
 describe('RepositoryResultsSummaryPage', () => {
-  let renderComponent, spyTileSummary, spyRepoInformation, spyMaskSuccess;
+  let renderComponent, spyTileSummary, spyRepoInformation, spyMaskSuccess, toggleAggregateAndGetRepositoryComponentsSpy;
   const repoId = 'testRepo';
   const repositoryInfo = {
     publicId: repoId,
@@ -50,6 +51,10 @@ describe('RepositoryResultsSummaryPage', () => {
 
       spyTileSummary.and.returnValue(repositorySummaryInfo);
       spyRepoInformation.and.returnValue(repositorySummaryInfo.repositoryInfo);
+      toggleAggregateAndGetRepositoryComponentsSpy = spyOn(
+        actions,
+        'toggleAggregateAndGetRepositoryComponents'
+      ).and.callThrough();
     });
 
     it('shows proper values for threat counters', () => {
@@ -129,6 +134,15 @@ describe('RepositoryResultsSummaryPage', () => {
       fireEvent.animationEnd(drawerAfterClose);
 
       expect(drawerAfterClose).not.toBeVisible();
+    });
+
+    it('aggregates components', () => {
+      renderComponent();
+      const aggregateToggle = screen.getByLabelText('Aggregate by component');
+
+      fireEvent.click(aggregateToggle);
+
+      expect(toggleAggregateAndGetRepositoryComponentsSpy).toHaveBeenCalled();
     });
 
     it('shows summary tile error message', () => {

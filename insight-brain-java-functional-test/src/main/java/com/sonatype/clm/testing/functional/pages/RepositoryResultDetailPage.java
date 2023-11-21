@@ -63,6 +63,10 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     return children(".nx-btn-bar--pagination .nx-btn");
   }
 
+  public static SelenideElement aggregateToggle() {
+    return $("#repository-report-aggregate-by-component-toggle");
+  }
+
   public static class RepositoryFilterPopover extends BasicElement<RepositoryFilterPopover>
   {
     static final String POPOVER_SELECTOR = "#iq-summary-page-components-filter";

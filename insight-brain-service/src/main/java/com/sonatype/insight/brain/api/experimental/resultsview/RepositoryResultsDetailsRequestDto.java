@@ -23,6 +23,8 @@ public class RepositoryResultsDetailsRequestDto
 
   public List<SortField> sortFields;
 
+  public boolean aggregate;
+
   public enum MatchStateFilter
   {
     MATCH_STATE_ALL,

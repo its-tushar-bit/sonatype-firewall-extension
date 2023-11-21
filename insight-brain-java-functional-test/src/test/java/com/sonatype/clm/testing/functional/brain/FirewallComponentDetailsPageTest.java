@@ -648,6 +648,7 @@ public class FirewallComponentDetailsPageTest
     createUnknownComponentPolicy();
     RepositoryComponent component = setupUnknownComponentTestData();
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
     String quarantinedDate = getDateString(component.getQuarantineTime(), "yyyy-MM-dd");
     RepositoryResultDetailPage.table().row(0).threat().shouldBe(text("2"));
@@ -1444,6 +1445,7 @@ public class FirewallComponentDetailsPageTest
     createUnknownComponentPolicy();
     RepositoryComponent component = setupUnknownComponentTestDataWithWaivedViolation();
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
     RepositoryResultDetailPage.table().row(0).component().click();
     waitUntilSpinnersGone();
@@ -2007,6 +2009,7 @@ public class FirewallComponentDetailsPageTest
     createUnknownComponentPolicy();
     RepositoryComponent component = setupUnknownComponentTestDataWithWaivedViolation();
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     RepositoryResultDetailPage.table().row(0).component().click();
     waitUntilSpinnersGone();
         
@@ -3106,6 +3109,7 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     ArrayList<RepositoryComponent> repositoryComponents = setupAllTestDataFor2QuarantinedComponents();
     refreshOrOpen(RepositoryResultDetailPage.url(repositoryComponents.get(0).getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
@@ -3226,6 +3230,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryComponent component = setupAllTestData();
 
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
 
     RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
@@ -3283,6 +3288,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryComponent component = setupAllTestData();
 
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
 
     RepositoryResultDetailPage.table().row(1).component().click();
@@ -3303,6 +3309,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryComponent component = setupAllTestData(overriddenLicense);
 
     refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
 
     RepositoryResultDetailPage.table().row(1).component().click();

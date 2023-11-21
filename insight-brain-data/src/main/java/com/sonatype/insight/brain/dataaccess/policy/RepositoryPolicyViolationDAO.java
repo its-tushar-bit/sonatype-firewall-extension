@@ -198,18 +198,35 @@ public class RepositoryPolicyViolationDAO
     return getSingle(Number.class, sQuery, repositoryId, pathname).intValue();
   }
 
-  /**
-   * @since 1.140.0
-   */
   public List<RepositoryResultsDetails> getRepositoryResultsDetails(
       String repositoryId, RepositoryResultsDetailsFilter detailsFilter)
   {
+    if (detailsFilter.aggregate) {
+      return getRepositoryResultsDetailsAggregate(repositoryId, detailsFilter);
+    }
+    else {
+      return getRepositoryResultsDetailsNonAggregate(repositoryId, detailsFilter);
+    }
+  }
+
+  /**
+   * @since 1.140.0
+   */
+  private List<RepositoryResultsDetails> getRepositoryResultsDetailsNonAggregate(
+      String repositoryId, RepositoryResultsDetailsFilter detailsFilter)
+  {
     try (TransactionContext tx = createTransactionContext()) {
-      String baseQuery = "SELECT violation.threat_level, violation.policy_name, component.component_id_format," + //
-          " component.pathname, component.component_id_coordinates_json, component.display_name, component.hash," + //
+      String baseQuery = "SELECT violation.threat_level," + //
+          " violation.policy_name," + //
+          " component.component_id_format," + //
+          " component.pathname," + //
+          " component.component_id_coordinates_json," + //
+          " component.display_name," + //
+          " component.hash," + //
           " component.match_state_id," + //
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
-          " component.quarantine_time END AS quarantine_time, violation.waived" + //
+          " component.quarantine_time END AS quarantine_time," + //
+          " violation.waived" + //
           " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" + //
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") + //
           " " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" + //
@@ -247,6 +264,123 @@ public class RepositoryPolicyViolationDAO
 
       return results;
     }
+  }
+
+  public List<RepositoryResultsDetails> getRepositoryResultsDetailsAggregate(
+      String repositoryId,
+      RepositoryResultsDetailsFilter detailsFilter)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      String[] threatLevelPolicyNameParts = getThreatLevelPolicyNameParts(detailsFilter);
+
+      String select1 = "SELECT" +
+          " component.pathname," +
+          " " + threatLevelPolicyNameParts[0] +
+          " AS threat_level_and_policy_name," +
+          " MAX(CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
+          " THEN component.quarantine_time END) AS quarantine_time," +
+          " MAX(component.display_name) AS display_name" +
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" +
+          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
+          " " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" +
+          " ON component.repository_id = violation.repository_id" +
+          " AND component.pathname = violation.pathname" +
+          " WHERE component.repository_id = ?1" +
+          addViolationStateFilters(detailsFilter.violationStateFilters) +
+          addSearchFilters(detailsFilter.searchFilters) +
+          (!detailsFilter.matchStateFilter.isEmpty() ? " AND component.match_state_id = ?4" : "") +
+          " GROUP BY component.pathname";
+
+      // Incremented page size to help UI determine whether to enable / disable NextPage button
+      int pageSize = detailsFilter.pageSize + 1;
+      int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
+      String select2 = "SELECT" +
+          " pathname," +
+          " CASE WHEN(threat_level_and_policy_name <> '')" +
+          " THEN CAST(" + threatLevelPolicyNameParts[1] + " AS integer) " +
+          " ELSE NULL END AS threat_level," +
+          " CASE WHEN(threat_level_and_policy_name <> '')" +
+          " THEN " + threatLevelPolicyNameParts[2] +
+          " ELSE NULL END AS policy_name," +
+          " quarantine_time," +
+          " display_name" +
+          " FROM (" + select1 + ") AS t1" +
+          validateAndAddSortFields(detailsFilter.sortFields) +
+          " LIMIT " + pageSize +
+          " OFFSET " + offset;
+
+      String select3 = "SELECT" +
+          " threat_level," +
+          " policy_name," +
+          " component.component_id_format," +
+          " component.pathname," +
+          " component.component_id_coordinates_json," +
+          " component.display_name," +
+          " component.hash," +
+          " component.match_state_id," +
+          " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
+          " THEN component.quarantine_time END AS quarantine_time" +
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" +
+          " INNER JOIN (" + select2 + ") AS t2" +
+          " ON t2.pathname = component.pathname" +
+          " AND component.repository_id = ?1";
+
+      javax.persistence.Query query = tx.createNativeQuery(select3);
+      query.setParameter(1, repositoryId);
+      query.setParameter(2, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      query.setParameter(3, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
+      query.setParameter(4, detailsFilter.matchStateFilter);
+
+      List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new RepositoryResultsDetails(
+              getInteger(array[0]),
+              (String) array[1],
+              (String) array[2],
+              (String) array[3],
+              (String) array[4],
+              (String) array[5],
+              (String) array[6],
+              (String) array[7],
+              array[8] == null ? null : new Date(((Timestamp) array[8]).getTime()),
+              null // waived doesn't make sense in an aggregation
+          )).collect(Collectors.toList());
+
+      return results;
+    }
+  }
+
+  private String[] getThreatLevelPolicyNameParts(RepositoryResultsDetailsFilter detailsFilter) {
+    String part1 = "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
+    String part2 = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
+    String part3 = "SUBSTRING(threat_level_and_policy_name, 3)";
+    if (!CollectionUtils.isEmpty(detailsFilter.sortFields)) {
+      detailsFilter.sortFields.sort(Comparator.comparing(field -> field.sortPriority));
+      for (SortField sortField : detailsFilter.sortFields) {
+        if (sortField.sortableField == SortableField.POLICY_THREAT_LEVEL) {
+          if (sortField.asc) {
+            part1 = "MIN(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
+          }
+          else {
+            part1 = "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
+          }
+          part2 = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
+          part3 = "SUBSTRING(threat_level_and_policy_name, 3)";
+          break;
+        }
+        if (sortField.sortableField == SortableField.POLICY_NAME) {
+          if (sortField.asc) {
+            part1 = "MIN(CONCAT(violation.policy_name, LPAD(CAST(violation.threat_level AS varchar), 2, '0')))";
+          }
+          else {
+            part1 = "MAX(CONCAT(violation.policy_name, LPAD(CAST(violation.threat_level AS varchar), 2, '0')))";
+          }
+          part2 = "SUBSTRING(threat_level_and_policy_name, LENGTH(threat_level_and_policy_name) - 1)";
+          part3 = "SUBSTRING(threat_level_and_policy_name, 1, LENGTH(threat_level_and_policy_name) - 2)";
+          break;
+        }
+      }
+    }
+    return new String[]{part1, part2, part3};
   }
 
   public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {

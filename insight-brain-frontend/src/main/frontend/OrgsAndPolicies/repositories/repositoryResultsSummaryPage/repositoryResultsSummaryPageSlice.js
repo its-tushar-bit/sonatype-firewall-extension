@@ -69,6 +69,7 @@ const initialState = {
         sortPriority: 4,
       },
     ],
+    aggregate: true,
     matchStateFilters: [],
     violationStateFilters: [],
   },
@@ -102,6 +103,17 @@ const setSorting = (state, { payload }) => {
         return { sortableField, asc, sortPriority: index + 2 };
       })
   );
+  state.componentsRequestBody.page = 1;
+};
+
+const toggleAggregateAndGetRepositoryComponents = (state) => (dispatch, getState) => {
+  const repository = selectRepositoryInformation(getState());
+  dispatch(actions.toggleAggregate(state));
+  dispatch(actions.getRepositoryComponents(repository?.id));
+};
+
+const toggleAggregate = (state) => {
+  state.componentsRequestBody.aggregate = !state.componentsRequestBody.aggregate;
   state.componentsRequestBody.page = 1;
 };
 
@@ -315,6 +327,7 @@ export const repositoryResultsSummaryPageSlice = createSlice({
     setShowFilterPopover: propSet('showFilterPopover'),
     setFilter,
     setSorting,
+    toggleAggregate,
     increasePage,
     decreasePage,
     applyFilters,
@@ -343,6 +356,7 @@ export const actions = {
   getRepositoryComponents,
   sortComponents,
   searchComponents,
+  toggleAggregateAndGetRepositoryComponents,
   loadNextPage,
   loadPreviousPage,
   loadData,

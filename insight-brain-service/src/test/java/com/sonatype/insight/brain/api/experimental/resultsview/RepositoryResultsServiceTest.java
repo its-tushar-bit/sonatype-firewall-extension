@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -354,6 +353,42 @@ public class RepositoryResultsServiceTest
     assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
     assertThat(responseDtos.get(2).quarantineTime).isNull();
     assertThat(responseDtos.get(2).waived).isEqualTo(null);
+  }
+
+  @Test
+  public void testGetDetails_Aggregate() {
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT);
+    detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+    detailsRequest.aggregate = true;
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(2);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(0).waived).isNull();
+    assertThat(responseDtos.get(1).threatLevel).isNull();
+    assertThat(responseDtos.get(1).policyName).isNull();
+    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(responseDtos.get(1).quarantineTime).isNull();
+    assertThat(responseDtos.get(1).waived).isNull();
   }
 
   @Test

@@ -15,12 +15,15 @@ import {
   NxThreatIndicator,
   NxIndeterminatePagination,
   NxOverflowTooltip,
+  NxToggle,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faCheck, faFilter } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { formatDate } from 'MainRoot/util/dateUtils';
 import {
+  selectAggregate,
   selectCurrentPage,
   selectErrorComponentsTable,
   selectHasMoreResults,
@@ -42,6 +45,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const searchFiltersValues = useSelector(selectSearchFiltersValues);
   const loadingRepositoryComponents = useSelector(selectLoadingRepositoryComponents);
   const errorComponentsTable = useSelector(selectErrorComponentsTable);
+  const aggregate = useSelector(selectAggregate);
 
   const searchComponents = (policyName) => dispatch(actions.searchComponents(policyName));
   const sortComponents = (columnName) => dispatch(actions.sortComponents(columnName));
@@ -52,6 +56,11 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
 
   const quarantineTime = (date) => formatDate(date, 'YYYY-MM-DD');
   const formatThreatLevel = (row) => (row.threatLevel === null ? 0 : row.threatLevel);
+  const toggleAggregateAndGetRepositoryComponents = () => dispatch(actions.toggleAggregateAndGetRepositoryComponents());
+
+  const aggregateByComponentToggleTooltip =
+    'By default the Repository Report aggregates violations by component. ' +
+    'To see all violations not Aggregated by Component, please switch the toggle off.';
 
   const componentsTableRows = repositoryComponents.map((row, idx) => (
     <NxTable.Row
@@ -96,7 +105,16 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   return (
     <NxTile>
       <NxTile.Content>
-        <NxButtonBar>
+        <NxButtonBar id="repository-report-button-bar">
+          <NxTooltip title={aggregateByComponentToggleTooltip}>
+            <NxToggle
+              id="repository-report-aggregate-by-component-toggle"
+              isChecked={aggregate}
+              onChange={toggleAggregateAndGetRepositoryComponents}
+            >
+              Aggregate by component
+            </NxToggle>
+          </NxTooltip>
           <NxButton onClick={openFilterPopover} variant="tertiary" id="repository-filter-popover-button">
             <NxFontAwesomeIcon icon={faFilter} />
             <span>Filter</span>

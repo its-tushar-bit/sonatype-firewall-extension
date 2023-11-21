@@ -98,6 +98,7 @@ class RepositoryResultsService
     filter.violationStateFilters = initializeViolationStateFilters(detailsRequest.violationStateFilters);
     filter.searchFilters = initializeSearchFilterMap(detailsRequest.searchFilters);
     filter.sortFields = detailsRequest.sortFields;
+    filter.aggregate = detailsRequest.aggregate;
 
     return filter;
   }

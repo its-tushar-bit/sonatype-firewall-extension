@@ -60,3 +60,7 @@ export const selectShowMaskSuccessDialog = createSelector(
   selectRepositoryResultsSummaryPageSlice,
   prop('showMaskSuccessDialog')
 );
+export const selectAggregate = createSelector(
+  selectRepositoryResultsSummaryPageSlice,
+  (state) => state.componentsRequestBody.aggregate
+);

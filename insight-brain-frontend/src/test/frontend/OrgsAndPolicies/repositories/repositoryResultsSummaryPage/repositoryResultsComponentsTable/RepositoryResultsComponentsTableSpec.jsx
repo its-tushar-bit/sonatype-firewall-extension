@@ -81,6 +81,7 @@ describe('RepositoryResultsComponentsTable', () => {
       page: 1,
       pageSize: 2,
       searchFilters: [],
+      aggregate: false,
     },
     hasMoreResults: true,
     sortConfiguration: { dir: 'asc', column: 'publicId' },

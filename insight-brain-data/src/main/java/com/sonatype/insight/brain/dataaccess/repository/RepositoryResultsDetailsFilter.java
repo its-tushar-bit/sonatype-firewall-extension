@@ -23,6 +23,8 @@ public class RepositoryResultsDetailsFilter
 
   public List<SortField> sortFields;
 
+  public boolean aggregate;
+
   public static class SortField
   {
     public SortableField sortableField;

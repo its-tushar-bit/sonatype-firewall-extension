@@ -5,17 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -171,5 +180,147 @@ public class RepositoryPolicyViolationDAOTest
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
+  }
+
+  @Test
+  public void testGetRepositoryResultsDetailsNonAggregate_H2() {
+    testGetRepositoryResultsDetailsNonAggregate();
+  }
+
+  @Test
+  public void testGetRepositoryResultsDetailsNotAggregate_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      assertThat(dao.isDatabaseEmbedded()).isFalse();
+      testGetRepositoryResultsDetailsNonAggregate();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetRepositoryResultsDetailsNonAggregate() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 1);
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, false);
+    RepositoryPolicyViolation c1v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+            p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    RepositoryPolicyViolation c1v2 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
+            p2.getId(), p2.getName(), c1.getComponentIdentifier());
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
+            componentIdentifier2, false);
+    RepositoryPolicyViolation c2v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
+            p1.getId(), p1.getName(), c2.getComponentIdentifier());
+    RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
+    repositoryResultsDetailsFilter.page = 1;
+    repositoryResultsDetailsFilter.pageSize = 12;
+    repositoryResultsDetailsFilter.violationStateFilters = new HashSet<>();
+    repositoryResultsDetailsFilter.searchFilters = Collections.emptyMap();
+    repositoryResultsDetailsFilter.matchStateFilter = "";
+    repositoryResultsDetailsFilter.aggregate = false;
+
+    List<RepositoryResultsDetails> repositoryResultsDetails =
+        dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+
+    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        toRepositoryResultsDetails(c1, c1v1),
+        toRepositoryResultsDetails(c1, c1v2),
+        toRepositoryResultsDetails(c2, c2v1)
+    );
+  }
+
+  @Test
+  public void testGetRepositoryResultsDetailsAggregate_H2() {
+    testGetRepositoryResultsDetailsAggregate();
+  }
+
+  @Test
+  public void testGetRepositoryResultsDetailsAggregate_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      assertThat(dao.isDatabaseEmbedded()).isFalse();
+      testGetRepositoryResultsDetailsAggregate();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetRepositoryResultsDetailsAggregate() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 1);
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, false);
+    RepositoryPolicyViolation c1v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+            p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
+            p2.getId(), p2.getName(), c1.getComponentIdentifier());
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
+            componentIdentifier2, false);
+    RepositoryPolicyViolation c2v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
+            p1.getId(), p1.getName(), c2.getComponentIdentifier());
+    RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
+    repositoryResultsDetailsFilter.page = 1;
+    repositoryResultsDetailsFilter.pageSize = 12;
+    repositoryResultsDetailsFilter.violationStateFilters = new HashSet<>();
+    repositoryResultsDetailsFilter.searchFilters = Collections.emptyMap();
+    repositoryResultsDetailsFilter.matchStateFilter = "";
+    repositoryResultsDetailsFilter.aggregate = true;
+
+    List<RepositoryResultsDetails> repositoryResultsDetails =
+        dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+
+    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        toRepositoryResultsDetailsWithoutWaived(c1, c1v1),
+        toRepositoryResultsDetailsWithoutWaived(c2, c2v1)
+    );
+  }
+
+  private RepositoryResultsDetails toRepositoryResultsDetailsWithoutWaived(
+      RepositoryComponent repositoryComponent,
+      RepositoryPolicyViolation repositoryPolicyViolation)
+  {
+    RepositoryResultsDetails result = toRepositoryResultsDetails(repositoryComponent, repositoryPolicyViolation);
+    result.waived = null;
+    return result;
+  }
+
+  private RepositoryResultsDetails toRepositoryResultsDetails(
+      RepositoryComponent repositoryComponent,
+      RepositoryPolicyViolation repositoryPolicyViolation)
+  {
+    return new RepositoryResultsDetails(
+        repositoryPolicyViolation.getThreatLevel(),
+        repositoryPolicyViolation.getPolicyName(),
+        repositoryComponent.getComponentIdentifier().getFormat(),
+        repositoryComponent.getPathname(),
+        ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier().getCoordinates()),
+        repositoryComponent.getDisplayName(),
+        repositoryComponent.getHash(),
+        repositoryComponent.getMatchStateId(),
+        (repositoryComponent.getQuarantineTime() != null &&
+            repositoryComponent.getUnquarantineTime() == null) ? repositoryComponent.getQuarantineTime() : null,
+        repositoryPolicyViolation.isWaived()
+    );
   }
 }

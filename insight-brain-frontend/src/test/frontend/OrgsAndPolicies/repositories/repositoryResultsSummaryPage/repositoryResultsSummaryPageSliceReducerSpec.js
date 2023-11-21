@@ -241,6 +241,42 @@ describe('repositoryResultsSummaryPageSlice', () => {
     });
   });
 
+  describe('repositoryResultsSummaryPage/toggleAggregate action', () => {
+    it('sets aggregate to false if it is true and sets the page to 1', () => {
+      const state = Object.freeze({
+        componentsRequestBody: {
+          aggregate: true,
+        },
+      });
+
+      const {
+        componentsRequestBody: { aggregate, page },
+      } = reducer(state, {
+        type: 'repositoryResultsSummaryPage/toggleAggregate',
+      });
+
+      expect(aggregate).toBeFalse();
+      expect(page).toBe(1);
+    });
+
+    it('sets aggregate to true if it is false and sets the page to 1', () => {
+      const state = Object.freeze({
+        componentsRequestBody: {
+          aggregate: false,
+        },
+      });
+
+      const {
+        componentsRequestBody: { aggregate, page },
+      } = reducer(state, {
+        type: 'repositoryResultsSummaryPage/toggleAggregate',
+      });
+
+      expect(aggregate).toBeTrue();
+      expect(page).toBe(1);
+    });
+  });
+
   describe('repositoryResultsSummaryPage/setSorting action', () => {
     it('changes sorting direction to the opposite if we sort the same column', () => {
       const state = Object.freeze({

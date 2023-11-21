@@ -29,7 +29,7 @@
 
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>2.1.1</phantomjs.version>
-    <maven.version.range>[3.6.0,)</maven.version.range>
+    <maven.version.range>[3.9.0,)</maven.version.range>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <animal-sniffer-signature>java18</animal-sniffer-signature>

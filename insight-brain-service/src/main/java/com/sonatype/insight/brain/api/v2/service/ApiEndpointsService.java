@@ -70,7 +70,8 @@ public class ApiEndpointsService
             )
             .map(Resource::from)
             .filter(Objects::nonNull)
-            .filter(resource -> resource.getPath().startsWith(apiType.getPathPrefix().substring(1)))
+            .filter(resource -> resource.getPath().startsWith(apiType.getPathPrefix()) ||
+                resource.getPath().startsWith(apiType.getPathPrefix().substring(1)))
             .flatMap(resource -> resource.getHandlerClasses().stream())
             .collect(Collectors.toSet()));
     SortedSet<String> tags = new TreeSet<>();

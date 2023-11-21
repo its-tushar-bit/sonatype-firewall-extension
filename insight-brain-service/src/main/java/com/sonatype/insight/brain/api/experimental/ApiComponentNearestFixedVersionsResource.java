@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -16,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
+import com.sonatype.insight.brain.api.experimental.doc.ApiComponentNearestFixedVersionsResourceDoc;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -26,6 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(ApiComponentNearestFixedVersionsResource.RESOURCE_PATH)
 public class ApiComponentNearestFixedVersionsResource
+    implements ApiComponentNearestFixedVersionsResourceDoc
 {
   static final String RESOURCE_PATH = "/api/experimental/components/vulnerabilities/nearestFixedVersions";
 
@@ -36,6 +37,7 @@ public class ApiComponentNearestFixedVersionsResource
     this.service = service;
   }
 
+  @Override
   @POST
   @Consumes({MediaType.APPLICATION_JSON})
   @Produces({MediaType.APPLICATION_JSON})

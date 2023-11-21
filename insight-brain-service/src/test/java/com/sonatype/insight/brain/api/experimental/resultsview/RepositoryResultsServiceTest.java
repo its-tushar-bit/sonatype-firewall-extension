@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -984,5 +985,94 @@ public class RepositoryResultsServiceTest
     assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
     assertThat(responseDtos.get(0).quarantineTime).isNull();
     assertThat(responseDtos.get(0).waived).isNull();
+  }
+
+  @Test
+  public void testGetDetails_ThreatLevelFilters() {
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    detailsRequest.threatLevelFilters = Arrays.asList(5, 5);
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(2);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(0).waived).isFalse();
+    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(1).waived).isTrue();
+  }
+
+  @Test
+  public void testGetDetails_QuarantineTimeFilter() {
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    SearchFilter searchFilter = new SearchFilter();
+    searchFilter.filterableField = FilterableField.QUARANTINE_TIME;
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    searchFilter.value = simpleDateFormat.format(date);
+    detailsRequest.searchFilters = Collections.singletonList(searchFilter);
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(5);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(0).waived).isFalse();
+    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(1).waived).isFalse();
+    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(2).waived).isTrue();
+    assertThat(responseDtos.get(3).threatLevel).isEqualTo(10);
+    assertThat(responseDtos.get(3).policyName).isEqualTo("policy1");
+    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(3).waived).isFalse();
+    assertThat(responseDtos.get(4).threatLevel).isEqualTo(10);
+    assertThat(responseDtos.get(4).policyName).isEqualTo("policy1");
+    assertThat(responseDtos.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(responseDtos.get(4).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(4).waived).isFalse();
   }
 }

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { getAllByRole, render, screen } from 'TestRoot/SpecUtil';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
 import { actions as repositoryComponentsActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 import { fireEvent } from '@testing-library/react';
@@ -18,6 +18,7 @@ describe('RepositoryResultsComponentsFilter', () => {
     repositoryResultsSummaryPage: {
       componentsRequestBody: {},
       selectedViolationStateFilters: new Set(),
+      selectedThreatLevelFilters: [0, 10],
       showFilterPopover: true,
     },
   };
@@ -56,8 +57,19 @@ describe('RepositoryResultsComponentsFilter', () => {
       expect(screen.getByText('Open')).toBeVisible();
       expect(screen.getByText('Quarantined')).toBeVisible();
       expect(screen.getByText('Waived')).toBeVisible();
+
+      expect(screen.getByText('Policy Threat Level')).toBeVisible();
+
       expect(clearButton).toBeEnabled();
       expect(applyButton).toBeEnabled();
+    });
+
+    it('renders the policy threat level slider', () => {
+      renderComponent();
+      const policyThreat = screen.getAllByRole('list')[0];
+      const policyThreatSliders = getAllByRole(policyThreat, 'slider');
+      expect(policyThreatSliders[0]).toHaveTextContent('0');
+      expect(policyThreatSliders[1]).toHaveTextContent('10');
     });
 
     it('it renders selection counter', () => {

@@ -26,9 +26,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
+import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryFilterPopover;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
@@ -254,6 +256,12 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+
+    RepositoryResultDetailPage.table().quarantineTime().input().sendKeys("2020-06-01");
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().should(visible);
+    RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().click();
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
   }
 
   @Test
@@ -269,6 +277,12 @@ public class RepositoryResultsSummaryTest
 
     RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+
+    RepositoryResultDetailPage.table().quarantineTime().input().sendKeys("2020-06-01");
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().should(visible);
+    RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().click();
     RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
   }
 
@@ -1467,6 +1481,52 @@ public class RepositoryResultsSummaryTest
 
     // Component 10
     tempEntity.newRepositoryPolicyViolation(component10, 10, false, "Policy Threat Level 10", null);
+  }
+
+  @Test
+  public void testFilterThreatLevel() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+    RepositoryResultDetailPage.aggregateToggle().click();
+
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    RepositoryResultDetailPage.filterPopoverButton().click();
+    RepositoryFilterPopover repositoryFilterPopover = RepositoryResultDetailPage.filterPopover();
+    PolicyThreatLevelFilter policyThreatLevelFilter = repositoryFilterPopover.policyThreatLevelFilter();
+    policyThreatLevelFilter.click();
+    policyThreatLevelFilter.slider().setValues(3, 4);
+    repositoryFilterPopover.applyButton().click();
+
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(4);
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(1), "4", "Policy Threat Level 4B", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(2), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(3), "3", "Policy Threat Level 3B", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+
+    repositoryFilterPopover.clearButton().click();
+    repositoryFilterPopover.applyButton().click();
+
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
   }
 
   private void testRow(RepositoryResultTableRow row,

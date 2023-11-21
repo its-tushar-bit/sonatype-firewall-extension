@@ -47,7 +47,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const errorComponentsTable = useSelector(selectErrorComponentsTable);
   const aggregate = useSelector(selectAggregate);
 
-  const searchComponents = (policyName) => dispatch(actions.searchComponents(policyName));
+  const searchComponents = (value) => dispatch(actions.searchComponents(value));
   const sortComponents = (columnName) => dispatch(actions.sortComponents(columnName));
   const loadComponents = () => dispatch(actions.getRepositoryComponents(repositoryId));
   const loadPreviousPage = () => dispatch(actions.loadPreviousPage());
@@ -189,7 +189,15 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                     value={searchFiltersValues['POLICY_NAME']}
                   />
                 </NxTable.Cell>
-                <NxTable.Cell />
+                <NxTable.Cell className="iq-repository-filter--quarantine">
+                  <NxFilterInput
+                    name="QUARANTINE_TIME"
+                    placeholder="date"
+                    id="nx-repository-quarantine-filter"
+                    onChange={(filterValue) => searchComponents({ filterValue, filterName: 'QUARANTINE_TIME' })}
+                    value={searchFiltersValues['QUARANTINE_TIME']}
+                  />
+                </NxTable.Cell>
                 <NxTable.Cell className="iq-repository-filter--component" colSpan={3}>
                   <NxFilterInput
                     name="COMPONENT_COORDINATES"

@@ -96,6 +96,7 @@ class RepositoryResultsService
     filter.pageSize = detailsRequest.pageSize;
     filter.matchStateFilter = initializeMatchStateFilter(detailsRequest.matchStateFilters);
     filter.violationStateFilters = initializeViolationStateFilters(detailsRequest.violationStateFilters);
+    filter.threatLevelFilters = detailsRequest.threatLevelFilters;
     filter.searchFilters = initializeSearchFilterMap(detailsRequest.searchFilters);
     filter.sortFields = detailsRequest.sortFields;
     filter.aggregate = detailsRequest.aggregate;

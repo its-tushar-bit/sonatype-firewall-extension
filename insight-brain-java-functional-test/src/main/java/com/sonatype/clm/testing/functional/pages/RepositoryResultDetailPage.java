@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
+import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -75,8 +76,20 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
       super(POPOVER_SELECTOR);
     }
 
+    public PolicyThreatLevelFilter policyThreatLevelFilter() {
+      return new PolicyThreatLevelFilter("#repository-threat-level-filter");
+    }
+
     public SelenideElement closeButton() {
       return child(".nx-drawer-header__close-button");
+    }
+
+    public SelenideElement clearButton() {
+      return child("#iq-summary-page-components-filter__clear");
+    }
+
+    public SelenideElement applyButton() {
+      return child("#iq-summary-page-components-filter__apply");
     }
   }
 
@@ -133,6 +146,14 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
 
     public Button policyNameClearFilterButton() {
       return new Button(".iq-repository-filter--policy button");
+    }
+
+    public NxTextInput quarantineTime() {
+      return new NxTextInput(child("#nx-repository-quarantine-filter"));
+    }
+
+    public Button quarantineTimeClearFilterButton() {
+      return new Button(".iq-repository-filter--quarantine button");
     }
 
     public NxTextInput componentName() {

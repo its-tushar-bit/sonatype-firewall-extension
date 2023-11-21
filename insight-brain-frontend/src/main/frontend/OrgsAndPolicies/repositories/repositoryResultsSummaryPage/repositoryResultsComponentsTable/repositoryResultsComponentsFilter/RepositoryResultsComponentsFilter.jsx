@@ -16,10 +16,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectMatchStateFilters,
   selectShowFilterPopover,
+  selectThreatLevelFilters,
   selectViolationStateFilters,
 } from '../../repositoryResultsSummaryPageSelectors';
 import { actions } from '../../repositoryResultsSummaryPageSlice';
 import * as PropTypes from 'prop-types';
+import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
 
 const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   const dispatch = useDispatch();
@@ -39,6 +41,7 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   const selectedViolationStateFilters = useSelector(selectViolationStateFilters);
   const selectedMatchStateFilters = useSelector(selectMatchStateFilters);
   const showFilterPopover = useSelector(selectShowFilterPopover);
+  const threatLevelFilters = useSelector(selectThreatLevelFilters);
 
   const applyFilters = () => {
     dispatch(actions.applyFilters());
@@ -50,6 +53,7 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   const toggleMatchStateFilters = (payload) => dispatch(actions.changeMachstateFilters(payload));
   const toggleViolationStateFilters = (payload) => dispatch(actions.changeViolationStateFilters(payload));
   const closeFilterPopover = () => dispatch(actions.setShowFilterPopover(false));
+  const changeThreatLevelFilters = (payload) => dispatch(actions.changeThreatLevelFilters(payload));
 
   return (
     <NxDrawer
@@ -83,6 +87,14 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
           >
             <span>Violations</span>
           </NxStatefulCollapsibleMultiSelect>
+
+          <IqTreeViewPolicyThreatSlider
+            id="repository-threat-level-filter"
+            value={[...threatLevelFilters]}
+            onChange={(threatLevelRange) => changeThreatLevelFilters(threatLevelRange)}
+          >
+            <span>Policy Threat Level</span>
+          </IqTreeViewPolicyThreatSlider>
         </div>
       </NxDrawer.Content>
       <NxFooter>

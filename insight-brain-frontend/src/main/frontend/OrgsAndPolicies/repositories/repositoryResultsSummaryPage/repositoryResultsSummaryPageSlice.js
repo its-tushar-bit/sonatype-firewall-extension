@@ -40,6 +40,7 @@ const initialState = {
   errorRepositoryInformation: null,
   selectedMatchStateFilters: new Set([]),
   selectedViolationStateFilters: new Set([]),
+  selectedThreatLevelFilters: [0, 10],
   showFilterPopover: false,
   errorComponentsTable: null,
   repositoryComponents: [],
@@ -72,10 +73,12 @@ const initialState = {
     aggregate: true,
     matchStateFilters: [],
     violationStateFilters: [],
+    threatLevelFilters: [0, 10],
   },
   hasMoreResults: null,
   searchFiltersValues: {
     POLICY_NAME: '',
+    QUARANTINE_TIME: '',
     COMPONENT_COORDINATES: '',
   },
   reEvaluateMaskSuccess: false,
@@ -153,12 +156,18 @@ const changeMachstateFilters = (state, { payload }) => {
   state.selectedMatchStateFilters = payload;
 };
 
+const changeThreatLevelFilters = (state, { payload }) => {
+  state.selectedThreatLevelFilters = payload;
+};
+
 const clearFilters = (state) => {
   state.componentsRequestBody.page = 1;
   state.selectedMatchStateFilters = new Set([]);
   state.selectedViolationStateFilters = new Set([]);
+  state.selectedThreatLevelFilters = [0, 10];
   state.componentsRequestBody.matchStateFilters = Array.from(state.selectedMatchStateFilters);
   state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
+  state.componentsRequestBody.threatLevelFilters = [...state.selectedThreatLevelFilters];
 };
 
 const CancelToken = axios.CancelToken;
@@ -181,6 +190,7 @@ const applyFilters = (state) => {
   state.componentsRequestBody.page = 1;
   state.componentsRequestBody.matchStateFilters = Array.from(state.selectedMatchStateFilters);
   state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
+  state.componentsRequestBody.threatLevelFilters = [...state.selectedThreatLevelFilters];
 };
 
 const getRepositorySummary = createAsyncThunk(`${REDUCER_NAME}/getRepositorySummary`, (repoId, { rejectWithValue }) => {
@@ -323,6 +333,7 @@ export const repositoryResultsSummaryPageSlice = createSlice({
   reducers: {
     changeViolationStateFilters,
     changeMachstateFilters,
+    changeThreatLevelFilters,
     clearFilters,
     setShowFilterPopover: propSet('showFilterPopover'),
     setFilter,

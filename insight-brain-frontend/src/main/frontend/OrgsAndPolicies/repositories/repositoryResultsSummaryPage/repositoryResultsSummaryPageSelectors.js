@@ -15,6 +15,10 @@ export const selectViolationStateFilters = createSelector(
   selectRepositoryResultsSummaryPageSlice,
   prop('selectedViolationStateFilters')
 );
+export const selectThreatLevelFilters = createSelector(
+  selectRepositoryResultsSummaryPageSlice,
+  prop('selectedThreatLevelFilters')
+);
 export const selectMatchStateFilters = createSelector(
   selectRepositoryResultsSummaryPageSlice,
   prop('selectedMatchStateFilters')

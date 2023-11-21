@@ -198,14 +198,16 @@ describe('RepositoryResultsComponentsTable', () => {
       expect(screen.getByText(components[1].componentDisplayText)).toBeVisible();
     });
 
-    it('filters components by the name or policy', () => {
+    it('filters components by the name or policy or quarantine time', () => {
       renderComponent();
 
       const searchByNameInput = screen.getByPlaceholderText('component name');
       const searchByPolicyInput = screen.getByPlaceholderText('policy name');
+      const searchByQuarantineTime = screen.getByPlaceholderText('date');
 
       fireEvent.change(searchByNameInput, { target: { value: 'component 1' } });
       fireEvent.change(searchByPolicyInput, { target: { value: 'High' } });
+      fireEvent.change(searchByQuarantineTime, { target: { value: '2023-10-19' } });
 
       expect(searchComponentsSpy).toHaveBeenCalledWith({
         filterValue: 'component 1',
@@ -214,6 +216,10 @@ describe('RepositoryResultsComponentsTable', () => {
       expect(searchComponentsSpy).toHaveBeenCalledWith({
         filterValue: 'High',
         filterName: 'POLICY_NAME',
+      });
+      expect(searchComponentsSpy).toHaveBeenCalledWith({
+        filterValue: '2023-10-19',
+        filterName: 'QUARANTINE_TIME',
       });
     });
 

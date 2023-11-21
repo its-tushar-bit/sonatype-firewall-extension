@@ -19,6 +19,8 @@ public class RepositoryResultsDetailsFilter
 
   public Set<String> violationStateFilters;
 
+  public List<Integer> threatLevelFilters;
+
   public Map<String, String> searchFilters;
 
   public List<SortField> sortFields;

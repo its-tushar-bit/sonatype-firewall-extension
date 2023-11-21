@@ -235,12 +235,14 @@ public class RepositoryPolicyViolationDAO
 
       StringBuilder sQuery = new StringBuilder(baseQuery);
 
+      sQuery.append(addThreatLevelFilters(detailsFilter.threatLevelFilters));
+
       sQuery.append(addViolationStateFilters(detailsFilter.violationStateFilters));
 
       sQuery.append(addSearchFilters(detailsFilter.searchFilters));
 
       if (!detailsFilter.matchStateFilter.isEmpty()) {
-        sQuery.append(" AND component.match_state_id = ?4");
+        sQuery.append(" AND component.match_state_id = ?7");
       }
 
       sQuery.append(validateAndAddSortFields(detailsFilter.sortFields));
@@ -249,9 +251,14 @@ public class RepositoryPolicyViolationDAO
 
       javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
       query.setParameter(1, repositoryId);
-      query.setParameter(2, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
-      query.setParameter(3, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
-      query.setParameter(4, detailsFilter.matchStateFilter);
+      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
+        query.setParameter(2, detailsFilter.threatLevelFilters.get(0));
+        query.setParameter(3, detailsFilter.threatLevelFilters.get(1));
+      }
+      query.setParameter(4, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      query.setParameter(5, '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      query.setParameter(6, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
+      query.setParameter(7, detailsFilter.matchStateFilter);
       query.setFirstResult(offset).setMaxResults(detailsFilter.pageSize +
           1); // Incremented page size to help UI determine whether to enable / disable NextPage button
 
@@ -286,9 +293,10 @@ public class RepositoryPolicyViolationDAO
           " ON component.repository_id = violation.repository_id" +
           " AND component.pathname = violation.pathname" +
           " WHERE component.repository_id = ?1" +
+          addThreatLevelFilters(detailsFilter.threatLevelFilters) +
           addViolationStateFilters(detailsFilter.violationStateFilters) +
           addSearchFilters(detailsFilter.searchFilters) +
-          (!detailsFilter.matchStateFilter.isEmpty() ? " AND component.match_state_id = ?4" : "") +
+          (!detailsFilter.matchStateFilter.isEmpty() ? " AND component.match_state_id = ?7" : "") +
           " GROUP BY component.pathname";
 
       // Incremented page size to help UI determine whether to enable / disable NextPage button
@@ -327,9 +335,14 @@ public class RepositoryPolicyViolationDAO
 
       javax.persistence.Query query = tx.createNativeQuery(select3);
       query.setParameter(1, repositoryId);
-      query.setParameter(2, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
-      query.setParameter(3, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
-      query.setParameter(4, detailsFilter.matchStateFilter);
+      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
+        query.setParameter(2, detailsFilter.threatLevelFilters.get(0));
+        query.setParameter(3, detailsFilter.threatLevelFilters.get(1));
+      }
+      query.setParameter(4, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      query.setParameter(5, '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      query.setParameter(6, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
+      query.setParameter(7, detailsFilter.matchStateFilter);
 
       List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new RepositoryResultsDetails(
@@ -439,15 +452,29 @@ public class RepositoryPolicyViolationDAO
     return query.toString();
   }
 
+  private static String addThreatLevelFilters(List<Integer> filters) {
+    if (filters != null && filters.size() == 2 && (filters.get(0) > 0 || filters.get(1) < 10)) {
+      if (filters.get(0) == 0) {
+        return " AND (violation.threat_level IS NULL OR" +
+            " (violation.threat_level >= ?2 AND violation.threat_level <= ?3))";
+      }
+      return " AND violation.threat_level >= ?2 AND violation.threat_level <= ?3";
+    }
+    return "";
+  }
+
   private static String addSearchFilters(Map<String, String> filters) {
     StringBuilder query = new StringBuilder();
     if (!MapUtils.isEmpty(filters)) {
       for (Entry<String, String> filter : filters.entrySet()) {
         if (filter.getKey().equals("POLICY_NAME")) {
-          query.append(" AND LOWER(violation.policy_name) LIKE ?2");
+          query.append(" AND LOWER(violation.policy_name) LIKE ?4");
+        }
+        if (filter.getKey().equals("QUARANTINE_TIME")) {
+          query.append(" AND (quarantine_time IS NOT NULL AND TO_CHAR(quarantine_time, 'YYYY-MM-DD') LIKE ?5)");
         }
         if (filter.getKey().equals("COMPONENT_COORDINATES")) {
-          query.append(" AND LOWER(component.display_name) LIKE ?3");
+          query.append(" AND LOWER(component.display_name) LIKE ?6");
         }
       }
     }

@@ -15,6 +15,8 @@ public class RepositoryResultsDetailsRequestDto
 
   public int pageSize;
 
+  public List<Integer> threatLevelFilters;
+
   public List<MatchStateFilter> matchStateFilters;
 
   public List<ViolationStateFilter> violationStateFilters;
@@ -50,6 +52,7 @@ public class RepositoryResultsDetailsRequestDto
     public enum FilterableField
     {
       POLICY_NAME,
+      QUARANTINE_TIME,
       COMPONENT_COORDINATES
     }
   }

@@ -80,6 +80,10 @@ public class ApiFirewallMetricsService
     return resultMap;
   }
 
+  public void incrementFirewallMetrics(FirewallMetrics firewallMetrics) {
+    firewallMetricsDAO.insertUpdateFirewallMetrics(firewallMetrics);
+  }
+
   public void checkProductLicense() {
     checkLicensedFeatures(productLicense::hasFeature);
   }

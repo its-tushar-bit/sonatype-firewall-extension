@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -119,6 +120,40 @@ public class ApiFirewallMetricsServiceTest
   }
 
   @Test
+  public void testIncrementFirewallMetrics() {
+    Date testDate1 = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
+    Date testDate2 = new GregorianCalendar(2023, Calendar.OCTOBER, 2).getTime();
+    Date today = org.apache.commons.lang.time.DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+
+    String id1 = tempEntity.newFirewallMetrics(FirewallMetricsName.WAIVED_COMPONENTS, 20, testDate1, today);
+    String id2 = tempEntity.newFirewallMetrics(FirewallMetricsName.COMPONENTS_QUARANTINED, 10, testDate2, today);
+
+    FirewallMetrics firewallMetrics1 = new FirewallMetrics();
+    firewallMetrics1.setMetricsName(FirewallMetricsName.WAIVED_COMPONENTS);
+    firewallMetrics1.setMetricsValue(50);
+    firewallMetrics1.setMetricsLastUpdatedAt(new Date());
+    firewallMetrics1.setMetricsDate(today);
+
+    FirewallMetrics firewallMetrics2 = new FirewallMetrics();
+    firewallMetrics2.setMetricsName(FirewallMetricsName.COMPONENTS_QUARANTINED);
+    firewallMetrics2.setMetricsValue(50);
+    firewallMetrics2.setMetricsLastUpdatedAt(new Date());
+    firewallMetrics2.setMetricsDate(today);
+
+    firewallMetricsService.incrementFirewallMetrics(firewallMetrics1);
+    firewallMetricsService.incrementFirewallMetrics(firewallMetrics2);
+
+    FirewallMetricsDAO firewallMetrics = new FirewallMetricsDAO();
+    FirewallMetrics firewallMetricsRes1 = firewallMetrics.getById(id1);
+    FirewallMetrics firewallMetricsRes2 = firewallMetrics.getById(id2);
+
+    assertThat(firewallMetricsRes1.getMetricsName()).isEqualTo(FirewallMetricsName.WAIVED_COMPONENTS);
+    assertThat(firewallMetricsRes2.getMetricsName()).isEqualTo(FirewallMetricsName.COMPONENTS_QUARANTINED);
+
+    assertThat(firewallMetricsRes1.getMetricsValue()).isEqualTo(70);
+    assertThat(firewallMetricsRes2.getMetricsValue()).isEqualTo(60);
+  }
+
   public void testCheckProductLicense_NoReleaseIntegrityFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 

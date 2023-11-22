@@ -1195,6 +1195,15 @@ public class TemporaryEntity
     return firewallMetrics;
   }
 
+  public String newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value,
+                                            Date lastUpdatedDate, Date metricsDate )
+  {
+    FirewallMetrics firewallMetrics = new FirewallMetrics(metricsDate, firewallMetricsName, value);
+    firewallMetrics.setMetricsLastUpdatedAt(lastUpdatedDate);
+    firewallMetricsDAO.insert(firewallMetrics);
+    return firewallMetrics.getId();
+  }
+
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }

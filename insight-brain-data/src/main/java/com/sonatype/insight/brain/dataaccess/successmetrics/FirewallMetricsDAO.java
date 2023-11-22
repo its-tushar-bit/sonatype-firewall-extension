@@ -5,16 +5,22 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import javax.persistence.EntityExistsException;
+import javax.persistence.LockModeType;
+import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -49,6 +55,48 @@ public class FirewallMetricsDAO
           .collect(toMap(row -> getFirewallMetricsName(row[0].toString()),
               row -> getTotalFirewallMetricsValueAndLatestUpdatedTime(((Number)row[1]).intValue(), (Date)row[2])));
     }
+  }
+
+  public FirewallMetrics insertUpdateFirewallMetrics(FirewallMetrics newFirewallMetrics) {
+    Date truncatedDate = DateUtils.truncate(newFirewallMetrics.getMetricsDate(), Calendar.DATE);
+    FirewallMetrics resultFirewallMetrics;
+    FirewallMetrics existingFirewallMetrics;
+    String sQuery = "SELECT entity" +
+        " FROM FirewallMetrics entity" +
+        " WHERE entity.metricsDate=?1" +
+        " AND entity.metricsName=?2";
+
+    Query<FirewallMetrics> query =
+        new Query<FirewallMetrics>(sQuery, truncatedDate, newFirewallMetrics.getMetricsName());
+    // need a 'select for update' type query - this is how to do it in JPA
+    query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);
+
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+
+      existingFirewallMetrics = query.get(tx);
+      if (existingFirewallMetrics != null) {
+        int newFirewallMetricsValue = newFirewallMetrics.getMetricsValue() + existingFirewallMetrics.getMetricsValue();
+        existingFirewallMetrics.setMetricsValue(newFirewallMetricsValue);
+        existingFirewallMetrics.setMetricsLastUpdatedAt(new Date());
+        update(tx, existingFirewallMetrics);
+        resultFirewallMetrics = existingFirewallMetrics;
+      }
+      else {
+        newFirewallMetrics.setMetricsDate(truncatedDate);
+        insert(newFirewallMetrics);
+        resultFirewallMetrics = newFirewallMetrics;
+      }
+
+      tx.commit();
+    }
+    catch (RollbackException e) {
+      if (e.getCause() instanceof EntityExistsException) {
+        return insertUpdateFirewallMetrics(newFirewallMetrics);
+      }
+      throw e;
+    }
+    return resultFirewallMetrics;
   }
 
   private static FirewallMetricsName getFirewallMetricsName(String firewallMetricsName) {

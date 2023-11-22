@@ -131,5 +131,6 @@ CREATE TABLE firewall_metrics (
     metrics_value int NOT NULL,
     metrics_last_updated_at timestamp NOT NULL,
 
-    CONSTRAINT firewall_metrics_id_pk PRIMARY KEY (firewall_metrics_id)
+    CONSTRAINT firewall_metrics_id_pk PRIMARY KEY (firewall_metrics_id),
+    CONSTRAINT firewall_metrics_date_name_uk UNIQUE (metrics_date, metrics_name)
 );

@@ -182,6 +182,10 @@ public class ApplicationReportPage
       return child(".iq-text-indicator--waived");
     }
 
+    public SelenideElement waiverIndicator() {
+      return child(".iq-waiver-indicator");
+    }
+
     public ElementsCollection dependencyIndicators() {
       return children(DEPENDENCY_INDICATOR_SELECTOR);
     }

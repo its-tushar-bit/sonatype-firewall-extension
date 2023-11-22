@@ -12,14 +12,16 @@ import {
   NxTableCell,
   NxTableRow,
   NxThreatIndicator,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
 
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import { selectIsAggregated, selectSelectedReport } from './applicationReportSelectors';
-import { allPass, filter, includes, length, not, compose, pathOr, prop } from 'ramda';
+import { allPass, filter, includes, length, not, compose, pathOr, prop, is } from 'ramda';
 
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
+import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 
 const getInnerSourceParentsTooltipMessage = (component) => {
   const { innerSourceParentsDerivedComponentNames = [] } = component;
@@ -100,11 +102,18 @@ export default function ReportTableRow({ onClick, component }) {
             {getTransitiveViolationsCount()}
           </span>
         )}
-        {component.waived && (
+        {component.waived && !is(Number, component.waivedViolations) && (
           <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
             <span>Waived</span>
             <NxFontAwesomeIcon icon={faCheck} />
           </span>
+        )}
+        {component.waivedViolations > 0 && (
+          <NxTooltip title="Toggle off aggregate view to see all violations">
+            <span className="iq-pull-right">
+              <ActiveWaiversIndicator activeWaiverCount={component.waivedViolations} />
+            </span>
+          </NxTooltip>
         )}
         {component.legacyViolation && (
           <span className="iq-text-indicator iq-text-indicator--legacy-violation iq-pull-right">
@@ -134,6 +143,8 @@ ReportTableRow.propTypes = {
     componentIdentifier: PropTypes.object,
     isOnlyInnerSourceTransitiveDependency: PropTypes.bool,
     innerSource: PropTypes.bool,
+    waivedViolations: PropTypes.number,
+    serializedComponentIdentifier: PropTypes.string,
   }),
   onClick: PropTypes.func.isRequired,
 };

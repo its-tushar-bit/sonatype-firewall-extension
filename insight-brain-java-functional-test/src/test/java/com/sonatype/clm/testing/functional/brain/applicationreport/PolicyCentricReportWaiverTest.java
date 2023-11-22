@@ -17,8 +17,8 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListRow;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -57,21 +57,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyCentricReportWaiverTest
     extends AbstractFunctionalTest
 {
+  public static final int numberOfComponents = 4;
+
   private static final String policyName = "All components";
 
   private static final String scanId = "306e0a923df34c64b836358182b1b902";
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  public static final int numberOfComponents = 4;
-
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
+
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private Application app;
 
   private TestReportEvaluator evaluator;
-
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   @BeforeClass
   public static void startup() {
@@ -269,8 +269,9 @@ public class PolicyCentricReportWaiverTest
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
     reportPage.resultRows()
         .shouldHave(
-            texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived",
-                "Waived", "Waived", "None"));
+            texts("1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver",
+                "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver",
+                "1 Active Waiver", "1 Active Waiver", "None"));
   }
 
   private void assertWaiver(WaiverListRow waiver, String comment) {

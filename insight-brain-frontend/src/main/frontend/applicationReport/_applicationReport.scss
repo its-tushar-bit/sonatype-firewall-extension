@@ -388,6 +388,9 @@ tbody .iq-cell--application-report-component-display {
 .iq-app-report__component-name-cell,
 .iq-app-report__policy-name-text {
   @include nx-text-helpers.truncate-ellipsis;
+  .iq-waiver-indicator {
+    height: var(--nx-spacing-6x);
+  }
 }
 
 .iq-app-report__policy-name-cell {

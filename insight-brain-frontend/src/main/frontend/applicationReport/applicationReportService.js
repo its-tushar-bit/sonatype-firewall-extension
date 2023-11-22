@@ -430,20 +430,25 @@ function highestViolationReducer(highestViolationSoFar, violation) {
     activeViolations = filter(isActive, [highestViolationSoFar, violation]),
     highestActiveViolation =
       activeViolations.length < 2 ? activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
-
+  // Add the waivedViolations key if it does not exist yet
+  let waivedViolations = highestViolationSoFar?.waivedViolations ?? 0;
+  // this compounds the number of waived violations into the final value
+  if (violation.waived) {
+    waivedViolations += 1;
+  }
   // return the highest active violation, or if there isn't one, merge the inactive violations
   if (highestActiveViolation) {
-    return highestActiveViolation;
+    return { ...highestActiveViolation, waivedViolations };
   } else {
     const waived = (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
       legacyViolation =
         (highestViolationSoFar && isLegacyViolation(highestViolationSoFar)) || isLegacyViolation(violation);
-
     return {
       ...violation,
       policyThreatLevel: 0,
       policyName: 'None',
       waived,
+      waivedViolations,
       legacyViolation,
       derivedViolationState: deriveViolationState(waived, legacyViolation),
     };

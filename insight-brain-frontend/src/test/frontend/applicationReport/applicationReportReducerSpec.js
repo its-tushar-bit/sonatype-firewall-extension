@@ -312,9 +312,9 @@ describe('applicationReportReducer', function () {
       ];
       // Aggregated entries are processed and enhanced with more data
       const aggregatedEntries = [
-        { policyThreatLevel: 9, hash: 'd', waived: false, legacyViolation: false },
-        { policyThreatLevel: 6, hash: 'c', waived: false, legacyViolation: false },
-        { policyThreatLevel: 3, hash: 'a', waived: false, legacyViolation: false },
+        { policyThreatLevel: 9, hash: 'd', waived: false, legacyViolation: false, waivedViolations: 0 },
+        { policyThreatLevel: 6, hash: 'c', waived: false, legacyViolation: false, waivedViolations: 0 },
+        { policyThreatLevel: 3, hash: 'a', waived: false, legacyViolation: false, waivedViolations: 0 },
         {
           policyThreatLevel: 0,
           legacyViolation: undefined,
@@ -322,6 +322,7 @@ describe('applicationReportReducer', function () {
           hash: 'b',
           policyName: 'None',
           derivedViolationState: 'waived',
+          waivedViolations: 1,
         },
         {
           policyThreatLevel: 0,
@@ -330,6 +331,7 @@ describe('applicationReportReducer', function () {
           hash: 'e',
           policyName: 'None',
           derivedViolationState: 'legacyViolation',
+          waivedViolations: 0,
         },
       ];
       const newState = reduce(state, {
@@ -415,12 +417,14 @@ describe('applicationReportReducer', function () {
           ],
           policyName: 'None',
           derivedViolationState: 'legacyViolation',
+          waivedViolations: 0,
         },
         {
           policyThreatLevel: 10,
           hash: 'b',
           waived: false,
           legacyViolation: false,
+          waivedViolations: 0,
         },
         {
           policyThreatLevel: 6,
@@ -433,6 +437,7 @@ describe('applicationReportReducer', function () {
           ],
           waived: false,
           legacyViolation: false,
+          waivedViolations: 0,
         },
       ];
       const newState = reduce(state, {
@@ -605,6 +610,7 @@ describe('applicationReportReducer', function () {
             policyName: 'P4',
             waived: false,
             legacyViolation: false,
+            waivedViolations: 0,
           },
           {
             hash: '5',
@@ -612,6 +618,7 @@ describe('applicationReportReducer', function () {
             policyName: 'P5',
             waived: false,
             legacyViolation: false,
+            waivedViolations: 0,
           },
         ],
         newState = reduce(state, {
@@ -687,6 +694,7 @@ describe('applicationReportReducer', function () {
             policyThreatLevel: 6,
             policyName: 'P4',
             waived: false,
+            waivedViolations: 0,
             legacyViolation: false,
           },
           {
@@ -694,11 +702,18 @@ describe('applicationReportReducer', function () {
             policyThreatLevel: 4,
             policyName: 'P5',
             waived: false,
+            waivedViolations: 0,
             legacyViolation: false,
           },
         ],
         displayedEntries = [
-          { hash: '1', policyThreatLevel: 6, policyName: 'P4', waived: false, legacyViolation: false },
+          {
+            hash: '1',
+            policyThreatLevel: 6,
+            policyName: 'P4',
+            waived: false,
+            legacyViolation: false,
+          },
           {
             hash: '4',
             policyThreatLevel: 4,
@@ -707,8 +722,20 @@ describe('applicationReportReducer', function () {
             legacyViolation: false,
             displayName: { parts: [] },
           },
-          { hash: '5', policyThreatLevel: 4, policyName: 'P5', waived: false, legacyViolation: false },
-          { hash: '1', policyThreatLevel: 1, policyName: 'P1', waived: false, legacyViolation: false },
+          {
+            hash: '5',
+            policyThreatLevel: 4,
+            policyName: 'P5',
+            waived: false,
+            legacyViolation: false,
+          },
+          {
+            hash: '1',
+            policyThreatLevel: 1,
+            policyName: 'P1',
+            waived: false,
+            legacyViolation: false,
+          },
         ],
         newState = reduce(state, {
           type: 'LOAD_REPORT_FULFILLED',
@@ -1402,6 +1429,7 @@ describe('applicationReportReducer', function () {
           legacyViolation: false,
           waived: false,
           derivedViolationState: 'open',
+          waivedViolations: 0,
         },
         {
           hash: '5',
@@ -1410,6 +1438,7 @@ describe('applicationReportReducer', function () {
           legacyViolation: false,
           waived: false,
           derivedViolationState: 'open',
+          waivedViolations: 0,
         },
         {
           hash: '2',
@@ -1418,6 +1447,7 @@ describe('applicationReportReducer', function () {
           legacyViolation: false,
           waived: false,
           derivedViolationState: 'open',
+          waivedViolations: 0,
         },
         {
           hash: '1',
@@ -1426,6 +1456,7 @@ describe('applicationReportReducer', function () {
           legacyViolation: false,
           waived: false,
           derivedViolationState: 'open',
+          waivedViolations: 1,
         },
         {
           hash: '4',
@@ -1435,6 +1466,7 @@ describe('applicationReportReducer', function () {
           legacyViolation: false,
           displayName: { parts: [] },
           derivedViolationState: 'waived',
+          waivedViolations: 1,
         },
       ]);
     });

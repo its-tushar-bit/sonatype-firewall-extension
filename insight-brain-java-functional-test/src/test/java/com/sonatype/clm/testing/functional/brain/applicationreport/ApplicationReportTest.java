@@ -68,16 +68,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssValue;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchesText;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.INNER_SOURCE_DEPENDENCY_CLASS;
@@ -85,7 +76,7 @@ import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.TR
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportTest
-        extends AbstractFunctionalTest
+    extends AbstractFunctionalTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
@@ -95,13 +86,13 @@ public class ApplicationReportTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
-  private Application app;
-
-  private TestReportEvaluator evaluator;
-
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private final PolicyDAO policyDAO = new PolicyDAO();
+
+  private Application app;
+
+  private TestReportEvaluator evaluator;
 
   private LegacyViolationService legacyViolationService;
 
@@ -141,11 +132,11 @@ public class ApplicationReportTest
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
-            .print(policyEvaluationTime.getTime());
+        .print(policyEvaluationTime.getTime());
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -178,11 +169,11 @@ public class ApplicationReportTest
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -192,11 +183,11 @@ public class ApplicationReportTest
     policyEvaluation = updateForMonitoring(policyEvaluation);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -212,11 +203,11 @@ public class ApplicationReportTest
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
-            .print(policyEvaluationTime.getTime());
+        .print(policyEvaluationTime.getTime());
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -251,11 +242,11 @@ public class ApplicationReportTest
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -265,11 +256,11 @@ public class ApplicationReportTest
     policyEvaluation = updateForMonitoring(policyEvaluation);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
     reportPage.reportDescription()
-            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
     reportPage.reportDescription().shouldHave(text("(Continuous Monitoring)"));
     reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
     reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
@@ -378,8 +369,8 @@ public class ApplicationReportTest
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHaveSize(2);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(hidden);
-    reportPage.resultRow(2).waivedIndicator().shouldBe(hidden);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
+    reportPage.resultRow(2).waiverIndicator().shouldBe(hidden);
 
     PolicyWaiver waiver = tempEntity.newWaiver(licenseBanned.getId(), app.getId());
     evaluator.reevaluatePolicy();
@@ -389,11 +380,13 @@ public class ApplicationReportTest
     InputUtils.clearInput(reportPage.headers().policyNameFilterInput());
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
 
     // test that indicators are shown when not aggregating
@@ -412,12 +405,14 @@ public class ApplicationReportTest
     // now the legacy violation indicator should appear
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
@@ -496,38 +491,38 @@ public class ApplicationReportTest
   public void testInnerSourceTransitiveViolationsCount() {
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-            .transitiveViolationsCount().shouldHaveSize(1).get(0).shouldHave(text("2 transitive violations"));
+        .transitiveViolationsCount().shouldHaveSize(1).get(0).shouldHave(text("2 transitive violations"));
     reportPage.aggregateByComponentToggle().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.resultRow(21).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-            .transitiveViolationsCount().shouldHaveSize(0);
+        .transitiveViolationsCount().shouldHaveSize(0);
   }
 
   @Test
   public void testDependencyIndicators() {
     reportPage.rowsWithDependencyInfo().shouldHaveSize(6);
     reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
-            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
     ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
     ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHaveSize(2);
     dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible)
-            .shouldHave(text("This component was brought in by the following InnerSource component:"))
-            .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
+        .shouldHave(text("This component was brought in by the following InnerSource component:"))
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
     dependencyIndicators = reportPage.resultRow(16)
-            .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-            .dependencyIndicators().shouldHaveSize(2);
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .dependencyIndicators().shouldHaveSize(2);
     dependencyIndicators.get(0).shouldHave(DIRECT_DEPENDENCY_CLASS).shouldHave(text("D")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Direct Dependency"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
-            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(58).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
-            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(59).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
-            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test
@@ -537,8 +532,8 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().label().hover();
     NxTooltip aggregateByComponentToggleToolTip = new NxTooltip();
     aggregateByComponentToggleToolTip.getElement()
-            .shouldHave(text("By default the Application Report aggregates violations by component. " +
-                    "To see all violations not Aggregated by Component, please switch the toggle off."));
+        .shouldHave(text("By default the Application Report aggregates violations by component. " +
+            "To see all violations not Aggregated by Component, please switch the toggle off."));
 
     int expectedNoneThreatLevelResults = 37;
 
@@ -569,6 +564,26 @@ public class ApplicationReportTest
     reportPage.getThreatBars("moderate").shouldHaveSize(4);
     reportPage.getThreatBars("low").shouldHaveSize(1);
     reportPage.getThreatBars("none").shouldHaveSize(expectedNoneThreatLevelResults);
+  }
+
+  @Test
+  public void testAggregationMultipleWaivers() {
+    // By default the "Aggregate by Component" toggle should be ON
+    reportPage.aggregateByComponentToggle().shouldBeOn();
+    reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
+    Policy securityHigh = new PolicyDAO().getByName("Security-High").get(0);
+    //
+    tempEntity.newWaiver(securityHigh.getId(), app.getId());
+
+    reportPage.reevaluateButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    reportPage.headers().componentNameFilterInput().shouldHave(value("commons-fileupload"));
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("4 Active Waivers"));
   }
 
   @Test
@@ -778,14 +793,15 @@ public class ApplicationReportTest
 
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldNotBe(visible);
 
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));
     reportPage.resultRows().shouldHaveSize(1);
-    reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
   }
 
   @Test
@@ -932,10 +948,10 @@ public class ApplicationReportTest
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {
     violations.filterBy(matchesText("License-Banned")).shouldHave(texts("com.mycila", "com.vaadin"));
     violations.filterBy(matchesText("Security-High")).shouldHave(
-            texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
-                    "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
+        texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
+            "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
     violations.filterBy(matchesText("None"))
-            .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
+        .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
   }
 
   private void activateLegacyViolations() throws Exception {

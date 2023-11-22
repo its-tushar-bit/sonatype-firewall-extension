@@ -26,8 +26,11 @@
     <input>
         <global>
             <glob>
-                {*.java,*.groovy,*.yaml,*.svcd,*.proto,*.xml,*.vm,*.ini,*.jks,*.properties,*.sh,*.bat, *.jsx, *.scss, *.html, *.js, *.css}
+                {*.java,*.groovy,*.yaml,*.svcd,*.proto,*.xml,*.vm,*.ini,*.jks,*.properties,*.sh,*.bat,*.jsx,*.scss,*.html,*.js,*.css}
             </glob>
+            <includes>
+                <include>src/</include>
+            </includes>
         </global>
     </input>
 

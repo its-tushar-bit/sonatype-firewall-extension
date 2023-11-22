@@ -12,16 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
-import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -55,7 +54,6 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.google.inject.Binder;

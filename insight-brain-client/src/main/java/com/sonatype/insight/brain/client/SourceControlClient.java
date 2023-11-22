@@ -11,12 +11,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.git.utils.repository.JGitRecentCommitterFinder;
-import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;

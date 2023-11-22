@@ -22,13 +22,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
-import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;

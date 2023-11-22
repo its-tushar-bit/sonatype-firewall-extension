@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
-import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlRepoUserDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
 /**

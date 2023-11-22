@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
 import javax.persistence.EntityExistsException;
 import javax.persistence.LockModeType;
 import javax.persistence.RollbackException;
@@ -19,8 +20,6 @@ import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultD
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import org.apache.commons.lang3.time.DateUtils;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -42,6 +41,7 @@ public class FirewallMetricsDAO
     return getList(sQuery);
   }
 
+  @SuppressWarnings("unchecked")
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getMetricsValueByName() {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT entity.metricsName," +
@@ -58,7 +58,6 @@ public class FirewallMetricsDAO
   }
 
   public FirewallMetrics insertUpdateFirewallMetrics(FirewallMetrics newFirewallMetrics) {
-    Date truncatedDate = DateUtils.truncate(newFirewallMetrics.getMetricsDate(), Calendar.DATE);
     FirewallMetrics resultFirewallMetrics;
     FirewallMetrics existingFirewallMetrics;
     String sQuery = "SELECT entity" +
@@ -67,7 +66,7 @@ public class FirewallMetricsDAO
         " AND entity.metricsName=?2";
 
     Query<FirewallMetrics> query =
-        new Query<FirewallMetrics>(sQuery, truncatedDate, newFirewallMetrics.getMetricsName());
+        new Query<>(sQuery, newFirewallMetrics.getMetricsDate(), newFirewallMetrics.getMetricsName());
     // need a 'select for update' type query - this is how to do it in JPA
     query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);
 
@@ -83,7 +82,6 @@ public class FirewallMetricsDAO
         resultFirewallMetrics = existingFirewallMetrics;
       }
       else {
-        newFirewallMetrics.setMetricsDate(truncatedDate);
         insert(newFirewallMetrics);
         resultFirewallMetrics = newFirewallMetrics;
       }
@@ -110,10 +108,10 @@ public class FirewallMetricsDAO
     return new ApiFirewallMetricsResultDTO(firewallMetricsValue, latestUpdatedTime);
   }
 
-  public Date getEarliestMetricDateByName(FirewallMetricsName metricsName) {
+  public LocalDate getEarliestMetricDateByName(FirewallMetricsName metricsName) {
     String sQuery = "SELECT MIN(entity.metricsDate)" + //
         " FROM FirewallMetrics entity" + //
         " WHERE entity.metricsName = ?1";
-    return getSingle(Date.class, sQuery, metricsName);
+    return getSingle(LocalDate.class, sQuery, metricsName);
   }
 }

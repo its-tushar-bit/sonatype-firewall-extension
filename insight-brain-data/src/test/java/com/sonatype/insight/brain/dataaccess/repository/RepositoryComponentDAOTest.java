@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -49,6 +49,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -385,10 +386,10 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "+1-year-ago-quarantined-path", "hash5",
         ComponentIdentifier.createNpmCoordinates("p5", "v5"), moreThanOneYearAgo, moreThanOneYearAgo);
 
-    Map<Date, Long> results = dao.getQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
+    Map<LocalDate, Long> results = dao.getQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
 
-    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
-        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 1L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 2L));
+    assertThat(results)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(toLocalDate(now), 1L, toLocalDate(oneYearAgo), 2L));
   }
 
   @Test
@@ -422,10 +423,11 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), "+1-year-ago-auto-released-path-2", moreThanOneYearAgo,
         moreThanOneYearAgo, true);
 
-    Map<Date, Long> results = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
+    Map<LocalDate, Long> results =
+        dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
 
-    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
-        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 2L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 1L));
+    assertThat(results).containsExactlyInAnyOrderEntriesOf(
+        ImmutableMap.of(LocalDate.now(), 2L, DateConverter.toLocalDate(oneYearAgo), 1L));
   }
 
   @Test

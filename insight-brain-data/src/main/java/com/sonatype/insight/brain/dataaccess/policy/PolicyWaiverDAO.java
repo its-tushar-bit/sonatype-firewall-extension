@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -273,7 +274,7 @@ public class PolicyWaiverDAO
   }
 
   @SuppressWarnings("unchecked")
-  public Map<Date, Long> getCountByOwnerIdAndDate(String ownerId, Date date) {
+  public Map<LocalDate, Long> getCountByOwnerIdAndDate(String ownerId, Date date) {
     String sQuery = "SELECT CAST(pw.create_time AS DATE), COUNT(1)" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_waiver pw" + //
         " WHERE pw.owner_id = ?1" + //
@@ -287,7 +288,7 @@ public class PolicyWaiverDAO
 
       Stream<Object[]> result = query.getResultStream();
       return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
+          .collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(), array -> (Long) array[1]));
     }
   }
 

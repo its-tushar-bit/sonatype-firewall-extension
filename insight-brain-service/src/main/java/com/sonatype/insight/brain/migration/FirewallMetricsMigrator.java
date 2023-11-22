@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -62,6 +61,7 @@ import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsNam
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
+import static com.sonatype.insight.brain.utils.DateConverter.toDate;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -160,14 +160,15 @@ public class FirewallMetricsMigrator
     long start = System.currentTimeMillis();
     log.info("Calculating namespace attacks blocked and supply chain attacks blocked Firewall Metrics");
 
-    Date earliestNamespaceAttacksBlockedMetric =
+    LocalDate earliestNamespaceAttacksBlockedMetric =
         firewallMetricsDAO.getEarliestMetricDateByName(NAMESPACE_ATTACKS_BLOCKED);
-    Date earliestSupplyChainAttacksBlockedMetric =
+    LocalDate earliestSupplyChainAttacksBlockedMetric =
         firewallMetricsDAO.getEarliestMetricDateByName(SUPPLY_CHAIN_ATTACKS_BLOCKED);
-    Date earliestMetricDate = Stream.of(earliestNamespaceAttacksBlockedMetric, earliestSupplyChainAttacksBlockedMetric)
-        .filter(Objects::nonNull)
-        .min(Date::compareTo)
-        .orElse(null);
+    LocalDate earliestMetricDate =
+        Stream.of(earliestNamespaceAttacksBlockedMetric, earliestSupplyChainAttacksBlockedMetric)
+            .filter(Objects::nonNull)
+            .min(LocalDate::compareTo)
+            .orElse(null);
 
     List<RepositoryPolicyViolationsMetrics> allMetrics = CompletableFuture.supplyAsync(
         new TenantAwareSupplier<>(() -> repositories.parallelStream()
@@ -196,7 +197,10 @@ public class FirewallMetricsMigrator
   }
 
   @SuppressWarnings("unchecked")
-  private RepositoryPolicyViolationsMetrics processRepositoryPolicyViolations(Repository repository, Date fromDate) {
+  private RepositoryPolicyViolationsMetrics processRepositoryPolicyViolations(
+      Repository repository,
+      LocalDate fromDate)
+  {
     Map<LocalDate, FirewallMetrics> namespaceAttacksBlockedMetrics = new HashMap<>();
     Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics = new HashMap<>();
 
@@ -215,7 +219,7 @@ public class FirewallMetricsMigrator
             repositoryPolicyViolationsBatchSize);
         paginationQuery.setParameter(1, repository.getId());
         if (fromDate != null) {
-          paginationQuery.setParameter(2, fromDate);
+          paginationQuery.setParameter(2, toDate(fromDate));
         }
         repositoryPolicyViolations = paginationQuery.getResultList();
 
@@ -260,10 +264,10 @@ public class FirewallMetricsMigrator
             .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
               List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-              Map<Date, Long> results =
+              Map<LocalDate, Long> results =
                   repositoryComponentDAO.getQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo);
 
-              for (Entry<Date, Long> entry : results.entrySet()) {
+              for (Entry<LocalDate, Long> entry : results.entrySet()) {
                 repositoryMetrics
                     .add(new FirewallMetrics(entry.getKey(), COMPONENTS_QUARANTINED, entry.getValue().intValue()));
               }
@@ -298,10 +302,10 @@ public class FirewallMetricsMigrator
         .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-          Map<Date, Long> results = repositoryComponentDAO
+          Map<LocalDate, Long> results = repositoryComponentDAO
               .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo);
 
-          for (Entry<Date, Long> entry : results.entrySet()) {
+          for (Entry<LocalDate, Long> entry : results.entrySet()) {
             repositoryMetrics
                 .add(new FirewallMetrics(entry.getKey(), COMPONENTS_AUTO_RELEASED, entry.getValue().intValue()));
           }
@@ -335,9 +339,9 @@ public class FirewallMetricsMigrator
         .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-          Map<Date, Long> results = policyWaiverDAO.getCountByOwnerIdAndDate(repository.getId(), twelveMonthsAgo);
+          Map<LocalDate, Long> results = policyWaiverDAO.getCountByOwnerIdAndDate(repository.getId(), twelveMonthsAgo);
 
-          for (Entry<Date, Long> entry : results.entrySet()) {
+          for (Entry<LocalDate, Long> entry : results.entrySet()) {
             repositoryMetrics.add(new FirewallMetrics(entry.getKey(), WAIVED_COMPONENTS, entry.getValue().intValue()));
           }
 
@@ -381,10 +385,6 @@ public class FirewallMetricsMigrator
     return false;
   }
 
-  private LocalDate toLocalDate(Date date) {
-    return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-  }
-
   private List<FirewallMetrics> flat(List<List<FirewallMetrics>> allMetrics) {
     return allMetrics.stream().flatMap(List::stream).collect(toList());
   }
@@ -392,7 +392,7 @@ public class FirewallMetricsMigrator
   private void consolidateAndSaveFirewallMetrics(List<FirewallMetrics> allMetrics) {
     if (isNotEmpty(allMetrics)) {
       Collection<FirewallMetrics> metrics = allMetrics.stream()
-          .collect(toMap(metric -> toLocalDate(metric.getMetricsDate()), identity(), (existingMetric, newMetric) -> {
+          .collect(toMap(FirewallMetrics::getMetricsDate, identity(), (existingMetric, newMetric) -> {
             existingMetric.incrementMetricsValue(newMetric.getMetricsValue());
             return existingMetric;
           })).values();

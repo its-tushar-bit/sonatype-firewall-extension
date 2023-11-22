@@ -5,18 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
-import java.util.stream.IntStream;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
@@ -25,6 +27,7 @@ import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsNam
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallMetricsDAOTest
@@ -34,7 +37,7 @@ public class FirewallMetricsDAOTest
 
   @Test
   public void testCRUD() {
-    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
+    LocalDate testDate = LocalDate.of(2023, Month.OCTOBER, 1);
     FirewallMetrics firewallMetrics = new FirewallMetrics(testDate, COMPONENTS_QUARANTINED, 1);
 
     // create
@@ -78,15 +81,16 @@ public class FirewallMetricsDAOTest
     Date testDate8 = new GregorianCalendar(2023, Calendar.OCTOBER, 12).getTime();
     Date testDate9 = new GregorianCalendar(2023, Calendar.OCTOBER, 13).getTime();
 
-    FirewallMetrics firewallMetrics1 = new FirewallMetrics(testDate1, COMPONENTS_QUARANTINED, 30);
-    FirewallMetrics firewallMetrics2 = new FirewallMetrics(testDate2, COMPONENTS_QUARANTINED, 20);
-    FirewallMetrics firewallMetrics3 = new FirewallMetrics(testDate3, SUPPLY_CHAIN_ATTACKS_BLOCKED, 10);
-    FirewallMetrics firewallMetrics4 = new FirewallMetrics(testDate4, NAMESPACE_ATTACKS_BLOCKED, 30);
-    FirewallMetrics firewallMetrics5 = new FirewallMetrics(testDate5, SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 20);
-    FirewallMetrics firewallMetrics6 = new FirewallMetrics(testDate6, WAIVED_COMPONENTS, 10);
-    FirewallMetrics firewallMetrics7 = new FirewallMetrics(testDate7, NAMESPACE_ATTACKS_BLOCKED, 10);
-    FirewallMetrics firewallMetrics8 = new FirewallMetrics(testDate8, WAIVED_COMPONENTS, 10);
-    FirewallMetrics firewallMetrics9 = new FirewallMetrics(testDate9, COMPONENTS_AUTO_RELEASED, 17);
+    FirewallMetrics firewallMetrics1 = new FirewallMetrics(toLocalDate(testDate1), COMPONENTS_QUARANTINED, 30);
+    FirewallMetrics firewallMetrics2 = new FirewallMetrics(toLocalDate(testDate2), COMPONENTS_QUARANTINED, 20);
+    FirewallMetrics firewallMetrics3 = new FirewallMetrics(toLocalDate(testDate3), SUPPLY_CHAIN_ATTACKS_BLOCKED, 10);
+    FirewallMetrics firewallMetrics4 = new FirewallMetrics(toLocalDate(testDate4), NAMESPACE_ATTACKS_BLOCKED, 30);
+    FirewallMetrics firewallMetrics5 =
+        new FirewallMetrics(toLocalDate(testDate5), SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 20);
+    FirewallMetrics firewallMetrics6 = new FirewallMetrics(toLocalDate(testDate6), WAIVED_COMPONENTS, 10);
+    FirewallMetrics firewallMetrics7 = new FirewallMetrics(toLocalDate(testDate7), NAMESPACE_ATTACKS_BLOCKED, 10);
+    FirewallMetrics firewallMetrics8 = new FirewallMetrics(toLocalDate(testDate8), WAIVED_COMPONENTS, 10);
+    FirewallMetrics firewallMetrics9 = new FirewallMetrics(toLocalDate(testDate9), COMPONENTS_AUTO_RELEASED, 17);
 
     firewallMetrics1.setMetricsLastUpdatedAt(testDate1);
     firewallMetrics2.setMetricsLastUpdatedAt(testDate2);
@@ -136,35 +140,28 @@ public class FirewallMetricsDAOTest
 
   @Test
   public void testInsertUpdateFirewallMetrics_MetricsUpdate() {
-    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
-    FirewallMetrics firewallMetrics1 = new FirewallMetrics(testDate, FirewallMetricsName.COMPONENTS_QUARANTINED,
-        1);
-    FirewallMetrics firewallMetrics2 = new FirewallMetrics(testDate, FirewallMetricsName.COMPONENTS_AUTO_RELEASED,
-        2);
-    FirewallMetrics firewallMetrics3 = new FirewallMetrics(testDate, FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED,
-        3);
+    LocalDate testDate = LocalDate.of(2023, Month.OCTOBER, 1);
+    FirewallMetrics firewallMetrics1 = new FirewallMetrics(testDate, COMPONENTS_QUARANTINED, 1);
+    FirewallMetrics firewallMetrics2 = new FirewallMetrics(testDate, COMPONENTS_AUTO_RELEASED, 2);
+    FirewallMetrics firewallMetrics3 = new FirewallMetrics(testDate, SUPPLY_CHAIN_ATTACKS_BLOCKED, 3);
 
     dao.insert(firewallMetrics1);
     dao.insert(firewallMetrics2);
     dao.insert(firewallMetrics3);
 
-    FirewallMetrics newFirewallMetrics = new FirewallMetrics(testDate, FirewallMetricsName.COMPONENTS_QUARANTINED,
-        5);
+    FirewallMetrics newFirewallMetrics = new FirewallMetrics(testDate, COMPONENTS_QUARANTINED, 5);
 
     FirewallMetrics resFirewallMetrics =  dao.insertUpdateFirewallMetrics(newFirewallMetrics);
     assertThat(resFirewallMetrics.getMetricsValue()).isEqualTo(6);
-    assertThat(resFirewallMetrics.getMetricsName()).isEqualTo(FirewallMetricsName.COMPONENTS_QUARANTINED);
+    assertThat(resFirewallMetrics.getMetricsName()).isEqualTo(COMPONENTS_QUARANTINED);
   }
 
   @Test
   public void testInsertUpdateFirewallMetrics_MetricsInsert() {
-    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
-    FirewallMetrics firewallMetrics1 = new FirewallMetrics(testDate, FirewallMetricsName.COMPONENTS_QUARANTINED,
-        1);
-    FirewallMetrics firewallMetrics2 = new FirewallMetrics(testDate, FirewallMetricsName.COMPONENTS_AUTO_RELEASED,
-        2);
-    FirewallMetrics firewallMetrics3 = new FirewallMetrics(testDate, FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED,
-        3);
+    LocalDate testDate = LocalDate.of(2023, Month.OCTOBER, 1);
+    FirewallMetrics firewallMetrics1 = new FirewallMetrics(testDate, COMPONENTS_QUARANTINED, 1);
+    FirewallMetrics firewallMetrics2 = new FirewallMetrics(testDate, COMPONENTS_AUTO_RELEASED, 2);
+    FirewallMetrics firewallMetrics3 = new FirewallMetrics(testDate, SUPPLY_CHAIN_ATTACKS_BLOCKED, 3);
 
     dao.insert(firewallMetrics2);
     dao.insert(firewallMetrics3);
@@ -178,21 +175,26 @@ public class FirewallMetricsDAOTest
 
   @Test
   public void testInsertUpdateFirewallMetrics_Multithreading() {
-    IntStream.range(0, 100).parallel().forEach(i -> {
-      FirewallMetrics metric =
-          new FirewallMetrics(new Date(), FirewallMetricsName.COMPONENTS_QUARANTINED, i);
+    LocalDate date = LocalDate.now();
+
+    IntStream.range(1, 100).parallel().forEach(i -> {
+      FirewallMetrics metric = new FirewallMetrics(date, COMPONENTS_QUARANTINED, i);
       dao.insertUpdateFirewallMetrics(metric);
     });
 
-    assertThat(dao.getAll()).extracting(FirewallMetrics::getMetricsName)
+    List<FirewallMetrics> result = dao.getAll();
+
+    assertThat(result)
+        .extracting(FirewallMetrics::getMetricsName)
         .containsOnly(FirewallMetricsName.COMPONENTS_QUARANTINED);
-    assertThat(dao.getAll().get(0)).extracting(FirewallMetrics::getMetricsValue).isEqualTo(4950);
+
+    assertThat(dao.getAll().get(0).getMetricsValue()).isEqualTo(4950);
   }
 
   public void testGetEarliestMetricDateByName() {
-    Date today = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
-    Date yesterday = DateUtils.addDays(today, -1);
-    Date threeMonthsAgo = DateUtils.addMonths(today, -3);
+    LocalDate today = LocalDate.now();
+    LocalDate yesterday = today.minusDays(1);
+    LocalDate threeMonthsAgo = today.minusMonths(3);
 
     dao.insert(new FirewallMetrics(today, COMPONENTS_QUARANTINED, 1));
     dao.insert(new FirewallMetrics(yesterday, COMPONENTS_QUARANTINED, 4));

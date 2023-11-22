@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +42,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -1064,9 +1065,9 @@ public class PolicyWaiverDAOTest
 
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    Map<Date, Long> results = dao.getCountByOwnerIdAndDate(repository.getId(), oneYearAgo);
+    Map<LocalDate, Long> results = dao.getCountByOwnerIdAndDate(repository.getId(), oneYearAgo);
 
-    assertThat(results).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(
-        DateUtils.truncate(now, Calendar.DAY_OF_MONTH), 2L, DateUtils.truncate(oneYearAgo, Calendar.DAY_OF_MONTH), 1L));
+    assertThat(results)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(toLocalDate(now), 2L, toLocalDate(oneYearAgo), 1L));
   }
 }

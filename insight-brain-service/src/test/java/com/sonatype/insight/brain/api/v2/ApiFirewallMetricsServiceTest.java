@@ -123,7 +123,7 @@ public class ApiFirewallMetricsServiceTest
   public void testIncrementFirewallMetrics() {
     Date testDate1 = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
     Date testDate2 = new GregorianCalendar(2023, Calendar.OCTOBER, 2).getTime();
-    Date today = org.apache.commons.lang.time.DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+    LocalDate today = LocalDate.now();
 
     String id1 = tempEntity.newFirewallMetrics(FirewallMetricsName.WAIVED_COMPONENTS, 20, testDate1, today);
     String id2 = tempEntity.newFirewallMetrics(FirewallMetricsName.COMPONENTS_QUARANTINED, 10, testDate2, today);

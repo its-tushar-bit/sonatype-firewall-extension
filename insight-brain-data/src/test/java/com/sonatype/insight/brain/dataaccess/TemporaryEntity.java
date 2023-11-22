@@ -13,17 +13,16 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1188,15 +1187,18 @@ public class TemporaryEntity
   }
 
   public FirewallMetrics newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value, Date lastUpdatedDate ) {
-    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
+    java.time.LocalDate testDate = java.time.LocalDate.of(2023, Month.OCTOBER, 1);
     FirewallMetrics firewallMetrics = new FirewallMetrics(testDate, firewallMetricsName, value);
     firewallMetrics.setMetricsLastUpdatedAt(lastUpdatedDate);
     firewallMetricsDAO.insert(firewallMetrics);
     return firewallMetrics;
   }
 
-  public String newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value,
-                                            Date lastUpdatedDate, Date metricsDate )
+  public String newFirewallMetrics(
+      FirewallMetricsName firewallMetricsName,
+      int value,
+      Date lastUpdatedDate,
+      java.time.LocalDate metricsDate)
   {
     FirewallMetrics firewallMetrics = new FirewallMetrics(metricsDate, firewallMetricsName, value);
     firewallMetrics.setMetricsLastUpdatedAt(lastUpdatedDate);

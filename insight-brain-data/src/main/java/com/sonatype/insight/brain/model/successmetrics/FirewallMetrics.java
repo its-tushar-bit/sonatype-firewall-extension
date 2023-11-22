@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.successmetrics;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -28,8 +29,8 @@ public class FirewallMetrics
   @Column(name = "firewall_metrics_id")
   private String id;
 
-  @Column(name = "metrics_date")
-  private Date metricsDate;
+  @Column(name = "metrics_date", columnDefinition = "DATE")
+  private LocalDate metricsDate;
 
   @Column(name = "metrics_name")
   @Enumerated(EnumType.STRING)
@@ -45,7 +46,7 @@ public class FirewallMetrics
   }
 
   public FirewallMetrics(
-      Date metricsDate,
+      LocalDate metricsDate,
       FirewallMetricsName metricsName,
       int metricsValue)
   {
@@ -55,11 +56,11 @@ public class FirewallMetrics
     this.metricsLastUpdatedAt = new Date();
   }
 
-  public Date getMetricsDate() {
+  public LocalDate getMetricsDate() {
     return metricsDate;
   }
 
-  public void setMetricsDate(Date metricsDate) {
+  public void setMetricsDate(LocalDate metricsDate) {
     this.metricsDate = metricsDate;
   }
 

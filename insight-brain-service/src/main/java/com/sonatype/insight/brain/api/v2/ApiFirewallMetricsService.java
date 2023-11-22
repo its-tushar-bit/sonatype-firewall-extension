@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 
 @Named
 public class ApiFirewallMetricsService
@@ -134,12 +135,13 @@ public class ApiFirewallMetricsService
 
       if (hasProprietaryNameConflict) {
         FirewallMetrics firewallMetrics = namespaceAttacksBlockedMetrics.computeIfAbsent(violationLocalDate,
-            key -> new FirewallMetrics(repositoryPolicyViolation.getTime(), NAMESPACE_ATTACKS_BLOCKED, 0));
+            key -> new FirewallMetrics(toLocalDate(repositoryPolicyViolation.getTime()), NAMESPACE_ATTACKS_BLOCKED, 0));
         firewallMetrics.incrementMetricsValue(1);
       }
       if (hasSecurityVulnerabilityCategoryMaliciousCode) {
         FirewallMetrics firewallMetrics = supplyChainAttacksBlockedMetrics.computeIfAbsent(violationLocalDate,
-            key -> new FirewallMetrics(repositoryPolicyViolation.getTime(), SUPPLY_CHAIN_ATTACKS_BLOCKED, 0));
+            key -> new FirewallMetrics(toLocalDate(repositoryPolicyViolation.getTime()), SUPPLY_CHAIN_ATTACKS_BLOCKED,
+                0));
         firewallMetrics.incrementMetricsValue(1);
       }
     }

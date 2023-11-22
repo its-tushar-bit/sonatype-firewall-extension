@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -148,7 +149,7 @@ public class RepositoryComponentDAO
   }
 
   @SuppressWarnings("unchecked")
-  public Map<Date, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
+  public Map<LocalDate, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
     String sQuery = "SELECT CAST(rc.quarantine_time AS DATE), COUNT(1)" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
         " WHERE rc.repository_id = ?1" + //
@@ -162,7 +163,7 @@ public class RepositoryComponentDAO
 
       Stream<Object[]> result = query.getResultStream();
       return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
+          .collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(), array -> (Long) array[1]));
     }
   }
 
@@ -191,7 +192,7 @@ public class RepositoryComponentDAO
   }
 
   @SuppressWarnings("unchecked")
-  public Map<Date, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
+  public Map<LocalDate, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
     String sQuery = "SELECT CAST(rc.unquarantine_time AS DATE), COUNT(1)" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
         " WHERE rc.repository_id = ?1" + //
@@ -207,7 +208,7 @@ public class RepositoryComponentDAO
 
       Stream<Object[]> result = query.getResultStream();
       return result
-          .collect(Collectors.toMap(array -> new Date(((java.sql.Date) array[0]).getTime()), array -> (Long) array[1]));
+          .collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(), array -> (Long) array[1]));
     }
   }
 

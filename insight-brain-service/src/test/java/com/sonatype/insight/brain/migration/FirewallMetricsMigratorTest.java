@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +62,8 @@ import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsNam
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
+import static com.sonatype.insight.brain.utils.DateConverter.toDate;
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toCollection;
@@ -178,8 +180,8 @@ public class FirewallMetricsMigratorTest
 
   @Test
   public void testMigrate_NamespaceAttacksBlockedAndSupplyChainAttacksBlockedMetrics_WithPreviousMetrics() {
-    Date date1 = truncate(new Date());
-    Date date2 = DateUtils.addDays(date1, -1);
+    LocalDate date1 = LocalDate.now();
+    LocalDate date2 = date1.minusDays(1);
 
     FirewallMetrics metric1 = new FirewallMetrics(date1, NAMESPACE_ATTACKS_BLOCKED, 2);
     firewallMetricsDAO.insert(metric1);
@@ -199,9 +201,9 @@ public class FirewallMetricsMigratorTest
     Component component = new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
     component.setConflictingProprietaryName(new ProprietaryComponentName("testPattern", hostedRepository.getId()));
 
-    Date date1 = truncate(DateUtils.addDays(new Date(), -5));
-    Date date2 = DateUtils.addMonths(date1, -3);
-    Date date3 = DateUtils.addDays(date2, -1);
+    LocalDate date1 = LocalDate.now().minusDays(5);
+    LocalDate date2 = date1.minusMonths(3);
+    LocalDate date3 = date2.minusDays(1);
 
     int expectedNamespaceAttacksBlockedMetricsAtDate1 = 10;
     int expectedNamespaceAttacksBlockedMetricsAtDate2 = 50;
@@ -244,7 +246,7 @@ public class FirewallMetricsMigratorTest
 
     assertThat(namespaceAttacksBlockedMetrics).hasSize(namespaceAttacksBlockedMetricsCount);
 
-    List<Date> dates = Lists.newArrayList(date3, date2, date1);
+    List<LocalDate> dates = Lists.newArrayList(date3, date2, date1);
     if (previousNamespaceAttacksBlockedMetrics != null) {
       dates.add(previousNamespaceAttacksBlockedMetrics.getMetricsDate());
     }
@@ -324,7 +326,7 @@ public class FirewallMetricsMigratorTest
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsDate)
-        .containsExactly(truncate(oneYearAgo), truncate(now));
+        .containsExactly(toLocalDate(oneYearAgo), toLocalDate(now));
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsValue)
@@ -373,7 +375,7 @@ public class FirewallMetricsMigratorTest
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsDate)
-        .containsExactly(truncate(oneYearAgo), truncate(now));
+        .containsExactly(toLocalDate(oneYearAgo), toLocalDate(now));
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsValue)
@@ -424,7 +426,7 @@ public class FirewallMetricsMigratorTest
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsDate)
-        .containsExactly(truncate(oneYearAgo), truncate(now));
+        .containsExactly(toLocalDate(oneYearAgo), toLocalDate(now));
 
     assertThat(metrics)
         .extracting(FirewallMetrics::getMetricsValue)
@@ -446,11 +448,13 @@ public class FirewallMetricsMigratorTest
 
   private void createProprietaryNameConflictRepositoryPolicyViolations(
       Component component,
-      Date date1,
-      Date date2,
+      LocalDate localDate1,
+      LocalDate localDate2,
       int expectedNamespaceAttacksBlockedMetricsAtDate1,
       int expectedNamespaceAttacksBlockedMetricsAtDate2)
   {
+    Date date1 = toDate(localDate1);
+    Date date2 = toDate(localDate2);
     MatchFact matchFactProprietaryNameConflict =
         new MatchFact(component, "policyProprietaryNameConflict", null, 0, emptyList());
 
@@ -506,11 +510,13 @@ public class FirewallMetricsMigratorTest
 
   private void createMaliciousCodeRepositoryPolicyViolations(
       Component component,
-      Date date1,
-      Date date2,
+      LocalDate localDate1,
+      LocalDate localDate2,
       int expectedSupplyChainAttacksBlockedMetricsAtDate1,
       int expectedSupplyChainAttacksBlockedMetricsAtDate2)
   {
+    Date date1 = toDate(localDate1);
+    Date date2 = toDate(localDate2);
     Condition conditionMaliciousCode = new Condition(SecurityVulnerabilityCategoryConditionType.ID,
         ConditionTypes.SecurityVulnerabilityCategoryConditionType.getSupportedOperators().get(0),
         SecurityVulnerabilityCategory.MALICIOUS_CODE.getId());
@@ -566,7 +572,10 @@ public class FirewallMetricsMigratorTest
         component.getComponentIdentifier(), date2, null, null, null);
   }
 
-  private void createProprietaryNameConflictAndMaliciousCodeRepositoryPolicyViolation(Component component, Date date) {
+  private void createProprietaryNameConflictAndMaliciousCodeRepositoryPolicyViolation(
+      Component component,
+      LocalDate date)
+  {
     TriggerSecurityVulnerabilityWithCategory triggerSecurityVulnerabilityWithCategory =
         new TriggerSecurityVulnerabilityWithCategory();
     ConditionTrigger conditionTrigger = new ConditionTrigger(0, triggerSecurityVulnerabilityWithCategory);
@@ -595,8 +604,8 @@ public class FirewallMetricsMigratorTest
     List<ConstraintFact> constraintFacts = singletonList(constraintFact);
 
     tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", "hash", constraintFacts, false,
-        FailActionType.ID, matchFact.getPolicyId(), matchFact.getPolicyId(), component.getComponentIdentifier(), date,
-        null, null, null);
+        FailActionType.ID, matchFact.getPolicyId(), matchFact.getPolicyId(), component.getComponentIdentifier(),
+        toDate(date), null, null, null);
   }
 
   private void createRepositories() {
@@ -607,10 +616,6 @@ public class FirewallMetricsMigratorTest
     repository2 = tempEntity.newRepository();
   }
 
-  private Date truncate(Date date) {
-    return DateUtils.truncate(date, Calendar.DAY_OF_MONTH);
-  }
-
   private void doTestMigrate_WithPreviousMetrics(
       FirewallMetricsName firewallMetricsName,
       String expectedLog,
@@ -618,13 +623,13 @@ public class FirewallMetricsMigratorTest
   {
     createRepositories();
 
-    Date now = new Date();
-    Date yesterday = DateUtils.addDays(now, -1);
+    LocalDate now = LocalDate.now();
+    LocalDate yesterday = now.minusDays(1);
 
-    FirewallMetrics metric = new FirewallMetrics(truncate(now), firewallMetricsName, 2);
+    FirewallMetrics metric = new FirewallMetrics(now, firewallMetricsName, 2);
     firewallMetricsDAO.insert(metric);
 
-    creatorForMetricData.accept(yesterday);
+    creatorForMetricData.accept(toDate(yesterday));
 
     firewallMetricsMigrator.migrate();
 

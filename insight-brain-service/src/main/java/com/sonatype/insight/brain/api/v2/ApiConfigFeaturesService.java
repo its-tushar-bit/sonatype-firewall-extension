@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -190,9 +191,6 @@ public class ApiConfigFeaturesService
         SystemConfigurationProperty.INTEGRATED_ENTERPRISE_REPORTING, false),
 
     SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
-
-    POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED(
-        SystemConfigurationProperty.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED, false, false),
 
     ORG_APP_MANAGEMENT_WEBHOOK_EVENT(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT, false),
 

@@ -5,16 +5,16 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getEnterpriseReportingUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { prop } from 'ramda';
+import { path } from 'ramda';
 
-const REDUCER_NAME = 'enterpriseReporting';
+const REDUCER_NAME = 'enterpriseReportingLandingPage';
 
 export const initialState = {
   loading: false,
   loadError: null,
-  embedUrlData: null,
+  dashboardsData: null,
 };
 
 function loadRequested(state) {
@@ -28,7 +28,7 @@ function loadRequested(state) {
 const loadFulfilled = (state, { payload }) => {
   return {
     ...state,
-    embedUrlData: payload,
+    dashboardsData: payload,
     loading: false,
     loadError: null,
   };
@@ -44,12 +44,12 @@ function loadFailed(state, { payload }) {
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue }) => {
   return axios
-    .post(`${getEnterpriseReportingUrl()}`, { dashboard: 'rolling-recap' })
-    .then(prop('data'))
+    .get(getEnterpriseReportingDashboardsUrl())
+    .then(path(['data', 'dashboardMetadata']))
     .catch(rejectWithValue);
 });
 
-const enterpriseReportingSlice = createSlice({
+const enterpriseReportingLandingPageSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   extraReducers: {
@@ -59,8 +59,8 @@ const enterpriseReportingSlice = createSlice({
   },
 });
 
-export default enterpriseReportingSlice.reducer;
+export default enterpriseReportingLandingPageSlice.reducer;
 export const actions = {
-  ...enterpriseReportingSlice.actions,
+  ...enterpriseReportingLandingPageSlice.actions,
   load,
 };

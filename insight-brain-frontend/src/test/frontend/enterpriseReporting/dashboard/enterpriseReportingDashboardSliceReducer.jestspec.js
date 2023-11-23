@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/enterpriseReporting/enterpriseReportingSlice';
+import reducer from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 
-describe('EnterpriseReportingReducer', () => {
+describe('enterpriseReportingDashboardReducer', () => {
   let initialState;
 
   const fakeData = {
@@ -23,6 +23,7 @@ describe('EnterpriseReportingReducer', () => {
       expect(initialState.loading).toBeFalsy();
       expect(initialState.loadError).toBeNull();
       expect(initialState.embedUrlData).toBeNull();
+      expect(initialState.selectedDashboard.dashboardId).toBeNull();
     });
   });
 
@@ -38,20 +39,20 @@ describe('EnterpriseReportingReducer', () => {
     });
   });
 
-  describe('enterpriseReporting/load/pending', () => {
+  describe('enterpriseReportingDashboard/load/pending', () => {
     it('should return the initial state', () => {
-      const action = { type: 'enterpriseReporting/load/pending' };
+      const action = { type: 'enterpriseReportingDashboard/load/pending' };
       const newState = reducer(undefined, action);
 
       expect(newState).toEqual({ ...initialState, loading: true });
     });
   });
 
-  describe('enterpriseReporting/load/fulfilled', () => {
-    it('should set the data to the state ', () => {
+  describe('enterpriseReportingDashboard/load/fulfilled', () => {
+    it('should set the data to the state', () => {
       const oldState = {};
       const newState = reducer(oldState, {
-        type: 'enterpriseReporting/load/fulfilled',
+        type: 'enterpriseReportingDashboard/load/fulfilled',
         payload: fakeData,
       });
 
@@ -59,17 +60,16 @@ describe('EnterpriseReportingReducer', () => {
         embedUrlData: {
           ...fakeData,
         },
-        loadError: null,
         loading: false,
       });
     });
   });
 
-  describe('enterpriseReporting/load/rejected', () => {
-    it('should set the data to the state ', () => {
+  describe('enterpriseReportingDashboard/load/rejected', () => {
+    it('should set the data to the state', () => {
       const oldState = {};
       const newState = reducer(oldState, {
-        type: 'enterpriseReporting/load/rejected',
+        type: 'enterpriseReportingDashboard/load/rejected',
         payload: 'Error on load',
       });
 
@@ -77,6 +77,16 @@ describe('EnterpriseReportingReducer', () => {
         loadError: 'Error on load',
         loading: false,
       });
+    });
+  });
+
+  describe('setSelectedDashboard action', () => {
+    it('should save the selected report dashboard id to the state', () => {
+      const newState = reducer(initialState, {
+        type: 'enterpriseReportingDashboard/setSelectedDashboard',
+        payload: 'rolling-recap',
+      });
+      expect(newState.selectedDashboard.dashboardId).toEqual('rolling-recap');
     });
   });
 });

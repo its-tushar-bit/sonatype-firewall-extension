@@ -164,23 +164,6 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for the rolling recap page if allowed', function () {
-      expect(getShallowComponent({}).find('#enterprise-reporting-navigation-button')).not.toExist();
-      expect(getShallowComponent({ isLoggedIn: true }).find('#enterprise-reporting-navigation-button')).not.toExist();
-      expect(
-        getShallowComponent({ isIntegratedEnterpriseReportingEnabled: true }).find(
-          '#enterprise-reporting-navigation-button'
-        )
-      ).not.toExist();
-      const component = getShallowComponent({ isLoggedIn: true, isIntegratedEnterpriseReportingEnabled: true });
-      const navLink = component.find('#enterprise-reporting-navigation-button');
-      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
-      expect(navLink).toHaveProp('icon', faChartPieAlt);
-      expect(navLink).toHaveProp('text', 'Rolling Recap (V2)');
-      expect(navLink).toHaveProp('href', 'href-enterpriseReporting');
-      expect(navLink).toHaveProp('isSelected', false);
-    });
-
     it('does not render NxGlobalSidebarNavigationLink for Developer if it is not enabled', function () {
       expect(
         getShallowComponent({
@@ -402,6 +385,44 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
 
       expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (Labs)');
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) with "Labs" badge if allowed', function () {
+      const component = getMountedComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isIntegratedEnterpriseReportingEnabled: true,
+      });
+
+      const navLink = component.find('#enterprise-reporting-navigation-button').at(0);
+
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faChartPieAlt);
+      expect(navLink).toHaveProp('href', 'href-enterpriseReporting');
+      expect(navLink).toHaveProp('isSelected', false);
+
+      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (Labs)');
+    });
+
+    it('does not render NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if it is not enabled', function () {
+      expect(
+        getShallowComponent({
+          isLoggedIn: true,
+          isLicensed: true,
+          isIntegratedEnterpriseReportingEnabled: false,
+        }).find('#enterprise-reporting-navigation-button')
+      ).not.toExist();
+    });
+
+    it('does not render NxGlobalSidebarNavigationLink for Data Insights (RNA) if Enterprise Reporting is enabled', function () {
+      expect(
+        getShallowComponent({
+          isLoggedIn: true,
+          isLicensed: true,
+          isIntegratedEnterpriseReportingEnabled: true,
+          isDataInsightsEnabled: true,
+        }).find('#data-insights-navigation-button')
+      ).not.toExist();
     });
 
     describe('selected state', function () {

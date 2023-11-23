@@ -156,7 +156,8 @@
 @use '../firewallOnboarding/firewallOnboarding';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
-@use '../enterpriseReporting/enterpriseReportingPage';
+@use '../enterpriseReporting/enterpriseReportingLandingPage';
+@use '../enterpriseReporting/dashboard/enterpriseReportingDashboardPage';
 @use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 
 // CIP

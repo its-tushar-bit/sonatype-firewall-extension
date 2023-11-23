@@ -34,7 +34,12 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQ
   return urlWithPath;
 }
 
-export const getEnterpriseReportingUrl = () => uriTemplate`/rest/enterpriseReporting/ssoEmbedUrl`;
+export const getEnterpriseReportingEmbedUrl = () => uriTemplate`/rest/enterpriseReporting/ssoEmbedUrl`;
+
+export const getEnterpriseReportingDashboardsUrl = () => uriTemplate`/rest/enterpriseReporting/dashboards`;
+
+export const getEnterpriseReportingIconUrl = (iconName) =>
+  uriTemplate`/rest/enterpriseReporting/dashboard/icons/${iconName}`;
 
 export function getRoleForNewUrl() {
   return uriTemplate`/rest/security/roles/new`;

@@ -5,22 +5,39 @@
  */
 import { react2angular } from 'react2angular';
 import withStoreProvider from 'MainRoot/reactAdapter/StoreProvider';
-import EnterpriseReportingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingPage';
+import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
+import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 
 export default angular
   .module('embeddedLookerDashboard', [])
-  .component('enterpriseReportingPage', react2angular(withStoreProvider(EnterpriseReportingPage), [], ['$ngRedux']))
+  .component(
+    'enterpriseReportingLandingPage',
+    react2angular(withStoreProvider(EnterpriseReportingLandingPage), [], ['$ngRedux'])
+  )
+  .component(
+    'enterpriseReportingDashboardPage',
+    react2angular(withStoreProvider(EnterpriseReportingDashboardPage), [], ['$ngRedux'])
+  )
   .config(routes);
 
 function routes($stateProvider) {
-  $stateProvider.state('enterpriseReporting', {
-    url: '/enterpriseReporting',
-    component: 'enterpriseReportingPage',
-    data: {
-      title: 'Enterprise Reporting',
-      authenticationRequired: true,
-    },
-  });
+  $stateProvider
+    .state('enterpriseReporting', {
+      url: '/enterpriseReportingLandingPage',
+      component: 'enterpriseReportingLandingPage',
+      data: {
+        title: 'Enterprise Data Insights',
+        authenticationRequired: true,
+      },
+    })
+    .state('enterpriseReportingDashboard', {
+      url: '/enterpriseReportingDashboard',
+      component: 'enterpriseReportingDashboardPage',
+      data: {
+        title: 'Enterprise Reporting Dashboard',
+        authenticationRequired: true,
+      },
+    });
 }
 
 routes.$inject = ['$stateProvider'];

@@ -5,16 +5,16 @@
  */
 import React, { useEffect, useState } from 'react';
 import { NxLoadWrapper, NxPageMain } from '@sonatype/react-shared-components';
-import {
-  selectLoading,
-  selectError,
-  selectEmbedUrlData,
-} from 'MainRoot/enterpriseReporting/enterpriseReportingSelectors';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingSlice';
+import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import { LookerEmbedSDK } from '@looker/embed-sdk';
+import {
+  selectEmbedUrlData,
+  selectError,
+  selectLoading,
+} from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
 
-export default function EnterpriseReportingPage() {
+export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
   const embedUrlData = useSelector(selectEmbedUrlData);
   const loading = useSelector(selectLoading);
@@ -47,9 +47,13 @@ export default function EnterpriseReportingPage() {
   const combinedError = apiError || iframeError;
 
   return (
-    <NxPageMain id="enterprise-reporting-page" className="nx-viewport-sized">
+    <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
       <NxLoadWrapper loading={loading} retryHandler={load} error={combinedError}>
-        <div className="enterprise-reporting-container" id="dashboard" />
+        <div
+          className="enterprise-reporting-dashboard-container"
+          id="dashboard"
+          role="enterprise-reporting-dashboard"
+        />
       </NxLoadWrapper>
     </NxPageMain>
   );

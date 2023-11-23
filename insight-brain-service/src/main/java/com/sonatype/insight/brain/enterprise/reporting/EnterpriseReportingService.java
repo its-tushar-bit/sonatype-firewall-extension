@@ -178,6 +178,7 @@ public class EnterpriseReportingService
   }
 
   public DashboardMetadataListDTO getLookerDashboardMetadata() {
+    checkLookerIntegratedEnterpriseReportingEnabled();
     try {
       return lookerDashboardMetadataCache.get(DEFAULT_DASHBOARD_CACHE_KEY);
     }

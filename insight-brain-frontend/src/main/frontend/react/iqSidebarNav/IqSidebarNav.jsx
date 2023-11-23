@@ -184,34 +184,46 @@ function IqSidebarNav(props) {
               href={apiHref}
             />
           )}
-          {isDataInsightsEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('dataInsights')}
-              id="data-insights-navigation-button"
-              className="iq-data-insights-nav-link"
-              icon={faDatabase}
-              text={
-                <>
-                  <span>Data Insights</span>
-                  <span className="iq-data-insights-nav-link__navigation-badge">
-                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                    <span className="iq-data-insights-nav-link__tooltip-only-text"> (</span>
-                    Labs
-                    <span className="iq-data-insights-nav-link__tooltip-only-text">)</span>
-                  </span>
-                </>
-              }
-              href={dataInsightsHref}
-            />
-          )}
-          {isIntegratedEnterpriseReportingEnabled && (
+          {isIntegratedEnterpriseReportingEnabled ? (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('enterpriseReporting')}
               id="enterprise-reporting-navigation-button"
+              className="iq-enterprise-reporting-nav-link"
               icon={faChartPieAlt}
-              text="Rolling Recap (V2)"
+              text={
+                <>
+                  <span>Data Insights</span>
+                  <span className="iq-enterprise-reporting-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
+                    Labs
+                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
+                  </span>
+                </>
+              }
               href={enterpriseReportingHref}
             />
+          ) : (
+            isDataInsightsEnabled && (
+              <NxGlobalSidebarNavigationLink
+                isSelected={isSelected('dataInsights')}
+                id="data-insights-navigation-button"
+                className="iq-data-insights-nav-link"
+                icon={faDatabase}
+                text={
+                  <>
+                    <span>Data Insights</span>
+                    <span className="iq-data-insights-nav-link__navigation-badge">
+                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                      <span className="iq-data-insights-nav-link__tooltip-only-text"> (</span>
+                      Labs
+                      <span className="iq-data-insights-nav-link__tooltip-only-text">)</span>
+                    </span>
+                  </>
+                }
+                href={dataInsightsHref}
+              />
+            )
           )}
           {isDeveloperDashboardEnabled && (
             <NxGlobalSidebarNavigationLink

@@ -229,15 +229,19 @@ describe('validationUtil', function () {
           filterableField: 'COMPONENT_COORDINATES',
           value: 'ant',
         },
+        {
+          filterableField: 'QUARANTINE_TIME',
+          value: '19',
+        },
       ],
     };
 
-    it('Both filters are present and valid', () => {
+    it('All filters are present and valid', () => {
       const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
       expect(filtersAreValid).toBe(true);
     });
 
-    it('Both filters are present but not valid', () => {
+    it('All filters are present but not valid', () => {
       componentRequestBody = {
         searchFilters: [
           {
@@ -247,6 +251,10 @@ describe('validationUtil', function () {
           {
             filterableField: 'COMPONENT_COORDINATES',
             value: 'a',
+          },
+          {
+            filterableField: 'QUARANTINE_TIME',
+            value: '2',
           },
         ],
       };
@@ -339,6 +347,34 @@ describe('validationUtil', function () {
           {
             filterableField: 'COMPONENT_COORDINATES',
             value: 'ant',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
+
+    it('quarantine time filter is valid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'QUARANTINE_TIME',
+            value: '19',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(true);
+    });
+
+    it('quarantine time filter is invalid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'QUARANTINE_TIME',
+            value: '1',
           },
         ],
       };

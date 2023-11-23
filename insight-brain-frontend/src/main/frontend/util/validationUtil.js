@@ -122,11 +122,15 @@ export const verifyFiltersAreValid = (componentsRequestBody) => {
   const componentNameFilter = componentsRequestBody.searchFilters
     .filter((searchFilter) => searchFilter.filterableField === 'COMPONENT_COORDINATES')
     .shift();
+  const quarantineTimeFilter = componentsRequestBody.searchFilters
+    .filter((searchFilter) => searchFilter.filterableField === 'QUARANTINE_TIME')
+    .shift();
 
   const policyNameFilterIsValid = !policyNameFilter ? true : verifyFilterIsValid(policyNameFilter);
   const componentNameFilterIsValid = !componentNameFilter ? true : verifyFilterIsValid(componentNameFilter);
+  const quarantineTimeFilterIsValid = !quarantineTimeFilter ? true : verifyFilterIsValid(quarantineTimeFilter);
 
-  return policyNameFilterIsValid && componentNameFilterIsValid;
+  return policyNameFilterIsValid && componentNameFilterIsValid && quarantineTimeFilterIsValid;
 };
 
 const verifyFilterIsValid = (filter) => {

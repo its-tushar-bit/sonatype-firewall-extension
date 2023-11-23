@@ -10,7 +10,7 @@ make(
     deployBranch: 'main',
     useEventSpy: false,
     javaVersion: 'Java 8',
-    mavenVersion: 'Maven 3.9.x',
+    mavenVersion: 'Maven 3.6.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
@@ -370,7 +370,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
 }
 
 Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
-  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.6.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 

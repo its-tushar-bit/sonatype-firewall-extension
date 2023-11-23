@@ -23,6 +23,7 @@ make(
       }
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
+      echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
       withSonatypeDockerRegistry() {
         withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
           runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)

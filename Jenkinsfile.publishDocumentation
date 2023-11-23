@@ -11,19 +11,9 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
-    stage('Publish Nexus IQ Server documentation') {
+    stage('Publish documentation') {
       steps {
-        publishConfluencePages('NXIQM')
-      }
-    }
-    stage('Publish Nexus IQ - Integrations documentation') {
-      steps {
-        publishConfluencePages('NXIM')
-      }
-    }
-    stage('Publish Nexus IQ - Firewall documentation') {
-      steps {
-        publishConfluencePages('FWM')
+        createPaligoProduction()
       }
     }
   }

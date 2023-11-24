@@ -11,6 +11,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   combineValidators,
   hasValidationErrors,
+  validateEmailPatternMatch,
   validateHostname,
   validateNonEmpty,
   validatePatternMatch,
@@ -28,7 +29,7 @@ export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 const REDUCER_NAME = 'mailConfig';
 
 const hostnameValidator = combineValidators([validateNonEmpty, validateHostname]);
-
+const systemEmailValidator = combineValidators([validateNonEmpty, validateEmailPatternMatch('Invalid system email')]);
 const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
 
 const initialState = {
@@ -41,7 +42,7 @@ const initialState = {
     password: nxTextInputStateHelpers.initialState(''),
     sslEnabled: false,
     startTlsEnabled: false,
-    systemEmail: nxTextInputStateHelpers.initialState('', validateNonEmpty),
+    systemEmail: nxTextInputStateHelpers.initialState('', systemEmailValidator),
     testEmail: nxTextInputStateHelpers.initialState(''),
   },
   isDirty: false,
@@ -349,7 +350,7 @@ const mailConfigSlice = createSlice({
     setPassword: setTextInput('password', null),
     setSslEnabled: setCheckbox('sslEnabled'),
     setStartTlsEnabled: setCheckbox('startTlsEnabled'),
-    setSystemEmail: setTextInput('systemEmail', validateNonEmpty),
+    setSystemEmail: setTextInput('systemEmail', systemEmailValidator),
     setTestEmail: setTextInput('testEmail', null),
     setShowDeleteModal: propSet('showDeleteModal'),
     submitMaskTimerDone: propSetConst('submitMaskState', null),

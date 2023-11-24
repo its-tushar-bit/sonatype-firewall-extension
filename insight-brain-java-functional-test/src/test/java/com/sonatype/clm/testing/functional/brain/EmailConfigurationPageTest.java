@@ -212,7 +212,7 @@ public class EmailConfigurationPageTest
 
     // These are all the values I am allowed to modify without providing my password
     emailConfigurationPage.username().setValue("new-username");
-    emailConfigurationPage.systemEmail().setValue("new-system-email");
+    emailConfigurationPage.systemEmail().setValue("new-system-email@something.com");
     emailConfigurationPage.sslEnabled().click();
     emailConfigurationPage.startTlsEnabled().click();
 
@@ -230,7 +230,7 @@ public class EmailConfigurationPageTest
 
     // I did update all these
     assertThat(updated.getUsername()).isEqualTo("new-username");
-    assertThat(updated.getSystemEmail()).isEqualTo("new-system-email");
+    assertThat(updated.getSystemEmail()).isEqualTo("new-system-email@something.com");
     assertThat(updated.isSslEnabled()).isFalse();
     assertThat(updated.isStartTlsEnabled()).isFalse();
   }

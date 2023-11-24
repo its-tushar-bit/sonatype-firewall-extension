@@ -81,7 +81,7 @@ public class MailConfigurationDAO
       throw new BadRequestException("The system email address is required.");
     }
     try {
-      new InternetAddress(mailConfiguration.getSystemEmail());
+      new InternetAddress(mailConfiguration.getSystemEmail(), true);
     }
     catch (Exception e) {
       throw new BadRequestException("The system email address is malformed: " + e.getMessage(), e);

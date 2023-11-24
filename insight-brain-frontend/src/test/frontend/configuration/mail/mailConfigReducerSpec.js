@@ -609,7 +609,7 @@ describe('mailConfigSlice reducer', function () {
         expect(newState.formState.systemEmail.value).toBe('');
         expect(newState.formState.systemEmail.trimmedValue).toBe('');
         expect(newState.formState.systemEmail.isPristine).toBe(false);
-        expect(newState.formState.systemEmail.validationErrors).toBeTruthy();
+        expect(newState.formState.systemEmail.validationErrors.length).toBeGreaterThan(0);
         expect(newState.other).toBe(otherObject);
       });
     });
@@ -630,13 +630,39 @@ describe('mailConfigSlice reducer', function () {
 
         const newState = reduce(state, {
           type: 'mailConfig/setSystemEmail',
-          payload: 'asdf ',
+          payload: 'asdf@asdf.com ',
         });
 
-        expect(newState.formState.systemEmail.value).toBe('asdf ');
-        expect(newState.formState.systemEmail.trimmedValue).toBe('asdf');
+        expect(newState.formState.systemEmail.value).toBe('asdf@asdf.com ');
+        expect(newState.formState.systemEmail.trimmedValue).toBe('asdf@asdf.com');
         expect(newState.formState.systemEmail.isPristine).toBe(false);
-        expect(newState.formState.systemEmail.validationErrors).toBeFalsy();
+        expect(newState.formState.systemEmail.validationErrors.length).toBe(0);
+        expect(newState.other).toBe(otherObject);
+      });
+
+      it('sets validation error if invalid / simple string email', function () {
+        const state = Object.freeze({
+          other: otherObject,
+          formState: {
+            hostname: initialState(''),
+            port: initialState(''),
+            username: initialState(''),
+            password: initialState(''),
+            systemEmail: initialState(''),
+            testEmail: initialState(''),
+          },
+        });
+
+        const newState = reduce(state, {
+          type: 'mailConfig/setSystemEmail',
+          payload: 'simplestring  ',
+        });
+
+        expect(newState.formState.systemEmail.value).toBe('simplestring  ');
+        expect(newState.formState.systemEmail.trimmedValue).toBe('simplestring');
+        expect(newState.formState.systemEmail.isPristine).toBe(false);
+        expect(newState.formState.systemEmail.validationErrors.length).toBeGreaterThan(0);
+        expect(newState.formState.systemEmail.validationErrors[0]).toContain('Invalid system email');
         expect(newState.other).toBe(otherObject);
       });
     });

@@ -155,6 +155,14 @@ public class MailConfigurationDAOTest
   }
 
   @Test
+  public void testInsert_Validate_SystemEmail_MalformedSimpleEmail() {
+    MailConfiguration config = newValidConfiguration();
+    config.setSystemEmail("simpleaddress");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+            .withMessageContaining("system email address is malformed");
+  }
+
+  @Test
   public void testUpdate_ValidateHostname_Null() {
     testUpdate_ValidateHostname(null);
   }

@@ -68,7 +68,6 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -238,9 +237,6 @@ public class ApiComponentRemediationServiceTest
 
   @Test
   public void testGetSuggestedRemediationForComponent_BadOwnerId() {
-    doCallRealMethod().when(componentInfoServiceMock)
-        .getComponentDetailsForAllVersionsNoAuth(any(OwnerType.class), any(String.class),
-            any(ComponentIdentifier.class), any(String.class), any(), any(), any());
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Application with ID ");
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Organization with ID ");
   }
@@ -406,8 +402,8 @@ public class ApiComponentRemediationServiceTest
     doReturn(new ApiComponentRemediationValueDTO()).when(thirdPartyComponentDAO).getSuggestedRemmediation(app.getId(),
         componentIdentifier, scanId);
     doReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null)).when(componentInfoServiceMock)
-        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), componentIdentifier,
-            DevelopStageType.ID, identificationSource, scanId, null);
+        .getComponentDetailsForAllVersionsNoAuth(any(), eq(componentIdentifier), eq(DevelopStageType.ID),
+            eq(identificationSource), eq(scanId), isNull(), any());
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
             identificationSource, scanId);
@@ -656,8 +652,7 @@ public class ApiComponentRemediationServiceTest
     dto3.componentIdentifier = MAVEN_COORDINATES_V3;
 
     List<ComponentDetailsDTO> componentDetailsDTOList = Arrays.asList(dto1, dto2, dto3);
-    mockHdsGetComponentDetailsList(OwnerType.REPOSITORY, repo.getId(), componentDetailsDTOList,
-        dto1.componentIdentifier);
+    mockHdsGetComponentDetailsList(componentDetailsDTOList, dto1.componentIdentifier);
 
     ApiComponentRemediationDTO apiComponentRemediationDTO = service
         .getSuggestedRemediationForComponent(apiComponentDTOV2, OwnerType.REPOSITORY, repo.getId(), ProxyStageType.ID,
@@ -684,8 +679,7 @@ public class ApiComponentRemediationServiceTest
     dto3.componentIdentifier = MAVEN_COORDINATES_V3;
 
     List<ComponentDetailsDTO> componentDetailsDTOList = Arrays.asList(dto1, dto2, dto3);
-    mockHdsGetComponentDetailsList(OwnerType.REPOSITORY, repo.getId(), componentDetailsDTOList,
-        dto1.componentIdentifier);
+    mockHdsGetComponentDetailsList(componentDetailsDTOList, dto1.componentIdentifier);
 
     ApiComponentRemediationDTO apiComponentRemediationDTO = service
         .getSuggestedRemediationForComponent(apiComponentDTOV2, OwnerType.REPOSITORY, repo.getId(), null /* stageId */,
@@ -743,17 +737,8 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
-    mockHdsGetComponentDetailsList(OwnerType.APPLICATION, app.getPublicId(), list, componentIdentifier);
-  }
-
-  private void mockHdsGetComponentDetailsList(
-      OwnerType ownerType,
-      String ownerid,
-      List<ComponentDetailsDTO> list,
-      ComponentIdentifier componentIdentifier)
-  {
-    doReturn(Pair.of(list, null)).when(componentInfoServiceMock).getComponentDetailsForAllVersionsNoAuth(eq(ownerType),
-        eq(ownerid), eq(componentIdentifier), any(), any(), any(), isNull());
+    lenient().doReturn(Pair.of(list, null)).when(componentInfoServiceMock).getComponentDetailsForAllVersionsNoAuth(
+        any(), eq(componentIdentifier), any(), any(), any(), isNull(), any());
   }
 
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {

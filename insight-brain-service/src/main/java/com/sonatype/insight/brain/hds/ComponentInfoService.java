@@ -459,40 +459,42 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType)
   {
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    // For performance, it's very important to use only one instance of ComponentDetailsLoader.
+    // See https://sonatype.atlassian.net/browse/CLM-28129
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
     Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> result =
-        getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
-            scanId, dependencyType);
+        getComponentDetailsForAllVersionsNoAuth(owner, componentIdentifier, stageId, identificationSource, scanId,
+            dependencyType, componentDetailsLoader);
     List<ComponentDetailsDTO> componentDetailsDTOs = result.getLeft();
 
     ApiComponentRemediationValueDTO remediationDto;
     if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
-      Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
       remediationDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
     }
     else {
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-          ownerType, ownerId, stageId);
+          owner, stageId, componentDetailsLoader);
     }
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
   public Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> getComponentDetailsForAllVersionsNoAuth(
-      OwnerType ownerType,
-      String ownerId,
+      Owner owner,
       ComponentIdentifier componentIdentifier,
       String stageId,
       String identificationSource,
       String scanId,
-      DependencyType dependencyType)
+      DependencyType dependencyType,
+      ComponentDetailsLoader componentDetailsLoader)
   {
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     Pair<ComponentDetailsList, RepositorySourceResponseDTO> componentDetailsListAndSource =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType);
     List<ComponentDetails> componentDetailsList = componentDetailsListAndSource.getLeft().getList();
 
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
-        .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
+    List<Component> components =
+        componentDetailsLoader.augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator

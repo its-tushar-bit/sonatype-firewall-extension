@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -84,6 +85,9 @@ public class ComponentRemediationServiceTest
 
   @Inject
   private ComponentRemediationService componentRemediationService;
+
+  @Inject
+  private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   @Mock
   private TelemetrySender mockTelemetrySender;
@@ -400,7 +404,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(advanced);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
@@ -456,7 +460,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(advanced);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V2,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
@@ -481,7 +485,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
@@ -513,7 +517,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
@@ -569,7 +573,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(compIdNgA1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     ApiComponentDTOV2 ngApiDtoA1 = new ApiComponentDTOV2();
     ngApiDtoA1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(compIdNgA1);
@@ -617,7 +621,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), null);
+        allVersions, org, null, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V4));
@@ -659,7 +663,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V4));
@@ -703,7 +707,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V5,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V5));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V5));
@@ -734,7 +738,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
@@ -765,7 +769,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V2,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V2));
@@ -800,7 +804,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V5));
@@ -831,7 +835,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, null);
     assertThat(dto.versionChanges).isEmpty();
@@ -858,7 +862,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
@@ -896,7 +900,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V11));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11));
@@ -939,7 +943,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V11));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11));
@@ -981,7 +985,7 @@ public class ComponentRemediationServiceTest
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
@@ -1055,7 +1059,7 @@ public class ComponentRemediationServiceTest
 
     cd1.ensureComplete();
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(cd1,
-        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     ApiComponentDTOV2 conanDto = new ApiComponentDTOV2();
     conanDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(cd3);
@@ -1080,7 +1084,7 @@ public class ComponentRemediationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
-            allVersions, org.getType(), org.getId(), DevelopStageType.ID));
+            allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org)));
   }
 
   @Test
@@ -1095,7 +1099,7 @@ public class ComponentRemediationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
-            allVersions, org.getType(), org.getId(), DevelopStageType.ID));
+            allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org)));
   }
 
   final ComponentDetailsDTO createComponentDetailsDTO(

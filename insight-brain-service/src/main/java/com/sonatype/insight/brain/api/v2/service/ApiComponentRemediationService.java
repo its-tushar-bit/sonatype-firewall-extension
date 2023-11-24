@@ -19,9 +19,10 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -46,8 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class ApiComponentRemediationService
 {
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
-
   private final ComponentInfoService componentInfoService;
 
   private final ComponentRemediationService componentRemediationService;
@@ -56,18 +55,22 @@ public class ApiComponentRemediationService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   @Inject
   public ApiComponentRemediationService(
       ComponentInfoService componentInfoService,
       ComponentRemediationService componentRemediationService,
       HdsClient hdsClient,
-      ThirdPartyComponentDAO thirdPartyComponentDAO)
+      ThirdPartyComponentDAO thirdPartyComponentDAO,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.hdsClient = hdsClient;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -112,7 +115,6 @@ public class ApiComponentRemediationService
       throw new BadRequestException("Invalid stage ID: " + stageId + ".");
     }
 
-    String publicOwnerId = ownerId;
     boolean isThirdPartySource =
         IdentificationSource.isThirdPartyIdentificationSource(identificationSource);
 
@@ -132,22 +134,21 @@ public class ApiComponentRemediationService
       throw new BadRequestException("Invalid Component Identifier or packageUrl");
     }
 
-    if (ownerType.equals(OwnerType.APPLICATION)) {
-      publicOwnerId = applicationDAO.getByIdNotNull(ownerId).getPublicId();
-    }
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    // For performance, it's very important to use only one instance of ComponentDetailsLoader.
+    // See https://sonatype.atlassian.net/browse/CLM-28129
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
 
-    List<ComponentDetailsDTO> dtos = componentInfoService
-        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId,
-            identificationSource, scanId, null).getLeft();
+    List<ComponentDetailsDTO> dtos = componentInfoService.getComponentDetailsForAllVersionsNoAuth(owner,
+        componentIdentifier, stageId, identificationSource, scanId, null, componentDetailsLoader).getLeft();
 
     ApiComponentRemediationValueDTO remediationValueDto;
     if (isThirdPartySource) {
-      Owner owner = IdUtils.getOwnerNotNull(ownerType, publicOwnerId);
       remediationValueDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
     }
     else {
-      remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, ownerType,
-          ownerId, stageId);
+      remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, owner,
+          stageId, componentDetailsLoader);
     }
 
     return remediationValueDto == null ? null : new ApiComponentRemediationDTO(remediationValueDto);

@@ -29,4 +29,12 @@ public class LicenseOverrideLicenseInternalDAO
 
     return getList(tx, sQuery, licenseOverrideId);
   }
+
+  List<LicenseOverrideLicenseInternal> getByOwnerId(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT licenseOverrideLicense" + //
+        " FROM LicenseOverrideLicenseInternal licenseOverrideLicense, LicenseOverrideInternal licenseOverride" + //
+        " WHERE licenseOverrideLicense.licenseOverrideId = licenseOverride.id AND licenseOverride.ownerId = ?1";
+
+    return getList(tx, sQuery, ownerId);
+  }
 }

@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -45,7 +44,6 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -86,8 +84,6 @@ public class ComponentRemediationService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
-  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
-
   private final ProductLicense productLicense;
 
   @Inject
@@ -95,13 +91,11 @@ public class ComponentRemediationService
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
       ComponentPolicyEvaluator componentPolicyEvaluator,
-      ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       ProductLicense productLicense)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
-    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.productLicense = productLicense;
   }
 
@@ -120,9 +114,9 @@ public class ComponentRemediationService
   public ApiComponentRemediationValueDTO getSuggestedRemediation(
       final ComponentIdentifier currentComponent,
       final List<ComponentDetailsDTO> allVersions,
-      final OwnerType ownerType,
-      final String ownerId,
-      final String stageId)
+      final Owner owner,
+      final String stageId,
+      ComponentDetailsLoader componentDetailsLoader)
   {
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
 
@@ -175,7 +169,7 @@ public class ComponentRemediationService
                 currentIndex
             );
         Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(componentDependencies,
-            ownerType, ownerId, stageId);
+            owner, stageId, componentDetailsLoader);
 
         // find first non violating where dependencies have no violations
         nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts)
@@ -199,7 +193,7 @@ public class ComponentRemediationService
       }
     }
 
-    sendTelemetry(ownerType, ownerId, currentComponent, telemetryAttributes);
+    sendTelemetry(owner, currentComponent, telemetryAttributes);
     return componentRemediationDto;
   }
 
@@ -208,19 +202,18 @@ public class ComponentRemediationService
    */
   private Map<PackageUrlIdentifier, List<PolicyAlert>> getDependencyAlerts(
       final ComponentDependenciesDTO dependenciesDto,
-      final OwnerType ownerType,
-      final String ownerId,
-      final String stageId)
+      final Owner owner,
+      final String stageId,
+      ComponentDetailsLoader componentDetailsLoader)
   {
     Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = new HashMap<>();
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     final Collection<ComponentDetails> componentDetailsList = dependenciesDto.getDetailsMap().values();
     final Stage stage = new Stage(stageId != null ? stageId : BuildStageType.ID);
 
     // evaluate flattened dependencies
     // Fix match state to exact as there's no point propagating it to other versions.
     // Assume the dependencies are only transitive
-    List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
+    List<Component> components = componentDetailsLoader
         .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), DependencyType.TRANSITIVE);
     Map<PackageUrlIdentifier, List<PolicyAlert>> policyAlertsByComponent =
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);
@@ -336,21 +329,20 @@ public class ComponentRemediationService
   }
 
   private void sendTelemetry(
-      final OwnerType ownerType,
-      final String ownerId,
+      final Owner owner,
       final ComponentIdentifier componentIdentifier,
       final Map<String, Object> attributes)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.COMPONENT_REMEDIATION);
     attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(JsonUtils.writeUnformatted(componentIdentifier)));
-    attributes.put(OWNER_TYPE_ATTR, ownerType.toString());
-    attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
+    attributes.put(OWNER_TYPE_ATTR, owner.getType().toString());
+    attributes.put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(owner.getId()));
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
 
-    TelemetryUtils.includeRealOwnerId(attributes, ownerId);
+    TelemetryUtils.includeRealOwnerId(attributes, owner.getId());
 
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);

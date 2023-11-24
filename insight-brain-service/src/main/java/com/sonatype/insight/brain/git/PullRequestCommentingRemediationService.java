@@ -23,10 +23,12 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HasComponentId;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -45,18 +47,22 @@ public class PullRequestCommentingRemediationService
 
   private final ProductLicense productLicense;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   @Inject
   public PullRequestCommentingRemediationService(
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.applicationDAO = applicationDAO;
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.productLicense = productLicense;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
   }
 
   /**
@@ -91,15 +97,17 @@ public class PullRequestCommentingRemediationService
   {
     RemediationVersionDTO remediationVersionDTO = null;
 
-    String publicOwnerId = applicationDAO.getByIdNotNull(ownerId).getPublicId();
+    Application app = applicationDAO.getByIdNotNull(ownerId);
+    // For performance, it's very important to use only one instance of ComponentDetailsLoader.
+    // See https://sonatype.atlassian.net/browse/CLM-28129
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
-    List<ComponentDetailsDTO> componentDetailsDTOs = componentInfoService
-        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, publicOwnerId, componentIdentifier,
-            null, null, null, null).getLeft();
+    List<ComponentDetailsDTO> componentDetailsDTOs = componentInfoService.getComponentDetailsForAllVersionsNoAuth(app,
+        componentIdentifier, null, null, null, null, componentDetailsLoader).getLeft();
 
     ApiComponentRemediationValueDTO remediationValueDto =
         componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-            OwnerType.APPLICATION, ownerId, null);
+            app, null, componentDetailsLoader);
 
     if (remediationValueDto != null) {
       Optional<ApiVersionChangeOptionDTO> versionChangeDTO =

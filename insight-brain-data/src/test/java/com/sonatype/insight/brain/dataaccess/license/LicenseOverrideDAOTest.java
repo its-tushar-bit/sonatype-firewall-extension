@@ -20,6 +20,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -422,5 +423,26 @@ public class LicenseOverrideDAOTest
     assertThat(override).isNotNull();
     assertLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-4-Clause",
         "testing", override);
+  }
+
+  @Test
+  public void testGetByOwnerId() {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a", "v", "c", "e");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a", "v", "c", "e");
+    // License overrides for the app
+    LicenseOverride licenseOverride1 = tempEntity.newLicenseOverride(application.getId(), componentIdentifier1,
+        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-2.0", "EPL-1.0"));
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(application.getId(), componentIdentifier2,
+        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
+    // License override for the org
+    tempEntity.newLicenseOverride(organization.getId(), componentIdentifier1, LicenseOverrideStatus.SELECTED,
+        Sets.newHashSet("GPL-2.0"));
+
+    List<LicenseOverride> foundLicenseOverrides = dao.getByOwnerId(application.getId());
+    assertThat(foundLicenseOverrides.size()).isEqualTo(2);
+    assertThat(foundLicenseOverrides).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(licenseOverride1, licenseOverride2);
   }
 }

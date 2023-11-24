@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -18,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
@@ -52,6 +55,9 @@ public class PullRequestCommentingRemediationServiceTest
   private ProductLicense mockProductLicense;
 
   private Application application;
+
+  @Inject
+  private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   // Subject
   PullRequestCommentingRemediationService service;
@@ -88,7 +94,7 @@ public class PullRequestCommentingRemediationServiceTest
 
     // given:
     service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
-        mockComponentRemediationService, mockProductLicense);
+        mockComponentRemediationService, mockProductLicense, componentDetailsLoaderFactory);
 
     ComponentIdentifier id1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
 
@@ -130,7 +136,7 @@ public class PullRequestCommentingRemediationServiceTest
   public void testGetRemediationVersionMap_remediationNotFound() {
     // given:
     service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
-        mockComponentRemediationService, mockProductLicense);
+        mockComponentRemediationService, mockProductLicense, componentDetailsLoaderFactory);
 
     ComponentIdentifier id2 = ComponentIdentifier.createNpmCoordinates("artifact-2", "2.0.0");
 

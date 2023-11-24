@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -108,11 +110,20 @@ public class LicenseOverrideDAO
   }
 
   public List<LicenseOverride> getByOwnerId(TransactionContext tx, String ownerId) {
-    List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getByOwnerId(tx, ownerId);
     List<LicenseOverride> overrides = new ArrayList<>();
 
+    List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getByOwnerId(tx, ownerId);
+    if (internalOverrides.isEmpty()) {
+      return overrides;
+    }
+
+    List<LicenseOverrideLicenseInternal> licenseOverrideLicenses =
+        licenseOverrideLicenseInternalDAO.getByOwnerId(tx, ownerId);
+    Map<String, Set<String>> licenseIdsByLicenseOverrideId = licenseOverrideLicenses.stream()
+        .collect(Collectors.groupingBy(LicenseOverrideLicenseInternal::getLicenseOverrideId,
+            Collectors.mapping(LicenseOverrideLicenseInternal::getLicenseId, Collectors.toSet())));
     for (LicenseOverrideInternal internalOverride : internalOverrides) {
-      overrides.add(new LicenseOverride(internalOverride, getLicenseIds(tx, internalOverride.getId())));
+      overrides.add(new LicenseOverride(internalOverride, licenseIdsByLicenseOverrideId.get(internalOverride.getId())));
     }
 
     return overrides;
@@ -227,8 +238,9 @@ public class LicenseOverrideDAO
     }
   }
 
-  private Set<String> getLicenseIds(TransactionContext tx, String id) {
-    List<LicenseOverrideLicenseInternal> licenses = licenseOverrideLicenseInternalDAO.getByLicenseOverrideId(tx, id);
+  private Set<String> getLicenseIds(TransactionContext tx, String licenseOverrideId) {
+    List<LicenseOverrideLicenseInternal> licenses =
+        licenseOverrideLicenseInternalDAO.getByLicenseOverrideId(tx, licenseOverrideId);
 
     Set<String> licenseIds = new LinkedHashSet<>();
 
@@ -239,9 +251,9 @@ public class LicenseOverrideDAO
     return licenseIds;
   }
 
-  private Set<String> getLicenseIds(String id) {
+  private Set<String> getLicenseIds(String licenseOverrideId) {
     try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
-      return getLicenseIds(tx, id);
+      return getLicenseIds(tx, licenseOverrideId);
     }
   }
 

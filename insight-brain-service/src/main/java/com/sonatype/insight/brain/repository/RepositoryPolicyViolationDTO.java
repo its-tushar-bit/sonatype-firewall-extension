@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
-import com.sonatype.insight.brain.utils.ISODateSerializer;
+import com.sonatype.insight.json.store.ISODateSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

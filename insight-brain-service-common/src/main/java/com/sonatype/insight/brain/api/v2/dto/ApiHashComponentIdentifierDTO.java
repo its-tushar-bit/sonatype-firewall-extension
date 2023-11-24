@@ -10,7 +10,7 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.HashComponentIdentifierDTO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.utils.ISODateSerializer;
+import com.sonatype.insight.json.store.ISODateSerializer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

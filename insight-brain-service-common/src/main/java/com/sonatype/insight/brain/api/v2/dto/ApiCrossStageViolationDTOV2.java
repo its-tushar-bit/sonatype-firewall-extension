@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.insight.brain.utils.ISODateSerializer;
+import com.sonatype.insight.json.store.ISODateSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

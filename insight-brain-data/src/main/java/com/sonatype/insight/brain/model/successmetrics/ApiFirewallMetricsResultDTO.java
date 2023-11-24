@@ -8,12 +8,18 @@ package com.sonatype.insight.brain.model.successmetrics;
 import java.util.Date;
 
 import com.sonatype.insight.json.store.ApiDateFormat;
+import com.sonatype.insight.json.store.ISODateDeserializer;
+import com.sonatype.insight.json.store.ISODateSerializer;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class ApiFirewallMetricsResultDTO
 {
   private int firewallMetricsValue;
 
-  @ApiDateFormat
+  @JsonSerialize(using = ISODateSerializer.class)
+  @JsonDeserialize(using = ISODateDeserializer.class)
   private Date latestUpdatedTime;
 
   public ApiFirewallMetricsResultDTO(int firewallMetricsValue, Date latestUpdatedTime) {

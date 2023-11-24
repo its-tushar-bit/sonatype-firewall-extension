@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.utils.ISODateSerializer;
+import com.sonatype.insight.json.store.ISODateSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

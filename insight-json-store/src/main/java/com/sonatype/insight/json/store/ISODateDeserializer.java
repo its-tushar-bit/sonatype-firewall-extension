@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -28,7 +27,7 @@ public class ISODateDeserializer
   }
 
   @Override
-  public Date deserialize(JsonParser parser, DeserializationContext ctx) throws IOException, JacksonException {
+  public Date deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
     String date = parser.getText();
     return Date.from(Instant.from(ISODateSerializer.formatter.parse(date)));
   }

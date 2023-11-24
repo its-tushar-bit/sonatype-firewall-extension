@@ -62,6 +62,12 @@ public class ThirdPartyFileCoordinate
   @Column(name = "third_party_file_id")
   private String thirdPartyFileId;
 
+  @Column(name = "cpe")
+  private String cpe;
+
+  @Column(name = "swid")
+  private String swid;
+
   @Override
   public String getId() {
     return id;
@@ -126,5 +132,21 @@ public class ThirdPartyFileCoordinate
 
   public void setThirdPartyFileId(String thirdPartyFileId) {
     this.thirdPartyFileId = thirdPartyFileId;
+  }
+
+  public String getCpe() {
+    return cpe;
+  }
+
+  public void setCpe(String cpe) {
+    this.cpe = cpe;
+  }
+
+  public String getSwid() {
+    return swid;
+  }
+
+  public void setSwid(String swid) {
+    this.swid = swid;
   }
 }

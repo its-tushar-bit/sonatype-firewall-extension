@@ -53,6 +53,7 @@ import org.cyclonedx.model.Extension.ExtensionType;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.Swid;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
@@ -637,6 +638,53 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_withoutVulnerabilities() throws Exception {
     assertVulnerabilityInformation("sbom-no-vulnerabilities.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_CpeAndSwid_Xml() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-with-cpe-swid.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-with-cpe-swid.xml", null, null, null, sbomContent);
+    assertCpeAndSwid(content);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_CpeAndSwid_Json() throws Exception {
+    String sbomContent = getSbomJsonFile("sbom-with-cpe-swid.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-with-cpe-swid.json", null, null, null, sbomContent);
+    assertCpeAndSwid(content);
+  }
+
+  private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 1);
+    Component component = bom.getComponents().get(0);
+    assertThat(component.getCpe()).isEqualTo("cpe:/a:acme:application:9.1.1");
+    Swid swid = component.getSwid();
+    assertThat(swid.getTagId()).isEqualTo("swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1");
+    assertThat(swid.getName()).isEqualTo("Acme Application");
+    assertThat(swid.getVersion()).isEqualTo("9.1.1");
+    assertThat(swid.getTagVersion()).isEqualTo(0);
+    assertThat(swid.isPatch()).isFalse();
+    assertThat(swid.getAttachmentText().getEncoding()).isEqualTo("base64");
+    assertThat(swid.getAttachmentText().getContentType()).isEqualTo("text/xml");
+    assertThat(swid.getAttachmentText().getText()).isEqualTo("PD94bWwgdmVyc");
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getCpe()).isEqualTo("cpe:/a:acme:application:9.1.1");
+    assertThat(thirdPartyFileCoordinate.getSwid())
+        .isEqualTo("{" +
+            "\"tagId\":\"swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1\"," +
+            "\"name\":\"Acme Application\"," +
+            "\"version\":\"9.1.1\"," +
+            "\"tagVersion\":0," +
+            "\"patch\":false," +
+            "\"attachmentText\":{\"encoding\":\"base64\",\"contentType\":\"text/xml\",\"text\":\"PD94bWwgdmVyc\"}}");
   }
 
   @Test
@@ -1447,7 +1495,6 @@ public class SbomResultHandlerTest
         assertThat(component.getHashes()).isNull();
       }
       assertThat(component.getExternalReferences()).isNull();
-      assertThat(component.getSwid()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getExtensions()).isNull();
     }

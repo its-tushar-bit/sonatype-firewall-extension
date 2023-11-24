@@ -49,6 +49,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -71,6 +72,7 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.Swid;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
@@ -265,6 +267,8 @@ public class SbomResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
+        resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
+        resolvedComponent.getRight().setSwid(sourceComponent.getSwid());
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
@@ -458,6 +462,11 @@ public class SbomResultHandler
     ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
+    fileCoordinate.setCpe(component.getCpe());
+    Swid swid = component.getSwid();
+    if (swid != null) {
+      fileCoordinate.setSwid(new Gson().toJson(swid));
+    }
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
     saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);

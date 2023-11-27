@@ -82,7 +82,7 @@ public class FirewallMetricsDAO
         resultFirewallMetrics = existingFirewallMetrics;
       }
       else {
-        insert(newFirewallMetrics);
+        insert(tx, newFirewallMetrics);
         resultFirewallMetrics = newFirewallMetrics;
       }
 

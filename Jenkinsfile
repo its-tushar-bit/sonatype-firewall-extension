@@ -10,8 +10,8 @@ make(
     deployBranch: 'main',
     useEventSpy: false,
     javaVersion: 'Java 8',
-    mavenVersion: 'Maven 3.6.x',
-    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4 --show-version",
+    mavenVersion: 'Maven 3.9.x',
+    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
@@ -281,7 +281,7 @@ Map<String, Closure> createGebTests() {
       stage('Geb Tests') {
         try {
           copyRepo()
-          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()} --threads 4 --show-version"
+          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()} --threads 4"
           Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
           mvn testConfig, 'verify'
         }
@@ -313,7 +313,6 @@ Map<String, Closure> createFunctionalTests(
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
               mavenOptions += " -DdetectTestEntityLeaks"
               mavenOptions += " --threads 4"
-              mavenOptions += " --show-version"
               Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
               mvn testConfig, 'verify'
             }
@@ -336,7 +335,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           Map<String, ?> testConfig = testConfig(
                 "-pl '!com.sonatype.insight.brain:nexus-mtiq-server' -Dtest=%regex[${regex}] " +
                     "-Dit.test=%regex[${regex}] -Dskip-functional-test -DdetectTestEntityLeaks " +
-                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4 --show-version",
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'
         }
@@ -359,7 +358,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
           copyRepo()
           Map<String, ?> testConfig = testConfig(
                 "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
-                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4 --show-version",
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'
         }
@@ -372,7 +371,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
 }
 
 Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
-  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.6.x', useEventSpy: false,
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 

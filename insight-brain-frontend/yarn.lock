@@ -2352,10 +2352,15 @@
     "@types/tough-cookie" "*"
     parse5 "^7.0.0"
 
-"@types/json-schema@*", "@types/json-schema@^7.0.5", "@types/json-schema@^7.0.8":
+"@types/json-schema@*", "@types/json-schema@^7.0.8":
   version "7.0.9"
   resolved "https://repo.sonatype.com/repository/npm-all/@types/json-schema/-/json-schema-7.0.9.tgz"
   integrity sha512-qcUXuemtEu+E5wZSJHNxUXeCZhAfXKQ41D+duX+VYPde7xyEVZci+/oXKJL13tnRs9lR2pr4fod59GT6/X1/yQ==
+
+"@types/json-schema@^7.0.5":
+  version "7.0.15"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
+  integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
 
 "@types/lodash.frompairs@^4.0.5":
   version "4.0.6"
@@ -3292,13 +3297,13 @@ babel-jest@^29.6.1:
     graceful-fs "^4.2.9"
     slash "^3.0.0"
 
-babel-loader@^8.2.2:
-  version "8.2.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/babel-loader/-/babel-loader-8.2.2.tgz"
-  integrity sha512-JvTd0/D889PQBtUXJ2PXaKU/pjZDMtHA9V2ecm+eNRmmBCMR09a+fmpGTNwnJtFmFl5Ei7Vy47LjBb+L0wQ99g==
+babel-loader@^8.3.0:
+  version "8.3.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/babel-loader/-/babel-loader-8.3.0.tgz#124936e841ba4fe8176786d6ff28add1f134d6a8"
+  integrity sha512-H8SvsMF+m9t15HNLMipppzkC+Y2Yq+v3SonZyU70RBL/h1gxPkH08Ot8pEE9Z4Kd+czyWJClmFS8qzIP9OZ04Q==
   dependencies:
     find-cache-dir "^3.3.1"
-    loader-utils "^1.4.0"
+    loader-utils "^2.0.0"
     make-dir "^3.1.0"
     schema-utils "^2.6.5"
 
@@ -4070,8 +4075,8 @@ commander@^7.0.0:
 
 commondir@^1.0.1:
   version "1.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/commondir/-/commondir-1.0.1.tgz"
-  integrity sha1-3dgA2gxmEnOTzKWVDqloo6rxJTs=
+  resolved "https://repo.sonatype.com/repository/npm-all/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
+  integrity sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==
 
 commonmark@^0.29.1:
   version "0.29.3"
@@ -5987,7 +5992,7 @@ finalhandler@1.1.2, finalhandler@~1.1.2:
 
 find-cache-dir@^3.3.1:
   version "3.3.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/find-cache-dir/-/find-cache-dir-3.3.2.tgz"
+  resolved "https://repo.sonatype.com/repository/npm-all/find-cache-dir/-/find-cache-dir-3.3.2.tgz#b30c5b6eff0730731aea9bbd9dbecbd80256d64b"
   integrity sha512-wXZV5emFEjrridIgED11OoUKLxiYjAcqot/NJdAkOhlJ+vGzwhOAfcG5OX1jP+S0PcjEn8bdMJv+g2jwQ3Onig==
   dependencies:
     commondir "^1.0.1"
@@ -8537,7 +8542,7 @@ loader-runner@^4.2.0:
   resolved "https://repo.sonatype.com/repository/npm-all/loader-runner/-/loader-runner-4.2.0.tgz"
   integrity sha512-92+huvxMvYlMzMt0iIOukcwYBFpkYJdpl2xsZ7LrlayO7E8SOv+JJUEK17B/dJIHAOLMfh2dZZ/Y18WgmGtYNw==
 
-loader-utils@^1.1.0, loader-utils@^1.4.0:
+loader-utils@^1.1.0:
   version "1.4.0"
   resolved "https://repo.sonatype.com/repository/npm-all/loader-utils/-/loader-utils-1.4.0.tgz"
   integrity sha512-qH0WSMBtn/oHuwjy/NucEgbx5dbxxnxup9s4PVXJUDHZBQY+s0NWA9rJf53RBnQZxfch7euUui7hpoAPvALZdA==
@@ -8783,7 +8788,7 @@ make-dir@^2.1.0:
 
 make-dir@^3.0.0, make-dir@^3.0.2, make-dir@^3.1.0:
   version "3.1.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/make-dir/-/make-dir-3.1.0.tgz"
+  resolved "https://repo.sonatype.com/repository/npm-all/make-dir/-/make-dir-3.1.0.tgz#415e967046b3a7f1d185277d84aa58203726a13f"
   integrity sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==
   dependencies:
     semver "^6.0.0"
@@ -9814,7 +9819,7 @@ pirates@^4.0.1, pirates@^4.0.4:
 
 pkg-dir@^4.1.0, pkg-dir@^4.2.0:
   version "4.2.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/pkg-dir/-/pkg-dir-4.2.0.tgz"
+  resolved "https://repo.sonatype.com/repository/npm-all/pkg-dir/-/pkg-dir-4.2.0.tgz#f099133df7ede422e81d1d8448270eeb3e4261f3"
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
   dependencies:
     find-up "^4.0.0"
@@ -10990,7 +10995,7 @@ schema-utils@^0.3.0:
 
 schema-utils@^2.6.5:
   version "2.7.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/schema-utils/-/schema-utils-2.7.1.tgz"
+  resolved "https://repo.sonatype.com/repository/npm-all/schema-utils/-/schema-utils-2.7.1.tgz#1ca4f32d1b24c590c203b8e7a50bf0ea4cd394d7"
   integrity sha512-SHiNtMOUGWBQJwzISiVYKu82GiV4QYGePp3odlY1tuKO7gPtphAT5R/py0fA6xtbgLL/RvtJZnU9b8s0F1q0Xg==
   dependencies:
     "@types/json-schema" "^7.0.5"

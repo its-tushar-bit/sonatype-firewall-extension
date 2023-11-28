@@ -23,6 +23,7 @@ import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 
 import org.junit.After;
 import org.junit.Before;
@@ -107,10 +108,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     setUpAppsForIntegrationAndRisks();
     refreshOrOpen(IntegrationsPage.urlOverview());
 
-    scrollIntoView(appIntegrationsAndRiskTable());
-
     appIntegrationsAndRiskTable().shouldBe(visible);
 
+    scrollIntoView(appIntegrationsAndRiskTable());
+    
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_FOR_INTEGRATION_AND_RISKS);
 
     applicationName(0).shouldHave(text("appName9"));
@@ -127,6 +128,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(9).shouldHave(text("0"));
 
+    Selenide.sleep(500);
     eyesWatcher.eyesCheck();
 
     //click cicd configure button

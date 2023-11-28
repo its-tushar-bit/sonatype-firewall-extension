@@ -441,7 +441,15 @@ public class SpdxResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Fallback to coordinates due to invalid purl: {}", purlOptional.orElse(""));
+      log.debug("Invalid purl: {}", purlOptional.orElse(""));
+    }
+    Optional<String> cpeOptional = getCpe(spdxPackage);
+    if (cpeOptional.isPresent()) {
+      String cpe = cpeOptional.get();
+      PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
+      if (packageUrlIdentifier != null) {
+        return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
+      }
     }
     return processComponentFromHashOrCoordinates(spdxPackage, rootPackageId);
   }
@@ -660,8 +668,24 @@ public class SpdxResultHandler
   {
     final Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
     for (ExternalRef externalRef : externalRefs) {
-      if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER &&
+          externalRef.getReferenceType().getIndividualURI().endsWith("/purl")) {
         return Optional.of(externalRef.getReferenceLocator());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<String> getCpe(final SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    final Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
+    for (ExternalRef externalRef : externalRefs) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+        String referenceType = externalRef.getReferenceType().getIndividualURI();
+        if (referenceType.endsWith("/cpe23Type") || referenceType.endsWith("/cpe22Type")) {
+          return Optional.of(externalRef.getReferenceLocator());
+        }
       }
     }
     return Optional.empty();

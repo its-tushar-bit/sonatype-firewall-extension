@@ -179,6 +179,38 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_Purl_Then_Cpe_Then_Coordinates_Then_Sha1() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-cpe-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 6);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName)
+        .containsOnly("tomcat-catalina", "django", "log4j", "log4j", "jackson-databind", "joda-time");
+    assertThat(components).extracting(Component::getVersion)
+        .containsOnly("9.0.14", "1.2.3", "2.11.2", "2.12.2", "2.9.9", "2.1.0");
+
+    // 4 purls were collected: 2 original purls, 2 from cpe
+    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
+        "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+        "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9",
+        "pkg:cpe/apache/log4j@2.11.2?update=rc3",
+        "pkg:cpe/apache/log4j@2.12.2?language=en&update=rc1",
+        null, null);
+    assertThat(components).extracting("properties.size")
+        .containsOnly(null, 1);
+    assertThat(components.get(1).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e6b1000b94e835ffd37f");
+    assertThat(components.get(5).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("9188560f22e0b73070d2");
+  }
+
+  @Test
   public void testHandleAndFilterContents_filterContent_hashes() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-component-hashes-components.xml");
     ThirdPartyScanContent content =
@@ -1337,7 +1369,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
-    assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
+    assertDebugLogOutput("Invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -1352,7 +1384,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
-    assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
+    assertDebugLogOutput("Invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());

@@ -101,6 +101,36 @@ public class SpdxResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_Purl_Then_Cpe_Then_Sha1_Then_Coordinates() throws Exception {
+    String sbomContent = getSbomXmlFile("purl-cpe-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("spdx.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 5);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName).containsExactlyInAnyOrder(
+        "iq_application_SCM Test 1", "log4j-core", "log4j", "log4j-api", "joda-time");
+    assertThat(components).extracting(Component::getVersion)
+        .containsExactlyInAnyOrder("76b10b862e7b42009f2415097620928c", "2.13.2", "2.13.2", "2.11.2", null);
+    // 4 purls were collected: 2 original purls, 1 from cpe, 1 from coordinates, 1 skipped (hash beats coordinates)
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactlyInAnyOrder(
+            "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
+            "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+            "pkg:library/org.apache.logging.log4j/log4j-api@2.13.2",
+            "pkg:cpe/apache/log4j@2.11.2?update=rc3",
+            null);
+    assertThat(components).extracting("properties.size")
+        .containsOnly(null, null, null, null, 1);
+    // 1 component hash was collected
+    assertThat(components.get(4).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("9188560f22e0b73070d2");
+  }
+
+  @Test
   public void testHandleAndFilterContents_nullContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

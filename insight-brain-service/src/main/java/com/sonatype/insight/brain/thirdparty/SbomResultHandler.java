@@ -310,8 +310,14 @@ public class SbomResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Fallback to coordinates due to invalid purl: {}", packageUrl);
+      log.debug("Invalid purl: {}", packageUrl);
     }
+    String cpe = sourceComponent.getCpe();
+    PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
+    if (packageUrlIdentifier != null) {
+      return createComponent(sourceComponent, packageUrlIdentifier, false);
+    }
+
     return processComponentFromHashOrCoordinates(sourceComponent);
   }
 

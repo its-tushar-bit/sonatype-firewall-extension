@@ -48,13 +48,14 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,17 +227,23 @@ public class ThirdPartyDataService
         coordinateSecurity.getRefId());
   }
 
-  private BillOfMaterialsRowDTO toBomRow(
+  private ThirdPartyBillOfMaterialsRowDTO toBomRow(
       final ThirdPartyFileCoordinate coordinate,
       final ComponentIdentifier componentIdentifier,
       final Date scanTime)
   {
-    final BillOfMaterialsRowDTO dto = new BillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
+    final ThirdPartyBillOfMaterialsRowDTO dto
+        = new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
     dto.createTime = scanTime.getTime();
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
     dto.setPackageUrl(StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
         coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(componentIdentifier));
+    dto.cpe = coordinate.getCpe();
+    String swid = coordinate.getSwid();
+    if (swid != null) {
+      dto.swid = new Gson().fromJson(swid, Swid.class);
+    }
     return dto;
   }
 

@@ -48,7 +48,6 @@ import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.util.MetadataRecorderUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
@@ -120,8 +119,8 @@ public class ThirdPartyComponentDAO
     Map<String, ThirdPartyReportComponentDTO> reportData = new HashMap<>();
     try {
       final ReportEntry tpBomEntry = Report.getEntry(reportFile, THIRD_PARTY_BOM_JSON_FILENAME);
-      final List<BillOfMaterialsRowDTO> bomRows =
-          readData(tpBomEntry, new TypeReference<List<BillOfMaterialsRowDTO>>() { });
+      final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
+          readData(tpBomEntry, new TypeReference<List<ThirdPartyBillOfMaterialsRowDTO>>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
         ReportEntry tpSecurityReportEntry = Report.getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
@@ -412,12 +411,12 @@ public class ThirdPartyComponentDAO
   }
 
   private void prepareComponentData(
-      final List<BillOfMaterialsRowDTO> bomRows,
+      final List<ThirdPartyBillOfMaterialsRowDTO> bomRows,
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
       final List<ThirdPartyLicenseRowDTO> licenseRows,
       final Map<String, ThirdPartyReportComponentDTO> reportData)
   {
-    for (BillOfMaterialsRowDTO bomRow : bomRows) {
+    for (ThirdPartyBillOfMaterialsRowDTO bomRow : bomRows) {
       final ThirdPartyReportComponentDTO dto = new ThirdPartyReportComponentDTO(bomRow);
       if (securityRows != null && !securityRows.isEmpty()) {
         dto.securityRows.addAll(

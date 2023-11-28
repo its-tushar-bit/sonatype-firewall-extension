@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.thirdparty;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.scan.RowWithComponentIdentifierDTO;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
@@ -18,13 +17,13 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 public class ThirdPartyReportComponentDTO
     extends RowWithComponentIdentifierDTO
 {
-  public BillOfMaterialsRowDTO bomRow;
+  public ThirdPartyBillOfMaterialsRowDTO bomRow;
 
   public List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = new ArrayList<>();
 
   public ThirdPartyLicenseRowDTO licensesRow = new ThirdPartyLicenseRowDTO();
 
-  public ThirdPartyReportComponentDTO(BillOfMaterialsRowDTO bomRow) {
+  public ThirdPartyReportComponentDTO(ThirdPartyBillOfMaterialsRowDTO bomRow) {
     super(bomRow.componentIdentifier);
     this.bomRow = bomRow;
   }

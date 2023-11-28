@@ -33,12 +33,14 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.gson.Gson;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.model.AttachmentText;
+import org.cyclonedx.model.Swid;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -171,6 +173,44 @@ public class ThirdPartyDataServiceTest
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1);
     assertSecurityRowsForComponentWithVex(scanData.securityRows, coord1, sec1coord1, vex);
+  }
+
+  @Test
+  public void testGetScanData_CpeAndSwid() {
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    Swid expectedSwid = new Swid();
+    expectedSwid.setTagId("swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1");
+    expectedSwid.setName("Acme Application");
+    expectedSwid.setVersion("9.1.1");
+    expectedSwid.setTagVersion(0);
+    expectedSwid.setPatch(false);
+    AttachmentText attachmentText = new AttachmentText();
+    attachmentText.setEncoding("base64");
+    attachmentText.setContentType("text/xml");
+    attachmentText.setText("PD94bWwgdmV");
+    expectedSwid.setAttachmentText(attachmentText);
+
+    tempEntity.newThirdPartyFileCoordinate(file, "CycloneDx", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1",
+        "cpe:/a:acme:application:9.1.1", new Gson().toJson(expectedSwid));
+
+    ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    List<ThirdPartyBillOfMaterialsRowDTO> billOfMaterials = scanData.billOfMaterials;
+    assertThat(billOfMaterials).hasSize(1);
+    ThirdPartyBillOfMaterialsRowDTO billOfMaterialsRowDTO = billOfMaterials.get(0);
+    assertThat(billOfMaterialsRowDTO.cpe).isEqualTo("cpe:/a:acme:application:9.1.1");
+    Swid actualSwid = billOfMaterialsRowDTO.swid;
+    assertThat(actualSwid.getTagId()).isEqualTo(expectedSwid.getTagId());
+    assertThat(actualSwid.getName()).isEqualTo(expectedSwid.getName());
+    assertThat(actualSwid.getVersion()).isEqualTo(expectedSwid.getVersion());
+    assertThat(actualSwid.getTagVersion()).isEqualTo(expectedSwid.getTagVersion());
+    assertThat(actualSwid.isPatch()).isEqualTo(expectedSwid.isPatch());
+    AttachmentText expectedAttachmentText = expectedSwid.getAttachmentText();
+    assertThat(actualSwid.getAttachmentText().getEncoding()).isEqualTo(expectedAttachmentText.getEncoding());
+    assertThat(actualSwid.getAttachmentText().getContentType()).isEqualTo(expectedAttachmentText.getContentType());
+    assertThat(actualSwid.getAttachmentText().getText()).isEqualTo(expectedAttachmentText.getText());
   }
 
   @Test
@@ -484,7 +524,7 @@ public class ThirdPartyDataServiceTest
   }
 
   private void assertBomContains(
-      final List<BillOfMaterialsRowDTO> bom,
+      final List<ThirdPartyBillOfMaterialsRowDTO> bom,
       final ThirdPartyFileCoordinate coordinate,
       final ThirdPartyFile... files)
   {

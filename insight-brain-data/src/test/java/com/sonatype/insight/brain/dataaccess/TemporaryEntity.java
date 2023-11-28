@@ -3694,6 +3694,26 @@ public class TemporaryEntity
     return fileCoordinate;
   }
 
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String cpe,
+      String swid)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setCpe(cpe);
+    fileCoordinate.setSwid(swid);
+    new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate() {
     return newThirdPartyFileCoordinate(newThirdPartyFile(), "s1", "f1", "n1", "v1");
   }

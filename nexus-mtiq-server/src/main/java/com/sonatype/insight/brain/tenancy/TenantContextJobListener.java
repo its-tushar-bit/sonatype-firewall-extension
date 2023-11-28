@@ -19,7 +19,7 @@ import org.quartz.listeners.JobListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenants;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenantsOnBatch;
 
 @Named
 public class TenantContextJobListener
@@ -92,7 +92,7 @@ public class TenantContextJobListener
     List<String> allNonDeletedTenants = allTenants.stream()
         .filter(t -> !deletedTenants.contains(t)).collect(Collectors.toList());
 
-    runForAllTenants(allNonDeletedTenants, "registerAllTenants",
+    runForAllTenantsOnBatch(allNonDeletedTenants, "registerAllTenants",
         t -> {
           log.trace("Setting tenant {} for quartz job execution", t);
           try {

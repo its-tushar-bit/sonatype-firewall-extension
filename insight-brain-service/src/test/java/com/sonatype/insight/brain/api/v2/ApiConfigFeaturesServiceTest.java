@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Locale;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -791,7 +790,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableFeature_SaasLifecycleScmEnabled_singleTenant() {
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
@@ -799,7 +798,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.enableFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
@@ -807,7 +806,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
@@ -817,32 +816,49 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(false))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
   public void testEnableFeature_SaasLifecycleScmEnabled_setEnabledForSingleTenant() {
     SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isEqualTo(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
   public void testFeatureHelperMethod_isSaasLifecycleScmEnabled() {
     SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
-    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
+    assertThat(service.isSaasLifecycleScmEnabled()).isTrue();
   }
 
   @Test
   public void testFeatureHelperMethod_isScmAndDefaultBranchMonitoringEnabled() {
     SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
     SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(true);
-    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
+    assertThat(service.isSaasLifecycleScmEnabled()).isTrue();
   }
 
   @Test
   public void testFeatureHelperMethod_isScmAndDefaultBranchMonitoringEnabled_branchMonitoringFalse() {
     SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(true);
     SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
-    assertThat(service.isSaasLifecycleScmEnabled()).isEqualTo(true);
+    assertThat(service.isSaasLifecycleScmEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEnableFeature_SaasPreRegisterAllTenants_singleTenant() {
+    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEnableFeature_SaasPreRegisterAllTenants_setEnabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEnableFeature_SaasPreRegisterAllTenants_setDisabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(false);
+    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isFalse();
   }
 }

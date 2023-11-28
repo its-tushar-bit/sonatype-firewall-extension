@@ -194,14 +194,32 @@ public class TenantThreadLocal
     setTenant(GLOBAL_TENANT);
   }
 
+  static void runForAllTenantsOnBatch(List<String> tenants, String taskName, Consumer<Tenant> consumer) {
+    if (tenantUtil.isMtiqBatchMode()) {
+      runForAllTenants(tenants, taskName, consumer);
+    }
+  }
+
+  static void runForAllTenantsOnBoot(
+      List<String> tenants,
+      String taskName,
+      Consumer<Tenant> consumer)
+  {
+    runForAllTenants(tenants, taskName, consumer);
+  }
+
   /**
    * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. Note: Using this method
    * will invalidate the tenant when finished.
    * </p>
-   * Running across tenants is only allowed when the node is running in quartz mode. This is to prevent any request
-   * traffic from being able to iterate through tenants.
+   * Running across tenants is only allowed when the node is running in quartz mode or while pre-registering tenants
+   * during server startup. This is to prevent any request traffic from being able to iterate through tenants.
    */
-  static void runForAllTenants(List<String> tenants, String taskName, Consumer<Tenant> consumer) {
+  private static void runForAllTenants(
+      List<String> tenants,
+      String taskName,
+      Consumer<Tenant> consumer)
+  {
     if (!tenantUtil.isMultiTenant()) {
       consumer.accept(SINGLE_TENANT);
 
@@ -210,30 +228,28 @@ public class TenantThreadLocal
 
     log.info("Running task {} for all registered tenants. Tenant count = {}", taskName, tenants.size());
 
-    if (tenantUtil.isMtiqBatchMode()) {
-      for (String tenantName : tenants) {
+    for (String tenantName : tenants) {
 
-        log.debug("Running task {} for tenant {}", taskName, tenantName);
+      log.debug("Running task {} for tenant {}", taskName, tenantName);
 
-        try {
-          TenantThreadLocal.setGlobalTenant();
+      try {
+        TenantThreadLocal.setGlobalTenant();
 
-          Tenant tenant = new Tenant(tenantName);
+        Tenant tenant = new Tenant(tenantName);
 
-          runAs(tenant, () -> {
-            try {
-              consumer.accept(tenant);
-              return null;
-            }
-            finally {
-              invalidateTenant();
-            }
-          });
-        }
-        catch (Exception e) {
-          log.error("runForAllTenants failed to run consumer for tenant {}, skipping and moving on to next tenant",
-              tenantName, e);
-        }
+        runAs(tenant, () -> {
+          try {
+            consumer.accept(tenant);
+            return null;
+          }
+          finally {
+            invalidateTenant();
+          }
+        });
+      }
+      catch (Exception e) {
+        log.error("runForAllTenants failed to run consumer for tenant {}, skipping and moving on to next tenant",
+            tenantName, e);
       }
     }
   }

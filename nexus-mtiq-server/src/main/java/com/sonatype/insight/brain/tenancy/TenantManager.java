@@ -10,17 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.lifecycle.Managed;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +45,7 @@ import static java.util.stream.Collectors.toList;
 @Named
 @Singleton
 public class TenantManager
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(TenantManager.class);
 
@@ -60,6 +66,8 @@ public class TenantManager
 
   private final DeletedTenantDAO deletedTenantDAO;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
@@ -67,13 +75,15 @@ public class TenantManager
       final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils,
       final TenantValidator tenantValidator,
-      final DeletedTenantDAO deletedTenantDAO)
+      final DeletedTenantDAO deletedTenantDAO,
+      final TenantUtil tenantUtil)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantValidator = tenantValidator;
     this.deletedTenantDAO = deletedTenantDAO;
+    this.tenantUtil = tenantUtil;
 
     multiTenantDatabaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
@@ -111,6 +121,44 @@ public class TenantManager
     }
 
     registerTenant(tenant);
+  }
+
+  @Override
+  public void start() {
+    if (SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()) {
+      preregisterAllTenants();
+    }
+  }
+
+  @VisibleForTesting
+  void preregisterAllTenants() {
+    log.info("Pre-registering all tenants");
+
+    List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
+        .map(DeletedTenant::getId).collect(Collectors.toList());
+
+    List<String> nonDeletedTenants = tenantUtil.getAllTenants().stream()
+        .filter(t -> !deletedTenants.contains(t))
+        .collect(Collectors.toList());
+
+    registerTenants(nonDeletedTenants);
+
+    TenantThreadLocal.setGlobalTenant();
+  }
+
+  private void registerTenants(List<String> tenants) {
+    TenantThreadLocal.runForAllTenantsOnBoot(tenants, "preRegisterAllTenants",
+        tenant -> {
+          try {
+            setTenant(tenant);
+          }
+          catch (Exception e) {
+            log.error("Failed to register tenant {}", tenant, e);
+          }
+          finally {
+            TenantThreadLocal.invalidateTenant();
+          }
+        });
   }
 
   private void registerTenant(final Tenant tenant) {

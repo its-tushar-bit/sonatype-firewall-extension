@@ -57,6 +57,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
+      SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.getId(),
       };
 
   /**

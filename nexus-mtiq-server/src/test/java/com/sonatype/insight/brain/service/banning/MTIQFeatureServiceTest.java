@@ -198,6 +198,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(AUTOMATIC_APPLICATION_CONFIGURATION))
         .filter(f -> !f.equals(INNER_SOURCE_REPOSITORY_INTEGRATION))
         .filter(f -> !f.equals(INNER_SOURCE_TRANSITIVE_WAIVER))
+        .filter(f -> !f.equals(SAAS_PRE_REGISTER_ALL_TENANTS))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

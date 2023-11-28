@@ -12,7 +12,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenants;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenantsOnBatch;
 
 /**
  * This tells Quartz to only create a single instance of this job, against the global tenant, but when that job
@@ -38,7 +38,7 @@ public interface AllTenantsJob extends Job, TenantManaged, MtiqBatchJob, GlobalT
       Object tenantList = context.getJobDetail().getJobDataMap().get(TENANT_LIST);
 
       if (tenantList instanceof List) {
-        runForAllTenants((List<String>) tenantList, "QuartzJob:" + context.getJobDetail().getKey(),
+        runForAllTenantsOnBatch((List<String>) tenantList, "QuartzJob:" + context.getJobDetail().getKey(),
             tenant -> {
               if (isLicensed()) {
                 executeForTenant(context, tenant);

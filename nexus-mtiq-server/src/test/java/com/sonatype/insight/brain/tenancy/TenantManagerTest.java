@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -20,25 +21,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
 import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_PARAMETER_CANNOT_BE_NULL;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atMostOnce;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantManagerTest
@@ -82,7 +77,7 @@ public class TenantManagerTest
     tenantManagedBeans.add(job);
 
     underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
-        tenantValidator, deletedTenantDAO);
+        tenantValidator, deletedTenantDAO, new TenantUtil());
 
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
 
@@ -161,7 +156,7 @@ public class TenantManagerTest
     tenantManagedBeans.add(allTenantsJob);
 
     underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
-        tenantValidator, deletedTenantDAO);
+        tenantValidator, deletedTenantDAO, new TenantUtil());
 
     testAsNewTenant(t -> {
       when(tenantValidator.validateTenantExists(t)).thenReturn(true);
@@ -268,6 +263,43 @@ public class TenantManagerTest
 
     assertThat(underTest.isTenantRegistered(tenant)).isFalse();
     verify(tenantManagedBeans.get(0), atMostOnce()).deregister();
+  }
+
+  @Test
+  public void shouldRegisterAllTenantsOnBootByDefault() {
+    TenantManager spyUnderTest = spy(underTest);
+
+    spyUnderTest.start();
+
+    verify(spyUnderTest, times(1)).preregisterAllTenants();
+  }
+
+  @Test
+  public void shouldRegisterAllTenantsOnBootIfConfigIsTrue() {
+    try (MockedStatic<SystemConfigurationPropertyFeature> mockConfig = mockStatic(
+        SystemConfigurationPropertyFeature.class)) {
+      mockConfig.when(SAAS_PRE_REGISTER_ALL_TENANTS::isEnabled).thenReturn(true);
+
+      TenantManager spyUnderTest = spy(underTest);
+
+      spyUnderTest.start();
+
+      verify(spyUnderTest, times(1)).preregisterAllTenants();
+    }
+  }
+
+  @Test
+  public void shouldNotRegisterAllTenantsOnBootIfConfigIsFalse() {
+    try (MockedStatic<SystemConfigurationPropertyFeature> mockConfig = mockStatic(
+        SystemConfigurationPropertyFeature.class)) {
+      mockConfig.when(SAAS_PRE_REGISTER_ALL_TENANTS::isEnabled).thenReturn(false);
+
+      TenantManager spyUnderTest = spy(underTest);
+
+      spyUnderTest.start();
+
+      verify(spyUnderTest, never()).preregisterAllTenants();
+    }
   }
 
   @Test

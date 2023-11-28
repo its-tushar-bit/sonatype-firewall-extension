@@ -36,7 +36,7 @@ public class MultiTenantDatabaseTestSupport
 
     tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO, new TenantUtil());
   }
 
   @Override

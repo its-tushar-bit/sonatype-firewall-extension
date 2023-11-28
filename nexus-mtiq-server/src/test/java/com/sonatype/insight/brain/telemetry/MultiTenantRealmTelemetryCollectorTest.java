@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -51,7 +52,7 @@ public class MultiTenantRealmTelemetryCollectorTest
 
     tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO, new TenantUtil());
 
     samlConfigurationDAO = new SamlConfigurationDAO();
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationDAO);

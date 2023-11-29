@@ -22,9 +22,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -95,11 +97,17 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  @Inject
+  private ApiFirewallMetricsService firewallMetricsService;
+
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
 
   @Mock
   private HdsClient mockHdsClient;
+
+  @Mock
+  private AsyncEventBus mockEventBus;
 
   private RepositoryComponent unknownComponent;
 
@@ -116,6 +124,7 @@ public class RepositoryReevaluationTaskTest
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    binder.bind(AsyncEventBus.class).toInstance(mockEventBus);
     super.configure(binder);
   }
 
@@ -152,7 +161,7 @@ public class RepositoryReevaluationTaskTest
         new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
             auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
-            repositoryComponentTelemetryCreator),
+            repositoryComponentTelemetryCreator, mockEventBus, firewallMetricsService),
         executorService, 10);
     createHdsResponse();
   }

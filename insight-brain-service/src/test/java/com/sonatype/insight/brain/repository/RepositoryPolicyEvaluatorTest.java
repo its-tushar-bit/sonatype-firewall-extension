@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -31,8 +33,10 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -46,6 +50,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCw
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -97,11 +102,14 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -138,6 +146,12 @@ public class RepositoryPolicyEvaluatorTest
 
   @Inject
   private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  private AsyncEventBus mockEventBus;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -244,6 +258,13 @@ public class RepositoryPolicyEvaluatorTest
     return Collections.singletonList(new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f, ""));
   }
 
+  private List<SecurityVulnerability> createUniqueSecurityVulnerabilities() {
+    List<SecurityVulnerability> list = new ArrayList<>();
+    list.add(new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f, ""));
+    list.add(new SecurityVulnerability("cve-2019-5678", "sonatype", 5.0f, ""));
+    return list;
+  }
+
   private void assertPolicyViolationsLogged(
       PolicyViolationLogEvent policyViolationLogEvent,
       Repository repository,
@@ -310,6 +331,91 @@ public class RepositoryPolicyEvaluatorTest
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
             RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  @Test
+  public void testEvaluate_postCreateRepositoryPolicyViolationEvent() throws Exception {
+    TestEventHandler<CreateRepositoryPolicyViolationsEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), CreateRepositoryPolicyViolationsEvent.class);
+    mockEventBus.register(handler);
+
+    Repository repository = tempEntity.newRepository();
+
+    tempEntity.newPolicy(repository.getId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", "path0", "h0"));
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g0", "a0", "v0", "c0", "e0"), "h0",
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createUniqueSecurityVulnerabilities(), 0 /* popularity */));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    try {
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      CreateRepositoryPolicyViolationsEvent event = handler.getEvent();
+      assertThat(event.repositoryPolicyViolations).hasSize(2);
+      assertThat(event.repositoryPolicyViolations)
+          .extracting(RepositoryPolicyViolation::getHash)
+          .containsOnly("h0");
+      // Check component has given security vulnerabilities
+      assertThat(event.repositoryPolicyViolations)
+          .flatExtracting(RepositoryPolicyViolation::getConstraintFacts)
+          .flatExtracting(ConstraintFact::getConditionFacts)
+          .extracting(ConditionFact::getReference)
+          .extracting(TriggerReference::getValue)
+          .containsExactlyInAnyOrder("cve-2019-1234","cve-2019-5678");
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testEvaluate_doNotPostCreateRepositoryPolicyViolationEventWhenLicenseFails() throws Exception {
+    // Intentionally fail license check
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+
+    TestEventHandler<CreateRepositoryPolicyViolationsEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), CreateRepositoryPolicyViolationsEvent.class);
+    mockEventBus.register(handler);
+
+    Repository repository = tempEntity.newRepository();
+
+    tempEntity.newPolicy(repository.getId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", "path0", "h0"));
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g0", "a0", "v0", "c0", "e0"), "h0",
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createUniqueSecurityVulnerabilities(), 0 /* popularity */));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+    
+    try {
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isFalse();
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
   }
 
   @Test
@@ -1142,7 +1248,7 @@ public class RepositoryPolicyEvaluatorTest
   @Test
   public void testEvaluate_PolicyAtRootOrgLevel() {
     Repository repository = tempEntity.newRepository();
-    
+
     testEvaluate(repository, Organization.ROOT_ORGANIZATION_ID);
   }
 
@@ -1300,10 +1406,10 @@ public class RepositoryPolicyEvaluatorTest
         .add(new RepositoryComponentEvaluationDataRequest("maven2", "pathname2", hash2));
     hdsResult.components
         .add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
-        hash1, MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
+            hash1, MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
     hdsResult.components
         .add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"),
-        hash2, MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
+            hash2, MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     List<Message> notificationsUser1 = Mailbox.get(user1EmailAddress);

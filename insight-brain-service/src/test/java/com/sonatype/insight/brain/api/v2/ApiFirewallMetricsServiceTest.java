@@ -17,10 +17,10 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
@@ -154,6 +154,31 @@ public class ApiFirewallMetricsServiceTest
     assertThat(firewallMetricsRes2.getMetricsValue()).isEqualTo(60);
   }
 
+  @Test
+  public void testIsValidProductLicense_NoReleaseIntegrityFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+    assertThat(firewallMetricsService.isValidProductLicense()).isFalse();
+  }
+
+  @Test
+  public void testIsValidProductLicense_NoFirewallAutoUnquarantineFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+    assertThat(firewallMetricsService.isValidProductLicense()).isFalse();
+  }
+
+  @Test
+  public void testIsValidProductLicense_NoReleaseIntegrityFeatureAndNoFirewallAutoUnquarantineFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+    assertThat(firewallMetricsService.isValidProductLicense()).isFalse();
+  }
+
+  @Test
+  public void testIsValidProductLicense_ReleaseIntegrityFeatureAndFirewallAutoUnquarantineFeature() {
+    assertThat(firewallMetricsService.isValidProductLicense()).isTrue();
+  }
+
+  @Test
   public void testCheckProductLicense_NoReleaseIntegrityFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 

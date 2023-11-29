@@ -85,6 +85,16 @@ public class ApiFirewallMetricsService
     firewallMetricsDAO.insertUpdateFirewallMetrics(firewallMetrics);
   }
 
+  public boolean isValidProductLicense() {
+    try {
+      checkProductLicense();
+      return true;
+    }
+    catch (InvalidLicenseException e) {
+      return false;
+    }
+  }
+
   public void checkProductLicense() {
     checkLicensedFeatures(productLicense::hasFeature);
   }

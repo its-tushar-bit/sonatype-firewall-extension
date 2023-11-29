@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
@@ -104,6 +106,10 @@ public class RepositoryPolicyEvaluator
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final AsyncEventBus eventBus;
+
+  private final ApiFirewallMetricsService firewallMetricsService;
+
   @Inject
   public RepositoryPolicyEvaluator(
       ComponentPolicyEvaluator componentPolicyEvaluator,
@@ -116,7 +122,10 @@ public class RepositoryPolicyEvaluator
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      AsyncEventBus eventBus,
+      ApiFirewallMetricsService firewallMetricsService
+  )
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -129,6 +138,8 @@ public class RepositoryPolicyEvaluator
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
     this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.eventBus = eventBus;
+    this.firewallMetricsService = firewallMetricsService;
   }
 
   public RepositoryComponentEvaluationDataList evaluateForMonitoring(
@@ -241,6 +252,11 @@ public class RepositoryPolicyEvaluator
       repositoryComponents = getRepositoryComponents(repository, components);
     }
 
+    CreateRepositoryPolicyViolationsEvent event = null;
+    if (firewallMetricsService.isValidProductLicense()) {
+      event = new CreateRepositoryPolicyViolationsEvent();
+    }
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
@@ -250,8 +266,16 @@ public class RepositoryPolicyEvaluator
           repositoryComponentEvaluationResult.catalogDate = new Date(component.getCatalogDate());
         }
         if (persistEvaluationResults) {
-          RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-              policyResults, policies, withQuarantine, shouldSendNotifications, forMonitoring);
+          RepositoryComponent repositoryComponent = persistEvaluationResults(
+              repository,
+              now,
+              component,
+              policyResults,
+              policies,
+              withQuarantine,
+              shouldSendNotifications,
+              forMonitoring,
+              event);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
@@ -265,6 +289,10 @@ public class RepositoryPolicyEvaluator
         }
       }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
+    }
+
+    if (event != null && !event.repositoryPolicyViolations.isEmpty()) {
+      eventBus.post(event);
     }
 
     // Only notify new component evaluation policy violations
@@ -340,7 +368,8 @@ public class RepositoryPolicyEvaluator
       List<Policy> policies,
       boolean canBeQuarantined,
       boolean isNotificationsToBeSent,
-      boolean forMonitoring)
+      boolean forMonitoring,
+      CreateRepositoryPolicyViolationsEvent event)
   {
     RepositoryComponent repositoryComponent;
     try (
@@ -355,7 +384,7 @@ public class RepositoryPolicyEvaluator
 
       // The order of the following calls are important and must not be changed. See: CLM-13853
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policies,
-          policyViolationLogger);
+          policyViolationLogger, event);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, policyResults, isNotificationsToBeSent, forMonitoring);
 
@@ -482,7 +511,8 @@ public class RepositoryPolicyEvaluator
       Component component,
       PolicyResults policyResults,
       List<Policy> policies,
-      RepositoryPolicyViolationLogger policyViolationLogger)
+      RepositoryPolicyViolationLogger policyViolationLogger,
+      CreateRepositoryPolicyViolationsEvent event)
   {
     String pathname = component.getPathnames().get(0);
     // Get the persisted RepositoryPolicyViolations for this component
@@ -523,6 +553,10 @@ public class RepositoryPolicyEvaluator
     // Insert the new policy violations
     for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
       repositoryPolicyViolationDAO.insert(tx, newPolicyViolation);
+
+      if (event != null) {
+        event.repositoryPolicyViolations.add(newPolicyViolation);
+      }
 
       policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
       if (newPolicyViolation.isWaived()) {

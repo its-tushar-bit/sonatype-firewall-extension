@@ -40,6 +40,7 @@ import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -52,6 +53,7 @@ import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -60,6 +62,7 @@ import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ModelObject;
+import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxElement;
@@ -169,6 +172,8 @@ public class SpdxResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
       if (resolvedComponent != null) {
+        getCpe(spdxPackage).ifPresent(cpe -> resolvedComponent.getRight().setCpe(cpe));
+        getSwid(spdxPackage).ifPresent(swid -> resolvedComponent.getRight().setSwid(swid));
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
@@ -216,6 +221,12 @@ public class SpdxResultHandler
     ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
+    if (component.getCpe() != null) {
+      fileCoordinate.setCpe(component.getCpe());
+    }
+    if (component.getSwid() != null) {
+      fileCoordinate.setSwid(new Gson().toJson(component.getSwid()));
+    }
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
     saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
@@ -683,8 +694,28 @@ public class SpdxResultHandler
     for (ExternalRef externalRef : externalRefs) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
-        if (referenceType.endsWith("/cpe23Type") || referenceType.endsWith("/cpe22Type")) {
+        if (referenceType.endsWith("/cpe23Type") || referenceType.endsWith("/cpe22Type") ||
+            (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
+                externalRef.getReferenceLocator().startsWith("cpe"))) {
           return Optional.of(externalRef.getReferenceLocator());
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<Swid> getSwid(final SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+        String referenceType = externalRef.getReferenceType().getIndividualURI();
+        if (referenceType.endsWith("/swid") ||
+            (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
+                externalRef.getReferenceLocator().startsWith("swid"))) {
+          Swid swid = new Swid();
+          swid.setTagId(externalRef.getReferenceLocator());
+          return Optional.of(swid);
         }
       }
     }

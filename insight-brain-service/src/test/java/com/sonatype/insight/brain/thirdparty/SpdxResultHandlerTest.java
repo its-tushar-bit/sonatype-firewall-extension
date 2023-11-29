@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
@@ -38,6 +37,7 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.Swid;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.parsers.XmlParser;
 import org.junit.Rule;
@@ -406,6 +406,53 @@ public class SpdxResultHandlerTest
     assertThat(spdxResultHandler.determineIdentificationSource("abcdspdx.xml")).isEqualTo("Third-Party");
     assertThat(spdxResultHandler.determineIdentificationSource("")).isEqualTo("Third-Party");
     assertThat(spdxResultHandler.determineIdentificationSource(null)).isEqualTo("Third-Party");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_CpeAndSwid_Xml() throws Exception {
+    String fileName = "spdx-v2_3-with-cpe-swid.xml";
+    String sbomContent = getSbomXmlFile(fileName);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(fileName, null, null, null, sbomContent);
+    assertCpeAndSwid(content);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_CpeAndSwid_Json() throws Exception {
+    String filename = "spdx-v2_3-with-cpe-swid.json";
+    String sbomContent = getSbomJsonFile(filename);
+    ThirdPartyScanContent content = new ThirdPartyScanContent(filename, null, null, null, sbomContent);
+    assertCpeAndSwid(content);
+  }
+
+  private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String cpeValue = "cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*";
+    String swidTagId = "swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1";
+
+    String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    Component component = bom.getComponents().get(0);
+    assertThat(component.getBomRef()).isEqualTo("SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2");
+    assertThat(component.getCpe()).isEqualTo(cpeValue);
+    Swid swid = component.getSwid();
+    assertThat(swid.getTagId()).isEqualTo(swidTagId);
+    assertThat(swid.getName()).isNull();
+    assertThat(swid.getVersion()).isNull();
+    assertThat(swid.getTagVersion()).isEqualTo(0);
+    assertThat(swid.isPatch()).isFalse();
+    assertThat(swid.getAttachmentText()).isNull();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(2);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getCpe()).isEqualTo(cpeValue);
+    assertThat(thirdPartyFileCoordinate.getSwid())
+        .isEqualTo("{" +
+            "\"tagId\":\"" + swidTagId + "\"," +
+            "\"tagVersion\":0," +
+            "\"patch\":false}");
   }
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {

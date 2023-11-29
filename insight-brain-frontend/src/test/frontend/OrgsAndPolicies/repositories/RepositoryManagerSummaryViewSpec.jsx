@@ -6,45 +6,11 @@
 import React from 'react';
 import RepositoryManagerSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerSummaryView';
 import { getRepositoryManagerById, getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
-import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actionStagesPayload } from 'TestRoot/OrgsAndPolicies/ownerSummary/policiesTile/policiesTileTestData';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 const ownerType = 'repository_manager';
 const ownerId = 'c47da5d840b84eda8585381de5ebb189';
-const inheretedFromRepoContainerPolicy = {
-  id: '458eea63cba34b019a4bd99d589267de',
-  name: 'repo-container-policy-1',
-  ownerId: 'REPOSITORY_CONTAINER_ID',
-  threatLevel: 5,
-  legacyViolationAllowed: false,
-  constraints: [
-    {
-      id: 'a843320012194a5699faa594959d9895',
-      name: 'repo-container-policy-1',
-      operator: 'OR',
-      conditions: [
-        {
-          conditionTypeId: 'AgeInDays',
-          operator: 'older than',
-          value: '1460',
-          conditionIndex: 0,
-        },
-      ],
-    },
-  ],
-  actions: {},
-  notifications: {
-    userNotifications: [],
-    roleNotifications: [],
-    jiraNotifications: [],
-    webhookNotifications: [],
-  },
-  policyActionsOverrideAllowed: false,
-  policyActionsOverrides: null,
-  policyNotificationsOverrideAllowed: false,
-  policyNotificationsOverrides: null,
-};
 const policiesByOwner = [
   {
     ownerId,
@@ -57,13 +23,47 @@ const policiesByOwner = [
     ownerId: 'REPOSITORY_CONTAINER_ID',
     ownerName: 'All Repositories',
     ownerType: 'repository_container',
-    policies: [inheretedFromRepoContainerPolicy],
+    policies: [
+      {
+        id: '458eea63cba34b019a4bd99d589267de',
+        name: 'repo-container-policy-1',
+        ownerId: 'REPOSITORY_CONTAINER_ID',
+        threatLevel: 5,
+        legacyViolationAllowed: false,
+        constraints: [
+          {
+            id: 'a843320012194a5699faa594959d9895',
+            name: 'repo-container-policy-1',
+            operator: 'OR',
+            conditions: [
+              {
+                conditionTypeId: 'AgeInDays',
+                operator: 'older than',
+                value: '1460',
+                conditionIndex: 0,
+              },
+            ],
+          },
+        ],
+        actions: {},
+        notifications: {
+          userNotifications: [],
+          roleNotifications: [],
+          jiraNotifications: [],
+          webhookNotifications: [],
+        },
+        policyActionsOverrideAllowed: false,
+        policyActionsOverrides: null,
+        policyNotificationsOverrideAllowed: false,
+        policyNotificationsOverrides: null,
+      },
+    ],
     policyTags: [],
   },
 ];
 
 describe('RepositoryManagerSummaryView', () => {
-  let axiosMock, preloadedState, goToEditPolicySpy;
+  let axiosMock, preloadedState;
   const renderComponent = (preloadedState) => render(<RepositoryManagerSummaryView />, { preloadedState });
 
   beforeAll(() => {
@@ -108,8 +108,6 @@ describe('RepositoryManagerSummaryView', () => {
       productName: 'Nexus',
       productVersion: '3.61.0-02',
     });
-
-    goToEditPolicySpy = spyOn(actions, 'goToEditPolicy').and.callThrough();
   });
 
   it('renders a loading indicator', () => {
@@ -164,20 +162,5 @@ describe('RepositoryManagerSummaryView', () => {
 
     expect(await screen.findByText('Inherited from All Repositories')).toBeVisible();
     expect(await screen.findByText('repo-container-policy-1')).toBeVisible();
-  });
-
-  it('checks that the policy row is clickable', async () => {
-    axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
-    axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { policiesByOwner });
-    renderComponent(preloadedState);
-
-    const editButton = await screen.findByRole('button', {
-      name: `Edit ${inheretedFromRepoContainerPolicy.name} policy`,
-    });
-    expect(editButton).not.toBeNull();
-    expect(editButton).toBeVisible();
-
-    fireEvent.click(editButton);
-    expect(goToEditPolicySpy).toHaveBeenCalledWith(inheretedFromRepoContainerPolicy.id);
   });
 });

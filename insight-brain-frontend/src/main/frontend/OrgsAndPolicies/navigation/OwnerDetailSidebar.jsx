@@ -190,7 +190,11 @@ export default function OwnerDetailSidebar() {
 
   return (
     <div id="owner-detail-sidebar">
-      <MenuBarStatefulBreadcrumb />
+      {isRepositoriesRelated ? (
+        <MenuBarBackButton href={backButtonHref} text={'All Repositories'} />
+      ) : (
+        <MenuBarStatefulBreadcrumb />
+      )}
       <NxH3>{owner.name}</NxH3>
       <NxH4>Policy Management</NxH4>
 

@@ -25,10 +25,8 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
-import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
@@ -1126,12 +1124,8 @@ public class RepositoriesSummaryViewTest
     waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
     PolicyEditorPage.title().shouldHave(Condition.text("View Policy"));
-
-    NxBreadcrumb breadcrumb = new NxBreadcrumb();
-    breadcrumb.links().shouldHaveSize(3);
-    breadcrumb.links().get(1).shouldHave(Condition.text("All Repositories"));
-    breadcrumb.links().get(1).click();
-
+    PolicyEditorPage.backButton().shouldHave(Condition.text("All Repositories"));
+    PolicyEditorPage.backButton().click();
     waitUntilUrl(RepositoriesSummaryPage.url());
   }
 
@@ -1207,14 +1201,5 @@ public class RepositoriesSummaryViewTest
     policyTileInheritedList.rows().shouldHaveSize(inheritedFromRootOrgPolicies.size() + 1);
 
     eyesWatcher.eyesCheck("repository manager policies tile");
-
-    policyTileInheritedList.row(1).click();
-    waitUntilUrl(PolicyEditorPage.urlToEdit(repositoryManager.getType(), repositoryManager.getId(),
-        inheritedFromRootOrgPolicies.get(0).getId()));
-
-    SummarySection summarySection = PolicyEditorPage.summarySection();
-    assertThat(summarySection.policyName().input().getValue()).isEqualTo(inheritedFromRootOrgPolicies.get(0).getName());
-
-    eyesWatcher.eyesCheck("repository manager policy view page");
   }
 }

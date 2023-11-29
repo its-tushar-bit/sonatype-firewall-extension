@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -42,6 +43,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
@@ -87,8 +89,13 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    NxBreadcrumb breadcrumb = new NxBreadcrumb();
-    breadcrumb.currentOwnerForEditPage().shouldHave(text(currentOwner.getName()));
+    if (OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
+      assertThat(OwnerDetailSidebar.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
+    }
+    else {
+      NxBreadcrumb breadcrumb = new NxBreadcrumb();
+      breadcrumb.currentOwnerForEditPage().shouldHave(text(currentOwner.getName()));
+    }
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));

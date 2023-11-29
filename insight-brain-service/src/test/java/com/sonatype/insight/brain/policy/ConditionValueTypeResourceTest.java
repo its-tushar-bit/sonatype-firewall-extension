@@ -51,4 +51,24 @@ public class ConditionValueTypeResourceTest
     final Object[] conditionValueTypes = response.getBody(Object[].class);
     assertThat(conditionValueTypes).isNotEmpty();
   }
+
+  @Test
+  public void testGetConditionValueTypes_RepositoryManager() throws Exception {
+    String ownerId = tempEntity.newRepositoryManager().getId();
+
+    HttpResponse response = restRequest(OwnerType.REPOSITORY_MANAGER, ownerId).get();
+    assertResponseStatus(200, response);
+    Object[] conditionValueTypes = response.getBody(Object[].class);
+    assertThat(conditionValueTypes).isNotEmpty();
+  }
+
+  @Test
+  public void testGetConditionValueTypes_Repository() throws Exception {
+    String ownerId = tempEntity.newRepository().getId();
+
+    HttpResponse response = restRequest(OwnerType.REPOSITORY, ownerId).get();
+    assertResponseStatus(200, response);
+    Object[] conditionValueTypes = response.getBody(Object[].class);
+    assertThat(conditionValueTypes).isNotEmpty();
+  }
 }

@@ -89,7 +89,6 @@ export default function PoliciesTile() {
                   isFirewallSupported={isFirewallSupported}
                   isEnforcementSupported={isEnforcementSupported}
                   collapsibleSorting={collapsibleSorting}
-                  isRepositories={isRepositoryManager}
                 />
               </NxTableContainer>
             )}

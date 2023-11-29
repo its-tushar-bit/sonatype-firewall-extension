@@ -21,12 +21,12 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
         You must log in to your Azure DevOps account to install the Sonatype Platform plugin. Follow the steps in the
         documentation for details.
       </NxP>
-      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Azure DevOps Configuration</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Set up your Azure DevOps configuration in 3 steps</NxH3>
       <NxCard.Container>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Download">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Download</NxH3>
+              <NxH3>1. Download</NxH3>
               <NxP>Download from Marketplace</NxP>
             </NxCard.Text>
           </NxCard.Content>
@@ -36,28 +36,28 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
               href={downloadUrl}
               data-analytics-id="sonatype-developer-cicd-azure-download-card"
             >
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install & Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Install & Configure</NxH3>
+              <NxH3>2. Install</NxH3>
               <NxP>Install & set up plugin</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab={true} href={installUrl} data-analytics-id="sonatype-developer-cicd-azure-install-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Review">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Review</NxH3>
-              <NxP>Reviewing Evaluation Results</NxP>
+              <NxH3>3. Review</NxH3>
+              <NxP>Reviewing evaluation results</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
@@ -66,7 +66,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
               href={evaluationUrl}
               data-analytics-id="sonatype-developer-cicd-azure-review-card"
             >
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>

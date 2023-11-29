@@ -28,15 +28,15 @@ export default function GitlabWizard({ iqApplication }) {
     <div id="iq-integrations-cicd-wizard">
       <NxH3 className="iq-integrations-cicd-wizard-header">Overview</NxH3>
       <NxP id="iq-integrations-cicd-wizard-paragraph">
-        The Docker image for Nexus IQ Policy Evaluation allows you to perform policy evaluations against one or more
+        The Docker image for Sonatype Policy Evaluation allows you to perform policy evaluations against one or more
         build artifacts during a GitLab CI/CD pipeline run.
       </NxP>
-      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for GitLab Configuration</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Set up your GitLab configuration in 2 steps</NxH3>
       <NxCard.Container>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Create</NxH3>
+              <NxH3>1. Create</NxH3>
               <NxP>Create GitLab pipeline job</NxP>
             </NxCard.Text>
           </NxCard.Content>
@@ -46,20 +46,20 @@ export default function GitlabWizard({ iqApplication }) {
               href={configureUrl}
               data-analytics-id="sonatype-developer-cicd-gitlab-create-pipeline-card"
             >
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Connect">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Configure</NxH3>
+              <NxH3>2. Configure</NxH3>
               <NxP>Configure CI/CD settings</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab href={connectUrl} data-analytics-id="sonatype-developer-cicd-gitlab-configure-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>

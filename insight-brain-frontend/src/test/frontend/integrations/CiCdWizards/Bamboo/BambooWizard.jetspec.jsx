@@ -12,19 +12,19 @@ describe('BambooWizard', () => {
   it('renders the correct install URL link', () => {
     renderComponent();
     const expectedInstallUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/bamboo/marketplace';
-    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute('href', expectedInstallUrl);
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[0]).toHaveAttribute('href', expectedInstallUrl);
   });
 
   it('renders the connect URL link', () => {
     renderComponent();
     const connectUrl = 'https://links.sonatype.com/products/clm/bamboo/docs/installation';
-    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute('href', connectUrl);
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[1]).toHaveAttribute('href', connectUrl);
   });
 
   it('renders the evaluation URL link', () => {
     const evaluationUrl = `https://links.sonatype.com//products/clm/bamboo/docs/evaluate-policies-review-results`;
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[2]).toHaveAttribute('href', evaluationUrl);
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[2]).toHaveAttribute('href', evaluationUrl);
   });
 
   it('renders the correct iq organization', () => {
@@ -49,7 +49,7 @@ describe('BambooWizard', () => {
 
   it('renders the correct data analytics id for the download link', () => {
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[0]).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-cicd-bamboo-download-card'
     );
@@ -57,7 +57,7 @@ describe('BambooWizard', () => {
 
   it('renders the correct data analytics id for the install link', () => {
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[1]).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-cicd-bamboo-install-card'
     );
@@ -65,7 +65,7 @@ describe('BambooWizard', () => {
 
   it('renders the correct data analytics id for the review link', () => {
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[2]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[2]).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-cicd-bamboo-review-card'
     );

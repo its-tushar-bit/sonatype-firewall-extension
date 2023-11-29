@@ -12,13 +12,13 @@ describe('GitlabWizard', () => {
   it('renders the correct configure URL link', () => {
     renderComponent();
     const expectedInstallUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-configuration';
-    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute('href', expectedInstallUrl);
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[0]).toHaveAttribute('href', expectedInstallUrl);
   });
 
   it('renders the correct connection information URL link', () => {
     renderComponent();
     const connectUrl = 'https://links.sonatype.com/products/nxiq/doc/integrations/gitlab-ci-connect-info';
-    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute('href', connectUrl);
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[1]).toHaveAttribute('href', connectUrl);
   });
 
   it('renders the correct dockerhub image link', () => {
@@ -52,7 +52,7 @@ describe('GitlabWizard', () => {
 
   it('renders the correct data analytics id for the create pipeline link', () => {
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[0]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[0]).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-cicd-gitlab-create-pipeline-card'
     );
@@ -60,7 +60,7 @@ describe('GitlabWizard', () => {
 
   it('renders the correct data analytics id for the configure link', () => {
     renderComponent();
-    expect(screen.getAllByRole('link', { name: 'Link' })[1]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'View documentation' })[1]).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-cicd-gitlab-configure-card'
     );

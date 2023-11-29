@@ -28,46 +28,44 @@ export default function JenkinsWizard({ iqOrganization, iqApplication }) {
         A Jenkins administrator is required to install and connect the Sonatype Platform plugin for Jenkins to Sonatype
         server for the first time. Follow the steps in the documentation for details.
       </NxP>
-      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Jenkins Configuration</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Set up your Jenkins configuration in 3 steps</NxH3>
       <NxCard.Container>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Install / Configure</NxH3>
-              <NxP>Install the plugin</NxP>
+              <NxH3>1. Install</NxH3>
+              <NxP>Install & set up the plugin</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab href={installUrl} data-analytics-id="sonatype-developer-cicd-jenkins-install-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Connect">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Connect</NxH3>
+              <NxH3>2. Connect</NxH3>
               <NxP>Connect to Sonatype IQ</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab href={connectUrl} data-analytics-id="sonatype-developer-cicd-jenkins-connect-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Review">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Review</NxH3>
-              <NxP>
-                Reviewing Evaluations <br /> Results
-              </NxP>
+              <NxH3>3. Review</NxH3>
+              <NxP>Reviewing evaluation results</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab href={evaluationUrl} data-analytics-id="sonatype-developer-cicd-jenkins-review-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>

@@ -36,13 +36,13 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
         Sonatype for Bamboo integrates with Atlassian Bamboo to run policy evaluations in the build workspace. It
         provides instant analysis of open-source components used in every Bamboo build.
       </NxP>
-      <NxH3 className="iq-integrations-cicd-wizard-header">Easy steps for Bamboo Configuration</NxH3>
+      <NxH3 className="iq-integrations-cicd-wizard-header">Set up your Bamboo configuration in 3 steps</NxH3>
       <NxCard.Container>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Install / Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Download</NxH3>
-              <NxP>Download add-on</NxP>
+              <NxH3>1. Download</NxH3>
+              <NxP>Download plugin</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
@@ -51,37 +51,33 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
               href={downloadUrl}
               data-analytics-id="sonatype-developer-cicd-bamboo-download-card"
             >
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Configure">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Install & Configure</NxH3>
-              <NxP>
-                Configure and <br /> add analysis
-              </NxP>
+              <NxH3>2. Install</NxH3>
+              <NxP>Install and configure</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab={true} href={installUrl} data-analytics-id="sonatype-developer-cicd-bamboo-install-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>
         <NxCard className="iq-integrations-card-cicd-wizard nx-card--equal" aria-label="Review">
           <NxCard.Content>
             <NxCard.Text className="iq-integrations-card--align-center">
-              <NxH3>Review</NxH3>
-              <NxP>
-                Review Evaluation <br /> Results
-              </NxP>
+              <NxH3>3. Review</NxH3>
+              <NxP>Reviewing evaluation results</NxP>
             </NxCard.Text>
           </NxCard.Content>
           <NxCard.Footer className="iq-integrations-card--align-center">
             <NxTextLink newTab={true} href={reviewUrl} data-analytics-id="sonatype-developer-cicd-bamboo-review-card">
-              Link
+              View documentation
             </NxTextLink>
           </NxCard.Footer>
         </NxCard>

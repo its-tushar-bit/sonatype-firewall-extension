@@ -253,7 +253,7 @@ export default function AppIntegrationsAndRiskTable() {
       // NxPagination does not allow currentPage to numeric if pageCount is 0
       return null;
     } else {
-      if (currentPage > pageCount) {
+      if (currentPage >= pageCount) {
         dispatch(actions.setCurrentPage({ currentPage: 0 }));
         dispatch(actions.loadAppIntegrationsAndRisk());
 

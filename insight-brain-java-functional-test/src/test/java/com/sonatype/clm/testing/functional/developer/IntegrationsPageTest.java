@@ -36,7 +36,9 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 
 public class IntegrationsPageTest extends AbstractFunctionalTest
 {
-  private static final int TOTAL_APPS_FOR_INTEGRATION_AND_RISKS = 10;
+  private static final int TOTAL_APPS_FOR_INTEGRATION_AND_RISKS = 20;
+
+  private static final int TOTAL_APPS_PER_PAGE = 10;
 
   private static final String REPO_URL = "https://example.com/organization/project";
 
@@ -111,39 +113,38 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsAndRiskTable().shouldBe(visible);
 
     scrollIntoView(appIntegrationsAndRiskTable());
-    
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_FOR_INTEGRATION_AND_RISKS);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_PER_PAGE);
 
-    applicationName(0).shouldHave(text("appName9"));
+    applicationName(0).shouldHave(text("appName10"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
-    totalRisk(0).shouldHave(text("9"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 5, 2023"));
+    totalRisk(0).shouldHave(text("10"));
 
-    applicationName(9).shouldHave(text("appName0"));
+    applicationName(9).shouldHave(text("appName1"));
     cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     scmFeedbackEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 12, 2023"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 15, 2023"));
-    totalRisk(9).shouldHave(text("0"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 11, 2023"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 14, 2023"));
+    totalRisk(9).shouldHave(text("1"));
 
     Selenide.sleep(500);
     eyesWatcher.eyesCheck();
 
-    //click cicd configure button
+    // Click cicd configure button
     appIntegrationsCicdConfigureButton(0).click();
     appIntegrationsConfigurationModal().shouldBe(visible);
     appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
     appIntegrationsConfigurationModal().shouldBe(hidden);
 
-    //click scm configure button
+    // Click scm configure button
     appIntegrationsScmConfigureButton(0).click();
     appIntegrationsConfigurationModal().shouldBe(visible);
     appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
     appIntegrationsConfigurationModal().shouldBe(hidden);
 
-    //Sorting by total risk
+    // Sorting by total risk
     totalRiskColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
     cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
@@ -152,7 +153,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
 
-    //Sorting by app name
+    // Sorting by app name
     applicationColumnHeader().click();
     applicationName(0).shouldHave(text("appName9"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
@@ -163,7 +164,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     totalRiskColumnHeader().click();
 
-    //Sorting by last commit
+    // Sorting by last commit
     lastCommitColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
     cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
@@ -174,7 +175,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     totalRiskColumnHeader().click();
 
-    //Sorting by last evaluation
+    // Sorting by last evaluation
     lastEvaluationColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
     cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
@@ -183,7 +184,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
 
-    //Searching for application
+    // Searching for application
     applicationFilterInput().sendKeys("appName5");
     applicationName(0).shouldHave(text("appName5"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
@@ -193,26 +194,26 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     totalRisk(0).shouldHave(text("5"));
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
 
-    //Showing all rows
+    // Showing all rows
     applicationFilterInput().clear();
     applicationFilterInput().sendKeys("a");
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
 
-    //Filtering by SCM
+    // Filtering by SCM
     appIntegrationsScmFilter().click();
     appIntegrationsScmFilterConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
     appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
     appIntegrationsScmFilterNotConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
 
-    //Filtering by CI/CD
+    // Filtering by CI/CD
     appIntegrationsCiCdFilter().click();
     appIntegrationsCiCdFilterConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
     appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
     appIntegrationsCiCdFilterNotConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
 
@@ -226,14 +227,43 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsScmFilterNotConfiguredInput().click();
     appIntegrationsCiCdFilter().click();
     appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
     appIntegrationsScmFilter().click();
     appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(8);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
     appIntegrationsCiCdFilter().click();
     appIntegrationsCiCdFilterNotConfiguredInput().click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
 
+    // Going to the second page
+    appIntegrationPageButton(2).click();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+
+    applicationName(0).shouldHave(text("appName10"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 5, 2023"));
+    totalRisk(0).shouldHave(text("10"));
+
+    applicationName(9).shouldHave(text("appName19"));
+    appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("January 24, 2023"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("February 24, 2023"));
+    totalRisk(9).shouldHave(text("0"));
+
+    // Testing name filter working on different page than first
+    applicationFilterInput().clear();
+    applicationFilterInput().sendKeys("appName0");
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
+
+    applicationName(0).shouldHave(text("appName0"));
+    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
+    totalRisk(0).shouldHave(text("0"));
   }
 
   @Test
@@ -432,6 +462,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement appIntegrationsCiCdFilterNotConfiguredInput() {
     return appIntegrationsCiCdFilter().$(".nx-checkbox:nth-child(2)");
+  }
+
+  private SelenideElement appIntegrationPageButton(int page) {
+    return appIntegrationsAndRiskTable().$(String.format(".nx-btn--pagination:nth-child(%d)", page));
   }
 
   private ElementsCollection appIntegrationsAndRiskTableDataRows() {

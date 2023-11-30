@@ -82,7 +82,7 @@ public class Tenant
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof Tenant)) {
       return false;
     }
     Tenant tenant = (Tenant) o;

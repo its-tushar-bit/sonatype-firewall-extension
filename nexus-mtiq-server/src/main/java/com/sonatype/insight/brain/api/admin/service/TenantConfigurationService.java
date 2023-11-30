@@ -26,23 +26,34 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 @Named
 public class TenantConfigurationService
 {
+  /**
+   * CONFIGURABLE_PROPERTIES may be configured for all tenants
+   */
   private static final Set<String> CONFIGURABLE_PROPERTIES = ImmutableSet.of(
-      BASE_URL,
-      FRAME_ANCESTORS_ALLOWLIST,
-      EVENT_BUS_MAX_THREAD_POOL_SIZE,
-      USER_AGENT_SUFFIX,
-      MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
       ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
-      POLICY_MONITORING_HOUR,
-      WEBHOOK_SECRET_PASSPHRASE,
-      HDS_URL,
-      SESSION_TIMEOUT_MINUTES,
-      PURGE_SCAN_FILES,
       AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+      BASE_URL,
+      EVENT_BUS_MAX_THREAD_POOL_SIZE,
+      FRAME_ANCESTORS_ALLOWLIST,
+      HDS_URL,
+      MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
+      POLICY_MONITORING_HOUR,
+      PURGE_SCAN_FILES,
       QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
-      WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
       SAAS_LIFECYCLE_SCM_ENABLED,
-      SAAS_PRE_REGISTER_ALL_TENANTS
+      SAAS_PRE_REGISTER_ALL_TENANTS,
+      SESSION_TIMEOUT_MINUTES,
+      USER_AGENT_SUFFIX,
+      WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
+      WEBHOOK_SECRET_PASSPHRASE
+  );
+
+  /**
+   * GLOBAL_CONFIGURABLE_PROPERTIES can only be configured globally with the global tenant
+   */
+  private static final Set<String> GLOBAL_CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+      SOURCE_CONTROL_IMPORT_POOL_SIZE,
+      SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE
   );
 
   private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";
@@ -117,7 +128,11 @@ public class TenantConfigurationService
   }
 
   private void validatePropertyName(String propertyName) {
-    if (!CONFIGURABLE_PROPERTIES.contains(propertyName)) {
+    if (GLOBAL_CONFIGURABLE_PROPERTIES.contains(propertyName) && !tenantUtil.isGlobalTenant()) {
+      log.debug("Property {} is only configurable globally.", propertyName);
+      throw new BadRequestException(String.format("Property %s is only configurable globally.", propertyName));
+    }
+    if (!CONFIGURABLE_PROPERTIES.contains(propertyName) && !GLOBAL_CONFIGURABLE_PROPERTIES.contains(propertyName)) {
       log.debug("Property {} is not configurable.", propertyName);
       throw new BadRequestException(String.format("Property %s is not configurable.", propertyName));
     }

@@ -154,9 +154,6 @@ public class PullRequestMonitor
   }
 
   public void schedulePullRequestMonitor() {
-    if (!apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
-      return;
-    }
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(intervalInSeconds));

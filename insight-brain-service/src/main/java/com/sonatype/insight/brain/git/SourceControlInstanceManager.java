@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class SourceControlInstanceManager
   // must be greater than the polling interval so that the instance with the lock doesn't lose it before it
   // has a chance to refresh it
   private int instanceLockReservationTimeSeconds =
-      PullRequestPollingTask.PULL_REQUEST_POLLING_INTERVAL_SECONDS + 5;
+      PullRequestPollingScheduler.PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS + 5;
 
   private final PerpetualLockManager perpetualLockManager = new PerpetualLockManager();
 
@@ -82,8 +83,8 @@ public class SourceControlInstanceManager
   }
 
   private boolean tryReserveInstanceLock() {
-    return perpetualLockManager
-        .tryAcquireLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId, instanceLockReservationTimeSeconds);
+    return TenantThreadLocal.runAsGlobal(() -> perpetualLockManager
+        .tryAcquireLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId, instanceLockReservationTimeSeconds));
   }
 
   private void updateInstanceLockCacheExpirationTime() {
@@ -92,7 +93,10 @@ public class SourceControlInstanceManager
 
   @VisibleForTesting
   synchronized void releaseInstance() {
-    perpetualLockManager.releasePerpetualLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId);
+    TenantThreadLocal.runAsGlobal(() -> {
+      perpetualLockManager.releasePerpetualLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId);
+      return null;
+    });
     hasInstanceLock = null;
   }
 

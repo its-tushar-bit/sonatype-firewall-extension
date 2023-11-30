@@ -35,8 +35,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestCommentPurger",
         "PullRequestCommentPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestMonitor", "PullRequestMonitor");
-    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestPollingTask",
-        "PullRequestPollingTask");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.hds.ComponentCategoryUpdater",
         "LoadComponentCategories");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.migration.ScanFileCleaner", "ScanFileCleaner");

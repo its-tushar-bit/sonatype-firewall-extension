@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.EventCost
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SimultaneousEventSelectionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApplicationSelectionRule;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -290,6 +290,16 @@ public class UserEventManager
     });
   }
 
+  private void backupEventPushTrigger() {
+    if (backupTriggerEnabled && shouldTriggerEventProcessing()) {
+      synchronized (prioritizedEventMap) {
+        log.trace("timer triggered event processing");
+        processRetryEvents();
+        pushEvents();
+      }
+    }
+  }
+
   /**
    * The natural triggers for event processing (new events, completed events, error events)
    * are not sufficient in all cases to keep events from sitting idle (event suspension due to errors or performance,
@@ -298,20 +308,16 @@ public class UserEventManager
    */
   private void startBackupEventPushTrigger() {
     scheduledExecutorService = newExecutor();
-    Runnable sourceControlEventProcessingTask = new SystemRunnable(() -> {
+    Runnable sourceControlEventProcessingTask = () -> {
+      OneTimeSystemRunnable oneTimeSystemRunnable = new OneTimeSystemRunnable(this::backupEventPushTrigger);
       try {
-        if (backupTriggerEnabled && shouldTriggerEventProcessing()) {
-          synchronized (prioritizedEventMap) {
-            log.trace("timer triggered event processing");
-            processRetryEvents();
-            pushEvents();
-          }
-        }
+        oneTimeSystemRunnable.run();
       }
       catch (RuntimeException e) {
         log.warn("Failed to push source control events", e);
       }
-    });
+    };
+
     scheduledExecutorService.scheduleAtFixedRate(sourceControlEventProcessingTask, BACKUP_TRIGGER_STARTUP_DELAY_SECONDS,
         BACKUP_TRIGGER_INTERVAL_SECONDS, TimeUnit.SECONDS);
     log.info("Scheduled backup source control event processing to run every {} second(s) starting in {} second(s)",

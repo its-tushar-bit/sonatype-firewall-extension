@@ -191,7 +191,7 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
     CountDownLatch executorFiredLatch = new CountDownLatch(1);
     unlatch(executorFiredLatch).when(spyOrchestrator).notifyRoutingComplete();
-    spyOrchestrator.start();
+    spyOrchestrator.register();
 
     verifyUnlatched(executorFiredLatch, 10);
     verify(mockSourceControlEventProcessor).processEvent(eq(event), any());
@@ -208,7 +208,7 @@ public class SourceControlEventOrchestratorTest
     );
 
     // the orchestrator starts, but it does nothing
-    sourceControlEventOrchestrator.start();
+    sourceControlEventOrchestrator.register();
     verify(mockSourceControlEventDAO, never()).resetStaleEvents(any(), any());
   }
 
@@ -223,21 +223,31 @@ public class SourceControlEventOrchestratorTest
         mockApiConfigFeaturesService
     );
 
-    // the orchestrator starts, but it does nothing
-    sourceControlEventOrchestrator.start();
+    SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
 
-    verify(mockSourceControlEventPublisher, never()).setSourceControlEventListener(any());
+    // the orchestrator starts, but it does nothing
+    spyOrchestrator.register();
+
+    verify(mockSourceControlEventDAO, never()).resetStaleEvents(any(), any());
   }
 
   @Test
   public void testStop() {
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
         mockApiConfigFeaturesService
     );
-    sourceControlEventOrchestrator.stop();
-    verify(mockSourceControlEventProcessor, times(1)).shutdown();
+
+    SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
+
+    spyOrchestrator.register();
+    spyOrchestrator.deregister();
+
+    verify(spyOrchestrator, times(1)).notifyExecutorShutdown();
   }
 
   private Stubber unlatch(CountDownLatch latch) {

@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git.event.orchestrate;
+
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.tenancy.Tenant;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class SourceControlEventOrchestratorMtiqTest
+    extends MultiTenantTestSupport
+{
+  @Mock
+  private SourceControlEventDAO mockSourceControlEventDAO;
+
+  @Mock
+  private SourceControlEventProcessor mockSourceControlEventProcessor;
+
+  @Mock
+  private SourceControlEventPublisher mockSourceControlEventPublisher;
+
+  @Mock
+  private SourceControlInstanceManager mockSourceControlInstanceManager;
+
+  @Mock
+  private SourceControlUtils mockSourceControlUtils;
+
+  @Mock
+  private IqForScmLicenseChecker mockIqForScmLicenseChecker;
+
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
+  private SourceControlEventOrchestrator underTest;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    MockitoAnnotations.openMocks(this);
+
+    when(mockIqForScmLicenseChecker.isIqForScmSupported()).thenReturn(true);
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+
+    SourceControlEventOrchestrator orchestrator = new SourceControlEventOrchestrator(
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockApiConfigFeaturesService
+    );
+
+    underTest = Mockito.spy(orchestrator);
+  }
+
+  @Test
+  public void testOrchestrator_register_deregister() {
+    testAsNewTenant(tenant -> {
+      underTest.register();
+      underTest.deregister();
+
+      verify(underTest, times(1)).startEventProcessingExecutorService();
+      verify(underTest, times(1)).notifyExecutorShutdown();
+    });
+  }
+
+  @Test
+  public void testOrchestrator_multiple_tenants_register_deregister() {
+    Tenant tenant1 = testAsNewTenant(t1 -> underTest.register());
+
+    Tenant tenant2 = testAsNewTenant(t2 -> underTest.register());
+
+    verify(underTest, times(2)).startEventProcessingExecutorService();
+    verify(underTest, never()).notifyExecutorShutdown();
+
+    testAs(tenant1, t -> underTest.deregister());
+
+    verify(underTest, times(1)).notifyExecutorShutdown();
+
+    testAs(tenant2, t -> underTest.deregister());
+
+    verify(underTest, times(2)).notifyExecutorShutdown();
+  }
+}

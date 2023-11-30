@@ -314,9 +314,8 @@ public class ApiConfigFeaturesService
     return isFeatureEnabled(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED);
   }
 
-  public boolean isSaasScmAndDefaultBranchMonitoringEnabled() {
-    return isSaasLifecycleScmEnabled() &&
-        isFeatureEnabled(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING);
+  public boolean isDefaultBranchMonitoringEnabled() {
+    return isFeatureEnabled(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

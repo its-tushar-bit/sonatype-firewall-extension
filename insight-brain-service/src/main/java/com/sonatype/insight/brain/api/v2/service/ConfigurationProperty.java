@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.SourceControlImportThreadPoolExecutor;
+import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -57,7 +59,15 @@ public class ConfigurationProperty
           (p, s) -> ConfigurationUtils.stringToAccessAllowlist(s),
           (p, o) -> ConfigurationUtils.accessAllowlistToString((List<Map<String, String>>) o)),
       new ConfigurationProperty(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, Integer.class,
-          (p, s) -> NumberUtils.toInt(s, AsyncEventBus.DEFAULT_MAX_POOL_SIZE),
+          (p, s) -> ConfigurationUtils.getEventBusThreadPoolSize(s, AsyncEventBus.DEFAULT_MAX_POOL_SIZE),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE, Integer.class,
+          (p, s) -> ConfigurationUtils.getSourceControlEventProcessorPoolSize(s,
+              SourceControlEventProcessor.DEFAULT_MAX_THREAD_POOL_SIZE),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE, Integer.class,
+          (p, s) -> ConfigurationUtils.getSourceControlImportPoolSize(s,
+              SourceControlImportThreadPoolExecutor.DEFAULT_MAX_THREAD_POOL_SIZE),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),

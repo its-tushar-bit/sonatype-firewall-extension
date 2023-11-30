@@ -93,6 +93,10 @@ public class SystemConfigurationProperty
 
   public static final String INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS";
 
+  public static final String SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE = "sourceControlEventProcessorPoolSize";
+
+  public static final String SOURCE_CONTROL_IMPORT_POOL_SIZE = "sourceControlImportPoolSize";
+
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";
 
   public static final String BASE_URL = "baseUrl";

@@ -25,7 +25,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,6 +39,9 @@ import static org.junit.Assert.assertNull;
 public class ConfigurationUtilsTest
     extends AbstractComponentTest
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Rule
   public LogOutput logOutput = new LogOutput(ConfigurationUtils.class);
 
@@ -376,5 +383,56 @@ public class ConfigurationUtilsTest
     )).withMessageContaining(
         String.format(ConfigurationUtils.LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG,
             ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
+  }
+
+  @Test
+  public void testGetEventBusThreadPoolSize_withValue() {
+    assertThat(ConfigurationUtils.getEventBusThreadPoolSize("5", 10)).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetEventBusThreadPoolSize_withoutValue() {
+    assertThat(ConfigurationUtils.getEventBusThreadPoolSize("", 10)).isEqualTo(10);
+  }
+
+  @Test
+  public void testGetEventBusThreadPoolSize_withoutValueWithConfigAsGlobal() {
+    environmentVariables.set(NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE, "30");
+
+    assertThat(ConfigurationUtils.getEventBusThreadPoolSize("", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetSourceControlEventProcessorThreadSize_withValue() {
+    assertThat(ConfigurationUtils.getSourceControlEventProcessorPoolSize("5", 10)).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetSourceControlEventProcessorThreadSize_withoutValue() {
+    assertThat(ConfigurationUtils.getSourceControlEventProcessorPoolSize("", 10)).isEqualTo(10);
+  }
+
+  @Test
+  public void testGetSourceControlEventProcessorThreadSize_withoutValueWithConfigAsGlobal() {
+    environmentVariables.set(NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE, "30");
+
+    assertThat(ConfigurationUtils.getSourceControlEventProcessorPoolSize("", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetSourceControlImportThreadSize_withValue() {
+    assertThat(ConfigurationUtils.getSourceControlImportPoolSize("5", 10)).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetSourceControlImportThreadSize_withoutValue() {
+    assertThat(ConfigurationUtils.getSourceControlImportPoolSize("", 10)).isEqualTo(10);
+  }
+
+  @Test
+  public void testGetSourceControlImportThreadSize_withoutValueWithConfigAsGlobal() {
+    environmentVariables.set(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE, "30");
+
+    assertThat(ConfigurationUtils.getSourceControlImportPoolSize("", 10)).isEqualTo(30);
   }
 }

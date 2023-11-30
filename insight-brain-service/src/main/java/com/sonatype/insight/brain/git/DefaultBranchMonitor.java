@@ -102,7 +102,7 @@ public class DefaultBranchMonitor
   public void scheduleDefaultBranchMonitoring() {
     taskScheduler.unscheduleTask(this);
 
-    if (!apiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled()) {
+    if (!apiConfigFeaturesService.isDefaultBranchMonitoringEnabled()) {
       return;
     }
 
@@ -119,7 +119,8 @@ public class DefaultBranchMonitor
   @Override
   public void execute(JobExecutionContext context) {
     execute(() -> {
-      if (apiConfigFeaturesService.isSaasScmAndDefaultBranchMonitoringEnabled() &&
+      if (apiConfigFeaturesService.isDefaultBranchMonitoringEnabled() &&
+          apiConfigFeaturesService.isSaasLifecycleScmEnabled() &&
           licenseChecker.isIqForScmSupported()) {
         updateDefaultBranchScans();
       }

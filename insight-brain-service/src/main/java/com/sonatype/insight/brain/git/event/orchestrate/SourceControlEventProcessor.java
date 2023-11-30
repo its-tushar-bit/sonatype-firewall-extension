@@ -19,29 +19,32 @@ import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class SourceControlEventProcessor
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventProcessor.class);
 
-  @VisibleForTesting
-  static final int THREAD_POOL_SIZE = 50;
-
-  @VisibleForTesting
-  static final int TASK_QUEUE_CAPACITY = THREAD_POOL_SIZE;
+  /**
+   * The thread pool size can be modified with by changing the sourceControlEventProcessorMaxThreadPoolSize system
+   * configuration property however the IQ instance must be restarted for this change to take effect
+   */
+  public static final int DEFAULT_MAX_THREAD_POOL_SIZE = 50;
 
   // want to keep the threads alive a little longer than the PR polling interval so they are available for reuse
   private static final long CORE_THREAD_KEEP_ALIVE_SECONDS = 75L;
 
   @VisibleForTesting
-  static final String REPO_ACCESS_LOCK_ERROR = "Unable to process event.  Could not acquire the repo access lock.";
+  static final String REPO_ACCESS_LOCK_ERROR = "Unable to process event. Could not acquire the repo access lock.";
 
   /*
     work for the same repo/application should be done sequentially; work for different apps can be done in parallel.
@@ -50,8 +53,9 @@ public class SourceControlEventProcessor
     same repo, which means we would have multiple git workspaces for the same repo (different, app specific
     folders, though, so no real problem here - just something to keep in mind).
    */
-  private TenantReference<SemaphorePool> repoAccessController =
-      new TenantReference<>(() -> new SemaphorePool(THREAD_POOL_SIZE));
+  private TenantReference<SemaphorePool> repoAccessController;
+
+  private LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor;
 
   private final PullRequestCommentingEventHandler pullRequestCommentingEventHandler;
 
@@ -65,11 +69,6 @@ public class SourceControlEventProcessor
 
   private final CurrentUser currentUser;
 
-  private final LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor =
-      new LazyInitThreadPoolExecutor(THREAD_POOL_SIZE, TASK_QUEUE_CAPACITY, "SourceControlEventProcessor-%s",
-          CORE_THREAD_KEEP_ALIVE_SECONDS)
-          .setShouldClearShiroThreadContextBeforeThreadStart(true);
-
   @Inject
   public SourceControlEventProcessor(
       PullRequestCommentingEventHandler pullRequestCommentingEventHandler,
@@ -77,7 +76,8 @@ public class SourceControlEventProcessor
       GitCommitStatusService gitCommitStatusService,
       SourceControlScanService sourceControlScanService,
       SourceControlService sourceControlService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      Configuration configuration)
   {
     this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
@@ -85,6 +85,13 @@ public class SourceControlEventProcessor
     this.sourceControlScanService = sourceControlScanService;
     this.sourceControlService = sourceControlService;
     this.currentUser = currentUser;
+
+    int threadPoolSize = configuration.getSourceControlEventProcessorPoolSize();
+
+    repoAccessController = new TenantReference<>(() -> new SemaphorePool(threadPoolSize));
+    lazyInitThreadPoolExecutor = new LazyInitThreadPoolExecutor(threadPoolSize, threadPoolSize,
+        "SourceControlEventProcessor-%s", CORE_THREAD_KEEP_ALIVE_SECONDS)
+        .setShouldClearShiroThreadContextBeforeThreadStart(true);
   }
 
   public void processEvent(SourceControlEvent event, SourceControlEventStatusListener statusListener) {
@@ -259,7 +266,8 @@ public class SourceControlEventProcessor
     this.repoAccessController = repoAccessController;
   }
 
-  void shutdown() {
+  @Override
+  public void stop() {
     try {
       lazyInitThreadPoolExecutor.shutdown();
     }
@@ -270,7 +278,7 @@ public class SourceControlEventProcessor
 
   @VisibleForTesting
   void notifyShutdownComplete() {
-    // tests will 'spy' on this method to know when the the threads have been shutdown and this service has no more
+    // tests will 'spy' on this method to know when the threads have been shutdown and this service has no more
     // work pending
   }
 

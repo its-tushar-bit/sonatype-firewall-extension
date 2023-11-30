@@ -157,6 +157,38 @@ public class TenantConfigurationServiceTest
   }
 
   @Test
+  public void shouldThrowRuntimeException_setPropertiesConfiguration_whenPropertyIsGlobalOnly() {
+    final String errorMessage = "Property sourceControlImport.maxThreadPoolSize is only configurable globally.";
+
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      String expectedProperty = "sourceControlImportPoolSize";
+      String expectedValue = "9999999";
+      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  @Test
+  public void shouldNotThrowRuntimeException_setPropertiesConfiguration_whenPropertyIsGlobalOnlyAsGlobal() {
+    testAsGlobalTenant(global -> {
+      when(tenantUtil.isGlobalTenant()).thenReturn(true);
+
+      String expectedProperty = "sourceControlImportPoolSize";
+      String expectedValue = "9999999";
+      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+
+      underTest.setPropertiesConfiguration(global.tenantSlug, propertyConfiguration);
+
+      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
+    });
+  }
+
+  @Test
   public void shouldThrowRuntimeException_setPropertiesConfiguration_whenNoConfigurationProvided() {
     final String errorMessage = "No configuration was specified.";
 

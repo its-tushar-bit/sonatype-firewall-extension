@@ -21,7 +21,7 @@ public class EventBusConfig
    */
   @NotNull
   @JsonProperty
-  private int maxPoolSize = 500;
+  private int maxPoolSize = AsyncEventBus.DEFAULT_MAX_POOL_SIZE;
 
   public int getMaxPoolSize() {
     return maxPoolSize;

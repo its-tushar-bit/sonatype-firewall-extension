@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +31,7 @@ public class SourceControlEventPublisher
 
   private final ApiConfigFeaturesService apiConfigFeaturesService;
 
-  private SourceControlEventCreationListener sourceControlEventCreationListener;
+  private TenantReference<SourceControlEventCreationListener> sourceControlEventCreationListener;
 
   @Inject
   public SourceControlEventPublisher(
@@ -46,7 +47,7 @@ public class SourceControlEventPublisher
   }
 
   public void setSourceControlEventListener(SourceControlEventCreationListener sourceControlEventCreationListener) {
-    this.sourceControlEventCreationListener = sourceControlEventCreationListener;
+    this.sourceControlEventCreationListener = new TenantReference<>(() -> sourceControlEventCreationListener);
   }
 
   /**
@@ -61,8 +62,8 @@ public class SourceControlEventPublisher
     populateScmUsernameIfMissing(event);
     populateInstanceIdIfProcessingEvents(event);
     sourceControlEventDAO.insert(event);
-    if (null != sourceControlEventCreationListener) {
-      sourceControlEventCreationListener.onNewEvent(event);
+    if (null != sourceControlEventCreationListener && null != sourceControlEventCreationListener.get()) {
+      sourceControlEventCreationListener.get().onNewEvent(event);
     }
   }
 

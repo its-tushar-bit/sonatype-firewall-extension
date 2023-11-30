@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Strings;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class ConfigurationUtils
       "and each repository can only contain alphanumeric characters, underscores, and hyphens. Invalid repository: %s";
 
   public static final String INVALID_PURGE_SCAN_FILES_VALUE_MSG = "Provided value: [%s] " +
-          "for property purgeScanFiles is invalid";
+      "for property purgeScanFiles is invalid";
 
   public static final int MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE = 500;
 
@@ -63,6 +64,13 @@ public class ConfigurationUtils
   public static final String NONE_VALUE = "'none'";
 
   public static final String WITH_REPORTS = "withReports";
+
+  public static final String NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE = "NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE";
+
+  public static final String NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE =
+      "NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE";
+
+  public static final String NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE = "NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE";
 
   private ConfigurationUtils() {}
 
@@ -314,5 +322,35 @@ public class ConfigurationUtils
           String.format(LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG, MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
     }
     return customMessageValue;
+  }
+
+  public static int getEventBusThreadPoolSize(String value, int defaultVal) {
+    if (Strings.isNullOrEmpty(value)) {
+      String eventBusSizeEnv = System.getenv(NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE);
+      if (eventBusSizeEnv != null) {
+        return NumberUtils.toInt(eventBusSizeEnv, defaultVal);
+      }
+    }
+    return NumberUtils.toInt(value, defaultVal);
+  }
+
+  public static int getSourceControlEventProcessorPoolSize(String value, int defaultVal) {
+    if (Strings.isNullOrEmpty(value)) {
+      String sourceControlEventProcessorPoolSizeEnv = System.getenv(NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE);
+      if (sourceControlEventProcessorPoolSizeEnv != null) {
+        return NumberUtils.toInt(sourceControlEventProcessorPoolSizeEnv, defaultVal);
+      }
+    }
+    return NumberUtils.toInt(value, defaultVal);
+  }
+
+  public static int getSourceControlImportPoolSize(String value, int defaultVal) {
+    if (Strings.isNullOrEmpty(value)) {
+      String sourceControlImportPoolSize = System.getenv(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE);
+      if (sourceControlImportPoolSize != null) {
+        return NumberUtils.toInt(sourceControlImportPoolSize, defaultVal);
+      }
+    }
+    return NumberUtils.toInt(value, defaultVal);
   }
 }

@@ -149,6 +149,8 @@ public class Configuration
         SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES,
         SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
         SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+        SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
+        SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
         SystemConfigurationProperty.CSRF_PROTECTION,
         SystemConfigurationProperty.USER_AGENT_SUFFIX,
         SystemConfigurationProperty.CSP_ENABLED,
@@ -349,6 +351,14 @@ public class Configuration
 
   public int getEventBusMaxThreadPoolSize() {
     return configCache.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE);
+  }
+
+  public int getSourceControlEventProcessorPoolSize() {
+    return configCache.get(SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE);
+  }
+
+  public int getSourceControlImportPoolSize() {
+    return configCache.get(SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE);
   }
 
   public boolean isAntiCsrfEnabled() {

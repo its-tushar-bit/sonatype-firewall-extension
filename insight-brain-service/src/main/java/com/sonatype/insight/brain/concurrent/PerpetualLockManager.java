@@ -56,7 +56,10 @@ public class PerpetualLockManager
         expiresInXSeconds);
     PerpetualLock perpetualLock = null;
 
-    try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {
+    TransactionContext txn = null;
+
+    try  {
+      txn = perpetualLockDAO.createTransactionContext();
       txn.begin();
       perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, perpetualLockId);
       if (null != perpetualLock) {
@@ -66,6 +69,14 @@ public class PerpetualLockManager
             DateUtils.max(perpetualLock.getExpirationTime(), expiration));
       }
       txn.commit();
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+    finally {
+      if (null != txn) {
+        txn.close();
+      }
     }
 
     if (null == perpetualLock) {

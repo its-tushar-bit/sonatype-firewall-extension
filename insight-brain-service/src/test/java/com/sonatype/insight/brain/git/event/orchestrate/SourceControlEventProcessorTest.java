@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 
@@ -29,6 +30,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Stubber;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
+import static com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor.DEFAULT_MAX_THREAD_POOL_SIZE;
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +73,9 @@ public class SourceControlEventProcessorTest
   @Mock
   private CurrentUser mockCurrentUser;
 
+  @Mock
+  private Configuration configuration;
+
   private SourceControlEventProcessor sourceControlEventProcessor;
 
   public SourceControlEventProcessorTest() {
@@ -84,9 +89,11 @@ public class SourceControlEventProcessorTest
     super.setup();
     when(poolTenantReference.get()).thenReturn(mockRepoAccessController);
     when(mockCurrentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
+    when(configuration.getSourceControlEventProcessorPoolSize()).thenReturn(DEFAULT_MAX_THREAD_POOL_SIZE);
     sourceControlEventProcessor =
         spy(new SourceControlEventProcessor(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
-            mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService, mockCurrentUser));
+            mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService, mockCurrentUser,
+            configuration));
   }
 
   @Test

@@ -61,11 +61,12 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -171,7 +172,8 @@ public class ScmOnboardingService
       final ScmApplicationNameConverter applicationNameConverter,
       final IqForScmLicenseChecker licenseChecker,
       final SourceControlUtils sourceControlUtils,
-      final InsightProxy insightProxy)
+      final InsightProxy insightProxy,
+      final Configuration configuration)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -187,8 +189,8 @@ public class ScmOnboardingService
     this.applicationNameConverter = applicationNameConverter;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
-    executor = new SourceControlImportThreadPoolExecutor();
     this.insightProxy = insightProxy;
+    this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
   }
 
   @Override
@@ -310,7 +312,7 @@ public class ScmOnboardingService
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {
     try {
-      Configuration configuration = new Configuration();
+      HttpClientUtils.Configuration configuration = new HttpClientUtils.Configuration();
       insightProxy.contextualize(configuration, repoUrl);
       return gitClientFactory.getClientUtils(provider, configuration).getBaseUrlFromRepo(repoUrl);
     }

@@ -12,12 +12,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -25,6 +27,8 @@ public class DefaultTelemetryScheduler
     extends TelemetryScheduler
     implements Managed
 {
+  private static final Logger log = LoggerFactory.getLogger(DefaultTelemetryScheduler.class);
+
   private final ScheduledExecutorService scheduledExecutorService;
 
   @Inject
@@ -52,9 +56,15 @@ public class DefaultTelemetryScheduler
 
   @VisibleForTesting
   public Runnable getTelemetryRunnable() {
-    return new SystemRunnable(() -> {
-      sendTelemetry(telemetryCollectors);
-    });
+    return () -> {
+      OneTimeSystemRunnable oneTimeSystemRunnable = new OneTimeSystemRunnable(() -> sendTelemetry(telemetryCollectors));
+      try {
+        oneTimeSystemRunnable.run();
+      }
+      catch (RuntimeException e) {
+        log.warn("Unable to run telemetry schedule", e);
+      }
+    };
   }
 
   @Override

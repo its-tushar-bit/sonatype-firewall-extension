@@ -14,15 +14,19 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class SourceControlImportThreadPoolExecutor
+public class SourceControlImportThreadPoolExecutor
     extends TenantThreadPoolExecutor
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlImportThreadPoolExecutor.class);
 
-  static final int THREAD_POOL_SIZE = 25;
+  /**
+   * The thread pool size can be modified with by changing the sourceControlImportMaxThreadPoolSize system
+   * configuration property however the IQ instance must be restarted for this change to take effect
+   */
+  public static final int DEFAULT_MAX_THREAD_POOL_SIZE = 25;
 
-  public SourceControlImportThreadPoolExecutor() {
-    super(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+  public SourceControlImportThreadPoolExecutor(int threadPoolSize) {
+    super(threadPoolSize, threadPoolSize, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setNameFormat("SourceControlImportService-%d").build());
   }
 

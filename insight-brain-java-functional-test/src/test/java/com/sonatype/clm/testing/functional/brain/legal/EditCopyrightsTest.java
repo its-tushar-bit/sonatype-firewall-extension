@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
@@ -28,7 +29,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
-import org.apache.mina.core.RuntimeIoException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -94,7 +94,7 @@ public class EditCopyrightsTest
           .atUri("rest/ci/componentDetails/list");
     }
     catch (IOException e) {
-      throw new RuntimeIoException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

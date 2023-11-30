@@ -1498,13 +1498,5 @@
         </pluginManagement>
       </build>
     </profile>
-    <profile>
-      <!-- include performance testing in the modules -->
-      <id>perf</id>
-      <modules>
-        <module>insight-brain-performance-test</module>
-      </modules>
-    </profile>
   </profiles>
-
 </project>

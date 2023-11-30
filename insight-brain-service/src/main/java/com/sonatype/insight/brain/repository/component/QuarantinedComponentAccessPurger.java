@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.servlets.tasks.Task;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -24,7 +25,7 @@ import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;

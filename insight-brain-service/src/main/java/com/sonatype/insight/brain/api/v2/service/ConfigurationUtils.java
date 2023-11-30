@@ -32,7 +32,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Strings;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,7 +275,7 @@ public class ConfigurationUtils
     if (minutes < 3 || minutes > 120) {
       throw new RuntimeException("Timeout configuration should be in range from 3 to 120 minutes.");
     }
-    return ObjectUtils.toString(minutes, null);
+    return Objects.toString(minutes, null);
   }
 
   public static String parseRepositoryList(String repositoryList) {

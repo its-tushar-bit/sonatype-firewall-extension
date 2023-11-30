@@ -11,7 +11,7 @@ import java.util.function.IntUnaryOperator;
 
 import javax.inject.Named;
 
-import static org.apache.commons.lang.WordUtils.capitalizeFully;
+import static org.apache.commons.text.WordUtils.capitalizeFully;
 
 /*
  * Project names and IDs can only use a small subset of characters: a-z A-Z - _

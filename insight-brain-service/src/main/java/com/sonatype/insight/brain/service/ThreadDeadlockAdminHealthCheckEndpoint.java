@@ -12,7 +12,7 @@ import java.lang.management.ThreadMXBean;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 @Named
 @Singleton

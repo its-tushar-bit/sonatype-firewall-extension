@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -49,7 +50,7 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 
 @Named

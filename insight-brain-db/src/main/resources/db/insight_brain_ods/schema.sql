@@ -1454,16 +1454,15 @@ CREATE TABLE user_ide_policy_evaluation (
 );
 
 -- Since 1.169
--- TODO: follow-up PR to add NOT NULL constraints
 CREATE TABLE application_count_history
 (
   application_count_history_id          varchar(50) NOT NULL,
   application_count                     integer     NOT NULL,
   updated_date                          timestamp   NOT NULL,
   scm_feedback_enabled_count            integer     NOT NULL,
-  policy_action_failures_by_app_count   integer,
-  waivers_count                         integer,
-  mean_time_to_remediate_ms             bigint,
+  policy_action_failures_by_app_count   integer     NOT NULL DEFAULT 0,
+  waivers_count                         integer     NOT NULL DEFAULT 0,
+  mean_time_to_remediate_ms             bigint      NOT NULL DEFAULT 0,
   CONSTRAINT application_count_history_pk PRIMARY KEY (application_count_history_id)
 );
 

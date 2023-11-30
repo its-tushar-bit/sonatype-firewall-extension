@@ -1454,12 +1454,16 @@ CREATE TABLE user_ide_policy_evaluation (
 );
 
 -- Since 1.169
+-- TODO: follow-up PR to add NOT NULL constraints
 CREATE TABLE application_count_history
 (
-  application_count_history_id   varchar(50) NOT NULL,
-  application_count              integer     NOT NULL,
-  updated_date                   timestamp   NOT NULL,
-  scm_feedback_enabled_count     integer     NOT NULL,
+  application_count_history_id          varchar(50) NOT NULL,
+  application_count                     integer     NOT NULL,
+  updated_date                          timestamp   NOT NULL,
+  scm_feedback_enabled_count            integer     NOT NULL,
+  policy_action_failures_by_app_count   integer,
+  waivers_count                         integer,
+  mean_time_to_remediate_ms             bigint,
   CONSTRAINT application_count_history_pk PRIMARY KEY (application_count_history_id)
 );
 
@@ -1468,8 +1472,14 @@ CREATE INDEX application_count_history_updated_date ON application_count_history
 INSERT INTO application_count_history (application_count_history_id,
                                        application_count,
                                        scm_feedback_enabled_count,
+                                       policy_action_failures_by_app_count,
+                                       waivers_count,
+                                       mean_time_to_remediate_ms,
                                        updated_date)
 VALUES ('initialization',
+       0,
+       0,
+       0,
        0,
        0,
        NOW());

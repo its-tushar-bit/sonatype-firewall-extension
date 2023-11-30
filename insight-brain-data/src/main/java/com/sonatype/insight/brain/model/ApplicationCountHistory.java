@@ -30,6 +30,15 @@ public class ApplicationCountHistory
   @Column(name = "scm_feedback_enabled_count")
   private int scmFeedbackEnabledCount;
 
+  @Column(name = "policy_action_failures_by_app_count")
+  private int policyActionFailuresByAppCount;
+
+  @Column(name = "waivers_count")
+  private int waiversCount;
+
+  @Column(name = "mean_time_to_remediate_ms")
+  private long meanTimeToRemediateMs;
+
   @Column(name = "updated_date")
   private Date updatedDate;
 
@@ -39,12 +48,17 @@ public class ApplicationCountHistory
   public ApplicationCountHistory(
       final Date updatedDate,
       final int applicationCount,
-      final int scmFeedbackEnabledCount
-  )
+      final int scmFeedbackEnabledCount,
+      final int policyActionFailuresByAppCount,
+      final int waiversCount,
+      final long meanTimeToRemediateMs)
   {
     this.applicationCount = applicationCount;
     this.updatedDate = updatedDate;
     this.scmFeedbackEnabledCount = scmFeedbackEnabledCount;
+    this.policyActionFailuresByAppCount = policyActionFailuresByAppCount;
+    this.waiversCount = waiversCount;
+    this.meanTimeToRemediateMs = meanTimeToRemediateMs;
   }
 
   @Override
@@ -73,6 +87,30 @@ public class ApplicationCountHistory
     return scmFeedbackEnabledCount;
   }
 
+  public int getPolicyActionFailuresByAppCount() {
+    return policyActionFailuresByAppCount;
+  }
+
+  public void setPolicyActionFailuresByAppCount(final int policyActionFailuresByAppCount) {
+    this.policyActionFailuresByAppCount = policyActionFailuresByAppCount;
+  }
+
+  public int getWaiversCount() {
+    return waiversCount;
+  }
+
+  public void setWaiversCount(final int waiversCount) {
+    this.waiversCount = waiversCount;
+  }
+
+  public long getMeanTimeToRemediateMs() {
+    return meanTimeToRemediateMs;
+  }
+
+  public void setMeanTimeToRemediateMs(final long meanTimeToRemediateMs) {
+    this.meanTimeToRemediateMs = meanTimeToRemediateMs;
+  }
+
   public Date getUpdatedDate() {
     return updatedDate;
   }
@@ -88,6 +126,9 @@ public class ApplicationCountHistory
         .add("applicationCount=" + applicationCount)
         .add("updatedDate=" + updatedDate)
         .add("scmFeedbackEnabledCount=" + scmFeedbackEnabledCount)
+        .add("policyActionFailuresByAppCount=" + policyActionFailuresByAppCount)
+        .add("waiversCount=" + waiversCount)
+        .add("meanTimeToRemediateMs=" + meanTimeToRemediateMs)
         .toString();
   }
 }

@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -29,6 +30,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -1291,5 +1294,226 @@ public class PolicyViolationDAOTest
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
+  }
+
+  @Test
+  public void testGetCountApplicationsWithPolicyActionFailures_DoNotCountAppWithoutFailPolicyActions() {
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    final Application application3 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+    final Policy policy3 = tempEntity.newPolicy(application3);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Null policy action ID
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    // Warn policy action
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, 6, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", WarnActionType.ID);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+    // Fail policy action
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2, 10, PolicyThreatCategory.QUALITY, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+
+    // Application 3 evaluations
+    final PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action
+    tempEntity.newPolicyViolation(policyEvaluation3, policy3, 10, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+    // Null policy action ID
+    tempEntity.newPolicyViolation(policyEvaluation3, policy3);
+
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final int numAppsWithPolicyActionFailures = dao.getCountApplicationsWithPolicyActionFailures(Stage.ID_BUILD);
+
+    assertThat(numAppsWithPolicyActionFailures)
+        .isEqualTo(2);
+  }
+
+  @Test
+  public void testGetCountApplicationsWithPolicyActionFailures_DoNotCountAppsWithWaivedViolations() {
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final Application application2 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Null policy action ID
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action but it is waived
+    final PolicyViolation waivedViolation = tempEntity.newPolicyViolation(policyEvaluation2, policy2, 9,
+        PolicyThreatCategory.OTHER, "test-group-id", "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+    waivedViolation.setWaiveTime(new Date(System.currentTimeMillis()));
+    dao.update(waivedViolation);
+
+    final int numAppsWithPolicyActionFailures = dao.getCountApplicationsWithPolicyActionFailures(Stage.ID_BUILD);
+
+    assertThat(numAppsWithPolicyActionFailures)
+        .isZero();
+  }
+
+  @Test
+  public void testGetCountApplicationsWithPolicyActionFailures_DoNotCountAppsWithFixedViolations() {
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final Application application2 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Null policy action ID
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action but it is fixed
+    final PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation2, policy2, 9,
+        PolicyThreatCategory.OTHER, "test-group-id", "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+    fixedViolation.setFixTime(new Date(System.currentTimeMillis()));
+    dao.update(fixedViolation);
+
+    final int numAppsWithPolicyActionFailures = dao.getCountApplicationsWithPolicyActionFailures(Stage.ID_BUILD);
+
+    assertThat(numAppsWithPolicyActionFailures)
+        .isZero();
+  }
+
+  @Test
+  public void testGetCountApplicationsWithPolicyActionFailures_CountAppsByCorrectStage() {
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final Application application2 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action for eval at build stage
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    final PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Fail policy action for eval at release stage
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+    // Fail policy action for eval at build stage
+    tempEntity.newPolicyViolation(policyEvaluation3, policy1, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+
+    final int numAppsWithPolicyActionFailuresBuildStage =
+        dao.getCountApplicationsWithPolicyActionFailures(Stage.ID_BUILD);
+    assertThat(numAppsWithPolicyActionFailuresBuildStage)
+        .isEqualTo(2);
+
+    final int numAppsWithPolicyActionFailuresReleaseStage =
+        dao.getCountApplicationsWithPolicyActionFailures(Stage.ID_RELEASE);
+    assertThat(numAppsWithPolicyActionFailuresReleaseStage)
+        .isEqualTo(1);
+  }
+
+  @Test
+  public void testGetCountActiveWaivers_OnlyCountViolationsWithActiveWaivers() {
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final Application application2 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Violations with active waiver
+    final PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy1.getId(), application.getId());
+    tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1, policyWaiver1);
+    tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1, policyWaiver1);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Violation with expired waiver
+    final PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy2.getId(), application2.getId());
+    final PolicyViolation expiredWaivedViolation =
+        tempEntity.newWaivedPolicyViolation(policyEvaluation2, policy2, policyWaiver2);
+    expiredWaivedViolation.setFixTime(new Date(System.currentTimeMillis()));
+    dao.update(expiredWaivedViolation);
+    // Violation with active waiver
+    tempEntity.newWaivedPolicyViolation(policyEvaluation2, policy2, policyWaiver2);
+    // Unfixed and unwaived violation
+    tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+
+    final int numActiveWaivers = dao.getCountActiveWaivers();
+
+    assertThat(numActiveWaivers)
+        .isEqualTo(3);
+  }
+
+  @Test
+  public void testGetWaivedFixed_DoNotIncludeUnfixedOrUnwaivedViolations() {
+    final PolicyViolationDAO dao = new PolicyViolationDAO();
+    final Application application2 = tempEntity.newApplication(organization.getId());
+
+    final Policy policy1 = tempEntity.newPolicy(application);
+    final Policy policy2 = tempEntity.newPolicy(application2);
+
+    // Application 1 evaluations
+    final PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Violations with active waiver
+    final PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy1.getId(), application.getId());
+    final PolicyViolation waivedViolation1 =
+        tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1, policyWaiver1);
+    // Unfixed and unwaived violation
+    final PolicyViolation unfixedUnwaivedViolation = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+
+    // Application 2 evaluations
+    final PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+    // Violation with expired waiver
+    final PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy2.getId(), application2.getId());
+    final PolicyViolation expiredWaivedViolation =
+        tempEntity.newWaivedPolicyViolation(policyEvaluation2, policy2, policyWaiver2);
+    expiredWaivedViolation.setFixTime(new Date(System.currentTimeMillis()));
+    dao.update(expiredWaivedViolation);
+    // Violation with active waiver
+    final PolicyViolation waivedViolation2 =
+        tempEntity.newWaivedPolicyViolation(policyEvaluation2, policy2, policyWaiver2);
+    // Fixed violation
+    final PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
+    fixedViolation.setFixTime(new Date(System.currentTimeMillis()));
+    dao.update(fixedViolation);
+
+    final List<PolicyViolation> fixedOrWaivedViolations = dao.getWaivedFixed();
+
+    assertThat(fixedOrWaivedViolations)
+        .hasSize(4)
+        .extracting("id")
+        .containsExactlyInAnyOrder(waivedViolation1.getId(), expiredWaivedViolation.getId(), waivedViolation2.getId(),
+            fixedViolation.getId())
+        .doesNotContain(unfixedUnwaivedViolation.getId());
   }
 }

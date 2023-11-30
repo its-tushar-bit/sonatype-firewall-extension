@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -457,6 +458,32 @@ public class PolicyViolationDAO
       String sQuery = "DELETE FROM PolicyViolation entity WHERE entity.applicationId=?1";
       createQuery(sQuery, appId).executeUpdate(tx);
     }
+  }
+
+  public int getCountApplicationsWithPolicyActionFailures(final String stageTypeId) {
+    final String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
+        " FROM PolicyViolation entity" +
+        " WHERE entity.stageTypeId = ?1" +
+        " AND entity.fixTime IS NULL" +
+        " AND entity.waiveTime IS NULL" +
+        String.format(" AND entity.actionTypeId = '%s'", Action.ID_FAIL);
+    return getSingle(Number.class, sQuery, stageTypeId).intValue();
+  }
+
+  public int getCountActiveWaivers() {
+    final String sQuery = "SELECT COUNT(entity.id)" +
+        " FROM PolicyViolation entity" +
+        " WHERE entity.waiveTime IS NOT NULL" +
+        " AND entity.fixTime IS NULL";
+    return getSingle(Number.class, sQuery).intValue();
+  }
+
+  public List<PolicyViolation> getWaivedFixed() {
+    final String sQuery = "SELECT entity" +
+        " FROM PolicyViolation entity" +
+        " WHERE entity.fixTime IS NOT NULL" +
+        " OR entity.waiveTime IS NOT NULL";
+    return getList(sQuery);
   }
 
   private Collection<PolicyThreatCategory> getPolicyThreatCategoriesFilter(

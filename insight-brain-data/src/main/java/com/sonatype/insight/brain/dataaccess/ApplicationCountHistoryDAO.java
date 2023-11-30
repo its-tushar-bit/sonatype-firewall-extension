@@ -21,7 +21,7 @@ public class ApplicationCountHistoryDAO
   }
 
   // there should always be at least one entry as we will create an initial entry via the schema or migration
-  public ApplicationCountHistory getInitialApplicationHistoryCount() {
+  public ApplicationCountHistory getInitialApplicationCountHistory() {
     String sQuery = "SELECT entity" +
         " FROM ApplicationCountHistory entity" +
         " WHERE entity.id = 'initialization'";
@@ -32,7 +32,7 @@ public class ApplicationCountHistoryDAO
   }
 
   private Optional<Integer> getApplicationCountAt(Date timestamp) {
-    final ApplicationCountHistory applicationCountHistory = getApplicationHistoryCount(timestamp);
+    final ApplicationCountHistory applicationCountHistory = getApplicationCountHistory(timestamp);
 
     if (applicationCountHistory == null) {
       return Optional.empty();
@@ -42,7 +42,7 @@ public class ApplicationCountHistoryDAO
     }
   }
 
-  public ApplicationCountHistory getApplicationHistoryCount(final Date date) {
+  public ApplicationCountHistory getApplicationCountHistory(final Date date) {
     final String sQuery = "SELECT entity" +
         " FROM ApplicationCountHistory entity" +
         " WHERE entity.updatedDate <= ?1" +
@@ -58,6 +58,6 @@ public class ApplicationCountHistoryDAO
   }
 
   private int getInitialApplicationCount() {
-    return getInitialApplicationHistoryCount().getApplicationCount();
+    return getInitialApplicationCountHistory().getApplicationCount();
   }
 }

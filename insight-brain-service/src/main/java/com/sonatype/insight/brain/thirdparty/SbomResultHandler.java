@@ -468,8 +468,9 @@ public class SbomResultHandler
     String sha1 = SbomUtils.getSha1(component);
     if (StringUtils.isEmpty(sha1)) {
       // generate a hash from the component identifier
-      sha1 = ThirdPartyScanResultUtils.hash(
-          StringUtils.join(componentIdentifier.getFormat(), componentIdentifier.getCoordinates().values(), ":"));
+      String coordinateString =
+          componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":");
+      sha1 = ThirdPartyScanResultUtils.hash(coordinateString);
     }
     return sha1;
   }

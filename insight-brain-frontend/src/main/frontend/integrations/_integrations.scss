@@ -154,6 +154,12 @@ svg.nx-icon.iq-total-risk-info-icon {
   color: var(--nx-swatch-red-40);
 }
 
+.iq-developer-adoption-tooltip {
+  border-radius: 4px;
+  background-color: var(--nx-swatch-blue-95);
+  padding: var(--nx-spacing-2x);
+}
+
 #iq-developer-app-integrations-and-risk-table {
   .nx-cell--header {
     position: static;

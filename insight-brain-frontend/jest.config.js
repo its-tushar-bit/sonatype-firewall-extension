@@ -6,7 +6,9 @@
 
 module.exports = {
   roots: ['<rootDir>/src/main/frontend', '<rootDir>/src/test/frontend'],
-  transformIgnorePatterns: ['/node_modules/(?!(pretty-bytes|@react-hook|@sonatype)/)'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic)/)',
+  ],
   transform: {
     '\\.[jt]sx?$': [
       'babel-jest',

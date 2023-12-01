@@ -15,7 +15,9 @@ import { SECTIONS } from 'MainRoot/integrations/sections';
 export default function IdeIntegrationsCard() {
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
-  const doLoad = () => dispatch(actions.loadIdeIntegratedUserCount());
+  const doLoad = () => {
+    dispatch(actions.loadIdeIntegratedUserCount());
+  };
   const { loading, loadError, ideIntegratedUserCount } = useSelector(selectIdeIntegrationsSlice);
   const ideUserCountMessage =
     ideIntegratedUserCount === 1

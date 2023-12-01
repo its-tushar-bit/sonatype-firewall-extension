@@ -6,7 +6,10 @@
 
 package com.sonatype.clm.testing.functional.developer;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -267,6 +270,22 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
+  public void testAdoptionGraph() {
+    setUpAppsForAdoptionGraph();
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    scrollIntoView(adoptionGraph());
+
+    adoptionGraph().shouldBe(visible);
+
+    adoptionGraph().hover();
+
+    adoptionGraphTooltip().shouldBe(visible);
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
   public void testShowsFeatureDisabledMessageWhenFeatureIsNotInLicense() {
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
 
@@ -321,6 +340,37 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
               calendarForLastEval.add(Calendar.DATE, -1);
               calendarForLastCommit.add(Calendar.DATE, -1);
+            });
+  }
+
+  private void setUpAppsForAdoptionGraph() {
+    Calendar calendarForLastEval = Calendar.getInstance();
+    Date now = new Date();
+    IntStream.range(0, 10).forEach(i -> {
+      Date xWeekAgo = Date.from(Instant.now().minus(i * 7, ChronoUnit.DAYS));
+
+      tempEntity.newApplicationCountHistoryEntry(xWeekAgo, 100, 100 - (i * 10));
+    });
+
+    tempEntity.newApplicationCountHistoryEntry(now, 100, 100);
+
+    IntStream.range(0, 100)
+            .forEach(i -> {
+              final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+              final Policy policy = tempEntity.newPolicy(application);
+              policy.setThreatLevel(i);
+              final PolicyEvaluation policyEvaluation =
+                      tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+                              calendarForLastEval.getTime());
+              tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+              if (i % 2 == 0) {
+                tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
+                        false, false, false,
+                        calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+              }
+
+              calendarForLastEval.add(Calendar.DATE, -1);
             });
   }
 
@@ -470,6 +520,14 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private ElementsCollection appIntegrationsAndRiskTableDataRows() {
     return appIntegrationsAndRiskTable().findAll(" tbody .nx-table-row");
+  }
+
+  private SelenideElement adoptionGraph() {
+    return $(".iq-developer-dashboard-adoption-chart");
+  }
+
+  private SelenideElement adoptionGraphTooltip() {
+    return adoptionGraph().$(".iq-developer-adoption-tooltip");
   }
 
   private void assertDisabled() {

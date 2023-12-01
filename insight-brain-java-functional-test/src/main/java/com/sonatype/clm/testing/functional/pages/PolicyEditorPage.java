@@ -9,7 +9,6 @@ import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
-import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -92,10 +91,6 @@ public class PolicyEditorPage
 
   public static NotificationsSection notificationsSection() {
     return new NotificationsSection();
-  }
-
-  public static NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public static SelenideElement alert() {

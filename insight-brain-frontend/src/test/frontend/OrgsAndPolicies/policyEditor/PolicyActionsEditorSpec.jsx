@@ -12,6 +12,7 @@ import { actions as policyActions, initialState } from 'MainRoot/OrgsAndPolicies
 import { pathSet } from 'MainRoot/util/jsUtil';
 
 const actionStages = [
+  { stageTypeId: 'proxy', shortName: 'proxy' },
   { stageTypeId: 'build', shortName: 'build' },
   { stageTypeId: 'operate', shortName: 'operate' },
 ];
@@ -83,7 +84,7 @@ describe('PolicyActionsEditor', () => {
     const table = screen.getByRole('table', { name: 'Edit policy actions table' });
     const radios = within(table).getAllByRole('radio');
 
-    expect(radios.length).toBe(6);
+    expect(radios.length).toBe(9);
     radios.forEach((radio) => expect(radio).toBeEnabled());
   });
 
@@ -154,13 +155,13 @@ describe('PolicyActionsEditor', () => {
       const table = screen.getByRole('table', { name: 'Edit policy actions table' });
       const radios = within(table).getAllByRole('radio');
 
-      expect(radios.length).toBe(6);
+      expect(radios.length).toBe(9);
       radios.forEach((radio) => expect(radio).not.toBeEnabled());
 
       fireEvent.click(overrideParentActionsRadio);
       expect(overrideParentActionsRadio).toBeChecked();
 
-      expect(radios.length).toBe(6);
+      expect(radios.length).toBe(9);
       radios.forEach((radio) => expect(radio).toBeEnabled());
 
       expect(spy).toHaveBeenCalled();
@@ -185,7 +186,7 @@ describe('PolicyActionsEditor', () => {
       expect(spy).toHaveBeenCalled();
       expect(inheritParentActionsRadio).toBeChecked();
 
-      expect(radios.length).toBe(6);
+      expect(radios.length).toBe(9);
       radios.forEach((radio) => expect(radio).not.toBeEnabled());
     });
 
@@ -280,7 +281,7 @@ describe('PolicyActionsEditor', () => {
       const table = screen.getByRole('table', { name: 'Edit policy actions table' });
       const radios = within(table).getAllByRole('radio');
 
-      expect(radios.length).toBe(6);
+      expect(radios.length).toBe(9);
       radios.forEach((radio) => expect(radio).toBeDisabled());
     });
 
@@ -308,6 +309,38 @@ describe('PolicyActionsEditor', () => {
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith({ ownerId: 'ownerId', actionsOverride: { operate: 'fail' } });
+    });
+
+    it('dispatches setActionsOverride action when actions overriding is enabled only for proxy stage for repository manager', () => {
+      const spy = spyOn(policyActions, 'setActionsOverride').and.callThrough();
+      const preloadedState = compose(
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+        pathSet(['productFeatures', 'productFeatures', 'enforcement'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'overrideActionsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'hasEditIqPermission'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyActionsOverrideAllowed'], true),
+        pathSet(['router', 'currentParams'], { repositoryManagerId: 'repositoryManagerId' }),
+        pathSet(['router', 'currentState'], { name: 'management.view.repository_manager' })
+      )(state);
+
+      renderComponent(preloadedState);
+
+      const table = screen.getByRole('table', { name: 'Edit policy actions table' });
+      const radios = within(table).getAllByRole('radio');
+
+      const proxyRadios = radios.filter((radio) => radio.name === 'action-for-proxy');
+      const otherStatesRadios = radios.filter((radio) => radio.name !== 'action-for-proxy');
+
+      proxyRadios.forEach((radio) => expect(radio).toBeEnabled());
+      otherStatesRadios.forEach((radio) => expect(radio).toBeDisabled());
+
+      expect(last(proxyRadios)).toBeEnabled();
+      expect(last(proxyRadios)).not.toBeChecked();
+      fireEvent.click(last(proxyRadios));
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith({ ownerId: 'ownerId', actionsOverride: { proxy: 'fail' } });
     });
 
     describe('when enforcement is not supported', () => {

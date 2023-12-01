@@ -76,8 +76,11 @@ export default function PolicyActionsEditor() {
 
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isDisabled = (stageTypeId) => {
-    if (isRepositoriesRelated && !isInherited) {
-      return stageTypeId !== 'proxy';
+    if (isRepositoriesRelated) {
+      if (!isInherited) {
+        return stageTypeId !== 'proxy';
+      }
+      return !isActionsTableEnabled || stageTypeId !== 'proxy';
     }
     const isEnforcementSupportedForStage = isEnforcementSupported || (isFirewallSupported && stageTypeId === 'proxy');
     return !isActionsTableEnabled || !isEnforcementSupportedForStage;

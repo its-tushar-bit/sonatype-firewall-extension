@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection.Constraint
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
@@ -369,7 +370,8 @@ public class RepositoryContainerPolicyEditorTest
   @Test
   public void testBackButtonReturnsToRepositoriesSummary() {
     RepositoriesSummaryPage.policyTile().addPolicyButton().click();
-    PolicyEditorPage.backButton().click();
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.links().get(1).click();
 
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
@@ -383,7 +385,9 @@ public class RepositoryContainerPolicyEditorTest
     // Check new policy page
     RepositoriesSummaryPage.policyTile().addPolicyButton().click();
     PolicyEditorPage.legacyViolationCheckbox().is(hidden);
-    PolicyEditorPage.backButton().click();
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.links().get(1).click();
 
     // Check update policy page
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);

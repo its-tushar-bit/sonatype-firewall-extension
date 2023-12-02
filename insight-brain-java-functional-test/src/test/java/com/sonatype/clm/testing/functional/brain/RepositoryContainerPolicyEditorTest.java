@@ -107,7 +107,7 @@ public class RepositoryContainerPolicyEditorTest
     AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
     ageCondition.value().age().shouldBe(empty).val("3");
 
-    eyesWatcher.eyesCheck("Repositories New Policy");
+    eyesWatcher.eyesCheck("Repository Managers New Policy");
 
     PolicyEditorPage.savePolicy();
     Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
@@ -147,7 +147,7 @@ public class RepositoryContainerPolicyEditorTest
     AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
     ageCondition.value().age().shouldBe(empty).val("3");
 
-    eyesWatcher.eyesCheck("Repositories New Policy");
+    eyesWatcher.eyesCheck("Repository Managers New Policy");
 
     PolicyEditorPage.savePolicy();
 
@@ -237,7 +237,7 @@ public class RepositoryContainerPolicyEditorTest
     AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
     ageCondition.value().age().shouldBe(empty).val("1");
 
-    eyesWatcher.eyesCheck("Repositories Edit Policy");
+    eyesWatcher.eyesCheck("Repository Managers Edit Policy");
 
     PolicyEditorPage.savePolicy();
 
@@ -374,7 +374,7 @@ public class RepositoryContainerPolicyEditorTest
     breadcrumb.links().get(1).click();
 
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
   }
 
   @Test
@@ -403,7 +403,7 @@ public class RepositoryContainerPolicyEditorTest
       logout();
       login(user.getUsername(), user.getPassword());
       refreshOrOpen(RepositoriesSummaryPage.url());
-      RepositoriesSummaryPage.policyTile().shouldHave(text("Insufficient permissions"));
+      RepositoriesSummaryPage.getErrorAlert().shouldHave(text("Insufficient permissions"));
     }
     finally {
       logout();

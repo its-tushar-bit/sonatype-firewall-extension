@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -797,5 +799,18 @@ public class ApiFirewallResourceTest
     assertThat(repositoryManager.getName()).isEqualTo("testName");
     assertThat(repositoryManager.getProductName()).isEqualTo("testProductName");
     assertThat(repositoryManager.getProductVersion()).isEqualTo("testProductVersion");
+  }
+
+  @Test
+  public void testGetRepositoryContainerDetails() throws Exception {
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_CONTAINER_PATH)
+            .get();
+
+    assertResponseStatus(200, response);
+
+    ApiRepositoryContainerDTO apiRepositoryContainerDTO = response.getBody(ApiRepositoryContainerDTO.class);
+    assertThat(apiRepositoryContainerDTO.id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(apiRepositoryContainerDTO.name).isEqualTo(RepositoryContainer.SINGLETON.getName());
   }
 }

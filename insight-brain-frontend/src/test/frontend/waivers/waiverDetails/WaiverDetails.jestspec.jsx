@@ -218,10 +218,10 @@ describe('When the WaiverDetailsPage', function () {
       });
     });
 
-    it('should render waiver details with scope equals to All Repositories if ownerType is all_repositories', async function () {
+    it('should render waiver details with scope equals to Repository Managers if ownerType is all_repositories', async function () {
       initialState.router.currentParams.ownerType = 'all_repositories';
       waiverDetails.scopeOwnerId = 'REPOSITORY_CONTAINER_ID';
-      waiverDetails.scopeOwnerName = 'All Repositories';
+      waiverDetails.scopeOwnerName = 'Repository Managers';
       waiverDetails.scopeOwnerType = 'all_repositories';
 
       expectedWaiverDetailsUrl = getWaiverDetailsUrl('repository_container', ownerId, waiverId);
@@ -229,7 +229,7 @@ describe('When the WaiverDetailsPage', function () {
       renderComponent();
 
       expect(screen.getByText('Loading…')).toBeVisible();
-      expect(await screen.findByText('All Repositories')).toBeVisible();
+      expect(await screen.findByText('Repository Managers')).toBeVisible();
     });
 
     it('should render waiver details with scope equals to Root Organization if ownerType is root_organization', async function () {

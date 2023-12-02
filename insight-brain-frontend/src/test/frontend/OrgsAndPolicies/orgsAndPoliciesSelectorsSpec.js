@@ -69,11 +69,11 @@ describe('orgsAndPoliciesSelectors', () => {
       expect(selected).toBe('ownerName');
     });
 
-    it('selects All Repositories, when is a repositories page', () => {
-      mockState.router.currentState.name = 'repositories';
+    it('selects OwnerName, when is a Repository Managers page', () => {
+      mockState.router.currentState.name = 'repository_container';
       const selected = selectSelectedOwnerName(mockState);
 
-      expect(selected).toBe('All Repositories');
+      expect(selected).toBe('ownerName');
     });
   });
 

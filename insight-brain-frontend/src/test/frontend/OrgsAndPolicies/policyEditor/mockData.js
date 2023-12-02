@@ -36,7 +36,7 @@ export const applicablePolicies = {
       policiesByOwner: [
         {
           ownerId: 'REPOSITORY_CONTAINER_ID',
-          ownerName: 'All Repositories',
+          ownerName: 'Repository Managers',
           ownerType: 'repository_container',
           policies: [
             {

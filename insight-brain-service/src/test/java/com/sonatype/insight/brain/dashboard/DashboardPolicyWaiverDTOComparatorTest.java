@@ -381,7 +381,7 @@ public class DashboardPolicyWaiverDTOComparatorTest
     assertThat(comparator.compare(repository, repository)).isEqualTo(0);
 
     DashboardPolicyWaiverDTO repositoryContainer =
-        new DashboardPolicyWaiverDTOBuilder().withOwner(OwnerType.REPOSITORY_CONTAINER, "All Repositories")
+        new DashboardPolicyWaiverDTOBuilder().withOwner(OwnerType.REPOSITORY_CONTAINER, "Repository Managers")
             .getBuiltDTO();
     assertThat(comparator.compare(repositoryContainer, app1)).isGreaterThan(0);
     assertThat(comparator.compare(repositoryContainer, organization)).isGreaterThan(0);
@@ -413,7 +413,7 @@ public class DashboardPolicyWaiverDTOComparatorTest
     assertThat(comparator.compare(repository, repository)).isEqualTo(0);
 
     DashboardPolicyWaiverDTO repositoryContainer =
-        new DashboardPolicyWaiverDTOBuilder().withOwner(OwnerType.REPOSITORY_CONTAINER, "All Repositories")
+        new DashboardPolicyWaiverDTOBuilder().withOwner(OwnerType.REPOSITORY_CONTAINER, "Repository Managers")
             .getBuiltDTO();
     assertThat(comparator.compare(repositoryContainer, app1)).isLessThan(0);
     assertThat(comparator.compare(repositoryContainer, organization)).isLessThan(0);

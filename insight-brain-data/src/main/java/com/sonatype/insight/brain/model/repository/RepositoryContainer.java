@@ -17,7 +17,7 @@ public class RepositoryContainer
 {
   public static final String REPOSITORY_CONTAINER_ID = "REPOSITORY_CONTAINER_ID";
 
-  private static final String REPOSITORY_CONTAINER_NAME = "All Repositories";
+  private static final String REPOSITORY_CONTAINER_NAME = "Repository Managers";
 
   public static final RepositoryContainer SINGLETON = new RepositoryContainer();
 

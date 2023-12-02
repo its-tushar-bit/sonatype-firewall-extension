@@ -1333,4 +1333,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getWaiverRequestWebhooksCountUrl()).toEqual(expectedUrl);
     });
   });
+
+  describe('getRepositoryContainerUrl', () => {
+    it('returns the url for the repository container', () => {
+      const expectedUrl = '/api/v2/firewall/repositoryContainer';
+
+      expect(clmLocation.getRepositoryContainer()).toEqual(expectedUrl);
+    });
+  });
 });

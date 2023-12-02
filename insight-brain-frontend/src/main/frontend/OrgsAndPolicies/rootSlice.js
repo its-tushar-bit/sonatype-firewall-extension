@@ -12,11 +12,11 @@ import {
   getApplicablePolicies,
   getApplicationSummaryUrl,
   getOrganizationUrl,
+  getRepositoryContainer,
   getRepositoryManagerById,
 } from '../util/CLMLocation';
 import { selectEntityId, selectOwnerProperties, selectSelectedOwner } from './orgsAndPoliciesSelectors';
 import {
-  selectCurrentRouteName,
   selectIsApplication,
   selectIsRepositoriesRelated,
   selectIsRepositoryManager,
@@ -48,17 +48,9 @@ const selectedOwnerParentOrganizationUpdated = (
 const loadApplicablePoliciesByOwner = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePoliciesByOwner`,
   (_, { getState, rejectWithValue }) => {
-    let ownerType, ownerId;
-    const currentRouteName = selectCurrentRouteName(getState());
-
-    if (currentRouteName === 'management.view.repository_container') {
-      ownerType = 'repository_container';
-      ownerId = 'REPOSITORY_CONTAINER_ID';
-    } else {
-      const ownerProperties = selectOwnerProperties(getState());
-      ownerType = ownerProperties.ownerType;
-      ownerId = ownerProperties.ownerId;
-    }
+    const ownerProperties = selectOwnerProperties(getState());
+    const ownerType = ownerProperties.ownerType;
+    const ownerId = ownerProperties.ownerId;
 
     return axios
       .get(getApplicablePolicies(ownerType, ownerId))
@@ -86,7 +78,8 @@ const loadSelectedOwner = createAsyncThunk(
       if (isRepositoryManager) {
         return axios.get(getRepositoryManagerById(entityId)).then(prop('data')).catch(rejectWithValue);
       }
-      return Promise.resolve({ name: 'Repositories', id: 'REPOSITORY_CONTAINER_ID' });
+      // condition: isRepositoryContainer will be added when adding repositories
+      return axios.get(getRepositoryContainer()).then(prop('data')).catch(rejectWithValue);
     }
 
     const loadOwnerPromise = isApp

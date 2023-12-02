@@ -1330,6 +1330,8 @@ export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integratio
 export const getRepositoryManagerById = (repositoryManagerId) =>
   uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}`;
 
+export const getRepositoryContainer = () => uriTemplate`/api/v2/firewall/repositoryContainer`;
+
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
   uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
 

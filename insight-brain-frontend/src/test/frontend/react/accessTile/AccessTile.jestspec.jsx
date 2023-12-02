@@ -7,7 +7,7 @@ import React from 'react';
 import { cleanup } from '@testing-library/react';
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
-import { getAccessPageRolesUrl } from 'MainRoot/util/CLMLocation';
+import { getAccessPageRolesUrl, getRepositoryContainer, getRepositoryRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import * as accessSelectors from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 
 describe('AccessTile', () => {
@@ -973,6 +973,122 @@ describe('AccessTile', () => {
         const addRoleButton = screen.getByText('Add a Role').closest('a');
         expect(addRoleButton).not.toBeNull();
         expect(addRoleButton).not.toHaveClass('disabled');
+      });
+    });
+  });
+
+  const rolesMockDataRepositoryContainerInheritedAndLocal = {
+    membersByRole: [
+      {
+        roleId: '2cb71b3468d649789163ea2e212b541e',
+        roleName: 'Application Evaluator',
+        roleDescription: 'Evaluates applications and views policy violation summary results.',
+        membersByOwner: [
+          {
+            ownerId: 'REPOSITORY_CONTAINER_ID',
+            ownerName: 'Repository Managers',
+            ownerType: 'repository_container',
+            members: [
+              {
+                type: 'USER',
+                internalName: 'testuser1',
+                displayName: 'Test User 1',
+                email: 'testuser1@test.com',
+                realm: 'IQ Server',
+              },
+            ],
+          },
+          {
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+            members: [
+              {
+                type: 'USER',
+                internalName: 'testuser1',
+                displayName: 'Test User 1',
+                email: 'testuser1@test.com',
+                realm: 'IQ Server',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  let repositoryContainerPreloadedState = {
+    router: {
+      currentParams: {
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      },
+      currentState: {
+        name: 'management.view.repository_container',
+        url: '/respository_container/{repositoryContainerId}',
+      },
+    },
+    orgsAndPolicies: {
+      access: {
+        loading: false,
+        serverData: {
+          membersByRole: [
+            {
+              roleId: '2cb71b3468d649789163ea2e212b541e',
+              roleName: 'Application Evaluator',
+              roleDescription: 'Evaluates applications and views policy violation summary results.',
+              membersByOwner: [
+                {
+                  ownerId: 'REPOSITORY_CONTAINER_ID',
+                  ownerName: 'Repository Managers',
+                  ownerType: 'repository_container',
+                  members: [
+                    {
+                      type: 'USER',
+                      internalName: 'testuser1',
+                      displayName: 'Test User 1',
+                      email: 'testuser1@test.com',
+                      realm: 'IQ Server',
+                    },
+                  ],
+                },
+                {
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  ownerName: 'Root Organization',
+                  ownerType: 'organization',
+                  members: [
+                    {
+                      type: 'USER',
+                      internalName: 'testuser1',
+                      displayName: 'Test User 1',
+                      email: 'testuser1@test.com',
+                      realm: 'IQ Server',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          groupSearchEnabled: true,
+        },
+      },
+    },
+  };
+
+  describe('Rendering inherited and local data', () => {
+    it('renders component with local and inherited access', async () => {
+      mock.onGet(getRepositoryRoleMappingUrl()).reply(200, rolesMockDataRepositoryContainerInheritedAndLocal);
+
+      mock.onGet(getRepositoryContainer()).reply(200, {
+        id: 'REPOSITORY_CONTAINER_ID',
+        name: 'Repository Managers',
+      });
+
+      render(<AccessTile />, { preloadedState: repositoryContainerPreloadedState });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('repositories_access')).toBeVisible();
+        expect(screen.queryByText('Local to Repository Managers')).toBeVisible();
+        expect(screen.queryByText('Inherited from Root Organization')).toBeVisible();
       });
     });
   });

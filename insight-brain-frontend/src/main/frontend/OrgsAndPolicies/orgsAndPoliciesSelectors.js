@@ -21,13 +21,7 @@ export const selectRootSlice = createSelector(selectOrgsAndPoliciesSlice, prop('
 
 export const selectSelectedOwner = createSelector(selectRootSlice, prop('selectedOwner'));
 export const selectSelectedOwnerContact = createSelector(selectSelectedOwner, prop('contact'));
-export const selectSelectedOwnerName = createSelector(
-  selectSelectedOwner,
-  selectIsRepositories,
-  (selectedOwner, isRepositories) => {
-    return isRepositories ? 'All Repositories' : selectedOwner.name;
-  }
-);
+export const selectSelectedOwnerName = createSelector(selectSelectedOwner, prop('name'));
 export const selectSelectedOwnerId = createSelector(selectSelectedOwner, prop('id'));
 export const selectSelectedOwnerParentId = createSelector(selectSelectedOwner, prop('parentOrganizationId'));
 export const selectLoadError = createSelector(selectRootSlice, prop('loadError'));
@@ -41,14 +35,14 @@ export const selectOwnerProperties = createSelector(
   (
     { applicationPublicId, organizationId, applicationId, repositoryContainerId, repositoryManagerId },
     isRepositories,
-    isReposityManager
+    isRepositoryManager
   ) => {
     if (repositoryContainerId || isRepositories) {
       return {
         ownerType: 'repository_container',
         ownerId: repositoryContainerId || 'REPOSITORY_CONTAINER_ID',
       };
-    } else if (isReposityManager) {
+    } else if (isRepositoryManager) {
       return {
         ownerType: 'repository_manager',
         ownerId: repositoryManagerId,

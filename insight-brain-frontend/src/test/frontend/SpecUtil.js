@@ -526,3 +526,32 @@ export function generateList(itemGenerator, options) {
 
   return items;
 }
+
+export function mockInterceptionObserver() {
+  class IntersectionObserver {
+    constructor() {
+      this.root = null;
+      this.rootMargin = '';
+      this.thresholds = [];
+    }
+
+    disconnect() {
+      return null;
+    }
+
+    observe() {
+      return null;
+    }
+
+    takeRecords() {
+      return [];
+    }
+
+    unobserve() {
+      return null;
+    }
+  }
+
+  window.IntersectionObserver = IntersectionObserver;
+  global.IntersectionObserver = IntersectionObserver;
+}

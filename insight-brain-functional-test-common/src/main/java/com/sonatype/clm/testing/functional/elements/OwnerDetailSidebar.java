@@ -30,10 +30,6 @@ public class OwnerDetailSidebar
     return new NxBackButton("#menu-bar__back-button-container");
   }
 
-  public static String headerHref() {
-    return $("#menu-bar__back-button-container > div > a").attr("href");
-  }
-
   public static OwnerDetailSidebarGroup applicationCategoryGroup() {
     return new OwnerDetailSidebarGroup("#application-category-group");
   }

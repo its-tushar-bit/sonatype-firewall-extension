@@ -527,7 +527,7 @@ describe('access reducer', () => {
           membersByOwner: [
             {
               ownerId: 'REPOSITORY_CONTAINER_ID',
-              ownerName: 'All Repositories',
+              ownerName: 'Repository Managers',
               ownerType: 'repository_container',
               members: [],
             },
@@ -553,7 +553,7 @@ describe('access reducer', () => {
           membersByOwner: [
             Object({
               ownerId: 'REPOSITORY_CONTAINER_ID',
-              ownerName: 'All Repositories',
+              ownerName: 'Repository Managers',
               ownerType: 'repository_container',
               members: [],
             }),

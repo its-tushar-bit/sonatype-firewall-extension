@@ -90,8 +90,9 @@ public abstract class AbstractOwnerDetailsEditingTest
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
     breadcrumb.currentOwnerForEditPage().shouldHave(text(currentOwner.getName()));
 
+    OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
-      OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
       testRouting_ApplicationCategories(OwnerDetailSidebar.applicationCategoryGroup());
       testRouting_Policies(OwnerDetailSidebar.policyGroup());
       testRouting_ComponentLabels(OwnerDetailSidebar.componentLabelGroup());
@@ -100,7 +101,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       testRouting_Monitoring(OwnerDetailSidebar.continuousMonitoring());
     }
     else {
-      OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text("Repositories"));
+      OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text("Repository Managers"));
       OwnerDetailSidebar.applicationCategoryGroup().shouldBe(hidden);
       OwnerDetailSidebar.policyGroup().shouldBe(visible);
       OwnerDetailSidebar.componentLabelGroup().shouldBe(hidden);

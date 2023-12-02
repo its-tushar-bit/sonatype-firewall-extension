@@ -139,7 +139,7 @@ export default function OwnerSideNav() {
     });
     return (
       <a className={repositoriesClassnames} href={goToRepositoriesUrl}>
-        <div className="iq-owner-name">All Repositories</div>
+        <div className="iq-owner-name">{ownersMap['REPOSITORY_CONTAINER_ID'].name}</div>
         <div className="iq-children-counter">
           <span>({repositoriesCounter})</span>
         </div>

@@ -683,7 +683,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
     assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(actual.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
   }
 
@@ -712,7 +712,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
     assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(actual.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
     assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
   }
@@ -1600,7 +1600,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertWaivers(savedWaiver, policyWaiver, policy, null);
     assertThat(savedWaiver.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(savedWaiver.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(savedWaiver.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(savedWaiver.scopeOwnerType).isEqualTo("all_repositories");
   }
 

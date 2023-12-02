@@ -18,15 +18,17 @@ describe('OwnerTree', () => {
   let ownersMap;
   let routerContext;
 
+  const fakeRouterState = (url, params) => {
+    const isOrganization = url.includes('organization');
+    const ownerType = isOrganization ? 'organization' : 'application';
+    const id = isOrganization ? params.organizationId : params?.applicationPublicId;
+    return `#/management/view/${ownerType}/${id}`;
+  };
+
   beforeEach(() => {
-    routerContext = { href: null };
-    spyOn(routerContext, 'href').and.callFake((url, params) => {
-      const isOrganization = url.includes('organization');
-      const ownerType = isOrganization ? 'organization' : 'application';
-      const id = isOrganization ? params.organizationId : params?.applicationPublicId;
-      return `#/management/view/${ownerType}/${id}`;
-    });
-    ownersMap = getOwnersMap(3);
+    routerContext = { href: () => {} };
+    jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
+    ownersMap = getOwnersMap(3, true);
     state = {
       orgsAndPolicies: {
         ownerSideNav: {

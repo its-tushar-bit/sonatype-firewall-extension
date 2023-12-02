@@ -51,16 +51,25 @@ const generateNLevelOrganizations = (
  * @param {number} depth - the number of organization levels and applications per organization
  * @returns {rootOrganization}
  */
-export const getOwnersMap = (depth = 1) => {
+export const getOwnersMap = (depth = 1, forOwnerTreeMap = false) => {
   const ownersMap = {
     ROOT_ORGANIZATION_ID: {
       id: 'ROOT_ORGANIZATION_ID',
       name: 'ROOT_ORGANIZATION_NAME',
       type: 'organization',
       organizationIds: [],
+      repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
       // Root Organization is not allow to have applications
     },
   };
+
+  if (!forOwnerTreeMap) {
+    ownersMap.REPOSITORY_CONTAINER_ID = {
+      id: 'REPOSITORY_CONTAINER_ID',
+      name: 'Repository Managers',
+      type: 'all_repositories',
+    };
+  }
 
   return generateNLevelOrganizations(ownersMap, depth);
 };

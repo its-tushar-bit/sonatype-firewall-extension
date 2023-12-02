@@ -276,4 +276,21 @@ public class ApiFirewallServiceAuthzTest
     apiRepositoryListDTO.repositories = Collections.singletonList(ApiRepositoryDTO.fromRepository(repository));
     apiFirewallService.configureRepositories(repository.getRepositoryManagerId(), apiRepositoryListDTO);
   }
+
+  @Test
+  public void testGetRepositoryContainer_Authorized() {
+    grantReadPermission(RepositoryContainer.SINGLETON.getId());
+    apiFirewallService.getRepositoryContainer();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRepositoryContainer_Unauthorized() {
+    login();
+    apiFirewallService.getRepositoryContainer();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRepositoryContainer_Unauthenticated() {
+    apiFirewallService.getRepositoryContainer();
+  }
 }

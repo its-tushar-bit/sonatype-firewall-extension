@@ -375,7 +375,7 @@ describe('accessSelectors', () => {
   describe('selectIsGroupSearchEnabled', () => {
     it('selects groupSearchEnabled', () => {
       const actual = selectIsGroupSearchEnabled(mockState);
-      expect(actual).toBeTrue();
+      expect(actual).toBeTruthy();
     });
   });
 
@@ -619,13 +619,39 @@ describe('accessSelectors', () => {
       expect(actual).toEqual('organization');
     });
 
+    it('returns "all repository managers" when at the repository container level', () => {
+      const routerState = {
+        currentParams: {
+          repositoryContainerId: 'repositoryContainerId',
+        },
+        currentState: {
+          name: 'repository_container',
+        },
+      };
+      const actual = selectOwnerType({ ...mockState, router: routerState });
+      expect(actual).toEqual('all repository managers');
+    });
+
+    it('returns "repository manager" when at the repository manager level', () => {
+      const routerState = {
+        currentParams: {
+          repositoryManagerId: 'repositoryManagerId',
+        },
+        currentState: {
+          name: 'repository_manager',
+        },
+      };
+      const actual = selectOwnerType({ ...mockState, router: routerState });
+      expect(actual).toEqual('repository manager');
+    });
+
     it('returns "repository" when at the repository level', () => {
       const routerState = {
         currentParams: {
-          applicationPublicId: 'repositoryId',
+          repositoryId: 'repositoryId',
         },
         currentState: {
-          name: 'repositories',
+          name: 'repository',
         },
       };
       const actual = selectOwnerType({ ...mockState, router: routerState });
@@ -742,7 +768,7 @@ describe('accessSelectors', () => {
   describe('selectRolesWithoutLocalMembersExist', () => {
     it('returns true when there are roles without local members', () => {
       const actual = selectRolesWithoutLocalMembersExist(mockState);
-      expect(actual).toBeTrue();
+      expect(actual).toBeTruthy();
     });
 
     it('returns false when there are no roles without local members', () => {
@@ -776,7 +802,7 @@ describe('accessSelectors', () => {
         mockState
       );
       const actual = selectRolesWithoutLocalMembersExist(newMockState);
-      expect(actual).toBeFalse();
+      expect(actual).toBeFalsy();
     });
   });
 

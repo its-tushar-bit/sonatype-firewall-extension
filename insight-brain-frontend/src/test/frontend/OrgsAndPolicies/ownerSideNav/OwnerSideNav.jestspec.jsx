@@ -308,7 +308,7 @@ describe('OwnerSideNav', () => {
 
         it('renders Repositories link with the correct counter value', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
+          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
           expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link');
           expect(goToRepositoriesLink).toBeVisible();
           expect(goToRepositoriesLink).toHaveTextContent('(3)');
@@ -316,7 +316,7 @@ describe('OwnerSideNav', () => {
 
         it('contains correct href to navigate to repository configuration', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
+          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
           expect(goToRepositoriesLink).toBeVisible();
           expect(goToRepositoriesLink).toHaveAttribute('href');
         });
@@ -457,7 +457,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('does not render repositories link', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(All Repositories)/ });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(Repository Managers)/ });
           expect(goToRepositoriesLink).toBeNull();
         });
 
@@ -691,7 +691,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('does not render repositories link', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(All Repositories)/ });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(Repository Managers)/ });
           expect(goToRepositoriesLink).toBeNull();
         });
 
@@ -958,7 +958,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('is not rendered', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repositories' });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repository Managers' });
           expect(goToRepositoriesLink).toBeNull();
         });
       });
@@ -1067,7 +1067,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('is not rendered', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repositories' });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repository Managers' });
           expect(goToRepositoriesLink).toBeNull();
         });
       });
@@ -1181,7 +1181,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('is not rendered', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repositories' });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repository Managers' });
           expect(goToRepositoriesLink).toBeNull();
         });
       });
@@ -1285,7 +1285,7 @@ describe('OwnerSideNav', () => {
       describe('repositories menu item', () => {
         it('is not rendered', async () => {
           renderComponent();
-          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repositories' });
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: 'Repository Managers' });
           expect(goToRepositoriesLink).toBeNull();
         });
       });

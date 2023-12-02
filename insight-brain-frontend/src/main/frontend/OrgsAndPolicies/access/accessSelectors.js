@@ -50,7 +50,9 @@ export const selectRoleToEdit = createSelector(selectMembersByRole, selectRouter
 );
 
 export const selectOwnerType = createSelector(selectIsOrganization, selectRouterState, (isOrganization, { name }) => {
-  if (includes('repositories', name)) return 'repository';
+  if (includes('repository_container', name)) return 'all repository managers';
+  if (includes('repository_manager', name)) return 'repository manager';
+  if (includes('repository', name)) return 'repository';
   return isOrganization ? 'organization' : 'application';
 });
 

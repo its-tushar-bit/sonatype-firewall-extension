@@ -65,7 +65,7 @@ describe('MenuBarStatefulBreadcrumb', () => {
   });
 
   describe('When displaying a repository manager', () => {
-    it('renders bread crumbs for all repositories page', async () => {
+    it('renders bread crumbs for repository manager page', async () => {
       const displayedOrganization = {
         parentId: 'REPOSITORY_CONTAINER_ID',
         name: 'Repo Manager Name',

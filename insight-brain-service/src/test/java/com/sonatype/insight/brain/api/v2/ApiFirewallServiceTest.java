@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
@@ -68,6 +69,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityR
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -1574,6 +1576,14 @@ public class ApiFirewallServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
     });
+  }
+
+  @Test
+  public void testGetRepositoryContainer() {
+    ApiRepositoryContainerDTO apiRepositoryContainerDTO = apiFirewallService.getRepositoryContainer();
+
+    assertThat(apiRepositoryContainerDTO.id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(apiRepositoryContainerDTO.name).isEqualTo(RepositoryContainer.SINGLETON.getName());
   }
 
   private ApiRepositoryListDTO createApiRepositoryListDTO(Repository... repositories) {

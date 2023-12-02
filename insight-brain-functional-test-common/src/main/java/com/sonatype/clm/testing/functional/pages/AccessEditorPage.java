@@ -117,14 +117,14 @@ public class AccessEditorPage
 
     public String confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {
       return "You are about to remove the " + roleName + " role from " +
-          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
+          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repository managers" :
               "this " + ownerType) +
           ". Next time, consider using the \"Delete\" button; it will save you some clicks!";
     }
 
     public String confirmRemovalText(String roleName, OwnerType ownerType) {
       return "You are about to remove the " + roleName + " role from " +
-          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
+          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repository managers" :
               "this " + ownerType) + ".";
     }
   }

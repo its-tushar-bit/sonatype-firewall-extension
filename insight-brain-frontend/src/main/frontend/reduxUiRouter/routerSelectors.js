@@ -78,6 +78,10 @@ export const selectOrganizationId = createSelector(selectRouterCurrentParams, pr
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
 export const selectRepositoryManagerId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryManagerId'));
+export const selectRepositoryContainerId = createSelector(
+  selectRouterCurrentParams,
+  propOr('REPOSITORY_CONTAINER_ID', 'repositoryContainerId')
+);
 export const selectViolationId = createSelector(selectRouterCurrentParams, propOr('', 'violationId'));
 export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryPolicyId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryPolicyId'));

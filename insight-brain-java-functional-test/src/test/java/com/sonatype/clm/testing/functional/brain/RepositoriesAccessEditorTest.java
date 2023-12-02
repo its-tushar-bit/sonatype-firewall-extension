@@ -27,7 +27,7 @@ public class RepositoriesAccessEditorTest
 
   @Override
   protected void shouldBeOnInitialPage() {
-    RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repositories"));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repository Managers"));
   }
 
   @After

@@ -242,7 +242,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation3, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver3,
-        ScopeOwnerUtils.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "All Repositories");
+        ScopeOwnerUtils.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "Repository Managers");
   }
 
   @Test

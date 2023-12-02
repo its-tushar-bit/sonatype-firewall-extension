@@ -194,7 +194,7 @@ describe('FirewallLabelsTab', () => {
         },
         {
           ownerId: 'REPOSITORY_CONTAINER_ID',
-          ownerName: 'All Repositories',
+          ownerName: 'Repository Managers',
           ownerType: 'repository_container',
           labels: [],
         },
@@ -239,7 +239,7 @@ describe('FirewallLabelsTab', () => {
       children: [
         {
           id: 'REPOSITORY_CONTAINER_ID',
-          name: 'All Repositories',
+          name: 'Repository Managers',
           type: 'repository_container',
           children: [
             {
@@ -322,7 +322,7 @@ describe('FirewallLabelsTab', () => {
         },
         {
           ownerId: 'REPOSITORY_CONTAINER_ID',
-          ownerName: 'All Repositories',
+          ownerName: 'Repository Managers',
           ownerType: 'repository_container',
           licenseOverride: null,
         },
@@ -586,7 +586,7 @@ describe('FirewallLabelsTab', () => {
       expect(options.length).toBe(3);
 
       expect(options[0]).toHaveTextContent(/Root Organization/i);
-      expect(options[1]).toHaveTextContent(/All Repositories/i);
+      expect(options[1]).toHaveTextContent(/Repository Managers/i);
       expect(options[2]).toHaveTextContent(/maven-central/i);
 
       fireEvent.change(select, { target: { value: '603ac500381f48cba8433df1bc916991' } });

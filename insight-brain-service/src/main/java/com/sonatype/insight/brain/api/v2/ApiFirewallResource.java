@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummary
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -101,6 +102,8 @@ public class ApiFirewallResource
 
   static final String EVALUATE_COMPONENTS_PATH =
       COMPONENTS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH + "/" + REPOSITORY_ID_PATH + "/evaluate";
+
+  static final String REPOSITORY_CONTAINER_PATH = "repositoryContainer";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -258,6 +261,13 @@ public class ApiFirewallResource
   {
     return apiFirewallService.evaluateComponents(repositoryManagerId, repositoryId,
         apiRepositoryComponentEvaluationRequestList);
+  }
+
+  @GET
+  @Path(REPOSITORY_CONTAINER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiRepositoryContainerDTO getRepositoryContainer() {
+    return apiFirewallService.getRepositoryContainer();
   }
 
   private Response getComponents(

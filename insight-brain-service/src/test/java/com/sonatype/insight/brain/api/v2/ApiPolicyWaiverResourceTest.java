@@ -238,7 +238,7 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
     assertThat(apiPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo("all_repositories");
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
   }
@@ -802,7 +802,7 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
     assertThat(apiPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo("Repository Managers");
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo("all_repositories");
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
     assertThat(apiPolicyWaiverDTO.threatLevel).isEqualTo(policy.getThreatLevel());

@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessLi
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -28,7 +29,6 @@ import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
-import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
@@ -112,7 +112,7 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testRepositorySummaryView() {
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
 
     WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
 
@@ -135,7 +135,7 @@ public class RepositoriesSummaryViewTest
 
     refresh();
 
-    eyesWatcher.eyesCheck("Repositories visible");
+    eyesWatcher.eyesCheck("Repository Managers visible");
 
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
     orgsAndPoliciesSidebar.repositories().shouldBe(hidden);
@@ -299,7 +299,7 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testRepositoryTile_default() {
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("All Repositories"));
+    accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("Repository Managers"));
     accessTile.addRoleButton().shouldBe(enabled, visible);
     accessTile.accessLists().shouldHaveSize(1);
 
@@ -365,6 +365,8 @@ public class RepositoriesSummaryViewTest
   public void testNamespaceConfusionProtection_EmptyTable() {
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
     namespaceConfusionProtectionTile.shouldBe(visible).shouldHave(text("Namespace Confusion Protection"));
     namespaceConfusionProtectionTile.emptyDescriptor().shouldBe(visible).shouldHave(text("No results"));
@@ -663,6 +665,8 @@ public class RepositoriesSummaryViewTest
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 
@@ -1061,7 +1065,7 @@ public class RepositoriesSummaryViewTest
   public void testPolicyTile_NoPolicies() {
     // Sanity Check
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
@@ -1129,7 +1133,7 @@ public class RepositoriesSummaryViewTest
 
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
     breadcrumb.links().shouldHaveSize(3);
-    breadcrumb.links().get(1).shouldHave(Condition.text("All Repositories"));
+    breadcrumb.links().get(1).shouldHave(Condition.text("Repository Managers"));
     breadcrumb.links().get(1).click();
 
     waitUntilUrl(RepositoriesSummaryPage.url());
@@ -1139,7 +1143,7 @@ public class RepositoriesSummaryViewTest
   public void testNavigationPills() {
     RepositoriesSummaryPage.repositoriesPillConfigurationButton().shouldBe(visible).click();
     RepositoriesSummaryTile repositoriesSummaryTile = RepositoriesSummaryPage.summaryTile();
-    repositoriesSummaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    repositoriesSummaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
 

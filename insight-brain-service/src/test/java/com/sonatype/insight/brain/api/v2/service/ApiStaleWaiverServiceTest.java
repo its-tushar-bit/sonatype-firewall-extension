@@ -149,7 +149,7 @@ public class ApiStaleWaiverServiceTest
 
     // stale waiver at repo container scope
     staleWaiver = staleRepositoryWaivers.get(2);
-    assertStalePolicyWaiver(staleWaiver, policyWaiver6, policy, "All Repositories",
+    assertStalePolicyWaiver(staleWaiver, policyWaiver6, policy, "Repository Managers",
         ScopeOwnerUtils.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, true, constraintFact1);
 
     // stale waiver with null constraint facts

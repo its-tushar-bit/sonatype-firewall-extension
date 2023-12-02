@@ -228,7 +228,7 @@ public class DashboardWaiversTest
     repositoryContainerWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
     repositoryContainerWaiver.expiryTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysFromNow))));
     repositoryContainerWaiver.policy().shouldHave(text("Policy 2"));
-    repositoryContainerWaiver.scope().shouldHave(text("All Repositories"));
+    repositoryContainerWaiver.scope().shouldHave(text("Repository Managers"));
     repositoryContainerWaiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
     repositoryContainerWaiver.upgradeAvailable().shouldHave(text("—"));
 
@@ -347,7 +347,7 @@ public class DashboardWaiversTest
     // sort by scope
     headers.scopeHeader().click();
 
-    table.firstWaiver().scope().shouldHave(text("All Repositories"));
+    table.firstWaiver().scope().shouldHave(text("Application - App 1"));
     table.lastWaiver().scope().shouldHave(text("Root Organization"));
 
     // assert csv export
@@ -1007,7 +1007,7 @@ public class DashboardWaiversTest
         policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaiver7.getPolicyId() +
             ",Policy 2,,all_repositories," + policyWaiver7.getOwnerId() +
-            ",All Repositories,EXACT_COMPONENT,hash8," +
+            ",Repository Managers,EXACT_COMPONENT,hash8," +
             "Group1 : Artifact1 : 1.2.3," +
             DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
                 policyWaiver7.isComponentUpgradeAvailable()) +

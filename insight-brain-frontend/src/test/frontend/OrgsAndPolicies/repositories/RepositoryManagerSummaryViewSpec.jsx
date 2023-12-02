@@ -55,7 +55,7 @@ const policiesByOwner = [
   },
   {
     ownerId: 'REPOSITORY_CONTAINER_ID',
-    ownerName: 'All Repositories',
+    ownerName: 'Repository Managers',
     ownerType: 'repository_container',
     policies: [inheretedFromRepoContainerPolicy],
     policyTags: [],
@@ -162,7 +162,7 @@ describe('RepositoryManagerSummaryView', () => {
     expect(await screen.findByText('Local to repo-manager-name')).toBeVisible();
     expect(await screen.findByText('No local policies defined')).toBeVisible();
 
-    expect(await screen.findByText('Inherited from All Repositories')).toBeVisible();
+    expect(await screen.findByText('Inherited from Repository Managers')).toBeVisible();
     expect(await screen.findByText('repo-container-policy-1')).toBeVisible();
   });
 

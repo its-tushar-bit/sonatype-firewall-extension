@@ -239,7 +239,7 @@ describe('FirewallLegalTab', () => {
         },
         {
           ownerId: 'REPOSITORY_CONTAINER_ID',
-          ownerName: 'All Repositories',
+          ownerName: 'Repository Managers',
           ownerType: 'repository_container',
           licenseOverride: null,
         },
@@ -651,7 +651,7 @@ describe('FirewallLegalTab', () => {
 
     expect(queryByTextWithin(/Scope/, popover).first).toBeVisible();
     expect(queryByTextWithin(/Repository - maven-central/, popover).first).toBeVisible();
-    expect(queryByTextWithin(/All Repositories/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Repository Managers/, popover).first).toBeVisible();
     expect(queryByTextWithin(/Organization - Root Organization/, popover).first).toBeVisible();
 
     const statusDropDown = document.querySelector('#status-select');

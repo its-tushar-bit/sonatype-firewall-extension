@@ -149,7 +149,7 @@ public class EditLicensesTest
     RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
     firstScope.shouldHave(text("Repository - " + repository.getName()));
     secondScope.shouldHave(text("Repository Manager - " + repositoryManager.getName()));
-    thirdScope.shouldHave(text("All Repositories"));
+    thirdScope.shouldHave(text("Repository Managers"));
     fourthScope.shouldHave(text("Organization - Root Organization"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));

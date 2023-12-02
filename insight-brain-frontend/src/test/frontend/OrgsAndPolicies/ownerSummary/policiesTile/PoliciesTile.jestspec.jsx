@@ -15,6 +15,7 @@ import {
   rootOrganizationNoPoliciesByOwnerPayload,
   organizationPoliciesByOwnerPayload,
   actionStagesPayload,
+  repositoryContainerByOwnerPayload,
 } from './policiesTileTestData';
 import { getNumberOfTables } from '../utils/tileAndTableTestingUtils';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -30,8 +31,8 @@ describe('PoliciesTile', () => {
   });
 
   beforeEach(() => {
-    goToCreatePolicySpy = spyOn(policyActions, 'goToCreatePolicy').and.callThrough();
-    spyOn(policyActions, 'loadPolicyTile').and.callThrough();
+    goToCreatePolicySpy = jest.spyOn(policyActions, 'goToCreatePolicy');
+    jest.spyOn(policyActions, 'loadPolicyTile');
   });
 
   describe('Loading and retry logic', () => {
@@ -103,7 +104,7 @@ describe('PoliciesTile', () => {
       expect(retryButton).toBeVisible();
       fireEvent.click(retryButton);
 
-      expect(await screen.findByText('Loading…')).toBeVisible();
+      expect(screen.getByText('Loading…')).toBeVisible();
       failureAlert = await screen.findByRole('alert');
       expect(failureAlert).toBeVisible();
       expect(failureAlert).toHaveTextContent('An error occurred loading data.');
@@ -123,7 +124,7 @@ describe('PoliciesTile', () => {
       expect(retryButton).toBeVisible();
       fireEvent.click(retryButton);
 
-      expect(await screen.findByText('Loading…')).toBeVisible();
+      expect(screen.getByText('Loading…')).toBeVisible();
       failureAlert = await screen.findByRole('alert');
       expect(failureAlert).toBeVisible();
       expect(failureAlert).toHaveTextContent('An error occurred loading data.');
@@ -430,6 +431,100 @@ describe('PoliciesTile', () => {
 
           expect(collapsibleHeader).toHaveTextContent(title);
         });
+      });
+    });
+  });
+
+  describe('Owner is Repository Container with inherited policies', () => {
+    beforeAll(() => {
+      ownerName = repositoryContainerByOwnerPayload.ownerName;
+      ownerId = repositoryContainerByOwnerPayload.ownerId;
+      ownerType = repositoryContainerByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.repository_container',
+            url: '/repository_container/{repositoryContainerId}',
+            data: {
+              title: 'Repository Managers Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            repositoryContainerId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: repositoryContainerByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Tile Content', () => {
+      it('render all correct titles', async () => {
+        const ownersWithPolicies = repositoryContainerByOwnerPayload.policiesByOwner.filter(
+          (owner) => !isNilOrEmpty(owner.policies)
+        );
+        for (const owner of ownersWithPolicies) {
+          const index = ownersWithPolicies.indexOf(owner);
+          if (index === 0) {
+            expect(await screen.findByText('Local to ' + owner.ownerName)).toBeVisible();
+            screen.debug();
+            break;
+          } else {
+            let title = `Inherited from ${owner.ownerName}`;
+            expect(await screen.findByText(title)).toBeVisible();
+          }
+        }
       });
     });
   });

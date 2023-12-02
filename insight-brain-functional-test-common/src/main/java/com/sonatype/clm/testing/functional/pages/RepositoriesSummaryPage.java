@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
+import com.sonatype.clm.testing.functional.elements.NxAlert;
 import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
@@ -57,5 +58,9 @@ public class RepositoriesSummaryPage
 
   public static PillButton namespaceConfusionProtectionPillButton() {
     return new PillButton("#namespace-confusion-protection-pill-configuration-button");
+  }
+
+  public static NxAlert getErrorAlert() {
+    return new NxAlert(".nx-alert.nx-alert--error");
   }
 }

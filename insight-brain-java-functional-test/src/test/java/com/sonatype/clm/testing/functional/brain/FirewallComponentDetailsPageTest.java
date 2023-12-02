@@ -2175,7 +2175,7 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
     addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
-    addWaiverPage.scope(2).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(2).shouldHave(text("Repository Managers"));
     addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
@@ -2229,7 +2229,7 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
     addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
-    addWaiverPage.scope(2).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(2).shouldHave(text("Repository Managers"));
     addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("unknownComponent (unknownComponent)"));
@@ -2847,7 +2847,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "All Repositories"));
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Repository Managers"));
 
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
@@ -2860,7 +2860,7 @@ public class FirewallComponentDetailsPageTest
 
     listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
     listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
-    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("All Repositories"));
+    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository Managers"));
     listWaiversPage.backButton().click();
 
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -2873,7 +2873,7 @@ public class FirewallComponentDetailsPageTest
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
     ComponentWaiversPopoverTableRow row = componentWaiversTable.row(1);
 
-    row.scope().shouldHave(text("All Repositories"));
+    row.scope().shouldHave(text("Repository Managers"));
   }
 
   @Test

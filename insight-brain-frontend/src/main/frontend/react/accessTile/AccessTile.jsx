@@ -34,6 +34,7 @@ import { actions as accessActions } from 'MainRoot/OrgsAndPolicies/access/access
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { isEmpty } from 'ramda';
+import { actions } from "MainRoot/OrgsAndPolicies/ownerSummarySlice";
 
 export default function AccessTile() {
   const uiRouterState = useRouterState();
@@ -41,7 +42,6 @@ export default function AccessTile() {
   const routerParams = useSelector(selectRouterCurrentParams);
   const routerState = useSelector(selectRouterState);
   const loading = useSelector(selectLoading);
-  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const extMembersRoles = useSelector(selectExtendedMembersByRole);
   const rolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const ownerName = useSelector(selectSelectedOwnerName);
@@ -57,6 +57,9 @@ export default function AccessTile() {
 
   useEffect(() => {
     dispatch(accessActions.loadRoles());
+    if (!ownerName) {
+      dispatch(actions.loadOwnerSummary())
+    }
   }, []);
 
   const getAddRoleButtonUrl = () => {
@@ -169,9 +172,7 @@ export default function AccessTile() {
             <NxTile.HeaderTitle>
               <NxH2>Access</NxH2>
             </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>
-              {isRepositoriesRelated ? 'All Repositories' : ownerName} users by role.
-            </NxTile.HeaderSubtitle>
+            <NxTile.HeaderSubtitle>{ownerName} users by role.</NxTile.HeaderSubtitle>
             <NxTile.HeaderActions>
               <a
                 id="add-role-button"
@@ -187,7 +188,7 @@ export default function AccessTile() {
         </NxTile.Header>
         <NxTile.Content>
           <section key="iq-access-tile-local-access-section">
-            <NxH3> {isRepositoriesRelated ? 'Local' : 'Local to ' + ownerName}</NxH3>
+            <NxH3> {'Local to ' + ownerName}</NxH3>
             <NxDescriptionList emptyMessage={'No local access configured.'} id="iq-access-tile-local-access-list">
               {localRoles?.map(mapLocalAccessDataRow)}
             </NxDescriptionList>

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
@@ -619,6 +620,15 @@ public class ApiFirewallService
     AuditData.get().setRepositoryManager(repositoryManager);
 
     return fromRepositoryManager(repositoryManager);
+  }
+
+  public ApiRepositoryContainerDTO getRepositoryContainer() {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    ApiRepositoryContainerDTO apiRepositoryContainerDTO = new ApiRepositoryContainerDTO();
+    apiRepositoryContainerDTO.id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    apiRepositoryContainerDTO.name = RepositoryContainer.SINGLETON.getName();
+    return apiRepositoryContainerDTO;
   }
 
   private static ApiRepositoryManagerDTO fromRepositoryManager(RepositoryManager repositoryManager) {

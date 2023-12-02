@@ -98,7 +98,7 @@ export default angular
         },
         {
           type: 'repository_container',
-          name: 'Repositories',
+          name: 'Repository Managers',
           id: 'repositoryContainerId',
         },
         {
@@ -133,7 +133,7 @@ export default angular
         .state('management.view.repository_container', {
           url: '/repository_container/{repositoryContainerId}',
           data: {
-            title: 'Repositories Management',
+            title: 'Repository Managers Management',
             viewportSized: true,
           },
           component: 'repositoriesSummaryView',

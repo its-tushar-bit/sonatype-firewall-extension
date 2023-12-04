@@ -190,7 +190,8 @@ public class IndexServiceTest
 
   @Test
   public void testBuildDocument_ComponentVulnerability() {
-    Application app = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(organization);
     String reportId = "report-id";
     ComponentIdentifier componentId = ComponentIdentifier.createNpmCoordinates("@org/package", "1.2.3");
     Component component = new Component(componentId);
@@ -216,7 +217,9 @@ public class IndexServiceTest
         field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
-        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true));
   }
 
   @Test
@@ -226,7 +229,8 @@ public class IndexServiceTest
     String iac = IdentificationSource.SONATYPE_IAC.getId();
     tempEntity.newThirdPartyVulnerability(refId, severity, iac);
 
-    Application app = tempEntity.newApplicationWithParent();
+    Organization org = tempEntity.newOrganization("test");
+    Application app = tempEntity.newApplicationWithParent(org);
     String reportId = "report-id";
     ComponentIdentifier componentId = ComponentIdentifier.createIacCoordinates("namespace", "name", "1");
     Component component = new Component(componentId);
@@ -256,7 +260,9 @@ public class IndexServiceTest
         field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
-        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true));
   }
 
   @Test
@@ -266,7 +272,8 @@ public class IndexServiceTest
     String sonatypeContainer = "Sonatype-C";
     tempEntity.newThirdPartyVulnerability(refId, severity, sonatypeContainer);
 
-    Application app = tempEntity.newApplicationWithParent();
+    Organization org = tempEntity.newOrganization("test");
+    Application app = tempEntity.newApplicationWithParent(org);
     String reportId = "report-id";
     ComponentIdentifier componentId = ComponentIdentifier.createContainerCoordinates("namespace", "name", "1");
     Component component = new Component(componentId);
@@ -294,7 +301,9 @@ public class IndexServiceTest
         field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
-        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true));
   }
 
   @Test

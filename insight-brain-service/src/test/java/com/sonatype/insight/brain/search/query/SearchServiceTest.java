@@ -326,6 +326,39 @@ public class SearchServiceTest
   }
 
   @Test
+  public void testSearchIndex_SearchVulnerabilityAndOrganization() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization("org-01");
+    Organization org2 = tempEntity.newOrganization("org-02");
+
+    Application app1 = tempEntity.newApplication("app-01", org1.getId());
+    newAppReport(app1.getId(), Stage.ID_RELEASE, "report-1", "/SearchServiceTest/report-1");
+
+    Application app2 = tempEntity.newApplication("app-02", org2.getId());
+    newAppReport(app2.getId(), Stage.ID_RELEASE, "report-2", "/SearchServiceTest/report-2");
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:org-01", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3);
+
+    searchResultDTO = searchService.searchIndex("organizationName:org-02", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(0);  // insufficient permissions
+
+    tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857 AND organizationName:org-02", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);  // sufficient permissions
+
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // no org filter
+  }
+
+  @Test
   public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() throws IOException {
     Role role = tempEntity.newRole(false, Permission.READ);
 
@@ -447,6 +480,9 @@ public class SearchServiceTest
 
     assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(12)).isEqualTo(
         components.get(0).componentName);
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(1)).isEqualTo(org1.getName());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(2))
+        .isEqualTo("ui/links/organization/" + org1.getId() + "/management");
     assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo(
         components.get(1).componentName);
 

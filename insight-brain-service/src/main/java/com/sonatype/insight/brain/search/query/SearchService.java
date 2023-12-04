@@ -584,6 +584,10 @@ public class SearchService
         break;
       case SECURITY_VULNERABILITY:
         row.set(0, SECURITY_VULNERABILITY.name());
+        if (searchResultItemDTO.organizationName != null) {
+          row.set(1, searchResultItemDTO.organizationName);
+          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+        }
         row.set(3, searchResultItemDTO.applicationName);
         row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
         row.set(12, searchResultItemDTO.componentName);
@@ -593,6 +597,10 @@ public class SearchService
         break;
       case NON_VULNERABLE_COMPONENT:
         row.set(0, NON_VULNERABLE_COMPONENT.name());
+        if (searchResultItemDTO.organizationName != null) {
+          row.set(1, searchResultItemDTO.organizationName);
+          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+        }
         row.set(3, searchResultItemDTO.applicationName);
         row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
         row.set(12, searchResultItemDTO.componentName);

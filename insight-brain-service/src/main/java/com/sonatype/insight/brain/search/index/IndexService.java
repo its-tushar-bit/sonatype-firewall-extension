@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -289,6 +290,8 @@ public class IndexService
       log.info("begin indexing");
 
       List<Organization> organizations = organizationDAO.getAll();
+      Map<String, Organization> organizationById =
+          organizations.stream().collect(Collectors.toMap(Organization::getId, item -> item));
       List<Application> applications = applicationDAO.getAll();
 
       IndexingContext indexingContext = new IndexingContext(indexWriter);
@@ -305,8 +308,9 @@ public class IndexService
 
       TenantAwareFunction<Application, CompletableFuture<Void>> function =
           new TenantAwareFunction<>(application -> CompletableFuture
-              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)),
-                  searchIndexPool)
+              .supplyAsync(new TenantAwareSupplier<>(
+                  () -> buildApplicationSVDocs(indexingContext, organizationById.get(application.getOrganizationId()),
+                      application)), searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
@@ -432,9 +436,13 @@ public class IndexService
     if (application == null) {
       return;
     }
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+    if (organization == null) {
+      return;
+    }
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
-        buildApplicationStageSVDocs(indexingContext, application, stageType));
+        buildApplicationStageSVDocs(indexingContext, organization, application, stageType));
   }
 
   private void updateIndexForLabel(String labelId, IndexingContext indexingContext)
@@ -487,23 +495,29 @@ public class IndexService
     Query queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId);
     indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
 
-    Application app = applicationDAO.getById(applicationId);
-    if (app == null) {
+    Application application = applicationDAO.getById(applicationId);
+    if (application == null) {
+      return;
+    }
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+    if (organization == null) {
       return;
     }
 
     // Index the app itself
-    addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, app)));
+    addDocsWithException(indexingContext.indexWriter,
+        Collections.singletonList(buildDocument(indexingContext, application)));
     // Index the app labels
-    List<Document> appLabelDocs = labelDAO.getByOwnerId(app.getId()).stream()
+    List<Document> appLabelDocs = labelDAO.getByOwnerId(application.getId()).stream()
         .map(label -> buildDocument(indexingContext, label)).collect(toList());
     addDocsWithException(indexingContext.indexWriter, appLabelDocs);
     // Index the app policies
-    List<Document> appPolicyDocs = policyDAO.getByOwnerId(app.getId()).stream()
+    List<Document> appPolicyDocs = policyDAO.getByOwnerId(application.getId()).stream()
         .map(policy -> buildDocument(indexingContext, policy)).collect(toList());
     addDocsWithException(indexingContext.indexWriter, appPolicyDocs);
     // Index the app SVs
-    addDocsWithException(indexingContext.indexWriter, buildApplicationSVDocs(indexingContext, app));
+    addDocsWithException(indexingContext.indexWriter,
+        buildApplicationSVDocs(indexingContext, organization, application));
   }
 
   private void updateIndexForOrganization(String organizationId, IndexingContext indexingContext) throws IOException {
@@ -612,16 +626,18 @@ public class IndexService
 
   private List<Document> buildApplicationSVDocs(
       IndexingContext indexingContext,
+      Organization organization,
       Application application)
   {
     return StageTypes.getAll().parallelStream()
         .map(new TenantAwareFunction<StageType, List<Document>>(
-            stageType -> buildApplicationStageSVDocs(indexingContext, application, stageType)))
+            stageType -> buildApplicationStageSVDocs(indexingContext, organization, application, stageType)))
         .flatMap(Collection::stream).collect(toList());
   }
 
   private List<Document> buildApplicationStageSVDocs(
       IndexingContext indexingContext,
+      Organization organization,
       Application application,
       StageType stageType)
   {
@@ -651,6 +667,7 @@ public class IndexService
           .map(new TenantAwareFunction<Component, List<Document>>(
               component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
+              organization,
               application,
               stageType,
               scanId,
@@ -664,6 +681,7 @@ public class IndexService
 
   private List<Document> buildApplicationComponentVulnerabilityDocuments(
       IndexingContext indexingContext,
+      Organization organization,
       Application application,
       StageType stageType,
       String reportId,
@@ -677,7 +695,7 @@ public class IndexService
           .collect(toList());
     }
     else if (component.getComponentIdentifier() != null) {
-      return Collections.singletonList(buildDocument(application, stageType, reportId, component));
+      return Collections.singletonList(buildDocument(organization, application, stageType, reportId, component));
     }
     else {
       return Collections.emptyList();
@@ -685,6 +703,7 @@ public class IndexService
   }
 
   Document buildDocument(
+      Organization organization,
       Application application,
       StageType stageType,
       String reportId,
@@ -692,6 +711,8 @@ public class IndexService
   {
     return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT) //
         .setOwner(application) //
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organization.getName())
         .setPolicyEvaluationStage(stageType) //
         .setReportId(reportId) //
         .setComponentHash(component.getHash()) //
@@ -711,6 +732,8 @@ public class IndexService
   {
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
         .setOwner(application) //
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organizationDAO.getById(application.getOrganizationId()).getName())
         .setPolicyEvaluationStage(stageType) //
         .setReportId(reportId) //
         .setComponentHash(component.getHash()) //

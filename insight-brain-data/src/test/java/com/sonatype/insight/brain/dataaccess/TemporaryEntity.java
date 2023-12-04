@@ -623,9 +623,13 @@ public class TemporaryEntity
   }
 
   private void restoreInitialMigrationTrackers() {
-    migrationTrackerDAO.getAll().forEach(migrationTracker -> migrationTrackerDAO.delete(migrationTracker));
-    initialMigrationTrackers.forEach(migrationTracker -> detachEntity(migrationTracker));
-    initialMigrationTrackers.forEach(migrationTracker -> migrationTrackerDAO.insert(migrationTracker));
+    try (TransactionContext tx = migrationTrackerDAO.createTransactionContext()) {
+      tx.begin();
+      migrationTrackerDAO.getAll(tx).forEach(migrationTracker -> migrationTrackerDAO.delete(tx, migrationTracker));
+      initialMigrationTrackers.forEach(migrationTracker -> detachEntity(migrationTracker));
+      initialMigrationTrackers.forEach(migrationTracker -> migrationTrackerDAO.insert(tx, migrationTracker));
+      tx.commit();
+    }
   }
 
   private void restoreInitialRoles() {

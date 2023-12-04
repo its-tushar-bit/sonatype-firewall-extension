@@ -11,6 +11,7 @@ import java.nio.file.attribute.FileTime;
 import java.security.Permission;
 import java.time.LocalTime;
 import java.util.Date;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -66,10 +67,6 @@ public class ScanFileCleanerTest
 
   @After
   public void after() {
-    MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
-    if (migrationTrackerDAO.getById(ScanFileCleaner.MARKER_ID) == null) {
-      migrationTrackerDAO.insertTracker(ScanFileCleaner.MARKER_ID);
-    }
     System.setSecurityManager(ORIGINAL_SECURITY_MANAGER);
   }
 

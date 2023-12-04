@@ -66,14 +66,14 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testValidateNullInstanceId_Insert() {
+  public void testInsert_ValidateNullInstanceId() {
     assertThatThrownBy(() -> tempEntity.newRepositoryManager(null))
         .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
   @Test
-  public void testValidateNullInstanceId_Update() {
+  public void testUpdate_ValidateNullInstanceId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     repoManager.setInstanceId(null);
     assertThatThrownBy(() -> dao.update(repoManager)).isInstanceOf(InvalidRepositoryManagerException.class)
@@ -81,14 +81,14 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testValidateEmptyInstanceId_Insert() {
+  public void testInsert_ValidateEmptyInstanceId() {
     assertThatThrownBy(() -> tempEntity.newRepositoryManager(" "))
         .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
   @Test
-  public void testValidateEmptyInstanceId_Update() {
+  public void testUpdate_ValidateEmptyInstanceId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     repoManager.setInstanceId(" ");
     assertThatThrownBy(() -> dao.update(repoManager))
@@ -97,7 +97,7 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testDuplicateInstanceId_Insert() {
+  public void testInsert_DuplicateInstanceId() {
     tempEntity.newRepositoryManager("MyInstanceId");
 
     assertThatThrownBy(() -> tempEntity.newRepositoryManager("MyInstanceId"))
@@ -106,7 +106,7 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testDuplicateInstanceId_Update() {
+  public void testUpdate_DuplicateInstanceId() {
     tempEntity.newRepositoryManager("MyInstanceId1");
     RepositoryManager repoManager = tempEntity.newRepositoryManager("MyInstanceId2");
     repoManager.setInstanceId("MyInstanceId1");
@@ -116,7 +116,7 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   }
 
   @Test
-  public void testCascadeDeleteToRepositories() {
+  public void testDelete_CascadesToRepositories() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repoManager, "publicId");
 

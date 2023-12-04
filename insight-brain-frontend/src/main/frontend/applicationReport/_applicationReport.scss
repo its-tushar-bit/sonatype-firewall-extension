@@ -379,6 +379,14 @@ tbody .iq-cell--application-report-component-display {
   .nx-tile-header__title {
     overflow: initial;
   }
+
+  .iq-waiver-indicator {
+    align-items: center;
+    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: auto 130px;
+    text-align: left;
+  }
 }
 
 .iq-app-report__threat-cell {

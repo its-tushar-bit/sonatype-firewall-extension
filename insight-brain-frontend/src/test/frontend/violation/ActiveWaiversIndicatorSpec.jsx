@@ -12,6 +12,8 @@ describe('ActiveWaiversIndicator', function () {
   let minimalProps, renderComponent;
   const activeTextPlural = 'Active Waivers',
     activeTextSingular = 'Active Waiver',
+    activeTextPluralAggregated = 'Waived Violations',
+    activeTextSingularAggregated = 'Waived Violation',
     unappliedTextSingular = 'Unapplied Waiver',
     inactiveClass = 'iq-waiver-indicator--inactive',
     activeClass = 'iq-waiver-indicator--active';
@@ -91,5 +93,30 @@ describe('ActiveWaiversIndicator', function () {
     expect(screen.getByText(activeTextPlural)).toBeVisible();
     expect(screen.getByText(activeTextPlural).closest('div')).not.toHaveClassName(inactiveClass);
     expect(screen.getByText(activeTextPlural).closest('div')).toHaveClassName(activeClass);
+  });
+
+  it('renders as active when waived is false and showUnapplied is false isFromAggregatedView is true', function () {
+    renderComponent({
+      activeWaiverCount: 1,
+      waived: false,
+      isFromAggregatedView: true,
+    });
+
+    expect(screen.getByText('1')).toBeVisible();
+    expect(screen.getByText(activeTextSingularAggregated)).toBeVisible();
+    expect(screen.getByText(activeTextSingularAggregated).closest('div')).not.toHaveClassName(inactiveClass);
+    expect(screen.getByText(activeTextSingularAggregated).closest('div')).toHaveClassName(activeClass);
+  });
+
+  it('renders as active and plural when there is more than one active waiver for the violation isFromAggregatedView is true', function () {
+    renderComponent({
+      activeWaiverCount: 2,
+      isFromAggregatedView: true,
+    });
+
+    expect(screen.getByText('2')).toBeVisible();
+    expect(screen.getByText(activeTextPluralAggregated)).toBeVisible();
+    expect(screen.getByText(activeTextPluralAggregated).closest('div')).not.toHaveClassName(inactiveClass);
+    expect(screen.getByText(activeTextPluralAggregated).closest('div')).toHaveClassName(activeClass);
   });
 });

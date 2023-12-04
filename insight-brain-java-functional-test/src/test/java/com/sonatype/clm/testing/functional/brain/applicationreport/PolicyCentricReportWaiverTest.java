@@ -269,9 +269,11 @@ public class PolicyCentricReportWaiverTest
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
     reportPage.resultRows()
         .shouldHave(
-            texts("1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver",
-                "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver", "1 Active Waiver",
-                "1 Active Waiver", "1 Active Waiver", "None"));
+            texts("1 Waived Violation", "1 Waived Violation", "1 Waived Violation", "1 Waived Violation",
+                "1 Waived Violation",
+                "1 Waived Violation", "1 Waived Violation", "1 Waived Violation", "1 Waived Violation",
+                "1 Waived Violation",
+                "1 Waived Violation", "1 Waived Violation", "None"));
   }
 
   private void assertWaiver(WaiverListRow waiver, String comment) {

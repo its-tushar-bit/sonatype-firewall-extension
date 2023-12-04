@@ -381,12 +381,12 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
 
     // test that indicators are shown when not aggregating
@@ -406,13 +406,13 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
@@ -583,7 +583,8 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().shouldHave(value("commons-fileupload"));
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("4 Active Waivers"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("4 Waived Violations"));
+    eyesWatcher.eyesCheck("Multiple waived violations in aggregated view");
   }
 
   @Test
@@ -801,7 +802,7 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
-    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Active Waiver"));
+    reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
   }
 
   @Test

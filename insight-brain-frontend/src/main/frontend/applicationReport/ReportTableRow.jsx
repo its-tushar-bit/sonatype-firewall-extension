@@ -111,7 +111,10 @@ export default function ReportTableRow({ onClick, component }) {
         {component.waivedViolations > 0 && (
           <NxTooltip title="Toggle off aggregate view to see all violations">
             <span className="iq-pull-right">
-              <ActiveWaiversIndicator activeWaiverCount={component.waivedViolations} />
+              <ActiveWaiversIndicator
+                activeWaiverCount={component.waivedViolations}
+                isFromAggregatedView={isAggregated}
+              />
             </span>
           </NxTooltip>
         )}

@@ -9,10 +9,10 @@ import classnames from 'classnames';
 import { NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 
-export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, showUnapplied }) {
+export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, showUnapplied, isFromAggregatedView }) {
   const hasActiveWaivers = activeWaiverCount > 0;
   const showUnappliedWaiverIndicator = hasActiveWaivers && showUnapplied && waived === false;
-  const showActiveWaiverIndicator = hasActiveWaivers & !showUnappliedWaiverIndicator;
+  const showActiveWaiverIndicator = hasActiveWaivers && !showUnappliedWaiverIndicator;
   const containerClass = classnames('iq-waiver-indicator', {
     'iq-waiver-indicator--inactive': !hasActiveWaivers,
     'iq-waiver-indicator--active': showActiveWaiverIndicator,
@@ -21,7 +21,12 @@ export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, 
   const iconClass = classnames('iq-waiver-indicator__counter', {
     'iq-waiver-indicator__counter--inactive': !hasActiveWaivers,
   });
-  const indicatorText = activeWaiverCount === 1 ? 'Active Waiver' : 'Active Waivers';
+  let indicatorText;
+  if (isFromAggregatedView) {
+    indicatorText = activeWaiverCount === 1 ? 'Waived Violation' : 'Waived Violations';
+  } else {
+    indicatorText = activeWaiverCount === 1 ? 'Active Waiver' : 'Active Waivers';
+  }
 
   return (
     <div className={containerClass}>
@@ -46,4 +51,5 @@ ActiveWaiversIndicator.propTypes = {
   activeWaiverCount: PropTypes.number.isRequired,
   waived: PropTypes.bool,
   showUnapplied: PropTypes.bool,
+  isFromAggregatedView: PropTypes.bool,
 };

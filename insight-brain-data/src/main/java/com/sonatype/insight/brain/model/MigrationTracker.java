@@ -61,4 +61,9 @@ public class MigrationTracker implements HasStringId
   public void setConfiguration(String configuration) {
     this.configuration = configuration;
   }
+
+  @Override
+  public String toString() {
+    return "MigrationTracker [id=" + id + ", version=" + version + ", configuration=" + configuration + "]";
+  }
 }

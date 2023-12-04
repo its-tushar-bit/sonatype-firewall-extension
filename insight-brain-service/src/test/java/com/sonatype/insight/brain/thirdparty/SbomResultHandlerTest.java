@@ -211,6 +211,38 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_Purl_Then_Swid_Then_Coordinates_Then_Sha1() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-swid-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 5);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName)
+        .containsOnly("tomcat-catalina", "django", "Apache Log4J", "jackson-databind", "joda-time");
+    assertThat(components).extracting(Component::getVersion)
+        .containsOnly("9.0.14", "1.2.3", "2.11.2", "2.9.9", "2.1.0");
+
+    // 4 purls were collected: 2 original purls, 2 from cpe
+    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
+        "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+        "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9",
+        "pkg:swid/Apache%20Log4J@2.11.2?tag_creator_name=Acme%2C%20Inc.&tag_creator_regid=example.com&" +
+            "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
+        null, null);
+    assertThat(components).extracting("properties.size")
+        .containsOnly(null, 1);
+    assertThat(components.get(1).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e6b1000b94e835ffd37f");
+    assertThat(components.get(4).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("9188560f22e0b73070d2");
+  }
+
+  @Test
   public void testHandleAndFilterContents_filterContent_hashes() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-component-hashes-components.xml");
     ThirdPartyScanContent content =

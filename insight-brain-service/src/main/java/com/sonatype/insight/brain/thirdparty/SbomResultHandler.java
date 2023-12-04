@@ -317,6 +317,11 @@ public class SbomResultHandler
     if (packageUrlIdentifier != null) {
       return createComponent(sourceComponent, packageUrlIdentifier, false);
     }
+    Swid swid = sourceComponent.getSwid();
+    packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
+    if (packageUrlIdentifier != null) {
+      return createComponent(sourceComponent, packageUrlIdentifier, false);
+    }
 
     return processComponentFromHashOrCoordinates(sourceComponent);
   }

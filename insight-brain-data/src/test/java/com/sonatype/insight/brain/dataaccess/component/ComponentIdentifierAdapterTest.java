@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -21,12 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_EXTENSION;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.NUGET_PACKAGE_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentIdentifierAdapterTest
@@ -174,6 +170,32 @@ public class ComponentIdentifierAdapterTest
     assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
         .of(MAVEN_GROUP_ID, "group", MAVEN_ARTIFACT_ID, "artifact", VERSION, "1.0", MAVEN_CLASSIFIER, "c1",
             MAVEN_EXTENSION, "jar"));
+  }
+
+  @Test
+  public void testToComponentIdentifier_cpeFromPathnames() throws JsonProcessingException {
+    JsonNode jsonNode = mapper.readTree("{\"pathnames\" : [ " +
+        "\"dependency:/cpe-test-bom.json/pkg:cpe\\\\acme\\\\application@9.1?edition=en&update=beta\" ]}");
+    ComponentIdentifier identifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
+
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo(FORMAT_CPE);
+    assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
+        .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "9.1", CPE_EDITION, "en",
+            CPE_UPDATE, "beta"));
+  }
+
+  @Test
+  public void testToComponentIdentifier_swidFromPathnames() throws JsonProcessingException {
+    JsonNode jsonNode = mapper.readTree("{\"pathnames\" : [ " +
+        "\"dependency:/swid-test-bom.json/pkg:swid\\\\acme\\\\application@2.0?tag_id=1234-5678\" ]}");
+    ComponentIdentifier identifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
+
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo(FORMAT_SWID);
+    assertThat(identifier.getCoordinates()).hasSize(4).containsExactlyInAnyOrderEntriesOf(ImmutableMap
+        .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "2.0",
+            SWID_TAG_ID, "1234-5678"));
   }
 
   @Test

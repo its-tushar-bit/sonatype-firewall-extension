@@ -41,6 +41,8 @@ public class ComponentIdentifierAdapter
 {
   public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
 
+  public static final String PATHNAMES = "pathnames";
+
   public static final String PURL_IDENTIFIER = "packageUrl";
 
   public static final String PURL_PREFIX = "pkg:";
@@ -51,6 +53,13 @@ public class ComponentIdentifierAdapter
   public static ComponentIdentifier getComponentIdentifier(final JsonNode objectNode) {
     if (objectNode.hasNonNull(COMPONENT_IDENTIFIER)) {
       return toComponentIdentifier(objectNode.get(COMPONENT_IDENTIFIER));
+    }
+    if (objectNode.hasNonNull(PATHNAMES)) {
+      JsonNode pathnames = objectNode.get(PATHNAMES);
+      PackageUrlIdentifier packageUrlIdentifier = getPackageUrlIdentifierFromPathnames(pathnames);
+      if (packageUrlIdentifier != null) {
+        return packageUrlIdentifier.toComponentIdentifier();
+      }
     }
     final String groupId = JsonUtils.getNullableString(objectNode.get(MAVEN_GROUP_ID));
     final String artifactId = JsonUtils.getNullableString(objectNode.get(MAVEN_ARTIFACT_ID));
@@ -75,6 +84,10 @@ public class ComponentIdentifierAdapter
     }
 
     JsonNode pathnames = objectNode.withArray("pathnames");
+    return getPackageUrlIdentifierFromPathnames(pathnames);
+  }
+
+  private static PackageUrlIdentifier getPackageUrlIdentifierFromPathnames(JsonNode pathnames) {
     if (pathnames != null && !pathnames.isEmpty()) {
       //From CLM-19649, in case the CI in the bom.json does not have a purl/CI we use the pathname,
       //Pathname with purl usually have the form dependency:/path/pkg:type\name@version

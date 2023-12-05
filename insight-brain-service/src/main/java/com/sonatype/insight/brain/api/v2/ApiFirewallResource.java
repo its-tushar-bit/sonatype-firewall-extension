@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -92,7 +93,7 @@ public class ApiFirewallResource
 
   private static final String REPOSITORY_ID_PATH = "{repositoryId}";
 
-  static final String GET_REPOSITORY_MANAGER_PATH = REPOSITORY_MANAGERS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
+  static final String REPOSITORY_MANAGER_PATH = REPOSITORY_MANAGERS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
 
   // Visible for testing
   static final String REPOSITORIES_CONFIGURATION_PATH =
@@ -202,10 +203,17 @@ public class ApiFirewallResource
   }
 
   @GET
-  @Path(GET_REPOSITORY_MANAGER_PATH)
+  @Path(REPOSITORY_MANAGER_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiRepositoryManagerDTO getRepositoryManager(@PathParam("repositoryManagerId") String repositoryManagerId) {
     return apiFirewallService.getRepositoryManager(repositoryManagerId);
+  }
+
+  @DELETE
+  @Path(REPOSITORY_MANAGER_PATH)
+  @Audited(AuditEvent.DELETE_REPOSITORY_MANAGER)
+  public void deleteRepositoryManager(@PathParam("repositoryManagerId") String repositoryManagerId) {
+    apiFirewallService.deleteRepositoryManager(repositoryManagerId);
   }
 
   @POST

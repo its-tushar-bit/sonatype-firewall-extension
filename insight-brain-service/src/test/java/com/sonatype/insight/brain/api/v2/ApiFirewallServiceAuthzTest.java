@@ -231,6 +231,23 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
+  public void testDeleteRepositoryManager_Authorized() {
+    grantWritePermission(repositoryManager.getId());
+    apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteRepositoryManager_Unauthorized() {
+    login();
+    apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteRepositoryManager_Unauthenticated() {
+    apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
+  }
+
+  @Test
   public void testAddRepositoryManager_Authorized() {
     grantWritePermission(RepositoryContainer.SINGLETON.getId());
 

@@ -116,4 +116,23 @@ public class ApiFirewallResourceAuditTest
 
     assertAuditLog(AuditEvent.CREATE_REPOSITORY_MANAGER, "unauthorized");
   }
+
+  @Test
+  public void testDeleteRepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
+        .parameter(repositoryManager.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_REPOSITORY_MANAGER, null /* error */);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+  }
+
+  @Test
+  public void testDeleteRepositoryManager_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
+        .parameter(repositoryManager.getId()).with(unauthorizedUser()).delete();
+
+    assertAuditLog(AuditEvent.DELETE_REPOSITORY_MANAGER, "unauthorized");
+  }
 }

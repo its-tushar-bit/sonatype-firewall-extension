@@ -743,7 +743,7 @@ public class ApiFirewallResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.GET_REPOSITORY_MANAGER_PATH)
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
             .parameter(repositoryManager.getId()).get();
 
     assertResponseStatus(200, response);
@@ -754,6 +754,19 @@ public class ApiFirewallResourceTest
     assertThat(apiRepositoryManagerDTO.name).isEqualTo(repositoryManager.getName());
     assertThat(apiRepositoryManagerDTO.productName).isEqualTo(repositoryManager.getProductName());
     assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo(repositoryManager.getProductVersion());
+  }
+
+  @Test
+  public void testDeleteRepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
+            .parameter(repositoryManager.getId()).delete();
+
+    assertResponseStatus(204, response);
+
+    assertThat(new RepositoryManagerDAO().getById(repositoryManager.getId())).isNull();
   }
   
   @Test

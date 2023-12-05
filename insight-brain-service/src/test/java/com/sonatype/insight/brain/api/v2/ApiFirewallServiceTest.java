@@ -1512,6 +1512,15 @@ public class ApiFirewallServiceTest
   }
 
   @Test
+  public void testDeleteRepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
+
+    assertThat(new RepositoryManagerDAO().getById(repositoryManager.getId())).isNull();
+  }
+
+  @Test
   public void testAddRepositoryManager() throws Exception {
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
     apiRepositoryManagerDTO.instanceId = "testInstanceId";

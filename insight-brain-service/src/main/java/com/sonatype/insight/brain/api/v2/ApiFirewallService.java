@@ -598,6 +598,13 @@ public class ApiFirewallService
     return fromRepositoryManager(repositoryManagerDAO.getById(repositoryManagerId));
   }
 
+  @Authorize(permission = Permission.WRITE)
+  public void deleteRepositoryManager(@AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId) {
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repositoryManagerId);
+    repositoryManagerDAO.delete(repoManager);
+    AuditData.get().setRepositoryManager(repoManager);
+  }
+
   public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     checkWritePermission(RepositoryContainer.SINGLETON);

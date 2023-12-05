@@ -15,6 +15,8 @@ import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -273,8 +275,9 @@ public class AdvancedSearchPageTest
 
   @Test
   public void testSearch_Include_All_Components() throws Exception {
-    newAppReport(tempEntity.newApplicationWithParent().getId(), Stage.ID_RELEASE, "report-id",
-        "/IndexSearchingTest/nonVulnerableComponents");
+    Organization organization = tempEntity.newOrganization("my-org");
+    Application application = tempEntity.newApplication("my-app", "my-app", organization.getId());
+    newAppReport(application.getId(), Stage.ID_RELEASE, "report-id", "/IndexSearchingTest/nonVulnerableComponents");
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -295,14 +298,21 @@ public class AdvancedSearchPageTest
     // Default results should exist (components with vulnerabilities only)
     // some assertions
     page.resultCount().shouldBe(text("1"));
+    page.firstResultCardOrgName().shouldBe(text(organization.getName()));
+    page.firstResultCardAppName().shouldBe(text(application.getName()));
 
     // Rerun search with show all components selected
     page.showAllComponentsRadio().click();
     page.searchButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    // There should be more results (vulnerable and non-vulnerable
+    // There should be more results (vulnerable and non-vulnerable)
     page.resultCount().shouldBe(text("2"));
+    page.firstResultCardOrgName().shouldBe(text(organization.getName()));
+    page.firstResultCardAppName().shouldBe(text(application.getName()));
+    page.secondResultCardOrgName().shouldBe(text(organization.getName()));
+    page.secondResultCardAppName().shouldBe(text(application.getName()));
+
     eyesWatcher.eyesCheck("Show all components radio buttons");
   }
 }

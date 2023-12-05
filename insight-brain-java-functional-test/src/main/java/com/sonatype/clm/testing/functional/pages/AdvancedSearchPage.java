@@ -93,4 +93,20 @@ public class AdvancedSearchPage
   public SelenideElement showAllComponentsRadio() {
     return child("#show-all-components-true");
   }
+
+  public SelenideElement firstResultCardOrgName() {
+    return child("section:nth-child(6) > div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+  }
+
+  public SelenideElement firstResultCardAppName() {
+    return child("section:nth-child(6) > div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+  }
+
+  public SelenideElement secondResultCardOrgName() {
+    return child("section:nth-child(7) > div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+  }
+
+  public SelenideElement secondResultCardAppName() {
+    return child("section:nth-child(7) > div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+  }
 }

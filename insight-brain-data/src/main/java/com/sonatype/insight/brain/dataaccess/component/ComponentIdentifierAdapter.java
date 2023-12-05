@@ -54,13 +54,7 @@ public class ComponentIdentifierAdapter
     if (objectNode.hasNonNull(COMPONENT_IDENTIFIER)) {
       return toComponentIdentifier(objectNode.get(COMPONENT_IDENTIFIER));
     }
-    if (objectNode.hasNonNull(PATHNAMES)) {
-      JsonNode pathnames = objectNode.get(PATHNAMES);
-      PackageUrlIdentifier packageUrlIdentifier = getPackageUrlIdentifierFromPathnames(pathnames);
-      if (packageUrlIdentifier != null) {
-        return packageUrlIdentifier.toComponentIdentifier();
-      }
-    }
+
     final String groupId = JsonUtils.getNullableString(objectNode.get(MAVEN_GROUP_ID));
     final String artifactId = JsonUtils.getNullableString(objectNode.get(MAVEN_ARTIFACT_ID));
     final String version = JsonUtils.getNullableString(objectNode.get(VERSION));
@@ -70,6 +64,15 @@ public class ComponentIdentifierAdapter
     if (!Strings.isNullOrEmpty(groupId)) {
       return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, classifier, extension);
     }
+
+    if (objectNode.hasNonNull(PATHNAMES)) {
+      JsonNode pathnames = objectNode.get(PATHNAMES);
+      PackageUrlIdentifier packageUrlIdentifier = getPackageUrlIdentifierFromPathnames(pathnames);
+      if (packageUrlIdentifier != null) {
+        return packageUrlIdentifier.toComponentIdentifier();
+      }
+    }
+
     return null;
   }
 

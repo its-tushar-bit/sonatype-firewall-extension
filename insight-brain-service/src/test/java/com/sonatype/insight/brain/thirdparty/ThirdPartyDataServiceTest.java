@@ -17,8 +17,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -36,7 +36,7 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.AttachmentText;
@@ -176,7 +176,7 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testGetScanData_CpeAndSwid() {
+  public void testGetScanData_CpeAndSwid() throws JsonProcessingException {
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
 
@@ -193,7 +193,7 @@ public class ThirdPartyDataServiceTest
     expectedSwid.setAttachmentText(attachmentText);
 
     tempEntity.newThirdPartyFileCoordinate(file, "CycloneDx", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1",
-        "cpe:/a:acme:application:9.1.1", new Gson().toJson(expectedSwid));
+        "cpe:/a:acme:application:9.1.1", ThirdPartyComponentDAO.MAPPER.writeValueAsString(expectedSwid));
 
     ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 

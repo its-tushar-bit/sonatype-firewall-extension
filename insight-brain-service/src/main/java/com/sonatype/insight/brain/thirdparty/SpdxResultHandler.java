@@ -37,10 +37,10 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.gson.Gson;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -204,7 +204,7 @@ public class SpdxResultHandler
       final String identificationSource,
       final SpdxPackage spdxPackage,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
-      final TransactionContext tx) throws InvalidSPDXAnalysisException
+      final TransactionContext tx) throws InvalidSPDXAnalysisException, JsonProcessingException
   {
     Component component = resolvedComponent.getRight();
     ComponentIdentifier componentIdentifier;
@@ -225,7 +225,7 @@ public class SpdxResultHandler
       fileCoordinate.setCpe(component.getCpe());
     }
     if (component.getSwid() != null) {
-      fileCoordinate.setSwid(new Gson().toJson(component.getSwid()));
+      fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
     }
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
@@ -704,17 +704,22 @@ public class SpdxResultHandler
     return Optional.empty();
   }
 
+  private static final String SWID_URI_PREFIX = "swid:";
+
   private Optional<Swid> getSwid(final SpdxPackage spdxPackage)
       throws InvalidSPDXAnalysisException
   {
     for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
+        String referenceLocator = externalRef.getReferenceLocator();
         if (referenceType.endsWith("/swid") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
-                externalRef.getReferenceLocator().startsWith("swid"))) {
+                referenceLocator.startsWith(SWID_URI_PREFIX))) {
           Swid swid = new Swid();
-          swid.setTagId(externalRef.getReferenceLocator());
+          String tagId = referenceLocator.startsWith(SWID_URI_PREFIX) ? referenceLocator.substring(
+              SWID_URI_PREFIX.length()) : referenceLocator;
+          swid.setTagId(tagId);
           return Optional.of(swid);
         }
       }

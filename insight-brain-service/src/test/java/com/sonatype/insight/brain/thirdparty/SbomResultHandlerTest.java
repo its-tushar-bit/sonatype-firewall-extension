@@ -748,7 +748,7 @@ public class SbomResultHandlerTest
             "\"version\":\"9.1.1\"," +
             "\"tagVersion\":0," +
             "\"patch\":false," +
-            "\"attachmentText\":{\"encoding\":\"base64\",\"contentType\":\"text/xml\",\"text\":\"PD94bWwgdmVyc\"}}");
+            "\"text\":{\"encoding\":\"base64\",\"contentType\":\"text/xml\",\"content\":\"PD94bWwgdmVyc\"}}");
   }
 
   @Test

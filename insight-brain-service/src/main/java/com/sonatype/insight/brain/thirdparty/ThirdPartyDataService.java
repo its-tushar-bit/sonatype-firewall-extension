@@ -51,9 +51,9 @@ import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRo
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
@@ -242,7 +242,12 @@ public class ThirdPartyDataService
     dto.cpe = coordinate.getCpe();
     String swid = coordinate.getSwid();
     if (swid != null) {
-      dto.swid = new Gson().fromJson(swid, Swid.class);
+      try {
+        dto.swid = ThirdPartyComponentDAO.MAPPER.readValue(swid, Swid.class);
+      }
+      catch (JsonProcessingException e) {
+        log.debug("Cannot read SWID value from DB", e);
+      }
     }
     return dto;
   }

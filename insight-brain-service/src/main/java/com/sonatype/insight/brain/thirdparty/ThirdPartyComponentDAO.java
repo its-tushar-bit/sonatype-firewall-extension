@@ -51,6 +51,7 @@ import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRo
 import com.sonatype.insight.util.MetadataRecorderUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -84,7 +85,7 @@ public class ThirdPartyComponentDAO
 
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyComponentDAO.class);
 
-  private static final ObjectMapper MAPPER = new ObjectMapper()
+  public static final ObjectMapper MAPPER = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private final InsightWork work;
@@ -435,7 +436,11 @@ public class ThirdPartyComponentDAO
     if (reportEntry != null) {
       JsonNode bomNode = loadJson(reportEntry.buf);
       JsonNode rootNode = bomNode.get("aaData");
-      return MAPPER.readValue(rootNode.traverse(), type);
+      JsonParser jsonParser = rootNode.traverse();
+      if (jsonParser.getCodec() == null) {
+        jsonParser.setCodec(MAPPER);
+      }
+      return MAPPER.readValue(jsonParser, type);
     }
     return null;
   }

@@ -427,7 +427,7 @@ public class SpdxResultHandlerTest
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String cpeValue = "cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*";
-    String swidTagId = "swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1";
+    String swidTagId = "gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1";
 
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 2);

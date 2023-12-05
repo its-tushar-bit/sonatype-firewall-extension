@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,11 +16,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Collections;
-import java.util.Optional;
-
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -45,11 +44,11 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.util.SbomUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.gson.Gson;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -457,7 +456,7 @@ public class SbomResultHandler
       final Component sourceComponent,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final String schemaVersion,
-      final TransactionContext tx)
+      final TransactionContext tx) throws JsonProcessingException
   {
     Component component = resolvedComponent.getRight();
     ComponentIdentifier componentIdentifier;
@@ -476,7 +475,7 @@ public class SbomResultHandler
     fileCoordinate.setCpe(component.getCpe());
     Swid swid = component.getSwid();
     if (swid != null) {
-      fileCoordinate.setSwid(new Gson().toJson(swid));
+      fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(swid));
     }
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);

@@ -6,13 +6,21 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,7 +33,9 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Binder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -38,11 +48,18 @@ import static org.mockito.Mockito.when;
 public class ApplicationCountHistoryServiceTest
     extends AbstractComponentTest
 {
+  private static final long ONE_DAY_IN_MS = 86_400_000L;
+
+  private static final long ONE_WEEK_IN_MS = 604_800_000L;
+
   @Mock
   private DateTimeService dateTimeService;
 
   @Spy
   private PolicyViolationDAO policyViolationDAO;
+
+  @Spy
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -60,6 +77,7 @@ public class ApplicationCountHistoryServiceTest
   public void configure(Binder binder) {
     binder.bind(DateTimeService.class).toInstance(dateTimeService);
     binder.bind(PolicyViolationDAO.class).toInstance(policyViolationDAO);
+    binder.bind(PolicyEvaluationDAO.class).toInstance(policyEvaluationDAO);
     super.configure(binder);
   }
 
@@ -403,6 +421,208 @@ public class ApplicationCountHistoryServiceTest
         .isZero();
   }
 
+  @Test
+  public void testGetUsageOverTime_shouldReturnCorrectValuesGivenIncrementSizeAndNumber() {
+    // === Given ===
+    // Clock frozen at 2023-11-03T15:51:56.287Z
+    final long nowMs = 1699027090422L;
+    final Clock fixedClock = Clock.fixed(Instant.ofEpochMilli(nowMs), ZoneId.systemDefault());
+
+    final Date fiveWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-35));
+
+    final Date fourWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-28));
+    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 42,20, 33, 21, 3);
+
+    final Date threeWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-21));
+    tempEntity.newApplicationCountHistoryEntry(threeWeeksAgo, 62, 63, 42, 29, 55);
+
+    final Date twoWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-14));
+    tempEntity.newApplicationCountHistoryEntry(twoWeeksAgo, 111, 65, 21, 15, 74);
+
+    final Date oneWeekAgo = getDateFromOffset(fixedClock, Duration.ofDays(-7));
+    tempEntity.newApplicationCountHistoryEntry(oneWeekAgo, 134, 61, 100, 51, 38);
+
+    final Date current = new Date(nowMs);
+    tempEntity.newApplicationCountHistoryEntry(current, 429, 84, 135, 76, 93);
+
+    // === When ===
+    when(dateTimeService.getCurrentTimeMs()).thenReturn(nowMs);
+
+    mockApplicationWithCiCdCalls(
+        Pair.of(fiveWeeksAgo, 0),
+        Pair.of(fourWeeksAgo, 5),
+        Pair.of(threeWeeksAgo, 55),
+        Pair.of(twoWeeksAgo,100),
+        Pair.of(getDateFromOffset(fixedClock, -13), 34),
+        Pair.of(getDateFromOffset(fixedClock, -12), 45),
+        Pair.of(getDateFromOffset(fixedClock, -11), 23),
+        Pair.of(getDateFromOffset(fixedClock, -10), 88),
+        Pair.of(getDateFromOffset(fixedClock, -9), 122),
+        Pair.of(getDateFromOffset(fixedClock, -8), 111),
+        Pair.of(oneWeekAgo, 101),
+        Pair.of(getDateFromOffset(fixedClock, -6), 78),
+        Pair.of(getDateFromOffset(fixedClock, -5), 34),
+        Pair.of(getDateFromOffset(fixedClock, -4), 22),
+        Pair.of(getDateFromOffset(fixedClock, -3), 200),
+        Pair.of(getDateFromOffset(fixedClock, -2), 144),
+        Pair.of(getDateFromOffset(fixedClock, -1), 102),
+        Pair.of(current, 103)
+    );
+
+    // === Then ===
+    final List<ApiUsageIncrementDto> fiveWeeksByWeeklyIncrements =
+        applicationCountHistoryService.getUsageOverTime(ONE_WEEK_IN_MS, 6);
+
+    assertThat(fiveWeeksByWeeklyIncrements).isEqualTo(
+        Lists.newArrayList(
+            new ApiUsageIncrementDto(fiveWeeksAgo.getTime(), 0, 0, 0, 0, 0, 0),
+            new ApiUsageIncrementDto(fourWeeksAgo.getTime(), 42, 20, 33, 21, 3, 5),
+            new ApiUsageIncrementDto(threeWeeksAgo.getTime(), 62, 63,42, 29, 55, 55),
+            new ApiUsageIncrementDto(twoWeeksAgo.getTime(), 111, 65,21, 15, 74, 100),
+            new ApiUsageIncrementDto(oneWeekAgo.getTime(), 134, 61, 100, 51, 38, 101),
+            new ApiUsageIncrementDto(nowMs, 429, 84, 135, 76, 93, 103)));
+
+    // === Then -- With Different Increment and Size ===
+    final List<ApiUsageIncrementDto> twoWeeksByDailyIncrements =
+        applicationCountHistoryService.getUsageOverTime(ONE_DAY_IN_MS, 14);
+
+    assertThat(twoWeeksByDailyIncrements).isEqualTo(
+        Lists.newArrayList(
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -13).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                34
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -12).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                45
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -11).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                23
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -10).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                88
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -9).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                122
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -8).getTime(),
+                111,
+                65,
+                21,
+                15,
+                74,
+                111
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -7).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                101
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -6).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                78
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -5).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                34
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -4).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                22
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -3).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                200
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -2).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                144
+            ),
+            new ApiUsageIncrementDto(
+                getDateFromOffset(fixedClock, -1).getTime(),
+                134,
+                61,
+                100,
+                51,
+                38,
+                102
+            ),
+            new ApiUsageIncrementDto(nowMs,
+                429,
+                84,
+                135,
+                76,
+                93,
+                103))
+    );
+  }
+
+  private Date getDateFromOffset(final Clock baseClock, final int numberOfDays) {
+    return getDateFromOffset(baseClock, Duration.ofDays(numberOfDays));
+  }
+
+  private Date getDateFromOffset(final Clock baseClock, final Duration offset) {
+    return Date.from(Clock.offset(baseClock, offset).instant());
+  }
+
   // ignore id equality
   private void assertApplicationHistoryCountEqual(
       final ApplicationCountHistory actual,
@@ -438,5 +658,13 @@ public class ApplicationCountHistoryServiceTest
         true,
         true
     );
+  }
+
+  @SafeVarargs
+  private final void mockApplicationWithCiCdCalls(Pair<Date, Integer>... timeToCounts) {
+    Arrays.stream(timeToCounts).forEach(timeToCount -> {
+      when(policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(timeToCount.getLeft()))
+          .thenReturn(timeToCount.getRight());
+    });
   }
 }

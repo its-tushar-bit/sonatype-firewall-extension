@@ -54,19 +54,19 @@ public class ScmStatServiceTest
     final Date fiveWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-35));
 
     final Date fourWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-28));
-    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 42,20);
+    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 42, 20, 0, 0, 0);
 
     final Date threeWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-21));
-    tempEntity.newApplicationCountHistoryEntry(threeWeeksAgo, 62, 63);
+    tempEntity.newApplicationCountHistoryEntry(threeWeeksAgo, 62, 63, 0, 0, 0);
 
     final Date twoWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-14));
-    tempEntity.newApplicationCountHistoryEntry(twoWeeksAgo, 111, 65);
+    tempEntity.newApplicationCountHistoryEntry(twoWeeksAgo, 111, 65, 0, 0, 0);
 
     final Date oneWeekAgo = getDateFromOffset(fixedClock, Duration.ofDays(-7));
-    tempEntity.newApplicationCountHistoryEntry(oneWeekAgo, 134, 61);
+    tempEntity.newApplicationCountHistoryEntry(oneWeekAgo, 134, 61, 0, 0, 0);
 
     final Date current = new Date(nowMs);
-    tempEntity.newApplicationCountHistoryEntry(current, 429, 84);
+    tempEntity.newApplicationCountHistoryEntry(current, 429, 84, 0, 0, 0);
 
     // === When ===
     when(dateTimeService.getCurrentTimeMs()).thenReturn(nowMs);

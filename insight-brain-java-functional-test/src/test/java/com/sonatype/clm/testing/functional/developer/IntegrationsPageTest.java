@@ -349,10 +349,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     IntStream.range(0, 10).forEach(i -> {
       Date xWeekAgo = Date.from(Instant.now().minus(i * 7, ChronoUnit.DAYS));
 
-      tempEntity.newApplicationCountHistoryEntry(xWeekAgo, 100, 100 - (i * 10));
+      tempEntity.newApplicationCountHistoryEntry(xWeekAgo, 100, 100 - (i * 10), 0, 0, 0);
     });
 
-    tempEntity.newApplicationCountHistoryEntry(now, 100, 100);
+    tempEntity.newApplicationCountHistoryEntry(now, 100, 100, 0, 0, 0);
 
     IntStream.range(0, 100)
             .forEach(i -> {

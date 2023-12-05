@@ -6,6 +6,7 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
@@ -14,11 +15,19 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationCountHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.apache.commons.collections.CollectionUtils;
 
@@ -35,19 +44,24 @@ public class ApplicationCountHistoryService
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
   public ApplicationCountHistoryService(
       final ApplicationCountHistoryDAO applicationCountHistoryDAO,
       final ApplicationSourceControlService applicationSourceControlService,
       final ApplicationDAO applicationDao,
       final DateTimeService dateTimeService,
-      final PolicyViolationDAO policyViolationDAO)
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO
+  )
   {
     this.applicationCountHistoryDAO = applicationCountHistoryDAO;
     this.applicationSourceControlService = applicationSourceControlService;
     this.applicationDAO = applicationDao;
     this.dateTimeService = dateTimeService;
     this.policyViolationDAO = policyViolationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   public void recordApplicationCount() {
@@ -77,6 +91,38 @@ public class ApplicationCountHistoryService
     applicationCountHistoryDAO.insert(countHistory);
   }
 
+  public List<ApiUsageIncrementDto> getUsageOverTime(
+      final long incrementSizeMillis,
+      final int numberOfIncrements
+  )
+  {
+    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+
+    final List<ApiUsageIncrementDto> usageOverTime = new ArrayList<>();
+
+    final long now = dateTimeService.getCurrentTimeMs();
+
+    long currentUpperBound = now - (incrementSizeMillis * numberOfIncrements) + incrementSizeMillis;
+
+    for (int i = 0; i < numberOfIncrements; i++) {
+      final Date timeOfIncrement = new Date(currentUpperBound);
+
+      final int totalNumberOfAppsUsingCiCDAtTime =
+          policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(timeOfIncrement);
+
+      usageOverTime.add(
+          ApiUsageIncrementDto.fromApplicationHistoryCount(
+              currentUpperBound,
+              totalNumberOfAppsUsingCiCDAtTime,
+              getApplicationHistoryCount(timeOfIncrement)
+          ));
+
+      currentUpperBound += incrementSizeMillis;
+    }
+
+    return usageOverTime;
+  }
+
   public ApplicationCountHistory getApplicationHistoryCount(Date date) {
     final ApplicationCountHistory requestedCountHistory = applicationCountHistoryDAO.getApplicationCountHistory(date);
 
@@ -99,5 +145,13 @@ public class ApplicationCountHistoryService
         .orElse(0.0);
 
     return Math.round(average);
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
+  {
+    // The @Authorize annotation provides the implementation for this function
   }
 }

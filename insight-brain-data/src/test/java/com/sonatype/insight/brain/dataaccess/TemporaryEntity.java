@@ -4436,14 +4436,27 @@ public class TemporaryEntity
   }
 
   public void newApplicationCountHistoryEntry(final Date date, final int applicationCount) {
-    newApplicationCountHistoryEntry(date, applicationCount, 0);
+    newApplicationCountHistoryEntry(date, applicationCount, 0, 0, 0, 0);
   }
 
-  public void newApplicationCountHistoryEntry(final Date date, final int applicationCount, final int scmFeedBackCount) {
-    final ApplicationCountHistory applicationCountHistory = new ApplicationCountHistory();
-    applicationCountHistory.setUpdatedDate(date);
-    applicationCountHistory.setApplicationCount(applicationCount);
-    applicationCountHistory.setScmFeedbackEnabledCount(scmFeedBackCount);
+  public void newApplicationCountHistoryEntry(
+      final Date date,
+      final int applicationCount,
+      final int scmFeedBackCount,
+      final int policyActionFailuresByAppCount,
+      final int waiversCount,
+      final long meanTimeToRemediateMs
+  )
+  {
+    final ApplicationCountHistory applicationCountHistory = new ApplicationCountHistory(
+        date,
+        applicationCount,
+        scmFeedBackCount,
+        policyActionFailuresByAppCount,
+        waiversCount,
+        meanTimeToRemediateMs
+    );
+
     applicationCountHistoryDAO.insert(applicationCountHistory);
   }
 

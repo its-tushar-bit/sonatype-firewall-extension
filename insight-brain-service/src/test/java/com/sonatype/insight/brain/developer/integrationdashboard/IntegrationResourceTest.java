@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -30,6 +31,9 @@ public class IntegrationResourceTest
     extends AbstractResourceTest
 {
   static final String GET_CI_CD_USAGE_PATH = IntegrationResource.RESOURCE_PATH + "/stats/cicd/usage-over-time";
+
+  static final String GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH = IntegrationResource.RESOURCE_PATH +
+      "/stats/usage-over-time";
 
   @Test
   public void testGetApplicationIntegrationSummaries_UseDefault_WhenNoParametersProvided() throws Exception {
@@ -133,6 +137,74 @@ public class IntegrationResourceTest
   {
     final HttpResponse givenQueryAskTooSmallOfIncrementSize =
         restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("incrementSizeMillis", 0)
+            .get();
+    assertResponseStatus(400, givenQueryAskTooSmallOfIncrementSize);
+
+    final HttpResponse givenQueryAskTooLargeOfIncrementSize =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("incrementSizeMillis", FIVE_YEARS_IN_MS + 1)
+            .get();
+    assertResponseStatus(400, givenQueryAskTooLargeOfIncrementSize);
+
+    final HttpResponse givenQueryAsksForTooFewIncrements =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("numberOfIncrements", 0)
+            .get();
+    assertResponseStatus(400, givenQueryAsksForTooFewIncrements);
+
+    final HttpResponse givenQueryAsksForTooManyIncrements =
+        restRequest().path(GET_CI_CD_USAGE_PATH)
+            .query("numberOfIncrements", 53)
+            .get();
+    assertResponseStatus(400, givenQueryAsksForTooManyIncrements);
+  }
+
+  @Test
+  public void testGetApplicationCountHistoryOverTime_UseDefault_WhenNoParametersProvided() throws Exception {
+    final HttpResponse httpResponse =
+        restRequest().path(GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH).get();
+    assertResponseStatus(200, httpResponse);
+
+    final List<ApiUsageIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
+        new TypeReference<List<ApiUsageIncrementDto>>() { });
+
+    assertThat(response)
+        .isNotNull()
+        .hasSize(12);
+  }
+
+  @Test
+  public void testGetApplicationCountHistoryOverTime_UseDefault_AcceptsValidQueryParameters() throws Exception {
+    final HttpResponse httpResponse =
+        restRequest().path(GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH)
+            .query("incrementSizeMillis", 1)
+            .query("numberOfIncrements", 24)
+            .get();
+    assertResponseStatus(200, httpResponse);
+
+    final List<ApiUsageIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
+        new TypeReference<List<ApiUsageIncrementDto>>() { });
+
+    assertThat(response)
+        .isNotNull()
+        .hasSize(24);
+
+    // assert each entry is incremented by 1
+    for (int i = 1; i < response.size(); i++) {
+      long lastTimeStamp = response.get(i - 1).getDateTimeMillis();
+      long currentTimeStamp = response.get(i).getDateTimeMillis();
+
+      assertThat(currentTimeStamp - lastTimeStamp).isEqualTo(1);
+    }
+  }
+
+  @Test
+  public void testGetApplicationCountHistoryOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds()
+      throws Exception
+  {
+    final HttpResponse givenQueryAskTooSmallOfIncrementSize =
+        restRequest().path(GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH)
             .query("incrementSizeMillis", 0)
             .get();
     assertResponseStatus(400, givenQueryAskTooSmallOfIncrementSize);

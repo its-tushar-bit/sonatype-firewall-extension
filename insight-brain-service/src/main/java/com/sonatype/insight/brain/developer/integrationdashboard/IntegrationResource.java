@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncre
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -41,6 +42,8 @@ public class IntegrationResource
   static final String GET_CICD_USAGE_STAT_INCREMENTS_OVERTIME_PATH = "/stats/cicd/usage-over-time";
 
   static final String GET_SCM_FEEDBACK_USAGE_STAT_INCREMENTS_OVER_TIME_PATH = "/stats/scm-feedback/usage-over-time";
+
+  static final String GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH = "/stats/usage-over-time";
 
   static final String DEFAULT_ONE_WEEK_IN_MS = "604800000";
 
@@ -58,16 +61,20 @@ public class IntegrationResource
 
   private final ScmStatService scmStatService;
 
+  private final ApplicationCountHistoryService applicationCountHistoryService;
+
   @Inject
   public IntegrationResource(
       final IntegrationService integrationService,
       final CIEvaluationStatService ciEvaluationStatService,
-      final ScmStatService scmStatService
+      final ScmStatService scmStatService,
+      final ApplicationCountHistoryService applicationCountHistoryService
   )
   {
     this.integrationService = integrationService;
     this.ciEvaluationStatService = ciEvaluationStatService;
     this.scmStatService = scmStatService;
+    this.applicationCountHistoryService = applicationCountHistoryService;
   }
 
   @GET
@@ -128,5 +135,24 @@ public class IntegrationResource
   )
   {
     return scmStatService.getScmFeedbackUsageStatsOverTime(incrementSizeMillis, numberOfIncrements);
+  }
+
+  @GET
+  @Path(GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiUsageIncrementDto> getApplicationCountHistoryOverTime(
+      // one week default
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
+      @Min(1)
+      @QueryParam("incrementSizeMillis") long incrementSizeMillis,
+
+      // 3 months default
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
+      @Min(1)
+      @Max(52)
+      @QueryParam("numberOfIncrements") int numberOfIncrements
+  )
+  {
+    return applicationCountHistoryService.getUsageOverTime(incrementSizeMillis, numberOfIncrements);
   }
 }

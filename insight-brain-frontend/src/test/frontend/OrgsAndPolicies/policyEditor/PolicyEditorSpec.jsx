@@ -41,6 +41,7 @@ describe('PolicyEditorSpec', () => {
   const POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN = '12f2086417ab44f9a63ba5e91786c570';
   const POLICY_ID_OVERRIDE_NOT_ENABLED = '2a1cb71651d14a60b0fa77ef829f5ec0';
   const ROOT_ORG_ID = 'ROOT_ORGANIZATION_ID';
+  const REPOSITORY_CONTAINER_ID = 'REPOSITORY_CONTAINER_ID';
   const ORG_ID = '05602dd5ba934c318ad011ca4e4f5cfe';
   const APP_ID = 'testapp';
   const REPO_ID = 'REPOSITORY_CONTAINER_ID';
@@ -702,6 +703,17 @@ describe('PolicyEditorSpec', () => {
   describe('Inheritance section', () => {
     it('shows the inheritance section when the owner is an org', async () => {
       setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      renderComponent(initState);
+      const inheritance = await screen.findByText('This Policy Inherits to:');
+      expect(inheritance).toBeVisible();
+    });
+
+    it('shows the inheritance section when the owner is a repository container', async () => {
+      setInitStateAndMockHttpRequests(
+        'repository_container',
+        REPOSITORY_CONTAINER_ID,
+        POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN
+      );
       renderComponent(initState);
       const inheritance = await screen.findByText('This Policy Inherits to:');
       expect(inheritance).toBeVisible();

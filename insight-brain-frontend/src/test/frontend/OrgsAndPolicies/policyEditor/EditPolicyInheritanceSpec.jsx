@@ -24,6 +24,7 @@ describe('EditPolicyInheritance', () => {
         policy: {
           ...initialState,
           isInherited: false,
+          isOrgOwner: true,
           hasEditIqPermission: true,
           categories: [],
           currentPolicy: {
@@ -46,6 +47,11 @@ describe('EditPolicyInheritance', () => {
           firewall: true,
           enforcement: true,
           'policy-monitoring': true,
+        },
+      },
+      router: {
+        currentState: {
+          name: 'sidebarView.application',
         },
       },
     };
@@ -113,6 +119,15 @@ describe('EditPolicyInheritance', () => {
     expect(hasCategoriesRadio).toBeChecked();
   });
 
+  it('categories not rendered for repository container', () => {
+    state.router.currentState.name = 'sidebarView.repository_container';
+    state.orgsAndPolicies.policy.isOrgOwner = false;
+    renderComponent();
+
+    expect(screen.queryByLabelText(/all applications/i)).toBeNull();
+    expect(screen.queryByLabelText(/Applications of the specified Application Categories in/i)).toBeNull();
+  });
+
   describe('actions overrides section', () => {
     it('renders actions override checkbox', () => {
       renderComponent();
@@ -123,6 +138,33 @@ describe('EditPolicyInheritance', () => {
 
       expect(actionsOverrideCheckbox).toBeVisible();
       expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders actions override checkbox for repository container', () => {
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+
+      expect(actionsOverrideCheckbox).toBeVisible();
+      expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders unchecked actions override checkbox when policy actions override is not allowed for repository containers', () => {
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+
+      expect(actionsOverrideCheckbox).toBeVisible();
+      expect(actionsOverrideCheckbox).not.toBeChecked();
     });
 
     it('renders unchecked actions override checkbox when policy actions override is not allowed ', () => {
@@ -143,6 +185,32 @@ describe('EditPolicyInheritance', () => {
 
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at organization and application levels/i
+      );
+
+      expect(actionsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('renders disabled actions override checkbox when is inherited policy for repository container', () => {
+      state.orgsAndPolicies.policy.isInherited = true;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+
+      expect(actionsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('renders disabled actions override checkbox when user has no edit permission for repository containers', () => {
+      state.orgsAndPolicies.policy.hasEditIqPermission = false;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
       );
 
       expect(actionsOverrideCheckbox).toBeDisabled();
@@ -172,6 +240,45 @@ describe('EditPolicyInheritance', () => {
 
       expect(spy).toHaveBeenCalled();
       expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action for repository container', () => {
+      const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist for repository containers', () => {
+      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+      expect(screen.getByText('Caution: Disabling overrides will reset actions for 1 repository.')).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     });
 
     it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist', () => {
@@ -267,6 +374,39 @@ describe('EditPolicyInheritance', () => {
         screen.queryByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
       ).toBeNull();
     });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action when continuing for repository container', () => {
+      const spyTogglePolicyActionsOverrideAllowed = spyOn(
+        policyActions,
+        'togglePolicyActionsOverrideAllowed'
+      ).and.callThrough();
+      const spyToggleShowActionsOverridesConfirmationModal = spyOn(
+        policyActions,
+        'toggleShowActionsOverridesConfirmationModal'
+      ).and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+        '15602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at repository manager and repository levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+      fireEvent.click(actionsOverrideCheckbox);
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Caution: Disabling overrides will reset actions for 2 repositories.')).toBeVisible();
+      const continueButton = screen.getByRole('button', { name: 'Continue' });
+
+      fireEvent.click(continueButton);
+
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+      expect(spyTogglePolicyActionsOverrideAllowed).toHaveBeenCalled();
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(2);
+      expect(screen.queryByText('Caution: Disabling overrides will reset actions for 2 repositories.')).toBeNull();
+    });
   });
 
   describe('notification overrides section', () => {
@@ -275,6 +415,19 @@ describe('EditPolicyInheritance', () => {
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeVisible();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders checked notifications override checkbox when policy notifications override is allowed for repository container', () => {
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
       );
 
       expect(notificationsOverrideCheckbox).toBeVisible();
@@ -293,6 +446,20 @@ describe('EditPolicyInheritance', () => {
       expect(notificationsOverrideCheckbox).not.toBeChecked();
     });
 
+    it('renders unchecked notifications override checkbox when policy notifications override is not allowed for repository container', () => {
+      state.orgsAndPolicies.policy.currentPolicy.policyNotificationsOverrideAllowed = false;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeVisible();
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+    });
+
     it('renders disabled notifications override checkbox when policy is inherited', () => {
       state.orgsAndPolicies.policy.isInherited = true;
       renderComponent();
@@ -304,12 +471,38 @@ describe('EditPolicyInheritance', () => {
       expect(notificationsOverrideCheckbox).toBeDisabled();
     });
 
+    it('renders disabled notifications override checkbox when policy is inherited for repository container', () => {
+      state.orgsAndPolicies.policy.isInherited = true;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeDisabled();
+    });
+
     it('renders disabled notifications override checkbox when user has no edit permission', () => {
       state.orgsAndPolicies.policy.hasEditIqPermission = false;
       renderComponent();
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('renders disabled notifications override checkbox when user has no edit permission for repository container', () => {
+      state.orgsAndPolicies.policy.hasEditIqPermission = false;
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
       );
 
       expect(notificationsOverrideCheckbox).toBeDisabled();
@@ -350,6 +543,30 @@ describe('EditPolicyInheritance', () => {
       expect(
         screen.getByText('Caution: Disabling overrides will reset notifications for 1 organizations and applications.')
       ).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    });
+
+    it('dispatches toggleShowNotificationsOverridesConfirmationModal action when disabling if notification overrides exist for repository container', () => {
+      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+        },
+      };
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
+      );
+      expect(notificationsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(notificationsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+      expect(screen.getByText('Caution: Disabling overrides will reset notifications for 1 repository.')).toBeVisible();
       expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     });
@@ -431,6 +648,47 @@ describe('EditPolicyInheritance', () => {
         screen.queryByText(
           'Caution: Disabling overrides will reset notifications for 1 organizations and applications.'
         )
+      ).toBeNull();
+    });
+
+    it('dispatches togglePolicyNotificationsOverrideAllowed action when continuing for repository container', () => {
+      const spyTogglePolicyNotificationsOverrideAllowed = spyOn(
+        policyActions,
+        'togglePolicyNotificationsOverrideAllowed'
+      ).and.callThrough();
+      const spyToggleShowNotificationsOverridesConfirmationModal = spyOn(
+        policyActions,
+        'toggleShowNotificationsOverridesConfirmationModal'
+      ).and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email1@email.com', stageIds: ['build', 'release'] }],
+        },
+        '15602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email2@email.com', stageIds: ['build', 'release'] }],
+        },
+      };
+      state.router.currentState.name = 'sidebarView.repository_container';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at repository manager and repository levels/i
+      );
+      expect(notificationsOverrideCheckbox).toBeChecked();
+      fireEvent.click(notificationsOverrideCheckbox);
+      expect(spyToggleShowNotificationsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset notifications for 2 repositories.')
+      ).toBeVisible();
+      const continueButton = screen.getByRole('button', { name: 'Continue' });
+
+      fireEvent.click(continueButton);
+
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+      expect(spyTogglePolicyNotificationsOverrideAllowed).toHaveBeenCalled();
+      expect(spyToggleShowNotificationsOverridesConfirmationModal).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByText('Caution: Disabling overrides will reset notifications for 2 repositories.')
       ).toBeNull();
     });
   });

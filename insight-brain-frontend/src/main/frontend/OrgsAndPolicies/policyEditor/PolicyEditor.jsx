@@ -41,7 +41,7 @@ import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotific
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectEntityId } from '../orgsAndPoliciesSelectors';
 import classNames from 'classnames';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
@@ -63,6 +63,7 @@ export default function PolicyEditor() {
   const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isLoading = ownerDetailTreeLoading || loading;
 
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
@@ -137,7 +138,7 @@ export default function PolicyEditor() {
         >
           <NxTile.Content>
             <EditPolicySummary />
-            {isOrgOwner && <EditPolicyInheritance></EditPolicyInheritance>}
+            {(isOrgOwner || isRepositoryContainer) && <EditPolicyInheritance></EditPolicyInheritance>}
             <ConstraintsEditor></ConstraintsEditor>
             <PolicyActionsEditor></PolicyActionsEditor>
             <PolicyNotificationsEditor></PolicyNotificationsEditor>

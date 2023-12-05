@@ -18,7 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
@@ -115,11 +115,11 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
   @Hidden
   public ApiSourceControlDTO addOrUpdateSourceControl(
-      @Deprecated @QueryParam("publicId") final String publicId,
-      @Deprecated @QueryParam("repositoryUrl") final String repositoryUrl,
-      final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO)
+      @QueryParam("publicId") final String publicId,
+      @QueryParam("repositoryUrl") final String repositoryUrl,
+      final ApiSourceControlRepositoryUserDTO apiSourceControlRepoUserDTO)
   {
-    return sourceControlService.addOrUpdateSourceControlFromAppEvaluation(publicId, repositoryUrl,
-        apiSourceControlRepoUserDTO);
+    return sourceControlService.addOrUpdateSourceControl(publicId,
+        repositoryUrl, apiSourceControlRepoUserDTO);
   }
 }

@@ -289,7 +289,7 @@ public class ApiSourceControlResourceTest
         .post();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).startsWith("Cannot find application with public ID: 'abc'");
+    assertThat(response.getBodyText()).startsWith("Could not find an application with public ID abc.");
   }
 
   @Test

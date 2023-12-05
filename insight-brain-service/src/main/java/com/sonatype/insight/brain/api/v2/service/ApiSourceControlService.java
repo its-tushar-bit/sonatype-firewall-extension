@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -22,7 +24,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
@@ -159,39 +161,20 @@ public class ApiSourceControlService
         .collect(Collectors.toList());
   }
 
-  @Deprecated
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiSourceControlDTO addOrUpdateSourceControlFromAppEvaluation(
+  public ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
-      final String repositoryUrl)
-  {
-    validatePublicIdAndRepoUrl(publicId, repositoryUrl, true);
-    return addOrUpdateSourceControl(publicId, repositoryUrl, false);
-  }
-
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiSourceControlDTO addOrUpdateSourceControlFromAppEvaluation(
-      final String publicId,
       final String repositoryUrl,
-      final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO)
+      final ApiSourceControlRepositoryUserDTO apiSourceControlRepositoryUserDTO)
   {
-    if (apiSourceControlRepoUserDTO == null) {
-      validatePublicIdAndRepoUrl(publicId, repositoryUrl, true);
-      return addOrUpdateSourceControl(publicId, repositoryUrl, false);
+    if (isBlank(repositoryUrl)) {
+      throw new BadRequestException("Query parameter 'repositoryUrl' is required");
     }
-    else {
-      validatePublicIdAndRepoUrl(
-          apiSourceControlRepoUserDTO.publicId,
-          apiSourceControlRepoUserDTO.repositoryUrl,
-          false);
-
-      trySaveRepoUserActivityOrFailSilently(apiSourceControlRepoUserDTO);
-
-      return addOrUpdateSourceControl(
-          apiSourceControlRepoUserDTO.publicId,
-          apiSourceControlRepoUserDTO.repositoryUrl,
-          false);
+    if (apiSourceControlRepositoryUserDTO != null) {
+      trySaveRepoUserActivityOrFailSilently(publicId, apiSourceControlRepositoryUserDTO.emailAndCommitDateMap);
     }
+
+    return addOrUpdateSourceControl(publicId, repositoryUrl, false);
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
@@ -436,15 +419,6 @@ public class ApiSourceControlService
     }
   }
 
-  private static void validatePublicIdAndRepoUrl(String publicId, String repositoryUrl, boolean isQueryParam) {
-    if (isBlank(publicId)) {
-      throw new BadRequestException((isQueryParam ? "Query p" : "P") + "arameter 'publicId' is required");
-    }
-    if (isBlank(repositoryUrl)) {
-      throw new BadRequestException((isQueryParam ? "Query p" : "P") + "arameter 'repositoryUrl' is required");
-    }
-  }
-
   private void decryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
@@ -638,15 +612,17 @@ public class ApiSourceControlService
     return gitClientFactory.createApiClient(gitRepositoryInfo).getUserId();
   }
 
-  private void trySaveRepoUserActivityOrFailSilently(final ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO) {
-    if (Objects.nonNull(apiSourceControlRepoUserDTO.emailAndCommitDateMap)
-        && apiSourceControlRepoUserDTO.emailAndCommitDateMap.size() > EMAIL_AND_COMMIT_DATE_MAP_LIMIT) {
+  private void trySaveRepoUserActivityOrFailSilently(
+      final String publicId,
+      final Map<String, Collection<Instant>> emailAndCommitDateMap)
+  {
+    if (Objects.nonNull(emailAndCommitDateMap)
+        && emailAndCommitDateMap.size() > EMAIL_AND_COMMIT_DATE_MAP_LIMIT) {
       log.warn("Email and commit date map must have " + EMAIL_AND_COMMIT_DATE_MAP_LIMIT + " or less entries");
     }
     else {
       try {
-        sourceControlUserActivityService.saveRepoUserList(apiSourceControlRepoUserDTO.publicId,
-            apiSourceControlRepoUserDTO.emailAndCommitDateMap);
+        sourceControlUserActivityService.saveRepoUserList(publicId, emailAndCommitDateMap);
       }
       catch (Exception e) {
         log.warn("Unable to save the repository user activity.", e);

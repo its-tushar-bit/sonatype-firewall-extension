@@ -108,13 +108,13 @@ public class SourceControlClientTest
 
     assertThatExceptionOfType(HttpResponseException.class)
         .isThrownBy(() -> client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2"))
-        .withMessageStartingWith("Cannot find application with public ID: 'abc-xyz'")
+        .withMessageStartingWith("Could not find an application with public ID abc-xyz.")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
 
     assertThatExceptionOfType(HttpResponseException.class)
         .isThrownBy(() -> client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2",
             Files.currentFolder().getPath()))
-        .withMessageStartingWith("Cannot find application with public ID: 'abc-xyz'")
+        .withMessageStartingWith("Could not find an application with public ID abc-xyz.")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 

@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -51,14 +51,12 @@ public class SourceControlClient
   {
     Result result = path("api", "v2", "sourceControl")
         .query("publicId", publicId, "repositoryUrl", repositoryUrl)
-        .post(getApiSourceControlRepoUserDTOEntity(publicId, repositoryUrl, repositoryPath));
+        .post(getApiSourceControlRepositoryUserDTOEntity(repositoryPath));
     verifyStatusCode(result);
     return result.status();
   }
 
-  private ByteArrayEntity getApiSourceControlRepoUserDTOEntity(
-      String publicId,
-      String repositoryUrl,
+  private ByteArrayEntity getApiSourceControlRepositoryUserDTOEntity(
       String repositoryPath)
       throws IOException
   {
@@ -70,8 +68,8 @@ public class SourceControlClient
       log.warn("Cannot get map of recent committers: {}", e.getMessage());
     }
     if (!recentCommitters.isEmpty()) {
-      ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO =
-          new ApiSourceControlRepoUserDTO(publicId, repositoryUrl, recentCommitters);
+      ApiSourceControlRepositoryUserDTO apiSourceControlRepoUserDTO =
+          new ApiSourceControlRepositoryUserDTO(recentCommitters);
       return new ByteArrayEntity(mapper.writeValueAsBytes(apiSourceControlRepoUserDTO), ContentType.APPLICATION_JSON);
     }
     return null;

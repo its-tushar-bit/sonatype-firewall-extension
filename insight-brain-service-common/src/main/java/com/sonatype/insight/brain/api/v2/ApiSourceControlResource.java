@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
@@ -26,5 +26,5 @@ public interface ApiSourceControlResource
 
   ApiSourceControlDTO addOrUpdateSourceControl(String publicId,
                                                String repositoryUrl,
-                                               ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO);
+                                               ApiSourceControlRepositoryUserDTO apiSourceControlRepoUserDTO);
 }

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepoUserDTO;
+import com.sonatype.clm.dto.model.sourcecontrol.ApiSourceControlRepositoryUserDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
@@ -177,49 +177,41 @@ public class ApiSourceControlServiceTest
   public void testAddOrUpdateSourceControl_InvalidPublicId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
-            () -> sourceControlService.addOrUpdateSourceControlFromAppEvaluation("abcdefg", "https://e.com/org/proj"));
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControl_MissingPublicId_QueryParam() {
-    assertThatThrownBy(() -> sourceControlService
-        .addOrUpdateSourceControlFromAppEvaluation("", "", null))
-        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'publicId' is required");
+            () -> sourceControlService
+                .addOrUpdateSourceControl("abcdefg", "https://e.com/org/proj", null));
   }
 
   @Test
   public void testAddOrUpdateSourceControl_MissingRepoUrl_QueryParam() {
     assertThatThrownBy(() -> sourceControlService
-        .addOrUpdateSourceControlFromAppEvaluation("hello", "", null))
+        .addOrUpdateSourceControl("hello", "", null))
         .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_MissingPublicId_BodyProperty() {
-    ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO = new ApiSourceControlRepoUserDTO();
-    apiSourceControlRepoUserDTO.publicId = "";
-    apiSourceControlRepoUserDTO.repositoryUrl = "";
+    ApiSourceControlRepositoryUserDTO apiSourceControlRepoUserDTO = new ApiSourceControlRepositoryUserDTO();
+    String publicId = "";
 
     assertThatThrownBy(() -> sourceControlService
-        .addOrUpdateSourceControlFromAppEvaluation(
-            apiSourceControlRepoUserDTO.publicId,
+        .addOrUpdateSourceControl(
+            publicId,
             null,
             apiSourceControlRepoUserDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Parameter 'publicId' is required");
+        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_MissingRepoUrl_BodyProperty() {
-    ApiSourceControlRepoUserDTO apiSourceControlRepoUserDTO = new ApiSourceControlRepoUserDTO();
-    apiSourceControlRepoUserDTO.publicId = "hello";
-    apiSourceControlRepoUserDTO.repositoryUrl = "";
+    ApiSourceControlRepositoryUserDTO apiSourceControlRepoUserDTO = new ApiSourceControlRepositoryUserDTO();
+    String publicId = "hello";
 
     assertThatThrownBy(() -> sourceControlService
-        .addOrUpdateSourceControlFromAppEvaluation(
-            apiSourceControlRepoUserDTO.publicId,
+        .addOrUpdateSourceControl(
+            publicId,
             null,
             apiSourceControlRepoUserDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Parameter 'repositoryUrl' is required");
+        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
@@ -332,7 +324,7 @@ public class ApiSourceControlServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(enabled);
 
     ApiSourceControlDTO result =
-        sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), collectedUrl);
+        sourceControlService.addOrUpdateSourceControl(app.getPublicId(), collectedUrl, null);
     if (!enabled && initialUrl == null) {
       assertThat(result).isNull();
       verify(telemetrySenderMock, never()).send(any(TelemetryData.class));

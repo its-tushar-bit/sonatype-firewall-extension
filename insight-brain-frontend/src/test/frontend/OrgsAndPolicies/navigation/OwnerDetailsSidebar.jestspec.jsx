@@ -40,6 +40,11 @@ const defaultPreloadedState = {
   productFeatures: {
     productFeatures: {
       'saas-lifecycle-scm-enabled': true,
+      'policy-grandfathering': true,
+      'orgs-and-apps': true,
+      'policy-monitoring': true,
+      'source-control': true,
+      notifications: true,
     },
   },
   orgsAndPolicies: {
@@ -183,45 +188,10 @@ describe('OwnerDetailSidebar', () => {
       render(<OwnerDetailSidebar />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
-  it('renders correct sidebar with correct list open at Organization levels when FirewallOnlyLicense only', async () => {
+  it('renders correct sidebar with correct list open at Organization levels when features are disabled', async () => {
     const state = {
-      productLicense: {
-        license: {
-          products: ['Firewall'],
-        },
-      },
-      productFeatures: {
-        productFeatures: {
-          'saas-lifecycle-scm-enabled': true,
-        },
-      },
-      router: {
-        currentState: {
-          name: 'management.edit.organization.create-category',
-          url: '/category',
-        },
-        currentParams: {
-          organizationId: 'ROOT_ORGANIZATION_ID',
-        },
-      },
-      orgsAndPolicies: {
-        applications: {
-          applications: APPS,
-        },
-        organizations: {
-          organizations: ORGS,
-        },
-        root: {
-          selectedOwner: {
-            id: 'ROOT_ORGANIZATION_ID',
-            name: 'Root Organization',
-          },
-        },
-        policyMonitoring: {
-          isLegacyViolationSupported: false,
-          isMonitoringSupported: true,
-        },
-      },
+      ...defaultPreloadedState,
+      productFeatures: {},
     };
 
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
@@ -238,62 +208,6 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
-  it('renders correct sidebar with correct list open at Organization levels when not FirewallOnlyLicense only', async () => {
-    const state = {
-      productLicense: {
-        license: {
-          products: ['SonatypeCLM', 'Firewall'],
-        },
-      },
-      productFeatures: {
-        productFeatures: {
-          'saas-lifecycle-scm-enabled': true,
-        },
-      },
-      router: {
-        currentState: {
-          name: 'management.edit.organization.create-category',
-          url: '/category',
-        },
-        currentParams: {
-          organizationId: 'ROOT_ORGANIZATION_ID',
-        },
-      },
-      orgsAndPolicies: {
-        applications: {
-          applications: APPS,
-        },
-        organizations: {
-          organizations: ORGS,
-        },
-        root: {
-          selectedOwner: {
-            id: 'ROOT_ORGANIZATION_ID',
-            name: 'Root Organization',
-          },
-        },
-        policyMonitoring: {
-          isLegacyViolationSupported: false,
-          isMonitoringSupported: true,
-        },
-      },
-    };
-
-    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
-
-    renderComponent(state);
-
-    expect(await screen.findByText('Application Categories')).toBeVisible();
-    expect(await screen.findByText('Policies')).toBeVisible();
-    expect(await screen.findByText('Component Labels')).toBeVisible();
-    expect(await screen.findByText('License Threat Groups')).toBeVisible();
-    expect(await screen.findByText('Application Evaluator')).toBeVisible();
-    expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
-    expect(await screen.findByText('Legacy Violations')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Source Control' })).toBeVisible();
-    expect(screen.getByText('Legacy Violations').parentElement).toHaveClass('disabled');
-  });
-
   it('renders correct sidebar with correct list open at Organization levels', async () => {
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
@@ -307,7 +221,6 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
     expect(await screen.findByText('Legacy Violations')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Source Control' })).toBeVisible();
-    expect(screen.getByText('Legacy Violations').parentElement).toHaveClass('disabled');
   });
 
   it('renders correct sidebar with correct list open at Repositories', () => {

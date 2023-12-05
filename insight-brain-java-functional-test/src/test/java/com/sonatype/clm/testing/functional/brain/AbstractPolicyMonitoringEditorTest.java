@@ -26,10 +26,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
 
 public abstract class AbstractPolicyMonitoringEditorTest
     extends AbstractFunctionalTest
@@ -86,12 +86,11 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   public void assertNotLicensed(boolean notificationsReadOnly) {
     refresh();
-    Condition notLicensedTextOwnerSummary = text("Policy monitoring is not supported by your license");
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     OwnerSummaryPage.monitoredStage()
-            .shouldBe(visible).shouldHave(notLicensedTextOwnerSummary).shouldNotHave(CLICKABLE);
+        .shouldBe(hidden);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));
@@ -99,8 +98,8 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
     // disable the owner detail sidebar item
     refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner));
-    OwnerDetailSidebar.continuousMonitoring().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
+    OwnerDetailSidebar.continuousMonitoring().shouldBe(hidden);
+    Tooltip.get().shouldBe(hidden);
     // disable continuous monitoring checkboxes in notification area
     ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
     if (notificationsReadOnly) {

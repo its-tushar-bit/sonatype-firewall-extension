@@ -553,6 +553,12 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_GRANDFATHERING);
       features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+
+      features.add(LicensedFeature.DATA_RETENTION);
+      features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
+      features.add(LicensedFeature.ORGS_AND_APPS);
+      features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
+
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
@@ -575,6 +581,11 @@ public class CLMLicenseManager
       features.add(LicensedFeature.BREAKING_CHANGE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+
+      features.add(LicensedFeature.DATA_RETENTION);
+      features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
+      features.add(LicensedFeature.ORGS_AND_APPS);
+      features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
@@ -594,6 +605,11 @@ public class CLMLicenseManager
       features.add(LicensedFeature.CI_INTEGRATION);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.QUALITY);
+
+      features.add(LicensedFeature.DATA_RETENTION);
+      features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
+      features.add(LicensedFeature.ORGS_AND_APPS);
+      features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
@@ -640,6 +656,11 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.AUTOMATION);
       features.add(LicensedFeature.IP_ALLOWLIST);
+
+      features.add(LicensedFeature.DATA_RETENTION);
+      features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
+      features.add(LicensedFeature.ORGS_AND_APPS);
+      features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {

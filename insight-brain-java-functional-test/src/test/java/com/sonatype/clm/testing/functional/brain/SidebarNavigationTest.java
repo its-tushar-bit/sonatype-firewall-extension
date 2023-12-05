@@ -148,7 +148,7 @@ public class SidebarNavigationTest
   @Test
   public void testNavigation_ToAdvancedSearch_NonAdminUser() {
     try {
-      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
+      enableAdvancedSearch();
       User user = tempEntity.newUser();
       refreshOrOpen(DashboardPage.url());
       logout();
@@ -290,6 +290,12 @@ public class SidebarNavigationTest
     refresh();
 
     enableAdvancedSearch();
+    setMissingFeatures(LicensedFeature.DASHBOARD,
+        LicensedFeature.ADVANCED_LEGAL_PACK,
+        LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.DATA_INSIGHTS);
+    //setFeatures(LicensedFeature.FIREWALL);
     // this is PRODUCT_FIREWALL V1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
 
@@ -313,6 +319,8 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.DATA_INSIGHTS);
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
 
@@ -358,6 +366,11 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.DATA_INSIGHTS,
+        LicensedFeature.ORGS_AND_APPS);
+
     // this is PRODUCT_FIREWALL_FOR_ARTIFACTORY v1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
 
@@ -381,6 +394,10 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
+        LicensedFeature.DATA_INSIGHTS,
+        LicensedFeature.ORGS_AND_APPS);
+
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
 
     refresh();
@@ -402,6 +419,12 @@ public class SidebarNavigationTest
     uninstallLicense();
     testProductLicense.reset();
     refresh();
+
+    setMissingFeatures(LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.ADVANCED_LEGAL_PACK,
+        LicensedFeature.DATA_INSIGHTS,
+        LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_COMPONENT_ANALYSIS_SERVICE);
 
@@ -469,6 +492,11 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
+    setMissingFeatures(LicensedFeature.DASHBOARD,
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.DATA_INSIGHTS);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK);
 
     refresh();
@@ -490,6 +518,12 @@ public class SidebarNavigationTest
     uninstallLicense();
     testProductLicense.reset();
     refresh();
+
+    setMissingFeatures(LicensedFeature.DASHBOARD,
+        LicensedFeature.DATA_INSIGHTS,
+        LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.WAIVERS_DASHBOARD);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
 
@@ -514,6 +548,10 @@ public class SidebarNavigationTest
     refresh();
 
     enableAdvancedSearch();
+
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.DATA_INSIGHTS);
+
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
         ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
 
@@ -563,6 +601,10 @@ public class SidebarNavigationTest
     logout();
 
     enableAdvancedSearch();
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
+        LicensedFeature.DATA_INSIGHTS,
+        LicensedFeature.DASHBOARD,
+        LicensedFeature.ORGS_AND_APPS);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
 
     loginAsAdmin();

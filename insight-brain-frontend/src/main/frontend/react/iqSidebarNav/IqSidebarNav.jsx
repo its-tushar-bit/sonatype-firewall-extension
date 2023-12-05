@@ -42,6 +42,7 @@ function IqSidebarNav(props) {
     isLoggedIn,
     isLicensed,
     isDashboardAvailable,
+    isDashboardWaiversAvailable,
     isReportsListAvailable,
     isSuccessMetricsEnabled,
     isAdvancedSearchEnabled,
@@ -50,18 +51,18 @@ function IqSidebarNav(props) {
     isApiPageEnabled,
     isDataInsightsEnabled,
     isShowVersionEnabled,
-    isFirewallOnlyLicense,
     isDeveloperDashboardEnabled,
     isIntegratedEnterpriseReportingEnabled,
+    isOrgsAndAppsEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
 
   const apiHref = uiRouterState.href('api');
   const enterpriseReportingHref = uiRouterState.href('enterpriseReporting');
-  const dashboardHref = isFirewallOnlyLicense
-    ? uiRouterState.href('dashboard.overview.waivers')
-    : uiRouterState.href('dashboard.overview.violations');
+  const dashboardHref = isDashboardAvailable
+    ? uiRouterState.href('dashboard.overview.violations')
+    : uiRouterState.href('dashboard.overview.waivers');
   const logoHref = uiRouterState.href('home');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
@@ -103,7 +104,7 @@ function IqSidebarNav(props) {
     >
       {isLoggedIn && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">
-          {(isDashboardAvailable || isFirewallOnlyLicense) && (
+          {(isDashboardAvailable || isDashboardWaiversAvailable) && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('dashboard')}
               id="dashboard-navigation-button"
@@ -121,7 +122,7 @@ function IqSidebarNav(props) {
               href={orgsPoliciesHref}
             />
           )}
-          {isReportsListAvailable && !isFirewallOnlyLicense && (
+          {isReportsListAvailable && isOrgsAndAppsEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isReportsSelected}
               id="reporting-navigation-button"
@@ -130,7 +131,7 @@ function IqSidebarNav(props) {
               href={reportsHref}
             />
           )}
-          {isSuccessMetricsEnabled && !isFirewallOnlyLicense && (
+          {isSuccessMetricsEnabled && isOrgsAndAppsEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('labs')}
               id="labs-navigation-button"
@@ -166,7 +167,7 @@ function IqSidebarNav(props) {
               href={firewallHref}
             />
           )}
-          {isLicensed && isLegalEnabled && !isFirewallOnlyLicense && (
+          {isLicensed && isLegalEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('legal')}
               id="advanced-legal-navigation-button"
@@ -261,6 +262,7 @@ IqSidebarNav.propTypes = {
   isLoggedIn: PropTypes.bool,
   isLicensed: PropTypes.bool,
   isDashboardAvailable: PropTypes.bool,
+  isDashboardWaiversAvailable: PropTypes.bool,
   isReportsListAvailable: PropTypes.bool,
   isSuccessMetricsEnabled: PropTypes.bool,
   isAdvancedSearchEnabled: PropTypes.bool,
@@ -269,8 +271,8 @@ IqSidebarNav.propTypes = {
   isApiPageEnabled: PropTypes.bool,
   isDataInsightsEnabled: PropTypes.bool,
   isShowVersionEnabled: PropTypes.bool,
-  isFirewallOnlyLicense: PropTypes.bool,
   isDeveloperDashboardEnabled: PropTypes.bool,
   isIntegratedEnterpriseReportingEnabled: PropTypes.bool,
+  isOrgsAndAppsEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

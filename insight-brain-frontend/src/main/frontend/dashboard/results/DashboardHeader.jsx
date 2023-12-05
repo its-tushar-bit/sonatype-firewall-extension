@@ -25,7 +25,8 @@ export default function DashboardResults(props) {
     showDirtyAsterisk,
     loadFilter,
     stateGo,
-    isFirewallOnlyLicense,
+    isDashboardEnabled,
+    isWaiversTabEnabled,
   } = props;
 
   useEffect(() => {
@@ -48,7 +49,12 @@ export default function DashboardResults(props) {
           </div>
         </div>
         <LoadWrapper loading={filterLoading} error={loadFilterError} retryHandler={loadFilter}>
-          <DashboardTabs stateGo={stateGo} {...dashboard} isFirewallOnlyLicense={isFirewallOnlyLicense} />
+          <DashboardTabs
+            stateGo={stateGo}
+            {...dashboard}
+            isDashboardEnabled={isDashboardEnabled}
+            isWaiversTabEnabled={isWaiversTabEnabled}
+          />
         </LoadWrapper>
       </div>
     </Fragment>
@@ -65,5 +71,6 @@ DashboardResults.propTypes = {
   filters: PropTypes.object,
   filterLoading: PropTypes.bool.isRequired,
   loadFilterError: PropTypes.string,
-  isFirewallOnlyLicense: PropTypes.bool,
+  isDashboardEnabled: PropTypes.bool.isRequired,
+  isWaiversTabEnabled: PropTypes.bool.isRequired,
 };

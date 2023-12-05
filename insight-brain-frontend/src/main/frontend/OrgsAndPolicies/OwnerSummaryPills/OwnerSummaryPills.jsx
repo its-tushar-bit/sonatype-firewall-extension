@@ -7,12 +7,18 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
-  selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
+  selectIsDataRetentionEnabled,
+  selectIsInnerSourceRepositorySupported,
+  selectIsInnerSourceRepositoriesEnabled,
+  selectIsLegacyViolationSupported,
+  selectIsMonitoringSupported,
+  selectIsOrgsAndAppsEnabled,
+  selectIsProprietaryComponentsEnabled,
+  selectIsSourceControlForSourceTileSupported,
   selectTenantMode,
   selectIsScmEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
 
@@ -20,10 +26,16 @@ export default function OwnerSummaryPills() {
   const isOrg = useSelector(selectIsOrganization);
   const isApp = useSelector(selectIsApplication);
   const isInnerSourceRepositorySupported = useSelector(selectIsInnerSourceRepositorySupported);
+  const isInnerSourceRepositoriesEnabled = useSelector(selectIsInnerSourceRepositoriesEnabled);
   const isArtifactoryRepositorySupported = useSelector(selectIsArtifactoryRepositorySupported);
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
+  const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
+  const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
+  const isProprietaryComponentsEnabled = useSelector(selectIsProprietaryComponentsEnabled);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
-  const isDataRetentionConfigEnabled = !(isFirewallOnlyLicense || isMultiTenant);
+  const isDataRetentionEnabled = useSelector(selectIsDataRetentionEnabled);
+  const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
+  const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const isScmEnabled = useSelector(selectIsScmEnabled);
 
   const navList = useMemo(
@@ -31,7 +43,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'App Categories',
         target: 'owner-pill-app-categories',
-        isDisplayed: !isFirewallOnlyLicense,
+        isDisplayed: isOrgsAndAppsEnabled,
       },
       {
         label: 'Policies',
@@ -41,17 +53,17 @@ export default function OwnerSummaryPills() {
       {
         label: 'Legacy Violations',
         target: 'owner-pill-legacy-violations',
-        isDisplayed: !isFirewallOnlyLicense,
+        isDisplayed: isLegacyViolationSupported,
       },
       {
         label: 'Continuous monitoring',
         target: 'owner-pill-continuous-monitoring',
-        isDisplayed: !isFirewallOnlyLicense,
+        isDisplayed: isMonitoringSupported,
       },
       {
         label: 'Proprietary Components',
         target: 'owner-pill-component-configuration',
-        isDisplayed: !isFirewallOnlyLicense,
+        isDisplayed: isProprietaryComponentsEnabled,
       },
       {
         label: 'Component labels',
@@ -71,12 +83,12 @@ export default function OwnerSummaryPills() {
       {
         label: 'Source control',
         target: 'owner-pill-source-control',
-        isDisplayed: (isOrg || isApp) && !isFirewallOnlyLicense && isScmEnabled,
+        isDisplayed: (isOrg || isApp) && isSourceControlForSourceTileSupported && isScmEnabled,
       },
       {
         label: 'InnerSource repository',
         target: 'owner-pill-innersource-repository',
-        isDisplayed: isInnerSourceRepositorySupported && (isOrg || isApp) && !isFirewallOnlyLicense,
+        isDisplayed: isInnerSourceRepositorySupported && (isOrg || isApp) && isInnerSourceRepositoriesEnabled,
       },
       {
         label: 'Artifactory repository',
@@ -89,7 +101,19 @@ export default function OwnerSummaryPills() {
         isDisplayed: true,
       },
     ],
-    [isOrg, isApp, isArtifactoryRepositorySupported, isInnerSourceRepositorySupported]
+    [
+      isOrgsAndAppsEnabled,
+      isLegacyViolationSupported,
+      isMonitoringSupported,
+      isProprietaryComponentsEnabled,
+      isOrg,
+      isDataRetentionConfigEnabled,
+      isApp,
+      isSourceControlForSourceTileSupported,
+      isInnerSourceRepositorySupported,
+      isInnerSourceRepositoriesEnabled,
+      isArtifactoryRepositorySupported,
+    ]
   );
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

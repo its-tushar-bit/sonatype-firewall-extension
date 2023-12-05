@@ -13,17 +13,9 @@ import * as policyMonitoringSelectors from 'MainRoot/OrgsAndPolicies/policyMonit
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('ContinuousMonitoringSummaryTile', () => {
-  let renderComponent,
-    selectIsMonitoringSupportedSpy,
-    selectIsLoadingSpy,
-    selectMonitoredStageFromActionStagesSpy,
-    routerContextMock;
+  let renderComponent, selectIsLoadingSpy, selectMonitoredStageFromActionStagesSpy, routerContextMock;
 
   beforeEach(() => {
-    selectIsMonitoringSupportedSpy = spyOn(productFeatureSelectors, 'selectIsMonitoringSupported').and.returnValue(
-      true
-    );
-
     spyOn(stageSelectors, 'selectActionStagesIsLoading').and.returnValue(false);
     spyOn(stageSelectors, 'selectActionStagesLoadError').and.returnValue('');
     spyOn(policyMonitoringSelectors, 'selectPolicyMonitoringLinkParams').and.returnValue({
@@ -48,133 +40,65 @@ describe('ContinuousMonitoringSummaryTile', () => {
     renderComponent = () => render(<ContinuousMonitoringSummaryTile />);
   });
 
-  it('renders a correct title', () => {
-    renderComponent();
+  describe('Continuous Monitoring Feature is enabled', () => {
+    beforeEach(() => {
+      spyOn(productFeatureSelectors, 'selectIsMonitoringSupported').and.returnValue(true);
+    });
 
-    let headerTitle = screen.getByRole('heading', { level: 2 });
-    expect(headerTitle).toBeVisible();
-    expect(headerTitle).toHaveTextContent('Continuous monitoring');
+    it('renders a correct title', () => {
+      renderComponent();
+
+      let headerTitle = screen.getByRole('heading', { level: 2 });
+      expect(headerTitle).toBeVisible();
+      expect(headerTitle).toHaveTextContent('Continuous monitoring');
+    });
+
+    it('renders loading while fetching information', () => {
+      selectIsLoadingSpy.and.returnValue(true);
+      renderComponent();
+
+      expect(screen.getByText('Loading…')).toBeVisible();
+    });
+
+    it('renders Develop stage', () => {
+      selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Develop' });
+      renderComponent();
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Develop');
+    });
+
+    it('renders Stage Release', () => {
+      selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Stage Release' });
+      renderComponent();
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Stage Release');
+    });
+
+    it('text is a link to edit continuous monitoring page', () => {
+      selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Stage Release' });
+      renderComponent();
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Stage Release');
+
+      const linkToEdit = screen.getByText('Stage Release').closest('a');
+      expect(linkToEdit).toHaveAttribute('href', '#/management/edit/application/multiModule/monitoring');
+    });
   });
 
-  it('renders a message if product feature is not supported by license', () => {
-    selectIsMonitoringSupportedSpy.and.returnValue(false);
-    renderComponent();
-
-    expect(screen.getByText('Policy monitoring is not supported by your license')).toBeVisible();
-  });
-
-  it('renders loading while fetching information', () => {
-    selectIsLoadingSpy.and.returnValue(true);
-    renderComponent();
-
-    expect(screen.getByText('Loading…')).toBeVisible();
-  });
-
-  it('renders Develop stage', () => {
-    selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Develop' });
-    renderComponent();
-    const monitoringStage = screen.getByRole('listitem');
-    expect(monitoringStage).toBeVisible();
-    expect(monitoringStage).toHaveTextContent('Develop');
-  });
-
-  it('renders Stage Release', () => {
-    selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Stage Release' });
-    renderComponent();
-    const monitoringStage = screen.getByRole('listitem');
-    expect(monitoringStage).toBeVisible();
-    expect(monitoringStage).toHaveTextContent('Stage Release');
-  });
-
-  it('text is a link to edit continuous monitoring page', () => {
-    selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Stage Release' });
-    renderComponent();
-    const monitoringStage = screen.getByRole('listitem');
-    expect(monitoringStage).toBeVisible();
-    expect(monitoringStage).toHaveTextContent('Stage Release');
-
-    const linkToEdit = screen.getByText('Stage Release').closest('a');
-    expect(linkToEdit).toHaveAttribute('href', '#/management/edit/application/multiModule/monitoring');
-  });
-
-  describe('FirewallOnlyLicense', () => {
-    const renderComponentWithState = (preloadedState) =>
-      render(<ContinuousMonitoringSummaryTile />, { preloadedState });
-
-    const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
+  describe('Continuous Monitoring Feature is Disabled', () => {
+    beforeEach(() => {
+      spyOn(productFeatureSelectors, 'selectIsMonitoringSupported').and.returnValue(false);
+    });
 
     it('does not render with a Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
+      renderComponent();
 
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const title = await screen.queryByText('Continuous monitoring');
       expect(title).toBeNull();
-    });
-
-    it('renders with a non-Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Continuous monitoring');
-      expect(title).not.toBeNull();
     });
   });
 });

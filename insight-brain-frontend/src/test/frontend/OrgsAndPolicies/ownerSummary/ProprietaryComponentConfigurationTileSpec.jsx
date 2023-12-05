@@ -7,6 +7,7 @@ import React from 'react';
 import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
@@ -35,126 +36,65 @@ describe('ProprietaryComponentConfigurationTile', () => {
     renderComponent = () => render(<ProprietaryComponentConfigurationTile />);
   });
 
-  it('renders loading indicator', () => {
-    spyOn(proprietarySelectors, 'selectIsLoading').and.returnValue(true);
-
-    renderComponent();
-
-    expect(screen.getByText('Loading…')).toBeVisible();
-  });
-
-  it('renders error alert on load error', () => {
-    spyOn(proprietarySelectors, 'selectLoadError').and.returnValue('loadError');
-    renderComponent();
-
-    const error = screen.getByRole('alert');
-
-    expect(error).toBeVisible();
-  });
-
-  it('renders just local proprietary count', () => {
-    renderComponent();
-
-    expect(screen.getByText('1 local')).toBeVisible();
-    expect(screen.queryByText('1 inherited')).toBeNull();
-  });
-
-  it('renders both local and inherited proprietary count', () => {
-    selectIsRootOrganizationSpy.and.returnValue(false);
-    renderComponent();
-
-    expect(screen.getByText('1 local, 1 inherited')).toBeVisible();
-  });
-
-  it('renders link with href to edit proprietary component configuration page', () => {
-    spyOn(routerStateContext, 'useRouterState').and.returnValue({
-      href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+  describe('ProprietaryComponent Feature is Enabled', () => {
+    beforeEach(() => {
+      spyOn(productFeaturesSelectors, 'selectIsProprietaryComponentsEnabled').and.returnValue(true);
     });
 
-    renderComponent();
+    it('renders loading indicator', () => {
+      spyOn(proprietarySelectors, 'selectIsLoading').and.returnValue(true);
 
-    const linkItem = screen.getByText('1 local');
-    expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
+      renderComponent();
+
+      expect(screen.getByText('Loading…')).toBeVisible();
+    });
+
+    it('renders error alert on load error', () => {
+      spyOn(proprietarySelectors, 'selectLoadError').and.returnValue('loadError');
+      renderComponent();
+
+      const error = screen.getByRole('alert');
+
+      expect(error).toBeVisible();
+    });
+
+    it('renders just local proprietary count', () => {
+      renderComponent();
+
+      expect(screen.getByText('1 local')).toBeVisible();
+      expect(screen.queryByText('1 inherited')).toBeNull();
+    });
+
+    it('renders both local and inherited proprietary count', () => {
+      selectIsRootOrganizationSpy.and.returnValue(false);
+      renderComponent();
+
+      expect(screen.getByText('1 local, 1 inherited')).toBeVisible();
+    });
+
+    it('renders link with href to edit proprietary component configuration page', () => {
+      spyOn(routerStateContext, 'useRouterState').and.returnValue({
+        href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+      });
+
+      renderComponent();
+
+      const linkItem = screen.getByText('1 local');
+      expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
+    });
   });
 
-  describe('FirewallOnlyLicense', () => {
-    const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
+  describe('ProprietaryComponents Feature is Disabled', () => {
+    beforeEach(() => {
+      spyOn(productFeaturesSelectors, 'selectIsProprietaryComponentsEnabled').and.returnValue(false);
+    });
 
-    const renderComponentWithState = (preloadedState) =>
-      render(<ProprietaryComponentConfigurationTile />, { preloadedState });
-
-    it('does not render with a Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
+    it('does not render', async () => {
+      renderComponent();
 
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const title = await screen.queryByText('Proprietary Component Configuration');
       expect(title).toBeNull();
-    });
-
-    it('renders with a non-Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Proprietary Component Configuration');
-      expect(title).not.toBeNull();
     });
   });
 });

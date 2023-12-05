@@ -17,7 +17,7 @@ import { selectRouterSlice } from '../../reduxUiRouter/routerSelectors';
 import { deriveEditRoute } from '../utility/util';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { selectIsLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
+import { selectIsProprietaryComponentsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function ProprietaryComponentConfigurationTile() {
   const dispatch = useDispatch();
@@ -37,8 +37,7 @@ export default function ProprietaryComponentConfigurationTile() {
   const uiStateRouter = useRouterState();
   const href = uiStateRouter.href(to, params);
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isProprietaryComponentsEnabled = useSelector(selectIsProprietaryComponentsEnabled);
 
   const isRootOrg = useSelector(selectIsRootOrganization);
   const inheritedProprietaryCount = useSelector(selectProprietaryConfigInheritedMatchersCount);
@@ -47,7 +46,7 @@ export default function ProprietaryComponentConfigurationTile() {
   const localProprietaryText = `${localProprietaryCount} local`;
 
   return (
-    isFeatureEnabledForLicense && (
+    isProprietaryComponentsEnabled && (
       <NxTile id="owner-pill-component-configuration">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadData}>
           <NxTile.Header>

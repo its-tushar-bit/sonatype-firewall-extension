@@ -34,9 +34,7 @@ export default function FirewallAutoUnquarantineStatus(props) {
         </div>
       </div>
       <footer className="nx-card__footer">
-        <NxTextLink onClick={openConfigurationModal}>
-          Configure
-        </NxTextLink>
+        <NxTextLink onClick={openConfigurationModal}>Configure</NxTextLink>
       </footer>
     </section>
   );

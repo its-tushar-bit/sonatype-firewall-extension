@@ -37,11 +37,14 @@ import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
   selectIsAllowExternalHyperlinksSupported,
   selectIsFirewallSupportedForNavigationContainer,
+  selectIsDashboardSupported,
+  selectIsDashboardWaiversSupported,
+  selectIsFirewallSupported,
+  selectIsReportListSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
@@ -117,20 +120,21 @@ export const InitModule = angular
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
-                  const { productFeatures = {} } = $ngRedux.getState().productFeatures;
-                  const isDashboardAvailable = productFeatures.dashboard;
-                  const isReportsListAvailable = productFeatures['reports-list'];
-                  const isFirewallAvailable = productFeatures['firewall'];
-                  const isFirewallOnlyLicense = selectIsFirewallOnlyLicense($ngRedux.getState());
-                  const unconfiguredRepoManager = selectUnconfiguredRepoManager($ngRedux.getState());
-                  const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer($ngRedux.getState());
+                  const state = $ngRedux.getState();
+                  const isDashboardAvailable = selectIsDashboardSupported(state);
+                  const isWaiversDashboardAvailable = selectIsDashboardWaiversSupported(state);
+                  const isReportsListAvailable = selectIsReportListSupported(state);
+                  const unconfiguredRepoManager = selectUnconfiguredRepoManager(state);
+                  const isFirewallAvailable = selectIsFirewallSupported(state);
+                  const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer(state);
+
                   if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {
                     return 'firewallOnboarding.firewallOnboardingPage';
                   } else if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
-                  } else if (isFirewallOnlyLicense && !isFirewallEnabled) {
+                  } else if (isWaiversDashboardAvailable && !isFirewallEnabled) {
                     return 'dashboard.overview.waivers';
-                  } else if (isFirewallOnlyLicense) {
+                  } else if (isFirewallAvailable) {
                     return 'firewall.firewallPage';
                   } else if (isReportsListAvailable) {
                     return 'violations';
@@ -533,7 +537,6 @@ export const InitModule = angular
 export const mapStateToThis = (state) => ({
   isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),
   toast: selectToastSlice(state),
-  isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
 });
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([

@@ -239,15 +239,19 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.ORGS_AND_APPS, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        LicensedFeature.CLI_INTEGRATION, //
-        LicensedFeature.ENFORCEMENT, //
-        LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
@@ -257,15 +261,19 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.ORGS_AND_APPS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        LicensedFeature.CLI_INTEGRATION, //
-        LicensedFeature.ENFORCEMENT, //
-        LicensedFeature.NOTIFICATIONS, //
-        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
@@ -275,24 +283,29 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.AUTOMATION, //
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
+        LicensedFeature.BREAKING_CHANGE, //
         LicensedFeature.CI_INTEGRATION, //
-        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.CLI_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.HYGIENE, //
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.ORGS_AND_APPS, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        LicensedFeature.CLI_INTEGRATION, //
-        LicensedFeature.QUALITY, //
-        LicensedFeature.ENFORCEMENT, //
-        LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
-        LicensedFeature.AUTOMATION,
-        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES,
-        LicensedFeature.HYGIENE,
-        LicensedFeature.RELEASE_INTEGRITY,
-        LicensedFeature.BREAKING_CHANGE);
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.QUALITY, //
+        LicensedFeature.RELEASE_INTEGRITY, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+    );
   }
 
   @Test
@@ -301,21 +314,26 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.AUTOMATION, //
         LicensedFeature.CI_INTEGRATION, //
-        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.CLI_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.IP_ALLOWLIST, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.ORGS_AND_APPS, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        LicensedFeature.CLI_INTEGRATION, //
-        LicensedFeature.QUALITY, //
-        LicensedFeature.ENFORCEMENT, //
-        LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
-        LicensedFeature.AUTOMATION,
-        LicensedFeature.IP_ALLOWLIST);
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.QUALITY, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+    );
   }
 
   @Test
@@ -324,24 +342,29 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.IDE_INTEGRATION, //
-        LicensedFeature.CI_INTEGRATION, //
-        LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.POLICY_MONITORING, //
-        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        LicensedFeature.CLI_INTEGRATION, //
-        LicensedFeature.QUALITY, //
-        LicensedFeature.ENFORCEMENT, //
-        LicensedFeature.NOTIFICATIONS, //
-        LicensedFeature.POLICY_GRANDFATHERING, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.AUTOMATION,
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES,
+        LicensedFeature.BREAKING_CHANGE, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.ENFORCEMENT, //
         LicensedFeature.HYGIENE,
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.ORGS_AND_APPS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.QUALITY, //
         LicensedFeature.RELEASE_INTEGRITY,
-        LicensedFeature.BREAKING_CHANGE);
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+    );
   }
 
   @Test
@@ -367,9 +390,9 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.RM_STAGING_INTEGRATION);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test
@@ -378,11 +401,11 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -394,11 +417,11 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
-        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -410,15 +433,15 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
-        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
+        LicensedFeature.IP_ALLOWLIST, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.IP_ALLOWLIST);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test
@@ -427,11 +450,11 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(//
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
-        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -444,11 +467,15 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.ORGS_AND_APPS, //
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.QUALITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.QUALITY);
+        LicensedFeature.WAIVERS_DASHBOARD);
   }
 
   @Test
@@ -457,12 +484,16 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
-        LicensedFeature.DASHBOARD, //
-        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.DATA_RETENTION, //
+        LicensedFeature.INNER_SOURCE_REPOSITORIES, //
+        LicensedFeature.ORGS_AND_APPS, //
+        LicensedFeature.PROPRIETARY_COMPONENTS, //
+        LicensedFeature.QUALITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.QUALITY);
+        LicensedFeature.WAIVERS_DASHBOARD);
   }
 
   @Test

@@ -20,7 +20,6 @@ import {
 } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 import { selectActionStagesIsLoading, selectActionStagesLoadError } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function ContinuousMonitoringSummaryTile() {
   const uiStateRouter = useRouterState();
@@ -37,9 +36,6 @@ export default function ContinuousMonitoringSummaryTile() {
   const stagesLoadError = useSelector(selectActionStagesLoadError);
   const loadError = monitoringLoadError || stagesLoadError;
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
-
   const doLoad = () => {
     dispatch(policyMonitoringActions.loadContinuousMonitoringSummaryTileInformation());
   };
@@ -49,16 +45,12 @@ export default function ContinuousMonitoringSummaryTile() {
   }, []);
 
   const renderContent = () => {
-    if (isMonitoringSupported) {
-      const stageName = prop('stageName', monitoredStage);
-      return <NxList.LinkItem href={href}>{stageName}</NxList.LinkItem>;
-    } else {
-      return <NxList.Item>Policy monitoring is not supported by your license</NxList.Item>;
-    }
+    const stageName = prop('stageName', monitoredStage);
+    return <NxList.LinkItem href={href}>{stageName}</NxList.LinkItem>;
   };
 
   return (
-    isFeatureEnabledForLicense && (
+    isMonitoringSupported && (
       <NxTile id="owner-pill-continuous-monitoring">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
           <NxTile.Header>

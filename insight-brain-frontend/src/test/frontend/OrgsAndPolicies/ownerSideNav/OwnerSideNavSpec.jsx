@@ -84,6 +84,11 @@ describe('OwnerSideNav', () => {
   beforeEach(() => {
     const selectedOrg = addOrgsAndApps(ownersMap[topParentOrganizationId]);
     state = {
+      productFeatures: {
+        productFeatures: {
+          'orgs-and-apps': true,
+        },
+      },
       router: {
         currentParams: {},
         currentState: { name: 'management.view.organization' },
@@ -188,6 +193,11 @@ describe('OwnerSideNav', () => {
 
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -239,6 +249,11 @@ describe('OwnerSideNav', () => {
     beforeEach(() => {
       selectedOrg = ownersMap[topParentOrganizationId];
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -352,6 +367,11 @@ describe('OwnerSideNav', () => {
     beforeEach(() => {
       selectedOrg = ownersMap[topParentOrganizationId];
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.repositories',
@@ -469,7 +489,10 @@ describe('OwnerSideNav', () => {
           },
         },
         productFeatures: {
-          productFeatures: { 'saas-lifecycle-scm-enabled': true },
+          productFeatures: {
+            'orgs-and-apps': true,
+            'saas-lifecycle-scm-enabled': true,
+          },
         },
         orgsAndPolicies: {
           ownerSideNav: {
@@ -652,6 +675,11 @@ describe('OwnerSideNav', () => {
       selectedOrg = ownersMap[ownersMap[topParentOrganizationId].organizationIds[0]];
       selectedApp = ownersMap[selectedOrg.applicationIds[0]];
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.application',
@@ -749,6 +777,11 @@ describe('OwnerSideNav', () => {
       selectedOrg.organizationIds = [];
       selectedApp = ownersMap[selectedOrg.applicationIds[0]];
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.application',
@@ -845,6 +878,11 @@ describe('OwnerSideNav', () => {
       selectedOrg.organizations = null;
       selectedOrg.applications = null;
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -913,9 +951,9 @@ describe('OwnerSideNav', () => {
     it('renders components when not FirewallOnlyLicense', async () => {
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
-        productLicense: {
-          license: {
-            products: ['SonatypeCLM', 'Firewall'],
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
           },
         },
         router: {
@@ -952,10 +990,8 @@ describe('OwnerSideNav', () => {
     it('does not render components when FirewallOnlyLicense', async () => {
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
+        productFeatures: {
+          productFeatures: {},
         },
         router: {
           currentState: {

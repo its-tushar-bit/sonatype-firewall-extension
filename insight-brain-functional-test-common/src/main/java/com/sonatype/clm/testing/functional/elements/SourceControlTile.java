@@ -29,10 +29,6 @@ public class SourceControlTile
     return child(".nx-list__subtext");
   }
 
-  public SelenideElement notSupported() {
-    return child("#source-control-not-supported");
-  }
-
   public SelenideElement content() {
     return child(".nx-tile-content");
   }

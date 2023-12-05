@@ -579,19 +579,9 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(hidden);
 
-    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
-
-    tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.notSupported().shouldBe(visible);
-    tile.content().shouldNotBe(visible);
-    tile.notSupported().shouldHave(text("Source Control is not supported by your license"));
-
-    tile.itemText().shouldNotBe(visible);
-    tile.itemSubText().shouldNotBe(visible);
+    tile.shouldBe(hidden);
 
     eyesWatcher.eyesCheck("Source Control No License");
   }
@@ -610,7 +600,6 @@ public class OrganizationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.notSupported().shouldNotBe(visible);
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);

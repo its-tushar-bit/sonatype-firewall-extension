@@ -12,13 +12,9 @@ import { actions } from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('LegacyViolationsTile', () => {
-  let renderComponent, selectIsLegacyViolationSupportedSpy, selectLoadErrorSpy, selectLoadingSpy;
+  let renderComponent, selectLoadErrorSpy, selectLoadingSpy;
 
   beforeEach(() => {
-    selectIsLegacyViolationSupportedSpy = spyOn(
-      productFeaturesSelectors,
-      'selectIsLegacyViolationSupported'
-    ).and.returnValue(true);
     spyOn(legacyViolationSelectors, 'selectLegacyViolationsStatusMessage').and.returnValue(
       'Legacy violations are enabled'
     );
@@ -39,126 +35,55 @@ describe('LegacyViolationsTile', () => {
     renderComponent = () => render(<LegacyViolationsTile />);
   });
 
-  it('renders loading indicator', () => {
-    selectLoadingSpy.and.returnValue(true);
-    renderComponent();
-    expect(screen.getByText('Loading…')).toBeVisible();
-  });
-
-  it('renders error alert on load error', () => {
-    selectLoadErrorSpy.and.returnValue('Load Error');
-    renderComponent();
-
-    const error = screen.getByRole('alert');
-
-    expect(error).toBeVisible();
-  });
-
-  it('renders tile with the correct page title', () => {
-    renderComponent();
-    expect(screen.getByText('Legacy Violations')).toBeVisible();
-  });
-
-  it('renders legacy violations status', () => {
-    renderComponent();
-    expect(screen.getByText('Legacy violations are enabled')).toBeVisible();
-  });
-
-  it('renders not supported message if legacy violations are not supported', () => {
-    selectIsLegacyViolationSupportedSpy.and.returnValue(false);
-    renderComponent();
-
-    expect(screen.getByText('Legacy Violations are not supported by your license')).toBeVisible();
-  });
-
-  it('renders link with href to legacy violations configuration page', () => {
-    spyOn(routerStateContext, 'useRouterState').and.returnValue({
-      href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+  describe('LegacyViolations Feature is Enabled', () => {
+    beforeEach(() => {
+      spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
     });
-    renderComponent();
+    it('renders loading indicator', () => {
+      selectLoadingSpy.and.returnValue(true);
+      renderComponent();
+      expect(screen.getByText('Loading…')).toBeVisible();
+    });
 
-    const linkItem = screen.getByText('Legacy violations are enabled');
+    it('renders error alert on load error', () => {
+      selectLoadErrorSpy.and.returnValue('Load Error');
+      renderComponent();
 
-    expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
+      const error = screen.getByRole('alert');
+
+      expect(error).toBeVisible();
+    });
+
+    it('renders tile with the correct page title', () => {
+      renderComponent();
+      expect(screen.getByText('Legacy Violations')).toBeVisible();
+    });
+
+    it('renders legacy violations status', () => {
+      renderComponent();
+      expect(screen.getByText('Legacy violations are enabled')).toBeVisible();
+    });
+
+    it('renders link with href to legacy violations configuration page', () => {
+      spyOn(routerStateContext, 'useRouterState').and.returnValue({
+        href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+      });
+      renderComponent();
+
+      const linkItem = screen.getByText('Legacy violations are enabled');
+
+      expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
+    });
   });
 
-  describe('FirewallOnlyLicense', () => {
-    const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
-
-    const renderComponentWithState = (preloadedState) => render(<LegacyViolationsTile />, { preloadedState });
-
+  describe('LegacyViolations Feature is Disabled', () => {
+    beforeEach(() => {
+      spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(false);
+    });
     it('does not render with a Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
-
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
       const title = await screen.queryByText('Legacy Violations');
       expect(title).toBeNull();
-    });
-
-    it('renders with a non-Firewall only license', async () => {
-      const state = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
-          },
-        },
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-            url: '/organization/{organizationId}',
-            data: {
-              title: 'Organization Management',
-              viewportSized: true,
-            },
-          },
-          currentParams: {
-            organizationId: ownerId,
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
-            },
-          },
-        },
-      };
-
-      renderComponentWithState(state);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Legacy Violations');
-      expect(title).not.toBeNull();
     });
   });
 });

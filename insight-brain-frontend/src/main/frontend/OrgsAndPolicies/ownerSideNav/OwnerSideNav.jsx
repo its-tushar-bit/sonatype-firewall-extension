@@ -38,10 +38,9 @@ import {
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsScmEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function OwnerSideNav() {
   const dispatch = useDispatch();
@@ -67,7 +66,8 @@ export default function OwnerSideNav() {
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+
+  const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isScmEnabled = useSelector(selectIsScmEnabled);
 
   const uiRouterState = useRouterState();
@@ -280,9 +280,6 @@ export default function OwnerSideNav() {
   };
 
   const filterActive = filterQuery.value.length >= 3;
-  const shouldShowFilter = !isFirewallOnlyLicense;
-  const shouldShowOrgsAndApps = !isFirewallOnlyLicense;
-  const shouldShowTreeView = !isFirewallOnlyLicense;
 
   return (
     <>
@@ -292,7 +289,7 @@ export default function OwnerSideNav() {
           return (
             <>
               <header className="iq-orgs-and-policies-summary-sidebar__header" data-testid="sidebar-header">
-                {shouldShowFilter && (
+                {isOrgsAndAppsEnabled && (
                   <NxFilterInput
                     searchIcon
                     id="owner-sidebar-filter"
@@ -318,7 +315,7 @@ export default function OwnerSideNav() {
                 ) : (
                   <>
                     {renderRepositoriesNavigationItem()}
-                    {shouldShowOrgsAndApps && (
+                    {isOrgsAndAppsEnabled && (
                       <>
                         {renderOrganizations(displayedOrganization)}
                         {renderApplications(displayedOrganization)}
@@ -327,7 +324,7 @@ export default function OwnerSideNav() {
                   </>
                 )}
               </nav>
-              {shouldShowTreeView && (
+              {isOrgsAndAppsEnabled && (
                 <footer className="iq-orgs-and-policies-summary-sidebar__footer">
                   <a href={treeViewPageHref} className="nx-btn nx-btn--tertiary iq-tree-view-button">
                     <NxFontAwesomeIcon icon={faFolderTree} />

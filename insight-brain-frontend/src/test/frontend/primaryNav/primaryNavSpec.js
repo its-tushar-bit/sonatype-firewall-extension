@@ -131,7 +131,7 @@ describe('navigationContainerSpec', function () {
       };
 
       const output = mapStateToThis(state);
-      expect(output.isFirewallSupported).toBe(undefined);
+      expect(output.isFirewallSupported).toBe(false);
       expect(output.isAdvancedLegalPackSupported).toBeTrue();
       expect(output.isDashboardSupported).toBeTrue();
       expect(output.isReportListSupported).toBeTrue();

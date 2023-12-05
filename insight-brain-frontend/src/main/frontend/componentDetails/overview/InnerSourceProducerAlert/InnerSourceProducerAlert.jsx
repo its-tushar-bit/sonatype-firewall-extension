@@ -19,9 +19,7 @@ const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, owne
   return (
     <NxInfoAlert id="inner-source-producer-alert">
       This InnerSource component was produced by the application <b>{ownerApplicationName}</b>.{' '}
-      <NxTextLink onClick={onClick}>
-        View the latest report
-      </NxTextLink>{' '}
+      <NxTextLink onClick={onClick}>View the latest report</NxTextLink>{' '}
     </NxInfoAlert>
   );
 };

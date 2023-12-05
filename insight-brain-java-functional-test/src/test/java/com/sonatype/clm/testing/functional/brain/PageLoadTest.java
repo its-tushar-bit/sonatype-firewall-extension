@@ -193,7 +193,7 @@ public class PageLoadTest
 
   @Test
   public void testLoadIndexHtml_NoDashboard() {
-    setMissingFeature(LicensedFeature.DASHBOARD);
+    setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
 
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
@@ -215,6 +215,13 @@ public class PageLoadTest
   public void testLoadIndexHtml_NoDashboardAndNoReportsList() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
+
+    setMissingFeatures(LicensedFeature.DASHBOARD,
+        LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.WAIVERS_DASHBOARD);
 
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();

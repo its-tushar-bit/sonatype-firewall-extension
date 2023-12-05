@@ -16,7 +16,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
-import { selectIsInnerSourceRepositorySupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsInnerSourceRepositoriesEnabled,
+  selectIsInnerSourceRepositorySupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import {
   selectInheritedFromOrganizationName,
@@ -26,17 +29,18 @@ import {
   selectRepositoryConnections,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function InnerSourceRepositoryTile() {
   const dispatch = useDispatch();
   const isInnerSourceRepositorySupported = useSelector(selectIsInnerSourceRepositorySupported);
+  const isInnerSourceRepositoriesEnabled = useSelector(selectIsInnerSourceRepositoriesEnabled);
+
   const currentOwner = useSelector(selectSelectedOwner);
 
   const load = () => dispatch(actions.load({ inherit: true }));
 
   useEffect(() => {
-    if (isInnerSourceRepositorySupported) {
+    if (isInnerSourceRepositorySupported && isInnerSourceRepositoriesEnabled) {
       load();
     }
   }, [currentOwner, isInnerSourceRepositorySupported]);
@@ -51,19 +55,16 @@ export default function InnerSourceRepositoryTile() {
   const innerSourceRepositoriesEnabled = useSelector(selectInnerSourceRepositoriesEnabled);
   const innerSourceRepositoriesIsEmpty = innerSourceRepositoriesEnabled && !innerSourceRepositories.length;
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
-
   const goToEditInnerSourceRepositoryPage = () => {
     dispatch(actions.goToEditPage());
   };
 
-  if (!isInnerSourceRepositorySupported) {
+  if (!isInnerSourceRepositorySupported || !isInnerSourceRepositoriesEnabled) {
     return null;
   }
 
   return (
-    isFeatureEnabledForLicense && (
+    isInnerSourceRepositoriesEnabled && (
       <NxTile id="owner-pill-innersource-repository">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={load}>
           <NxTile.Header>

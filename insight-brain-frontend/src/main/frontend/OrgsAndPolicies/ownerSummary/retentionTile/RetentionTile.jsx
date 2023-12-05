@@ -25,8 +25,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
 import { actions, NOT_ENABLED } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import RetentionTable from './RetentionTable';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
-import { selectTenantMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsDataRetentionEnabled, selectTenantMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function RetentionTile() {
   const dispatch = useDispatch();
@@ -38,9 +37,9 @@ export default function RetentionTile() {
   const successMetrics = useSelector(selectSuccessMetrics);
   const stages = useSelector(selectApplicationReportsStages);
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isDataRetentionEnabled = useSelector(selectIsDataRetentionEnabled);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
-  const isFeatureEnabledForLicense = !(isFirewallOnlyLicense || isMultiTenant);
+  const isFeatureEnabledForLicense = isDataRetentionEnabled && !isMultiTenant;
 
   const goToEditRetention = () => dispatch(actions.goToEditRetention());
   const doLoad = () => dispatch(actions.loadRetention());

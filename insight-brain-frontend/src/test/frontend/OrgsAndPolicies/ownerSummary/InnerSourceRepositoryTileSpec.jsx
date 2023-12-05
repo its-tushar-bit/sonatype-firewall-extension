@@ -27,13 +27,11 @@ describe('InnerSourceRepositoryTile', () => {
   beforeEach(() => {
     goToEditInnerSourceRepositoryPageSpy = spyOn(actions, 'goToEditPage').and.callThrough();
     state = {
-      productLicense: {
-        license: {
-          products: ['CLM'],
-        },
-      },
       productFeatures: {
-        productFeatures: { 'inner-source-repository-integration': true },
+        productFeatures: {
+          'inner-source-repositories': true,
+          'inner-source-repository-integration': true,
+        },
       },
       router: {
         currentParams: { organizationId: ownerId },
@@ -142,15 +140,13 @@ describe('InnerSourceRepositoryTile', () => {
     expect(goToEditInnerSourceRepositoryPageSpy).toHaveBeenCalledTimes(1);
   });
 
-  describe('FirewallOnlyLicense', () => {
+  describe('InnerSource Repositories Feature is Disabled', () => {
     const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
 
     it('does not render with a Firewall only license', async () => {
       const state = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
+        productFeatures: {
+          productFeatures: {},
         },
         router: {
           currentState: {

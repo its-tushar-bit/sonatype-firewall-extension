@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.LegacyViolationsEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -25,9 +24,9 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_CHECKBOX_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_SELECTED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -184,15 +183,14 @@ public abstract class AbstractLegacyViolationsEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.legacyViolations().shouldHave(notLicensedText).click();
+    OwnerSummaryPage.legacyViolations().shouldBe(hidden);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(LegacyViolationsEditorPage.url(currentOwner));
     LegacyViolationsEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
     // make sure the owner detail sidebar item is disabled
-    OwnerDetailSidebar.legacyViolations().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(notLicensedText);
+    OwnerDetailSidebar.legacyViolations().shouldBe(hidden);
   }
 
   private void configureOrganizationsAndApplications(boolean allowOverride) {

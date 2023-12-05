@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.scan.ScanService;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -644,20 +645,16 @@ public class ApplicationSummaryViewTest
   @Test
   public void testSourceControlTile_LicensingAwareNoLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    setMissingFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.AUTOMATION);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
-
-    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
-
-    tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.notSupported().shouldBe(visible);
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldNotBe(visible);
+    
+    tile.shouldNotBe(visible);
+    tile.nxSubHeader().shouldNotBe(visible);
     tile.content().shouldNotBe(visible);
-    tile.notSupported().shouldHave(text("Source Control is not supported by your license"));
 
     tile.itemText().shouldNotBe(visible);
     tile.itemSubText().shouldNotBe(visible);
@@ -677,7 +674,6 @@ public class ApplicationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.notSupported().shouldNotBe(visible);
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);

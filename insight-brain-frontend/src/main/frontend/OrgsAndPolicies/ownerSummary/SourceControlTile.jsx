@@ -25,8 +25,6 @@ import {
   selectLoadError,
 } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
-import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 export default function SourceControlTile() {
   const dispatch = useDispatch();
@@ -49,8 +47,6 @@ export default function SourceControlTile() {
   const href = uiStateRouter.href(to, params);
   const currentOwner = useSelector(selectSelectedOwner);
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
   const isScmFeatureEnabled = useSelector(selectIsScmEnabled);
 
   const loadSourceControl = () => dispatch(sourceControlActions.loadSourceControl());
@@ -65,10 +61,6 @@ export default function SourceControlTile() {
   }`;
 
   const renderContent = () => {
-    if (!isSourceControlSupported) {
-      return <NxInfoAlert id="source-control-not-supported">{SOURCE_CONTROL_UNSUPPORTED_MESSAGE}</NxInfoAlert>;
-    }
-
     const showText = !!(sourceControl && effectiveProvider);
     return (
       <NxTile.Content>
@@ -89,7 +81,7 @@ export default function SourceControlTile() {
   };
 
   return (
-    isFeatureEnabledForLicense &&
+    isSourceControlSupported &&
     isScmFeatureEnabled && (
       <NxTile id="owner-pill-source-control">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadSourceControl}>

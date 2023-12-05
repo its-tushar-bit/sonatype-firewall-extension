@@ -17,12 +17,11 @@ import {
 
 const capitalizeFirstLetter = replace(/^./, toUpper);
 
-const tabs = [VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE, WAIVERS_RESULTS_TYPE];
-const firewallOnlyTabs = [WAIVERS_RESULTS_TYPE];
+const dashboardTabs = [VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE];
 
-export default function DashboardTabs({ currentTab, stateGo, isFirewallOnlyLicense, ...props }) {
+export default function DashboardTabs({ currentTab, stateGo, isDashboardEnabled, isWaiversTabEnabled, ...props }) {
   const handleTabClick = (index) => {
-    stateGo(`dashboard.overview.${tabsToUse[index]}`);
+    stateGo(`dashboard.overview.${getTabsToUse()[index]}`);
   };
 
   const renderTab = (tab) => (
@@ -36,11 +35,20 @@ export default function DashboardTabs({ currentTab, stateGo, isFirewallOnlyLicen
     </NxTab>
   );
 
-  const tabsToUse = isFirewallOnlyLicense ? firewallOnlyTabs : tabs;
-  const renderTabs = tabsToUse.map((tab) => renderTab(tab));
+  const getTabsToUse = () => {
+    const tabsToUse = [];
+    if (isDashboardEnabled) {
+      tabsToUse.push(...dashboardTabs);
+    }
+    if (isWaiversTabEnabled) {
+      tabsToUse.push(WAIVERS_RESULTS_TYPE);
+    }
+    return tabsToUse;
+  };
+  const renderTabs = getTabsToUse().map((tab) => renderTab(tab));
 
   return (
-    <NxTabs activeTab={tabsToUse.indexOf(currentTab)} onTabSelect={handleTabClick}>
+    <NxTabs activeTab={getTabsToUse().indexOf(currentTab)} onTabSelect={handleTabClick}>
       <NxTabList>{renderTabs}</NxTabList>
     </NxTabs>
   );
@@ -52,6 +60,8 @@ export const dashboardTabsPropTypes = {
   components: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   applications: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   waivers: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
+  isDashboardEnabled: PropTypes.bool.isRequired,
+  isWaiversTabEnabled: PropTypes.bool.isRequired,
 };
 
 DashboardTabs.propTypes = {

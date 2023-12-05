@@ -15,7 +15,6 @@ import {
   selectLoading,
 } from '../legacyViolationSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function LegacyViolationsTile() {
   const dispatch = useDispatch();
@@ -25,9 +24,6 @@ export default function LegacyViolationsTile() {
   const legacyViolationsStatusMessage = useSelector(selectLegacyViolationsStatusMessage);
   const isLoading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
-
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const doLoad = () => dispatch(actions.loadLegacyViolation());
 
@@ -39,14 +35,11 @@ export default function LegacyViolationsTile() {
   }, []);
 
   const renderContent = () => {
-    if (isLegacyViolationsEnabled) {
-      return <NxList.LinkItem href={href}>{legacyViolationsStatusMessage}</NxList.LinkItem>;
-    }
-    return <NxList.Item>Legacy Violations are not supported by your license</NxList.Item>;
+    return <NxList.LinkItem href={href}>{legacyViolationsStatusMessage}</NxList.LinkItem>;
   };
 
   return (
-    isFeatureEnabledForLicense && (
+    isLegacyViolationsEnabled && (
       <NxTile id="owner-pill-legacy-violations">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
           <NxTile.Header>

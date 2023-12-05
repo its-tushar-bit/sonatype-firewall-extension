@@ -42,7 +42,7 @@ import { actions as createEditApplicationCategoriesActions } from 'MainRoot/Orgs
 import { curryN, isEmpty } from 'ramda';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
+import { selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function ApplicationCategoriesTile() {
   const dispatch = useDispatch();
@@ -75,8 +75,7 @@ export default function ApplicationCategoriesTile() {
   const router = useSelector(selectRouterSlice);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
 
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
 
   const loadAssignableCategories = () => dispatch(assignApplicationCategoriesActions.loadApplicableCategories());
   const loadAppliedCategories = () => dispatch(assignApplicationCategoriesActions.loadAppliedCategories());
@@ -241,7 +240,7 @@ export default function ApplicationCategoriesTile() {
   }, [entityId]);
 
   return (
-    isFeatureEnabledForLicense && (
+    isOrgsAndAppsEnabled && (
       <NxTile id="owner-pill-app-categories">
         <NxLoadWrapper loading={loading} retryHandler={loadData} error={error}>
           <NxTile.Header>

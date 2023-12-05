@@ -14,20 +14,22 @@ import {
   selectIsAdvancedLegalPackSupported,
   selectIsFirewallSupportedForNavigationContainer,
   selectIsDashboardSupported,
+  selectIsDashboardWaiversSupported,
   selectIsReportListSupported,
   selectIsApiPageSupported,
   selectIsDataInsightsSupported,
   selectIsShowVersionEnabled,
   selectIsDeveloperDashboardEnabled,
   selectIsIntegratedEnterpriseReportingEnabled,
+  selectIsOrgsAndAppsEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
   var vm = this;
   vm.$state = $state;
   vm.isDashboardAvailable = isDashboardAvailable;
+  vm.isDashboardWaiversAvailable = isDashboardWaiversAvailable;
   vm.isReportsListAvailable = isReportsListAvailable;
   vm.isSuccessMetricsEnabled = false;
   vm.isAdvancedSearchEnabled = false;
@@ -41,6 +43,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isDataInsightsEnabled = false;
   vm.isDeveloperDashboardEnabled = false;
   vm.isIntegratedEnterpriseReportingEnabled = false;
+  vm.isOrgsAndAppsEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -86,6 +89,10 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
     return vm.isDashboardSupported;
   }
 
+  function isDashboardWaiversAvailable() {
+    return vm.isDashboardWaiversSupported;
+  }
+
   function isReportsListAvailable() {
     return vm.isReportListSupported;
   }
@@ -98,13 +105,14 @@ function mapStateToThis(state) {
     isFirewallSupported: selectIsFirewallSupportedForNavigationContainer(state),
     isAdvancedLegalPackSupported: selectIsAdvancedLegalPackSupported(state),
     isDashboardSupported: selectIsDashboardSupported(state),
+    isDashboardWaiversSupported: selectIsDashboardWaiversSupported(state),
     isReportListSupported: selectIsReportListSupported(state),
     isApiPageEnabled: selectIsApiPageSupported(state),
     isDataInsightsEnabled: selectIsDataInsightsSupported(state),
     isShowVersionEnabled: selectIsShowVersionEnabled(state),
-    isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
     isDeveloperDashboardEnabled: selectIsDeveloperDashboardEnabled(state),
     isIntegratedEnterpriseReportingEnabled: selectIsIntegratedEnterpriseReportingEnabled(state),
+    isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
   };
 }
 

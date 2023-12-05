@@ -4,11 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { assocPath } from 'ramda';
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
-import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { getCompositeSourceControlUrl } from 'MainRoot/util/CLMLocation';
 
 describe('SourceControlTile', () => {
@@ -20,11 +18,6 @@ describe('SourceControlTile', () => {
 
   beforeEach(() => {
     state = {
-      productLicense: {
-        license: {
-          products: ['Firewall', 'CLM'],
-        },
-      },
       router: {
         currentState: { name: 'organization' },
         currentParams: {
@@ -133,15 +126,6 @@ describe('SourceControlTile', () => {
     });
   });
 
-  it('renders source control not supported alert', async () => {
-    state.productFeatures.productFeatures.notifications = false;
-    state.productFeatures.productFeatures.automation = false;
-
-    await renderComponent();
-
-    expect(screen.getByText(SOURCE_CONTROL_UNSUPPORTED_MESSAGE)).toBeVisible();
-  });
-
   it('renders item text and subtext', async () => {
     await renderComponent();
 
@@ -163,28 +147,6 @@ describe('SourceControlTile', () => {
 
     const linkItem = screen.getByText('Provides default access token for org');
     expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
-  });
-
-  describe('FirewallOnlyLicense', () => {
-    it('does not render with a Firewall only license', async () => {
-      const stateWithOnlyFirewall = assocPath(['productLicense', 'license', 'products'], ['Firewall'], state);
-
-      await renderComponent(stateWithOnlyFirewall);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Source Control');
-      expect(title).toBeNull();
-    });
-
-    it('renders with a non-Firewall only license', async () => {
-      const stateWithOnlyCLM = assocPath(['productLicense', 'license', 'products'], ['CLM'], state);
-
-      await renderComponent(stateWithOnlyCLM);
-
-      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Source Control');
-      expect(title).not.toBeNull();
-    });
   });
 
   describe('saas-lifecycle-scm-enabled feature', () => {
@@ -211,8 +173,8 @@ describe('SourceControlTile', () => {
         orgsAndPolicies: {
           root: {
             selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
+              name: 'org',
+              id: 'orgId',
             },
           },
         },
@@ -246,8 +208,8 @@ describe('SourceControlTile', () => {
         orgsAndPolicies: {
           root: {
             selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
+              name: 'org',
+              id: 'orgId',
             },
           },
         },
@@ -263,7 +225,11 @@ describe('SourceControlTile', () => {
     it('renders when the saas-lifecycle-scm-enabled is true', async () => {
       const state = {
         productFeatures: {
-          productFeatures: { 'saas-lifecycle-scm-enabled': true },
+          productFeatures: {
+            'saas-lifecycle-scm-enabled': true,
+            notifications: true,
+            automation: true,
+          },
         },
         router: {
           currentState: {
@@ -281,8 +247,8 @@ describe('SourceControlTile', () => {
         orgsAndPolicies: {
           root: {
             selectedOwner: {
-              id: ownerId,
-              name: 'broadcast-org',
+              name: 'org',
+              id: 'orgId',
             },
           },
         },

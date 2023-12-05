@@ -24,6 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -97,19 +98,10 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
-    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(hidden);
 
-    tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.notSupported().shouldBe(visible);
-    tile.content().shouldNotBe(visible);
-    tile.notSupported().shouldHave(text("Source Control is not supported by your license"));
-
-    tile.itemText().shouldNotBe(visible);
-    tile.itemSubText().shouldNotBe(visible);
-
+    tile.shouldBe(hidden);
+    
     // eyesWatcher.eyesCheck("Source Control No License");
   }
 
@@ -126,7 +118,6 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.notSupported().shouldNotBe(visible);
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);

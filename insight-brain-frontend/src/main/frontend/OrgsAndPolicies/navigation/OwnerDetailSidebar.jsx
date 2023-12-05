@@ -42,8 +42,11 @@ import {
   selectIsAccess,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
-  selectIsMonitoringSupported,
   selectIsLegacyViolationSupported,
+  selectIsMonitoringSupported,
+  selectIsOrgsAndAppsEnabled,
+  selectIsProprietaryComponentsEnabled,
+  selectIsSourceControlForSourceTileSupported,
   selectIsScmEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
@@ -55,7 +58,6 @@ import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { selectAreAnyCategoriesDefined } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
-import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function OwnerDetailSidebar() {
   const dispatch = useDispatch();
@@ -85,8 +87,9 @@ export default function OwnerDetailSidebar() {
   const isSourceControl = useSelector(selectIsSourceControl);
   const isAccess = useSelector(selectIsAccess);
   const isLegacyViolationsSupported = useSelector(selectIsLegacyViolationSupported);
-  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isProprietaryComponentsEnabled = useSelector(selectIsProprietaryComponentsEnabled);
+  const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
+  const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const labelsSiblings = useSelector(selectLabelsSiblings);
@@ -190,7 +193,7 @@ export default function OwnerDetailSidebar() {
       <NxH4>Policy Management</NxH4>
 
       {/* Categories */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
+      {!isRepositoriesRelated && isOrgsAndAppsEnabled && (
         <NxCollapsibleItems
           id="application-category-group"
           role="menu"
@@ -258,37 +261,31 @@ export default function OwnerDetailSidebar() {
       </NxCollapsibleItems>
 
       {/* Legacy Violations */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
-        <NxTooltip title={!isLegacyViolationsSupported ? 'Legacy Violations are not supported by your license' : ''}>
-          <NxCollapsibleItems.Child>
-            <NxTextLink
-              id="legacy-violations-link"
-              className={`iq-noncollapsible ${isLegacyViolations && !currentRoleId ? 'selected' : ''}`}
-              href={`${linkMainHref}/legacyViolations`}
-              disabled={!isLegacyViolationsSupported}
-            >
-              Legacy Violations
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
-        </NxTooltip>
+      {!isRepositoriesRelated && isLegacyViolationsSupported && (
+        <NxCollapsibleItems.Child>
+          <NxTextLink
+            id="legacy-violations-link"
+            className={`iq-noncollapsible ${isLegacyViolations && !currentRoleId ? 'selected' : ''}`}
+            href={`${linkMainHref}/legacyViolations`}
+          >
+            Legacy Violations
+          </NxTextLink>
+        </NxCollapsibleItems.Child>
       )}
       {/* Monitoring */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
-        <NxTooltip title={!isMonitoringSupported ? 'Policy Monitoring is not supported by your license' : ''}>
-          <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink
-              id="continous-monitoring-link"
-              className={`iq-noncollapsible ${isMonitoring && !currentRoleId ? 'selected' : ''}`}
-              href={`${linkMainHref}/monitoring`}
-              disabled={!isMonitoringSupported}
-            >
-              Continuous Monitoring
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
-        </NxTooltip>
+      {!isRepositoriesRelated && isMonitoringSupported && (
+        <NxCollapsibleItems.Child role="menuitem">
+          <NxTextLink
+            id="continous-monitoring-link"
+            className={`iq-noncollapsible ${isMonitoring && !currentRoleId ? 'selected' : ''}`}
+            href={`${linkMainHref}/monitoring`}
+          >
+            Continuous Monitoring
+          </NxTextLink>
+        </NxCollapsibleItems.Child>
       )}
       {/* Proprietary */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
+      {!isRepositoriesRelated && isProprietaryComponentsEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="proprietary-components-link"
@@ -366,7 +363,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Source Control */}
-      {!isRepositoriesRelated && isFeatureEnabledForLicense && isScmEnabled && (
+      {!isRepositoriesRelated && isSourceControlForSourceTileSupported && isScmEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             className={`iq-noncollapsible ${isSourceControl ? 'selected' : ''}`}

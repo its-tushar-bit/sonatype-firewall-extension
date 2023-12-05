@@ -28,6 +28,12 @@ describe('RetentionTile', () => {
   describe('Loading and Retry logic', () => {
     beforeAll(() => {
       preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'data-retention': true,
+            'single-tenant': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -82,6 +88,12 @@ describe('RetentionTile', () => {
   describe('owner is Application', () => {
     beforeAll(() => {
       preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'data-retention': true,
+            'single-tenant': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.application',
@@ -115,6 +127,12 @@ describe('RetentionTile', () => {
   describe('owner is Organization', () => {
     beforeAll(() => {
       preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'data-retention': true,
+            'single-tenant': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -180,13 +198,11 @@ describe('RetentionTile', () => {
     });
   });
 
-  describe('FirewallOnlyLicense', () => {
-    it('does not render with a Firewall only license', async () => {
+  describe('Data Retention Feature is Disabled', () => {
+    it('does not render without Data Retention Feature', async () => {
       preloadedState = {
-        productLicense: {
-          license: {
-            products: ['Firewall'],
-          },
+        productFeatures: {
+          productFeatures: {},
         },
         router: {
           currentState: {
@@ -218,11 +234,11 @@ describe('RetentionTile', () => {
       expect(title).toBeNull();
     });
 
-    it('renders with a non-Firewall only license', async () => {
+    it('renders with Data Retention Feature', async () => {
       preloadedState = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
+        productFeatures: {
+          productFeatures: {
+            'data-retention': true,
           },
         },
         router: {
@@ -259,13 +275,9 @@ describe('RetentionTile', () => {
   describe('multi-tenant', function () {
     it('does not render if product features indicate that this is a multi-tenant deployment', async function () {
       preloadedState = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
-          },
-        },
         productFeatures: {
           productFeatures: {
+            'data-retention': true,
             'multi-tenant': true,
           },
         },
@@ -301,13 +313,9 @@ describe('RetentionTile', () => {
 
     it('does render if product features indicate that this is a single-tenant deployment', async function () {
       preloadedState = {
-        productLicense: {
-          license: {
-            products: ['CLM'],
-          },
-        },
         productFeatures: {
           productFeatures: {
+            'data-retention': true,
             'single-tenant': true,
           },
         },

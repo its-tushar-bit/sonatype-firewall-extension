@@ -42,8 +42,8 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
               </div>
               <div className="nx-tile-header__subtitle">
                 Success Metrics data is also accessible via the{' '}
-                <NxTextLink 
-                  external 
+                <NxTextLink
+                  external
                   href="http://links.sonatype.com/products/nxiq/doc/success-metrics-data-rest-api/v2"
                 >
                   Success Metrics Data API.

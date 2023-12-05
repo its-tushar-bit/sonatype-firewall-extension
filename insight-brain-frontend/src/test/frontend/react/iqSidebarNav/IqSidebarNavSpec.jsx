@@ -196,8 +196,8 @@ describe('IqSidebarNav', function () {
 
       const component = getShallowComponent({
         isLoggedIn: true,
-        isDashboardAvailable: true,
-        isFirewallOnlyLicense: true,
+        isDashboardAvailable: false,
+        isDashboardWaiversAvailable: true,
       });
       const navLink = component.find('#dashboard-navigation-button');
 
@@ -214,7 +214,6 @@ describe('IqSidebarNav', function () {
       const component = getShallowComponent({
         isLoggedIn: true,
         isDashboardAvailable: true,
-        isFirewallOnlyLicense: false,
       });
       const navLink = component.find('#dashboard-navigation-button');
 
@@ -247,6 +246,7 @@ describe('IqSidebarNav', function () {
       const component = getShallowComponent({
         isLoggedIn: true,
         isReportsListAvailable: true,
+        isOrgsAndAppsEnabled: true,
       });
       const navLink = component.find('#reporting-navigation-button');
 
@@ -263,6 +263,7 @@ describe('IqSidebarNav', function () {
       const component = getShallowComponent({
         isLoggedIn: true,
         isSuccessMetricsEnabled: true,
+        isOrgsAndAppsEnabled: true,
       });
       const navLink = component.find('#labs-navigation-button');
 
@@ -329,16 +330,7 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: false,
-          isFirewallOnlyLicense: false,
-        }).find('#dashboard-navigation-button')
-      ).not.toExist();
-    });
-
-    it('does not render dashboard when is not firewall only license', function () {
-      expect(
-        getShallowComponent({
-          isLoggedIn: true,
-          isFirewallOnlyLicense: false,
+          isDashboardWaiversAvailable: false,
         }).find('#dashboard-navigation-button')
       ).not.toExist();
     });
@@ -432,7 +424,6 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: true,
-          isFirewallOnlyLicense: true,
           isReportsListAvailable: true,
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
@@ -441,6 +432,7 @@ describe('IqSidebarNav', function () {
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
+          isOrgsAndAppsEnabled: true,
         });
       });
 
@@ -464,7 +456,6 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: true,
-          isFirewallOnlyLicense: false,
           isReportsListAvailable: true,
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
@@ -473,6 +464,7 @@ describe('IqSidebarNav', function () {
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
+          isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'violations');
         expect(renderAllLinks().find('#reporting-navigation-button')).toHaveProp('isSelected', true);
@@ -483,7 +475,6 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: true,
-          isFirewallOnlyLicense: false,
           isReportsListAvailable: true,
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
@@ -492,6 +483,7 @@ describe('IqSidebarNav', function () {
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
+          isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'labs');
         expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
@@ -527,7 +519,6 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: true,
-          isFirewallOnlyLicense: false,
           isReportsListAvailable: true,
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
@@ -536,6 +527,7 @@ describe('IqSidebarNav', function () {
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
+          isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);

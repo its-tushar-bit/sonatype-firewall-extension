@@ -49,6 +49,7 @@ export default angular
         'isLoggedIn',
         'isLicensed',
         'isDashboardAvailable',
+        'isDashboardWaiversAvailable',
         'isReportsListAvailable',
         'isSuccessMetricsEnabled',
         'isAdvancedSearchEnabled',
@@ -57,9 +58,9 @@ export default angular
         'isApiPageEnabled',
         'isDataInsightsEnabled',
         'isShowVersionEnabled',
-        'isFirewallOnlyLicense',
         'isDeveloperDashboardEnabled',
         'isIntegratedEnterpriseReportingEnabled',
+        'isOrgsAndAppsEnabled',
       ],
       ['$state']
     )

@@ -14,6 +14,8 @@ describe('DashboardTabs', () => {
   beforeEach(() => {
     initialProps = {
       currentTab: 'violations',
+      isDashboardEnabled: true,
+      isWaiversTabEnabled: true,
     };
 
     getShallow = enzymeUtils.getShallowComponent(DashboardTabs, initialProps);
@@ -89,6 +91,8 @@ describe('DashboardTabs', () => {
       initialProps = {
         currentTab: 'components',
         stateGo: stateGoSpy,
+        isDashboardEnabled: true,
+        isWaiversTabEnabled: true,
       };
 
       getMounted = enzymeUtils.getMountedComponent(DashboardTabs, initialProps);

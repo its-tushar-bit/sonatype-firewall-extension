@@ -26,7 +26,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -47,7 +46,7 @@ public class ConfigurationProperty
           (p, s) -> ConfigurationUtils.hdsUrl(ConfigurationUtils.getParameter(p, InsightConfig.class), s),
           (p, o) -> ConfigurationUtils.urlValueToString(o)),
       new ConfigurationProperty(SystemConfigurationProperty.CDN_URL, String.class,
-          (p, s) -> StringUtils.defaultString(s, "https://cdn.sonatype.com/"),
+          (p, s) -> Objects.toString(s, "https://cdn.sonatype.com/"),
           (p, o) -> ConfigurationUtils.urlValueToString(o)),
       new ConfigurationProperty(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, Long.class,
           (p, s) -> NumberUtils.toLong(s, 31457280),
@@ -100,7 +99,7 @@ public class ConfigurationProperty
           (p, s) -> NumberUtils.toInt(s, 2048),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, String.class,
-          (p, s) -> StringUtils.defaultString(s, ","),
+          (p, s) -> Objects.toString(s, ","),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, Integer.class,
           (p, s) -> NumberUtils.toInt(s, 20),
@@ -128,10 +127,10 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.DB_BACKUP_DIR, String.class,
           (p, s) -> ConfigurationUtils.absolutePathOrRelativeToSonatypeWork(
               ConfigurationUtils.getParameter(p, InsightConfig.class),
-              StringUtils.defaultString(s, InsightConfig.DEFAULT_BACKUP_DIR)),
+              Objects.toString(s, InsightConfig.DEFAULT_BACKUP_DIR)),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, String.class,
-          (p, s) -> StringUtils.defaultString(s, "^d1swM!FF&qQ"),
+          (p, s) -> Objects.toString(s, "^d1swM!FF&qQ"),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
@@ -150,7 +149,7 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
           Integer.class, (p, s) -> NumberUtils.toInt(s, 12), (p, o) -> Objects.toString(o, "12")),
       new ConfigurationProperty(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, String.class,
-          (p, s) -> StringUtils.defaultString(s, "(?i)(?s).*token[\\s\\w:]+expired.*"),
+          (p, s) -> Objects.toString(s, "(?i)(?s).*token[\\s\\w:]+expired.*"),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, String.class,
           (p, s) -> s,

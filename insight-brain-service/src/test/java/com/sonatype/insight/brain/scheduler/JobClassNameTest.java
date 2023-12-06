@@ -90,6 +90,9 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector", "InvalidateComponentNameMatchers");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper", "ApplicationCountHistoryKeeper");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob",
+        "FirewallMetricsComponentQuarantinedConsolidatorCronJob");
   }
 
   @Inject

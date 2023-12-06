@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.stream.IntStream;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Calendar;
@@ -12,13 +15,14 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
+import com.sonatype.insight.brain.utils.DateConverter;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
@@ -34,6 +38,18 @@ public class FirewallMetricsDAOTest
     extends AbstractDbDAOTest
 {
   private final FirewallMetricsDAO dao = new FirewallMetricsDAO();
+
+  private final List<Date> testLastUpdateDates = new ArrayList<>();
+
+  @Before
+  public void init() {
+    try {
+      initTestDates();
+    }
+    catch (ParseException pe) {
+      testLastUpdateDates.clear();
+    }
+  }
 
   @Test
   public void testCRUD() {
@@ -67,6 +83,71 @@ public class FirewallMetricsDAOTest
     dao.delete(firewallMetrics);
 
     assertThat(dao.getById(id)).isNull();
+  }
+
+  @Test
+  public void getMostRecentLastUpdatedAtDateByName() {
+    initTestData();
+    Date mostRecentDate = dao.getMostRecentLastUpdatedAtDateByName(
+         FirewallMetricsName.COMPONENTS_QUARANTINED);
+    assertThat(mostRecentDate)
+        .hasYear(2022)
+        .hasMonth(2)
+        .hasDayOfMonth(2)
+        .hasHourOfDay(18)
+        .hasMinute(4)
+        .hasSecond(13);
+  }
+
+  @Test
+  public void deleteRecordsOlderThanOneYear() {
+    initTestData();
+    // Create new metric with 5 days ago date, so for certain is
+    // less than one year old record
+    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
+    tempEntity.newFirewallMetrics(COMPONENTS_QUARANTINED, 55,
+        DateConverter.toDate(fiveDaysAgoLocalDate),
+        fiveDaysAgoLocalDate);
+
+    // Initial size before deleting old records
+    assertThat(dao.getAll()).hasSize(5);
+
+    dao.deleteRecordsOlderThanOneYear( COMPONENTS_QUARANTINED );
+
+    // We assert after deleting is less than original size
+    List<FirewallMetrics> metricsAfterDelete = dao.getAll();
+    assertThat(metricsAfterDelete).hasSizeLessThan(5)
+        // Verify new record created was not  deleted
+        .anyMatch(firewallMetrics -> firewallMetrics
+            .getMetricsDate().isEqual(fiveDaysAgoLocalDate));
+
+    // Verify a record older than 1 year was indeed deleted
+    assertThat(metricsAfterDelete)
+        .extracting(FirewallMetrics::getMetricsDate)
+        .noneMatch(metricsDate -> metricsDate.isBefore(LocalDate.now().minusYears(1)));
+  }
+
+  private void initTestDates() throws ParseException {
+    Date date2019 = new GregorianCalendar(2019, Calendar.JANUARY, 1, 8, 3, 12 ).getTime();
+    Date date2022 = new GregorianCalendar(2022, Calendar.FEBRUARY, 2, 18,
+        4, 13 ).getTime();
+    Date date2015 = new GregorianCalendar(2015, Calendar.MARCH, 3, 9,
+        15, 14 ).getTime();
+    Date date2017 = new GregorianCalendar(2017, Calendar.APRIL, 4, 22,
+        23, 15 ).getTime();
+    testLastUpdateDates.add(date2019);
+    testLastUpdateDates.add(date2022);
+    testLastUpdateDates.add(date2015);
+    testLastUpdateDates.add(date2017);
+  }
+
+  private void initTestData() {
+    testLastUpdateDates.forEach(date -> tempEntity.newFirewallMetrics(
+        FirewallMetricsName.COMPONENTS_QUARANTINED,
+        testLastUpdateDates.indexOf(date) + 1,
+        date,
+        toLocalDate(date)
+    ));
   }
 
   @Test
@@ -191,6 +272,7 @@ public class FirewallMetricsDAOTest
     assertThat(dao.getAll().get(0).getMetricsValue()).isEqualTo(4950);
   }
 
+  @Test
   public void testGetEarliestMetricDateByName() {
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minusDays(1);

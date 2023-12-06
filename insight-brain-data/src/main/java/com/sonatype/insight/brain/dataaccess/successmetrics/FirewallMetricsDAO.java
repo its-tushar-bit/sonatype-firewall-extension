@@ -41,6 +41,26 @@ public class FirewallMetricsDAO
     return getList(sQuery);
   }
 
+  public Date getMostRecentLastUpdatedAtDateByName(FirewallMetricsName metricName) {
+    String sQuery = "SELECT MAX(entity.metricsLastUpdatedAt) " +
+        " FROM FirewallMetrics entity" +
+        " WHERE entity.metricsName=?1";
+
+    return getSingle(Date.class, sQuery, metricName);
+  }
+
+  public void deleteRecordsOlderThanOneYear(FirewallMetricsName metricsName) {
+    String sQuery = "SELECT entity " +
+            "FROM FirewallMetrics entity WHERE " +
+            "entity.metricsName = ?1 AND " +
+            "entity.metricsDate < ?2";
+
+    LocalDate oneYearAgoDate = LocalDate.now().minusMonths(12);
+    List<FirewallMetrics> toBeDeleted = getList(sQuery,
+        metricsName, oneYearAgoDate);
+    toBeDeleted.forEach(this::delete);
+  }
+
   @SuppressWarnings("unchecked")
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getMetricsValueByName() {
     try (TransactionContext tx = createTransactionContext()) {
@@ -66,7 +86,8 @@ public class FirewallMetricsDAO
         " AND entity.metricsName=?2";
 
     Query<FirewallMetrics> query =
-        new Query<>(sQuery, newFirewallMetrics.getMetricsDate(), newFirewallMetrics.getMetricsName());
+        new Query<FirewallMetrics>(sQuery,
+            newFirewallMetrics.getMetricsDate(), newFirewallMetrics.getMetricsName());
     // need a 'select for update' type query - this is how to do it in JPA
     query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);
 

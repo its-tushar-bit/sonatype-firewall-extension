@@ -148,6 +148,26 @@ public class RepositoryComponentDAO
     return getList(sQuery, repositoryId, date);
   }
 
+  /**
+  * @since 1.170
+  * */
+  public Map<LocalDate, Long> getConsolidatedQuarantinedComponentsMetricByDate(Date date) {
+    String sQuery = "SELECT CAST(entity.quarantine_time AS DATE) as metrics_date, " +
+        "COUNT(entity.repository_component_id) as metrics_value " +
+        "FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+        ".repository_component entity " +
+        "WHERE entity.quarantine_time > ?1 " +
+        "GROUP BY metrics_date";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, date);
+      query.setParameter(1, date);
+      Stream<Object[]> result = query.getResultStream();
+      return result.collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(),
+          array -> (Long) array[1]));
+    }
+  }
+
   @SuppressWarnings("unchecked")
   public Map<LocalDate, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
     String sQuery = "SELECT CAST(rc.quarantine_time AS DATE), COUNT(1)" + //

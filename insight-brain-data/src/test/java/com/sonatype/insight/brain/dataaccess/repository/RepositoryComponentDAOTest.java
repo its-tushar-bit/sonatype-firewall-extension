@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -911,6 +913,29 @@ public class RepositoryComponentDAOTest
 
     // ASSERTION
     assertThat(autoUnquarantinedComponentsCount).isEqualTo(4);
+  }
+
+  @Test
+  public void getConsolidatedQuarantinedComponentsMetricByDateTest() throws ParseException {
+    Repository repository1 = tempEntity.newRepository();
+    Date date2020 = DateUtils.parseDate("2020-05-01", "yyyy-MM-dd");
+    Date date2021 = DateUtils.parseDate("2021-05-01", "yyyy-MM-dd");
+    Date date2022 = DateUtils.parseDate("2022-05-01", "yyyy-MM-dd");
+    List<Date> dates = Arrays.asList(date2020, date2021, date2022);
+    Map<LocalDate,Long> result = dao.getConsolidatedQuarantinedComponentsMetricByDate(
+        DateConverter.toDate(LocalDate.now()));
+    assertThat(result).isEmpty();
+    dates.forEach(date -> {
+      tempEntity.newRepositoryComponent(repository1.getId(),
+          repository1.getId() + "/" + date.toString(),
+          date, null );
+    });
+    // 2020 year exclusive
+    result = dao.getConsolidatedQuarantinedComponentsMetricByDate(date2020);
+    assertThat(result).hasSize(2);
+    // 2020 year inclusive
+    result = dao.getConsolidatedQuarantinedComponentsMetricByDate(DateUtils.addDays(date2020, -365));
+    assertThat(result).hasSize(3);
   }
 
   private void setupMockDataForGetFirewallRepositoryComponents() {

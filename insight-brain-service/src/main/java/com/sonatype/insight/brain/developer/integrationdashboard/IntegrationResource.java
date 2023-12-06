@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncre
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiChartVisibilityDto;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 
 import com.codahale.metrics.annotation.Timed;
@@ -45,6 +46,8 @@ public class IntegrationResource
 
   static final String GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH = "/stats/usage-over-time";
 
+  static final String GET_CHARTS_VISIBILITY = "/stats/usage-over-time/charts/visibility";
+
   static final String DEFAULT_ONE_WEEK_IN_MS = "604800000";
 
   static final String DEFAULT_NUMBER_OF_INCREMENTS = "12";
@@ -63,18 +66,22 @@ public class IntegrationResource
 
   private final ApplicationCountHistoryService applicationCountHistoryService;
 
+  private final StatsChartVisibilityService statsChartVisibilityService;
+
   @Inject
   public IntegrationResource(
       final IntegrationService integrationService,
       final CIEvaluationStatService ciEvaluationStatService,
       final ScmStatService scmStatService,
-      final ApplicationCountHistoryService applicationCountHistoryService
+      final ApplicationCountHistoryService applicationCountHistoryService,
+      final StatsChartVisibilityService statsChartVisibilityService
   )
   {
     this.integrationService = integrationService;
     this.ciEvaluationStatService = ciEvaluationStatService;
     this.scmStatService = scmStatService;
     this.applicationCountHistoryService = applicationCountHistoryService;
+    this.statsChartVisibilityService = statsChartVisibilityService;
   }
 
   @GET
@@ -154,5 +161,12 @@ public class IntegrationResource
   )
   {
     return applicationCountHistoryService.getUsageOverTime(incrementSizeMillis, numberOfIncrements);
+  }
+
+  @GET
+  @Path(GET_CHARTS_VISIBILITY)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiChartVisibilityDto getUsageOverTimeChartVisibility() {
+    return statsChartVisibilityService.getChartVisibilityForUser();
   }
 }

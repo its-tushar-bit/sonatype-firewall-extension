@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.IntegrationStatusFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -75,10 +74,8 @@ public class IntegrationService
       throw new BadRequestException("Page and Page size must be greater than 0");
     }
 
-    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
-
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
-    final List<ApplicationRiskScoreDTO> apps = applicationRiskService.getRiskForAllApps();
+    final List<ApplicationRiskScoreDTO> apps = applicationRiskService.getRiskForApplicationsWithReadPermissions();
     final List<ApplicationRiskScoreDTO> filteredApps =
         StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy()) ? apps.stream()
             .filter(

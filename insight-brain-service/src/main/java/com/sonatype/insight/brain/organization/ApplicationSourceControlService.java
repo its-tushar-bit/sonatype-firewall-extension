@@ -55,7 +55,7 @@ public class ApplicationSourceControlService
       throw new BadRequestException("Limit size must be greater than 0");
     }
 
-    return applicationRiskService.getRiskForAllApps()
+    return applicationRiskService.getRiskForApplicationsWithReadPermissions()
         .stream()
         .sorted((app1, app2) -> app2.totalApplicationRisk.totalRisk - app1.totalApplicationRisk.totalRisk)
         .filter(entry -> isAutomatedSourceControlFeedbackDisabledForApp(entry.id))

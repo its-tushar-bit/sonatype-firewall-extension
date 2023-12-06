@@ -129,7 +129,11 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell />
           </NxTable.Row>
         </NxTable.Head>
-        <NxTable.Body emptyMessage="No data found." isLoading={loading} error={loadError}>
+        <NxTable.Body
+          emptyMessage="No data available given the applied filters and permissions."
+          isLoading={loading}
+          error={loadError}
+        >
           {tableData.map(
             ({
               applicationName,

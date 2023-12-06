@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
@@ -118,8 +119,13 @@ public class ApplicationRiskService
     return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
   }
 
-  public List<ApplicationRiskScoreDTO> getRiskForAllApps() {
-    final List<Application> appsToSearch = applicationDAO.getAll();
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  List<Application> getApplicationsWithReadPermission() {
+    return applicationDAO.getAll();
+  }
+
+  public List<ApplicationRiskScoreDTO> getRiskForApplicationsWithReadPermissions() {
+    final List<Application> appsToSearch = getApplicationsWithReadPermission();
 
     return getRiskForProvidedApps(
         appsToSearch,

@@ -54,13 +54,13 @@ describe('AppIntegrationsAndRisk Table', () => {
       assertHeaders();
     });
 
-    it('render "no data found" message eventually', async () => {
+    it('render "No data available given the applied filters and permissions." message eventually', async () => {
       render(<AppIntegrationsAndRiskTable />);
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
       const msg = await screen.findByRole('cell', {
-        name: /no data found\./i,
+        name: /No data available given the applied filters and permissions\./i,
       });
       expect(msg).toBeInTheDocument();
     });

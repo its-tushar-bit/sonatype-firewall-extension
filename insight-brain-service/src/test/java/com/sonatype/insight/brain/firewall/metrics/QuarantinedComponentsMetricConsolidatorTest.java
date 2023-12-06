@@ -6,7 +6,6 @@
 
 package com.sonatype.insight.brain.firewall.metrics;
 
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
@@ -51,12 +51,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
 
   @Before
   public void init() {
-    try {
-      initTestDates();
-    }
-    catch (ParseException pe) {
-      testLastUpdateDates.clear();
-    }
+    initTestDates();
   }
 
   @Test
@@ -235,7 +230,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
     return !found.isEmpty() ? found.get(0) : null;
   }
 
-  private void initTestDates() throws ParseException {
+  private void initTestDates() {
     Date today =  DateUtil.now();
     Date lastYearFromToday = DateUtils.addMonths(today, -12);
 

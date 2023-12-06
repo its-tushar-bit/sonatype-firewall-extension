@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.stream.IntStream;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
@@ -43,12 +42,7 @@ public class FirewallMetricsDAOTest
 
   @Before
   public void init() {
-    try {
-      initTestDates();
-    }
-    catch (ParseException pe) {
-      testLastUpdateDates.clear();
-    }
+    initTestDates();
   }
 
   @Test
@@ -127,7 +121,7 @@ public class FirewallMetricsDAOTest
         .noneMatch(metricsDate -> metricsDate.isBefore(LocalDate.now().minusYears(1)));
   }
 
-  private void initTestDates() throws ParseException {
+  private void initTestDates() {
     Date date2019 = new GregorianCalendar(2019, Calendar.JANUARY, 1, 8, 3, 12 ).getTime();
     Date date2022 = new GregorianCalendar(2022, Calendar.FEBRUARY, 2, 18,
         4, 13 ).getTime();

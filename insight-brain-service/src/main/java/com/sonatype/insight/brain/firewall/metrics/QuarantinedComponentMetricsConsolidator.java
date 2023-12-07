@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.utils.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
 public class QuarantinedComponentMetricsConsolidator
 {
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentMetricsConsolidator.class);

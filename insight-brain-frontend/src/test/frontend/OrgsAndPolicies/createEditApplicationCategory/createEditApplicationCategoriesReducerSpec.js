@@ -462,14 +462,14 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
           ownerType: 'APPLICATION',
         },
       ];
-      const associatedApplicationNames = ['associated application name'];
+      const applicationTags = ['associated application name'];
       const tagPolicyList = ['associated policy name'];
       const newState = reducer(state, {
         type: 'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         payload: {
           currentCategory: currentCategoryDataToSave,
           siblings,
-          associatedApplicationNames,
+          applicationTags,
           tagPolicyList,
         },
       });
@@ -485,7 +485,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
       expect(newState.serverCategory).toEqual(currentCategoryDataToSave);
       expect(newState.siblings).toEqual(siblings);
-      expect(newState.deleteModal.associatedApplicationNames).toEqual(associatedApplicationNames);
+      expect(newState.deleteModal.applicationTags).toEqual(applicationTags);
       expect(newState.deleteModal.tagPolicyList).toEqual(tagPolicyList);
       expect(newState.deleteMaskState).toBeNull();
     });

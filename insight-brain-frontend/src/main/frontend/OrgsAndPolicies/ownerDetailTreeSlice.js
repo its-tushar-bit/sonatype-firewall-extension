@@ -55,7 +55,7 @@ const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadSidebar`, (_, { getSta
   const state = getState();
   const promises = [
     dispatch(ownerDetailTreeActions.loadOwnerDetails()),
-    dispatch(ownerSideNavActions.loadOwnerListIfNeeded()),
+    dispatch(ownerSideNavActions.loadOwnerList()),
     dispatch(rootActions.loadSelectedOwner()),
   ];
 

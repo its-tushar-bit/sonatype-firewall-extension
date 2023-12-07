@@ -37,6 +37,7 @@ import {
   selectIsManagementViewRouterState,
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
+  selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -69,6 +70,7 @@ export default function OwnerSideNav() {
 
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isScmEnabled = useSelector(selectIsScmEnabled);
+  const routerCurrentParams = useSelector(selectRouterCurrentParams);
 
   const uiRouterState = useRouterState();
   const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
@@ -95,7 +97,7 @@ export default function OwnerSideNav() {
     if (isSummaryPage || isManagementViewRoute) {
       load();
     }
-  }, [isSummaryPage, isManagementViewRoute]);
+  }, [isSummaryPage, isManagementViewRoute, routerCurrentParams]);
 
   const renderParentOrganizationItem = (displayedOrganization) => {
     const orgClassnames = classnames('iq-navbar-item iq-selected-org', {

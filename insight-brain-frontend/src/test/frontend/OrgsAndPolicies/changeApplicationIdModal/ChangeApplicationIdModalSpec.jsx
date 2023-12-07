@@ -7,7 +7,7 @@ import React from 'react';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import * as changeApplicationIdSelectors from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
@@ -35,7 +35,7 @@ describe('ChangeApplicationIdModal', () => {
     );
     spyOn(routerSelectors, 'selectIsApplication').and.returnValue(true);
     spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').and.returnValue(APP);
-    spyOn(applicationsSelectors, 'selectApplications').and.returnValue([APP]);
+    spyOn(ownerSideNavSelectors, 'selectOwnersFlattenEntries').and.returnValue({ applications: [APP] });
 
     changeApplicationIdSpy = spyOn(actions, 'changeApplicationId').and.callThrough();
     closeModalSpy = spyOn(actions, 'closeModal').and.callThrough();

@@ -7,6 +7,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { isEmpty, prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice, selectSelectedOwner } from '../orgsAndPoliciesSelectors';
+import { flatEntries } from './utils';
 
 export const selectOwnerSideNavSlice = createSelector(selectOrgsAndPoliciesSlice, prop('ownerSideNav'));
 
@@ -16,6 +17,7 @@ export const selectLoading = createSelector(selectOwnerSideNavSlice, prop('loadi
 export const selectDisplayedOrganization = createSelector(selectOwnerSideNavSlice, prop('displayedOrganization'));
 export const selectDisplayedOrganizationId = createSelector(selectDisplayedOrganization, prop('id'));
 export const selectOwnersMap = createSelector(selectOwnerSideNavSlice, prop('ownersMap'));
+export const selectOwnersFlattenEntries = createSelector(selectOwnersMap, flatEntries);
 export const selectTopParentOrganizationId = createSelector(selectOwnerSideNavSlice, prop('topParentOrganizationId'));
 export const selectTopParentOrganization = createSelector(
   selectTopParentOrganizationId,

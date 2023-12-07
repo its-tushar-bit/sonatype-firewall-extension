@@ -71,9 +71,8 @@ export default function OwnerDetailSidebar() {
   const owner = useSelector(selectSelectedOwner);
   const isApp = useSelector(selectIsApplication);
   const { url } = useSelector(selectRouterState);
-  const { categoryId, policyId, labelId, licenseThreatGroupId, roleId: currentRoleId } = useSelector(
-    selectRouterCurrentParams
-  );
+  const routerCurrentParams = useSelector(selectRouterCurrentParams);
+  const { categoryId, policyId, labelId, licenseThreatGroupId, roleId: currentRoleId } = routerCurrentParams;
   const { tags, policies, labels, licenseThreatGroups, roles } = useSelector(selectOwnerDetails);
   const doesRolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
@@ -133,7 +132,14 @@ export default function OwnerDetailSidebar() {
 
   useEffect(() => {
     doLoad();
-  }, [labelsSiblings, rolesSiblings, categoriesSiblings, policiesSiblings, licenseThreatGroupSiblings]);
+  }, [
+    labelsSiblings,
+    rolesSiblings,
+    categoriesSiblings,
+    policiesSiblings,
+    licenseThreatGroupSiblings,
+    routerCurrentParams,
+  ]);
 
   useEffect(() => {
     // remove this useEffect, when main sideBar will be same background-color as edit sideBar

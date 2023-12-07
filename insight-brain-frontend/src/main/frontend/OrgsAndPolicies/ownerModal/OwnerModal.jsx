@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { isEmpty, isNil } from 'ramda';
+import { isNil } from 'ramda';
 import { getRobotUrl } from 'MainRoot/util/CLMLocation';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
@@ -20,10 +20,10 @@ import {
 import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
-import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
-import { selectOrganizations } from 'MainRoot/OrgsAndPolicies/organizationsSelectors';
-import { selectDisplayedOrganization } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import {
+  selectDisplayedOrganization,
+  selectOwnersFlattenEntries,
+} from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import {
   NxModal,
   NxH2,
@@ -60,8 +60,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
   const isApp = useSelector(selectIsApplication);
   const newOwnerName = useSelector(selectNewOwnerName);
   const ownerAppId = useSelector(selectNewOwnerAppId);
-  const appsList = useSelector(selectApplications);
-  const orgsList = useSelector(selectOrganizations);
+  const ownersFlatEntries = useSelector(selectOwnersFlattenEntries);
   const selectedOwner = useSelector(selectSelectedOwner);
   const validationErrors = useSelector(selectValidationError);
   const displayedOrganization = useSelector(selectDisplayedOrganization);
@@ -77,8 +76,17 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
   const createNewOwner = () => dispatch(actions.createNewOwner(shouldRedirectToNewOrg));
   const editCurrentOwner = () => dispatch(actions.editCurrentOwner());
   const onChangeOwnerName = (value) =>
-    dispatch(actions.setNewOwnerName({ value, appsList, orgsList, isApp, selectedOwner }));
-  const onChangeAppId = (value) => dispatch(actions.setNewOwnerAppId({ value, appsList, selectedOwner }));
+    dispatch(
+      actions.setNewOwnerName({
+        value,
+        appsList: ownersFlatEntries.applications,
+        orgsList: ownersFlatEntries.organizations,
+        isApp,
+        selectedOwner,
+      })
+    );
+  const onChangeAppId = (value) =>
+    dispatch(actions.setNewOwnerAppId({ value, appsList: ownersFlatEntries.applications, selectedOwner }));
   const updateRobotIcon = () => dispatch(actions.updateRobotIcon());
   const setCustomIcon = (file) => dispatch(actions.setCustomIcon(file));
   const setIconType = async (value) => {
@@ -91,12 +99,6 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
     }
   };
-
-  useEffect(() => {
-    if (isEmpty(appsList)) {
-      dispatch(applicationsActions.loadApplications());
-    }
-  }, []);
 
   useEffect(() => {
     return () => {

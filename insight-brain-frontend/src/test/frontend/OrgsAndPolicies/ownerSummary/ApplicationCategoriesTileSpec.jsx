@@ -6,7 +6,6 @@
 import React from 'react';
 import { render, screen, within, fireEvent, waitFor } from 'TestRoot/SpecUtil';
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
-import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import * as assignApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -21,8 +20,8 @@ describe('ApplicationCategoriesTile', () => {
   let renderComponent,
     isAppSpy,
     isOrgSpy,
-    selectLoadApplicationsErrorSpy,
-    selectLoadingApplicationsSpy,
+    selectLoadingSpy,
+    selectLoadErrorSpy,
     selectAppCategoryOwnersSpy,
     selectAreAnyCategoriesDefined,
     selectAppliedCategoriesSpy,
@@ -144,8 +143,8 @@ describe('ApplicationCategoriesTile', () => {
     goToCreateCategorySpy = spyOn(createEditApplicationCategoriesActions, 'goToCreateCategory').and.callThrough();
     goToAssignCategoriesSpy = spyOn(assignApplicationCategoriesActions, 'goToEditCategories').and.callThrough();
 
-    selectLoadingApplicationsSpy = spyOn(applicationsSelectors, 'selectLoadingApplications').and.returnValue(false);
-    selectLoadApplicationsErrorSpy = spyOn(applicationsSelectors, 'selectLoadApplicationsError').and.returnValue(null);
+    selectLoadErrorSpy = spyOn(createEditApplicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
+    selectLoadingSpy = spyOn(createEditApplicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
 
     isAppSpy = spyOn(routerSelectors, 'selectIsApplication').and.returnValue(true);
     isOrgSpy = spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(false);
@@ -156,9 +155,6 @@ describe('ApplicationCategoriesTile', () => {
     ).and.returnValue([]);
 
     selectRouterSlice = spyOn(routerSelectors, 'selectRouterSlice');
-
-    spyOn(createEditApplicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
-    spyOn(createEditApplicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
 
     selectAppliedCategoriesSpy = spyOn(assignApplicationCategoriesSelectors, 'selectAppliedCategories').and.returnValue(
       appliedCategories
@@ -182,13 +178,13 @@ describe('ApplicationCategoriesTile', () => {
       spyOn(productFeaturesSelectors, 'selectIsOrgsAndAppsEnabled').and.returnValue(true);
     });
     it('renders loading indicator', () => {
-      selectLoadingApplicationsSpy.and.returnValue(true);
+      selectLoadingSpy.and.returnValue(true);
       renderComponent();
       expect(screen.getByText('Loading…')).toBeVisible();
     });
 
     it('renders error alert on load error', () => {
-      selectLoadApplicationsErrorSpy.and.returnValue('Load Error');
+      selectLoadErrorSpy.and.returnValue('Load Error');
       renderComponent();
 
       const error = screen.getByRole('alert');

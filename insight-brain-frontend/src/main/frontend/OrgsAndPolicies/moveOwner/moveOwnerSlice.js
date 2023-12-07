@@ -12,7 +12,6 @@ import {
   getMoveOrganizationUrl,
 } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
-import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
@@ -130,20 +129,18 @@ const moveApplication = createAsyncThunk(
     return axios
       .post(getMoveApplicationUrl(movedApplicationId, organizationId))
       .then((response) => {
-        return dispatch(applicationsActions.loadApplications(true)).then(() => {
-          dispatch(
-            rootActions.selectedOwnerParentOrganizationUpdated({
-              organizationName,
-              organizationId,
-            })
-          );
-          startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
-            dispatch(ownerSummaryActions.loadOwnerSummary());
-            dispatch(actions.showSuccessModal());
-            dispatch(ownerSideNavActions.load());
-          });
-          return response?.data?.warnings;
+        dispatch(
+          rootActions.selectedOwnerParentOrganizationUpdated({
+            organizationName,
+            organizationId,
+          })
+        );
+        startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
+          dispatch(ownerSummaryActions.loadOwnerSummary());
+          dispatch(actions.showSuccessModal());
+          dispatch(ownerSideNavActions.load());
         });
+        return response?.data?.warnings;
       })
       .catch((error) => {
         if (error.response?.status === 409 && error.response?.data?.errors?.length > 0) {

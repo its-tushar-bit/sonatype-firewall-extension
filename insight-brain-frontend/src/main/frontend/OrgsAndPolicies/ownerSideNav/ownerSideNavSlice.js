@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
-import { equals, isEmpty, omit, prop, reject, clone, dissoc, propEq, curry } from 'ramda';
+import { equals, isEmpty, omit, reject, clone, dissoc, propEq, curry } from 'ramda';
 import debounce from 'debounce';
 
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
@@ -18,7 +18,7 @@ import { selectRouterCurrentParams, selectIsManagementViewRouterState } from 'Ma
 import { checkPermissions, PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
-import { selectOwnersMap, selectTopParentOrganizationId } from './ownerSideNavSelectors';
+import { selectOwnersMap } from './ownerSideNavSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 
@@ -45,9 +45,22 @@ export const initialState = {
   filterLoading: false,
 };
 
-const loadOwnerList = createAsyncThunk(`${REDUCER_NAME}/loadOwnerList`, (_, { rejectWithValue }) => {
-  return axios.get(getOwnerListUrl()).then(prop('data')).catch(rejectWithValue);
-});
+const loadOwnerList = createAsyncThunk(
+  `${REDUCER_NAME}/loadOwnerList`,
+  (_, { rejectWithValue, dispatch, getState }) => {
+    const state = getState();
+    const routerParams = selectRouterCurrentParams(state);
+    return axios
+      .get(getOwnerListUrl())
+      .then(({ data }) => {
+        const { ownersMap, topParentOrganizationId } = data || {};
+        const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+        dispatch(actions.setDisplayedOrganization(displayedOrganization));
+        return { ownersMap, topParentOrganizationId };
+      })
+      .catch(rejectWithValue);
+  }
+);
 
 const loadOwnerListFulfilled = (state, { payload = {} }) => {
   const { ownersMap, topParentOrganizationId } = payload;
@@ -64,24 +77,6 @@ const loadIfNeeded = (forceReload) => (dispatch, getState) => {
   }
 
   return Promise.resolve({});
-};
-
-const loadOwnerListIfNeeded = () => (dispatch, getState) => {
-  const state = getState();
-  const ownersMap = selectOwnersMap(state);
-  const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
-  const routerParams = selectRouterCurrentParams(state);
-  if (!ownersMapExistInMemory) {
-    return dispatch(loadOwnerList()).then((result) => {
-      const { ownersMap, topParentOrganizationId } = unwrapResult(result) || {};
-      const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
-      dispatch(actions.setDisplayedOrganization(displayedOrganization));
-      return { ownersMap, topParentOrganizationId };
-    });
-  }
-  const topParentOrganizationId = selectTopParentOrganizationId(state);
-  const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
-  return dispatch(actions.setDisplayedOrganization(displayedOrganization));
 };
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, dispatch, rejectWithValue }) => {
@@ -388,7 +383,6 @@ export const actions = {
   load,
   loadOwnerList,
   loadIfNeeded,
-  loadOwnerListIfNeeded,
   filterSidebarEntries,
 };
 

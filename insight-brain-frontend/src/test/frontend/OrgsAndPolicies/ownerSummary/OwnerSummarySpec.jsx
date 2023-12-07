@@ -54,6 +54,7 @@ describe('OwnerSummary', () => {
               },
             },
           },
+          ownersMap: {},
         },
       };
     });

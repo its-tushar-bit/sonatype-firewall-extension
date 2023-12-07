@@ -8,11 +8,8 @@ import { batch } from 'react-redux';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getOrganizationsUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { actions as organizationActions } from '../organizationsSlice';
-import { actions as applicationsActions } from '../applicationsSlice';
 import { actions as ownerSideNavActions } from '../ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectAllDescendantsByParentId } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -60,17 +57,8 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
 
         batch(() => {
           if (isApp) {
-            dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
             dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
           } else {
-            const descendants = selectAllDescendantsByParentId(state, ownerToDelete.id);
-            dispatch(applicationsActions.removeApplicationsFromList(descendants?.applicationIds));
-            dispatch(
-              organizationActions.removeOrganizationsFromList([
-                ownerToDelete.id,
-                ...(descendants?.organizationIds || []),
-              ])
-            );
             dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
           }
 

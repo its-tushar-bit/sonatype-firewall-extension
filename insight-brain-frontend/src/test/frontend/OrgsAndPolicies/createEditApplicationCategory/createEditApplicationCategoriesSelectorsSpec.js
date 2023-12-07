@@ -16,8 +16,10 @@ import {
   selectDeleteModal,
   selectSiblings,
   selectTagPolicyList,
+  selectApplicationTags,
 } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnersFlattenEntries } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('applicationCategoriesSelectors', () => {
@@ -157,15 +159,30 @@ describe('applicationCategoriesSelectors', () => {
 
   describe('selectAssociatedApplicationNames', () => {
     it('is composed from the following selector', () => {
-      expect(selectAssociatedApplicationNames.dependencies).toEqual([selectDeleteModal]);
+      expect(selectAssociatedApplicationNames.dependencies).toEqual([
+        selectApplicationTags,
+        selectOwnersFlattenEntries,
+        selectRouterCurrentParams,
+      ]);
     });
 
     it('selects associatedApplicationNames', () => {
-      const deleteModal = {
-        associatedApplicationNames: ['someAssociatedApplicationName'],
-      };
-
-      const selected = selectAssociatedApplicationNames.resultFunc(deleteModal);
+      const selected = selectAssociatedApplicationNames.resultFunc(
+        [
+          {
+            id: 'ce37471280114bb7b3d64b30c65e6e86',
+            applicationId: 'applicationId',
+            tagId: 'categoryId',
+          },
+          {
+            id: 'f47f64880c5d44b882045b564ecf3dd7',
+            applicationId: 'd0fbe038085941c9a25f62bb9eb7f085',
+            tagId: '34f1f000d7a54abaa2b12731cdff780f',
+          },
+        ],
+        { applications: [{ id: 'applicationId', name: 'someAssociatedApplicationName' }] },
+        { categoryId: 'categoryId' }
+      );
 
       expect(selected).toEqual(['someAssociatedApplicationName']);
     });

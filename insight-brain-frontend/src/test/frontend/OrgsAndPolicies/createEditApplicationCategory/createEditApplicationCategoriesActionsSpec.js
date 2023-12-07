@@ -7,16 +7,15 @@ import axios from 'axios';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import {
   getApplicableCategoriesUrl,
   getCategoriesUrl,
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
   getOrganizationPolicyTagUrl,
-  getApplicationsUrl,
   getApplicablePolicies,
 } from 'MainRoot/util/CLMLocation';
 import TagResourceMockData from 'TestRoot/OrgsAndPolicies/mock.data/tag.resource.mock.data';
@@ -26,6 +25,26 @@ const { initialState: rscInitialState } = nxTextInputStateHelpers;
 describe('createEditApplicationCategoriesSlice Actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
+  const matchingApplicationIdForTag = 'applicationId';
+
+  const allApplications = [
+    {
+      id: matchingApplicationIdForTag,
+      publicId: 'activemq',
+      name: 'activemq',
+      organizationId: '29f73564c87942a9bf929a0af5ae6f78',
+      organizationName: 'org 2',
+      contact: null,
+    },
+    {
+      id: '19c2b96fdb4842d3b63c2f6251b003af',
+      publicId: 'appConsumer',
+      name: 'appConsumer',
+      organizationId: '29f73564c87942a9bf929a0af5ae6f78',
+      organizationName: 'org 2',
+      contact: null,
+    },
+  ];
 
   beforeEach(function () {
     const state = {
@@ -46,7 +65,7 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
       ownerId: mockOwnerId,
       ownerType: 'ownerType',
     });
-    spyOn(applicationsSelectors, 'selectApplications').and.returnValue([]);
+    spyOn(ownerSideNavSelectors, 'selectOwnersFlattenEntries').and.returnValue({ applications: allApplications });
   });
 
   describe('loadOrganizationPolicyTags', () => {
@@ -285,25 +304,6 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
 
   describe('loadCategoryEditor', () => {
     const categoryId = 'appCategoryId_1';
-    const matchingApplicationIdForTag = 'applicationId';
-    const allApplications = [
-      {
-        id: matchingApplicationIdForTag,
-        publicId: 'activemq',
-        name: 'activemq',
-        organizationId: '29f73564c87942a9bf929a0af5ae6f78',
-        organizationName: 'org 2',
-        contact: null,
-      },
-      {
-        id: '19c2b96fdb4842d3b63c2f6251b003af',
-        publicId: 'appConsumer',
-        name: 'appConsumer',
-        organizationId: '29f73564c87942a9bf929a0af5ae6f78',
-        organizationName: 'org 2',
-        contact: null,
-      },
-    ];
 
     const policyTags = [
       {
@@ -446,22 +446,18 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: { policiesByOwner },
           }),
-          [getApplicationsUrl()]: Promise.resolve({
-            data: allApplications,
-          }),
         },
       });
 
       store.dispatch(actions.loadCategoryEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(5);
+        expect(axios.get).toHaveBeenCalledTimes(4);
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(12);
+        expect(actions.length).toBe(10);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/createEdit/loadCategoryEditor/pending',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
-          'applications/loadApplications/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
@@ -469,13 +465,23 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
           'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
-          'applications/loadApplications/fulfilled',
           'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         ]);
 
-        expect(actions[11].payload).toEqual({
+        expect(actions[9].payload).toEqual({
           siblings: flattenedApplicationCategories,
-          associatedApplicationNames: ['activemq'],
+          applicationTags: [
+            {
+              id: 'ce37471280114bb7b3d64b30c65e6e86',
+              applicationId: 'applicationId',
+              tagId: 'appCategoryId_1',
+            },
+            {
+              id: 'f47f64880c5d44b882045b564ecf3dd7',
+              applicationId: 'd0fbe038085941c9a25f62bb9eb7f085',
+              tagId: '34f1f000d7a54abaa2b12731cdff780f',
+            },
+          ],
           currentCategory: {
             color: 'black',
             description: 'Description 1',

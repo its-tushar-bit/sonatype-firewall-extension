@@ -11,8 +11,6 @@ import rootSlice from './rootSlice';
 import policyMonitoring from './policyMonitoringSlice';
 import proprietarySlice from './proprietarySlice';
 import constraintSlice from './constraintSlice';
-import applicationsSlice from './applicationsSlice';
-import organizationsSlice from './organizationsSlice';
 import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
 import retentionSlice from './retentionSlice';
@@ -47,8 +45,6 @@ export default combineReducers({
   policyMonitoring: policyMonitoring,
   proprietary: proprietarySlice,
   constraint: constraintSlice,
-  applications: applicationsSlice,
-  organizations: organizationsSlice,
   stages: stagesSlice,
   policy: policySlice,
   ownerActions: combineReducers({

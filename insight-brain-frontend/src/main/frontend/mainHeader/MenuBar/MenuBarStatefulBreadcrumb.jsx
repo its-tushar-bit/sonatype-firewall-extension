@@ -44,7 +44,7 @@ const getBreadcrumb = (
   }
 
   if (currentRouteName.includes('management.edit')) {
-    const id = isApplication ? ownersMap[applicationPublicId].publicId : displayedOrganization.id;
+    const id = isApplication ? ownersMap[applicationPublicId]?.publicId : displayedOrganization.id;
     const href = uiRouterState.href(
       currentRouteName,
       isApplication ? { applicationPublicId: id } : { organizationId: id }

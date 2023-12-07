@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
-  getApplicationsUrl,
   getNLevelOrgUrl,
   getAddIconUrl,
-  getOrganizationsUrl,
   getOrganizationUrl,
   getApplicationSummaryUrl,
+  getApplicationsUrl,
+  getOrganizationsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
@@ -238,7 +238,6 @@ describe('ownerModal actions', () => {
         name: 'Root Organization',
       },
     });
-    mock.onGet(getOrganizationsUrl()).reply(200, []);
 
     store.dispatch(actions.createNewOwner()).then(() => {
       expect(mock.history.post.length).toBe(1);
@@ -246,22 +245,20 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(9);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/createOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'organizations/loadOrganizations/pending',
         'ownerActions/updateOwner/fulfilled',
-        'organizations/loadOrganizations/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewEntry',
         'ownerActions/ownerModal/createOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(10);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
@@ -285,7 +282,6 @@ describe('ownerModal actions', () => {
         name: 'OrganizationThreeName',
       },
     });
-    mock.onGet(getApplicationsUrl()).reply(200, []);
 
     store.dispatch(actions.createNewOwner()).then(() => {
       expect(mock.history.post.length).toBe(1);
@@ -293,22 +289,20 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(9);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/createOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'applications/loadApplications/pending',
         'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewEntry',
-        'applications/loadApplications/fulfilled',
         'ownerActions/ownerModal/createOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(10);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
@@ -324,7 +318,6 @@ describe('ownerModal actions', () => {
       },
     });
     mock.onPost(getAddIconUrl(false, 'organizationOneID')).reply(200, {});
-    mock.onGet(getOrganizationsUrl()).reply(200, []);
 
     mock.onGet(getOrganizationUrl(editOrgState.router.currentParams.organizationId)).reply(200, {
       data: {
@@ -338,29 +331,25 @@ describe('ownerModal actions', () => {
       expect(mock.history.put[0].url).toBe(getOrganizationsUrl());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'organizations/loadOrganizations/pending',
         'ownerActions/updateOwner/fulfilled',
-        'organizations/loadOrganizations/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(9);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'organizations/loadOrganizations/pending',
         'ownerActions/updateOwner/fulfilled',
-        'organizations/loadOrganizations/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
         'ownerActions/ownerModal/closeModal',
       ]);
@@ -378,7 +367,6 @@ describe('ownerModal actions', () => {
       name: 'newAppName',
     });
     mock.onPost(getAddIconUrl(true, 'applicationOneID')).reply(200, {});
-    mock.onGet(getApplicationsUrl()).reply(200, []);
 
     mock.onGet(getApplicationSummaryUrl(editAppState.router.currentParams.applicationPublicId)).reply(200, {
       data: {
@@ -395,29 +383,25 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'applications/loadApplications/pending',
         'ownerActions/updateOwner/fulfilled',
-        'applications/loadApplications/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(9);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
-        'applications/loadApplications/pending',
         'ownerActions/updateOwner/fulfilled',
-        'applications/loadApplications/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
         'ownerActions/ownerModal/closeModal',
       ]);

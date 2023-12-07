@@ -190,7 +190,7 @@ describe('scmOnboardingActions', function () {
         return store.dispatch(scmOnboardingActions.loadPage()).then(() => {
           // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
           let actions = store.getActions();
-          expect(actions.length).toBe(10);
+          expect(actions.length).toBe(11);
           expect(actions[0].type).toBe(SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED);
           expect(actions[0].payload).toBeUndefined();
           expect(actions[1].type).toBe(SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED);
@@ -199,10 +199,10 @@ describe('scmOnboardingActions', function () {
           expect(actions[2].payload).toBeUndefined();
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[9].type).toBe(SCM_ONBOARDING_LOAD_PAGE_FULFILLED);
-          expect(actions[9].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[9].payload.compositeSourceControlResults).toBeNull();
-          expect(actions[9].payload.hostUrlResult).toBeNull();
+          expect(actions[10].type).toBe(SCM_ONBOARDING_LOAD_PAGE_FULFILLED);
+          expect(actions[10].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[10].payload.compositeSourceControlResults).toBeNull();
+          expect(actions[10].payload.hostUrlResult).toBeNull();
         });
       });
 
@@ -217,6 +217,7 @@ describe('scmOnboardingActions', function () {
             'ownerSideNav/load/pending',
             'ownerSideNav/loadOwnerList/pending',
             'repositories/loadRepositories/pending',
+            'ownerSideNav/setDisplayedOrganization',
             'ownerSideNav/loadOwnerList/fulfilled',
             'repositories/loadRepositories/fulfilled',
             'ownerSideNav/load/fulfilled',
@@ -229,10 +230,10 @@ describe('scmOnboardingActions', function () {
           expect(actions[0].type).toBe(SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED);
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[9].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[9].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[9].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
-          expect(actions[9].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
+          expect(actions[10].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
+          expect(actions[10].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[10].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
+          expect(actions[10].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
         });
       });
 
@@ -247,6 +248,7 @@ describe('scmOnboardingActions', function () {
             'ownerSideNav/load/pending',
             'ownerSideNav/loadOwnerList/pending',
             'repositories/loadRepositories/pending',
+            'ownerSideNav/setDisplayedOrganization',
             'ownerSideNav/loadOwnerList/fulfilled',
             'repositories/loadRepositories/fulfilled',
             'ownerSideNav/load/fulfilled',
@@ -258,9 +260,9 @@ describe('scmOnboardingActions', function () {
           expect(actions[2].payload).toEqual('id2');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[9].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[9].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
-          expect(actions[9].payload.hostUrlResult).toEqual(null);
+          expect(actions[10].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[10].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
+          expect(actions[10].payload.hostUrlResult).toEqual(null);
         });
       });
 
@@ -275,6 +277,7 @@ describe('scmOnboardingActions', function () {
             'ownerSideNav/load/pending',
             'ownerSideNav/loadOwnerList/pending',
             'repositories/loadRepositories/pending',
+            'ownerSideNav/setDisplayedOrganization',
             'ownerSideNav/loadOwnerList/fulfilled',
             'repositories/loadRepositories/fulfilled',
             'ownerSideNav/load/fulfilled',
@@ -284,11 +287,11 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created using the gitlab provider
           // rather than the parent provider
-          expect(actions[9].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[9].payload.compositeSourceControlResults).toEqual(
+          expect(actions[10].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[10].payload.compositeSourceControlResults).toEqual(
             providerOverriddenCompositeSourceControlPayload
           );
-          expect(actions[9].payload.hostUrlResult).toEqual(gitlabDefaultHostPayload);
+          expect(actions[10].payload.hostUrlResult).toEqual(gitlabDefaultHostPayload);
         });
       });
     });

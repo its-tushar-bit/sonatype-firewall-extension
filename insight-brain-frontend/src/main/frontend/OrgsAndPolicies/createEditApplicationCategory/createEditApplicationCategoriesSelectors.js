@@ -9,6 +9,7 @@ import { isNil, path, prop } from 'ramda';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 import { hasValidationErrors, GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
+import { selectOwnersFlattenEntries } from '../ownerSideNav/ownerSideNavSelectors';
 
 export const selectApplicationCategoriesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
@@ -22,8 +23,9 @@ export const selectSubmitError = createSelector(selectApplicationCategoriesSlice
 export const selectIsDirty = createSelector(selectApplicationCategoriesSlice, prop('isDirty'));
 export const selectCurrentCategory = createSelector(selectApplicationCategoriesSlice, prop('currentCategory'));
 export const selectDeleteModal = createSelector(selectApplicationCategoriesSlice, prop('deleteModal'));
-export const selectAssociatedApplicationNames = createSelector(selectDeleteModal, prop('associatedApplicationNames'));
 export const selectTagPolicyList = createSelector(selectDeleteModal, prop('tagPolicyList'));
+export const selectApplicationTags = createSelector(selectDeleteModal, prop('applicationTags'));
+
 export const selectSiblings = createSelector(selectApplicationCategoriesSlice, prop('siblings'));
 export const selectSubmitMaskState = createSelector(selectApplicationCategoriesSlice, prop('submitMaskState'));
 export const selectValidationError = createSelector(selectApplicationCategoriesSlice, ({ currentCategory }) =>
@@ -35,3 +37,26 @@ export const selectValidationError = createSelector(selectApplicationCategoriesS
 
 export const selectDeleteMaskState = createSelector(selectApplicationCategoriesSlice, prop('deleteMaskState'));
 export const selectDeleteError = createSelector(selectApplicationCategoriesSlice, prop('deleteError'));
+
+const getAssociatedApplicationNames = (applicationTags, { applications: allApplications }, { categoryId }) => {
+  const associatedApplicationNames = [];
+
+  applicationTags?.forEach((tag) => {
+    if (tag.tagId === categoryId) {
+      allApplications.forEach((application) => {
+        if (application.id === tag.applicationId) {
+          associatedApplicationNames.push(application.name);
+        }
+      });
+    }
+  });
+
+  return associatedApplicationNames;
+};
+
+export const selectAssociatedApplicationNames = createSelector(
+  selectApplicationTags,
+  selectOwnersFlattenEntries,
+  selectRouterCurrentParams,
+  getAssociatedApplicationNames
+);

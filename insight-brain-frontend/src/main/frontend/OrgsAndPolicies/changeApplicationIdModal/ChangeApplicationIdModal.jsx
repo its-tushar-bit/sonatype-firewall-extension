@@ -8,7 +8,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectChangeApplicationIdSlice, selectNewPublicId } from './changeApplicationIdSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import {
   NxModal,
   NxWarningAlert,
@@ -20,6 +19,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { actions } from './changeApplicationIdSlice';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
+import { selectOwnersFlattenEntries } from '../ownerSideNav/ownerSideNavSelectors';
 
 export default function ChangeApplicationIdModal() {
   const dispatch = useDispatch();
@@ -27,7 +27,7 @@ export default function ChangeApplicationIdModal() {
   const { isModalOpen, submitMaskState, submitError } = useSelector(selectChangeApplicationIdSlice);
   const newPublicId = useSelector(selectNewPublicId);
   const { publicId } = useSelector(selectSelectedOwner);
-  const appsList = useSelector(selectApplications);
+  const appsList = useSelector(selectOwnersFlattenEntries).applications;
 
   const closeModal = () => dispatch(actions.closeModal());
   const changeApplicationId = () => dispatch(actions.changeApplicationId());

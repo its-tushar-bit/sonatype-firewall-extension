@@ -46,6 +46,36 @@ const ORGS = [
   },
 ];
 
+const ownersMap = {
+  applicationOnePublicID: {
+    id: 'applicationOneID',
+    publicId: 'applicationOnePublicID',
+    organizationId: 'organizationOneID',
+    name: 'ApplicationOneName',
+  },
+  applicationTwoPublicID: {
+    id: 'applicationTwoID',
+    publicId: 'applicationTwoPublicID',
+    organizationId: 'organizationOneID',
+    name: 'ApplicationTwoName',
+  },
+  applicationThreePublicID: {
+    id: 'applicationThreeID',
+    publicId: 'applicationThreePublicID',
+    organizationId: 'organizationTwoID',
+    name: 'ApplicationThreeName',
+  },
+
+  organizationOneID: {
+    id: 'organizationOneID',
+    name: 'OrganizationOneName',
+  },
+  organizationTwoID: {
+    id: 'organizationTwoID',
+    name: 'OrganizationTwoName',
+  },
+};
+
 const defaultPreloadedState = {
   router: {
     currentState: {
@@ -74,6 +104,7 @@ const defaultPreloadedState = {
         id: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
       },
+      ownersMap,
     },
     ownerActions: {
       ownerModal: {
@@ -120,6 +151,7 @@ const createAppState = {
         id: ORGS[0].id,
         name: ORGS[0].name,
       },
+      ownersMap,
     },
     ownerActions: {
       ownerModal: {
@@ -166,6 +198,7 @@ const editOrgState = {
         id: ORGS[0].id,
         name: ORGS[0].name,
       },
+      ownersMap,
     },
     ownerActions: {
       ownerModal: {
@@ -212,6 +245,7 @@ const editAppState = {
         id: ORGS[0].id,
         name: ORGS[0].name,
       },
+      ownersMap,
     },
     ownerActions: {
       ownerModal: {

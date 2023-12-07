@@ -36,7 +36,6 @@ import { selectIsEditMode, selectCurrentCategory } from './createEditApplication
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { actions as applicationActions } from '../applicationsSlice';
 import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import { deriveEditRoute } from '../utility/util';
 import { actions as rootActions } from '../rootSlice';
@@ -67,7 +66,7 @@ export const initialState = {
   },
   serverCategory: null,
   deleteModal: {
-    associatedApplicationNames: null,
+    applicationTags: null,
     tagPolicyList: null,
   },
   deleteError: null,
@@ -158,7 +157,7 @@ const loadCategoryEditorFulfilled = (state, { payload }) => {
   state.deleteError = null;
   state.isDirty = false;
 
-  const { associatedApplicationNames, siblings, currentCategory: currentCategoryPayload, tagPolicyList } = payload;
+  const { applicationTags, siblings, currentCategory: currentCategoryPayload, tagPolicyList } = payload;
   state.currentCategory = {
     ...currentCategoryPayload,
     name: rscInitialState(currentCategoryPayload?.name ?? '', validateNonEmpty),
@@ -166,7 +165,7 @@ const loadCategoryEditorFulfilled = (state, { payload }) => {
   };
   state.serverCategory = currentCategoryPayload;
   state.siblings = siblings || [];
-  state.deleteModal.associatedApplicationNames = associatedApplicationNames;
+  state.deleteModal.applicationTags = applicationTags;
   state.deleteModal.tagPolicyList = tagPolicyList;
 };
 
@@ -208,33 +207,15 @@ const getPolicyMap = (policyHierarchy) => {
   return policyMap;
 };
 
-const getAssociatedApplicationNames = (applicationTagsByOwner, allApplication, categoryId) => {
-  // the first owner is the local one
-  const applicationTags = path(['0', 'applicationTags'], applicationTagsByOwner);
-  const associatedApplicationNames = [];
-
-  applicationTags.forEach((tag) => {
-    if (tag.tagId === categoryId) {
-      allApplication.forEach((application) => {
-        if (application.id === tag.applicationId) {
-          associatedApplicationNames.push(application.name);
-        }
-      });
-    }
-  });
-
-  return associatedApplicationNames;
-};
-
 const loadCategoryEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadCategoryEditor`,
   (_, { getState, rejectWithValue, dispatch }) => {
-    const isEditMode = selectIsEditMode(getState());
+    const state = getState();
+    const isEditMode = selectIsEditMode(state);
 
     const editCategoryPromises = isEditMode
       ? [
           dispatch(loadOrganizationAppliedTag()),
-          dispatch(applicationActions.loadApplications()),
           dispatch(rootActions.loadApplicablePoliciesByOwner()),
           dispatch(loadOrganizationPolicyTags()),
         ]
@@ -246,7 +227,6 @@ const loadCategoryEditor = createAsyncThunk(
         const [
           applicationCategoriesByOwnerActionPayload,
           applicationTagsByOwnerActionPayload,
-          allApplicationPayload,
           loadApplicablePoliciesByOwnerActionPayload,
           policyTagActionPayload,
         ] = results;
@@ -263,24 +243,18 @@ const loadCategoryEditor = createAsyncThunk(
             },
           };
         }
-
-        const allApplication = unwrapResult(allApplicationPayload);
         const { applicationTagsByOwner = [] } = unwrapResult(applicationTagsByOwnerActionPayload);
         const policyTags = unwrapResult(policyTagActionPayload);
-        const { categoryId } = selectRouterCurrentParams(getState());
+        const { categoryId } = selectRouterCurrentParams(state);
         const categoryToEdit = findCategoryToEdit(categoryId, applicationCategoriesByOwner);
-        const associatedApplicationNames = getAssociatedApplicationNames(
-          applicationTagsByOwner,
-          allApplication,
-          categoryId
-        );
         const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerActionPayload);
         const policyMap = getPolicyMap(policiesByOwner);
         const tagPolicyList = getTagPolicyList(policyTags, policyMap, categoryId);
 
         return {
           siblings: siblingsFromAllOwners,
-          associatedApplicationNames,
+          // the first owner is the local one
+          applicationTags: path(['0', 'applicationTags'], applicationTagsByOwner),
           currentCategory: categoryToEdit,
           tagPolicyList,
         };

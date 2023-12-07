@@ -20,7 +20,6 @@ import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import Hexagon from 'MainRoot/react/Hexagon';
 import { angularToRscColorMap, deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 
-import { selectLoadApplicationsError, selectLoadingApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import {
   selectAppliedCategories,
   selectAreAnyCategoriesDefined,
@@ -50,18 +49,16 @@ export default function ApplicationCategoriesTile() {
 
   const ownerName = useSelector(selectSelectedOwnerName);
 
-  const loadingApplications = useSelector(selectLoadingApplications);
   const loadingApplicableCategories = useSelector(selectLoadingApplicableCategories);
   const isLoading = useSelector(selectIsLoading);
   const loadingAppliedCategories = useSelector(selectLoadingAppliedCategories);
 
-  const loadApplicationsError = useSelector(selectLoadApplicationsError);
   const loadApplicableCategoriesError = useSelector(selectLoadApplicableCategoriesError);
   const loadError = useSelector(selectLoadError);
   const loadAppliedCategoriesError = useSelector(selectLoadAppliedCategoriesError);
 
-  const loading = loadingApplications || loadingApplicableCategories || isLoading || loadingAppliedCategories;
-  const error = loadApplicationsError || loadApplicableCategoriesError || loadError || loadAppliedCategoriesError;
+  const loading = loadingApplicableCategories || isLoading || loadingAppliedCategories;
+  const error = loadApplicableCategoriesError || loadError || loadAppliedCategoriesError;
 
   const appliedCategories = useSelector(selectAppliedCategories);
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);

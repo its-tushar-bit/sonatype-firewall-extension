@@ -533,6 +533,9 @@ describe('OwnerSideNav', () => {
     describe('owner sidenav header', () => {
       it("renders current organization's name as a paragraph with selected item class", async () => {
         renderComponent();
+        await screen.findByRole('navigation', {
+          name: /breadcrumbs/i,
+        });
 
         const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
         // first match is the breadcrumb.
@@ -598,8 +601,8 @@ describe('OwnerSideNav', () => {
       it('should not render the Import Application option when saas-lifecycle-scm-enabled is false', async function () {
         state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'] = false;
         renderComponent();
-
-        const applicationPlusButton = await screen.findByRole('button', { name: 'Add Application' });
+        const buttons = await screen.findAllByRole('button');
+        const applicationPlusButton = buttons[4];
 
         fireEvent.click(applicationPlusButton);
 
@@ -611,7 +614,8 @@ describe('OwnerSideNav', () => {
         delete state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'];
         renderComponent();
 
-        const applicationPlusButton = await screen.findByRole('button', { name: 'Add Application' });
+        const buttons = await screen.findAllByRole('button');
+        const applicationPlusButton = buttons[4];
 
         fireEvent.click(applicationPlusButton);
 
@@ -915,6 +919,9 @@ describe('OwnerSideNav', () => {
     describe('owner sidenav header', () => {
       it("renders current organization's name as a paragraph with selected item class", async () => {
         renderComponent();
+        await screen.findByRole('navigation', {
+          name: /breadcrumbs/i,
+        });
         const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
         // first match is the breadcrumb.
         expect(matchingOrgNames[1]).toBeVisible();

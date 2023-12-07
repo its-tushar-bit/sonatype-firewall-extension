@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableMap;
@@ -67,7 +67,7 @@ public class PullRequestLineFeedbackTest
   @Before
   public void before() {
     setBaseUrl("http://localhost:1122");
-    String iqBaseUrl = lookup(DefaultBaseUrl.class).getConfigured();
+    String iqBaseUrl = lookup(BaseUrl.class).getConfigured();
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID,
@@ -217,7 +217,7 @@ public class PullRequestLineFeedbackTest
         .isThrownBy(
             () -> new PullRequestLineFeedback(null,
                 "Test Component",
-                lookup(DefaultBaseUrl.class).getConfigured(),
+                lookup(BaseUrl.class).getConfigured(),
                 null,
                 null,
                 APPLICATION_PUBLIC_ID,
@@ -231,7 +231,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_emptyViolations() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
-            lookup(DefaultBaseUrl.class).getConfigured(), null, null,
+            lookup(BaseUrl.class).getConfigured(), null, null,
             APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false)
             .renderTemplateAndGetContents(GITHUB))
         .withMessageContaining("violations cannot be empty");
@@ -241,7 +241,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_nullDisplayName() {
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(
-            () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(),
+            () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(BaseUrl.class).getConfigured(),
                 null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null,
                     false))
         .withMessageContaining("displayName is required and cannot be null");

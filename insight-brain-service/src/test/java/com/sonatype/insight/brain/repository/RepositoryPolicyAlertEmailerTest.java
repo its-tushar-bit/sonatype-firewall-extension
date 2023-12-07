@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import com.google.inject.Binder;
@@ -166,7 +165,7 @@ public class RepositoryPolicyAlertEmailerTest
 
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> emailer.createPolicyMailModel(repository, policyFacts))
-        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private Policy createPolicy(User user) {

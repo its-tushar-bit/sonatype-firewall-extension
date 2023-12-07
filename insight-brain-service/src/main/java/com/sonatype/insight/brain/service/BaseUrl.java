@@ -17,8 +17,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Named
 @Singleton
-public class DefaultBaseUrl
-    implements BaseUrl
+public class BaseUrl
 {
   private static final String[] UNSAFE_CHARACTERS = new String[]{"{", "}"};
 
@@ -32,16 +31,14 @@ public class DefaultBaseUrl
   private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();
 
   @Inject
-  public DefaultBaseUrl(Configuration configuration) {
+  public BaseUrl(Configuration configuration) {
     this.configuration = configuration;
   }
 
-  @Override
   public void capture(HttpServletRequest httpRequest) {
     currentHttpRequest.set(httpRequest);
   }
 
-  @Override
   public void release() {
     currentHttpRequest.remove();
   }
@@ -54,7 +51,14 @@ public class DefaultBaseUrl
     return httpRequest;
   }
 
-  @Override
+  /**
+   * Returns the server base URL:
+   * - if the base URL is not forced (in the server configuration), it tries to extract the base URL from the incoming
+   * HTTP request (if any);
+   * - otherwise, it returns the configured server base URL.
+   *
+   * @throws IllegalStateException if the base URL cannot be determined.
+   */
   public String get() {
     BaseUrlConfiguration baseUrlConfiguration = configuration.getBaseUrlConfiguration();
     if (!baseUrlConfiguration.isForceBaseUrl()) {
@@ -66,7 +70,11 @@ public class DefaultBaseUrl
     return getConfigured(baseUrlConfiguration);
   }
 
-  @Override
+  /**
+   * Returns the configured server base URL.
+   *
+   * @throws IllegalStateException if the base URL is not configured.
+   */
   public String getConfigured() {
     return getConfigured(configuration.getBaseUrlConfiguration());
   }
@@ -97,7 +105,6 @@ public class DefaultBaseUrl
     }
   }
 
-  @Override
   public UriBuilder redirect() {
     String queryString = getHttpRequest().getQueryString();
     String escapedQueryString = StringUtils.replaceEach(queryString, UNSAFE_CHARACTERS, ESCAPED_CHARACTERS);

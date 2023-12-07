@@ -66,7 +66,7 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.SamlUserGroupHelper;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
@@ -497,7 +497,7 @@ public class PolicyAlertEmailerTest
     );
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(
         mailer,
-        lookup(DefaultBaseUrl.class),
+        lookup(BaseUrl.class),
         userDirectory,
         policyAlertEmailResolver,
         new AuditRecorder(null),
@@ -786,7 +786,7 @@ public class PolicyAlertEmailerTest
     assertThatThrownBy(
         () -> policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId", StageTypes.BUILD,
             policyFacts, 0)).isInstanceOf(IllegalStateException.class)
-        .hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {

@@ -64,7 +64,7 @@ public class InsightConfig
   private String baseUrl;
 
   /**
-   * When true, {@link DefaultBaseUrl#get()} will always return the configured {@link #baseUrl}.
+   * When true, {@link BaseUrl#get()} will always return the configured {@link #baseUrl}.
    *
    * @since 1.41
    */

@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -241,7 +241,7 @@ public class JiraPolicyAlertNotifierTest
     assertThatThrownBy(() -> jiraPolicyAlertNotifier.createPolicyMailModel(app,
         ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName()), "scanId",
         new Stage(Stage.ID_BUILD), null, null))
-        .isInstanceOf(IllegalStateException.class).hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test

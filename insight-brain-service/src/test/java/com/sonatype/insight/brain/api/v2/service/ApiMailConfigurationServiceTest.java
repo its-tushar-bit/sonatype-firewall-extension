@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -55,7 +54,7 @@ public class ApiMailConfigurationServiceTest
     resetBaseUrl();
     // Sanity check
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> baseUrl.getConfigured())
-        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test
@@ -591,7 +590,7 @@ public class ApiMailConfigurationServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> mailConfigurationService.testConfiguration("test@example.com", configurationDTO))
         .withMessageContainingAll("Test mail configuration failed. Error ID",
-            DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+            BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test

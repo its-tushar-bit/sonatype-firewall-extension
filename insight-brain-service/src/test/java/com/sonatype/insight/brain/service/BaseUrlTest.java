@@ -49,7 +49,7 @@ public class BaseUrlTest
     resetBaseUrl();
     // Sanity check
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> baseUrl.getConfigured())
-        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @After
@@ -61,7 +61,7 @@ public class BaseUrlTest
   public void testGet_OutsideHttpRequest_BaseUrlNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> baseUrl.get())
-        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test
@@ -133,6 +133,6 @@ public class BaseUrlTest
   @Test
   public void testGetConfigured_BaseUrlNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class)
-        .isThrownBy(() -> baseUrl.getConfigured()).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .isThrownBy(() -> baseUrl.getConfigured()).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 }

@@ -8,9 +8,8 @@ package com.sonatype.insight.brain.firewall.metrics;
 
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,12 +17,12 @@ import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
-import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.utils.DateConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
 
 @Named
 public class QuarantinedComponentMetricsConsolidator
@@ -51,27 +50,22 @@ public class QuarantinedComponentMetricsConsolidator
   }
 
   public void consolidate() {
-    try {
-      apiFirewallMetricsService.checkProductLicense();
-    }
-    catch (InvalidLicenseException invalidLicenseException) {
-      // If invalid license, do nothing
-      log.debug("Skipping Consolidation of Quarantined Components metrics due to an " +
-          "invalid firewall license");
+    if (!apiFirewallMetricsService.isValidProductLicense()) {
+      log.debug("Skipping consolidation of Quarantined Components metrics due to an invalid firewall license");
       return;
     }
+
     log.info("Consolidating Quarantined Components metrics");
     long start = System.currentTimeMillis();
 
-    firewallMetricsDAO.deleteRecordsOlderThanOneYear(FirewallMetricsName
-        .COMPONENTS_QUARANTINED);
-    Date mostRecentMetricDateFound = firewallMetricsDAO.getMostRecentLastUpdatedAtDateByName(
-        FirewallMetricsName.COMPONENTS_QUARANTINED);
+    firewallMetricsDAO.deleteRecordsOlderThanOneYear(COMPONENTS_QUARANTINED);
+
+    Date mostRecentMetricDateFound = firewallMetricsDAO.getMostRecentLastUpdatedAtDateByName(COMPONENTS_QUARANTINED);
 
     Map<LocalDate, Long> quarantinedComponentsCount;
     if (mostRecentMetricDateFound != null) {
-      quarantinedComponentsCount = repositoryComponentDAO
-          .getConsolidatedQuarantinedComponentsMetricByDate(mostRecentMetricDateFound);
+      quarantinedComponentsCount =
+          repositoryComponentDAO.getConsolidatedQuarantinedComponentsMetricByDate(mostRecentMetricDateFound);
 
     }
     else {
@@ -82,16 +76,11 @@ public class QuarantinedComponentMetricsConsolidator
               )
           );
     }
-    List<FirewallMetrics> firewallMetricsToInsertOrUpdate =
-        quarantinedComponentsCount.entrySet().stream().map( entry -> new FirewallMetrics(
-            entry.getKey(),
-            FirewallMetricsName.COMPONENTS_QUARANTINED,
-            entry.getValue().intValue()
-        )).collect(Collectors.toList());
-    for (FirewallMetrics fm : firewallMetricsToInsertOrUpdate) {
-      firewallMetricsDAO.insertUpdateFirewallMetrics(fm);
-    }
 
-    log.info("Updated component categories in {} ms.", System.currentTimeMillis() - start);
+    quarantinedComponentsCount.entrySet().stream()
+        .map(entry -> new FirewallMetrics(entry.getKey(), COMPONENTS_QUARANTINED, entry.getValue().intValue()))
+        .forEach(firewallMetricsDAO::insertUpdateFirewallMetrics);
+
+    log.info("Consolidation of Quarantined Components metrics done in {} ms.", System.currentTimeMillis() - start);
   }
 }

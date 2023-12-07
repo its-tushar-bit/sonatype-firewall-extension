@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -35,17 +34,17 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class QuarantinedComponentsMetricConsolidatorTest
+public class QuarantinedComponentMetricsConsolidatorTest
     extends AbstractComponentTest
 {
   @Inject
   private FirewallMetricsDAO firewallMetricsDAOTest;
 
   @Inject
-  private ApiFirewallMetricsService firewallMetricsService;
+  private RepositoryComponentDAO repositoryComponentDAOTest;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAOTest;
+  private QuarantinedComponentMetricsConsolidator consolidator;
 
   private final List<Date> testLastUpdateDates = new ArrayList<>();
 
@@ -66,11 +65,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
         allMetrics).getMetricsDate()
     ).isEqualTo(overAYearOldDateStr);
 
-    QuarantinedComponentMetricsConsolidator q =
-        new QuarantinedComponentMetricsConsolidator(
-            repositoryComponentDAOTest, firewallMetricsDAOTest, firewallMetricsService);
-
-    q.consolidate();
+    consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
     // Check current data length. Records older than 1 year
@@ -100,11 +95,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
 
     initTestData();
 
-    QuarantinedComponentMetricsConsolidator q =
-        new QuarantinedComponentMetricsConsolidator(
-            repositoryComponentDAOTest, firewallMetricsDAOTest, firewallMetricsService);
-
-    q.consolidate();
+    consolidator.consolidate();
 
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     // Check a record that is at least less than 1 year old
@@ -147,11 +138,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
     assertThat(formatAsISOString(fmInitDb301.getMetricsDate())).isEqualTo(past301Str);
     assertThat(fmInitDb301.getMetricsValue()).isEqualTo(2);
 
-    QuarantinedComponentMetricsConsolidator q =
-        new QuarantinedComponentMetricsConsolidator(
-            repositoryComponentDAOTest, firewallMetricsDAOTest, firewallMetricsService);
-
-    q.consolidate();
+    consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
 
@@ -199,11 +186,7 @@ public class QuarantinedComponentsMetricConsolidatorTest
         .isEqualTo(formatAsISOString(today));
     assertThat(todayInitDb.getMetricsValue()).isEqualTo(3);
 
-    QuarantinedComponentMetricsConsolidator q =
-        new QuarantinedComponentMetricsConsolidator(
-            repositoryComponentDAOTest, firewallMetricsDAOTest, firewallMetricsService);
-
-    q.consolidate();
+    consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
 

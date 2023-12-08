@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 import com.codeborne.selenide.SelenideElement;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -218,7 +217,7 @@ public abstract class AbstractLTGEditorTest
 
     String filterText = "Adobe";
     picker.filter().val(filterText);
-    picker.availableItems().shouldHaveSize(8);
+    picker.availableItems().shouldHaveSize(9);
 
     for (int i = 0; i < 8; i++) {
       SelenideElement item = picker.availableItem(i);

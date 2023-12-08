@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.webhook;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -32,6 +34,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -52,9 +55,12 @@ import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePaylo
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.eventbus.Subscribe;
 import io.dropwizard.lifecycle.Managed;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +73,8 @@ public class WebhookDispatcher
     implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(WebhookDispatcher.class);
+
+  static final String JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER = "atlassian";
 
   private final WebhookService webhookService;
 
@@ -82,6 +90,8 @@ public class WebhookDispatcher
 
   private final RepositoryDAO repositoryDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public WebhookDispatcher(final AsyncEventBus asyncEventBus,
                            final WebhookService webhookService,
@@ -89,7 +99,8 @@ public class WebhookDispatcher
                            final OwnerDTOUtil ownerDTOUtil,
                            final AuditRecorder auditRecorder,
                            final ProductLicense productLicense,
-                           final RepositoryDAO repositoryDAO)
+                           final RepositoryDAO repositoryDAO,
+                           final TelemetrySender telemetrySender)
   {
     this.webhookService = webhookService;
     this.webhookClientUtil = webhookClientUtil;
@@ -98,6 +109,7 @@ public class WebhookDispatcher
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
     this.repositoryDAO = repositoryDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   @Subscribe
@@ -229,6 +241,8 @@ public class WebhookDispatcher
 
     // PolicyAlertEvents must be configured both as Webhook configuration and Policy Notification
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_ALERT)) {
+      checkAndSendTelemetryForJiraCloudPlugin(webhook.getUrl());
+
       if (webhook.getId().equals(policyAlertEvent.targetId)) {
         invokeWithAudit(webhook, webhookEventType,
             () -> sendPolicyAlertPayload(webhookService.getDecrypted(webhook.getId()), policyAlertEvent));
@@ -473,5 +487,17 @@ public class WebhookDispatcher
 
     log.debug("Webhooks feature for event {} is not supported by the current license.", webhookEventType);
     return false;
+  }
+
+  private void checkAndSendTelemetryForJiraCloudPlugin(final String webhookUrl) {
+    if (StringUtils.isNotEmpty(webhookUrl) && webhookUrl.contains(JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER)) {
+      final TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.JIRA_CLOUD_PLUGIN_USAGE_METRICS);
+      final Map<String, Object> attributes = new HashMap<>();
+
+      attributes.put("jira_cloud_usage_time", new Date().getTime());
+      telemetryData.setAttributes(attributes);
+
+      telemetrySender.send(telemetryData);
+    }
   }
 }

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -58,6 +59,8 @@ import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePaylo
 import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -68,6 +71,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static com.sonatype.insight.brain.webhook.WebhookDispatcher.JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -97,6 +101,9 @@ public class WebhookDispatcherTest
   @Mock
   private WebhookClientUtil webhookClientUtil;
 
+  @Mock
+  private TelemetrySender telemetrySender;
+
   @Before
   public void before() {
     webhookDispatcher.start();
@@ -110,6 +117,7 @@ public class WebhookDispatcherTest
   @Override
   public void configure(Binder binder) {
     binder.bind(WebhookClientUtil.class).toInstance(webhookClientUtil);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
     super.configure(binder);
   }
 
@@ -688,6 +696,51 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.timestamp).isNotNull();
     assertThat(webhookPayload.organizations).hasSameElementsAs(organizationSummaries);
     assertThat(webhookPayload.applications).hasSameElementsAs(applicationSummaries);
+  }
+
+  @Test
+  public void testOn_HandlesPolicyAlertEvent_SendTelemetry_WhenWebhookUrlMatchesCriteria() {
+    final String webhookUrl = String.format("https://12345.%s/x1/67890", JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER);
+    final Webhook target =
+        tempEntity.newWebhookWithSecret(webhookUrl, Collections.singleton(WebhookEventType.POLICY_ALERT));
+
+    final ApplicationEvaluationEvent evaluationEvent = new ApplicationEvaluationEvent();
+    final PolicyAlertEvent event = new PolicyAlertEvent(target.getId());
+    event.application = new ApplicationSummary();
+    event.applicationEvaluation = evaluationEvent;
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_ALERT.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    final ArgumentCaptor<TelemetryData> telemetryDataCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataCaptor.capture());
+    final TelemetryData telemetryData = telemetryDataCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.JIRA_CLOUD_PLUGIN_USAGE_METRICS);
+    assertThat(telemetryData.getTimestamp()).isPositive();
+  }
+
+  @Test
+  public void testOn_HandlesPolicyAlertEvent_DoNotSendTelemetry_WhenWebhookUrlDoesNotMatchCriteria() {
+    final Webhook target =
+        tempEntity.newWebhookWithSecret("http://locahost", Collections.singleton(WebhookEventType.POLICY_ALERT));
+
+    final ApplicationEvaluationEvent evaluationEvent = new ApplicationEvaluationEvent();
+    final PolicyAlertEvent event = new PolicyAlertEvent(target.getId());
+    event.application = new ApplicationSummary();
+    event.applicationEvaluation = evaluationEvent;
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_ALERT.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    verifyNoInteractions(telemetrySender);
   }
 
   private void testEventTypesWithOwner(Owner owner) {

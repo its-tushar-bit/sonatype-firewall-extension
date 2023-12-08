@@ -51,7 +51,7 @@ public abstract class AbstractHdsClientTest
 
   private Server server;
 
-  protected DefaultHdsClient client;
+  protected HdsClient client;
 
   protected AbstractHandler handler;
 

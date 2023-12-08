@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.version.VersionService;
 @Named
 @Singleton
 public class FirewallAuditHdsClient
-    extends DefaultHdsClient
+    extends HdsClient
 {
   @Inject
   public FirewallAuditHdsClient(

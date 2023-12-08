@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.dto.IdeUsersOverviewDTO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -101,7 +101,7 @@ public class ApiThirdPartyScanResourceTest
   {
     HttpRequest request = restRequest
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyScanResource.IDE_USER_OVERVIEW)
-        .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, "testClientUserAgent");
+        .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, "testClientUserAgent");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     assertThat(response.getBody(IdeUsersOverviewDTO.class).userCount)
@@ -122,7 +122,7 @@ public class ApiThirdPartyScanResourceTest
     HttpRequest scanBomRequest = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD);
     scanBomRequest.body(bom, mediaType);
     HttpResponse response = scanBomRequest //
-        .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+        .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
         .post();
     assertResponseStatus(202, response);
 
@@ -149,7 +149,7 @@ public class ApiThirdPartyScanResourceTest
     assertThat(resultDTO.legacyViolations).isEqualTo(0);
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
-        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+        .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) {

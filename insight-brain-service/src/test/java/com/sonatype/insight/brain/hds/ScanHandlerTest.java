@@ -105,7 +105,7 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(servletRequest.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
+    when(servletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(thirdPartyScanService.filterAndUpload(any(File.class), any(Application.class), eq(null),
@@ -152,7 +152,7 @@ public class ScanHandlerTest
     when(stream.read(any(byte[].class))).thenReturn(-1);
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(stream);
-    when(servletRequest.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
+    when(servletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),

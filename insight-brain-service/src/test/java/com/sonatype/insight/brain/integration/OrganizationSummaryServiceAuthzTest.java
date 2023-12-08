@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.organization.OrganizationSummary;
 import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -33,7 +32,7 @@ public class OrganizationSummaryServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(DefaultHdsClient.class));
+    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
     otherOrg = tempEntity.newOrganization("Z");
   }
 

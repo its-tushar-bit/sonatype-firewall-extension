@@ -69,7 +69,7 @@ public class ScanHandler
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File tempScanFile = createTempScanFile(httpRequest, app);
     return handle(tempScanFile, app, clientScanType, null /* thirdPartyScanTelemetryData */, null /* stageTypeId */,
-        DefaultHdsClient.getClientUserAgent(httpRequest));
+        HdsClient.getClientUserAgent(httpRequest));
   }
 
   public ScanReceipt handle(

@@ -34,7 +34,7 @@ public class DeprecatedCLIResourceTest
 
     String testClientUserAgent = "testClientUserAgent";
     HttpRequest request = scanRequest(app.getPublicId());
-    request.header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
+    request.header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
     final HttpResponse response = request.put();
 
     assertResponseStatus(200, response);
@@ -49,7 +49,7 @@ public class DeprecatedCLIResourceTest
         .isEqualTo("ui/links/application/" + app.getPublicId() + "/report/" + receipt.getScanId() + "/pdf");
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
-        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+        .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test

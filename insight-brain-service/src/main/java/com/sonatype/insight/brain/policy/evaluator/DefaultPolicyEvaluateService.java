@@ -23,7 +23,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
@@ -225,8 +225,8 @@ public class DefaultPolicyEvaluateService
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
     evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),
-        tempScanFile, thirdPartyScanType, DefaultHdsClient.getClientUserAgent(req),
-        DefaultHdsClient.getClientInstanceId(req));
+        tempScanFile, thirdPartyScanType, HdsClient.getClientUserAgent(req),
+        HdsClient.getClientInstanceId(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);

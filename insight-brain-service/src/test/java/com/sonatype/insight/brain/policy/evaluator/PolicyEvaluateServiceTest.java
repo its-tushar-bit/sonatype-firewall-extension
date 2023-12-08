@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -482,7 +482,7 @@ public class PolicyEvaluateServiceTest
 
     String testClientUserAgent = "testClientUserAgent";
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    when(mockHttpServletRequest.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER))
+    when(mockHttpServletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))
         .thenReturn(testClientUserAgent);
 
     when(mockScanHandler.createTempScanFile(eq(mockHttpServletRequest), any(Application.class)))
@@ -529,7 +529,7 @@ public class PolicyEvaluateServiceTest
         .thenReturn(scanReceipt);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
-    when(req.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
+    when(req.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
 
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, req, stage);

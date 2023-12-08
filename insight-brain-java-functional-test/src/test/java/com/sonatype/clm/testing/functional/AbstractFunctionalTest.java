@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -217,7 +217,7 @@ public abstract class AbstractFunctionalTest
 
   @BeforeClass
   public static void disableWaitToCloseOldClients() {
-    DefaultHdsClient.waitToCloseOldClients = false;
+    HdsClient.waitToCloseOldClients = false;
   }
 
   @BeforeClass

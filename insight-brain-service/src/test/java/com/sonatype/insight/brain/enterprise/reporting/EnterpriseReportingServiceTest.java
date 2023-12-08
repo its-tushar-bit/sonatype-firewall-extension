@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -68,7 +68,7 @@ public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
 {
   @Mock
-  private DefaultHdsClient hdsClientMock;
+  private HdsClient hdsClientMock;
 
   @Mock
   private CurrentUser currentUserMock;
@@ -98,7 +98,7 @@ public class EnterpriseReportingServiceTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(DefaultHdsClient.class).toInstance(hdsClientMock);
+    binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(CurrentUser.class).toInstance(currentUserMock);
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
     binder.bind(SamlUserDAO.class).toInstance(mockSamlUserDAO);

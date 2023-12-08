@@ -29,7 +29,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -1038,8 +1038,8 @@ public class IdeResourceTest
       final String userAgent)
   {
     Map<String, String> headers = new HashMap<>();
-    headers.put(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
-    headers.put(DefaultHdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
+    headers.put(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
+    headers.put(HdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
     return restRequest().path("telemetry", appId).headers(headers).body(componentCounts);
   }
 
@@ -1050,8 +1050,8 @@ public class IdeResourceTest
       final String userAgent)
   {
     Map<String, String> headers = new HashMap<>();
-    headers.put(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
-    headers.put(DefaultHdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
+    headers.put(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
+    headers.put(HdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
     return restRequest().path("v2/telemetry", appId).headers(headers).body(telemetryRequest);
   }
 

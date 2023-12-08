@@ -87,7 +87,7 @@ public class DefaultHdsClientTest
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
     client =
-        new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new DefaultVersionService(), telemetryId,
+        new HdsClient(spyInsightProxy, productLicense, configuration, new DefaultVersionService(), telemetryId,
             20,
             name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
@@ -122,7 +122,7 @@ public class DefaultHdsClientTest
 
     String clientUserAgent = "testClientUserAgent";
     client.get(InputStream.class, testPath, clientUserAgent, null, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(clientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(clientUserAgent);
   }
 
   @Test
@@ -133,7 +133,7 @@ public class DefaultHdsClientTest
 
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
   }
 
   @Test
@@ -150,16 +150,16 @@ public class DefaultHdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, InputStream.class, testPath, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
     client.relay(request, InputStream.class, testPath, null, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
     client.relay(request, null, InputStream.class, testPath, null, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
 
     String testExplicitClientUserAgent = "explicit_client_user_agent";
-    when(request.getHeader(eq(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testExplicitClientUserAgent);
+    when(request.getHeader(eq(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testExplicitClientUserAgent);
     client.relay(request, InputStream.class, testPath, new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testExplicitClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testExplicitClientUserAgent);
   }
 
   @Test
@@ -172,7 +172,7 @@ public class DefaultHdsClientTest
     client.put(null, InputStream.class, testClientUserAgent, testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[]{});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -184,20 +184,20 @@ public class DefaultHdsClientTest
 
     HttpEntity httpEntity = MultipartEntityBuilder.create().build();
     client.post(testPath, httpEntity, null /* clientUserAgent */);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
     client.post(testPath, httpEntity, testClientUserAgent);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
 
     String[] emptyUriParams = new String[]{};
 
     // Method does not pass an original request or client user agent, hence the null header.
     client.post(InputStream.class, testPath, "httpEntity", emptyUriParams);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
 
     client.post(null /* analytics */, String.class, testPath, null /* clientUserAgent */, "httpEntity", emptyUriParams);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
     client.post(null /* analytics */, String.class, testPath, testClientUserAgent, "httpEntity", emptyUriParams);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private String getBrainVersion() throws IOException {
@@ -469,8 +469,8 @@ public class DefaultHdsClientTest
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
-        headers.put(DefaultHdsClient.OWNER_TYPE_HEADER, request.getHeader(DefaultHdsClient.OWNER_TYPE_HEADER));
-        headers.put(DefaultHdsClient.OWNER_ID_HEADER, request.getHeader(DefaultHdsClient.OWNER_ID_HEADER));
+        headers.put(HdsClient.OWNER_TYPE_HEADER, request.getHeader(HdsClient.OWNER_TYPE_HEADER));
+        headers.put(HdsClient.OWNER_ID_HEADER, request.getHeader(HdsClient.OWNER_ID_HEADER));
         baseRequest.setHandled(true);
       }
     };
@@ -484,16 +484,16 @@ public class DefaultHdsClientTest
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
 
     client.relay(request, analytics, InputStream.class, testPath, null, new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
-        .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
     client.put(analytics, String.class, null, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
-        .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
     client.post(analytics, String.class, testPath, null, tempDir.newFile(), new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
-        .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
+    assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
+        .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
   }
 
   @Test
@@ -667,7 +667,7 @@ public class DefaultHdsClientTest
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
-        headers.put(DefaultHdsClient.TELEMETRY_ID_HEADER, request.getHeader(DefaultHdsClient.TELEMETRY_ID_HEADER));
+        headers.put(HdsClient.TELEMETRY_ID_HEADER, request.getHeader(HdsClient.TELEMETRY_ID_HEADER));
         baseRequest.setHandled(true);
       }
     };
@@ -677,16 +677,16 @@ public class DefaultHdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, null, InputStream.class, testPath, null, new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.post(String.class, testPath, "foo", new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
-    assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.put(null, String.class, null, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
-    assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
+    assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
   }
 
   @Test
@@ -855,7 +855,7 @@ public class DefaultHdsClientTest
     };
 
     assertThatThrownBy(
-        () -> client.execute(DefaultHdsClient.DEFAULT_RETRY_CREATOR.apply("test"),
+        () -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"),
             new HttpGet(configuration.getHdsUrl())))
         .isInstanceOf(BadGatewayException.class);
     assertThat(requests.get()).isEqualTo(5);
@@ -886,7 +886,7 @@ public class DefaultHdsClientTest
       }
     };
 
-    client.execute(DefaultHdsClient.DEFAULT_RETRY_CREATOR.apply("test"), new HttpGet(configuration.getHdsUrl()));
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), new HttpGet(configuration.getHdsUrl()));
     assertThat(requests.get()).isEqualTo(2);
     assertThat(queryStrings).containsExactly(null, "retryCount=1");
   }

@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -85,7 +85,7 @@ public class RepositoryResource
   {
     AuditData.get().setEvent(auditEnabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
     return repositoryService.setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, auditEnabled,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @GET
@@ -98,7 +98,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -112,7 +112,7 @@ public class RepositoryResource
                                  @Context final HttpServletRequest request)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, false, DefaultHdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, false, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -133,7 +133,7 @@ public class RepositoryResource
       @Context HttpServletRequest request)
   {
     return repositoryService.evaluateComponentsAdhoc(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, HdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -149,7 +149,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, true, DefaultHdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, true, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -184,7 +184,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponentMetadata(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, HdsClient.getClientUserAgent(request));
   }
 
   @Path(QUARANTINE_PATH)
@@ -198,7 +198,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @DELETE
@@ -211,7 +211,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -228,7 +228,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
-        sinceUtcTimestamp, DefaultHdsClient.getClientUserAgent(request));
+        sinceUtcTimestamp, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -289,7 +289,7 @@ public class RepositoryResource
     return repositoryService
         .getQuarantinedComponentReportUrl(
             repositoryManagerInstanceId, repositoryPublicId, pathname,
-            DefaultHdsClient.getClientUserAgent(request)
+            HdsClient.getClientUserAgent(request)
         );
   }
 
@@ -328,7 +328,7 @@ public class RepositoryResource
       @Context HttpServletRequest request)
   {
     repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -358,6 +358,6 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 }

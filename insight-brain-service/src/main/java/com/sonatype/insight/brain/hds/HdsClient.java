@@ -72,8 +72,8 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class DefaultHdsClient
-    implements HdsClient, Managed
+public class HdsClient
+    implements Managed
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -118,7 +118,7 @@ public class DefaultHdsClient
   public static boolean waitToCloseOldClients = true;
 
   @Inject
-  public DefaultHdsClient(
+  public HdsClient(
       InsightProxy proxy,
       ProductLicense productLicense,
       Configuration configuration,
@@ -128,7 +128,7 @@ public class DefaultHdsClient
     this(proxy, productLicense, configuration, versionService, telemetryId, 20);
   }
 
-  protected DefaultHdsClient(
+  protected HdsClient(
       InsightProxy proxy,
       ProductLicense productLicense,
       Configuration configuration,
@@ -139,7 +139,7 @@ public class DefaultHdsClient
     this(proxy, productLicense, configuration, versionService, telemetryId, poolSize, DEFAULT_RETRY_CREATOR);
   }
 
-  protected DefaultHdsClient(
+  protected HdsClient(
       InsightProxy proxy,
       ProductLicense productLicense,
       Configuration configuration,
@@ -215,23 +215,19 @@ public class DefaultHdsClient
     client.close();
   }
 
-  @Override
   public void serverConfigurationChanged() {
     updateClient();
     log.debug("Applied new server configuration");
   }
 
-  @Override
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
     return get(retryCreator.apply(path), clazz, path, queryParams, uriParams);
   }
 
-  @Override
   public <T> T get(Retry retry, Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
     return internalGet(retry, clazz, buildUri(null, path, queryParams, uriParams), null /* clientUserAgent */);
   }
 
-  @Override
   public <T> T get(
       Class<T> clazz,
       String path,
@@ -242,7 +238,6 @@ public class DefaultHdsClient
     return get(retryCreator.apply(path), clazz, path, clientUserAgent, queryParams, uriParams);
   }
 
-  @Override
   public <T> T get(
       Retry retry,
       Class<T> clazz,
@@ -254,12 +249,10 @@ public class DefaultHdsClient
     return internalGet(retry, clazz, buildUri(null, path, queryParams, uriParams), clientUserAgent);
   }
 
-  @Override
   public <T> T get(Class<T> clazz, String url) {
     return get(retryCreator.apply(url), clazz, url);
   }
 
-  @Override
   public <T> T get(Retry retry, Class<T> clazz, String url) {
     return internalGet(retry, clazz, buildUri(url), null /* clientUserAgent */);
   }
@@ -270,7 +263,6 @@ public class DefaultHdsClient
     return execute(retry, cloudReq, clazz);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       HttpServletRequest request,
       Class<T> clazz,
@@ -280,7 +272,6 @@ public class DefaultHdsClient
     return relay(retryCreator.apply(path), request, clazz, path, uriParams);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       Retry retry,
       HttpServletRequest request,
@@ -291,7 +282,6 @@ public class DefaultHdsClient
     return relay(retry, request, clazz, path, null, uriParams);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       HttpServletRequest request,
       Class<T> clazz,
@@ -302,7 +292,6 @@ public class DefaultHdsClient
     return relay(retryCreator.apply(path), request, clazz, path, queryParams, uriParams);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       Retry retry,
       HttpServletRequest request,
@@ -314,7 +303,6 @@ public class DefaultHdsClient
     return relay(retry, request, null, clazz, path, queryParams, uriParams);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       HttpServletRequest request,
       HdsClientAnalytics analytics,
@@ -326,7 +314,6 @@ public class DefaultHdsClient
     return relay(retryCreator.apply(path), request, analytics, clazz, path, queryParams, uriParams);
   }
 
-  @Override
   public <T> RelayResponse<T> relay(
       Retry retry,
       HttpServletRequest request,
@@ -490,24 +477,20 @@ public class DefaultHdsClient
     return cloudReq;
   }
 
-  @Override
   public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
     post(retryCreator.apply(path), path, httpEntity, clientUserAgent);
   }
 
-  @Override
   public void post(Retry retry, String path, HttpEntity httpEntity, String clientUserAgent) {
     HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
     cloudReq.setEntity(httpEntity);
     execute(retry, cloudReq, null);
   }
 
-  @Override
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(retryCreator.apply(path), clazz, path, jsonSerializableObject, uriParams);
   }
 
-  @Override
   public <T> T post(Retry retry, Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(retry, null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject,
         uriParams);
@@ -529,7 +512,6 @@ public class DefaultHdsClient
     return cloudReq;
   }
 
-  @Override
   public <T> T post(
       HdsClientAnalytics analytics,
       Class<T> clazz,
@@ -542,7 +524,6 @@ public class DefaultHdsClient
         uriParams);
   }
 
-  @Override
   public <T> T post(
       Retry retry,
       HdsClientAnalytics analytics,
@@ -573,7 +554,6 @@ public class DefaultHdsClient
     return cloudReq;
   }
 
-  @Override
   public <T> T put(
       HdsClientAnalytics analytics,
       Class<T> clazz,
@@ -587,7 +567,6 @@ public class DefaultHdsClient
         uriParams);
   }
 
-  @Override
   public <T> T put(
       Retry retry,
       HdsClientAnalytics analytics,
@@ -787,5 +766,21 @@ public class DefaultHdsClient
     }
 
     version = versionService.getVersion("Unknown");
+  }
+
+  public static class RelayResponse<T>
+  {
+    public T content;
+
+    public String contentType;
+
+    public RelayResponse(T content) {
+      this(content, null);
+    }
+
+    public RelayResponse(T content, String contentType) {
+      this.content = content;
+      this.contentType = contentType;
+    }
   }
 }

@@ -9,7 +9,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -29,7 +28,7 @@ public class RepositorySummaryServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(DefaultHdsClient.class));
+    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
 
     // Create another repository only to verify that it's not returned (the user doesn't have the required permission)
     tempEntity.newRepository();

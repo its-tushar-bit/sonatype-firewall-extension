@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -49,7 +49,7 @@ public abstract class BrainInjectedTest
 
   @BeforeClass
   public static void disableWaitToCloseOldClients() {
-    DefaultHdsClient.waitToCloseOldClients = false;
+    HdsClient.waitToCloseOldClients = false;
   }
 
   @Before

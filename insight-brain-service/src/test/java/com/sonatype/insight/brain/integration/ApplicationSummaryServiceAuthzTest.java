@@ -11,7 +11,6 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,7 +38,7 @@ public class ApplicationSummaryServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(DefaultHdsClient.class));
+    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
   }
 
   @Test

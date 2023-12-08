@@ -26,7 +26,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
@@ -89,7 +89,7 @@ public class ScanResource
         filename = fileDetail.getFileName();
       }
       ScanTicket result = scanService.scanBinary(appPublicId, is, filename, new Stage(stageId), sendNotifications,
-          DefaultHdsClient.getClientUserAgent(request), "ui");
+          HdsClient.getClientUserAgent(request), "ui");
       if (noFormData) {
         return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
       }

@@ -11,7 +11,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
@@ -48,7 +48,7 @@ public class ScanResourceUnitTest
 
   @Before
   public void setUp() {
-    when(DefaultHdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
+    when(HdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
   }
 
   @Test

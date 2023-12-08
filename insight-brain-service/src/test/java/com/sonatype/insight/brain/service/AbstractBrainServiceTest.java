@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
@@ -171,7 +171,7 @@ public abstract class AbstractBrainServiceTest
 
   @BeforeClass
   public static void disableWaitToCloseOldClients() {
-    DefaultHdsClient.waitToCloseOldClients = false;
+    HdsClient.waitToCloseOldClients = false;
   }
 
   @Before

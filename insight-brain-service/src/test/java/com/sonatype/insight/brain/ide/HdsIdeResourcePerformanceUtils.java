@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
@@ -83,7 +82,7 @@ public class HdsIdeResourcePerformanceUtils
 
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
-    return new DefaultHdsClient(new InsightProxy(mock(Configuration.class), new PasswordHandler(null)),
+    return new HdsClient(new InsightProxy(mock(Configuration.class), new PasswordHandler(null)),
         mock(ProductLicense.class), mock(Configuration.class), new DefaultVersionService(), new TelemetryId(config));
   }
 

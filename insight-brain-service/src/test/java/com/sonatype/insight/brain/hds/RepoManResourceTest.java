@@ -40,7 +40,7 @@ public class RepoManResourceTest
 
     String testClientUserAgent = "testClientUserAgent";
     HttpRequest request = scanRequest(applicationPublicId);
-    request.header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
+    request.header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
     final HttpResponse response = request.put();
 
     assertResponseStatus(200, response);
@@ -55,7 +55,7 @@ public class RepoManResourceTest
         .isEqualTo("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf");
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
-        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+        .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test

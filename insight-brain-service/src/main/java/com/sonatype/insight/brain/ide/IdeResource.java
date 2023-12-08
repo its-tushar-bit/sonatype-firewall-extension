@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -279,8 +278,8 @@ public class IdeResource
       Map<String, Long> componentCounts,
       @Context HttpServletRequest req)
   {
-    String userAgent = DefaultHdsClient.getClientUserAgent(req);
-    String instanceId = DefaultHdsClient.getClientInstanceId(req);
+    String userAgent = HdsClient.getClientUserAgent(req);
+    String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
         applicationPublicId,
@@ -308,8 +307,8 @@ public class IdeResource
       Map<String, Object> telemetryRequest,
       @Context HttpServletRequest req)
   {
-    String userAgent = DefaultHdsClient.getClientUserAgent(req);
-    String instanceId = DefaultHdsClient.getClientInstanceId(req);
+    String userAgent = HdsClient.getClientUserAgent(req);
+    String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
         applicationPublicId,

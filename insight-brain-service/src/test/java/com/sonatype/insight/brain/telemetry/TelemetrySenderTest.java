@@ -16,7 +16,6 @@ import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -59,7 +58,7 @@ public class TelemetrySenderTest
   @Inject
   private TelemetryId telemetryId;
 
-  private final HdsClient mockHdsClient = mock(DefaultHdsClient.class);
+  private final HdsClient mockHdsClient = mock(HdsClient.class);
 
   @Override
   public void configure(Binder binder) {

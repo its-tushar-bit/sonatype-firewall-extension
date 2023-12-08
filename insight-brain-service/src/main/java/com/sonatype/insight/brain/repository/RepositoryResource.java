@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -94,7 +94,7 @@ public class RepositoryResource
                                     @PathParam("pathname") final String pathname,
                                     @Context final HttpServletRequest request)
   {
-    repositoryService.unquarantineComponent(repositoryId, pathname, DefaultHdsClient.getClientUserAgent(request));
+    repositoryService.unquarantineComponent(repositoryId, pathname, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -137,7 +137,7 @@ public class RepositoryResource
                                   @PathParam("hash") String componentHash,
                                   @Context final HttpServletRequest request)
   {
-    repositoryService.reevaluateComponent(repositoryId, componentHash, DefaultHdsClient.getClientUserAgent(request));
+    repositoryService.reevaluateComponent(repositoryId, componentHash, HdsClient.getClientUserAgent(request));
   }
 
   /**

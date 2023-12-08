@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -69,7 +69,7 @@ public class ApplicationEvaluationResourceTest
     // evaluate policy
     HttpResponse response =
         evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID) //
-            .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
             .post();
     assertResponseStatus(200, response);
 
@@ -103,7 +103,7 @@ public class ApplicationEvaluationResourceTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
-        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+        .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private PolicyEvaluationPollingResult getPolicyEvaluationPollingResult(String applicationPublicId, String statusId)

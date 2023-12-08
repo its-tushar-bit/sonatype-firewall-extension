@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.Header;
@@ -27,10 +27,10 @@ import org.apache.http.HttpResponse;
 @Named
 public class LabsService
 {
-  private final DefaultHdsClient hdsClient;
+  private final HdsClient hdsClient;
 
   @Inject
-  public LabsService(DefaultHdsClient hdsClient) {
+  public LabsService(HdsClient hdsClient) {
     this.hdsClient = hdsClient;
   }
 

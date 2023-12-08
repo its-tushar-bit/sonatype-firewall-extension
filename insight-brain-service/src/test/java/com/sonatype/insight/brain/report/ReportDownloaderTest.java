@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -44,9 +44,9 @@ public class ReportDownloaderTest
   public LogOutput logOutput = new LogOutput(ReportDownloader.class);
 
   @Inject
-  private DefaultHdsClient hdsClient;
+  private HdsClient hdsClient;
   
-  private DefaultHdsClient spyHdsClient;
+  private HdsClient spyHdsClient;
   
   @Inject
   private FileCleaner fileCleaner;

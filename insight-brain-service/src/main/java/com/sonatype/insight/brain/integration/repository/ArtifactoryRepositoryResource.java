@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -71,7 +71,7 @@ public class ArtifactoryRepositoryResource
   {
     AuditData.get().setEvent(auditEnabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
     return repositoryService.setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, auditEnabled,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @GET
@@ -84,7 +84,7 @@ public class ArtifactoryRepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -99,7 +99,7 @@ public class ArtifactoryRepositoryResource
   {
     repositoryService
         .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, componentEvaluationDataRequestList, false,
-            DefaultHdsClient.getClientUserAgent(request));
+            HdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -116,7 +116,7 @@ public class ArtifactoryRepositoryResource
   {
     return repositoryService
         .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, componentEvaluationDataRequestList, true,
-            DefaultHdsClient.getClientUserAgent(request));
+            HdsClient.getClientUserAgent(request));
   }
 
   @Path(QUARANTINE_PATH)
@@ -131,7 +131,7 @@ public class ArtifactoryRepositoryResource
       @Context final HttpServletRequest request)
   {
     repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @DELETE
@@ -144,7 +144,7 @@ public class ArtifactoryRepositoryResource
       @Context final HttpServletRequest request)
   {
     repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   @GET
@@ -158,7 +158,7 @@ public class ArtifactoryRepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
-        sinceUtcTimestamp, DefaultHdsClient.getClientUserAgent(request));
+        sinceUtcTimestamp, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -192,7 +192,7 @@ public class ArtifactoryRepositoryResource
       @Context HttpServletRequest request)
   {
     return repositoryService.getQuarantinedComponentReportUrl(repositoryManagerInstanceId, repositoryPublicId, pathname,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -227,7 +227,7 @@ public class ArtifactoryRepositoryResource
       @Context HttpServletRequest request)
   {
     return repositoryService.evaluateComponentMetadata(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -244,7 +244,7 @@ public class ArtifactoryRepositoryResource
       @Context HttpServletRequest request)
   {
     repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -274,6 +274,6 @@ public class ArtifactoryRepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 }

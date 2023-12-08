@@ -18,7 +18,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
@@ -72,6 +72,6 @@ public class DefaultApplicationSummaryResource
     log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
         applicationPublicId, goal);
     return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, organizationId, goal,
-        DefaultHdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request));
   }
 }

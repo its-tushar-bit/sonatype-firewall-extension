@@ -57,7 +57,8 @@ public class OrganizationResource
 
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
 
-  public static final String MOVE_ORGANIZATION_ERRORS_EXPORT_PATH = "/move/export/{organizationId}";
+  public static final String MOVE_ORGANIZATION_ERRORS_EXPORT_PATH =
+          "{organizationId}/move/destination/{destinationId}/export";
 
   private final OrganizationService organizationService;
 
@@ -198,7 +199,7 @@ public class OrganizationResource
   @Audited(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST)
   public Response moveOrganizationErrorsExport(
       @PathParam("organizationId") final String orgId,
-      @QueryParam("destinationId") final String newParentOrgId
+      @PathParam("destinationId") final String newParentOrgId
   )
   {
     List<ValidationError> validationErrors =

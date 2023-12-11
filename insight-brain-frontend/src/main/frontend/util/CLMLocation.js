@@ -1287,7 +1287,7 @@ export const getMoveOrganizationUrl = (organizationId, destinationId) =>
   uriTemplate`/api/v2/organizations/${organizationId}/move/destination/${destinationId}?failEarlyOnError=true`;
 
 export const getMoveOrganizationCSVErrorsUrl = (organizationId, destinationId) =>
-  uriTemplate`/rest/organization/move/export/${organizationId}?destinationId=${destinationId}`;
+  uriTemplate`/rest/organization/${organizationId}/move/destination/${destinationId}/export`;
 
 export const getComponentRiskDetailsUrl = (hash) => {
   return uriTemplate`/rest/componentDetails/applications?hash=${hash}`;

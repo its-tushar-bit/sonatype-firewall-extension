@@ -213,8 +213,7 @@ public class OrganizationResourceAuditTest
 
     organizationRequest()
         .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
-        .parameter(organizations.get(0).getId())
-        .query("destinationId", organization.getId())
+        .parameter(organizations.get(0).getId(), organization.getId())
         .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST, null);
@@ -228,8 +227,7 @@ public class OrganizationResourceAuditTest
 
     organizationRequest()
         .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
-        .parameter(organizations.get(0).getId())
-        .query("destinationId", organization.getId())
+        .parameter(organizations.get(0).getId(), organization.getId())
         .with(unauthorizedUser())
         .get();
 

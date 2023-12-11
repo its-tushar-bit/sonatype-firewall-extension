@@ -282,8 +282,7 @@ public class OrganizationResourceTest
 
     HttpResponse response = restRequest()
         .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
-        .parameter(organizations.get(0).getId())
-        .query("destinationId", organization.getId())
+        .parameter(organizations.get(0).getId(), organization.getId())
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
@@ -324,7 +323,7 @@ public class OrganizationResourceTest
 
     HttpResponse response = restRequest()
         .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
-        .parameter("org-id-does-not-matter")
+        .parameter("org-id-does-not-matter", "destination-org-id-does-not-matter")
         .query("destinationId", "destination-org-id-does-not-matter")
         .get();
     assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);

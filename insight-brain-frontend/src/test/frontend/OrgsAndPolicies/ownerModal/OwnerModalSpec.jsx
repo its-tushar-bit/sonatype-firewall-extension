@@ -52,27 +52,32 @@ const ownersMap = {
     publicId: 'applicationOnePublicID',
     organizationId: 'organizationOneID',
     name: 'ApplicationOneName',
+    type: 'application',
   },
   applicationTwoPublicID: {
     id: 'applicationTwoID',
     publicId: 'applicationTwoPublicID',
     organizationId: 'organizationOneID',
     name: 'ApplicationTwoName',
+    type: 'application',
   },
   applicationThreePublicID: {
     id: 'applicationThreeID',
     publicId: 'applicationThreePublicID',
     organizationId: 'organizationTwoID',
     name: 'ApplicationThreeName',
+    type: 'application',
   },
 
   organizationOneID: {
     id: 'organizationOneID',
     name: 'OrganizationOneName',
+    type: 'organization',
   },
   organizationTwoID: {
     id: 'organizationTwoID',
     name: 'OrganizationTwoName',
+    type: 'organization',
   },
 };
 
@@ -96,6 +101,7 @@ const defaultPreloadedState = {
       selectedOwner: {
         id: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
+        type: 'organization',
       },
     },
     ownerSideNav: {

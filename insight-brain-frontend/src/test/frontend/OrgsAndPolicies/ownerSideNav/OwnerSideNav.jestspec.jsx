@@ -522,6 +522,11 @@ describe('OwnerSideNav', () => {
           },
         };
         state = {
+          productFeatures: {
+            productFeatures: {
+              'orgs-and-apps': true,
+            },
+          },
           router: {
             currentState: {
               name: 'management.view.repository_container',
@@ -628,6 +633,11 @@ describe('OwnerSideNav', () => {
       };
       selectedOrg = ownersMapWithRepositoryContainer.repositoryManagerOne;
       state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
         router: {
           currentState: {
             name: 'management.view.repository_manager',
@@ -735,6 +745,11 @@ describe('OwnerSideNav', () => {
           },
         };
         state = {
+          productFeatures: {
+            productFeatures: {
+              'orgs-and-apps': true,
+            },
+          },
           router: {
             currentState: {
               name: 'management.view.repository_container',

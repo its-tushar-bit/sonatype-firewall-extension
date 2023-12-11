@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
@@ -142,19 +141,13 @@ public class PolicyWaiverMatcherWrapperTest
 
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS() {
-    String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
-        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+        new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
-        this.put("artifactId", "artifact");
-        this.put("groupId", "group");
-        this.put("version", "1.0");
-        this.put("classifier", "");
-        this.put("extension", "jar");
-      }});
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", "jar");
     ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
@@ -177,10 +170,9 @@ public class PolicyWaiverMatcherWrapperTest
 
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_missingRequiredCoordinates() {
-    String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
-        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+        new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
 
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
@@ -200,18 +192,13 @@ public class PolicyWaiverMatcherWrapperTest
    */
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_caseMissMatch() {
-    String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:pypi/py-component@1.0?extension=whl&qualifier=py3-none-any";
     PolicyWaiver policyWaiver =
-        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+        new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>() {{
-        this.put("extension", "whl");
-        this.put("name", "Py-component");
-        this.put("qualifier", "py3-none-any");
-        this.put("version", "1.0");
-      }});
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createPypiCoordinates("Py-component", "otherVersion", "py3-none-any", "whl");
     ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
@@ -235,11 +222,10 @@ public class PolicyWaiverMatcherWrapperTest
             this.put("version", "*");
           }});
 
-    String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar&classifier=";
 
     PolicyWaiver policyWaiver =
-        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+        new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
 
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);

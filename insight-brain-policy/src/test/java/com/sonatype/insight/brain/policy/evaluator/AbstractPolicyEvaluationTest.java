@@ -39,6 +39,7 @@ import com.sonatype.insight.lqa.LqaFormat;
 
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.sisu.launch.InjectedTest;
+import org.junit.Before;
 import org.junit.Rule;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +53,16 @@ public abstract class AbstractPolicyEvaluationTest
 
   @Inject
   protected ComponentPolicyEvaluator componentPolicyEvaluator;
+
+  @Before
+  @Override
+  public void setUp() throws Exception {
+    String sisuUrlCaches = System.getProperty("sisu.url.caches");
+    if (sisuUrlCaches == null) {
+      System.setProperty("sisu.url.caches", "true");
+    }
+    super.setUp();
+  }
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
     return evaluate(new Stage(BuildStageType.ID), policy, components);

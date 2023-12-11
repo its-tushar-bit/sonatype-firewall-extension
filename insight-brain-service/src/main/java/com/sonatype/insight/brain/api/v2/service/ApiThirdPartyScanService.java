@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -45,7 +44,6 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -278,17 +276,9 @@ public class ApiThirdPartyScanService
   }
 
   public IdeUsersOverviewDTO getIdeUsersOverview(final Long sinceUtcTimestamp) {
-    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
     long count = sinceUtcTimestamp == null ? userIdePolicyEvaluationDao.getCount() :
         userIdePolicyEvaluationDao.getCountSince(new Date(sinceUtcTimestamp));
     return new IdeUsersOverviewDTO(count);
-  }
-
-  @Authorize(permission = Permission.READ)
-  void checkReadPermission(
-      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
-  {
   }
 
   @VisibleForTesting

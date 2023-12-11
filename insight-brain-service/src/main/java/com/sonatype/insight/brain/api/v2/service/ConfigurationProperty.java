@@ -185,6 +185,11 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, String.class,
           (p, s) -> s,
           (p, o) -> ConfigurationUtils.validateCustomMessage(o)),
+      new ConfigurationProperty(SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
+          Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 10),
+          (p, o) -> ConfigurationUtils.integerValueToString(o,
+              SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES, 1, 120)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

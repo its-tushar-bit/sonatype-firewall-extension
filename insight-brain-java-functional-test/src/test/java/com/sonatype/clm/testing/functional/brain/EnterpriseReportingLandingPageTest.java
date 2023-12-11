@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
+import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
@@ -59,6 +60,9 @@ public class EnterpriseReportingLandingPageTest
     mockHDSResponses();
     DashboardMetadataDTO spotlightDashboardMetadataDTO = mockDashboardMetadataDTOSpotlight();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();
+    testCLMServer.getHdsServer()
+        .respondWith(new DashboardsVersionDTO(1))
+        .atUri("/rest/enterpriseReporting/currentVersion");
     testCLMServer.getHdsServer()
         .respondWith(new DashboardMetadataListDTO(Arrays.asList(spotlightDashboardMetadataDTO,
             nonSpotlightDashboardMetadataDTO)))
@@ -144,12 +148,12 @@ public class EnterpriseReportingLandingPageTest
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlight() {
-    return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1","feature 2"),
+    return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1", "feature 2"),
         "button text", "rolling-recap.svg", 1, true);
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
-    return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3","feature 4"),
+    return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3", "feature 4"),
         "button text 2", "rolling-recap.svg", 2, false);
   }
 }

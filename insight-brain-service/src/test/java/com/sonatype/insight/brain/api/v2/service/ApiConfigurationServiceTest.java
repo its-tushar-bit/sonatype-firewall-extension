@@ -582,6 +582,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetEnterpriseReportingVersionCacheExpirationInMinutes_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES)))
+        .containsEntry(SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES, 10);
+  }
+
+  @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);

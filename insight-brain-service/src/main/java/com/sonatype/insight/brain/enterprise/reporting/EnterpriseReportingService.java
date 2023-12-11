@@ -15,10 +15,11 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
@@ -56,32 +58,37 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class EnterpriseReportingService
 {
-  private final HdsClient hdsClient;
-
-  private final CurrentUser currentUser;
-
   private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
   public static final String ENTERPRISE_REPORTING_BASE_PATH = "rest/enterpriseReporting";
 
   public static final String ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/ssoEmbedUrl";
 
-  public static final String ENTERPRISE_REPORTING_CONFIG_PATH = ENTERPRISE_REPORTING_BASE_PATH  + "/config";
+  public static final String ENTERPRISE_REPORTING_CONFIG_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/config";
 
   public static final String ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH =
       ENTERPRISE_REPORTING_BASE_PATH + "/dashboards";
 
   public static final String ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/icons";
 
-  public static final String DEFAULT_CONFIG_CACHE_KEY = "default";
+  public static final String ENTERPRISE_REPORTING_CURRENT_VERSION_PATH =
+      ENTERPRISE_REPORTING_BASE_PATH + "/currentVersion";
 
-  public static final String DEFAULT_DASHBOARD_CACHE_KEY = "default";
+  public static final String DEFAULT_GUAVA_CACHE_KEY = "default";
 
-  private static final Duration MAX_AGE = Duration.ofDays(1);
+  private AtomicReference<DashboardMetadataListDTO> dashboardMetadataRef = new AtomicReference<>();
+
+  // Visible for testing
+  final AtomicInteger currentVersion = new AtomicInteger(-1);
+
+  // Visible for testing
+  final LoadingCache<String, Integer> currentVersionCache;
 
   private final LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
 
-  private final LoadingCache<String, DashboardMetadataListDTO> lookerDashboardMetadataCache;
+  private final HdsClient hdsClient;
+
+  private final CurrentUser currentUser;
 
   private final UserDAO userDAO;
 
@@ -98,7 +105,8 @@ public class EnterpriseReportingService
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
-      final InsightWork insightWork)
+      final InsightWork insightWork,
+      final Configuration configuration)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -106,10 +114,11 @@ public class EnterpriseReportingService
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
     this.insightWork = insightWork;
-    this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE)
+    this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
         .build(newEnterpriseReportingConfigCacheLoader());
-    this.lookerDashboardMetadataCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE)
-        .build(newLookerDashboardMetadataLoader());
+    this.currentVersionCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()))
+        .build(newCurrentVersionCacheLoader());
   }
 
   //for testing only
@@ -121,7 +130,9 @@ public class EnterpriseReportingService
       final MembershipMappingService membershipMappingService,
       final InsightWork insightWork,
       final LoadingCache<String, EnterpriseReportingConfigDTO> configCache,
-      final LoadingCache<String, DashboardMetadataListDTO> dashboardCache)
+      final AtomicReference<DashboardMetadataListDTO> dashboardData,
+      final int currentVersion,
+      final LoadingCache<String, Integer> currentVersionCache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -130,7 +141,9 @@ public class EnterpriseReportingService
     this.membershipMappingService = membershipMappingService;
     this.insightWork = insightWork;
     this.lookerConfigCache = configCache;
-    this.lookerDashboardMetadataCache = dashboardCache;
+    this.dashboardMetadataRef = dashboardData;
+    this.currentVersion.set(currentVersion);
+    this.currentVersionCache = currentVersionCache;
   }
 
   private CacheLoader<String, EnterpriseReportingConfigDTO> newEnterpriseReportingConfigCacheLoader() {
@@ -143,18 +156,51 @@ public class EnterpriseReportingService
     };
   }
 
-  private CacheLoader<String, DashboardMetadataListDTO> newLookerDashboardMetadataLoader() {
-    return new CacheLoader<String, DashboardMetadataListDTO>()
+  private CacheLoader<String, Integer> newCurrentVersionCacheLoader() {
+    return new CacheLoader<String, Integer>()
     {
       @Override
-      public DashboardMetadataListDTO load(@NotNull final String key) {
-        DashboardMetadataListDTO dashboardMetadataListDTO =
-            hdsClient.get(DashboardMetadataListDTO.class,
-                ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
-        downloadAndCacheDashboardIcons();
-        return dashboardMetadataListDTO;
+      public Integer load(@NotNull final String key) {
+        DashboardsVersionDTO hdsVersion =
+            hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+        if (hdsVersion.version > currentVersion.get()) {
+          reloadCachesAndUpdateLocalVersion(hdsVersion);
+        }
+        return hdsVersion.version;
       }
     };
+  }
+
+  private void refreshCacheIfNeeded() {
+    if (this.currentVersion.get() == -1) {
+      DashboardsVersionDTO hdsVersion;
+      hdsVersion = hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+      reloadCachesAndUpdateLocalVersion(hdsVersion);
+
+      return;
+    }
+
+    //this will trigger a cache refresh if needed
+    this.currentVersionCache.getUnchecked(DEFAULT_GUAVA_CACHE_KEY);
+  }
+
+  private void reloadCachesAndUpdateLocalVersion(
+      final DashboardsVersionDTO hdsVersion)
+  {
+    try {
+      cacheDashboardMetadata();
+      cacheDashboardIcons();
+      this.currentVersion.set(hdsVersion.version);
+    }
+    catch (Exception ex) {
+      log.error("error while fetching dashboard metadata from HDS.", ex);
+    }
+  }
+
+  private void cacheDashboardMetadata() {
+    log.debug("refreshing enterprise reporting dashboard metadata cache");
+    this.dashboardMetadataRef.set(hdsClient.get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH));
   }
 
   SSOEmbedUrlDTO createSSOEmbedUrl(DashboardRequestDTO lookerDashboard) {
@@ -170,7 +216,7 @@ public class EnterpriseReportingService
 
   public String getBaseUrl() {
     try {
-      return lookerConfigCache.get(DEFAULT_CONFIG_CACHE_KEY).baseUrl;
+      return lookerConfigCache.get(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
     }
     catch (ExecutionException e) {
       throw new InternalServerException("unable to load Enterprise Reporting configuration from " +
@@ -178,14 +224,15 @@ public class EnterpriseReportingService
     }
   }
 
-  public DashboardMetadataListDTO getLookerDashboardMetadata() {
+  public DashboardMetadataListDTO getDashboardMetadata() {
     checkLookerIntegratedEnterpriseReportingEnabled();
-    try {
-      return lookerDashboardMetadataCache.get(DEFAULT_DASHBOARD_CACHE_KEY);
+    refreshCacheIfNeeded();
+
+    if (dashboardMetadataRef.get() == null) {
+      throw new InternalServerException("Error while fetching dashboard metadata from Sonatype data services");
     }
-    catch (ExecutionException e) {
-      throw new InternalServerException("unable to load Integrated Enterprise Reporting metadata from " +
-          "Sonatype Data Services", e);
+    else {
+      return dashboardMetadataRef.get();
     }
   }
 
@@ -241,14 +288,14 @@ public class EnterpriseReportingService
     }
   }
 
-  void downloadAndCacheDashboardIcons() {
+  void cacheDashboardIcons() {
     try (InputStream is = hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH)) {
       byte[] fetchedIcons = IOUtils.toByteArray(is);
       deleteDashboardIcons();
       extractIconFiles(fetchedIcons);
     }
-    catch (IOException e ) {
-      log.debug("Error when saving dashboard icons", e);
+    catch (IOException e) {
+      log.error("Error when saving dashboard icons", e);
     }
   }
 
@@ -260,7 +307,7 @@ public class EnterpriseReportingService
         paths.map(it -> new File(String.valueOf(it))).forEach(File::delete);
       }
       catch (IOException e) {
-        log.debug("Error deleting dashboard icon(s)", e);
+        log.error("Error deleting dashboard icon(s)", e);
       }
     }
   }
@@ -276,7 +323,7 @@ public class EnterpriseReportingService
       }
     }
     catch (IOException e) {
-      log.debug("Error caching dashboard icon", e);
+      log.error("Error caching dashboard icon", e);
     }
   }
 

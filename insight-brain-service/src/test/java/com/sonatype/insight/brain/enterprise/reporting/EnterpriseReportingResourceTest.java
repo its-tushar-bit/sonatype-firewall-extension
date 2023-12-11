@@ -47,7 +47,7 @@ public class EnterpriseReportingResourceTest
   public void testCreateSSOEmbedUrl_LookerError() throws Exception {
     hdsMockServer.respondWith("error").andStatus(409).atUri("rest/enterpriseReporting/ssoEmbedUrl");
     HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
-            .body(new DashboardRequestDTO("rolling_recap")).post();
+        .body(new DashboardRequestDTO("rolling_recap")).post();
     assertResponseStatus(409, response);
   }
 
@@ -81,8 +81,9 @@ public class EnterpriseReportingResourceTest
 
   @Test
   public void testGetLookerDashboardMetadata_Success() throws Exception {
+    hdsMockServer.respondWith(createDashboardVersionJson()).atUri("rest/enterpriseReporting/currentVersion");
     hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
-    hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons");
+    hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons/rolling-recap.svg");
     HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(200, response);
     DashboardMetadataListDTO responseList =
@@ -101,14 +102,6 @@ public class EnterpriseReportingResourceTest
   }
 
   @Test
-  public void testGetLookerDashboardMetadata_Error() throws Exception {
-    hdsMockServer.respondWith("error").andStatus(502).atUri("rest/enterpriseReporting/dashboards");
-    hdsMockServer.respondWith(new byte[0]).andStatus(200).atUri("rest/enterpriseReporting/icons");
-    HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
-    assertResponseStatus(502, response);
-  }
-
-  @Test
   public void testGetIcon_Success() throws Exception {
     assertTestGetIcon(200, "rolling-recap.svg");
   }
@@ -124,6 +117,7 @@ public class EnterpriseReportingResourceTest
   }
 
   private void assertTestGetIcon(int expectedStatus, String iconName) throws Exception {
+    hdsMockServer.respondWith(createDashboardVersionJson()).atUri("rest/enterpriseReporting/currentVersion");
     hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(getBytesFromIconsZip()).atUri("rest/enterpriseReporting/icons");
     restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
@@ -157,5 +151,9 @@ public class EnterpriseReportingResourceTest
   private byte[] getBytesFromIconsZip() throws IOException {
     return Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icons_svg.zip").getPath()));
+  }
+
+  private String createDashboardVersionJson() {
+    return "{\"version\":1}";
   }
 }

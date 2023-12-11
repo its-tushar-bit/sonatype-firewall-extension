@@ -204,6 +204,9 @@ public class SystemConfigurationProperty
 
   public static final String INTEGRATED_ENTERPRISE_REPORTING = "integratedEnterpriseReporting";
 
+  public static final String ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES =
+      "enterpriseReportingVersionCacheExpirationInMinutes";
+
   public static final String ORG_APP_MANAGEMENT_WEBHOOK_EVENT = "ORG_APP_MANAGEMENT_WEBHOOK_EVENT";
 
   public static final String SAAS_LIFECYCLE_SCM_ENABLED = "SAAS_LIFECYCLE_SCM_ENABLED";

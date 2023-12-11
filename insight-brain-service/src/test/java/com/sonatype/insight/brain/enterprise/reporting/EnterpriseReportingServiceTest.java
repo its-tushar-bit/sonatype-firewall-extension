@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
@@ -32,9 +33,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.error.exception.InternalServerException;
 
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
@@ -46,13 +47,14 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_GUAVA_CACHE_KEY;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_CONFIG_CACHE_KEY;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_DASHBOARD_CACHE_KEY;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,6 +63,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +96,7 @@ public class EnterpriseReportingServiceTest
 
   private final LoadingCache<String, EnterpriseReportingConfigDTO> mockConfigCache = mock(LoadingCache.class);
 
-  private final LoadingCache<String, DashboardMetadataListDTO> mockDashboardCache =
-      mock(LoadingCache.class);
+  private final LoadingCache<String, Integer> mockLatestVersionCache = mock(LoadingCache.class);
 
   @Override
   public void configure(Binder binder) {
@@ -137,11 +139,13 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_ConfigError() throws Exception {
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
+        mockGetLookerDashboardMetadata(),
+        0, mockLatestVersionCache);
     String expectedUrl = "looker.url.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
+    when(mockConfigCache.get(DEFAULT_GUAVA_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
@@ -211,8 +215,9 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetLookerConfig_Error() throws Exception {
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
-    when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
+        mockGetLookerDashboardMetadata(), 0, mockLatestVersionCache);
+    when(mockConfigCache.get(DEFAULT_GUAVA_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
     assertThatExceptionOfType(InternalServerException.class).isThrownBy(() -> enterpriseReportingService.getBaseUrl())
@@ -221,26 +226,82 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testGetLookerDashboardMetadata() {
-    DashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
+    AtomicReference<DashboardMetadataListDTO> expected = mockGetLookerDashboardMetadata();
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(new byte[0]));
     when(hdsClientMock.get(DashboardMetadataListDTO.class,
-        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected);
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected.get());
+    when(hdsClientMock.get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
 
-    assertThat(enterpriseReportingService.getLookerDashboardMetadata().dashboardMetadata)
-        .hasSameElementsAs(expected.dashboardMetadata);
+    // Initial Load - Version loader is triggered.
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
+        .hasSameElementsAs(expected.get().dashboardMetadata);
+    verify(hdsClientMock, times(1)).get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+
+    Mockito.clearInvocations(hdsClientMock);
+
+    // Second call - Loader is not yet triggered - Versions are the same.
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
+        .hasSameElementsAs(expected.get().dashboardMetadata);
+    verify(hdsClientMock, times(0)).get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+
+    Mockito.clearInvocations(hdsClientMock);
+
+    // Third call - Loader is triggered - Different versions.
+    enterpriseReportingService.currentVersionCache.invalidateAll();
+    when(hdsClientMock.get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(2));
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
+        .hasSameElementsAs(expected.get().dashboardMetadata);
+    verify(hdsClientMock, times(1)).get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
   }
 
   @Test
-  public void testGetLookerDashboardMetadata_Error() throws Exception {
-    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, mockDashboardCache);
-    when(mockDashboardCache.get(DEFAULT_DASHBOARD_CACHE_KEY)).thenThrow(
-        new ExecutionException(new RuntimeException("error")));
+  public void testGetDashboardMetadata_Error() {
+    AtomicReference<DashboardMetadataListDTO> expected = mockGetLookerDashboardMetadata();
+    when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
+        .thenReturn(new ByteArrayInputStream(new byte[0]));
+    when(hdsClientMock.get(DashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected.get());
+    when(hdsClientMock.get(DashboardsVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
 
-    assertThatExceptionOfType(InternalServerException.class).isThrownBy(() ->
-            enterpriseReportingService.getLookerDashboardMetadata())
-        .withMessage("unable to load Integrated Enterprise Reporting metadata from Sonatype Data Services");
+    assertThat(enterpriseReportingService.currentVersion.get()).isEqualTo(-1);
+
+    enterpriseReportingService.getDashboardMetadata();
+    assertThat(enterpriseReportingService.currentVersion.get()).isEqualTo(1);
+
+    when(hdsClientMock.get(any(), any())).thenThrow(new NotFoundException("Not found"));
+    assertThatThrownBy(() -> enterpriseReportingService.getDashboardMetadata()).hasMessageContaining("Not found");
+
+    assertThat(enterpriseReportingService.currentVersion.get()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetDashboardMetadata_ErrorFirstHdsCall() {
+    when(hdsClientMock.get(any(), anyString())).thenAnswer(invocationOnMock -> {
+      String path = invocationOnMock.getArgument(1);
+      if (ENTERPRISE_REPORTING_CURRENT_VERSION_PATH.equals(path)) {
+        return new DashboardsVersionDTO(1);
+      }
+      else {
+        throw new RuntimeException("error");
+      }
+    });
+
+    assertThatThrownBy(() -> enterpriseReportingService.getDashboardMetadata())
+        .isInstanceOf(InternalServerException.class)
+        .hasMessageContaining("Error while fetching dashboard metadata from Sonatype data services");
   }
 
   @Test
@@ -252,7 +313,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
 
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
@@ -269,7 +330,7 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + expectedSecondIconImageFileName).getPath()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
 
     assertDashboardIconImage(expectedSecondIconImageFile, expectedSecondIconImageFileName);
   }
@@ -283,10 +344,10 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
 
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
@@ -305,12 +366,12 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
     assertThat(firstIconImageFile.exists()).isTrue();
 
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
-    enterpriseReportingService.downloadAndCacheDashboardIcons();
+    enterpriseReportingService.cacheDashboardIcons();
 
     assertThat(firstIconImageFile.exists()).isFalse();
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
@@ -365,9 +426,9 @@ public class EnterpriseReportingServiceTest
     return new HashSet<>(Arrays.asList("appId1", "appId2"));
   }
 
-  private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
-    return new DashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
-        generateLookerDashboardMetadata(), generateLookerDashboardMetadata()));
+  private static AtomicReference<DashboardMetadataListDTO> mockGetLookerDashboardMetadata() {
+    return new AtomicReference<>(new DashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
+        generateLookerDashboardMetadata(), generateLookerDashboardMetadata())));
   }
 
   private static DashboardMetadataDTO generateLookerDashboardMetadata() {
@@ -376,8 +437,9 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8), RandomStringUtils.random(8), 1, false);
   }
 
-  private void assertDashboardIconImage(byte[] expectedIconsImageBytes,
-                                        String expectedIconImageFileName) throws IOException
+  private void assertDashboardIconImage(
+      byte[] expectedIconsImageBytes,
+      String expectedIconImageFileName) throws IOException
   {
     File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
     File actualIconImageFile = new File(iconsDirectory, expectedIconImageFileName);
@@ -407,10 +469,12 @@ public class EnterpriseReportingServiceTest
         .isInstanceOf(BadRequestException.class);
   }
 
-  private void mockDashboardIconsZip() throws  URISyntaxException {
+  private void mockDashboardIconsZip() throws URISyntaxException {
     InsightWork mockInsightWork = mock(InsightWork.class);
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, mockInsightWork, mockConfigCache, mockDashboardCache);
+        mockSamlUserDAO, mockMembershipMappingService, mockInsightWork, mockConfigCache,
+        mockGetLookerDashboardMetadata(),
+        0, mockLatestVersionCache);
     when(mockInsightWork.getIerDashboardIconsDirectory()).thenReturn(new
         File(getClass().getResource("/EnterpriseReportingServiceTest/").toURI()));
   }

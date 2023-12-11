@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import org.slf4j.Logger;
@@ -27,30 +26,12 @@ import static com.sonatype.insight.util.ComponentIdentifierHelper.normalizeCompo
  */
 public class PolicyWaiverMatcherWrapper
 {
-  // Exposed to the same package for testing purposes
-  final PolicyWaiver policyWaiver;
-
-  final ComponentIdentifier waiverAllVersionsIdentifier;
-
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverMatcherWrapper.class);
 
-  public PolicyWaiverMatcherWrapper(PolicyWaiver waiver) {
-    this.policyWaiver = waiver;
-    this.waiverAllVersionsIdentifier =
-        policyWaiver.getComponentIdentifier() != null ? policyWaiver.getComponentIdentifier()
-            .createAlternativeVersion("*") : null;
-    if (this.waiverAllVersionsIdentifier != null) {
-      // It seems at one point some identifiers where introduced that don't have all required coordinates, which
-      // would make the call that is done to ensureComplete to fail. We'll log this occurrence for future reference
-      // FIXME After CLM-22252 an additional database migrator should be implemented to update these
-      try {
-        this.waiverAllVersionsIdentifier.ensureComplete();
-      }
-      catch (InvalidComponentIdentifierException e) {
-        log.warn("Failed to ensureComplete for purl {} with the following error: {}",
-            PackageUrlIdentifier.toPackageUrl(this.waiverAllVersionsIdentifier), e.getMessage());
-      }
-    }
+  private final PolicyWaiver policyWaiver;
+
+  public PolicyWaiverMatcherWrapper(PolicyWaiver policyWaiver) {
+    this.policyWaiver = policyWaiver;
   }
 
   public boolean matchesPolicyId(String policyId) {
@@ -117,21 +98,34 @@ public class PolicyWaiverMatcherWrapper
       return false;
     }
 
-    ComponentIdentifier componentFactAllVersionsIdentifier = getAllVersionsComponentIdentifier(componentFact
-        .getComponentIdentifier());
+    ComponentIdentifier waiverAllVersionsComponentIdentifier =
+        policyWaiver.getComponentIdentifier().createAlternativeVersion("*");
+    // It seems at one point some identifiers where introduced that don't have all required coordinates, which
+    // would make the call that is done to ensureComplete to fail. We'll log this occurrence for future reference
+    // FIXME After CLM-22252 an additional database migrator should be implemented to update these
+    try {
+      waiverAllVersionsComponentIdentifier.ensureComplete();
+    }
+    catch (InvalidComponentIdentifierException e) {
+      log.warn("Failed to ensureComplete for purl {} with the following error: {}",
+          policyWaiver.getAssociatedPackageUrl(), e.getMessage());
+    }
 
-    // FIXME This code block was introduced in CLM-22177 and it is dependant on the resolution of CLM-22252
+    ComponentIdentifier componentFactAllVersionsIdentifier =
+        getAllVersionsComponentIdentifier(componentFact.getComponentIdentifier());
+    // FIXME This code block was introduced in CLM-22177 and it is dependent on the resolution of CLM-22252
     // FIXME After CLM-22252 task is done remove the try catch block and leave only the ensureComplete call
     try {
       componentFactAllVersionsIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
-      log.warn("Failed to ensureComplete for purl {} with the following error: {}",
-          PackageUrlIdentifier.toPackageUrl(componentFactAllVersionsIdentifier), e.getMessage());
-      return compareWhenMissingRequiredCoordinates(waiverAllVersionsIdentifier, componentFactAllVersionsIdentifier);
+      log.warn("Failed to ensureComplete for component identifier {} with the following error: {}",
+          componentFactAllVersionsIdentifier, e.getMessage());
+      return compareWhenMissingRequiredCoordinates(waiverAllVersionsComponentIdentifier,
+          componentFactAllVersionsIdentifier);
     }
 
-    return waiverAllVersionsIdentifier.compareTo(componentFactAllVersionsIdentifier) == 0;
+    return waiverAllVersionsComponentIdentifier.compareTo(componentFactAllVersionsIdentifier) == 0;
   }
 
   boolean compareWhenMissingRequiredCoordinates(

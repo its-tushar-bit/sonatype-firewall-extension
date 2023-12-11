@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -21,15 +20,15 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 
 import org.junit.Test;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.140
@@ -40,16 +39,6 @@ public class PolicyWaiverMatcherWrapperTest
   private final String notNullComponentFactErrorMessage = "componentFact is required but got null instead";
 
   private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
-
-  @Test
-  public void testMatcherWrapper_PolicyWaiverMatcherWrapperConstructor() {
-    List<ConstraintFact> constraintFacts = Collections.emptyList();
-    PolicyWaiver policyWaiver = new PolicyWaiverBuilder().setHash("hash").setPolicyId("policyId").setOwnerId("ownerId")
-        .setConstraintFacts(constraintFacts).setComment("comment").build();
-
-    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
-    assertThat(policyWaiverMatcherWrapper.policyWaiver).isEqualTo(policyWaiver);
-  }
 
   @Test
   public void testMatcherWrapper_MatchesPolicyId_null() {
@@ -322,16 +311,6 @@ public class PolicyWaiverMatcherWrapperTest
       return this;
     }
 
-    public PolicyWaiverBuilder setOwnerId(final String ownerId) {
-      policyWaiver.setOwnerId(ownerId);
-      return this;
-    }
-
-    public PolicyWaiverBuilder setConstraintFacts(final List<ConstraintFact> constraintFacts) {
-      policyWaiver.setConstraintFacts(constraintFacts);
-      return this;
-    }
-
     private PolicyWaiverBuilder setConstraintFacts(int count) {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
       for (int i = 0; i < count; i++) {
@@ -343,11 +322,6 @@ public class PolicyWaiverMatcherWrapperTest
         constraintFacts.add(constraintFact);
       }
       policyWaiver.setConstraintFacts(constraintFacts);
-      return this;
-    }
-
-    public PolicyWaiverBuilder setComment(final String comment) {
-      policyWaiver.setComment(comment);
       return this;
     }
 

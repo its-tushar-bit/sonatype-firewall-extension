@@ -694,7 +694,7 @@ public class SpdxResultHandler
     for (ExternalRef externalRef : externalRefs) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
-        if (referenceType.endsWith("/cpe23Type") || referenceType.endsWith("/cpe22Type") ||
+        if (referenceType.endsWith("cpe23Type") || referenceType.endsWith("cpe22Type") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
                 externalRef.getReferenceLocator().startsWith("cpe"))) {
           return Optional.of(externalRef.getReferenceLocator());
@@ -713,7 +713,7 @@ public class SpdxResultHandler
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
         String referenceLocator = externalRef.getReferenceLocator();
-        if (referenceType.endsWith("/swid") ||
+        if (referenceType.endsWith("swid") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
                 referenceLocator.startsWith(SWID_URI_PREFIX))) {
           Swid swid = new Swid();

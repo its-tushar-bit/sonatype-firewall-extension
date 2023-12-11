@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -340,6 +339,20 @@ public class ApiSpdxService
 
     List<ExternalRef> additionalExternalRefs = addVulnerabilities(reportComponent, document);
 
+    if (reportComponent.swid != null) {
+      additionalExternalRefs.add(document.createExternalRef(ReferenceCategory.SECURITY,
+          new ReferenceType(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "swid"),
+          "swid:" + reportComponent.swid.getTagId(),
+          null));
+    }
+
+    if (reportComponent.cpe != null) {
+      String cpeVersion = reportComponent.cpe.startsWith("cpe:2.3") ? "cpe23Type" : "cpe22Type";
+      additionalExternalRefs.add(document.createExternalRef(ReferenceCategory.SECURITY,
+          new ReferenceType(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + cpeVersion), reportComponent.cpe,
+          null));
+    }
+
     addPackage(packageUrl, version, sha256, declaredLicenseInfo, concludedLicenseInfo, additionalExternalRefs,
         document, purlElementMap);
   }
@@ -348,7 +361,7 @@ public class ApiSpdxService
       throws InvalidSPDXAnalysisException
   {
     if (component.securityData == null || CollectionUtils.isEmpty(component.securityData.securityIssues)) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
     List<ExternalRef> externalRefs = new ArrayList<>();
     for (ApiSecurityIssueDTO securityIssue : component.securityData.securityIssues) {

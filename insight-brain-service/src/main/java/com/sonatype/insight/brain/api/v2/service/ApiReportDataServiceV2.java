@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyReportComponentDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -88,17 +90,21 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
+  private ThirdPartyComponentDAO thirdPartyComponentDAO;
+
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
-      ApiSecurityDataAdapter securityDataAdapter)
+      ApiSecurityDataAdapter securityDataAdapter,
+      ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -401,6 +407,8 @@ public class ApiReportDataServiceV2
     List<Component> components = new ComponentDAO(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
         securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
+    Map<String, ThirdPartyReportComponentDTO> tpComponentsByHash = thirdPartyComponentDAO.getData(reportFile);
+
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {
       ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
@@ -427,6 +435,15 @@ public class ApiReportDataServiceV2
       if (isDependencyDataInRestApiSupported()) {
         populateDependencyData(comp, component);
       }
+
+      if (tpComponentsByHash.containsKey(comp.getHash())) {
+        ThirdPartyReportComponentDTO tpComp = tpComponentsByHash.get(comp.getHash());
+        if (tpComp.bomRow != null) {
+          component.cpe = tpComp.bomRow.cpe;
+          component.swid = tpComp.bomRow.swid;
+        }
+      }
+
       data.components.add(component);
     }
 

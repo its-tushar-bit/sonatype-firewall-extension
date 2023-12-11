@@ -117,6 +117,46 @@ public class ApiSpdxServiceTest
   }
 
   @Test
+  public void testGetByScanId_json_cpeAndSwid() throws Exception {
+    SpdxDocument document = testGetByScanId("json", false, "2.3", false);
+    verifyCpeAndSwidValuesForPackage(document, "org.apache.logging.log4j:log4j-core");
+  }
+
+  @Test
+  public void testGetByScanId_xml_cpeAndSwid() throws Exception {
+    SpdxDocument document = testGetByScanId("xml", false, "2.3", false);
+    verifyCpeAndSwidValuesForPackage(document, "org.apache.logging.log4j:log4j-core");
+  }
+
+  private static void verifyCpeAndSwidValuesForPackage(final SpdxDocument document, String packageName)
+      throws InvalidSPDXAnalysisException
+  {
+    List<? extends ModelObject> items =
+        Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
+            .collect(Collectors.toList());
+    int cpeSwidCount = 0;
+    for (ModelObject item : items) {
+      SpdxPackage spdxPackage = (SpdxPackage) item;
+      if (spdxPackage.getName().orElse("notFound").equals(packageName)) {
+        for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
+          if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
+              externalRef.getReferenceType().getIndividualURI()
+                  .equals(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "cpe23Type")) {
+            assertThat(externalRef.getReferenceLocator()).startsWith("cpe:2.3:");
+            cpeSwidCount++;
+          }
+          if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
+              externalRef.getReferenceType().getIndividualURI().endsWith("swid")) {
+            assertThat(externalRef.getReferenceLocator()).startsWith("swid:");
+            cpeSwidCount++;
+          }
+        }
+      }
+    }
+    assertThat(cpeSwidCount).isEqualTo(2);
+  }
+
+  @Test
   public void testGetByScanId_json() throws Exception {
     testGetByScanId("json", false, "2.3", false);
   }
@@ -171,7 +211,7 @@ public class ApiSpdxServiceTest
     });
   }
 
-  private void testGetByScanId(
+  private SpdxDocument testGetByScanId(
       String format,
       boolean generateCycloneDx,
       String spdxVersion,
@@ -190,6 +230,7 @@ public class ApiSpdxServiceTest
 
     assertFilename(response, "build", format, generateCycloneDx);
     assertDocument(document, spdxVersion, isSage);
+    return document;
   }
 
   private String extractSpdxContentFromArchive(Response response) throws IOException {
@@ -240,7 +281,7 @@ public class ApiSpdxServiceTest
   private void assertDocument(final SpdxDocument document, final String spdxVersion, boolean isSage) throws Exception {
     String dataDate = isSage ? "20230716" : null;
     assertMetadata(document, spdxVersion, dataDate);
-    assertPackages(document);
+    assertPackages(document, isSage);
     assertExtractedLicenseInfo(document);
     assertTopLevelRelationship(document);
 
@@ -357,7 +398,7 @@ public class ApiSpdxServiceTest
       "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar"
   );
 
-  private void assertPackages(SpdxDocument document) throws Exception {
+  private void assertPackages(SpdxDocument document, boolean isSage) throws Exception {
     List<? extends ModelObject> items =
         Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
             .collect(Collectors.toList());
@@ -388,7 +429,12 @@ public class ApiSpdxServiceTest
       }
       assertThat(purlRefFound).isTrue();
       String secCountStr = String.format("%s -> %d", spdxPackage.getName().get(), securityRefCount);
-      assertThat(secCountStr).isIn(expectedSecurityRefs);
+      if (isSage) {
+        assertThat(secCountStr).isIn(sageSecurityRefs);
+      }
+      else {
+        assertThat(secCountStr).isIn(expectedSecurityRefs);
+      }
 
       Collection<Checksum> checksums = spdxPackage.getChecksums();
       for (Checksum checksum : checksums) {
@@ -407,6 +453,18 @@ public class ApiSpdxServiceTest
   }
 
   private static final Set<String> expectedSecurityRefs = ImmutableSet.of(
+      "com.sonatype.testing:pr-comment-02 -> 0",
+      "org.apache.logging.log4j:log4j-core -> 5",
+      "org.apache.logging.log4j:log4j-api -> 0",
+      "org.slf4j:slf4j-api -> 0",
+      "com.fasterxml.jackson.core:jackson-core -> 1",
+      "com.fasterxml.jackson.core:jackson-databind -> 0",
+      "com.fasterxml.jackson.core:jackson-annotations -> 0",
+      "net.sf.ehcache:ehcache -> 66",
+      "net.sf.ehcache:sizeof-agent -> 0"
+  );
+
+  private static final Set<String> sageSecurityRefs = ImmutableSet.of(
       "com.sonatype.testing:pr-comment-02 -> 0",
       "org.apache.logging.log4j:log4j-core -> 3",
       "org.apache.logging.log4j:log4j-api -> 0",

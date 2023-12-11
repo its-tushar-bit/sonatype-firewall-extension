@@ -1,0 +1,45 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "log4j-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.logging.log4j",
+          "version": "2.16.0"
+        }
+      },
+      "groupId": "org.apache.logging.log4j",
+      "artifactId": "log4j-core",
+      "version": "2.16.0",
+      "filenames": [],
+      "pathnames": [],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "ca12fb3902ecfcba1e13",
+      "relativePopularity": null,
+      "createTime": 1639374092000,
+      "lastModifiedTime": 1685729900000,
+      "lastModifiedEntryTime": 1639370480000,
+      "website": null,
+      "identificationSource": "Third-Party",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": null,
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "cpe": "cpe:2.3:a:org.apache.logging:log4j-core:2.16.0:*:*:*:*:*:*:*",
+      "swid": {
+        "tagId": "swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_2.16.0",
+        "tagVersion": 0,
+        "patch": false
+      }
+    }
+  ]
+}

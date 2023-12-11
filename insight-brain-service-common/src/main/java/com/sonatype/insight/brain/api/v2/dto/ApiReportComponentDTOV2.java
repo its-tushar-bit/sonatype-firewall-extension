@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.cyclonedx.model.Swid;
 
 /**
  *
@@ -31,4 +32,8 @@ public class ApiReportComponentDTOV2
 
   @JsonInclude(Include.NON_NULL)
   public ApiDependencyDataDTO dependencyData;
+
+  public String cpe;
+
+  public Swid swid;
 }

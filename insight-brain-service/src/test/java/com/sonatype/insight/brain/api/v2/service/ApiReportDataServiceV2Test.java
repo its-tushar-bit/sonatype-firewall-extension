@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,6 +42,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -87,10 +89,15 @@ public class ApiReportDataServiceV2Test
 
   private void makeReport(String resource) throws Exception {
     String[] filenames = {Report.BOM_JSON_FILENAME, Report.SECURITY_JSON_FILENAME, Report.LICENSES_JSON_FILENAME,
-        Report.DATA_JSON_FILENAME, Report.DEPENDENCIES_JSON_FILENAME};
+                          Report.DATA_JSON_FILENAME, Report.DEPENDENCIES_JSON_FILENAME,
+                          ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME
+    };
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
-      FileUtils.copyURLToFile(getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename), file);
+      URL resourceUrl = getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename);
+      if (resourceUrl != null) {
+        FileUtils.copyURLToFile(resourceUrl, file);
+      }
       if ("licenses.json".equals(filename)) {
         JsonNode licenseNode = JsonUtils.read(file);
         for (JsonNode node : licenseNode.get("aaData")) {
@@ -273,6 +280,18 @@ public class ApiReportDataServiceV2Test
     component = data.components.get(2);
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
     assertThat(component.dependencyData).isNull();
+  }
+
+  @Test
+  public void testGetDataNoAuth_cpeAndSwid() throws Exception {
+    makeReport("report-5-thirdparty");
+    ApiReportRawDataDTOV2 reportRawData = reportDataService.getDataNoAuth(app.getPublicId(), scanId);
+    assertThat(reportRawData.components).isNotEmpty();
+    ApiReportComponentDTOV2 component = reportRawData.components.get(0);
+    assertThat(component.cpe).isNotNull();
+    assertThat(component.cpe).isEqualTo("cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:*");
+    assertThat(component.swid).isNotNull();
+    assertThat(component.swid.getTagId()).isEqualTo("swid:gen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1");
   }
 
   @Test

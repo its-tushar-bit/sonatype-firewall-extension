@@ -14,13 +14,13 @@
 
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
-# TODO: RSO currently doesn't proxy gcr.io
-#FROM $SONATYPE_PRIVATE_REGISTRY/distroless/java11-debian11
-FROM gcr.io/distroless/java11-debian11
+FROM $SONATYPE_PRIVATE_REGISTRY/eclipse-temurin:11-jre
 
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
   com.sonatype.name="MTIQ Server Docker Image"
+
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 # Copy JAR
 COPY target/nexus-mtiq-server.jar /opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar
@@ -37,7 +37,7 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENTRYPOINT ["/usr/bin/java", \
+ENTRYPOINT ["java", \
              "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
              "-javaagent:/opt/datadog/dd-java-agent.jar", \
              "-XX:InitialRAMPercentage=75.0", \

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.search;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -835,6 +837,35 @@ public class IndexSearchingTest
     indexChanges();
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId())).isEmpty();
     assertThat(search(FieldIdentifier.ORGANIZATION_NAME, org.getName())).isEmpty();
+  }
+
+  @Test
+  public void testUpdate_OrganizationNameChange() throws Exception {
+    index();
+
+    Organization org = tempEntity.newOrganization("TestOrgName");
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), StageTypes.BUILD.getId(), "");
+
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
+    assertThat(searchResults).hasSize(4);
+
+    Set<String> searchResultItemTypes =
+        searchResults.stream().map(searchResultItemDTO -> searchResultItemDTO.itemType).collect(Collectors.toSet());
+    assertThat(searchResultItemTypes).containsExactlyInAnyOrder(ItemType.ORGANIZATION.name(),
+        ItemType.APPLICATION.name(), ItemType.SECURITY_VULNERABILITY.name());
+
+    org.setName("NewOrgName");
+    new OrganizationDAO().update(org);
+    indexChanges();
+
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
+    assertThat(searchResults).hasSize(4);
+    searchResultItemTypes =
+        searchResults.stream().map(searchResultItemDTO -> searchResultItemDTO.itemType).collect(Collectors.toSet());
+    assertThat(searchResultItemTypes).containsExactlyInAnyOrder(ItemType.ORGANIZATION.name(),
+        ItemType.APPLICATION.name(), ItemType.SECURITY_VULNERABILITY.name());
   }
 
   @Test

@@ -547,6 +547,12 @@ public class IndexService
     List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId()).stream()
         .map(policy -> buildDocument(indexingContext, policy)).collect(toList());
     addDocsWithException(indexingContext.indexWriter, orgPolicyDocs);
+
+    // Index the security vulnerability data
+    List<Application> applications = applicationDAO.getByOrganizationId(organizationId);
+    for (Application application : applications) {
+      addDocsWithException(indexingContext.indexWriter, buildApplicationSVDocs(indexingContext, org, application));
+    }
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {

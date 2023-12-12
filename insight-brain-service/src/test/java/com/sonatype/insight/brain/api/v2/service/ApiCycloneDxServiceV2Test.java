@@ -51,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
@@ -60,6 +61,7 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.Swid;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -348,6 +350,20 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getDependencies()).isNull();
   }
 
+  @Test
+  public void testGetByScanId_cpeAndSwid() throws Exception {
+    createReportAndPolicyEvaluation("cpeAndSwid");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_15);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertThat(bom.getComponents()).hasSize(2);
+
+    assertCpeAndSwid(bom.getComponents());
+  }
+
   private String bomRefOf(final Bom bom, final String purl) {
     return bom.getComponents().stream()
         .filter(c -> c.getPurl().equals(purl)).findFirst().map(Component::getBomRef).orElse(null);
@@ -389,6 +405,46 @@ public class ApiCycloneDxServiceV2Test
     Response response =
         service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_JSON, Version.VERSION_14);
     assertBom(response, Version.VERSION_14, false, true);
+  }
+
+  private void assertCpeAndSwid(final List<Component> components) {
+    int countComponentsWithCpeAndSwid = 0;
+    Swid swid = createSwidForComparison();
+
+    for (Component component : components) {
+      if (component.getCpe() != null && component.getSwid() != null) {
+        assertThat(component.getCpe()).isEqualTo("cpe:/a:acme:application:9.1.1");
+        assertThat(component.getSwid())
+            .usingRecursiveComparison()
+            .isEqualTo(swid);
+
+        countComponentsWithCpeAndSwid++;
+      }
+    }
+    assertThat(countComponentsWithCpeAndSwid).isEqualTo(1);
+  }
+
+  private Swid createSwidForComparison() {
+    Swid swid = new Swid();
+    swid.setTagId("swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1");
+    swid.setName("Acme Application");
+    swid.setVersion("9.1.1");
+    swid.setTagVersion(0);
+    swid.setPatch(false);
+
+    AttachmentText attachmentText = new AttachmentText();
+    attachmentText.setEncoding("base64");
+    attachmentText.setText("PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiID8+CjxTb2Z0d2FyZUlkZW50aXR5IHhtbDpsYW5n" +
+        "PSJFTiIgbmFtZT0iQWNtZSBBcHBsaWNhdGlvbiIgdmVyc2lvbj0iOS4xLjEiIAogdmVyc2lvblNjaGVtZT0ibXVsdGlwYXJ0bnVtZXJpYyI" +
+        "gCiB0YWdJZD0ic3dpZGdlbi1iNTk1MWFjOS00MmMwLWYzODItM2YxZS1iYzdhMmE0NDk3Y2JfOS4xLjEiIAogeG1sbnM9Imh0dHA6Ly9zdG" +
+        "FuZGFyZHMuaXNvLm9yZy9pc28vMTk3NzAvLTIvMjAxNS9zY2hlbWEueHNkIj4gCiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwM" +
+        "DEvWE1MU2NoZW1hLWluc3RhbmNlIiAKIHhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL3N0YW5kYXJkcy5pc28ub3JnL2lzby8xOTc3MC8t" +
+        "Mi8yMDE1LWN1cnJlbnQvc2NoZW1hLnhzZCBzY2hlbWEueHNkIiA+CiAgPE1ldGEgZ2VuZXJhdG9yPSJTV0lEIFRhZyBPbmxpbmUgR2VuZXJ" +
+        "hdG9yIHYwLjEiIC8+IAogIDxFbnRpdHkgbmFtZT0iQWNtZSwgSW5jLiIgcmVnaWQ9ImV4YW1wbGUuY29tIiByb2xlPSJ0YWdDcmVhdG9yIi" +
+        "AvPiAKPC9Tb2Z0d2FyZUlkZW50aXR5Pg==");
+    attachmentText.setContentType("text/xml");
+    swid.setAttachmentText(attachmentText);
+    return swid;
   }
 
   private void testGetLatest(String contentType, Version version) throws Exception {

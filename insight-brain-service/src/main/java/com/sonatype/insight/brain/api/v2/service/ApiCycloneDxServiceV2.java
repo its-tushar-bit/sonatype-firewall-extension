@@ -648,6 +648,8 @@ public class ApiCycloneDxServiceV2
         setProperties(version, reportComponent, bomComponent);
         setLicenseInformation(reportComponent, bomComponent);
         setSha256(reportComponent, bomComponent);
+        bomComponent.setSwid(reportComponent.swid);
+        bomComponent.setCpe(reportComponent.cpe);
       }
       return bomComponent;
     }

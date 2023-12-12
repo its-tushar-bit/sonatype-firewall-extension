@@ -5,18 +5,22 @@
  */
 
 import React from 'react';
-import { NxCard, NxH2 } from '@sonatype/react-shared-components';
+import { NxCard, NxH2, NxTile } from '@sonatype/react-shared-components';
 import CiCard from 'MainRoot/integrations/sections/overview/CiCard';
 import IdeIntegrationsCard from './ideIntegrationsCard/IdeIntegrationsCard';
 import AppIntegrationsAndRiskTable from '../AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
-import AdoptionGraph from '../AdoptionGraph/AdoptionGraph';
+import GraphsContainer from '../Graphs/GraphsContainer';
 
 export default function Overview() {
   return (
     <div id="iq-integrations-overview-section">
-      <NxH2>Understanding Your Code Risks</NxH2>
+      <NxTile>
+        <NxTile.Content>
+          <GraphsContainer />
+        </NxTile.Content>
+      </NxTile>
 
-      <AdoptionGraph />
+      <NxH2>Applications Configuration Summary</NxH2>
 
       <AppIntegrationsAndRiskTable />
 

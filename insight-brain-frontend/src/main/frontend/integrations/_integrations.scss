@@ -154,7 +154,7 @@ svg.nx-icon.iq-total-risk-info-icon {
   color: var(--nx-swatch-red-40);
 }
 
-.iq-developer-adoption-tooltip {
+.iq-developer-dashboard-graph-tooltip {
   border-radius: 4px;
   background-color: var(--nx-swatch-blue-95);
   padding: var(--nx-spacing-2x);
@@ -173,4 +173,20 @@ svg.nx-icon.iq-total-risk-info-icon {
 #iq-developer-app-integrations-scm-configure-button,
 #iq-developer-app-integrations-cicd-configure-button {
   margin-right: 0px;
+}
+
+.iq-developer-dashboard-graph-container {
+  display: flex;
+  flex-direction: row;
+
+  .iq-developer-dashboard-adoption-graph,
+  .iq-developer-dashboard-risk-remediation-graph,
+  .iq-developer-dashboard-mttr-graph {
+    flex: 1;
+    margin-top: 0;
+
+    .nx-h2 {
+      margin-bottom: 0;
+    }
+  }
 }

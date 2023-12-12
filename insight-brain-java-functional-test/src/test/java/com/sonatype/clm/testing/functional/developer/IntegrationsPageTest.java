@@ -280,7 +280,39 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     adoptionGraph().hover();
 
-    adoptionGraphTooltip().shouldBe(visible);
+    developerDashboardGraphTooltip().shouldBe(visible);
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testRiskRemediationGraph() {
+    setUpAppsForRiskRemediationGraph();
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    scrollIntoView(riskRemediationGraph());
+
+    riskRemediationGraph().shouldBe(visible);
+
+    riskRemediationGraph().hover();
+
+    developerDashboardGraphTooltip().shouldBe(visible);
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testMTTRGraph() {
+    setUpAppsForMTTRGraph();
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    scrollIntoView(mttrGraph());
+
+    mttrGraph().shouldBe(visible);
+
+    mttrGraph().hover();
+
+    developerDashboardGraphTooltip().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
   }
@@ -372,6 +404,38 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
               calendarForLastEval.add(Calendar.DATE, -1);
             });
+  }
+
+  private void setUpAppsForRiskRemediationGraph() {
+    Date now = new Date();
+    IntStream.range(0, 10).forEach(i -> {
+      Date xWeekAgo = Date.from(Instant.now().minus(i * 7, ChronoUnit.DAYS));
+
+      tempEntity.newApplicationCountHistoryEntry(xWeekAgo, 100, 0, 100 - (i * 10), 50 - (i * 5), 0);
+    });
+
+    tempEntity.newApplicationCountHistoryEntry(now, 100, 0, 10, 5, 0);
+  }
+
+  private static long daysToMilliseconds(double days) {
+    // 1 day is equal to 24 hours, 60 minutes, 60 seconds, and 1000 milliseconds
+    long millisecondsInOneDay = 24 * 60 * 60 * 1000;
+
+    // Calculate the number of milliseconds
+    long milliseconds = (long) (days * millisecondsInOneDay);
+
+    return milliseconds;
+  }
+
+  private void setUpAppsForMTTRGraph() {
+    Date now = new Date();
+    IntStream.range(0, 10).forEach(i -> {
+      Date xWeekAgo = Date.from(Instant.now().minus(i * 7, ChronoUnit.DAYS));
+
+      tempEntity.newApplicationCountHistoryEntry(xWeekAgo, 100, 0, 0, 0, daysToMilliseconds(100 - (i * 10)));
+    });
+
+    tempEntity.newApplicationCountHistoryEntry(now, 100, 0, 0, 0, daysToMilliseconds(5));
   }
 
   private SelenideElement navigationTabs() {
@@ -523,11 +587,19 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   private SelenideElement adoptionGraph() {
-    return $(".iq-developer-dashboard-adoption-chart");
+    return $(".iq-developer-dashboard-adoption-graph");
   }
 
-  private SelenideElement adoptionGraphTooltip() {
-    return adoptionGraph().$(".iq-developer-adoption-tooltip");
+  private SelenideElement riskRemediationGraph() {
+    return $(".iq-developer-dashboard-risk-remediation-graph");
+  }
+
+  private SelenideElement mttrGraph() {
+    return $(".iq-developer-dashboard-mttr-graph");
+  }
+
+  private SelenideElement developerDashboardGraphTooltip() {
+    return $(".iq-developer-dashboard-graph-tooltip");
   }
 
   private void assertDisabled() {

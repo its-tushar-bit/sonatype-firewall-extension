@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { ResponsiveLine } from '@nivo/line';
+import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectRiskRemediationAndMttrGraphSlice } from './riskRemediationGraphSelectors';
+import { actions } from '../../slices/riskRemediationAndMttrGraphSlice';
+import { commonGraphProps, graphColors, formatMttrGraphData } from '../../utils/graphUtils';
+
+export default function MTTRGraph() {
+  const dispatch = useDispatch();
+  const { graphData, loading, loadError } = useSelector(selectRiskRemediationAndMttrGraphSlice);
+  const formattedGraphData = formatMttrGraphData(graphData);
+
+  const doLoad = () => {
+    dispatch(actions.loadRiskRemediationAndMttrGraphData());
+  };
+
+  return (
+    <div className="iq-developer-dashboard-mttr-graph">
+      <NxH2>Mean Time to Remediate</NxH2>
+      <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
+        <div style={{ height: 400 }}>
+          <ResponsiveLine
+            {...commonGraphProps()}
+            data={formattedGraphData}
+            colors={graphColors['mttrGraph']}
+            tooltip={(tooltip) => getTooltip(tooltip)}
+            axisLeft={{
+              legend: 'Mean Time to Remediate (days)',
+              legendOffset: -50,
+              legendPosition: 'middle',
+            }}
+            legends={[
+              {
+                anchor: 'bottom',
+                direction: 'row',
+                translateY: 80,
+                itemWidth: 160,
+                itemHeight: 20,
+                symbolShape: 'circle',
+                itemTextColor: 'var(--nx-swatch-grey-30)',
+                data: [
+                  {
+                    id: 'meanTimeToRemediate',
+                    label: 'Mean Time to Remediate (days)',
+                    color: 'var(--nx-swatch-turquoise-40)',
+                  },
+                ],
+              },
+            ]}
+          />
+        </div>
+      </NxLoadWrapper>
+    </div>
+  );
+}
+
+function getTooltip(tooltip) {
+  const meanTime = tooltip.point.data.y.toFixed(1);
+  return (
+    <div className="iq-developer-dashboard-graph-tooltip">
+      <div>
+        Average Time to Remediate: <strong>{meanTime} Days</strong>
+      </div>
+    </div>
+  );
+}

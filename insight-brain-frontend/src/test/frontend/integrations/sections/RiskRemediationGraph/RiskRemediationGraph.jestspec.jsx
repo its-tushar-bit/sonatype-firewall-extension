@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
-import AdoptionGraph from 'MainRoot/integrations/sections/Graphs/AdoptionGraph';
+import { render, screen, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
+import { getRiskRemediationAndMttrGraphData } from 'MainRoot/util/CLMLocation';
+import RiskRemediationGraph from 'MainRoot/integrations/sections/Graphs/RiskRemediationGraph';
 import { act, fireEvent } from '@testing-library/react';
-import { getAdoptionGraphCicdData, getAdoptionGraphScmData } from 'MainRoot/util/CLMLocation';
 
 let listener = null;
 const originalResizeObserver = window.ResizeObserver;
@@ -26,38 +26,32 @@ window.ResizeObserver = class ResizeObserver {
   }
 };
 
-describe('AdoptionGraph', () => {
+describe('RiskRemediationGraph', () => {
   let axiosMock, renderComponent;
 
   const defaultPreloadedState = {
     integrations: {
-      adoptionGraph: {
-        graphData: {
-          cicd: [
-            {
-              dateTimeMillis: 1701350755891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithCiCdEnabled: 2,
-            },
-            {
-              dateTimeMillis: 1701955555891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithCiCdEnabled: 2,
-            },
-          ],
-          scm: [
-            {
-              dateTimeMillis: 1701350755891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithScmEnabled: 3,
-            },
-            {
-              dateTimeMillis: 1701955555891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithScmEnabled: 3,
-            },
-          ],
-        },
+      riskRemediationAndMttrGraph: {
+        graphData: [
+          {
+            dateTimeMillis: 1701350755925,
+            totalNumberOfApps: 8,
+            totalNumberOfAppsWithScmEnabled: 3,
+            totalNumberOfPolicyActionFailuresByAppCount: 7,
+            totalNumberOfWaivers: 16,
+            meanTimeToRemediateMs: 900000000,
+            totalNumberOfAppsUsingCiCd: 2,
+          },
+          {
+            dateTimeMillis: 1701955555925,
+            totalNumberOfApps: 8,
+            totalNumberOfAppsWithScmEnabled: 3,
+            totalNumberOfPolicyActionFailuresByAppCount: 5,
+            totalNumberOfWaivers: 4,
+            meanTimeToRemediateMs: 400000000,
+            totalNumberOfAppsUsingCiCd: 2,
+          },
+        ],
         loading: false,
         loadError: null,
       },
@@ -67,7 +61,7 @@ describe('AdoptionGraph', () => {
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
     renderComponent = (preloadedState) =>
-      render(<AdoptionGraph />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<RiskRemediationGraph />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   afterAll(() => {
@@ -77,8 +71,8 @@ describe('AdoptionGraph', () => {
   it('should render a Loading... message when network call is pending', () => {
     const loadingState = {
       integrations: {
-        adoptionGraph: {
-          graphData: null,
+        riskRemediationAndMttrGraph: {
+          graphData: [],
           loading: true,
           loadError: null,
         },
@@ -93,8 +87,8 @@ describe('AdoptionGraph', () => {
   it('should render an error message when network call is failed', async () => {
     const errorState = {
       integrations: {
-        adoptionGraph: {
-          graphData: null,
+        riskRemediationAndMttrGraph: {
+          graphData: [],
           loading: false,
           loadError: 'error',
         },
@@ -108,13 +102,12 @@ describe('AdoptionGraph', () => {
   });
 
   it('should trigger correct network request when retry button of alert is clicked', async () => {
-    axiosMock.onGet(getAdoptionGraphCicdData()).reply(404, 'Error');
-    axiosMock.onGet(getAdoptionGraphScmData()).reply(404, 'Error');
+    axiosMock.onGet(getRiskRemediationAndMttrGraphData()).reply(404, 'Error');
 
     const errorState = {
       integrations: {
-        adoptionGraph: {
-          graphData: null,
+        riskRemediationAndMttrGraph: {
+          graphData: [],
           loading: false,
           loadError: 'error',
         },
@@ -131,22 +124,16 @@ describe('AdoptionGraph', () => {
     const retryBytton = within(errorAlert).getByRole('button');
     fireEvent.click(retryBytton);
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(1);
 
-    const cicdRequest = axiosMock.history.get[0];
-    const scmRequest = axiosMock.history.get[1];
-
-    expect(cicdRequest.url).toBe(getAdoptionGraphCicdData());
-    expect(cicdRequest.params).toBe(undefined);
-
-    expect(scmRequest.url).toBe(getAdoptionGraphScmData());
-    expect(scmRequest.params).toBe(undefined);
+    expect(axiosMock.history.get[0].url).toBe(getRiskRemediationAndMttrGraphData());
+    expect(axiosMock.history.get[0].params).toBe(undefined);
   });
 
   it('should render a graph', async () => {
     renderComponent();
 
-    const header = await screen.findByRole('heading', { name: /integration adoption/i });
+    const header = await screen.findByRole('heading', { name: /risk & remediation timeline/i });
     expect(header).toBeInTheDocument();
 
     act(() => {

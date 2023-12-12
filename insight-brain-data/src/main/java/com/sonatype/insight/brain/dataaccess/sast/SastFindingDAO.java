@@ -52,14 +52,15 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
     super.delete(entity);
   }
 
-  public List<SastFinding> getBySastScanId(final String sastScanId) {
+  public List<SastFinding> getBySastScanIdOrderBySeverityDesc(final String sastScanId) {
     try (final TransactionContext tx = createTransactionContext()) {
-      return getBySastScanId(tx, sastScanId);
+      return getBySastScanIdOrderBySeverityDesc(tx, sastScanId);
     }
   }
 
-  public List<SastFinding> getBySastScanId(final TransactionContext tx, final String sastScanId) {
-    final String sQuery = "SELECT entity FROM SastFinding entity WHERE entity.sastScanId=?1";
+  public List<SastFinding> getBySastScanIdOrderBySeverityDesc(final TransactionContext tx, final String sastScanId) {
+    final String sQuery =
+        "SELECT entity FROM SastFinding entity WHERE entity.sastScanId=?1 ORDER BY entity.severity DESC";
     return getList(tx, sQuery, sastScanId);
   }
 
@@ -72,7 +73,7 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
   }
 
   public void deleteBySastScanId(final TransactionContext tx, final String sastScanId) {
-    getBySastScanId(tx, sastScanId)
+    getBySastScanIdOrderBySeverityDesc(tx, sastScanId)
         .stream()
         .map(SastFinding::getId)
         .forEach(sastFindingId -> sastRemediationDAO.deleteBySastFindingId(tx, sastFindingId));

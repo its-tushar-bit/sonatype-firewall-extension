@@ -72,7 +72,7 @@ public class PublicApiPaths
       + "config/artifactoryConnection";
 
   public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";
-  
+
   public static final String SOURCE_CONTROL_METRICS_PATH_V2 = API_VERSION_PATH_V2 + "sourceControlMetrics";
 
   public static final String USER_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "users";
@@ -145,4 +145,7 @@ public class PublicApiPaths
 
   public static final String EXPERIMENTAL_VEX_ANALYSIS_DATA_PATH =
       EXPERIMENTAL_PATH + "vex/application/{applicationInternalId}/report/{scanId}";
+
+  public static final String EXPERIMENTAL_SAST_SCAN_DATA_PATH =
+      EXPERIMENTAL_PATH + "application/{applicationPublicId}/sastScan";
 }

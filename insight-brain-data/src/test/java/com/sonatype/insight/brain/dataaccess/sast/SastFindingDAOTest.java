@@ -115,7 +115,7 @@ public class SastFindingDAOTest
     assertThat(results.get(0).getId()).isEqualTo(sastFinding.getId());
 
     // GetBySastScanId
-    final List<SastFinding> results2 = sastFindingDAO.getBySastScanId(sastScan.getId());
+    final List<SastFinding> results2 = sastFindingDAO.getBySastScanIdOrderBySeverityDesc(sastScan.getId());
     assertThat(results2).hasSize(1);
     assertThat(results2.get(0).getId()).isEqualTo(sastFinding.getId());
 
@@ -166,5 +166,46 @@ public class SastFindingDAOTest
     assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
     assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
     assertThat(sastRemediationDAO.getById(sastRemediation.getId())).isNull();
+  }
+
+  @Test
+  public void testGetBySastScanIdOrderBySeverityDesc_FindingsDescendBySeverity() {
+    // Given a SastScan
+    final SastScan sastScan = new SastScan(application.getId());
+    sastScanDAO.insert(sastScan);
+
+    // And 2 sastFindings with different severities
+    final SastFinding sastFinding1 = new SastFinding();
+    sastFinding1.setSastScanId(sastScan.getId());
+    sastFinding1.setCwe("cwe1");
+    sastFinding1.setConfidence(SastFindingConfidence.MEDIUM);
+    sastFinding1.setSeverity(SastFindingSeverity.MEDIUM);
+    sastFinding1.setDescription("someDescription1");
+    sastFinding1.setCoordinate("someCoordinate1");
+    sastFinding1.setLineNumber(null);
+    sastFinding1.setRuleName("someRuleName1");
+
+    final SastFinding sastFinding2 = new SastFinding();
+    sastFinding2.setSastScanId(sastScan.getId());
+    sastFinding2.setCwe("cwe2");
+    sastFinding2.setConfidence(SastFindingConfidence.LOW);
+    sastFinding2.setSeverity(SastFindingSeverity.HIGH);
+    sastFinding2.setDescription("someDescription2");
+    sastFinding2.setCoordinate("someCoordinate2");
+    sastFinding2.setLineNumber(null);
+    sastFinding2.setRuleName("someRuleName2");
+
+    sastFindingDAO.insert(sastFinding1);
+    sastFindingDAO.insert(sastFinding2);
+
+    // When  getBySastScanIdOrderBySeverityDesc is called
+    final List<SastFinding> results = sastFindingDAO.getBySastScanIdOrderBySeverityDesc(sastScan.getId());
+
+    // Then the findings should be sorted by descending severity
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getId()).isEqualTo(sastFinding2.getId());
+    assertThat(results.get(0).getSeverity()).isEqualTo(sastFinding2.getSeverity());
+    assertThat(results.get(1).getId()).isEqualTo(sastFinding1.getId());
+    assertThat(results.get(1).getSeverity()).isEqualTo(sastFinding1.getSeverity());
   }
 }

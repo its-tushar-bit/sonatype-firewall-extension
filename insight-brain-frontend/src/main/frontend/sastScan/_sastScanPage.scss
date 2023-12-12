@@ -1,0 +1,70 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+sast-scan-page {
+  display: contents;
+}
+
+.iq_sast_scan_findings {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__filter {
+    align-self: flex-end;
+
+    &.nx-form-group {
+      margin-bottom: var(--nx-spacing-4x);
+    }
+  }
+}
+
+.iq_sast_scan_finding {
+  &__title {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    & .nx-h1 {
+      margin: 0px;
+    }
+  }
+
+  &__title-indicator {
+    padding-top: 10px;
+    width: 200px;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--nx-spacing-4x);
+    padding-left: 10px;
+  }
+
+  &__details {
+    padding: var(--nx-spacing-6x) var(--nx-spacing-6x) var(--nx-spacing-6x) var(--nx-spacing-8x);
+    border-color: #1a1a1a;
+    border-style: solid;
+    border-width: 1px 1px 1px 8px;
+    border-radius: 8px;
+  }
+
+  &__description {
+    margin: 0px 0px var(--nx-spacing-6x);
+
+    &--only {
+      margin: 0 0 0 0;
+    }
+  }
+
+  &__remediation {
+    margin: 0 0 0 0;
+  }
+}

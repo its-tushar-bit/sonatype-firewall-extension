@@ -1348,6 +1348,9 @@ export const getSourceControlRateLimitsUrl = (ownerType, ownerId) =>
 
 export const getCiUsageUrl = () => uriTemplate`/rest/plugin/stat/ci`;
 
+export const getSastScanUrl = (applicationPublicId, sastScanId) =>
+  uriTemplate`/api/experimental/application/${applicationPublicId}/sastScan/${sastScanId}`;
+
 export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
 
 export const getAppsWithoutRecentCiUsageUrl = () => uriTemplate`/rest/plugin/apps/ci`;

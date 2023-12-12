@@ -95,6 +95,7 @@ import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControl
 import integrationsSlice from 'MainRoot/integrations/integrationsSlice';
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
+import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -188,4 +189,5 @@ export default combineReducers({
   integrations: integrationsSlice,
   enterpriseReportingDashboard: enterpriseReportingDashboardSlice,
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,
+  sast: sastReportSlice,
 });

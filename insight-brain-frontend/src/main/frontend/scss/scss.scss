@@ -51,6 +51,7 @@
 @use '../labs/labs';
 @use '../configuration/configuration';
 @use '../integrations/integrations';
+@use '../sastScan/sastScanPage';
 @use 'policy-editor';
 @use '../OrgsAndPolicies/repositories/repositoriesSummaryView';
 @use '../applicationReport/applicationReport';

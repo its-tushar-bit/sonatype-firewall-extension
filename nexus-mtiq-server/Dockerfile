@@ -40,8 +40,6 @@ WORKDIR /opt/sonatype/nexus-iq-server
 ENTRYPOINT ["java", \
              "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
              "-javaagent:/opt/datadog/dd-java-agent.jar", \
-             "-XX:InitialRAMPercentage=75.0", \
-             "-XX:MaxRAMPercentage=75.0", \
              "-XX:+AlwaysPreTouch", \
              "-XX:+CrashOnOutOfMemoryError", \
              "-XshowSettings:vm", \

@@ -4439,6 +4439,13 @@ public class TemporaryEntity
     return sastScan;
   }
 
+  public SastScan newSastScanWithCustomTimestamp(final String applicationId, Date date) {
+    final SastScan sastScan = new SastScan(applicationId);
+    sastScan.setCreatedAt(date);
+    sastScanDAO.insert(sastScan);
+    return sastScan;
+  }
+
   public void newApplicationCountHistoryEntry(final Date date, final int applicationCount) {
     newApplicationCountHistoryEntry(date, applicationCount, 0, 0, 0, 0);
   }

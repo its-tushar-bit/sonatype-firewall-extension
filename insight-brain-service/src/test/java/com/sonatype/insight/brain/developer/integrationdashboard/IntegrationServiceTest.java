@@ -6,6 +6,8 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
@@ -691,6 +693,39 @@ public class IntegrationServiceTest
             .isEqualTo(org3.getId());
     assertThat(app4Dto.getTotalRiskScore())
             .isZero();
+  }
+
+  @Test
+  public void testGetIntegrationSummaries_SetSastScan() {
+    setUpAppsWithRisk();
+    // 3 Scans of the same app. We should find the last one.
+    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
+        Date.from(LocalDate.parse("2023-12-01").atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
+        Date.from(LocalDate.parse("2023-12-02").atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
+        Date.from(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant()));
+
+    final ApiPageResult<IntegrationStatusDTO> result =
+        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
+    final List<IntegrationStatusDTO> appSummaries = result.getResults();
+    assertThat(appSummaries)
+        .hasSize(4);
+
+    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
+    assertThat(app1Dto.isHasSastReport())
+        .isTrue();
+    assertThat(app1Dto.getLastSastReportId())
+        .isNotEmpty();
+    assertThat(app1Dto.getLastSastReportTime())
+        .isEqualTo(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
+
+    assertThat(appSummaries.get(1).isHasSastReport())
+        .isFalse();
+    assertThat(appSummaries.get(2).isHasSastReport())
+        .isFalse();
+    assertThat(appSummaries.get(3).isHasSastReport())
+        .isFalse();
   }
 
   private void setUpAppsWithRisk() {

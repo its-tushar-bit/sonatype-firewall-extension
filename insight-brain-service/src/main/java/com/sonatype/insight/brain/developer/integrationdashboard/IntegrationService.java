@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,9 +22,11 @@ import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.IntegrationStatusFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
@@ -44,17 +48,21 @@ public class IntegrationService
 
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
 
+  private final SastScanDAO sastScanDAO;
+
   @Inject
   public IntegrationService(
       final ApplicationRiskService applicationRiskService,
       final ApplicationSourceControlService applicationSourceControlService,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO)
+      final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
+      final SastScanDAO sastScanDAO)
   {
     this.applicationRiskService = applicationRiskService;
     this.applicationSourceControlService = applicationSourceControlService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
+    this.sastScanDAO = sastScanDAO;
   }
 
   public ApiPageResult<IntegrationStatusDTO> getIntegrationStatuses(
@@ -115,6 +123,8 @@ public class IntegrationService
         .filter(statusDTO ->
                 optionalFilterAppsByCiCdIntegration == null ||
                 statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+        // Enrich after filtering to save some round trips to the sast_scan table
+        .map(this::addSastScanData)
         .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
         .collect(Collectors.toList());
 
@@ -125,6 +135,32 @@ public class IntegrationService
             .collect(Collectors.toList());
 
     return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), paginatedSummaries);
+  }
+
+  private IntegrationStatusDTO addSastScanData(final IntegrationStatusDTO integrationStatusDTO) {
+    Optional<SastScan> lastSastScan = sastScanDAO.getByApplicationId(integrationStatusDTO.getApplicationId()).stream()
+        .max(Comparator.comparing(SastScan::getCreatedAt));
+    return new IntegrationStatusDTO(
+        integrationStatusDTO.getApplicationName(),
+        integrationStatusDTO.getApplicationId(),
+        integrationStatusDTO.getApplicationPublicId(),
+        integrationStatusDTO.isCiIntegrationEnabled(),
+        integrationStatusDTO.isAutomatedSourceControlFeedbackEnabled(),
+        integrationStatusDTO.getLastCommitTimestamp(),
+        integrationStatusDTO.getLastEvaluationTimestamp(),
+        integrationStatusDTO.getOrganizationId(),
+        integrationStatusDTO.getTotalRiskScore(),
+        lastSastScan.isPresent(),
+        lastSastScan.map(SastScan::getId).orElse(null),
+        getCreatedAt(lastSastScan)
+    );
+  }
+
+  private Long getCreatedAt(Optional<SastScan> sastScan) {
+    // Handling the case that SastScan contains a null value of `createdAt` field
+    return sastScan.flatMap(scan -> Optional.ofNullable(scan.getCreatedAt()))
+        .map(Date::getTime)
+        .orElse(null);
   }
 
   @Authorize(permission = Permission.READ)

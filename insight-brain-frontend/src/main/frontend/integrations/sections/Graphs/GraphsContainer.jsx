@@ -7,9 +7,10 @@ import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { actions as adoptionGraphActions } from '../../slices/adoptionGraphSlice';
 import { actions as riskRemediationAndMttrGraphActions } from '../../slices/riskRemediationAndMttrGraphSlice';
-import AdoptionGraph from './AdoptionGraph';
+
 import RiskAndRemediationGraph from './RiskRemediationGraph';
 import MTTRGraph from './MTTRGraph';
+import AdoptionGraph from 'MainRoot/integrations/sections/Graphs/AdoptionGraph';
 
 export default function GraphsContainer() {
   const dispatch = useDispatch();

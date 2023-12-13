@@ -1346,14 +1346,10 @@ export const getRepositoryComponentNamePatternUpdateUrl = () =>
 export const getSourceControlRateLimitsUrl = (ownerType, ownerId) =>
   uriTemplate`/api/experimental/sourceControl/${ownerType}/${ownerId}/rateLimits`;
 
-export const getCiUsageUrl = () => uriTemplate`/rest/plugin/stat/ci`;
-
 export const getSastScanUrl = (applicationPublicId, sastScanId) =>
   uriTemplate`/api/experimental/application/${applicationPublicId}/sastScan/${sastScanId}`;
 
 export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
-
-export const getAppsWithoutRecentCiUsageUrl = () => uriTemplate`/rest/plugin/apps/ci`;
 
 export const getPolicyViolationUiLink = (violationId) => {
   return uriTemplate`/ui/links/policyViolation/${violationId}`;
@@ -1369,6 +1365,9 @@ export const getAdoptionGraphCicdData = () => uriTemplate`/rest/integrations/sta
 export const getAdoptionGraphScmData = () => uriTemplate`/rest/integrations/stats/scm-feedback/usage-over-time`;
 
 export const getRiskRemediationAndMttrGraphData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
+
+export const getUsageOverTimeChartVisibility = () =>
+  uriTemplate`/rest/integrations/stats/usage-over-time/charts/visibility`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

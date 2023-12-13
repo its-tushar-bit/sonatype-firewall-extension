@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -189,6 +191,19 @@ public class TaskScheduler
             .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(localTime.getHour(), localTime.getMinute())) //
             .withRepeatCount(0) //
             .withMisfireHandlingInstructionDoNothing()) //
+        .build();
+    scheduleTask(job, insightJob, trigger);
+  }
+
+  public void scheduleOneTimeTask(InsightJob insightJob, LocalDateTime localTime) {
+    Date convertedDate = Date.from(localTime.atZone(ZoneId.systemDefault()).toInstant());
+
+    JobDetail job = newJob(insightJob) //
+        .build();
+    Trigger trigger = TriggerBuilder.newTrigger() //
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0).withMisfireHandlingInstructionFireNow())
+        .startAt(convertedDate)
         .build();
     scheduleTask(job, insightJob, trigger);
   }

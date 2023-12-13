@@ -39,6 +39,8 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.git.BranchMonitorExecutor;
+import com.sonatype.insight.brain.git.MultiTenantDefaultBranchMonitorExecutor;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
@@ -341,6 +343,8 @@ public class MultiTenantInsightBrainService
         bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(config));
 
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
+
+        bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
       }
     };
   }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scheduler;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -288,6 +289,29 @@ public class TaskSchedulerTest
     Date nextFireTime = dailyTimeIntervalTrigger.getNextFireTime();
     assertThat(nextFireTime.toInstant()).isAfterOrEqualTo(now.toInstant().minusSeconds(1));
     assertThat(nextFireTime).hasHourOfDay(23);
+  }
+
+  @Test
+  public void testScheduleOneDateTimeTask() throws Exception {
+    Scheduler scheduler = taskScheduler.createScheduler();
+
+    LocalDateTime nextStart = LocalDateTime.now().plusDays(1).plusMinutes(1);
+    taskScheduler.scheduleOneTimeTask(testJob, nextStart);
+
+    JobKey jobKey = JobKey.jobKey(TestJob.NAME);
+    JobDetail job = scheduler.getJobDetail(jobKey);
+    assertThat(job).isNotNull();
+    assertThat(job.getJobClass()).isEqualTo(TestJob.class);
+    assertThat(job.requestsRecovery()).isFalse();
+    Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
+    assertThat(trigger).isInstanceOf(SimpleTrigger.class);
+    SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
+    assertThat(simpleTrigger.getMisfireInstruction())
+        .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
+    assertThat(simpleTrigger.getRepeatCount()).isEqualTo(0);
+    Date nextFireTime = simpleTrigger.getNextFireTime();
+
+    assertThat(nextFireTime).isAfterOrEqualTo(Date.from(nextStart.atZone(ZoneId.systemDefault()).toInstant()));
   }
 
   @Test

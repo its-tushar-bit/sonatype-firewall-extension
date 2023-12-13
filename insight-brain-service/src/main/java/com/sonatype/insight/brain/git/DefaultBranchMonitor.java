@@ -5,32 +5,14 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.utils.DateUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -58,37 +40,25 @@ public class DefaultBranchMonitor
 
   private final TaskScheduler taskScheduler;
 
-  private final SourceControlEventPublisher sourceControlEventPublisher;
-
-  private final Configuration configuration;
-
-  private final SourceControlDAO sourceControlDAO;
-
   private final IqForScmLicenseChecker licenseChecker;
 
   private final ApiConfigFeaturesService apiConfigFeaturesService;
 
+  private BranchMonitorExecutor branchMonitorExecutor;
+
   public boolean disableForTesting;
-
-  private int intervalInMinutes;
-
-  private final int randomizedStartOffsetInMinutes = new Random().nextInt(10);
 
   @Inject
   public DefaultBranchMonitor(
       TaskScheduler taskScheduler,
-      SourceControlEventPublisher sourceControlEventPublisher,
-      Configuration configuration,
-      SourceControlDAO sourceControlDAO,
       IqForScmLicenseChecker licenseChecker,
-      ApiConfigFeaturesService apiConfigFeaturesService)
+      ApiConfigFeaturesService apiConfigFeaturesService,
+      BranchMonitorExecutor branchMonitorExecutor)
   {
     this.taskScheduler = taskScheduler;
-    this.sourceControlEventPublisher = sourceControlEventPublisher;
-    this.configuration = configuration;
-    this.sourceControlDAO = sourceControlDAO;
     this.licenseChecker = licenseChecker;
     this.apiConfigFeaturesService = apiConfigFeaturesService;
+    this.branchMonitorExecutor = branchMonitorExecutor;
   }
 
   @Override
@@ -103,17 +73,11 @@ public class DefaultBranchMonitor
     taskScheduler.unscheduleTask(this);
 
     if (!apiConfigFeaturesService.isDefaultBranchMonitoringEnabled()) {
+      log.debug("default branch monitoring is not enabled");
       return;
     }
 
-    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
-    intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60;
-
-    Date defaultBranchMonitorStartTime = getDefaultBranchMonitorStartTime(sourceControlConfiguration);
-    taskScheduler.schedulePeriodicTask(this, Duration.ofMinutes(intervalInMinutes), defaultBranchMonitorStartTime);
-
-    log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.", defaultBranchMonitorStartTime,
-        (double) intervalInMinutes / 60);
+    branchMonitorExecutor.schedule(this);
   }
 
   @Override
@@ -122,53 +86,15 @@ public class DefaultBranchMonitor
       if (apiConfigFeaturesService.isDefaultBranchMonitoringEnabled() &&
           apiConfigFeaturesService.isSaasLifecycleScmEnabled() &&
           licenseChecker.isIqForScmSupported()) {
-        updateDefaultBranchScans();
+        branchMonitorExecutor.performScan(this);
+      }
+      else {
+        log.debug("skipping default branch monitor execution: enabled={}, scmEnabled={}, licensed={}",
+            apiConfigFeaturesService.isDefaultBranchMonitoringEnabled(),
+            apiConfigFeaturesService.isSaasLifecycleScmEnabled(),
+            licenseChecker.isIqForScmSupported());
       }
     }, log, SOURCE_SCANS_UPDATE_ERROR);
-  }
-
-  // Visible for tests
-  void updateDefaultBranchScans() {
-    long start = System.currentTimeMillis();
-    log.debug("Updating default branch source scans.");
-
-    Date scanLimitDate =
-        Date.from(LocalDateTime.now().minusMinutes(intervalInMinutes).atZone(ZoneId.systemDefault()).toInstant());
-
-    List<SourceControl> sourceControlList
-        = sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(scanLimitDate);
-
-    for (SourceControl sourceControl : sourceControlList) {
-      initiateDefaultBranchSourceScans(sourceControl);
-    }
-
-    log.debug("Initiated default branch source scans for {} applications in {} ms.", sourceControlList.size(),
-        System.currentTimeMillis() - start);
-  }
-
-  private void initiateDefaultBranchSourceScans(SourceControl sourceControl) {
-    String statusId = UUID.randomUUID().toString().replace("-", "");
-
-    SourceControlEvent sourceControlEvent = new SourceControlEvent()
-        .forSourceControlEvaluation()
-        .setApplicationId(sourceControl.getOwnerId())
-        .setStageTypeId(Stage.ID_SOURCE)
-        .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING)
-        .setStatusId(statusId)
-        .setBranchName(sourceControl.getBaseBranch());
-
-    String message = String.format(
-        "a source control evaluation for application %s, stage %s and branch %s with status ID %s.",
-        sourceControlEvent.getApplicationId(), sourceControlEvent.getStageTypeId(),
-        sourceControlEvent.getBranchName(), sourceControlEvent.getStatusId());
-
-    try {
-      sourceControlEventPublisher.publishEvent(sourceControlEvent);
-      log.debug("Initiated " + message);
-    }
-    catch (Exception e) {
-      log.error("Failed to initiate " + message, e);
-    }
   }
 
   @Override
@@ -176,48 +102,13 @@ public class DefaultBranchMonitor
     // no-op
   }
 
-  /**
-   * The start time and interval form a continual series of date-times.  This method gets the next datetime that is
-   * closest to now.  If the interval start time is in the future we back it up one day. Then, in all cases, we
-   * repeatedly bump the time forward one interval until we find the first series datetime that is in the future.
-   */
-  @VisibleForTesting
-  Date getDefaultBranchMonitorStartTime(SourceControlConfiguration sourceControlConfiguration) {
-    LocalTime intervalStartTime = sourceControlConfiguration.getDefaultBranchMonitoringStartTime();
-
-    if (intervalStartTime == null) {
-      // randomize minute to avoid coordinated load spike for HDS scan processing
-      intervalStartTime = LocalTime.parse(SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_START_TIME,
-          SourceControlConfiguration.DATE_TIME_FORMATTER).plusMinutes(getRandomizedStartOffsetInMinutes());
-    }
-
-    LocalDateTime now = LocalDateTime.now();
-
-    // superimpose the interval start time onto today's date
-    LocalDateTime intervalStartDateTime = now
-        .withHour(intervalStartTime.getHour())
-        .withMinute(intervalStartTime.getMinute())
-        .withSecond(0)
-        .withNano(0);
-
-    LocalDateTime effectiveStartDate = DateUtils.getClosestFutureDateTime(now, intervalStartDateTime,
-        sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours());
-
-    return Date.from(effectiveStartDate.atZone(ZoneId.systemDefault()).toInstant());
-  }
-
-  // Visible for testing
-  int getRandomizedStartOffsetInMinutes() {
-    return randomizedStartOffsetInMinutes;
-  }
-
-  @VisibleForTesting
-  int getIntervalInMinutes() {
-    return intervalInMinutes;
-  }
-  
   @Override
   public String getJobName() {
     return TASK_NAME;
+  }
+
+  // Visible for testing
+  void setBranchMonitorExecutor(BranchMonitorExecutor branchMonitorExecutor) {
+    this.branchMonitorExecutor = branchMonitorExecutor;
   }
 }

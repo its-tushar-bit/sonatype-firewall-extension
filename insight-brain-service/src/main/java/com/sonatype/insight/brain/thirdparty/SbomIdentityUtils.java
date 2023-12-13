@@ -71,7 +71,7 @@ public class SbomIdentityUtils
    * <p>
    * All PURL qualifiers are specified only if they are not empty or *.
    */
-  public static  PackageUrlIdentifier buildPackageUrlFromCpe(final String cpe) {
+  public static PackageUrlIdentifier buildPackageUrlFromCpe(final String cpe) {
     // CPE examples:
     // cpe:/a:microsoft:internet_explorer:8.0.6001:beta
     // cpe:2.3:a:microsoft:internet_explorer:8.0.6001:beta:*:*:*:*:*:*

@@ -63,7 +63,6 @@ import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -101,7 +100,6 @@ public abstract class DefaultPolicyEvaluatorTest
     }
   }
 
-  @Ignore("CLM-27958")
   @Test
   public void testRun_InvalidAppId() throws Exception {
     List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //

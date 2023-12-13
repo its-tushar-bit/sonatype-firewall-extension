@@ -162,16 +162,14 @@ public class PullRequestPollingTrackerTest
 
     for (int i = 0; i < expectedErrorOffsetsInMinutes.size(); i++) {
       // when: report error
+      Date minPollTime = new Date(currentTimeMillis() + (MS_PER_MINUTE * expectedErrorOffsetsInMinutes.get(i)));
       String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControl);
+      Date maxPollTime = new Date(currentTimeMillis() + (MS_PER_MINUTE * expectedErrorOffsetsInMinutes.get(i)));
 
       // then: error count incremented, cutoff unchanged, poll time updated per sequence
-      long exactOffset = currentTimeMillis() + (MS_PER_MINUTE * expectedErrorOffsetsInMinutes.get(i));
-      // bound the expected poll time by +/- 100ms
-      Date minPollTime = new Date(exactOffset - 100);
-      Date maxPollTime = new Date(exactOffset + 100);
       assertThat(offsetMessage).isEqualTo(expectedErrorOffsetText.get(i));
       sourceControl = sourceControlDAO.getById(sourceControl.getId());
-      assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
+      assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime, true, true);
       assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(i + 1);
     }
   }
@@ -187,23 +185,20 @@ public class PullRequestPollingTrackerTest
     sourceControlDAO.update(sourceControl2);
 
     // when: report error
+    Date minPollTime = new Date(currentTimeMillis() + (MS_PER_MINUTE * 15));
     String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControl1);
+    Date maxPollTime = new Date(currentTimeMillis() + (MS_PER_MINUTE * 15));
 
     // then: error count incremented, cutoff unchanged, poll time updated per sequence
-    long exactOffset = currentTimeMillis() + (MS_PER_MINUTE * 15);
-
-    // bound the expected poll time by +/- 100ms
-    Date minPollTime = new Date(exactOffset - 100);
-    Date maxPollTime = new Date(exactOffset + 100);
     assertThat(offsetMessage).isEqualTo("15 minutes");
 
     // both source control records were updated
     SourceControl sourceControl = sourceControlDAO.getById(sourceControl1.getId());
-    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
+    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime, true, true);
     assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(3);
 
     sourceControl = sourceControlDAO.getById(sourceControl2.getId());
-    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
+    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime, true, true);
     assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(3);
   }
 

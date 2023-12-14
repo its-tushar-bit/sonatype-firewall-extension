@@ -117,12 +117,15 @@ public class DefaultArtifactoryClient
     HttpGet request = new HttpGet(path(CHECKSUM_SEARCH_PATH) +
         UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum, "repos",
             StringUtils.join(repositories, ",")));
+    log.debug("Artifactory checksums search request: {}", request.getURI());
     HttpResponse response = httpClient.execute(request, httpClientContext);
     log.debug("Artifactory checksum search response status: {}", response.getStatusLine());
     if (response.getStatusLine().getStatusCode() != 200) {
       handleError(response);
     }
-    return JsonUtils.parse(response.getEntity().getContent(), ArtifactoryChecksumSearchResults.class);
+    String responseContent = EntityUtils.toString(response.getEntity());
+    log.debug("Artifactory checksums search response: {}", responseContent);
+    return JsonUtils.parse(responseContent, ArtifactoryChecksumSearchResults.class);
   }
 
   @Override
@@ -135,17 +138,21 @@ public class DefaultArtifactoryClient
       log.debug("No checksums provided for AQL call, returning empty result.");
       return Collections.emptyMap();
     }
+    String aqlQuery = ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repositories);
+    log.debug("Artifactory AQL query checksum search: {}", aqlQuery);
     HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
-    request.setEntity(new StringEntity(
-        ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repositories)));
+    request.setEntity(new StringEntity(aqlQuery));
     HttpResponse response = httpClient.execute(request, httpClientContext);
     log.debug("Artifactory AQL checksums search response status: {}", response.getStatusLine());
     int status = response.getStatusLine().getStatusCode();
     if (status != 200) {
       handleError(status, EntityUtils.toString(response.getEntity()));
     }
+
+    String responseContent = EntityUtils.toString(response.getEntity());
+    log.debug("Artifactory AQL checksums search response: {}", responseContent);
     return convertAQLResultsToArtifactoryChecksumSearchResults(checksumType, checksums,
-        new ObjectMapper().readTree(response.getEntity().getContent()));
+        new ObjectMapper().readTree(responseContent));
   }
 
   private Map<String, ArtifactoryChecksumSearchResults> convertAQLResultsToArtifactoryChecksumSearchResults(

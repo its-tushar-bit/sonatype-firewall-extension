@@ -4,7 +4,7 @@ Date: 2020-04-28
 
 ## Status
 
-choose one: [Proposed | Accepted | Deprecated | Superseded]
+choose one: [Proposed | Accepted | Deprecated | Superseded | Rejected]
 
 _if deprecated, include a rationale. If superseded, include a link to the new ADR_
 

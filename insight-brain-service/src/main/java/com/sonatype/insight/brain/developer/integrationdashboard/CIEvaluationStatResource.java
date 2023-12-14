@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.v2.dto.CIEvaluationStatDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.CIEvaluationStatDTO;
 
 import com.codahale.metrics.annotation.Timed;
 

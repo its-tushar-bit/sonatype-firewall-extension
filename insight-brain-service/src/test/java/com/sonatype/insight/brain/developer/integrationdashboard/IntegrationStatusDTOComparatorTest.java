@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.util.Comparator;
 
-import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;

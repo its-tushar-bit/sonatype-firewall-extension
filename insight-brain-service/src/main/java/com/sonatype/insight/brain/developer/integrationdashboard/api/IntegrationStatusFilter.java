@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.dataaccess;
+package com.sonatype.insight.brain.developer.integrationdashboard.api;
 
 import org.apache.commons.lang3.StringUtils;
 

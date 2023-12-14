@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;

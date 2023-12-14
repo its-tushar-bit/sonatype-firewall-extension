@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiChartVisibilityDto;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;

@@ -16,8 +16,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
-import com.sonatype.insight.brain.api.v2.dto.CIEvaluationStatDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.CIEvaluationStatDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;

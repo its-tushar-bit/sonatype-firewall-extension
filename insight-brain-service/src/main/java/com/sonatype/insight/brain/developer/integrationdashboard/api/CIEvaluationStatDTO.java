@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.api.v2.dto;
+package com.sonatype.insight.brain.developer.integrationdashboard.api;
 
 /**
  * @since 1.162

@@ -12,7 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;

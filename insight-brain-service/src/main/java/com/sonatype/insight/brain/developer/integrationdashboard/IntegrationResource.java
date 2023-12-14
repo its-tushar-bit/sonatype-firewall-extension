@@ -21,10 +21,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiChartVisibilityDto;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;

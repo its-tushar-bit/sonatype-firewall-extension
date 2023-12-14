@@ -13,7 +13,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsScmFeedbackStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Lists;

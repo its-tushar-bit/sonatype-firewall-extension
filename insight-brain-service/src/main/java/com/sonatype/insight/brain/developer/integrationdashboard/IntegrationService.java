@@ -17,10 +17,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
-import com.sonatype.insight.brain.dataaccess.IntegrationStatusFilter;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;

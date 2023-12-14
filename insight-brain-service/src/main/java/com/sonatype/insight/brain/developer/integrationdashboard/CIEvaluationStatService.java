@@ -12,8 +12,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiIntegrationsCiCdStatIncrementDto;
-import com.sonatype.insight.brain.api.v2.dto.CIEvaluationStatDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.CIEvaluationStatDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationCountHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;

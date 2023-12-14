@@ -56,6 +56,7 @@ public class GitClientFactory
     Configuration configuration = gitApiClientFactory.createConfiguration();
     String apiUrl = getApiUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, apiUrl);
+
     return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
         gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
   }
@@ -88,8 +89,8 @@ public class GitClientFactory
   }
 
   /**
-   * Cache key is a shorter version of the repository URL containing only the scheme, host, (maybe port)
-   * and first path segment (possible a URL context)
+   * Cache key is a shorter version of the repository URL containing only the scheme, host, (maybe port) and first path
+   * segment (possible a URL context)
    */
   private String computeKey(final String repositoryUrl) {
     int index = StringUtils.ordinalIndexOf(repositoryUrl, "/", 4);

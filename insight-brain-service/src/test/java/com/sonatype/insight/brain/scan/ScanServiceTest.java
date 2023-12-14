@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -131,13 +132,21 @@ public class ScanServiceTest
     Mockito.reset(scanUploader);
     when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null))).thenAnswer(
         invocation -> {
-          if (((Application) invocation.getArgument(1)).getPublicId().startsWith("t1") &&
+          String appPublicId = ((Application) invocation.getArgument(1)).getPublicId();
+          if (appPublicId.startsWith("t1") &&
               !countDownLatch.await(5, TimeUnit.SECONDS)) {
             return null;
           }
           ScanReceipt receipt = new ScanReceipt();
-          receipt.setScanId("scan-id");
+          receipt.setScanId("scan-id-" + appPublicId);
           return receipt;
+        });
+    Mockito.reset(reportDownloader);
+    when(reportDownloader.downloadReport(any(), (File) any(), anyInt(), anyInt()))
+        .then((Answer<Boolean>) invocation -> {
+          File reportFile = (File) invocation.getArguments()[1];
+          FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir), reportFile);
+          return true;
         });
 
     try {

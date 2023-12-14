@@ -91,6 +91,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper", "ApplicationCountHistoryKeeper");
     insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentWaivedConsolidatorCronJob",
+        "FirewallMetricsComponentWaivedConsolidatorCronJob");
+    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob",
         "FirewallMetricsComponentQuarantinedConsolidatorCronJob");
   }

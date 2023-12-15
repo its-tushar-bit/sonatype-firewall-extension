@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.OwnerType;
@@ -31,7 +32,7 @@ public class PermissionServiceTest
 
   private static final Permission[] NONE = {};
 
-  private static final HashSet<Permission> NONE_SET = new HashSet<Permission>(Arrays.asList(NONE));
+  private static final HashSet<Permission> NONE_SET = new HashSet<>(Arrays.asList(NONE));
 
   private void assertPublicAppPermissionsNone(String publicApplicationId) {
     assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId, NONE_SET))

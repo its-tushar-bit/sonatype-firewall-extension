@@ -62,7 +62,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.sisu.space.BeanScanning;
 
 import static org.mockito.Mockito.mock;
 
@@ -175,11 +174,6 @@ public class TestMultiTenantInsightBrainService
     configuration.setServerAdminUrl(adminProtocol + "://localhost:" + testAdminPort
         + (testAdminPort != testPort ? "" : "/admin"));
     return configuration;
-  }
-
-  @Override
-  protected BeanScanning scanning(InsightConfig configuration) {
-    return BeanScanning.CACHE;
   }
 
   @Override

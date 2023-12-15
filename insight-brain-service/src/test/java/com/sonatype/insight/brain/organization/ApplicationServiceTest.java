@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
@@ -65,8 +64,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 public class ApplicationServiceTest
     extends AbstractComponentTest
 {
-  private static final int RESULTS_PER_PAGE = 50;
-
   @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
@@ -436,23 +433,5 @@ public class ApplicationServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getId()).isEqualTo(application.getId());
     assertThat(result.getPublicId()).isEqualTo(application.getPublicId());
-  }
-
-  private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
-    orgs.addAll(new OrganizationDAO().getAll().stream()
-        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
-    apps.addAll(new ApplicationDAO().getAll());
-    int currentSize = apps.size();
-    for (int result = 0; result < RESULTS_PER_PAGE + 1 - currentSize; result++) {
-      String orgSuffix = getAlphabeticalSequenceElement(result);
-      String appSuffix = getAlphabeticalSequenceElement(result + 1);
-      Organization org = tempEntity.newOrganization("orgName" + orgSuffix);
-      orgs.add(org);
-      apps.add(tempEntity.newApplication("appName" + appSuffix, "appPublicId" + appSuffix, org.getId()));
-    }
-  }
-
-  private String getAlphabeticalSequenceElement(int i) {
-    return i < 0 ? "" : getAlphabeticalSequenceElement((i / 26) - 1) + (char) (65 + i % 26);
   }
 }

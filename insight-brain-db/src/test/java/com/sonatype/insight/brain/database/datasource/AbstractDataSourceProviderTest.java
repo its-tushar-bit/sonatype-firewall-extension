@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
@@ -66,7 +67,6 @@ public abstract class AbstractDataSourceProviderTest
 
     assertThat(basicDataSource.getDriverClassName()).isEqualTo("DriverClassName");
     assertThat(basicDataSource.getUrl()).isEqualTo("Url");
-    assertThat(basicDataSource.getUsername()).isEqualTo("Username");
     assertThat(basicDataSource.getUsername()).isEqualTo("Username");
     assertThat(basicDataSource.getMaxConnLifetimeMillis()).isEqualTo(60000);
     assertThat(basicDataSource.getLogExpiredConnections()).isFalse();

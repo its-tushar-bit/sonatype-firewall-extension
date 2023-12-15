@@ -181,10 +181,10 @@ public class MTIQFeatureService
       }
     }
     catch (FeatureAlreadyDisabledException e) {
-      log.trace("Attempting to disable a feature that is already disabled", e);
+      log.trace("Attempting to disable a feature that is already disabled");
     }
     catch (FeatureAlreadyEnabledException e) {
-      log.trace("Attempting to enable a feature that is already enabled", e);
+      log.trace("Attempting to enable a feature that is already enabled");
     }
   }
 
@@ -201,9 +201,7 @@ public class MTIQFeatureService
 
   public boolean isBanned(SystemConfigurationPropertyFeature feature) {
     if (MTIQ_BANNED_FEATURES.contains(feature)) {
-      if (log.isTraceEnabled()) {
-        log.trace("Feature {} is hard disabled for MTIQ. See MTIQFeatureService.java for more info.", feature.getId());
-      }
+      log.trace("Feature {} is hard disabled for MTIQ. See MTIQFeatureService.java for more info.", feature.getId());
 
       return true;
     }

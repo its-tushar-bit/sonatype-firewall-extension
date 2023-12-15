@@ -9,6 +9,8 @@ import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import AppIntegrationsAndRiskTable from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
 import { map, range } from 'ramda';
 import { NX_STANDARD_DEBOUNCE_TIME, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import moment from 'moment';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('AppIntegrationsAndRisk Table', () => {
   let axiosMock;
@@ -106,6 +108,9 @@ describe('AppIntegrationsAndRisk Table', () => {
           totalRiskScore: 404,
           ciIntegrationEnabled: true,
           automatedSourceControlFeedbackEnabled: true,
+          hasSastReport: true,
+          lastSastReportId: 'lastSastReportId',
+          lastSastReportTime: timestamp,
         },
       ];
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
@@ -836,7 +841,98 @@ describe('AppIntegrationsAndRisk Table', () => {
     }
   });
 
-  function createAppArrayWithLength(length, startIndex = 0, cicdEnabled = false, scmEnabled = false) {
+  describe('SAST Report column', () => {
+    it('renders "Not Available" when hasSastReport is false', async () => {
+      const totalDataRows = 10;
+      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+        results: createAppArrayWithLength(totalDataRows, 0, true, true, false).reverse(),
+        numResults: 10,
+        total: 10,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+      });
+      render(<AppIntegrationsAndRiskTable />);
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      let rows = await screen.findAllByRole('row');
+      for (let i = 0; i < totalDataRows; i++) {
+        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        expect(sastReportCell).toBeInTheDocument();
+        expect(sastReportCell).toHaveTextContent('Not Available');
+
+        expect(within(sastReportCell).queryByRole('link')).not.toBeInTheDocument();
+        expect(within(sastReportCell).queryByText('a few seconds ago')).not.toBeInTheDocument();
+      }
+    });
+
+    it('renders a link "View" when hasSastReport is true', async () => {
+      const hrefSpy = jest
+        .fn('href')
+        .mockImplementation((_, params) => `#/application/${params.applicationPublicId}/sastScan/${params.sastScanId}`);
+      const routerContextMock = { href: hrefSpy };
+      jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
+
+      const totalDataRows = 10;
+      const results = createAppArrayWithLength(totalDataRows, 0, true, true, true).reverse();
+      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+        results,
+        numResults: 10,
+        total: 10,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+      });
+
+      render(<AppIntegrationsAndRiskTable />);
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      let rows = await screen.findAllByRole('row');
+      for (let i = 0; i < totalDataRows; i++) {
+        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        expect(sastReportCell).toBeInTheDocument();
+
+        const sastReportLink = within(sastReportCell).getByRole('link', { name: /view/i });
+        expect(sastReportLink).toBeInTheDocument();
+        expect(sastReportLink).toHaveAttribute(
+          'href',
+          `#/application/${results[i].applicationPublicId}/sastScan/${results[i].lastSastReportId}`
+        );
+      }
+    });
+
+    it('renders a "x time ago" when hasSastReport is true', async () => {
+      const totalDataRows = 10;
+      const results = createAppArrayWithLength(totalDataRows, 0, true, true, true).reverse();
+      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+        results,
+        numResults: 10,
+        total: 10,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+      });
+      render(<AppIntegrationsAndRiskTable />);
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      let rows = await screen.findAllByRole('row');
+      for (let i = 0; i < totalDataRows; i++) {
+        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        expect(sastReportCell).toBeInTheDocument();
+
+        const expectedXTimeAgoText = moment(results[i].lastSastReportTime).fromNow();
+        expect(within(sastReportCell).queryByText(expectedXTimeAgoText)).toBeInTheDocument();
+      }
+    });
+  });
+
+  function createAppArrayWithLength(
+    length,
+    startIndex = 0,
+    cicdEnabled = false,
+    scmEnabled = false,
+    hasSastReport = false
+  ) {
     // Create a date object for January 1, 2023
     const date = new Date('January 1, 2023');
 
@@ -856,6 +952,9 @@ describe('AppIntegrationsAndRisk Table', () => {
         ciIntegrationEnabled: cicdEnabled,
         automatedSourceControlFeedbackEnabled: scmEnabled,
         organizationId: `OrgId${i}`,
+        hasSastReport: hasSastReport,
+        lastSastReportId: hasSastReport ? `lastSastReportId${i}` : null,
+        lastSastReportTime: hasSastReport ? timestamp + i * oneDayMilliseconds : null,
       }),
       range(startIndex, startIndex + length)
     );
@@ -881,12 +980,16 @@ describe('AppIntegrationsAndRisk Table', () => {
     const totalRiskHeader = screen.getByRole('columnheader', {
       name: /total risk/i,
     });
-    expect(allHeaders.length).toBe(6);
+    const sastReportHeader = screen.getByRole('columnheader', {
+      name: /sast report/i,
+    });
+    expect(allHeaders.length).toBe(7);
     expect(applicationsHeader).toBeInTheDocument();
     expect(cicdHeader).toBeInTheDocument();
     expect(scmFeedbackHeader).toBeInTheDocument();
     expect(lastCommitHeader).toBeInTheDocument();
     expect(lastEvaluationHeader).toBeInTheDocument();
     expect(totalRiskHeader).toBeInTheDocument();
+    expect(sastReportHeader).toBeInTheDocument();
   }
 });

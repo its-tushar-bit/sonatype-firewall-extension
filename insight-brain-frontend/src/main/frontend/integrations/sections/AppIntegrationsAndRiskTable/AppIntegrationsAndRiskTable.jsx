@@ -11,20 +11,25 @@ import {
   NxTable,
   NxTableContainer,
   NX_STANDARD_DEBOUNCE_TIME,
-  NxFilterDropdown,
   NxStatefulFilterDropdown,
   NxButton,
+  NxTooltip,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions, COLUMNS } from './appIntegrationsAndRiskSlice';
 import { selectAppIntegrationsAndRiskSlice } from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSelectors';
 import { debounce } from 'debounce';
-import { faCheckCircle, faTimesCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
 import DeveloperConfigurationModal from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfigurationModal';
 import {
   createCiCdTabs,
   createScmTabs,
 } from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfiguratgionModalUtils';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import moment from 'moment';
+import PropTypes from 'prop-types';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-integrations-and-risk-enabled" />;
 export default function AppIntegrationsAndRiskTable() {
@@ -97,6 +102,12 @@ export default function AppIntegrationsAndRiskTable() {
             >
               TOTAL RISK
             </NxTable.Cell>
+            <NxTable.Cell>
+              <span>SAST Report</span>
+              <NxTooltip title="Static Application Security Testing (SAST) identifies sources of vulnerabilities in your code">
+                <NxFontAwesomeIcon icon={faInfoCircle} className="iq-developer-dashboard-info-tooltip" />
+              </NxTooltip>
+            </NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row isFilterHeader>
             <NxTable.Cell>
@@ -127,6 +138,7 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell />
             <NxTable.Cell />
             <NxTable.Cell />
+            <NxTable.Cell />
           </NxTable.Row>
         </NxTable.Head>
         <NxTable.Body
@@ -144,7 +156,14 @@ export default function AppIntegrationsAndRiskTable() {
               lastCommitTimestamp,
               lastEvaluationTimestamp,
               totalRiskScore,
+              hasSastReport,
+              lastSastReportId,
+              lastSastReportTime,
             }) => {
+              function getSastReportCellProps() {
+                return { hasSastReport, lastSastReportId, lastSastReportTime, applicationPublicId };
+              }
+
               return (
                 <NxTable.Row key={applicationName.concat(totalRiskScore)}>
                   <NxTable.Cell className="iq-integrations-applications-table__name-cell">
@@ -198,6 +217,9 @@ export default function AppIntegrationsAndRiskTable() {
                   <NxTable.Cell>{formatTimestampToDate(lastCommitTimestamp)}</NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastEvaluationTimestamp)}</NxTable.Cell>
                   <NxTable.Cell>{totalRiskScore}</NxTable.Cell>
+                  <NxTable.Cell>
+                    <SastReportCell {...getSastReportCellProps()} />
+                  </NxTable.Cell>
                 </NxTable.Row>
               );
             }
@@ -289,3 +311,30 @@ function formatTimestampToDate(timestamp) {
     day: 'numeric',
   });
 }
+
+function SastReportCell(props) {
+  const uiRouterState = useRouterState();
+  const { applicationPublicId, hasSastReport, lastSastReportId, lastSastReportTime } = props;
+  const sastScanReportHref = uiRouterState.href('sastScan', {
+    applicationPublicId,
+    sastScanId: lastSastReportId,
+  });
+
+  if (!hasSastReport) {
+    return <span>Not Available</span>;
+  }
+
+  return (
+    <div className="iq-developer-dashboard-sast-cell-container">
+      <NxTextLink href={sastScanReportHref}>View</NxTextLink>
+      <span>{moment(lastSastReportTime).fromNow()}</span>
+    </div>
+  );
+}
+
+SastReportCell.propTypes = {
+  applicationPublicId: PropTypes.string,
+  hasSastReport: PropTypes.bool,
+  lastSastReportId: PropTypes.string,
+  lastSastReportTime: PropTypes.number,
+};

@@ -190,3 +190,16 @@ svg.nx-icon.iq-total-risk-info-icon {
     }
   }
 }
+
+.iq-developer-dashboard-sast-cell-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nx-spacing-base);
+}
+
+.iq-developer-dashboard-info-tooltip {
+  &.nx-icon {
+    color: var(--nx-color-text-dark);
+  }
+}

@@ -15,6 +15,7 @@ import java.util.stream.IntStream;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
+import com.sonatype.clm.testing.functional.pages.SastScanPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -34,6 +35,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
@@ -124,6 +126,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 5, 2023"));
     totalRisk(0).shouldHave(text("10"));
+    sastReport(0).shouldHave(text("Not Available"));
 
     applicationName(9).shouldHave(text("appName1"));
     cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
@@ -131,9 +134,20 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastCommitDate(9).shouldBe(visible).shouldHave(text("February 11, 2023"));
     lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 14, 2023"));
     totalRisk(9).shouldHave(text("1"));
+    sastReport(9).shouldNotHave(text("Not Available"));
+    sastReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
+    sastReport(9).shouldHave(text("a few seconds ago"));
 
     Selenide.sleep(500);
     eyesWatcher.eyesCheck();
+
+    sastReportViewLink(9).click();
+
+    SastScanPage.title().shouldBe(visible);
+    SastScanPage.triggeredOnDate().shouldBe(visible);
+    SastScanPage.filterBySeverityDropdown().shouldBe(visible);
+    SastScanPage.findingsTable().shouldBe(visible);
+    back();
 
     // Click cicd configure button
     appIntegrationsCicdConfigureButton(0).click();
@@ -368,6 +382,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
                 tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
                         false, false, false,
                         calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+                tempEntity.newSastScan(application.getId());
+
               }
 
               calendarForLastEval.add(Calendar.DATE, -1);
@@ -526,6 +542,14 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(6)");
   }
 
+  private SelenideElement sastReport(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(7)");
+  }
+
+  private SelenideElement sastReportViewLink(int rowNum) {
+    return sastReport(rowNum).$(".nx-text-link");
+  }
+
   private SelenideElement applicationFilterInput() {
     return appIntegrationsAndRiskTable().$(".nx-text-input__input");
   }
@@ -544,6 +568,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement totalRiskColumnHeader() {
     return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(6)");
+  }
+
+  private SelenideElement sastReportColumnHeader() {
+    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(7)");
   }
 
   private SelenideElement licenseFeatureMissingAlert() {

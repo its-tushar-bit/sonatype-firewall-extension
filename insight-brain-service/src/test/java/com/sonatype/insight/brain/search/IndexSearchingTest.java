@@ -869,6 +869,47 @@ public class IndexSearchingTest
   }
 
   @Test
+  public void testUpdate_OrganizationNameChange_OrganizationHierarchy() throws Exception {
+    // org hierarchy for this test: foo -> bar -> baz
+    index();
+
+    Organization fooOrg = tempEntity.newOrganization("foo");
+    Application fooApp = tempEntity.newApplication(fooOrg.getId());
+
+    Organization barOrg = tempEntity.newOrganization("bar", fooOrg);
+    Application barApp = tempEntity.newApplication(barOrg.getId());
+
+    Organization bazOrg = tempEntity.newOrganization("baz", barOrg);
+    Application bazApp = tempEntity.newApplication(bazOrg.getId());
+
+    newAppReport(fooApp.getId(), StageTypes.BUILD.getId(), "");
+    newAppReport(barApp.getId(), StageTypes.BUILD.getId(), "");
+    newAppReport(bazApp.getId(), StageTypes.BUILD.getId(), "");
+
+    indexChanges();
+
+    List<SearchResultItemDTO> searchResults;
+
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
+    assertThat(searchResults).hasSize(8);
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, barOrg.getName());
+    assertThat(searchResults).hasSize(6);
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, bazOrg.getName());
+    assertThat(searchResults).hasSize(4);
+
+    barOrg.setName("bar-new-name");
+    new OrganizationDAO().update(barOrg);
+    indexChanges();
+
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
+    assertThat(searchResults).hasSize(8);
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, barOrg.getName());
+    assertThat(searchResults).hasSize(6);
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, bazOrg.getName());
+    assertThat(searchResults).hasSize(4);
+  }
+
+  @Test
   public void testIncrementalUpdate_Label() throws Exception {
     index();
     String labelName = "labelName";

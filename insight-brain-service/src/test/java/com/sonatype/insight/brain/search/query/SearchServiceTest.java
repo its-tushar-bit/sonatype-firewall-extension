@@ -359,6 +359,34 @@ public class SearchServiceTest
   }
 
   @Test
+  public void testSearchIndex_SearchVulnerabilityAndParentOrganization() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization parentOrg = tempEntity.newOrganization("parent-organization");
+    Organization childOrg = tempEntity.newOrganization("child-organization");
+
+    Application app1 = tempEntity.newApplication("app-01", parentOrg.getId());
+    newAppReport(app1.getId(), Stage.ID_RELEASE, "report-1", "/SearchServiceTest/report-1");
+
+    Application app2 = tempEntity.newApplication("app-02", childOrg.getId());
+    newAppReport(app2.getId(), Stage.ID_RELEASE, "report-2", "/SearchServiceTest/report-2");
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(parentOrg.getId(), role.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(childOrg.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:parent-organization", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3);
+
+    searchResultDTO =
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:child-organization", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
+  }
+
+  @Test
   public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() throws IOException {
     Role role = tempEntity.newRole(false, Permission.READ);
 

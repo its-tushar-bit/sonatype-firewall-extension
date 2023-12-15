@@ -185,6 +185,13 @@ public class SearchService
 
       searchQuery = allComponents ? searchQuery :
           searchQuery + " -" + ITEM_TYPE.label + ":" + NON_VULNERABLE_COMPONENT.name();
+
+      // parentOrganizationName and parentOrganizationId supports searching the hierarchy
+      // including the organization itself
+      // the replace here has no side affects and allows us to search within the org hierarchy
+      searchQuery = searchQuery.replaceAll("organizationName", "parentOrganizationName");
+      searchQuery = searchQuery.replaceAll("organizationId", "parentOrganizationId");
+
       Query query = createQuery(searchQuery);
 
       Set<String> fieldNames = getFieldNames(query);
@@ -193,6 +200,12 @@ public class SearchService
       // We only add telemetry for the initial search request in order to
       // avoid adding the same data when the user navigates search results.
       if (initialSearch) {
+        if (fieldNames.remove("parentOrganizationName")) {
+          fieldNames.add("organizationName");
+        }
+        if (fieldNames.remove("parentOrganizationId")) {
+          fieldNames.add("organizationId");
+        }
         advancedSearchTelemetryMetrics.addSearch(fieldNames);
       }
 

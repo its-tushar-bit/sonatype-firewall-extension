@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -440,9 +441,13 @@ public class IndexService
     if (organization == null) {
       return;
     }
+
+    List<Organization> parentOrganizations = new ArrayList<>();
+    ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
+
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
-        buildApplicationStageSVDocs(indexingContext, organization, application, stageType));
+        buildApplicationStageSVDocs(indexingContext, organization, application, stageType, parentOrganizations));
   }
 
   private void updateIndexForLabel(String labelId, IndexingContext indexingContext)
@@ -553,6 +558,11 @@ public class IndexService
     for (Application application : applications) {
       addDocsWithException(indexingContext.indexWriter, buildApplicationSVDocs(indexingContext, org, application));
     }
+
+    List<Organization> byParentOrganizationId = organizationDAO.getByParentOrganizationId(organizationId);
+    for (Organization organization : byParentOrganizationId) {
+      updateIndexForOrganization(organization.getId(), indexingContext);
+    }
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {
@@ -635,9 +645,13 @@ public class IndexService
       Organization organization,
       Application application)
   {
+    List<Organization> parentOrganizations = new ArrayList<>();
+    ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
+
     return StageTypes.getAll().parallelStream()
         .map(new TenantAwareFunction<StageType, List<Document>>(
-            stageType -> buildApplicationStageSVDocs(indexingContext, organization, application, stageType)))
+            stageType -> buildApplicationStageSVDocs(indexingContext, organization, application, stageType,
+                parentOrganizations)))
         .flatMap(Collection::stream).collect(toList());
   }
 
@@ -645,7 +659,8 @@ public class IndexService
       IndexingContext indexingContext,
       Organization organization,
       Application application,
-      StageType stageType)
+      StageType stageType,
+      List<Organization> parentOrganizations)
   {
     try {
       PolicyEvaluation latestPolicyEvaluation =
@@ -674,6 +689,7 @@ public class IndexService
               component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               organization,
+              parentOrganizations,
               application,
               stageType,
               scanId,
@@ -688,6 +704,7 @@ public class IndexService
   private List<Document> buildApplicationComponentVulnerabilityDocuments(
       IndexingContext indexingContext,
       Organization organization,
+      List<Organization> parentOrganizations,
       Application application,
       StageType stageType,
       String reportId,
@@ -696,12 +713,13 @@ public class IndexService
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
       return component.getSecurityVulnerabilities().parallelStream()
           .map(new TenantAwareFunction<SecurityVulnerability, Document>(
-              vulnerability ->
-              buildDocument(indexingContext, application, stageType, reportId, component, vulnerability)))
+              vulnerability -> buildDocument(indexingContext, application, stageType, reportId, component,
+                  vulnerability, parentOrganizations)))
           .collect(toList());
     }
     else if (component.getComponentIdentifier() != null) {
-      return Collections.singletonList(buildDocument(organization, application, stageType, reportId, component));
+      return Collections.singletonList(
+          buildDocument(organization, parentOrganizations, application, stageType, reportId, component));
     }
     else {
       return Collections.emptyList();
@@ -710,6 +728,7 @@ public class IndexService
 
   Document buildDocument(
       Organization organization,
+      List<Organization> parentOrganizations,
       Application application,
       StageType stageType,
       String reportId,
@@ -725,6 +744,8 @@ public class IndexService
         .setComponentFormat(component.getComponentIdentifier().getFormat()) //
         .setComponentCoordinates(component) //
         .setComponentName(component.getDisplayNameFromIdentifier()) //
+        .setParentOrganizationNames(parentOrganizations) //
+        .setParentOrganizationIds(parentOrganizations) //
         .build();
   }
 
@@ -734,7 +755,8 @@ public class IndexService
       StageType stageType,
       String reportId,
       Component component,
-      SecurityVulnerability vulnerability)
+      SecurityVulnerability vulnerability,
+      List<Organization> parentOrganizations)
   {
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
         .setOwner(application) //
@@ -750,6 +772,8 @@ public class IndexService
         .setVulnerabilitySeverity(vulnerability.getSeverity()) //
         .setVulnerabilityStatus(vulnerability.getStatus().getName()) //
         .setVulnerabilityDescription(getDescription(indexingContext, vulnerability)) //
+        .setParentOrganizationNames(parentOrganizations) //
+        .setParentOrganizationIds(parentOrganizations) //
         .build();
   }
 

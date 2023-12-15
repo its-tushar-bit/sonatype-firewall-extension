@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.search.docs;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
@@ -68,7 +71,9 @@ public class DocumentBuilder
     POLICY_ID("policyId"),
     POLICY_NAME("policyName"),
     POLICY_THREAT_CATEGORY("policyThreatCategory"),
-    POLICY_THREAT_LEVEL("policyThreatLevel");
+    POLICY_THREAT_LEVEL("policyThreatLevel"),
+    PARENT_ORGANIZATION_NAME("parentOrganizationName"),
+    PARENT_ORGANIZATION_ID("parentOrganizationId");
 
     public final String label;
 
@@ -87,6 +92,10 @@ public class DocumentBuilder
   private Optional<Field> organizationId = Optional.empty();
 
   private Optional<Field> organizationName = Optional.empty();
+
+  private Optional<Field[]> parentOrganizationNames = Optional.empty();
+
+  private Optional<Field[]> parentOrganizationIds = Optional.empty();
 
   private Optional<Field> applicationId = Optional.empty();
 
@@ -147,6 +156,8 @@ public class DocumentBuilder
     if (owner.getType() == OwnerType.ORGANIZATION) {
       setOrganizationId(owner.getId());
       setOrganizationName(owner.getName());
+      setParentOrganizationIds(Collections.singletonList((Organization) owner));
+      setParentOrganizationNames(Collections.singletonList((Organization) owner));
     }
     else if (owner.getType() == OwnerType.APPLICATION) {
       setApplicationId(owner.getId());
@@ -163,6 +174,20 @@ public class DocumentBuilder
 
   public DocumentBuilder setOrganizationName(final String organizationName) {
     this.organizationName = Optional.of(new TextField(ORGANIZATION_NAME.label, organizationName, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setParentOrganizationNames(List<Organization> parentOrganizations) {
+    this.parentOrganizationNames = Optional.of(parentOrganizations.stream().map(
+        parentOrg -> new TextField(PARENT_ORGANIZATION_NAME.label, parentOrg.getName(), Store.YES))
+        .toArray(Field[]::new));
+    return this;
+  }
+
+  public DocumentBuilder setParentOrganizationIds(List<Organization> parentOrganizations) {
+    this.parentOrganizationIds = Optional.of(parentOrganizations.stream().map(
+        parentOrg -> new TextField(PARENT_ORGANIZATION_ID.label, parentOrg.getId(), Store.YES))
+        .toArray(Field[]::new));
     return this;
   }
 
@@ -348,6 +373,8 @@ public class DocumentBuilder
     policyName.ifPresent(this::setFields);
     policyThreatCategory.ifPresent(this::setFields);
     policyThreatLevel.ifPresent(this::setFields);
+    parentOrganizationNames.ifPresent(this::setFields);
+    parentOrganizationIds.ifPresent(this::setFields);
     return document;
   }
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.index;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
@@ -127,7 +128,9 @@ public class IndexServiceTest
     assertFields(indexService.buildDocument(newIndexingContext(), org),
         field(FieldIdentifier.ITEM_TYPE, ItemType.ORGANIZATION.name(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
   }
 
   @Test
@@ -140,7 +143,9 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
   }
 
   @Test
@@ -170,7 +175,9 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, tag.getDescription(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
   }
 
   @Test
@@ -199,7 +206,8 @@ public class IndexServiceTest
     SecurityVulnerability vuln = new SecurityVulnerability("cve", "CVE-4321-1234", 7.5f);
     String vulnDescription = "This is a bad vulnerability, stay clear!";
     when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(vuln.getRefId())).thenReturn(vulnDescription);
-    assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln),
+    assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
+            Arrays.asList(organization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
@@ -219,7 +227,9 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, organization.getName(), TextField.class, true));
   }
 
   @Test
@@ -239,7 +249,8 @@ public class IndexServiceTest
     String vulnDescription = "FG-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
     Document document =
-        indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln);
+        indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
+            Arrays.asList(org));
     assertFields(document,
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
@@ -262,7 +273,9 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
   }
 
   @Test
@@ -281,7 +294,8 @@ public class IndexServiceTest
     SecurityVulnerability vuln = new SecurityVulnerability(sonatypeContainer, refId, severity);
     String vulnDescription = "Container-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
-    assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln),
+    assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
+            Arrays.asList(org)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
@@ -303,7 +317,9 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true));
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
   }
 
   @Test

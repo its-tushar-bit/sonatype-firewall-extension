@@ -67,14 +67,14 @@ public abstract class AbstractDataSourceProviderTest
 
     assertThat(basicDataSource.getDriverClassName()).isEqualTo("DriverClassName");
     assertThat(basicDataSource.getUrl()).isEqualTo("Url");
-    assertThat(basicDataSource.getUsername()).isEqualTo("Username");
-    assertThat(basicDataSource.getMaxConnLifetimeMillis()).isEqualTo(60000);
+    assertThat(basicDataSource.getUserName()).isEqualTo("Username");
+    assertThat(basicDataSource.getMaxConnDuration().toMillis()).isEqualTo(60000);
     assertThat(basicDataSource.getLogExpiredConnections()).isFalse();
     assertThat(basicDataSource.getDefaultReadOnly()).isEqualTo(databaseConfig.isReadOnly());
     assertThat(basicDataSource.getAutoCommitOnReturn()).isEqualTo(databaseConfig.isAutoCommitOnReturnToPool());
     assertThat(basicDataSource.getTestOnBorrow()).isTrue();
-    assertThat(basicDataSource.getValidationQueryTimeout()).isEqualTo(
-        databaseConfig.getConnectionValidationTimeoutSeconds());
+    assertThat(basicDataSource.getValidationQueryTimeoutDuration().getSeconds())
+        .isEqualTo(databaseConfig.getConnectionValidationTimeoutSeconds());
     assertThat(basicDataSource.isAccessToUnderlyingConnectionAllowed()).isEqualTo(
         databaseConfig.isAccessToUnderlyingConnectionAllowed());
 

@@ -69,7 +69,7 @@ export const renameKeys = curry((keysMap, obj) =>
 // Rename keys so that accessing props is easier. Associate x axis with dateTimeMillis
 export const getRenamedKeys = (data) =>
   renameKeys({
-    totalNumberOfAppsWithCiCdEnabled: 'enabled',
+    totalNumberOfAppsUsingCiCd: 'enabled',
     totalNumberOfAppsWithScmEnabled: 'enabled',
     totalNumberOfPolicyActionFailuresByAppCount: 'y',
     totalNumberOfWaivers: 'y',
@@ -88,7 +88,9 @@ function millisecondsToDays(milliseconds) {
 
 export function formatAdoptionGraphData(graphData) {
   if (graphData) {
-    const { cicd, scm } = graphData;
+    // Pick keys for associated dataset
+    const cicd = map(pick(['dateTimeMillis', 'totalNumberOfAppsUsingCiCd', 'totalNumberOfApps']), graphData);
+    const scm = map(pick(['dateTimeMillis', 'totalNumberOfAppsWithScmEnabled', 'totalNumberOfApps']), graphData);
 
     // Calculate percent based on totalEnabled / totalApps. Associate y axis with enabled
     const calculatePercentApps = (obj) =>

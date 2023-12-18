@@ -7,7 +7,7 @@ import React from 'react';
 import { render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import AdoptionGraph from 'MainRoot/integrations/sections/Graphs/AdoptionGraph';
 import { act, fireEvent } from '@testing-library/react';
-import { getAdoptionGraphCicdData, getAdoptionGraphScmData } from 'MainRoot/util/CLMLocation';
+import { getDeveloperDashboardGraphsData } from 'MainRoot/util/CLMLocation';
 
 let listener = null;
 const originalResizeObserver = window.ResizeObserver;
@@ -31,33 +31,21 @@ describe('AdoptionGraph', () => {
 
   const defaultPreloadedState = {
     integrations: {
-      adoptionGraph: {
-        graphData: {
-          cicd: [
-            {
-              dateTimeMillis: 1701350755891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithCiCdEnabled: 2,
-            },
-            {
-              dateTimeMillis: 1701955555891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithCiCdEnabled: 2,
-            },
-          ],
-          scm: [
-            {
-              dateTimeMillis: 1701350755891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithScmEnabled: 3,
-            },
-            {
-              dateTimeMillis: 1701955555891,
-              totalNumberOfApps: 8,
-              totalNumberOfAppsWithScmEnabled: 3,
-            },
-          ],
-        },
+      developerDashboardGraphs: {
+        graphData: [
+          {
+            dateTimeMillis: 1701350755891,
+            totalNumberOfApps: 8,
+            totalNumberOfAppsUsingCiCd: 2,
+            totalNumberOfAppsWithScmEnabled: 4,
+          },
+          {
+            dateTimeMillis: 1701955555891,
+            totalNumberOfApps: 8,
+            totalNumberOfAppsUsingCiCd: 2,
+            totalNumberOfAppsWithScmEnabled: 5,
+          },
+        ],
         loading: false,
         loadError: null,
       },
@@ -77,7 +65,7 @@ describe('AdoptionGraph', () => {
   it('should render a Loading... message when network call is pending', () => {
     const loadingState = {
       integrations: {
-        adoptionGraph: {
+        developerDashboardGraphs: {
           graphData: null,
           loading: true,
           loadError: null,
@@ -93,7 +81,7 @@ describe('AdoptionGraph', () => {
   it('should render an error message when network call is failed', async () => {
     const errorState = {
       integrations: {
-        adoptionGraph: {
+        developerDashboardGraphs: {
           graphData: null,
           loading: false,
           loadError: 'error',
@@ -108,12 +96,11 @@ describe('AdoptionGraph', () => {
   });
 
   it('should trigger correct network request when retry button of alert is clicked', async () => {
-    axiosMock.onGet(getAdoptionGraphCicdData()).reply(404, 'Error');
-    axiosMock.onGet(getAdoptionGraphScmData()).reply(404, 'Error');
+    axiosMock.onGet(getDeveloperDashboardGraphsData()).reply(404, 'Error');
 
     const errorState = {
       integrations: {
-        adoptionGraph: {
+        developerDashboardGraphs: {
           graphData: null,
           loading: false,
           loadError: 'error',
@@ -131,16 +118,12 @@ describe('AdoptionGraph', () => {
     const retryBytton = within(errorAlert).getByRole('button');
     fireEvent.click(retryBytton);
 
-    expect(axiosMock.history.get.length).toBe(2);
+    expect(axiosMock.history.get.length).toBe(1);
 
-    const cicdRequest = axiosMock.history.get[0];
-    const scmRequest = axiosMock.history.get[1];
+    const request = axiosMock.history.get[0];
 
-    expect(cicdRequest.url).toBe(getAdoptionGraphCicdData());
-    expect(cicdRequest.params).toBe(undefined);
-
-    expect(scmRequest.url).toBe(getAdoptionGraphScmData());
-    expect(scmRequest.params).toBe(undefined);
+    expect(request.url).toBe(getDeveloperDashboardGraphsData());
+    expect(request.params).toBe(undefined);
   });
 
   it('should render a graph', async () => {

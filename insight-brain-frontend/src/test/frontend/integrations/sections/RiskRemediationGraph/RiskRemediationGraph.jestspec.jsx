@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { render, screen, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
-import { getRiskRemediationAndMttrGraphData } from 'MainRoot/util/CLMLocation';
+import { getDeveloperDashboardGraphsData } from 'MainRoot/util/CLMLocation';
 import RiskRemediationGraph from 'MainRoot/integrations/sections/Graphs/RiskRemediationGraph';
 import { act, fireEvent } from '@testing-library/react';
 
@@ -31,7 +31,7 @@ describe('RiskRemediationGraph', () => {
 
   const defaultPreloadedState = {
     integrations: {
-      riskRemediationAndMttrGraph: {
+      developerDashboardGraphs: {
         graphData: [
           {
             dateTimeMillis: 1701350755925,
@@ -71,7 +71,7 @@ describe('RiskRemediationGraph', () => {
   it('should render a Loading... message when network call is pending', () => {
     const loadingState = {
       integrations: {
-        riskRemediationAndMttrGraph: {
+        developerDashboardGraphs: {
           graphData: [],
           loading: true,
           loadError: null,
@@ -87,7 +87,7 @@ describe('RiskRemediationGraph', () => {
   it('should render an error message when network call is failed', async () => {
     const errorState = {
       integrations: {
-        riskRemediationAndMttrGraph: {
+        developerDashboardGraphs: {
           graphData: [],
           loading: false,
           loadError: 'error',
@@ -102,11 +102,11 @@ describe('RiskRemediationGraph', () => {
   });
 
   it('should trigger correct network request when retry button of alert is clicked', async () => {
-    axiosMock.onGet(getRiskRemediationAndMttrGraphData()).reply(404, 'Error');
+    axiosMock.onGet(getDeveloperDashboardGraphsData()).reply(404, 'Error');
 
     const errorState = {
       integrations: {
-        riskRemediationAndMttrGraph: {
+        developerDashboardGraphs: {
           graphData: [],
           loading: false,
           loadError: 'error',
@@ -126,7 +126,7 @@ describe('RiskRemediationGraph', () => {
 
     expect(axiosMock.history.get.length).toBe(1);
 
-    expect(axiosMock.history.get[0].url).toBe(getRiskRemediationAndMttrGraphData());
+    expect(axiosMock.history.get[0].url).toBe(getDeveloperDashboardGraphsData());
     expect(axiosMock.history.get[0].params).toBe(undefined);
   });
 

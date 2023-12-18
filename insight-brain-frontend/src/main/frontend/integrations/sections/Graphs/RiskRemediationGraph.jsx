@@ -7,17 +7,17 @@ import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectRiskRemediationAndMttrGraphSlice } from './riskRemediationGraphSelectors';
-import { actions } from '../../slices/riskRemediationAndMttrGraphSlice';
+import { selectDeveloperDashboardGraphsSlice } from './developerDashboardGraphsSelectors';
+import { actions } from '../../slices/developerDashboardGraphsSlice';
 import { commonGraphProps, graphColors, formatRiskRemediationGraphData } from '../../utils/graphUtils';
 
 export default function RiskAndRemediationGraph() {
   const dispatch = useDispatch();
-  const { graphData, loading, loadError } = useSelector(selectRiskRemediationAndMttrGraphSlice);
+  const { graphData, loading, loadError } = useSelector(selectDeveloperDashboardGraphsSlice);
   const formattedGraphData = formatRiskRemediationGraphData(graphData);
 
   const doLoad = () => {
-    dispatch(actions.loadRiskRemediationAndMttrGraphData());
+    dispatch(actions.loadDeveloperDashboardGraphsData());
   };
 
   return (

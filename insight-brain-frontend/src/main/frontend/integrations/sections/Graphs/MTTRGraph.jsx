@@ -3,21 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectRiskRemediationAndMttrGraphSlice } from './riskRemediationGraphSelectors';
-import { actions } from '../../slices/riskRemediationAndMttrGraphSlice';
+import { selectDeveloperDashboardGraphsSlice } from './developerDashboardGraphsSelectors';
+import { actions } from '../../slices/developerDashboardGraphsSlice';
 import { commonGraphProps, graphColors, formatMttrGraphData } from '../../utils/graphUtils';
 
 export default function MTTRGraph() {
   const dispatch = useDispatch();
-  const { graphData, loading, loadError } = useSelector(selectRiskRemediationAndMttrGraphSlice);
+  const { graphData, loading, loadError } = useSelector(selectDeveloperDashboardGraphsSlice);
   const formattedGraphData = formatMttrGraphData(graphData);
 
   const doLoad = () => {
-    dispatch(actions.loadRiskRemediationAndMttrGraphData());
+    dispatch(actions.loadDeveloperDashboardGraphsData());
   };
 
   return (

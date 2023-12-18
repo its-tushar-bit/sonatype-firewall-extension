@@ -5,11 +5,7 @@
  */
 import React from 'react';
 import { render, axiosMockAdapter } from 'TestRoot/SpecUtil';
-import {
-  getAdoptionGraphCicdData,
-  getAdoptionGraphScmData,
-  getRiskRemediationAndMttrGraphData,
-} from 'MainRoot/util/CLMLocation';
+import { getDeveloperDashboardGraphsData } from 'MainRoot/util/CLMLocation';
 import GraphsContainer from 'MainRoot/integrations/sections/Graphs/GraphsContainer';
 
 describe('GraphsContainer', () => {
@@ -19,22 +15,13 @@ describe('GraphsContainer', () => {
     axiosMock = axiosMockAdapter();
   });
 
-  it('makes correct network requests', () => {
+  it('makes correct network request', () => {
     render(<GraphsContainer />);
 
-    expect(axiosMock.history.get.length).toBe(3);
+    expect(axiosMock.history.get.length).toBe(1);
 
-    const cicdRequest = axiosMock.history.get[0];
-    const scmRequest = axiosMock.history.get[1];
-    const riskRemediationAndMttrRequest = axiosMock.history.get[2];
-
-    expect(cicdRequest.url).toBe(getAdoptionGraphCicdData());
-    expect(cicdRequest.params).toBe(undefined);
-
-    expect(scmRequest.url).toBe(getAdoptionGraphScmData());
-    expect(scmRequest.params).toBe(undefined);
-
-    expect(riskRemediationAndMttrRequest.url).toBe(getRiskRemediationAndMttrGraphData());
-    expect(riskRemediationAndMttrRequest.params).toBe(undefined);
+    const request = axiosMock.history.get[0];
+    expect(request.url).toBe(getDeveloperDashboardGraphsData());
+    expect(request.params).toBe(undefined);
   });
 });

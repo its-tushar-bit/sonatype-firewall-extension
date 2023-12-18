@@ -7,16 +7,16 @@ import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectAdoptionGraphSlice } from './adoptionGraphSelectors';
-import { actions } from '../../slices/adoptionGraphSlice';
+import { selectDeveloperDashboardGraphsSlice } from './developerDashboardGraphsSelectors';
+import { actions } from '../../slices/developerDashboardGraphsSlice';
 import { commonGraphProps, graphColors, formatAdoptionGraphData } from '../../utils/graphUtils';
 export default function AdoptionGraph() {
   const dispatch = useDispatch();
-  const { graphData, loading, loadError } = useSelector(selectAdoptionGraphSlice);
+  const { graphData, loading, loadError } = useSelector(selectDeveloperDashboardGraphsSlice);
   const formattedGraphData = formatAdoptionGraphData(graphData);
 
   const doLoad = () => {
-    dispatch(actions.loadAdoptionGraphData());
+    dispatch(actions.loadDeveloperDashboardGraphsData());
   };
 
   return (

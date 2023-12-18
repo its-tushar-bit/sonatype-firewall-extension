@@ -5,8 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { actions as adoptionGraphActions } from '../../slices/adoptionGraphSlice';
-import { actions as riskRemediationAndMttrGraphActions } from '../../slices/riskRemediationAndMttrGraphSlice';
+import { actions as developerDashboardGraphsActions } from '../../slices/developerDashboardGraphsSlice';
 
 import RiskAndRemediationGraph from './RiskRemediationGraph';
 import MTTRGraph from './MTTRGraph';
@@ -15,8 +14,7 @@ import AdoptionGraph from 'MainRoot/integrations/sections/Graphs/AdoptionGraph';
 export default function GraphsContainer() {
   const dispatch = useDispatch();
   const doLoad = () => {
-    dispatch(adoptionGraphActions.loadAdoptionGraphData());
-    dispatch(riskRemediationAndMttrGraphActions.loadRiskRemediationAndMttrGraphData());
+    dispatch(developerDashboardGraphsActions.loadDeveloperDashboardGraphsData());
   };
 
   useEffect(() => {

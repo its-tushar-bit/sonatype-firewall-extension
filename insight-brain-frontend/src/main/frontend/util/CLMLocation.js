@@ -1365,11 +1365,7 @@ export const getAddWaiverUiLink = (violationId, comments) => {
   return uriTemplate`/ui/links/addWaiver/${violationId}` + commentParam;
 };
 
-export const getAdoptionGraphCicdData = () => uriTemplate`/rest/integrations/stats/cicd/usage-over-time`;
-
-export const getAdoptionGraphScmData = () => uriTemplate`/rest/integrations/stats/scm-feedback/usage-over-time`;
-
-export const getRiskRemediationAndMttrGraphData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
+export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
 
 export const getUsageOverTimeChartVisibility = () =>
   uriTemplate`/rest/integrations/stats/usage-over-time/charts/visibility`;

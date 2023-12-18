@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createSelector } from '@reduxjs/toolkit';
+
 import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
 
 const integrationsSlice = prop('integrations');
 
-export const selectAdoptionGraphSlice = createSelector(integrationsSlice, prop('adoptionGraph'));
+export const selectDeveloperDashboardGraphsSlice = createSelector(integrationsSlice, prop('developerDashboardGraphs'));

@@ -171,7 +171,7 @@ public class ApiCompositeSourceControlService
   private void collateCompositeSourceControl(
       final ApiCompositeSourceControlDTO dto,
       final SourceControl sourceControl,
-      final List<String> ancestorsNameHiarchy,
+      final List<String> ancestorsNameHierarchy,
       final Map<String, SourceControl> ancestorsSourceControl,
       final OwnerType ownerType)
   {
@@ -183,77 +183,77 @@ public class ApiCompositeSourceControlService
 
     dto.provider = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         sc -> sc.getProvider() == null ? null : sc.getProvider().toString()
     );
 
     dto.username = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getUsername
     );
 
     dto.token = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getToken
     );
 
     dto.baseBranch = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getBaseBranch
     );
 
     dto.remediationPullRequestsEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getRemediationPullRequestsEnabled
     );
 
     dto.statusChecksEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getStatusChecksEnabled
     );
 
     dto.pullRequestCommentingEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getPullRequestCommentingEnabled
     );
 
     dto.sourceControlEvaluationsEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getSourceControlEvaluationsEnabled
     );
 
     dto.sourceControlScanTarget = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getSourceControlScanTarget
     );
 
     dto.sshEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getSshEnabled
     );
 
     dto.commitStatusEnabled = collateCompositeDTO(
         sourceControl,
-        ancestorsNameHiarchy,
+        ancestorsNameHierarchy,
         ancestorsSourceControl,
         SourceControl::getCommitStatusEnabled
     );
@@ -261,13 +261,13 @@ public class ApiCompositeSourceControlService
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(
       SourceControl ownerSourceControl,
-      List<String> ancestorsNameHiarchy,
+      List<String> ancestorsNameHierarchy,
       Map<String, SourceControl> ancestorsSourceControl,
       Function<SourceControl, T> getValueFunction)
   {
     ApiCompositeValueDTO<T> dto = new ApiCompositeValueDTO<>();
     dto.value = getValueFunction.apply(ownerSourceControl);
-    for (String ancestorName : ancestorsNameHiarchy) {
+    for (String ancestorName : ancestorsNameHierarchy) {
       SourceControl ancestorSourceControl = ancestorsSourceControl.get(ancestorName);
       T ancestorValue = getValueFunction.apply(ancestorSourceControl);
       if (null != ancestorValue) {

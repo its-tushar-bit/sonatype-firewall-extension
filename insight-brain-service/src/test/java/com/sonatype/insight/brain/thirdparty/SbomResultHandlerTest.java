@@ -406,6 +406,43 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withLicenseExpressions() throws Exception {
+    String sbom = getSbomJsonFile("license-expression-bom.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("license-expression-bom.json", null, null, null, sbom);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate;
+      List<ThirdPartyCoordinateLicense> licenses;
+
+      thirdPartyFileCoordinate = coordinates.stream().filter(c -> c.getVersion().equals("2.9.4")).findFirst().get();
+      licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getLicenseId)
+          .containsExactlyInAnyOrder("MIT", "Apache-2.0");
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getName)
+          .containsExactlyInAnyOrder("MIT", "Apache-2.0");
+
+      thirdPartyFileCoordinate = coordinates.stream().filter(c -> c.getVersion().equals("2.9.5")).findFirst().get();
+      licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getLicenseId)
+          .containsExactlyInAnyOrder("Apache-2.0");
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getName)
+          .containsExactlyInAnyOrder("Apache-2.0");
+
+      thirdPartyFileCoordinate = coordinates.stream().filter(c -> c.getVersion().equals("2.9.6")).findFirst().get();
+      licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getLicenseId)
+          .containsExactlyInAnyOrder("Apache-2.0-MIT");
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getName)
+          .containsExactlyInAnyOrder("Apache-2.0 or MIT");
+    }
+  }
+
+  @Test
   public void testHandleAndFilterContents_withDuplicateLicense() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-duplicate-license.xml");
     ThirdPartyScanContent content =
@@ -487,8 +524,24 @@ public class SbomResultHandlerTest
  
   @Test
   public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
-    String sbomContent = getSbomXmlFile("sbom-license-expression.xml");
-    assertNoLicense(sbomContent, "sbom-license-expression.xml");
+    String sbom = getSbomXmlFile("sbom-license-expression.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-license-expression.xml", null, null, null, sbom);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate;
+      List<ThirdPartyCoordinateLicense> licenses;
+
+      thirdPartyFileCoordinate = coordinates.stream().iterator().next();
+      licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getName)
+          .containsExactlyInAnyOrder("BSD-3-Clause", "GPL-2.0", "MIT");
+    }
   }
 
   @Test

@@ -82,6 +82,10 @@ import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.InvalidLicenseStringException;
+import org.spdx.library.model.license.LicenseInfoFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
@@ -113,6 +117,8 @@ public class SbomResultHandler
 
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO =
       new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
+
+  protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil();
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
@@ -727,11 +733,11 @@ public class SbomResultHandler
       log.debug("No licenses provided for Component with packageUrl {}", packageUrl);
     }
     else {
+      Set<String> processedLicenseIds = new HashSet<>();
       if (CollectionUtils.isEmpty(licenseChoice.getLicenses())) {
         log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
       }
       else {
-        Set<String> processedLicenseIds = new HashSet<>();
         for (License license : licenseChoice.getLicenses()) {
           String licenseId = license.getId();
           String licenseName = license.getName();
@@ -751,6 +757,31 @@ public class SbomResultHandler
           else {
             log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
           }
+        }
+      }
+
+      // Process license expressions
+      String expression = licenseChoice.getExpression();
+      if (StringUtils.isNotEmpty(expression)) {
+        AnyLicenseInfo anyLicenseInfo;
+        try {
+          anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression);
+        }
+        catch (InvalidLicenseStringException e) {
+          log.debug("Failed to parse spdx license string: {} for: {}.", expression, packageUrl);
+          return;
+        }
+        HashMap<String, String> processedLicenses = new HashMap<>();
+        try {
+          spdxLicenseExpressionUtil.parseLicenses(anyLicenseInfo, processedLicenses, packageUrl);
+        }
+        catch (InvalidSPDXAnalysisException e) {
+          throw new RuntimeException(e);
+        }
+        for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
+          ThirdPartyCoordinateLicense coordinateLicense =
+              new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
+          thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
         }
       }
     }

@@ -332,6 +332,7 @@ public class EnterpriseReportingServiceTest
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
     enterpriseReportingService.cacheDashboardIcons();
 
+    assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
     assertDashboardIconImage(expectedSecondIconImageFile, expectedSecondIconImageFileName);
   }
 

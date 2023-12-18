@@ -29,6 +29,7 @@ import io.dropwizard.servlets.tasks.Task;
 import io.dropwizard.setup.Environment;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
+import org.eclipse.sisu.space.BeanScanning;
 import org.eclipse.sisu.space.ClassSpace;
 import org.eclipse.sisu.space.SpaceModule;
 import org.eclipse.sisu.space.URLClassSpace;
@@ -80,13 +81,20 @@ public abstract class SisuApplication<T extends Configuration>
     modules.addAll(modules(configuration));
 
     ClassSpace space = new URLClassSpace(getClass().getClassLoader());
-    modules.add(new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*")));
+    modules.add(new SpaceModule(space, scanning(configuration)));
 
     return Guice.createInjector(wire(modules));
   }
 
   protected Module wire(final List<Module> modules) {
     return new WireModule(modules);
+  }
+
+  //
+  // Allow the application to customize the scanning
+  //
+  protected BeanScanning scanning(@SuppressWarnings("unused") T configuration) {
+    return BeanScanning.ON;
   }
 
   //

@@ -14,9 +14,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -34,17 +34,20 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class QuarantinedComponentMetricsConsolidatorTest
+public class ComponentsAutoReleasedMetricsConsolidatorTest
     extends AbstractComponentTest
 {
   @Inject
   private FirewallMetricsDAO firewallMetricsDAOTest;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAOTest;
+  private ComponentsAutoReleasedMetricsConsolidator consolidator;
 
   @Inject
-  private QuarantinedComponentMetricsConsolidator consolidator;
+  private RepositoryDAO repositoryDAOTest;
+
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAOTest;
 
   private final List<Date> testLastUpdateDates = new ArrayList<>();
 
@@ -68,15 +71,14 @@ public class QuarantinedComponentMetricsConsolidatorTest
     consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
-    // Check current data length. Records older than 1 year
+    // - Check current data length. Records older than 1 year
     // should have been deleted
-    assertThat(allMetrics).hasSize(2)
-        // Check f records that are at least 1 year old
-        .anyMatch(firewallMetrics -> firewallMetrics.getMetricsDate().equals(LocalDate.now()))
-        // Metric gets retained as date is not OLDER than 12 months
-        .anyMatch(firewallMetrics
-            -> firewallMetrics.getMetricsDate().equals(LocalDate.now()
-            .minusMonths(12)));
+    // - Check f records that are at least 1 year old
+    // - Metric gets retained as date is not OLDER than 12 months
+    assertThat(allMetrics)
+        .hasSize(2)
+        .extracting(FirewallMetrics::getMetricsDate)
+        .noneMatch(metricsDate -> metricsDate.isBefore(LocalDate.now().minusMonths(12)));
   }
 
   @Test
@@ -87,8 +89,8 @@ public class QuarantinedComponentMetricsConsolidatorTest
     String past300Str = formatAsISOString(past300);
     String past301Str = formatAsISOString(past301);
 
-    LocalDate repoQuarantinedComponentDateFound = today.plusDays( -30);
-    initRepositoryComponentData(DateConverter.toDate(repoQuarantinedComponentDateFound));
+    LocalDate autoReleasedComponentDateFound = today.plusDays( -30);
+    initRepositoryComponentData(DateConverter.toDate(autoReleasedComponentDateFound));
     testLastUpdateDates.set(1, DateConverter.toDate(past300));
     // Most recent date
     testLastUpdateDates.set(2, DateConverter.toDate(past301));
@@ -104,13 +106,13 @@ public class QuarantinedComponentMetricsConsolidatorTest
         .getMetricsDate())).isEqualTo(past300Str);
     assertThat(formatAsISOString(findMetricByDate(past301, allMetrics)
         .getMetricsDate())).isEqualTo(past301Str);
-    // New quarantined Component metric found
-    FirewallMetrics repoQuarantinedComponentFoundDb =
-        findMetricByDate(repoQuarantinedComponentDateFound, allMetrics);
-    assertThat(formatAsISOString(repoQuarantinedComponentFoundDb.getMetricsDate()))
-        .isEqualTo(formatAsISOString(repoQuarantinedComponentDateFound));
-    // New quarantined Component metric has a count of 3
-    assertThat(repoQuarantinedComponentFoundDb.getMetricsValue()).isEqualTo(3);
+    // New auto-released component metric found
+    FirewallMetrics autoReleasedComponentFoundDb =
+        findMetricByDate(autoReleasedComponentDateFound, allMetrics);
+    assertThat(formatAsISOString(autoReleasedComponentFoundDb.getMetricsDate()))
+        .isEqualTo(formatAsISOString(autoReleasedComponentDateFound));
+    // New auto-released component metric  has a count of 3
+    assertThat(autoReleasedComponentFoundDb.getMetricsValue()).isEqualTo(3);
   }
 
   @Test
@@ -118,7 +120,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     LocalDate today = LocalDate.now();
     LocalDate past300 = today.plusDays( -300);
     LocalDate past301 = today.plusDays( -301);
-    LocalDate past302 = today.plusDays( -302);//302 is the oldest date in this test
+    LocalDate past302 = today.plusDays( -302); //302 is the oldest date in this test
     String past300Str = formatAsISOString(past300);
     String past301Str = formatAsISOString(past301);
     String past302Str = formatAsISOString(past302);
@@ -132,7 +134,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     testLastUpdateDates.set(2, DateConverter.toDate(past302));
     initTestData();
 
-    //Check initial value of  past301
+    // Check initial value of  past301
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     FirewallMetrics fmInitDb301 = findMetricByDate(past301, allMetrics);
     assertThat(formatAsISOString(fmInitDb301.getMetricsDate())).isEqualTo(past301Str);
@@ -150,7 +152,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     FirewallMetrics fmDb301 = findMetricByDate(past301, allMetrics);
     assertThat(formatAsISOString(fmDb301.getMetricsDate()))
         .isEqualTo(past301Str);
-    //This was the record updated. Initially 3 now 5
+    // This was the record updated. Initially 3 now 5
     assertThat(fmDb301.getMetricsValue()).isEqualTo(5);
 
     FirewallMetrics fmDb302 = findMetricByDate(past302, allMetrics);
@@ -174,7 +176,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     testLastUpdateDates.set(2, DateConverter.toDate(today));
     initTestData();
 
-    //Check before consolidation
+    // Check before consolidation
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     FirewallMetrics fmInitDb300 = findMetricByDate(past300, allMetrics);
     assertThat(formatAsISOString(fmInitDb300.getMetricsDate()))
@@ -190,7 +192,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
     allMetrics = firewallMetricsDAOTest.getAll();
 
-    //Check after consolidation
+    // Check after consolidation
     FirewallMetrics fmDb300 = findMetricByDate(past300, allMetrics);
     assertThat(formatAsISOString(fmDb300.getMetricsDate()))
         .isEqualTo(past300Str);
@@ -200,7 +202,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     assertThat(formatAsISOString(
         fmDbToday.getMetricsDate()
     )).isEqualTo(todayStr);
-    //This was the record updated. Initially 3 now 6
+    // This was the record updated. Initially 3 now 6
     assertThat(fmDbToday.getMetricsValue()).isEqualTo(6);
   }
 
@@ -232,7 +234,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
   private void initTestData() {
     testLastUpdateDates.forEach( date -> tempEntity.newFirewallMetrics(
-        FirewallMetricsName.COMPONENTS_QUARANTINED,
+        FirewallMetricsName.COMPONENTS_AUTO_RELEASED,
         testLastUpdateDates.indexOf(date) + 1 ,
         date,
         toLocalDate(date)
@@ -260,9 +262,11 @@ public class QuarantinedComponentMetricsConsolidatorTest
     hoursForDateInThePast.forEach( dateTime -> {
       Repository newRepo = tempEntity.newRepository();
       RepositoryComponent newRepositoryComponent = tempEntity
-          .newRepositoryComponent(newRepo.getId());
-      newRepositoryComponent.setQuarantineTime(dateTime);
+            .newRepositoryComponent(
+            newRepo.getId(), newRepo.getId() + "/" + dateTime.toString(),
+            null, dateTime, true);
       repositoryComponentDAOTest.update(newRepositoryComponent);
+      repositoryDAOTest.update(newRepo);
     });
   }
 

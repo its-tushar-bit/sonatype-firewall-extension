@@ -303,7 +303,7 @@ public class FirewallMetricsMigrator
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
           Map<LocalDate, Long> results = repositoryComponentDAO
-              .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo);
+              .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo, false);
 
           for (Entry<LocalDate, Long> entry : results.entrySet()) {
             repositoryMetrics

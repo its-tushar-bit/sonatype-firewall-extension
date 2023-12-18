@@ -97,6 +97,9 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob",
         "FirewallMetricsComponentQuarantinedConsolidatorCronJob");
     insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentsAutoReleasedConsolidatorCronJob",
+        "FirewallMetricsComponentsAutoReleasedConsolidatorCronJob");
+    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.firewall.metrics.DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob",
         "DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob");
   }

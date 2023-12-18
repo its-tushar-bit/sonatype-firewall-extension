@@ -212,11 +212,14 @@ public class RepositoryComponentDAO
   }
 
   @SuppressWarnings("unchecked")
-  public Map<LocalDate, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
+  public Map<LocalDate, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
+      String repositoryId, Date date, boolean exclusiveDate)
+  {
     String sQuery = "SELECT CAST(rc.unquarantine_time AS DATE), COUNT(1)" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
         " WHERE rc.repository_id = ?1" + //
-        " AND rc.unquarantine_time >= ?2" + //
+        " AND rc.unquarantine_time " + //
+        (exclusiveDate ? ">" : ">=") + " ?2" + //
         " AND rc.auto_unquarantined = ?3" + //
         " GROUP BY CAST(rc.unquarantine_time AS DATE)";
 

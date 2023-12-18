@@ -13,8 +13,10 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -426,10 +429,37 @@ public class RepositoryComponentDAOTest
         moreThanOneYearAgo, true);
 
     Map<LocalDate, Long> results =
-        dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo);
+        dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), oneYearAgo, false);
 
     assertThat(results).containsExactlyInAnyOrderEntriesOf(
         ImmutableMap.of(LocalDate.now(), 2L, DateConverter.toLocalDate(oneYearAgo), 1L));
+  }
+
+  @Test
+  public void testGetAutoReleaseQuarantinedCountByRepositoryIdAndDate_WithExclusiveDate() {
+    Repository repository1 = tempEntity.newRepository();
+    Date date2020 = new GregorianCalendar(2020, Calendar.MAY, 1).getTime();
+    Date date2021 = new GregorianCalendar(2021, Calendar.MAY, 1).getTime();
+    Date date2022 = new GregorianCalendar(2022, Calendar.MAY, 1).getTime();
+    List<Date> dates = Arrays.asList(date2020, date2021, date2022);
+    Map<LocalDate,Long> result = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
+        RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        DateConverter.toDate(LocalDate.now()),
+        true);
+    assertThat(result).isEmpty();
+    dates.forEach(date -> {
+      tempEntity.newRepositoryComponent(repository1.getId(),
+          repository1.getId() + "/" + date.toString(),
+          date, date, true);
+    });
+    // 2020 year exclusive
+    result = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
+        repository1.getId(), date2020, true);
+    assertThat(result).hasSize(2);
+    // 2020 year inclusive
+    result = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
+        repository1.getId(), DateUtils.addDays(date2020, -365), true);
+    assertThat(result).hasSize(3);
   }
 
   @Test
@@ -916,7 +946,7 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
-  public void getConsolidatedQuarantinedComponentsMetricByDateTest() throws ParseException {
+  public void testGetConsolidatedQuarantinedComponentsMetricByDate() throws ParseException {
     Repository repository1 = tempEntity.newRepository();
     Date date2020 = DateUtils.parseDate("2020-05-01", "yyyy-MM-dd");
     Date date2021 = DateUtils.parseDate("2021-05-01", "yyyy-MM-dd");

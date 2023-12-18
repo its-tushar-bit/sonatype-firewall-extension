@@ -19,14 +19,15 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentsAutoReleasedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentWaivedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
+import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
-import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -346,6 +347,7 @@ public class DefaultTestInsightBrainService
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
     getInstance(WaivedComponentUpgradeScheduler.class).disableForTesting = true;
     getInstance(ApplicationCountHistoryKeeper.class).disableForTesting = true;
+    getInstance(FirewallMetricsComponentsAutoReleasedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentWaivedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob.class).disableForTesting = true;

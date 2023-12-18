@@ -34,7 +34,7 @@ import { actions as accessActions } from 'MainRoot/OrgsAndPolicies/access/access
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { isEmpty } from 'ramda';
-import { actions } from "MainRoot/OrgsAndPolicies/ownerSummarySlice";
+import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 
 export default function AccessTile() {
   const uiRouterState = useRouterState();
@@ -58,7 +58,7 @@ export default function AccessTile() {
   useEffect(() => {
     dispatch(accessActions.loadRoles());
     if (!ownerName) {
-      dispatch(actions.loadOwnerSummary())
+      dispatch(actions.loadOwnerSummary());
     }
   }, []);
 

@@ -213,7 +213,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testGetLookerConfig_Error() throws Exception {
+  public void testGetBaseUrl_Error() throws Exception {
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
         mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
         mockGetLookerDashboardMetadata(), 0, mockLatestVersionCache);
@@ -225,7 +225,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testGetLookerDashboardMetadata() {
+  public void testDashboardMetadata() {
     AtomicReference<DashboardMetadataListDTO> expected = mockGetLookerDashboardMetadata();
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(new byte[0]));
@@ -305,7 +305,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_FirstCacheLoad() throws Exception {
+  public void testCacheDashboardIcons_FirstCacheLoad() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
@@ -319,7 +319,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_FirstCacheLoad_MultipleIcons() throws Exception {
+  public void testCacheDashboardIcons_FirstCacheLoad_MultipleIcons() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     String expectedSecondIconImageFileName = "icon-2.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
@@ -337,7 +337,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_CacheReloadWithNoIconUpdates() throws Exception {
+  public void testCacheDashboardIcons_CacheReloadWithNoIconUpdates() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
@@ -354,7 +354,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_CacheReloadWithIconUpdates() throws Exception {
+  public void testCacheDashboardIcons_CacheReloadWithIconUpdates() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     String expectedIconImageFileName = "icon-2.png";
     File iconsDirectory = insightWork.getIerDashboardIconsDirectory();

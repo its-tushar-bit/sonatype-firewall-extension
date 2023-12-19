@@ -33,6 +33,8 @@ public class MultiTenantApplicationLifecycle
     extends DefaultApplicationLifecycle
     implements Managed
 {
+  private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
+
   @Inject
   public MultiTenantApplicationLifecycle(
       InsightConfig configuration,
@@ -43,10 +45,12 @@ public class MultiTenantApplicationLifecycle
       VersionService versionService,
       AuditRecorder auditRecorder,
       ComponentCategoryUpdater componentCategoryUpdater,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
     super(configuration, licenseManager, dataMigrator, newInstancePopulator, licenseDataUpdater, versionService,
         auditRecorder, componentCategoryUpdater, taskScheduler);
+    this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
   }
 
   @Override
@@ -54,7 +58,7 @@ public class MultiTenantApplicationLifecycle
     super.boot();
 
     runAsGlobal(() -> {
-      new MultiTenantGlobalSchemaProtection().enableWriteProtection();
+      multiTenantGlobalSchemaProtection.createWriteProtection();
       return null;
     });
   }

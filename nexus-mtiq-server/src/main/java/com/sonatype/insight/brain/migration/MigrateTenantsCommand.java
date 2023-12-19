@@ -11,8 +11,10 @@ import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -35,13 +37,14 @@ public class MigrateTenantsCommand
   private static final Logger log = LoggerFactory.getLogger(MigrateTenantsCommand.class);
 
   public MigrateTenantsCommand() {
-    super("migrate-mtiq-db", "Migrates the database to the latest schema version for all MTIQ tenants.");
+    super("migrate-mtiq-db",
+        "Migrates the database to the latest schema version for the Global schema and all tenants.");
   }
 
   @Override
   public void onError(Cli cli, Namespace namespace, Throwable t) {
     // throw up to let our main() method do the desired error logging/handling
-    String message = "Error running tenant database migrations.";
+    String message = "Error running tenants database migrations.";
     log.error(message, t);
     throw new IllegalStateException(message, t);
   }
@@ -52,7 +55,7 @@ public class MigrateTenantsCommand
       Namespace namespace,
       MultiTenantInsightConfig insightConfig)
   {
-    log.info("Starting DB migrations for tenants");
+    log.info("Starting DB migrations for the Global Schema and all tenants");
 
     // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
     DatabaseContainer databaseContainer = createDatabaseContainer();
@@ -63,11 +66,18 @@ public class MigrateTenantsCommand
         (MultiTenantDataSourceFactory) databaseContainer.getDataSourceFactory();
     dataSourceFactory.setInsightConfig(insightConfig);
 
-    TenantMigrator tenantMigrator =
-        new TenantMigrator(databaseContainer.getDatabaseProvisionUtils(), insightConfig);
-    tenantMigrator.migrateAllSchemas();
+    MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection =
+        new MultiTenantGlobalSchemaProtection(OperationalDataStoreProvider.getInstance());
 
-    log.info("DB migrations for tenants Finished");
+    TenantMigrator tenantMigrator =
+        new TenantMigrator(databaseContainer.getDatabaseProvisionUtils(), insightConfig,
+            multiTenantGlobalSchemaProtection);
+
+    tenantMigrator.migrateGlobalSchema();
+    log.info("DB migrations for Global schema finished.");
+
+    tenantMigrator.migrateAllSchemas();
+    log.info("DB migrations for tenants finished.");
   }
 
   @Override

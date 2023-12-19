@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -32,6 +34,8 @@ public class MigrateTenantsCommandTest
 
   private DatabaseProvisionUtils spyDatabaseProvisionUtils;
 
+  private MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
+
   @Before
   @Override
   public void setUp() {
@@ -48,35 +52,40 @@ public class MigrateTenantsCommandTest
         );
       }
     });
+
+    OperationalDataStore operationalDataStore = multiTenantDatabaseTestRule.operationalDataStore;
+    multiTenantGlobalSchemaProtection =
+        new MultiTenantGlobalSchemaProtection(operationalDataStore);
   }
 
   @Test
   public void testMtiqDbMigrationCommand() {
     assertThat(spyMigrateTenantsCommand.getName()).isEqualTo("migrate-mtiq-db");
     assertThat(spyMigrateTenantsCommand.getDescription()).isEqualTo(
-        "Migrates the database to the latest schema version for all MTIQ tenants.");
+        "Migrates the database to the latest schema version for the Global schema and all tenants.");
   }
 
   @Test
   public void testOnError() {
     testAsNewTenant(tenant -> {
       assertThatThrownBy(() -> spyMigrateTenantsCommand.onError(null, null, new Exception("Error"))).isInstanceOf(
-          IllegalStateException.class).hasMessage("Error running tenant database migrations.");
+          IllegalStateException.class).hasMessage("Error running tenants database migrations.");
     });
   }
 
   @Test
   public void testRunMigration() {
+    multiTenantGlobalSchemaProtection.createWriteProtection();
     provisionNewTenant();
 
     testAsGlobalTenant(g -> {
       spyMigrateTenantsCommand.run(null, null, multiTenantDatabaseTestRule.insightConfig);
 
-      verify(spyDatabaseProvisionUtils, times(2)).initializeDatabasesWithoutMigration(
+      verify(spyDatabaseProvisionUtils, times(3)).initializeDatabasesWithoutMigration(
           any(MultiTenantDatabaseConfigProvider.class));
-      verify(spyDatabaseProvisionUtils).initializeDatabases(any(MultiTenantInsightConfig.class),
+      verify(spyDatabaseProvisionUtils, times(2)).initializeDatabases(any(MultiTenantInsightConfig.class),
           any(MultiTenantDatabaseConfigProvider.class));
-      verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded(any(MultiTenantInsightConfig.class));
+      verify(spyDatabaseProvisionUtils, times(2)).migrateDatabasesIfNeeded(any(MultiTenantInsightConfig.class));
     });
   }
 }

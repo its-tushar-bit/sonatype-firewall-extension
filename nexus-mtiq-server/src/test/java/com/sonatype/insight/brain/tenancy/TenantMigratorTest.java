@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
@@ -45,10 +46,13 @@ public class TenantMigratorTest
   public final LogOutput logOutput = new LogOutput(TenantMigrator.class);
 
   @Mock
+  private DatabaseProvisionUtils databaseProvisionUtils;
+
+  @Mock
   private MultiTenantInsightConfig insightConfig;
 
   @Mock
-  private DatabaseProvisionUtils databaseProvisionUtils;
+  private MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
   @Mock
   OperationalDataStore operationalDataStore;
@@ -62,7 +66,45 @@ public class TenantMigratorTest
   @Override
   public void setup() {
     super.setup();
-    underTest = new TenantMigrator(databaseProvisionUtils, insightConfig);
+    underTest = new TenantMigrator(databaseProvisionUtils, insightConfig, multiTenantGlobalSchemaProtection);
+  }
+
+  @Test
+  public void shouldRunMigrationsForGlobalSchema() {
+    underTest.migrateGlobalSchema();
+
+    verify(multiTenantGlobalSchemaProtection).disableWriteProtection();
+    assertMigrationExecutedForTheExpectedNumberOfTenants(1);
+    verify(multiTenantGlobalSchemaProtection).enableWriteProtection();
+  }
+
+  @Test
+  public void shouldThrowError_whenGlobalSchemaMigrationThrows() {
+    doThrow(new RuntimeException()).when(databaseProvisionUtils)
+        .initializeDatabases(any(InsightConfig.class), any(DatabaseConfigProvider.class));
+
+    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
+        RuntimeException.class).hasMessage("Error trying to migrate the database for Global Schema.");
+
+    verify(multiTenantGlobalSchemaProtection).enableWriteProtection();
+  }
+
+  @Test
+  public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_disableWriteProtection_Throws() {
+    doThrow(new RuntimeException("Error trying to disable write protection for MultiTenant Global schema."))
+        .when(multiTenantGlobalSchemaProtection).disableWriteProtection();
+
+    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
+        RuntimeException.class).hasMessage("Error trying to disable write protection for MultiTenant Global schema.");
+  }
+
+  @Test
+  public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_enableWriteProtection_Throws() {
+    doThrow(new RuntimeException("Error trying to enable write protection for MultiTenant Global schema."))
+        .when(multiTenantGlobalSchemaProtection).enableWriteProtection();
+
+    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
+        RuntimeException.class).hasMessage("Error trying to enable write protection for MultiTenant Global schema.");
   }
 
   @Test

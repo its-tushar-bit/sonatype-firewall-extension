@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAs;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 public class TenantMigrator
 {
@@ -28,20 +30,44 @@ public class TenantMigrator
 
   private final MultiTenantInsightConfig insightConfig;
 
+  private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
+
   private final MultiTenantDatabaseConfigProvider databaseConfigProvider;
 
   public TenantMigrator(
       DatabaseProvisionUtils databaseProvisionUtils,
-      MultiTenantInsightConfig insightConfig)
+      MultiTenantInsightConfig insightConfig,
+      MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.insightConfig = insightConfig;
+    this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
     databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
+    databaseProvisionUtils.initializeDatabasesWithoutMigration(databaseConfigProvider);
+  }
+
+  public void migrateGlobalSchema() {
+    runAsGlobal(() -> {
+      log.debug("Disabling Global Schema write protection");
+      multiTenantGlobalSchemaProtection.disableWriteProtection();
+
+      try {
+        log.info("Running database migrations for Global Schema");
+        migrateSchema();
+      }
+      catch (Exception e) {
+        throw new IllegalStateException("Error trying to migrate the database for Global Schema.", e);
+      }
+      finally {
+        log.debug("Restoring Global Schema write protection");
+        multiTenantGlobalSchemaProtection.enableWriteProtection();
+      }
+
+      return null;
+    });
   }
 
   public void migrateAllSchemas() {
-    databaseProvisionUtils.initializeDatabasesWithoutMigration(databaseConfigProvider);
-
     List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
 
     List<Tenant> tenants = schemas.stream()

@@ -53,7 +53,7 @@ public class EnterpriseReportingResource
   @GET
   @Path(DASHBOARDS_METADATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public DashboardMetadataListDTO getLookerDashboardMetadata() {
+  public DashboardMetadataListDTO getDashboardMetadata() {
     return enterpriseReportingService.getDashboardMetadata();
   }
 

@@ -81,7 +81,7 @@ public class EnterpriseReportingResourceTest
   }
 
   @Test
-  public void testGetLookerDashboardMetadata_Success() throws Exception {
+  public void testGetDashboardMetadata_Success() throws Exception {
     hdsMockServer.respondWith(createDashboardVersionJson()).atUri("rest/enterpriseReporting/currentVersion");
     hdsMockServer.respondWith(createDashboardMetadataJsonList()).atUri("rest/enterpriseReporting/dashboards");
     hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons/rolling-recap.svg");

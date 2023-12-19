@@ -64,7 +64,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -462,6 +461,7 @@ public class ApplicationReportTest
 
   @Test
   public void testEllipsisInPolicyName() {
+    reportPage.headers().policyNameFilterInput().click();
     reportPage.headers().policyNameFilterInput().setValue("License-Threat");
     SelenideElement policyName = reportPage.getColFromResultRow(1, 2);
     policyName.lastChild().shouldHave(cssValue("text-overflow", "ellipsis"));
@@ -474,9 +474,9 @@ public class ApplicationReportTest
     eyesWatcher.eyesCheck("Showing ellipsis in overflown policy names.");
   }
 
-  @Ignore
   @Test
   public void testEllipsisInComponentName() {
+    reportPage.headers().componentNameFilterInput().click();
     reportPage.headers().componentNameFilterInput()
         .setValue("org.springframework.security : spring-security-config : 3.2.4.RELEASE");
     reportPage.getColFromResultRow(1, 3).shouldHave(cssValue("text-overflow", "ellipsis"));

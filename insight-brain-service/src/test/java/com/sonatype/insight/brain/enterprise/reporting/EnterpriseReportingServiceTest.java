@@ -305,12 +305,12 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_FirstCacheLoad() throws IOException {
+  public void testEvaluateDashboardIcons_FirstCacheLoad() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).toURI()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
     enterpriseReportingService.cacheDashboardIcons();
@@ -319,15 +319,15 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_FirstCacheLoad_MultipleIcons() throws IOException {
+  public void testEvaluateDashboardIcons_FirstCacheLoad_MultipleIcons() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     String expectedSecondIconImageFileName = "icon-2.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icons.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icons.zip").toURI()));
     byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).toURI()));
     byte[] expectedSecondIconImageFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + expectedSecondIconImageFileName).getPath()));
+        .getResource("/EnterpriseReportingServiceTest/" + expectedSecondIconImageFileName).toURI()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
     enterpriseReportingService.cacheDashboardIcons();
@@ -337,12 +337,12 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_CacheReloadWithNoIconUpdates() throws IOException {
+  public void testEvaluateDashboardIcons_CacheReloadWithNoIconUpdates() throws Exception {
     String expectedIconImageFileName = "icon-1.png";
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).toURI()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(expectedIconsZipFile));
     enterpriseReportingService.cacheDashboardIcons();
@@ -354,17 +354,17 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testEvaluateDashboardIcons_CacheReloadWithIconUpdates() throws IOException {
+  public void testEvaluateDashboardIcons_CacheReloadWithIconUpdates() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     String expectedIconImageFileName = "icon-2.png";
     File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
     File firstIconImageFile = new File(iconsDirectory, firstIconImageFileName);
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     byte[] expectedIconsZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-2.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icon-2.zip").toURI()));
     byte[] expectedIconImageFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).getPath()));
+        .getResource("/EnterpriseReportingServiceTest/" + expectedIconImageFileName).toURI()));
     when(hdsClientMock.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
     enterpriseReportingService.cacheDashboardIcons();

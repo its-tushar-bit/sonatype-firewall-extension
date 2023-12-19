@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -148,9 +149,9 @@ public class EnterpriseReportingResourceTest
         "}";
   }
 
-  private byte[] getBytesFromIconsZip() throws IOException {
+  private byte[] getBytesFromIconsZip() throws IOException, URISyntaxException {
     return Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icons_svg.zip").getPath()));
+        .getResource("/EnterpriseReportingServiceTest/icons_svg.zip").toURI()));
   }
 
   private String createDashboardVersionJson() {

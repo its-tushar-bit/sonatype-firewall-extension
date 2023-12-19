@@ -97,7 +97,7 @@ public class EnterpriseReportingResourceTest
     assertThat(dashboardMetadataDTO.description).isEqualTo("A comprehensive view of monthly sboms");
     assertThat(dashboardMetadataDTO.features.size()).isEqualTo(2);
     assertThat(dashboardMetadataDTO.accessButtonText).isEqualTo("Open Dashboard");
-    assertThat(dashboardMetadataDTO.previewImage).isEqualTo("preview001.jpg");
+    assertThat(dashboardMetadataDTO.previewImage).isEqualTo("rolling-recap.svg");
     assertThat(dashboardMetadataDTO.priority).isEqualTo(1);
     assertThat(dashboardMetadataDTO.spotlight).isTrue();
   }
@@ -141,7 +141,7 @@ public class EnterpriseReportingResourceTest
         "        \"Tables\"\n" +
         "      ],\n" +
         "      \"accessButtonText\": \"Open Dashboard\",\n" +
-        "      \"previewImage\": \"preview001.jpg\",\n" +
+        "      \"previewImage\": \"rolling-recap.svg\",\n" +
         "      \"priority\": 1,\n" +
         "      \"spotlight\": true\n" +
         "    }\n" +

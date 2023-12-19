@@ -328,24 +328,21 @@ public class EnterpriseReportingService
   }
 
   public byte[] getIcon(String iconName) {
-    Path basePath = Paths.get(insightWork.getIerDashboardIconsDirectory().getPath());
-    Path filePath = basePath.resolve(iconName).normalize();
-    if (!filePath.startsWith(basePath)) {
-      throw new BadRequestException("Icon name cannot contain ../ or ..\\");
+    boolean imageDoesNotExist = dashboardMetadataRef.get().dashboardMetadata.stream()
+        .noneMatch(it -> it.previewImage.equals(iconName));
+    if (imageDoesNotExist) {
+      throw new NotFoundException("Icon named " + iconName + " was not found");
     }
     return getIconImage(iconName);
   }
 
   private byte[] getIconImage(String iconName) {
     File iconImage = new File(insightWork.getIerDashboardIconsDirectory(), iconName);
-    if (iconImage.exists()) {
-      try {
-        return Files.readAllBytes(Paths.get(iconImage.toURI()));
-      }
-      catch (IOException e) {
-        throw new InternalServerException("Could not read icon image", e);
-      }
+    try {
+      return Files.readAllBytes(Paths.get(iconImage.toURI()));
     }
-    throw new NotFoundException("Icon named " + iconName + " was not found");
+    catch (IOException e) {
+      throw new InternalServerException("Could not read icon image", e);
+    }
   }
 }

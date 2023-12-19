@@ -452,31 +452,36 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testGetIcon_valid() throws URISyntaxException {
-    mockDashboardIconsZip();
-    byte[] iconImage = enterpriseReportingService.getIcon("rolling-recap.svg");
+    String iconName = "rolling-recap.svg";
+    AtomicReference<DashboardMetadataListDTO> dashboardData = new AtomicReference<>(new DashboardMetadataListDTO(
+        Collections.singletonList(new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8),
+            RandomStringUtils.random(8), Collections.singletonList(RandomStringUtils.random(8)),
+            RandomStringUtils.random(8), iconName, 1, false))));
+    createServiceWithDashboardMetadata(dashboardData);
+    when(insightWork.getIerDashboardIconsDirectory()).thenReturn(new
+        File(getClass().getResource("/EnterpriseReportingServiceTest/").toURI()));
+    byte[] iconImage = enterpriseReportingService.getIcon(iconName);
     assertNotNull(iconImage);
   }
 
   @Test
   public void testGetIcon_notFound() throws URISyntaxException {
-    mockDashboardIconsZip();
+    createServiceWithDashboardMetadata(mockGetLookerDashboardMetadata());
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void testGetIcon_badRequest() {
+    createServiceWithDashboardMetadata(mockGetLookerDashboardMetadata());
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("../rolling-recap1.svg"))
-        .isInstanceOf(BadRequestException.class);
+        .isInstanceOf(NotFoundException.class);
   }
 
-  private void mockDashboardIconsZip() throws URISyntaxException {
-    InsightWork mockInsightWork = mock(InsightWork.class);
+  private void createServiceWithDashboardMetadata(AtomicReference<DashboardMetadataListDTO> dashboardData) {
+    insightWork = mock(InsightWork.class);
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, mockInsightWork, mockConfigCache,
-        mockGetLookerDashboardMetadata(),
-        0, mockLatestVersionCache);
-    when(mockInsightWork.getIerDashboardIconsDirectory()).thenReturn(new
-        File(getClass().getResource("/EnterpriseReportingServiceTest/").toURI()));
+        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, dashboardData, 0,
+        mockLatestVersionCache);
   }
 }

@@ -206,6 +206,20 @@ public class PolicyWaiverMatcherWrapperTest
   }
 
   @Test
+  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_PythonPackageWithDot() {
+    String associatedPackagedUrlAllVersions = "pkg:pypi/ruamel.yaml@0.17.35?extension=whl&qualifier=py3-none-any";
+    PolicyWaiver policyWaiver = new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_VERSIONS)
+        .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createPypiCoordinates("ruamel.yaml", "otherVersion", "py3-none-any", "whl");
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isTrue();
+  }
+
+  @Test
   public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
     // compareWhenMissingRequiredCoordinates method expects the coordinates already have the version as a wildcard (*)
     ComponentIdentifier componentIdentifierSame =

@@ -14,12 +14,10 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
-import com.sonatype.insight.util.ComponentIdentifierHelper;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.util.ComponentIdentifierHelper.normalizeComponentIdentifier;
 
 /**
  * @since 1.140
@@ -76,21 +74,6 @@ public class PolicyWaiverMatcherWrapper
     return !waiverIdentif.getFormat().equals(compIdentif.getFormat());
   }
 
-  /**
-   * This method returns normalized component identifier with the * as version
-   *
-   * Note: the call to {@link ComponentIdentifierHelper#normalizeComponentIdentifier(ComponentIdentifier)}
-   * is necessary because some python components may differ in casing and underscores with the waiver PURL,
-   * the component identifier from the waiver does not require normalization because the normalization is already
-   * performed when turned into PURL before being stored in the DB
-   *
-   * @param componentIdentifier original component identifier
-   * @return all versions component identifier
-   */
-  private ComponentIdentifier getAllVersionsComponentIdentifier(ComponentIdentifier componentIdentifier) {
-    return normalizeComponentIdentifier(componentIdentifier.createAlternativeVersion("*"));
-  }
-
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
     if (policyWaiver.getComponentIdentifier() == null ||
         componentFact.getComponentIdentifier() == null ||
@@ -110,22 +93,27 @@ public class PolicyWaiverMatcherWrapper
       log.warn("Failed to ensureComplete for purl {} with the following error: {}",
           policyWaiver.getAssociatedPackageUrl(), e.getMessage());
     }
-
-    ComponentIdentifier componentFactAllVersionsIdentifier =
-        getAllVersionsComponentIdentifier(componentFact.getComponentIdentifier());
+    
+    // The policy waiver component identifier is converted from a purl, and purl applies some name normalizations.
+    // So we have to convert the component fact component identifier to purl and back to ensure the same normalizations
+    // are applied.
+    ComponentIdentifier componentFactComponentIdentifier =
+        PackageUrlIdentifier.fromComponentIdentifier(componentFact.getComponentIdentifier()).toComponentIdentifier();
+    ComponentIdentifier componentFactAllVersionsComponentIdentifier =
+        componentFactComponentIdentifier.createAlternativeVersion("*");
     // FIXME This code block was introduced in CLM-22177 and it is dependent on the resolution of CLM-22252
     // FIXME After CLM-22252 task is done remove the try catch block and leave only the ensureComplete call
     try {
-      componentFactAllVersionsIdentifier.ensureComplete();
+      componentFactAllVersionsComponentIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
       log.warn("Failed to ensureComplete for component identifier {} with the following error: {}",
-          componentFactAllVersionsIdentifier, e.getMessage());
+          componentFactAllVersionsComponentIdentifier, e.getMessage());
       return compareWhenMissingRequiredCoordinates(waiverAllVersionsComponentIdentifier,
-          componentFactAllVersionsIdentifier);
+          componentFactAllVersionsComponentIdentifier);
     }
 
-    return waiverAllVersionsComponentIdentifier.compareTo(componentFactAllVersionsIdentifier) == 0;
+    return waiverAllVersionsComponentIdentifier.compareTo(componentFactAllVersionsComponentIdentifier) == 0;
   }
 
   boolean compareWhenMissingRequiredCoordinates(

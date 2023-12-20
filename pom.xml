@@ -271,12 +271,6 @@
         <version>1.16.1</version>
       </dependency>
       <!-- Avoid security vulnerabilities -->
-      <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-        <version>20231013</version>
-      </dependency>
-      <!-- Avoid security vulnerabilities -->
       <!-- Version 4.x requires Java 11 -->
       <dependency>
         <groupId>org.apache.santuario</groupId>

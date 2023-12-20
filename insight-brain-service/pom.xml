@@ -639,7 +639,7 @@
     <dependency>
       <groupId>org.spdx</groupId>
       <artifactId>java-spdx-library</artifactId>
-      <version>1.1.7</version>
+      <version>1.1.10</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
@@ -650,7 +650,7 @@
     <dependency>
       <groupId>org.spdx</groupId>
       <artifactId>spdx-jackson-store</artifactId>
-      <version>1.1.7</version>
+      <version>1.1.9</version>
     </dependency>
   </dependencies>
 

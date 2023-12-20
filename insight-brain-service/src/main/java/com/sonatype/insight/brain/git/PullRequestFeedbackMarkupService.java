@@ -101,7 +101,7 @@ public class PullRequestFeedbackMarkupService
     final String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
-    if (scmImprovementsEnabled && supportsHtml &&
+    if (supportsHtml &&
             (provider == GITHUB || provider == GITLAB)) {
       final ComponentFeedbackContext context = contextFactory.build(provider,
               violations,
@@ -110,7 +110,7 @@ public class PullRequestFeedbackMarkupService
               applicationPublicId,
               featureBranchScanId,
               iqBaseUrl.getConfigured(),
-              codeSuggestion
+              scmImprovementsEnabled ? codeSuggestion : Optional.empty()
       );
       return ComponentFeedbackMDRenderer.render(context);
     }

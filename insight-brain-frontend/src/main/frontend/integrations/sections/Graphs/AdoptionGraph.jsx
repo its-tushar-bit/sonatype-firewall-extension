@@ -7,8 +7,8 @@ import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
 import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectDeveloperDashboardGraphsSlice } from './developerDashboardGraphsSelectors';
-import { actions } from '../../slices/developerDashboardGraphsSlice';
+import { selectDeveloperDashboardGraphsSlice } from 'MainRoot/integrations/selectors/developerDashboardGraphsSelectors';
+import { actions } from 'MainRoot/integrations/slices/developerDashboardGraphsSlice';
 import { commonGraphProps, graphColors, formatAdoptionGraphData } from '../../utils/graphUtils';
 export default function AdoptionGraph() {
   const dispatch = useDispatch();

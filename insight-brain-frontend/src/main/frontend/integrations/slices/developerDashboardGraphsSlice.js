@@ -9,7 +9,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getDeveloperDashboardGraphsData } from 'MainRoot/util/CLMLocation';
 
-const REDUCER_NAME = 'developerDashboardGraphs';
+export const DEVELOPER_DASHBOARD_GRAPHS_REDUCER_NAME = 'developerDashboardGraphs';
 
 const loadDeveloperDashboardGraphsDataRequested = (state) => {
   return {
@@ -37,7 +37,7 @@ const loadDeveloperDashboardGraphsDataFailed = (state, { payload }) => {
 };
 
 const loadDeveloperDashboardGraphsData = createAsyncThunk(
-  `${REDUCER_NAME}/loadDeveloperDashboardGraphsData`,
+  `${DEVELOPER_DASHBOARD_GRAPHS_REDUCER_NAME}/loadDeveloperDashboardGraphsData`,
   (_, { rejectWithValue }) => {
     return axios
       .get(getDeveloperDashboardGraphsData())
@@ -47,7 +47,7 @@ const loadDeveloperDashboardGraphsData = createAsyncThunk(
 );
 
 const developerDashboardGraphsDataSlice = createSlice({
-  name: REDUCER_NAME,
+  name: DEVELOPER_DASHBOARD_GRAPHS_REDUCER_NAME,
   initialState: initialState(),
   extraReducers: {
     [loadDeveloperDashboardGraphsData.pending]: loadDeveloperDashboardGraphsDataRequested,

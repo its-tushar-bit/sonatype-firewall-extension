@@ -15,9 +15,9 @@ import {
   selectNameFilter,
   selectScmFilter,
   selectCiCdFilter,
-} from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSelectors';
+} from 'MainRoot/integrations/selectors/appIntegrationsAndRiskSelectors';
 
-const REDUCER_NAME = 'appsIntegrationsAndRisk';
+export const APP_INTEGRATIONS_AND_RISK_REDUCER_NAME = 'appIntegrationsAndRisk';
 
 const PAGE_SIZE = 10;
 
@@ -68,7 +68,7 @@ const setSCMFilter = (state, { payload }) => {
 };
 
 const loadAppIntegrationsAndRisk = createAsyncThunk(
-  `${REDUCER_NAME}/loadAppIntegrationsAndRisk`,
+  `${APP_INTEGRATIONS_AND_RISK_REDUCER_NAME}/loadAppIntegrationsAndRisk`,
   (_, { getState, rejectWithValue }) => {
     const state = getState();
 
@@ -89,7 +89,7 @@ const loadAppIntegrationsAndRisk = createAsyncThunk(
 );
 
 const appIntegrationsAndRiskSlice = createSlice({
-  name: REDUCER_NAME,
+  name: APP_INTEGRATIONS_AND_RISK_REDUCER_NAME,
   initialState: initialState(),
   reducers: { setCurrentPage, setSort, setNameFilter, setCiCdFilter, setSCMFilter },
   extraReducers: {

@@ -7,8 +7,8 @@
 import React, { useEffect } from 'react';
 import { NxCard, NxTextLink, NxH3, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from './ideIntegrationsSlice';
-import { selectIdeIntegrationsSlice } from './integrationsSelectors';
+import { actions } from 'MainRoot/integrations/slices/ideIntegrationsSlice';
+import { selectIdeIntegrationsSlice } from 'MainRoot/integrations/selectors/integrationsSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { SECTIONS } from 'MainRoot/integrations/sections';
 

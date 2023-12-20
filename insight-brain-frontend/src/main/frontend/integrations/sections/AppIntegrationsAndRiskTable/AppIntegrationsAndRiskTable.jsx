@@ -17,8 +17,8 @@ import {
   NxTextLink,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions, COLUMNS } from './appIntegrationsAndRiskSlice';
-import { selectAppIntegrationsAndRiskSlice } from 'MainRoot/integrations/sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSelectors';
+import { actions, COLUMNS } from 'MainRoot/integrations/slices/appIntegrationsAndRiskSlice';
+import { selectAppIntegrationsAndRiskSlice } from 'MainRoot/integrations/selectors/appIntegrationsAndRiskSelectors';
 import { debounce } from 'debounce';
 import { faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
 import DeveloperConfigurationModal from 'MainRoot/integrations/sections/DeveloperConfigurationModal/DeveloperConfigurationModal';

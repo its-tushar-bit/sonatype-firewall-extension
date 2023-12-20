@@ -9,7 +9,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getIdeIntegratedUserCount } from 'MainRoot/util/CLMLocation';
 import getThreeMonthsAgo from 'MainRoot/integrations/utils/getThreeMonthsAgo';
 
-const REDUCER_NAME = 'ideIntegrations';
+export const IDE_INTEGRATIONS_REDUCER_NAME = 'ideIntegrations';
 
 export const initialState = {
   loading: false,
@@ -18,7 +18,7 @@ export const initialState = {
 };
 
 export const loadIdeIntegratedUserCount = createAsyncThunk(
-  `${REDUCER_NAME}/loadIdeIntegratedUserCount`,
+  `${IDE_INTEGRATIONS_REDUCER_NAME}/loadIdeIntegratedUserCount`,
   (_, { rejectWithValue }) => {
     const sinceUtcTimestamp = getThreeMonthsAgo();
 
@@ -48,7 +48,7 @@ const loadIdeIntegratedUserCountFailed = (state, { payload }) => {
 };
 
 const ideIntegrationsSlice = createSlice({
-  name: REDUCER_NAME,
+  name: IDE_INTEGRATIONS_REDUCER_NAME,
   initialState,
   reducers: {},
   extraReducers: {

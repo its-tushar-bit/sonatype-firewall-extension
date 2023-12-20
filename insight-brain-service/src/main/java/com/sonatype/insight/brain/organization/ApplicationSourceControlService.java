@@ -87,11 +87,13 @@ public class ApplicationSourceControlService
   // Automated source control feedback is considered disabled when either pull request commenting or commit statuses are
   // disabled
   private boolean isAutomatedSourceControlFeedbackDisabled(final SourceControl sourceControl) {
-    if (sourceControl.getPullRequestCommentingEnabled() == null || sourceControl.getCommitStatusEnabled() == null) {
+    if (sourceControl.getPullRequestCommentingEnabled() == null) {
       return true;
     }
+    // According to the GitCommitStatusService.onApplicationEvaluation() logic, null commitStatusEnabled behaves enabled
+    boolean commitStatusLogicallyDisabled = Boolean.FALSE.equals(sourceControl.getCommitStatusEnabled());
 
-    return !sourceControl.getPullRequestCommentingEnabled() || !sourceControl.getCommitStatusEnabled();
+    return !sourceControl.getPullRequestCommentingEnabled() || commitStatusLogicallyDisabled;
   }
 
   @Authorize(permission = Permission.READ)

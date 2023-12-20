@@ -229,7 +229,7 @@ public class ApplicationSourceControlServiceTest
     final List<ApplicationTotalRiskDTO> resultsWhenOnlyCommitStatusNull =
         applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
             LIMIT_LARGER_THAN_RESULT_SIZE);
-    assertThat(resultsWhenOnlyCommitStatusNull).hasSize(1);
+    assertThat(resultsWhenOnlyCommitStatusNull).hasSize(0);
   }
 
   private List<Application> givenApplicationsWithNoRisk(final int numApplications) {

@@ -20,6 +20,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
@@ -72,6 +73,8 @@ public class ApplicationCountHistoryServiceTest
   private static final String ENC = "CMMDwoV";
 
   private Organization givenOrganization;
+
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   @Override
   public void configure(Binder binder) {
@@ -159,6 +162,40 @@ public class ApplicationCountHistoryServiceTest
         rowsAfterSecondRecording.get(2),
         new ApplicationCountHistory(secondRecording, 7, 5, 0, 0, 0)
     );
+  }
+
+  @Test
+  public void testRecordApplicationCount_shouldConsiderDefaultScmFeedbackEnabledWhenTheValueIsNullAllTheWay() {
+    // === Given ===
+    final Date firstRecording = Date.from(Instant.now().plus(Duration.ofDays(1)));
+    final Date secondRecording = Date.from(Instant.now().plus(Duration.ofDays(2)));
+
+    // === Then First Recording ===
+    when(dateTimeService.getCurrentDate()).thenReturn(firstRecording);
+    final List<Application> applications = tempEntity.createApplications(1, givenOrganization);
+
+    applicationCountHistoryService.recordApplicationCount();
+
+    final List<ApplicationCountHistory> rowsAfterFirstRecording = tempEntity.getAllApplicationHistoryCountRows();
+    assertThat(rowsAfterFirstRecording)
+        .last()
+        .extracting(ach -> ach.getScmFeedbackEnabledCount()).isEqualTo(0);
+
+    // === Then Second Recording ===
+    when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
+    setScmFeedBackForApp(applications.get(0), null);
+
+    // The scenario that commitStatusEnabled was not set anywhere in the hierarchy for App1
+    assertThat(sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID).getCommitStatusEnabled()).isNull();
+    assertThat(sourceControlDAO.getByOwnerId(givenOrganization.getId())).isNull();
+    assertThat(sourceControlDAO.getByOwnerId(applications.get(0).getId()).getCommitStatusEnabled()).isNull();
+
+    applicationCountHistoryService.recordApplicationCount();
+
+    final List<ApplicationCountHistory> rowsAfterSecondRecording = tempEntity.getAllApplicationHistoryCountRows();
+    assertThat(rowsAfterSecondRecording)
+        .last()
+        .extracting(ach -> ach.getScmFeedbackEnabledCount()).isEqualTo(1);
   }
 
   @Test
@@ -638,6 +675,10 @@ public class ApplicationCountHistoryServiceTest
   }
 
   private void enableScmFeedBackForApp(final Application application) {
+    setScmFeedBackForApp(application, true);
+  }
+
+  private void setScmFeedBackForApp(final Application application, final Boolean commitStatusEnabled) {
     final String anyRepoUrl = "https://example.com/organization/" + UUID.randomUUID();
     final String appId = application.getId();
 
@@ -656,7 +697,7 @@ public class ApplicationCountHistoryServiceTest
         true,
         "/target/*",
         true,
-        true
+        commitStatusEnabled
     );
   }
 

@@ -31,6 +31,6 @@ public class ComponentDetailsLoaderFactory
   }
 
   public ComponentDetailsLoader newInstance(Owner owner) {
-    return new DefaultComponentDetailsLoader(owner, proprietaryComponentNameDetector, configuration);
+    return new ComponentDetailsLoader(owner, proprietaryComponentNameDetector, configuration);
   }
 }

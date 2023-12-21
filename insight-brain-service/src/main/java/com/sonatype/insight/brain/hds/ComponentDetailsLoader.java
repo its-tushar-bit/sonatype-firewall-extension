@@ -22,8 +22,12 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -31,6 +35,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
+import com.sonatype.insight.brain.service.Configuration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,11 +44,33 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
-public abstract class ComponentDetailsLoader
+/**
+ * Assists in loading data for the CIP.
+ */
+public class ComponentDetailsLoader
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
 
   private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+
+  private final LicenseDAO licenseDAO = new LicenseDAO();
+
+  private final ComponentDAO componentDAO;
+
+  private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
+  private final Configuration configuration;
+
+  ComponentDetailsLoader(
+      Owner owner,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      Configuration configuration)
+  {
+    componentDAO = new ComponentDAO(owner);
+    this.proprietaryComponentNameDetector =
+        OwnerType.REPOSITORY.equals(owner.getType()) ? proprietaryComponentNameDetector : null;
+    this.configuration = configuration;
+  }
 
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
@@ -313,9 +341,23 @@ public abstract class ComponentDetailsLoader
     return component;
   }
 
-  protected abstract Component getComponent(ComponentDetails componentDetails);
+  private Component getComponent(ComponentDetails componentDetails) {
+    Component component =
+        componentDAO.getComponent(componentDetails, configuration.isALPObservedLicenseDetectionEnabled());
+    if (proprietaryComponentNameDetector != null) {
+      component.setConflictingProprietaryName(
+          proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));
+    }
 
-  protected abstract com.sonatype.insight.brain.model.license.License getLicense(String licenseId);
+    if (componentDetails.getAnalyzerFeatures() != null) {
+      component.setAnalyzerFeatures(componentDetails.getAnalyzerFeatures());
+    }
+    return component;
+  }
+
+  private com.sonatype.insight.brain.model.license.License getLicense(final String licenseId) {
+    return licenseDAO.getByIdNotNull(licenseId);
+  }
 
   private boolean isSameSource(final String issueSource, final String svSource) {
     //for third party components the source may not exist

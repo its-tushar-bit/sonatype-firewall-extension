@@ -64,7 +64,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
-import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -387,7 +386,7 @@ public class ReportResource
                 NamedComponentDetails.class);
             NamedComponentDetails clmDetails =
                 ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
-                    hdsDetails.getMatchState(), new DefaultComponentDetailsLoader.HostedDataServicesSource()
+                    hdsDetails.getMatchState(), new ComponentDetailsLoader.HostedDataServicesSource()
                     {
                       @Override
                       public NamedComponentDetails getDetails() throws IOException {

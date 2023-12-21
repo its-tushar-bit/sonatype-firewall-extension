@@ -251,7 +251,7 @@ public class ComponentInfoService
       final String identificationSource) throws IOException
   {
     return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
-        new DefaultComponentDetailsLoader.HostedDataServicesSource()
+        new ComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
           public NamedComponentDetails getDetails() throws IOException {

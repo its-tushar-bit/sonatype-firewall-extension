@@ -15,6 +15,8 @@ import com.codeborne.selenide.SelenideElement;
 
 public class FirewallPageComponents
 {
+  public static final String TEXT_LINK = ".nx-text-link";
+
   public static class FirewallStatus
       extends BasicElement<FirewallStatus>
   {
@@ -25,17 +27,41 @@ public class FirewallPageComponents
     public SelenideElement title() {
       return child(".nx-h1");
     }
-  }
 
-  public static class FirewallQuarantineStatus
-      extends BasicElement<FirewallQuarantineStatus>
-  {
-    public FirewallQuarantineStatus(String rootSelector) {
-      super(rootSelector, "#firewall-quarantine-status");
+    public SelenideElement statusPartiallyProtected() {
+      return child(".iq-firewall-status__status-indicator.nx-status-indicator--intermediate");
     }
 
-    public SelenideElement header() {
-      return child(FirewallPage.CHILD_HEADER_CSS_CLASS);
+    public SelenideElement statusFullyProtected() {
+      return child(".iq-firewall-status__status-indicator.nx-status-indicator--positive");
+    }
+
+    public SelenideElement componentsMonitored() {
+      return child(".iq-firewall-status__components-monitored");
+    }
+  }
+
+  public static class FirewallMetrics
+      extends BasicElement<FirewallMetrics>
+  {
+    public FirewallMetrics(String rootSelector) {
+      super(rootSelector, "#firewall-metrics");
+    }
+  }
+
+  public static class FirewallMetricsContent
+      extends BasicElement<FirewallMetricsContent>
+  {
+    public FirewallMetricsContent(String rootSelector, String id) {
+      super(rootSelector, id);
+    }
+
+    public SelenideElement value() {
+      return child(".iq-firewall-metrics-content__values");
+    }
+
+    public SelenideElement link() {
+      return child(TEXT_LINK);
     }
   }
 
@@ -67,23 +93,11 @@ public class FirewallPageComponents
     }
 
     public SelenideElement configureLink() {
-      return child(".nx-text-link");
+      return child(TEXT_LINK);
     }
 
     public Button retryButton() {
       return new Button(childSelector(".nx-load-error__retry"));
-    }
-  }
-
-  public static class FirewallQuarantine
-      extends BasicElement<FirewallQuarantine>
-  {
-    public FirewallQuarantine(String rootSelector) {
-      super(rootSelector, "#firewall-quarantine");
-    }
-
-    public SelenideElement header() {
-      return child(FirewallPage.CHILD_HEADER_CSS_CLASS);
     }
   }
 
@@ -103,7 +117,7 @@ public class FirewallPageComponents
     }
 
     public SelenideElement autoUnquarantineLink() {
-      return child(".nx-text-link");
+      return child(TEXT_LINK);
     }
   }
 
@@ -142,8 +156,12 @@ public class FirewallPageComponents
       return child("#firewall-quarantine-table--select-policy");
     }
 
-    public ElementsCollection policyNameOptions() {
-      return children("#firewall-quarantine-table--select-policy option");
+    public ElementsCollection policyNameCheckboxes() {
+      return children("#firewall-quarantine-table--select-policy .nx-radio-checkbox");
+    }
+
+    public SelenideElement policyFilterReset() {
+      return child("#firewall-quarantine-table--select-policy .nx-filter-dropdown__reset");
     }
 
     public SelenideElement componentNameInput() {

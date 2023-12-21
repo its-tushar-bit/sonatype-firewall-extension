@@ -10,9 +10,9 @@ import {
   flatten,
   isEmpty,
   isNil,
+  not,
   join,
   map,
-  not,
   nth,
   reduceWhile,
   replace,
@@ -26,7 +26,12 @@ const pairToURIParam = compose(join('='), map(encodeURIComponent));
  * {k: String} -> String
  * Converts object to URI params string omitting empty values
  */
-export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
+export const toURIParams = compose(
+  join('&'),
+  map(pairToURIParam),
+  map(([k, v]) => [k, join(',', [v])]),
+  toNonNullPairs
+);
 
 export function getBaseUrl(url) {
   const segments = ['/assets/', '/rest/report/'];

@@ -18,8 +18,8 @@ import {
   NxTableRow,
   NxTextLink,
   NxThreatIndicator,
-  NxFormSelect,
   NxFilterInput,
+  NxStatefulFilterDropdown,
 } from '@sonatype/react-shared-components';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
@@ -46,7 +46,7 @@ export default function FirewallQuarantineTable(props) {
     currentPage,
     sortDir,
     sortField,
-    filterPolicy,
+    filterPolicies,
     filterComponentName,
     lastUpdated,
   } = props;
@@ -82,7 +82,7 @@ export default function FirewallQuarantineTable(props) {
       let policyViolation = policyViolations[i];
 
       // If we match filter criteria, that takes precedence so break the loop.
-      if (filterPolicy === policyViolation.policyId) {
+      if (filterPolicies === policyViolation.policyId) {
         chosenViolation = policyViolation;
         break;
       } else if (policyViolation.threatLevel > chosenViolation.threatLevel) {
@@ -94,6 +94,8 @@ export default function FirewallQuarantineTable(props) {
   }
 
   const uiRouterState = useRouterState();
+
+  const options = policies ? policies.map(({ id, name: displayName }) => ({ id, displayName })) : [];
 
   return (
     <section id="firewall-quarantine-table">
@@ -139,21 +141,14 @@ export default function FirewallQuarantineTable(props) {
             <NxTableRow isFilterHeader>
               <NxTableCell />
               <NxTableCell>
-                <NxFormSelect
+                <NxStatefulFilterDropdown
                   id="firewall-quarantine-table--select-policy"
-                  onChange={(event) => setQuarantineGridPolicyFilter(event.currentTarget.value)}
-                  value={filterPolicy}
-                >
-                  {/* Effectively clears the filter. */}
-                  <option value={''}></option>
-
-                  {policies &&
-                    policies.map((policy) => (
-                      <option key={policy.id} value={policy.id}>
-                        {policy.name}
-                      </option>
-                    ))}
-                </NxFormSelect>
+                  options={options}
+                  onChange={(selectedIds) => setQuarantineGridPolicyFilter(Array.from(selectedIds))}
+                  // Only set selected ids when options is population,
+                  // this is to prevent race condition.
+                  selectedIds={new Set(options.length ? filterPolicies : [])}
+                />
               </NxTableCell>
               <NxTableCell />
               <NxTableCell>
@@ -266,7 +261,7 @@ FirewallQuarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  filterPolicy: PropTypes.string,
+  filterPolicies: PropTypes.array,
   filterComponentName: PropTypes.string,
   lastUpdated: PropTypes.object,
   goToRepositoryComponentDetailsPage: PropTypes.func,

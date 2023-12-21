@@ -5,21 +5,24 @@
  */
 
 import React, { useEffect } from 'react';
+import { compose, identity } from 'ramda';
 import LoadWrapper from '../react/LoadWrapper';
 import FirewallStatus from './FirewallStatus';
-import FirewallQuarantineStatus from './FirewallQuarantineStatus';
-import FirewallQuarantine from './FirewallQuarantine';
-import FirewallAutoReleaseQuarantine from './FirewallAutoReleaseQuarantine';
 import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
-import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
 import FirewallWelcomeModal from './FirewallWelcomeModal';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import FirewallMetrics from './FirewallMetrics';
+import { NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
 
 export default function FirewallPage(props) {
   // Actions
-  const { loadFirewallData } = props;
+  const {
+    loadFirewallData,
+    setQuarantineGridPolicyFilter,
+    setQuarantineGridPolicyFilterWithProprietaryNameConflict,
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
+  } = props;
 
   // Welcome Modal
   const { initializeWelcomeModal, showWelcomeModal, closeWelcomeModal } = props;
@@ -28,36 +31,64 @@ export default function FirewallPage(props) {
   const { isShowConfigurationModal, loadError } = props;
 
   // autoUnquarantineState.viewState
-  const { autoReleaseQuarantineCountMTD, loadedReleaseQuarantineSummary, loadedConfiguration } = props;
+  const { loadedReleaseQuarantineSummary, loadedConfiguration } = props;
+
+  // tileMetricsState
+  const {
+    componentsAutoReleased,
+    componentsQuarantined,
+    namespaceAttacksBlocked,
+    safeVersionsSelected,
+    supplyChainAttacksBlocked,
+    waivedComponents,
+  } = props;
 
   // quarantineSummaryState
   const { loadedQuarantineSummary } = props;
 
-  // state
-  const uiRouterState = useRouterState();
-
   const dataLoaded = isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary);
+
+  const { filterPolicies } = props;
 
   useEffect(() => {
     loadFirewallData();
     initializeWelcomeModal();
   }, []);
 
+  const scrollToQuarantineTable = () =>
+    document.getElementById('firewall-quarantine-table').scrollIntoView({ behavior: 'smooth' });
+
   return (
     <main id="firewall-page" className="nx-page-main">
       {showWelcomeModal && <FirewallWelcomeModal close={closeWelcomeModal} />}
       {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
       <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
+        <NxPageTitle className="iq-firewall-page__title">
+          <NxPageTitle.Headings>
+            <NxH1>Firewall</NxH1>
+          </NxPageTitle.Headings>
+        </NxPageTitle>
         <FirewallStatus {...props} />
-        <div className="nx-card-container nx-card-container--no-wrap">
-          <FirewallQuarantineStatus {...props} />
-          <FirewallAutoUnquarantineStatus {...props} />
-          <FirewallQuarantine {...props} />
-          <FirewallAutoReleaseQuarantine
-            autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
-            $state={uiRouterState}
-          />
-        </div>
+        <FirewallMetrics
+          supplyChainAttacksBlocked={supplyChainAttacksBlocked}
+          namespaceAttacksBlocked={namespaceAttacksBlocked}
+          componentsQuarantined={componentsQuarantined}
+          componentsAutoReleased={componentsAutoReleased}
+          saferVersionsSelectedAutomatically={safeVersionsSelected}
+          waivedComponents={waivedComponents}
+          onNamespaceAttacksBlockedLinkClick={compose(
+            scrollToQuarantineTable,
+            setQuarantineGridPolicyFilterWithProprietaryNameConflict
+          )}
+          onSupplyChainAttacksBlockedLinkClick={compose(
+            scrollToQuarantineTable,
+            setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode
+          )}
+          onComponentsQuarantinedLinkClick={compose(
+            scrollToQuarantineTable,
+            filterPolicies.length > 0 ? () => setQuarantineGridPolicyFilter([]) : identity
+          )}
+        />
         <FirewallQuarantineTable {...props} />
       </LoadWrapper>
     </main>
@@ -73,12 +104,22 @@ FirewallPage.propTypes = {
   initializeWelcomeModal: PropTypes.func.isRequired,
   closeWelcomeModal: PropTypes.func.isRequired,
   loadFirewallData: PropTypes.func.isRequired,
+  setQuarantineGridPolicyFilter: PropTypes.func.isRequired,
+  setQuarantineGridPolicyFilterWithProprietaryNameConflict: PropTypes.func.isRequired,
+  setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode: PropTypes.func.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
   loadedQuarantineSummary: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
+  componentsAutoReleased: PropTypes.number.isRequired,
+  componentsQuarantined: PropTypes.number.isRequired,
+  namespaceAttacksBlocked: PropTypes.number.isRequired,
+  safeVersionsSelected: PropTypes.number.isRequired,
+  supplyChainAttacksBlocked: PropTypes.number.isRequired,
+  waivedComponents: PropTypes.number.isRequired,
+  filterPolicies: PropTypes.array.isRequired,
   uiRouterState: PropTypes.shape({
     href: PropTypes.func.isRequired,
   }),

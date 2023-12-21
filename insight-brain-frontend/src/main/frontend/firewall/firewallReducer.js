@@ -27,6 +27,9 @@ import {
   FIREWALL_QUARANTINE_LIST_FAILED,
   FIREWALL_QUARANTINE_LIST_FULFILLED,
   FIREWALL_QUARANTINE_LIST_REQUESTED,
+  FIREWALL_LOAD_TILE_METRICS_REQUESTED,
+  FIREWALL_LOAD_TILE_METRICS_FAILED,
+  FIREWALL_LOAD_TILE_METRICS_FULFILLED,
   FIREWALL_QUARANTINE_SUMMARY_FAILED,
   FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
   FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
@@ -58,6 +61,9 @@ import {
   FIREWALL_REEVALUATE_COMPONENT_REQUESTED,
   FIREWALL_REEVALUATE_COMPONENT_FULFILLED,
   FIREWALL_REEVALUATE_COMPONENT_FAILED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_FAILED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
@@ -99,6 +105,16 @@ export const initialState = Object.freeze({
   viewState: Object.freeze({
     isShowConfigurationModal: false,
     loadError: null,
+  }),
+  tileMetricsState: Object.freeze({
+    loadedTileMetrics: false,
+    loadTileMetricsError: null,
+    componentsAutoReleased: 0,
+    componentsQuarantined: 0,
+    namespaceAttacksBlocked: 0,
+    safeVersionsSelected: 0,
+    supplyChainAttacksBlocked: 0,
+    waivedComponents: 0,
   }),
   autoUnquarantineState: Object.freeze({
     viewState: Object.freeze({
@@ -149,7 +165,7 @@ export const initialState = Object.freeze({
     currentPage: null,
     sortDir: null,
     sortField: null,
-    filterPolicy: undefined,
+    filterPolicies: [],
     filterComponentName: '',
     lastUpdated: null,
   }),
@@ -161,6 +177,30 @@ const setShowWelcomeModal = (payload, state) => {
     showWelcomeModal: payload,
   };
 };
+
+const loadPoliciesWithConditionsRequested = (_, state) => ({
+  ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: null,
+  },
+});
+
+const loadPoliciesWithConditionsFulfilled = (_, state) => ({
+  ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: null,
+  },
+});
+
+const loadPoliciesWithConditionsFailed = (payload, state) => ({
+  ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: state.viewState.loadError || payload,
+  },
+});
 
 const loadReleaseQuarantineSummaryRequested = (_, state) =>
   over(
@@ -419,6 +459,38 @@ function numberOfEnabledPolicyConditionTypesCount(payload) {
   }).length;
 }
 
+const tileMetricsRequested = (_, state) => ({
+  ...state,
+  tileMetricsState: {
+    ...state.tileMetricsState,
+    loadedTileMetrics: false,
+    loadTileMetricsError: null,
+  },
+});
+
+const tileMetricsFulfilled = (payload, state) => ({
+  ...state,
+  tileMetricsState: {
+    ...state.tileMetricsState,
+    loadedTileMetrics: true,
+    componentsAutoReleased: payload.COMPONENTS_AUTO_RELEASED.firewallMetricsValue,
+    componentsQuarantined: payload.COMPONENTS_QUARANTINED.firewallMetricsValue,
+    namespaceAttacksBlocked: payload.NAMESPACE_ATTACKS_BLOCKED.firewallMetricsValue,
+    safeVersionsSelected: payload.SAFE_VERSIONS_SELECTED_AUTOMATICALLY.firewallMetricsValue,
+    supplyChainAttacksBlocked: payload.SUPPLY_CHAIN_ATTACKS_BLOCKED.firewallMetricsValue,
+    waivedComponents: payload.WAIVED_COMPONENTS.firewallMetricsValue,
+  },
+});
+
+const tileMetricsFailed = (payload, state) => ({
+  ...state,
+  tileMetricsState: {
+    ...state.tileMetricsState,
+    loadedTileMetrics: true,
+    loadTileMetricsError: payload,
+  },
+});
+
 const quarantineSummaryRequested = (payload, state) => ({
   ...state,
   quarantineSummaryState: {
@@ -520,7 +592,7 @@ const setQuarantineGridPolicyFilter = (payload, state) =>
   over(
     lensPath(['quarantineGridState']),
     merge(__, {
-      filterPolicy: payload.policy,
+      filterPolicies: payload.policies,
     }),
     state
   );
@@ -709,7 +781,7 @@ const setFirewallLoadDataRequested = (_, state) => {
   const sortAndFilterConfig = {
     sortDir: state.quarantineGridState.sortDir,
     sortField: state.quarantineGridState.sortField,
-    filterPolicy: state.quarantineGridState.filterPolicy,
+    filterPolicies: state.quarantineGridState.filterPolicies,
     filterComponentName: state.quarantineGridState.filterComponentName,
   };
   return {
@@ -732,6 +804,9 @@ const reducerActionMap = {
   [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: loadReleaseQuarantineSummaryRequested,
   [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED]: loadReleaseQuarantineSummaryFailed,
   [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED]: loadReleaseQuarantineSummaryFulfilled,
+  [FIREWALL_LOAD_TILE_METRICS_REQUESTED]: tileMetricsRequested,
+  [FIREWALL_LOAD_TILE_METRICS_FAILED]: tileMetricsFailed,
+  [FIREWALL_LOAD_TILE_METRICS_FULFILLED]: tileMetricsFulfilled,
   [FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED]: loadReleaseQuarantineListRequested,
   [FIREWALL_RELEASE_QUARANTINE_LIST_FAILED]: loadReleaseQuarantineListFailed,
   [FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED]: loadReleaseQuarantineListFulfilled,
@@ -749,6 +824,9 @@ const reducerActionMap = {
   [FIREWALL_POLICIES_REQUESTED]: loadPoliciesRequested,
   [FIREWALL_POLICIES_FAILED]: loadPoliciesFailed,
   [FIREWALL_POLICIES_FULFILLED]: loadPoliciesFulfilled,
+  [FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED]: loadPoliciesWithConditionsRequested,
+  [FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED]: loadPoliciesWithConditionsFulfilled,
+  [FIREWALL_POLICIES_WITH_CONDITIONS_FAILED]: loadPoliciesWithConditionsFailed,
   [FIREWALL_QUARANTINE_SUMMARY_REQUESTED]: quarantineSummaryRequested,
   [FIREWALL_QUARANTINE_SUMMARY_FULFILLED]: quarantineSummaryFulfilled,
   [FIREWALL_QUARANTINE_SUMMARY_FAILED]: quarantineSummaryFailed,

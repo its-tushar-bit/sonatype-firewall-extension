@@ -6,21 +6,23 @@
 import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
-import FirewallAutoUnquarantineStatus from '../../../main/frontend/firewall/FirewallAutoUnquarantineStatus';
 import FirewallStatus from '../../../main/frontend/firewall/FirewallStatus';
-import FirewallAutoReleaseQuarantine from '../../../main/frontend/firewall/FirewallAutoReleaseQuarantine';
-import FirewallQuarantine from '../../../main/frontend/firewall/FirewallQuarantine';
 import FirewallQuarantineTable from '../../../main/frontend/firewall/FirewallQuarantineTable';
 import FirewallWelcomeModal from '../../../main/frontend/firewall/FirewallWelcomeModal';
+import FirewallMetrics from 'MainRoot/firewall/FirewallMetrics';
 
 describe('FirewallPage', function () {
   let minimalProps,
     Firewall,
     loadFirewallDataSpy,
+    setQuarantineGridPolicyFilterSpy,
+    setQuarantineGridPolicyFilterWithProprietaryNameConflictSpy,
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeSpy,
     stateGoSpy,
     openConfigurationModalSpy,
     stateMock,
     getShallowComponent,
+    getMountedComponent,
     FirewallConfigurationModalMock;
 
   beforeEach(function () {
@@ -33,6 +35,14 @@ describe('FirewallPage', function () {
     }).default;
 
     loadFirewallDataSpy = jasmine.createSpy('loadFirewallData');
+    setQuarantineGridPolicyFilterWithProprietaryNameConflictSpy = jasmine.createSpy(
+      'setQuarantineGridPolicyFilterWithProprietaryNameConflict'
+    );
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeSpy = jasmine.createSpy(
+      'setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode'
+    );
+    setQuarantineGridPolicyFilterSpy = jasmine.createSpy('setQuarantineGridPolicyFilter');
+
     stateGoSpy = jasmine.createSpy('stateGo');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
     stateMock = jasmine.createSpy('state');
@@ -56,14 +66,35 @@ describe('FirewallPage', function () {
       quarantineEnabledRepositoryCount: 5,
       repositoryCount: 6,
       totalComponentCount: 7,
-      quarantinedComponentCount: 8,
       $state: stateMock,
       loadFirewallData: loadFirewallDataSpy,
       openConfigurationModal: openConfigurationModalSpy,
       stateGo: stateGoSpy,
+      quarantinePageCount: 10,
+      setQuarantineGridPolicyFilterWithProprietaryNameConflict: setQuarantineGridPolicyFilterWithProprietaryNameConflictSpy,
+      setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode: setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeSpy,
+      quarantinedComponentCount: 8,
+      currentPage: 1,
+      filterComponentName: 'test',
+      policies: [],
+      filterPolicies: [],
+      quarantineList: [],
+      loadedQuarantineList: true,
+      componentsAutoReleased: 0,
+      componentsQuarantined: 0,
+      namespaceAttacksBlocked: 0,
+      safeVersionsSelected: 0,
+      supplyChainAttacksBlocked: 0,
+      waivedComponents: 0,
+      setQuarantineGridComponentNameFilter: () => {},
+      setQuarantineGridPolicyFilter: setQuarantineGridPolicyFilterSpy,
+      setQuarantineGridSorting: () => {},
+      setQuarantineGridPage: () => {},
+      loadQuarantineList: () => {},
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(Firewall, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(Firewall, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -79,50 +110,90 @@ describe('FirewallPage', function () {
       card = component.find(FirewallStatus);
 
     expect(card).toExist();
-    expect(card).toHaveProp('totalComponentCount', 7);
-    expect(card).toHaveProp('repositoryCount', 6);
-  });
-
-  it('renders a card container', function () {
-    const component = getShallowComponent();
-    expect(component.find('.nx-card-container')).toExist();
-  });
-
-  it('renders a FirewallQuarantineStatus card', function () {
-    const component = getShallowComponent(),
-      card = component.find(FirewallAutoUnquarantineStatus);
-
-    expect(card).toExist();
-    expect(card).toHaveProp('quarantineEnabled', true);
     expect(card).toHaveProp('quarantineEnabledRepositoryCount', 5);
     expect(card).toHaveProp('repositoryCount', 6);
+    expect(card).toHaveProp('totalComponentCount', 7);
   });
 
-  it('renders a FirewallAutoUnquarantineStatus card', function () {
+  it('renders a FirewallMetrics', function () {
     const component = getShallowComponent(),
-      card = component.find(FirewallAutoUnquarantineStatus);
+      metrics = component.find(FirewallMetrics);
 
-    expect(card).toExist();
-    expect(card).toHaveProp('autoUnquarantineEnabled', false);
-    expect(card).toHaveProp('enabledPolicyConditionTypesCount', 3);
-    expect(card).toHaveProp('totalPolicyConditionTypesCount', 4);
-    expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
+    expect(metrics).toExist();
   });
 
-  it('renders a FirewallQuarantine card', function () {
-    const component = getShallowComponent(),
-      card = component.find(FirewallQuarantine);
+  it('scrolls when FirewallMetrics "details" links are clicked', function () {
+    const scrollIntoViewMock = jasmine.createSpy('scrollIntoView');
+    const getElementByIdMock = jasmine.createSpy('getElementById').and.returnValue({
+      scrollIntoView: scrollIntoViewMock,
+    });
+    const getElementById = document.getElementById;
+    document.getElementById = getElementByIdMock;
 
-    expect(card).toExist();
-    expect(card).toHaveProp('quarantinedComponentCount', 8);
+    const component = getMountedComponent();
+    const metrics = component.find(FirewallMetrics);
+    const button1 = metrics.find('#firewall-metrics-content-supply-chain-attacks-blocked').find('button.nx-text-link');
+    const button2 = metrics.find('#firewall-metrics-content-namespace-attacks-blocked').find('button.nx-text-link');
+    const button3 = metrics.find('#firewall-metrics-content-components-quarantined').find('button.nx-text-link');
+
+    expect(button1).toExist();
+    expect(button2).toExist();
+
+    button1.simulate('click');
+    expect(getElementByIdMock).toHaveBeenCalledWith('firewall-quarantine-table');
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
+    expect(scrollIntoViewMock.calls.count()).toBe(1);
+
+    button2.simulate('click');
+    expect(scrollIntoViewMock.calls.count()).toBe(2);
+
+    button3.simulate('click');
+    expect(scrollIntoViewMock.calls.count()).toBe(3);
+
+    document.getElementById = getElementById;
   });
 
-  it('renders a FirewallAutoReleaseQuarantine card', function () {
-    const component = getShallowComponent(),
-      card = component.find(FirewallAutoReleaseQuarantine);
+  it('calls setQuarantineGridPolicyFilter when filterPolicies is greater than 0', function () {
+    const minimalPropsWithFilter = {
+      ...minimalProps,
+      filterPolicies: ['a'],
+    };
+    getShallowComponent = enzymeUtils.getShallowComponent(Firewall, minimalPropsWithFilter);
+    getMountedComponent = enzymeUtils.getMountedComponent(Firewall, minimalPropsWithFilter);
+    const component = getMountedComponent();
 
-    expect(card).toExist();
-    expect(card).toHaveProp('autoReleaseQuarantineCountMTD', 1);
+    const scrollIntoViewMock = jasmine.createSpy('scrollIntoView');
+    const getElementByIdMock = jasmine.createSpy('getElementById').and.returnValue({
+      scrollIntoView: scrollIntoViewMock,
+    });
+    const getElementById = document.getElementById;
+    document.getElementById = getElementByIdMock;
+
+    const metrics = component.find(FirewallMetrics);
+    const button = metrics.find('#firewall-metrics-content-components-quarantined').find('button.nx-text-link');
+    button.simulate('click');
+
+    expect(setQuarantineGridPolicyFilterSpy).toHaveBeenCalled();
+
+    document.getElementById = getElementById;
+  });
+
+  it('does not call setQuarantineGridPolicyFilter when filterPolicies is not greater than 0', function () {
+    const scrollIntoViewMock = jasmine.createSpy('scrollIntoView');
+    const getElementByIdMock = jasmine.createSpy('getElementById').and.returnValue({
+      scrollIntoView: scrollIntoViewMock,
+    });
+    const getElementById = document.getElementById;
+    document.getElementById = getElementByIdMock;
+
+    const component = getMountedComponent();
+    const metrics = component.find(FirewallMetrics);
+    const button = metrics.find('#firewall-metrics-content-components-quarantined').find('button.nx-text-link');
+    button.simulate('click');
+
+    expect(setQuarantineGridPolicyFilterSpy).not.toHaveBeenCalled();
+
+    document.getElementById = getElementById;
   });
 
   it('renders a FirewallQuarantineTable', function () {

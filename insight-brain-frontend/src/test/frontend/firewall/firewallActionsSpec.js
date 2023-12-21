@@ -20,6 +20,9 @@ import {
   FIREWALL_POLICIES_FAILED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_REQUESTED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED,
+  FIREWALL_POLICIES_WITH_CONDITIONS_FAILED,
   FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
@@ -41,6 +44,9 @@ import {
   FIREWALL_SAVE_CONFIGURATION_REQUESTED,
   FIREWALL_SELECT_COMPONENT,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  FIREWALL_LOAD_TILE_METRICS_REQUESTED,
+  FIREWALL_LOAD_TILE_METRICS_FAILED,
+  FIREWALL_LOAD_TILE_METRICS_FULFILLED,
   FIREWALL_COMPONENT_DETAILS_REQUESTED,
   FIREWALL_COMPONENT_DETAILS_FULFILLED,
   FIREWALL_COMPONENT_DETAILS_FAILED,
@@ -75,6 +81,8 @@ import {
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
   setQuarantineGridSorting,
+  setQuarantineGridPolicyFilterWithProprietaryNameConflict,
+  setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
   loadComponentDetails,
   loadComponentDetailsRequested,
   loadComponentDetailsFulfilled,
@@ -87,10 +95,14 @@ import {
   loadExistingWaiversDataRequested,
   loadExistingWaiversDataFulfilled,
   loadExistingWaiversDataFailed,
+  loadPoliciesWithConditionsRequested,
+  loadPoliciesWithConditionsFulfilled,
+  loadPoliciesWithConditionsFailed,
   onGoToRepositoryComponentWaiversPage,
   loadFirewallViolationDetails,
   FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER,
   setQuarantineGridComponentNameFilter,
+  loadTileMetrics,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -105,6 +117,8 @@ import {
   getComponentMultiLicensesUrl,
   getLicenseOverrideUrl,
   getComponentLabels,
+  getFirewallTileMetricsUrl,
+  getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -115,8 +129,10 @@ describe('firewallActions', function () {
     firewallConfigUrl = getFirewallConfigurationUrl(),
     firewallReleaseQuarantineSummaryUrl = getFirewallReleaseQuarantineSummaryUrl(),
     firewallReleaseQuarantineListUrl = getFirewallReleaseQuarantineListUrl(),
+    firewallTileMetricsUrl = getFirewallTileMetricsUrl(),
     firewallQuarantineSummaryUrl = getFirewallQuarantineSummaryUrl(),
     firewallQuarantineListUrl = getFirewallQuarantineListUrl(),
+    firewallQuarantineListWithConditionsUrl = getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl(),
     policiesUrl = getPoliciesUrl(),
     requestRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'RepolicyViolationId'),
     repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'policyViolationId'),
@@ -170,7 +186,7 @@ describe('firewallActions', function () {
           currentPage: null,
           sortDir: null,
           sortField: null,
-          filterPolicyId: '',
+          filterPolicies: [],
           lastUpdated: null,
         }),
         policiesState: Object.freeze({
@@ -779,6 +795,75 @@ describe('firewallActions', function () {
     });
   });
 
+  describe('loadTileMetrics', function () {
+    afterEach(function () {
+      expect(axios.get).toHaveBeenCalledWith(firewallTileMetricsUrl);
+    });
+
+    it('immediately dispatches a FIREWALL_LOAD_TILE_METRICS_REQUESTED action', function () {
+      mockAxiosCalls({
+        get: {
+          [firewallTileMetricsUrl]: Promise.resolve({
+            data: {},
+          }),
+        },
+      });
+
+      store.dispatch(loadTileMetrics());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_TILE_METRICS_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', function () {
+      it('dispatches FIREWALL_LOAD_TILE_METRICS_FULFILLED action', function (done) {
+        mockAxiosCalls({
+          get: {
+            [firewallTileMetricsUrl]: Promise.resolve({
+              data: { test: 'test' },
+            }),
+          },
+        });
+
+        store.dispatch(loadTileMetrics()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[0].type).toBe(FIREWALL_LOAD_TILE_METRICS_REQUESTED);
+          expect(actions[0].payload).toBeUndefined();
+          expect(actions[1].type).toBe(FIREWALL_LOAD_TILE_METRICS_FULFILLED);
+          expect(actions[1].payload).toEqual({ test: 'test' });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+
+    describe('after a failed GET call', function () {
+      it('dispatches an FIREWALL_LOAD_TILE_METRICS_FAILED action', function (done) {
+        mockAxiosCalls({
+          get: {
+            [firewallTileMetricsUrl]: () => Promise.reject('error!'),
+          },
+        });
+
+        store.dispatch(loadTileMetrics()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe(FIREWALL_LOAD_TILE_METRICS_FAILED);
+          expect(actions[1].payload).toBe('error!');
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+  });
+
   describe('loadQuarantineSummary', function () {
     afterEach(function () {
       expect(axios.get).toHaveBeenCalledWith(firewallQuarantineSummaryUrl);
@@ -888,7 +973,7 @@ describe('firewallActions', function () {
             pageSize: 1000,
             sortField: 'field',
             currentPage: 100,
-            filterPolicy: 'id',
+            filterPolicies: ['id'],
             filterComponentName: 'name',
             sortDir: 'desc',
           },
@@ -1031,17 +1116,121 @@ describe('firewallActions', function () {
 
   describe('setQuarantineGridPolicyFilter', function () {
     it('immediately dispatches actions to set the policy ID filter for the quarantine grid', function () {
-      let policy = { policy: '456' };
+      let policy = { policies: '123' };
 
-      store.dispatch(setQuarantineGridPolicyFilter(policy.policy));
+      store.dispatch(setQuarantineGridPolicyFilter(policy.policies));
 
       const actions = store.getActions();
       expect(actions.length).toBe(2);
       expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
       expect(actions[0].payload).toEqual(policy);
-      expect(actions[0].payload.policy).toEqual(jasmine.any(String));
+      expect(actions[0].payload.policies).toEqual(jasmine.any(String));
       expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[1].payload).toBeUndefined();
+    });
+  });
+
+  describe('setQuarantineGridPolicyFilterWithProprietaryNameConflict', function () {
+    it('immediately dispatches actions and filters policies based on ProprietaryNameConflict', function (done) {
+      state = {
+        ...state,
+        firewall: {
+          ...state.firewall,
+          policiesState: {
+            loadedPolicies: true,
+            policies: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }],
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+      const data = {
+        proprietaryNameConflictPolicies: [{ id: 'a' }, { id: 'b' }],
+        securityVulnerabilityCategoryMaliciousCodePolicies: [{ id: 'c' }, { id: 'd' }],
+      };
+      mockAxiosCalls({
+        get: {
+          [firewallQuarantineListWithConditionsUrl]: Promise.resolve({ data }),
+        },
+      });
+      store.dispatch(setQuarantineGridPolicyFilterWithProprietaryNameConflict()).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED);
+        expect(actions[1].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED);
+        expect(actions[2].type).toBe(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
+        expect(actions[2].payload).toEqual({ policies: ['a', 'b'] });
+        expect(actions[3].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+        expect(actions[3].payload).toBeUndefined();
+        done();
+      });
+    });
+  });
+
+  describe('setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode', function () {
+    it('immediately dispatches actions and filters policies based on SecurityVulnerabilityCategoryMaliciousCode', function (done) {
+      state = {
+        ...state,
+        firewall: {
+          ...state.firewall,
+          policiesState: {
+            loadedPolicies: true,
+            policies: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }],
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+      const data = {
+        proprietaryNameConflictPolicies: [{ id: 'a' }, { id: 'b' }],
+        securityVulnerabilityCategoryMaliciousCodePolicies: [{ id: 'c' }, { id: 'd' }],
+      };
+      mockAxiosCalls({
+        get: {
+          [firewallQuarantineListWithConditionsUrl]: Promise.resolve({ data }),
+        },
+      });
+      store.dispatch(setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode()).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED);
+        expect(actions[1].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED);
+        expect(actions[2].type).toBe(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
+        expect(actions[2].payload).toEqual({ policies: ['c', 'd'] });
+        expect(actions[3].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+        expect(actions[3].payload).toBeUndefined();
+        done();
+      });
+    });
+  });
+
+  describe('loadPoliciesWithConditionsRequested', () => {
+    it('dispatches an action to indicate the request is being solved but not completed yet', () => {
+      store.dispatch(loadPoliciesWithConditionsRequested());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadPoliciesWithConditionsFulfilled', () => {
+    it('dispatches an action to indicate the request was solved successfully', () => {
+      store.dispatch(loadPoliciesWithConditionsFulfilled());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadPoliciesWithConditionsFailed', () => {
+    it('dispatches an action to indicate the request failed', () => {
+      const mockResponse = 'error!';
+      store.dispatch(loadPoliciesWithConditionsFailed(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_POLICIES_WITH_CONDITIONS_FAILED);
+      expect(actions[0].payload).toBe(mockResponse);
     });
   });
 
@@ -1095,19 +1284,21 @@ describe('firewallActions', function () {
       store.dispatch(loadFirewallData());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(6);
+      expect(actions.length).toBe(7);
       expect(actions[0].type).toBe(FIREWALL_LOAD_DATA_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
       expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
       expect(actions[1].payload).toBeUndefined();
-      expect(actions[2].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[2].type).toBe(FIREWALL_LOAD_TILE_METRICS_REQUESTED);
       expect(actions[2].payload).toBeUndefined();
-      expect(actions[3].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[3].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
       expect(actions[3].payload).toBeUndefined();
-      expect(actions[4].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+      expect(actions[4].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
       expect(actions[4].payload).toBeUndefined();
-      expect(actions[5].type).toBe(FIREWALL_POLICIES_REQUESTED);
+      expect(actions[5].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[5].payload).toBeUndefined();
+      expect(actions[6].type).toBe(FIREWALL_POLICIES_REQUESTED);
+      expect(actions[6].payload).toBeUndefined();
     });
   });
 

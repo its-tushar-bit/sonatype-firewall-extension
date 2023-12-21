@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
@@ -36,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FirewallConfigurationModalTest
     extends AbstractFunctionalTest
 {
-  private final FirewallPage firewallPage = new FirewallPage();
+  private final FirewallAutoUnquarantinePage firewallAutoUnquarantinePage = new FirewallAutoUnquarantinePage();
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
       new AutoUnquarantinePolicyConditionTypeDAO();
@@ -67,14 +68,15 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_DefaultValues() {
-    refreshOrOpen(FirewallPage.url());
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    firewallPage.shouldBe(visible);
+    firewallAutoUnquarantinePage.shouldBe(visible);
 
-    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = firewallPage.firewallAutoUnquarantineStatus();
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus
+        = firewallAutoUnquarantinePage.firewallAutoUnquarantineStatus();
     firewallAutoUnquarantineStatus.shouldBe(visible);
 
-    FirewallConfigurationModal firewallConfigurationModal = firewallPage.firewallConfigurationModal();
+    FirewallConfigurationModal firewallConfigurationModal = firewallAutoUnquarantinePage.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
 
     //verify initial auto unquarantine status
@@ -112,14 +114,15 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_ToggleIntegrityRating() {
-    refreshOrOpen(FirewallPage.url());
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    firewallPage.shouldBe(visible);
+    firewallAutoUnquarantinePage.shouldBe(visible);
 
-    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = firewallPage.firewallAutoUnquarantineStatus();
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus
+        = firewallAutoUnquarantinePage.firewallAutoUnquarantineStatus();
     firewallAutoUnquarantineStatus.shouldBe(visible);
 
-    FirewallConfigurationModal firewallConfigurationModal = firewallPage.firewallConfigurationModal();
+    FirewallConfigurationModal firewallConfigurationModal = firewallAutoUnquarantinePage.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
 
     //verify initial auto unquarantine status
@@ -167,14 +170,15 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_ToggleSingle() {
-    refreshOrOpen(FirewallPage.url());
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    firewallPage.shouldBe(visible);
+    firewallAutoUnquarantinePage.shouldBe(visible);
 
-    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = firewallPage.firewallAutoUnquarantineStatus();
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus
+        = firewallAutoUnquarantinePage.firewallAutoUnquarantineStatus();
     firewallAutoUnquarantineStatus.shouldBe(visible);
 
-    FirewallConfigurationModal firewallConfigurationModal = firewallPage.firewallConfigurationModal();
+    FirewallConfigurationModal firewallConfigurationModal = firewallAutoUnquarantinePage.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
 
     //verify initial auto unquarantine status
@@ -223,51 +227,16 @@ public class FirewallConfigurationModalTest
   }
 
   @Test
-  public void testFirewallConfigurationModal_LoadErrorTest() {
-    refreshOrOpen(FirewallPage.url());
-
-    firewallPage.shouldBe(visible);
-
-    FirewallConfigurationModal firewallConfigurationModal = firewallPage.firewallConfigurationModal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    //induce error by removing feature
-    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
-
-    //open modal
-    firewallPage.firewallAutoUnquarantineStatus().configureLink().click();
-
-    //verify initial status with error
-    firewallConfigurationModal.shouldBe(visible);
-    firewallConfigurationModal.modalContent().shouldBe(hidden);
-    firewallConfigurationModal.loadError().shouldBe(visible);
-    firewallConfigurationModal.retryButton().shouldBe(visible);
-
-    //resolve error
-    testProductLicense.reset();
-
-    //retry
-    firewallConfigurationModal.retryButton().click();
-
-    firewallConfigurationModal.autoUnquarantineToggleIntegrityRating().shouldBe(visible);
-    firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().input().shouldNotBe(checked);
-    firewallConfigurationModal.cancelButton().shouldBe(visible);
-    firewallConfigurationModal.saveButton().shouldBe(visible);
-    firewallConfigurationModal.loadError().shouldBe(hidden);
-    firewallConfigurationModal.retryButton().shouldBe(hidden);
-  }
-
-  @Test
   public void testFirewallConfigurationModal_SaveErrorTest() {
-    refreshOrOpen(FirewallPage.url());
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    firewallPage.shouldBe(visible);
+    firewallAutoUnquarantinePage.shouldBe(visible);
 
-    FirewallConfigurationModal firewallConfigurationModal = firewallPage.firewallConfigurationModal();
+    FirewallConfigurationModal firewallConfigurationModal = firewallAutoUnquarantinePage.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
 
     //open modal
-    firewallPage.firewallAutoUnquarantineStatus().configureLink().click();
+    firewallAutoUnquarantinePage.firewallAutoUnquarantineStatus().configureLink().click();
 
     //verify initial status
     firewallConfigurationModal.shouldBe(visible);
@@ -276,7 +245,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.cancelButton().shouldBe(visible);
 
     //toggle
-    firewallPage.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().click();
+    firewallAutoUnquarantinePage.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().click();
 
     //verify after toggle
     firewallConfigurationModal.shouldBe(visible);

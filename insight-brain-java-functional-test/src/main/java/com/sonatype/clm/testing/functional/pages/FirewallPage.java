@@ -6,13 +6,13 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallStatus;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetrics;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class FirewallPage
@@ -38,20 +38,12 @@ public class FirewallPage
     return new FirewallStatus(ROOT);
   }
 
-  public FirewallQuarantineStatus firewallQuarantineStatus() {
-    return new FirewallQuarantineStatus(ROOT);
+  public FirewallMetrics firewallMetrics() {
+    return new FirewallMetrics(ROOT);
   }
 
-  public FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus() {
-    return new FirewallAutoUnquarantineStatus(ROOT);
-  }
-
-  public FirewallAutoUnquarantine firewallQuarantine() {
-    return new FirewallAutoUnquarantine(ROOT);
-  }
-
-  public FirewallAutoUnquarantine firewallAutoReleaseQuarantine() {
-    return new FirewallAutoUnquarantine(ROOT);
+  public FirewallMetricsContent firewallMetricsContent(String id) {
+    return new FirewallMetricsContent(ROOT, id);
   }
 
   public FirewallQuarantineTable firewallQuarantineTable() {
@@ -64,5 +56,9 @@ public class FirewallPage
 
   public FirewallWelcomeModal firewallWelcomeModal() {
     return new FirewallWelcomeModal(ROOT);
+  }
+
+  public ElementsCollection getAllLoadingSpinners() {
+    return children(".nx-loading-spinner");
   }
 }

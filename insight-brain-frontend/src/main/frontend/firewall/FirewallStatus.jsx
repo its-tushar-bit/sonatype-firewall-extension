@@ -5,29 +5,34 @@
  */
 
 import React from 'react';
-import { faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 
 export default function FirewallStatus(props) {
-  //viewState
-  const { totalComponentCount, repositoryCount } = props;
+  const { totalComponentCount, repositoryCount, quarantineEnabledRepositoryCount } = props;
+
+  const allRepositoriesAreProtected = quarantineEnabledRepositoryCount === repositoryCount;
+  const statusIndicator = (
+    <span
+      role="status"
+      className={classnames('iq-firewall-status__status-indicator', 'nx-status-indicator', {
+        'nx-status-indicator--positive': allRepositoriesAreProtected,
+        'nx-status-indicator--intermediate': !allRepositoriesAreProtected,
+      })}
+    >
+      <strong>{quarantineEnabledRepositoryCount.toLocaleString('en-US')}</strong> of{' '}
+      <strong>{repositoryCount.toLocaleString('en-US')}</strong> repositories protected
+    </span>
+  );
 
   return (
-    <section id="firewall-status">
-      <header className="nx-page-title">
-        <h1 className="nx-h1">
-          <NxFontAwesomeIcon icon={faShieldCheck} size="sm" className="iq-firewall-protected-icon" />
-          <span>You are protected</span>
-        </h1>
-
-        <div className="iq-firewall-status-description">
-          <div className="iq-firewall-status-description-line"></div>
-          <div>
-            Firewall is currently monitoring {totalComponentCount} components in {repositoryCount} repositories
-          </div>
+    <section id="firewall-status" className="iq-firewall-status">
+      <div className="iq-firewall-status__status">
+        {statusIndicator}
+        <div className="iq-firewall-status__components-monitored">
+          <span>{totalComponentCount.toLocaleString('en-US')}</span> components monitored
         </div>
-      </header>
+      </div>
     </section>
   );
 }
@@ -35,4 +40,5 @@ export default function FirewallStatus(props) {
 FirewallStatus.propTypes = {
   totalComponentCount: PropTypes.number.isRequired,
   repositoryCount: PropTypes.number.isRequired,
+  quarantineEnabledRepositoryCount: PropTypes.number.isRequired,
 };

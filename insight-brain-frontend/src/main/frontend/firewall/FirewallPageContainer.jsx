@@ -17,6 +17,8 @@ import {
   setQuarantineGridComponentNameFilter,
   setQuarantineGridSorting,
   goToRepositoryComponentDetailsPage,
+  setQuarantineGridPolicyFilterWithProprietaryNameConflict,
+  setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
 } from './firewallActions';
 
 function mapStateToProps({ firewall }) {
@@ -24,6 +26,17 @@ function mapStateToProps({ firewall }) {
     ...pick(['showWelcomeModal'], firewall),
     ...pick(['isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
+    ...pick(
+      [
+        'componentsAutoReleased',
+        'componentsQuarantined',
+        'namespaceAttacksBlocked',
+        'safeVersionsSelected',
+        'supplyChainAttacksBlocked',
+        'waivedComponents',
+      ],
+      firewall.tileMetricsState
+    ),
     ...pick(
       [
         'loadedReleaseQuarantineSummary',
@@ -61,6 +74,8 @@ const mapDispatchToProps = {
   setQuarantineGridComponentNameFilter,
   openConfigurationModal,
   goToRepositoryComponentDetailsPage,
+  setQuarantineGridPolicyFilterWithProprietaryNameConflict,
+  setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallPage);

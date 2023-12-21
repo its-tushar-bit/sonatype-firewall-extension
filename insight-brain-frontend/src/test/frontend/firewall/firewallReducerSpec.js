@@ -44,6 +44,16 @@ describe('firewallReducer', function () {
       isShowConfigurationModal: false,
       loadError: null,
     }),
+    tileMetricsState: Object.freeze({
+      loadedTileMetrics: false,
+      loadTileMetricsError: null,
+      componentsAutoReleased: 0,
+      componentsQuarantined: 0,
+      namespaceAttacksBlocked: 0,
+      safeVersionsSelected: 0,
+      supplyChainAttacksBlocked: 0,
+      waivedComponents: 0,
+    }),
     autoUnquarantineState: Object.freeze({
       viewState: Object.freeze({
         loadedConfiguration: false,
@@ -93,7 +103,7 @@ describe('firewallReducer', function () {
       currentPage: null,
       sortDir: null,
       sortField: null,
-      filterPolicy: undefined,
+      filterPolicies: [],
       filterComponentName: '',
       lastUpdated: null,
     }),
@@ -270,6 +280,153 @@ describe('firewallReducer', function () {
             loadedConfiguration: true,
             loadConfigurationError: 'error!',
           },
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_TILE_METRICS_REQUESTED action', function () {
+    let minimumState = {
+      tileMetricsState: {
+        loadedTileMetrics: false,
+        loadTileMetricsError: null,
+      },
+    };
+
+    it('resets the state used for firewall tile metrics', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_TILE_METRICS_REQUESTED_REQUESTED' })).toEqual({
+        ...minimumState,
+        tileMetricsState: {
+          loadedTileMetrics: false,
+          loadTileMetricsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_TILE_METRICS_FULFILLED action', function () {
+    let minimumState = {
+      tileMetricsState: {
+        loadedTileMetrics: false,
+        componentsAutoReleased: 0,
+        componentsQuarantined: 0,
+        namespaceAttacksBlocked: 0,
+        safeVersionsSelected: 0,
+        supplyChainAttacksBlocked: 0,
+        waivedComponents: 0,
+      },
+    };
+
+    it('updates the state from payload and sets tileMetricsState to true', function () {
+      const payload = {
+        COMPONENTS_AUTO_RELEASED: {
+          firewallMetricsValue: 1,
+          latestUpdatedTime: '2020-01-01T01:00:00.000-00:00',
+        },
+        COMPONENTS_QUARANTINED: {
+          firewallMetricsValue: 2,
+          latestUpdatedTime: '2020-01-01T00:00:00.000-00:00',
+        },
+        NAMESPACE_ATTACKS_BLOCKED: {
+          firewallMetricsValue: 3,
+          latestUpdatedTime: '2020-01-01T01:00:00.000-00:00',
+        },
+        SAFE_VERSIONS_SELECTED_AUTOMATICALLY: {
+          firewallMetricsValue: 4,
+          latestUpdatedTime: '2020-01-01T00:00:00.000-00:00',
+        },
+        SUPPLY_CHAIN_ATTACKS_BLOCKED: {
+          firewallMetricsValue: 5,
+          latestUpdatedTime: '2020-01-01T00:00:00.000-00:00',
+        },
+        WAIVED_COMPONENTS: {
+          firewallMetricsValue: 6,
+          latestUpdatedTime: '2020-01-01T01:00:00.000-00:00',
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_TILE_METRICS_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
+        tileMetricsState: {
+          loadedTileMetrics: true,
+          componentsAutoReleased: 1,
+          componentsQuarantined: 2,
+          namespaceAttacksBlocked: 3,
+          safeVersionsSelected: 4,
+          supplyChainAttacksBlocked: 5,
+          waivedComponents: 6,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_TILE_METRICS_FAILED action', function () {
+    let minimumState = {
+      tileMetricsState: {
+        loadedTileMetrics: false,
+        loadTileMetricsError: null,
+      },
+    };
+
+    it('sets loadedTileMetrics to true and loadStatusError to the payload', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_TILE_METRICS_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
+        tileMetricsState: {
+          ...minimumState.tileMetricsState,
+          loadedTileMetrics: true,
+          loadTileMetricsError: 'error!',
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED action', function () {
+    let minimumState = {
+      viewState: {
+        loadError: 'Error!',
+      },
+    };
+
+    it('updates the state and sets the loadError to null', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' })).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED action', function () {
+    let minimumState = {
+      viewState: {
+        loadError: 'Error!',
+      },
+    };
+
+    it('updates the state and sets the loadError to null', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED' })).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_WITH_CONDITIONS_FAILED action', function () {
+    let minimumState = {
+      viewState: {},
+    };
+
+    it('updates the state and sets the loadError to the payload', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_FAILED', payload: 'Error!' })).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: 'Error!',
         },
       });
     });
@@ -734,13 +891,13 @@ describe('firewallReducer', function () {
     let minimumState = {};
 
     it('updates the state', function () {
-      let payload = { policy: { id: '456', name: 'test-name' } };
+      let payload = { policies: [{ id: '456', name: 'test-name' }] };
 
       expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER', payload: payload })).toEqual({
         ...minimumState,
         quarantineGridState: {
           ...minimumState.quarantineGridState,
-          filterPolicy: payload.policy,
+          filterPolicies: payload.policies,
         },
       });
     });
@@ -845,7 +1002,7 @@ describe('firewallReducer', function () {
         quarantineGridState: {
           sortDir: 'asc',
           sortField: 'componentName',
-          filterPolicy: '123',
+          filterPolicies: ['123'],
           filterComponentName: '',
         },
       };

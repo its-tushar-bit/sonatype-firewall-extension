@@ -307,6 +307,10 @@ export function getFirewallConfigurationUrl() {
   return uriTemplate`/api/v2/firewall/releaseQuarantine/configuration`;
 }
 
+export function getFirewallTileMetricsUrl() {
+  return uriTemplate`/api/v2/firewall/metrics/embedded`;
+}
+
 export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
 }
@@ -449,13 +453,13 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
   return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
-export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId, componentName) {
+export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyIds, componentName) {
   let params = toURIParams({
     page: page,
     pageSize: pageSize,
     sortBy: sortBy,
     asc: sortAsc,
-    policyId: policyId,
+    policyId: policyIds,
     componentName: componentName,
   });
 
@@ -750,6 +754,10 @@ export function getVulnerabilityCustomCvssSeverityIdUrl(ownerType, ownerId, id) 
 
 export function getPoliciesUrl() {
   return uriTemplate`/api/v2/policies`;
+}
+
+export function getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl() {
+  return uriTemplate`/rest/policy/repository_container/REPOSITORY_CONTAINER_ID/withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode`;
 }
 
 export function getPolicyMonitoringUrl(ownerType, ownerId) {

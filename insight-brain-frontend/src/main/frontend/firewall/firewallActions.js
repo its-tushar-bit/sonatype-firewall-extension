@@ -9,21 +9,23 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import {
+  getComponentDetailsUrl,
+  getComponentMultiLicensesUrl,
+  getComponentPolicyViolationsUrl,
+  getComponentWaivers,
   getFirewallConfigurationUrl,
+  getFirewallTileMetricsUrl,
   getFirewallQuarantineListUrl,
   getFirewallQuarantineSummaryUrl,
   getFirewallReleaseQuarantineListUrl,
   getFirewallReleaseQuarantineSummaryUrl,
-  getPoliciesUrl,
-  getComponentDetailsUrl,
-  getVersionGraphUrl,
-  getComponentPolicyViolationsUrl,
-  getComponentMultiLicensesUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
-  getComponentWaivers,
-  getRepositoryPolicyViolationUrl,
+  getPoliciesUrl,
+  getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl,
   getReevaluateComponentUrl,
+  getRepositoryPolicyViolationUrl,
+  getVersionGraphUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -105,6 +107,14 @@ const loadPoliciesRequested = noPayloadActionCreator(FIREWALL_POLICIES_REQUESTED
 const loadPoliciesFulfilled = payloadParamActionCreator(FIREWALL_POLICIES_FULFILLED);
 const loadPoliciesFailed = payloadParamActionCreator(FIREWALL_POLICIES_FAILED);
 
+export const FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED = 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED';
+export const FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED = 'FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED';
+export const FIREWALL_POLICIES_WITH_CONDITIONS_FAILED = 'FIREWALL_POLICIES_WITH_CONDITIONS_FAILED';
+
+export const loadPoliciesWithConditionsRequested = noPayloadActionCreator(FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED);
+export const loadPoliciesWithConditionsFulfilled = noPayloadActionCreator(FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED);
+export const loadPoliciesWithConditionsFailed = payloadParamActionCreator(FIREWALL_POLICIES_WITH_CONDITIONS_FAILED);
+
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING';
 
@@ -163,6 +173,14 @@ export const loadComponentPolicyViolationsFailed = payloadParamActionCreator(
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED
 );
 
+export const FIREWALL_LOAD_TILE_METRICS_REQUESTED = 'FIREWALL_LOAD_TILE_METRICS_REQUESTED';
+export const FIREWALL_LOAD_TILE_METRICS_FULFILLED = 'FIREWALL_LOAD_TILE_METRICS_FULFILLED';
+export const FIREWALL_LOAD_TILE_METRICS_FAILED = 'FIREWALL_LOAD_TILE_METRICS_FAILED';
+
+export const loadTileMetricsRequested = noPayloadActionCreator(FIREWALL_LOAD_TILE_METRICS_REQUESTED);
+export const loadTileMetricsFulfilled = payloadParamActionCreator(FIREWALL_LOAD_TILE_METRICS_FULFILLED);
+export const loadTileMetricsFailed = payloadParamActionCreator(FIREWALL_LOAD_TILE_METRICS_FAILED);
+
 export const FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED = 'FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED';
 export const FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED = 'FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED';
 export const FIREWALL_LOAD_COMPONENT_LICENSES_FAILED = 'FIREWALL_LOAD_COMPONENT_LICENSES_FAILED';
@@ -220,6 +238,7 @@ export function loadFirewallData() {
   return (dispatch) => {
     dispatch(loadFirewallDataRequested());
     dispatch(loadConfiguration());
+    dispatch(loadTileMetrics());
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadQuarantineSummary());
     dispatch(loadQuarantineList());
@@ -278,6 +297,44 @@ export function loadPolicies() {
       })
       .catch((error) => {
         dispatch(loadPoliciesFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function setQuarantineGridPolicyFilterWithProprietaryNameConflict() {
+  return function (dispatch, getState) {
+    dispatch(loadPoliciesWithConditionsRequested());
+    const policies = getState().firewall.policiesState.policies;
+    return axios
+      .get(getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl())
+      .then(({ data: { proprietaryNameConflictPolicies } }) => {
+        dispatch(loadPoliciesWithConditionsFulfilled());
+        const policyIds = proprietaryNameConflictPolicies.map((p) => p.id);
+        const selectedIds = policies.filter((p) => policyIds.includes(p.id)).map((p) => p.id);
+        dispatch(setQuarantineGridPolicyFilter(selectedIds));
+        dispatch(loadQuarantineList());
+      })
+      .catch((error) => {
+        dispatch(loadPoliciesWithConditionsFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode() {
+  return function (dispatch, getState) {
+    dispatch(loadPoliciesWithConditionsRequested());
+    const policies = getState().firewall.policiesState.policies;
+    return axios
+      .get(getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl())
+      .then(({ data: { securityVulnerabilityCategoryMaliciousCodePolicies } }) => {
+        dispatch(loadPoliciesWithConditionsFulfilled());
+        const policyIds = securityVulnerabilityCategoryMaliciousCodePolicies.map((p) => p.id);
+        const selectedIds = policies.filter((p) => policyIds.includes(p.id)).map((p) => p.id);
+        dispatch(setQuarantineGridPolicyFilter(selectedIds));
+        dispatch(loadQuarantineList());
+      })
+      .catch((error) => {
+        dispatch(loadPoliciesWithConditionsFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }
@@ -353,6 +410,20 @@ export function loadQuarantineSummary() {
   };
 }
 
+export function loadTileMetrics() {
+  return function (dispatch) {
+    dispatch(loadTileMetricsRequested());
+    return axios
+      .get(getFirewallTileMetricsUrl())
+      .then(({ data }) => {
+        dispatch(loadTileMetricsFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadTileMetricsFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
 function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
     dispatch(configurationSaveMaskTimerDone());
@@ -389,7 +460,7 @@ export function loadQuarantineList() {
   return function (dispatch, getState) {
     let gridState = getState().firewall.quarantineGridState,
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
-      filterPolicy = gridState.filterPolicy === '' ? null : gridState.filterPolicy,
+      filterPolicies = gridState.filterPolicies.length < 1 ? null : gridState.filterPolicies,
       filterComponentName = gridState.filterComponentName === '' ? null : gridState.filterComponentName,
       sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
 
@@ -401,7 +472,7 @@ export function loadQuarantineList() {
           gridState.pageSize,
           gridState.sortField,
           sortAsc,
-          filterPolicy,
+          filterPolicies,
           filterComponentName
         )
       )
@@ -519,9 +590,9 @@ export function setQuarantineGridSorting(sortDir, sortField) {
   };
 }
 
-export function setQuarantineGridPolicyFilter(policy) {
+export function setQuarantineGridPolicyFilter(policies) {
   return (dispatch) => {
-    dispatch(quarantineGridSetPolicyFilter({ policy: policy }));
+    dispatch(quarantineGridSetPolicyFilter({ policies }));
     dispatch(loadQuarantineList());
   };
 }

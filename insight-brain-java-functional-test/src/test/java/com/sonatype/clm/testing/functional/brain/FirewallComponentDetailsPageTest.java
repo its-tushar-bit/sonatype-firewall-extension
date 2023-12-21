@@ -3058,8 +3058,8 @@ public class FirewallComponentDetailsPageTest
     FirewallQuarantineTable firewallQuarantineTable = firewallPage.firewallQuarantineTable();
     SelenideElement policyNameSelect = firewallQuarantineTable.policyNameSelect();
     policyNameSelect.click();
-    SelenideElement policyNameOption = firewallQuarantineTable.policyNameOptions().get(1);
-    policyNameOption.click();
+    SelenideElement policyNameCheckbox = firewallQuarantineTable.policyNameCheckboxes().get(0);
+    policyNameCheckbox.click();
     policyNameSelect.shouldHave(text("CoordinatesPolicy"));
     // quarantine date order: null
     waitUntilSpinnersGone();
@@ -3081,7 +3081,7 @@ public class FirewallComponentDetailsPageTest
     componentLink = firewallQuarantineTable.getComponentDetailsPageLinkFromRow(0);
     componentLink.shouldHave(text(expectedComponentName));
     policyNameSelect = firewallQuarantineTable.policyNameSelect();
-    policyNameSelect.shouldHave(text("CoordinatesPolicy"));
+    policyNameSelect.shouldHave(text("1 of 6"));
   }
 
   @Test

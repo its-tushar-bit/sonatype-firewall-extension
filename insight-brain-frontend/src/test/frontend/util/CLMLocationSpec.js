@@ -617,6 +617,10 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the firewall tile metrics url', function () {
+    expect(CLMLocation.getFirewallTileMetricsUrl()).toBe('/api/v2/firewall/metrics/embedded');
+  });
+
   describe('ComponentCopyrightDetails', function () {
     it('getCopyrightFilePathsUrl should return the URL for copyright file paths', function () {
       expect(
@@ -951,6 +955,17 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/rest/policy/organization/someOrganization';
 
       expect(clmLocation.getPolicyUrl('organization', 'someOrganization')).toBe(expectedUrl);
+    });
+  });
+
+  describe('getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl', () => {
+    it('returns url for get policies with conditions', () => {
+      const expectedUrl =
+        '/rest/policy/repository_container/REPOSITORY_CONTAINER_ID/withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode';
+
+      expect(clmLocation.getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl()).toBe(
+        expectedUrl
+      );
     });
   });
 

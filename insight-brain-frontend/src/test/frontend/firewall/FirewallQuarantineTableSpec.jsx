@@ -12,6 +12,7 @@ import {
   NxTableCell,
   NxTableRow,
   NxThreatIndicator,
+  NxStatefulFilterDropdown,
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
@@ -23,6 +24,7 @@ describe('FirewallQuarantineTable', function () {
   let minimalProps,
     FirewallQuarantineTable,
     getShallowComponent,
+    getMountedComponent,
     loadQuarantineList,
     setQuarantineGridPage,
     setQuarantineGridSorting,
@@ -60,7 +62,7 @@ describe('FirewallQuarantineTable', function () {
       quarantinePageCount: 1,
       pageSize: 2,
       currentPage: 0,
-      filterPolicy: 'initialPolicyId',
+      filterPolicies: [],
       filterComponentName: 'initialComponentName',
       lastUpdated: DATE_TIME,
       quarantineList: [
@@ -114,6 +116,7 @@ describe('FirewallQuarantineTable', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallQuarantineTable, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(FirewallQuarantineTable, minimalProps);
   });
 
   it('renders a table', () => {
@@ -234,18 +237,11 @@ describe('FirewallQuarantineTable', function () {
   });
 
   describe('Quarantine grid filter', () => {
-    it('calls the setQuarantineGridPolicyFilter when selecting a policy name', () => {
-      const component = getShallowComponent(),
-        select = component.find('#firewall-quarantine-table--select-policy');
-      expect(select).not.toBeNull();
-      expect(select.props().value).toBe('initialPolicyId');
-      select.simulate('click');
-      const options = select.find('option');
-      expect(options.at(1)).toHaveText('Security-Medium');
-      select.simulate('change', {
-        currentTarget: { value: 'policyId' },
-      });
-      expect(setQuarantineGridPolicyFilter).toHaveBeenCalledWith('policyId');
+    it('NxStatefulFilterDropdown is rendered with the correct props', () => {
+      const component = getMountedComponent(),
+        filterDropdown = component.find(NxStatefulFilterDropdown);
+      expect(filterDropdown).toExist();
+      expect(filterDropdown).toHaveProp('options', [{ id: 'test-policy-id', displayName: 'Security-Medium' }]);
     });
 
     it('calls the setQuarantineGridComponentNameFilter when entering a component name', () => {

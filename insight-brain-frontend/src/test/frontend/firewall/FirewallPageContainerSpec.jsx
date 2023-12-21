@@ -18,6 +18,8 @@ describe('FirewallPageContainer', function () {
     goToRepositoryComponentDetailsPageMock,
     setQuarantineGridPolicyFilterMock,
     setQuarantineGridComponentNameFilterMock,
+    setQuarantineGridPolicyFilterWithProprietaryNameConflictMock,
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock,
     store,
     state,
     vdom;
@@ -61,6 +63,18 @@ describe('FirewallPageContainer', function () {
         type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER',
       });
 
+    setQuarantineGridPolicyFilterWithProprietaryNameConflictMock = jasmine
+      .createSpy('setQuarantineGridPolicyFilterWithProprietaryNameConflictMock')
+      .and.returnValue({
+        type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED',
+      });
+
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock = jasmine
+      .createSpy('setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock')
+      .and.returnValue({
+        type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED',
+      });
+
     FirewallPageContainer = require('inject-loader!../../../main/frontend/firewall/FirewallPageContainer')({
       './firewallActions': {
         closeWelcomeModal: closeWelcomeModalMock,
@@ -71,6 +85,8 @@ describe('FirewallPageContainer', function () {
         goToRepositoryComponentDetailsPage: goToRepositoryComponentDetailsPageMock,
         setQuarantineGridPolicyFilter: setQuarantineGridPolicyFilterMock,
         setQuarantineGridComponentNameFilter: setQuarantineGridComponentNameFilterMock,
+        setQuarantineGridPolicyFilterWithProprietaryNameConflict: setQuarantineGridPolicyFilterWithProprietaryNameConflictMock,
+        setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode: setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeMock,
       },
     }).default;
 
@@ -82,6 +98,16 @@ describe('FirewallPageContainer', function () {
           isShowConfigurationModal: false,
           loadError: null,
         },
+        tileMetricsState: Object.freeze({
+          loadedTileMetrics: false,
+          loadTileMetricsError: null,
+          componentsAutoReleased: 0,
+          componentsQuarantined: 0,
+          namespaceAttacksBlocked: 0,
+          safeVersionsSelected: 0,
+          supplyChainAttacksBlocked: 0,
+          waivedComponents: 0,
+        }),
         autoUnquarantineState: {
           viewState: {
             loadedConfiguration: false,
@@ -118,6 +144,12 @@ describe('FirewallPageContainer', function () {
     expect(wrapper).toHaveProp('isShowConfigurationModal', false);
     expect(wrapper).toHaveProp('loadError', null);
     expect(wrapper).toHaveProp('loadedConfiguration', false);
+    expect(wrapper).toHaveProp('componentsAutoReleased', 0);
+    expect(wrapper).toHaveProp('componentsQuarantined', 0);
+    expect(wrapper).toHaveProp('namespaceAttacksBlocked', 0);
+    expect(wrapper).toHaveProp('safeVersionsSelected', 0);
+    expect(wrapper).toHaveProp('supplyChainAttacksBlocked', 0);
+    expect(wrapper).toHaveProp('waivedComponents', 0);
     expect(wrapper).toHaveProp('loadedReleaseQuarantineSummary', false);
     expect(wrapper).toHaveProp('autoReleaseQuarantineCountMTD', '-');
     expect(wrapper).toHaveProp('enabledPolicyConditionTypesCount', 0);
@@ -139,6 +171,15 @@ describe('FirewallPageContainer', function () {
           ...state.firewall.viewState,
           isShowConfigurationModal: true,
           loadError: 'error',
+        },
+        tileMetricsState: {
+          ...state.tileMetricsState,
+          componentsAutoReleased: 1,
+          componentsQuarantined: 1,
+          namespaceAttacksBlocked: 1,
+          safeVersionsSelected: 1,
+          supplyChainAttacksBlocked: 1,
+          waivedComponents: 1,
         },
         autoUnquarantineState: {
           ...state.firewall.autoUnquarantineState,
@@ -175,6 +216,12 @@ describe('FirewallPageContainer', function () {
     expect(wrapper).toHaveProp('isShowConfigurationModal', true);
     expect(wrapper).toHaveProp('loadError', 'error');
     expect(wrapper).toHaveProp('loadedConfiguration', true);
+    expect(wrapper).toHaveProp('componentsAutoReleased', 1);
+    expect(wrapper).toHaveProp('componentsQuarantined', 1);
+    expect(wrapper).toHaveProp('namespaceAttacksBlocked', 1);
+    expect(wrapper).toHaveProp('safeVersionsSelected', 1);
+    expect(wrapper).toHaveProp('supplyChainAttacksBlocked', 1);
+    expect(wrapper).toHaveProp('waivedComponents', 1);
     expect(wrapper).toHaveProp('loadedReleaseQuarantineSummary', true);
     expect(wrapper).toHaveProp('autoReleaseQuarantineCountMTD', 5);
     expect(wrapper).toHaveProp('enabledPolicyConditionTypesCount', 1);
@@ -197,7 +244,13 @@ describe('FirewallPageContainer', function () {
       loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList'),
       goToRepositoryComponentDetailsPageActionCreator = wrapper.prop('goToRepositoryComponentDetailsPage'),
       setQuarantineGridPolicyFilterActionCreator = wrapper.prop('setQuarantineGridPolicyFilter'),
-      setQuarantineGridComponentNameFilterActionCreator = wrapper.prop('setQuarantineGridComponentNameFilter');
+      setQuarantineGridComponentNameFilterActionCreator = wrapper.prop('setQuarantineGridComponentNameFilter'),
+      setQuarantineGridPolicyFilterWithProprietaryNameConflictActionCreator = wrapper.prop(
+        'setQuarantineGridPolicyFilterWithProprietaryNameConflict'
+      ),
+      setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeActionCreator = wrapper.prop(
+        'setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode'
+      );
 
     expect(initializeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
     expect(closeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
@@ -207,6 +260,10 @@ describe('FirewallPageContainer', function () {
     expect(goToRepositoryComponentDetailsPageActionCreator).toEqual(jasmine.any(Function));
     expect(setQuarantineGridPolicyFilterActionCreator).toEqual(jasmine.any(Function));
     expect(setQuarantineGridComponentNameFilterActionCreator).toEqual(jasmine.any(Function));
+    expect(setQuarantineGridPolicyFilterWithProprietaryNameConflictActionCreator).toEqual(jasmine.any(Function));
+    expect(setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeActionCreator).toEqual(
+      jasmine.any(Function)
+    );
 
     expect(store.getActions()).toEqual([]);
 
@@ -250,6 +307,29 @@ describe('FirewallPageContainer', function () {
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
     ]);
 
+    setQuarantineGridPolicyFilterWithProprietaryNameConflictActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'firewall.componentDetailsPage' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
+    ]);
+
+    setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCodeActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'firewall.componentDetailsPage' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
+    ]);
+
     initializeWelcomeModalActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
@@ -258,6 +338,8 @@ describe('FirewallPageContainer', function () {
       { type: 'firewall.componentDetailsPage' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },
     ]);
 
@@ -269,6 +351,8 @@ describe('FirewallPageContainer', function () {
       { type: 'firewall.componentDetailsPage' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
+      { type: 'FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED' },
       { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },
       { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: false },
     ]);

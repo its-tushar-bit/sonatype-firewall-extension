@@ -465,7 +465,7 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
-  public void testGetIcon_notFound() throws URISyntaxException {
+  public void testGetIcon_notFound() {
     createServiceWithDashboardMetadata(mockGetLookerDashboardMetadata());
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);

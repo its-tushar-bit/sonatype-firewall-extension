@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,10 +33,12 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -51,12 +54,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.jetbrains.annotations.NotNull;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class EnterpriseReportingService
+@DisallowConcurrentExecution
+public class EnterpriseReportingService implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
@@ -76,12 +84,14 @@ public class EnterpriseReportingService
 
   public static final String DEFAULT_GUAVA_CACHE_KEY = "default";
 
+  static final String TASK_NAME = "UpdateEnterpriseDashboardLocalCache";
+
   private AtomicReference<DashboardMetadataListDTO> dashboardMetadataRef = new AtomicReference<>();
 
-  // Visible for testing
+  static final String TASK_PARAM_CURRENT_VERSION = "CURRENT_VERSION";
+
   final AtomicInteger currentVersion = new AtomicInteger(-1);
 
-  // Visible for testing
   final LoadingCache<String, Integer> currentVersionCache;
 
   private final LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
@@ -98,6 +108,8 @@ public class EnterpriseReportingService
 
   private final InsightWork insightWork;
 
+  private final TaskScheduler taskScheduler;
+
   @Inject
   public EnterpriseReportingService(
       final HdsClient hdsClient,
@@ -106,6 +118,7 @@ public class EnterpriseReportingService
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
       final InsightWork insightWork,
+      final TaskScheduler taskScheduler,
       final Configuration configuration)
   {
     this.hdsClient = hdsClient;
@@ -119,6 +132,7 @@ public class EnterpriseReportingService
     this.currentVersionCache = CacheBuilder.newBuilder()
         .expireAfterWrite(Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()))
         .build(newCurrentVersionCacheLoader());
+    this.taskScheduler = taskScheduler;
   }
 
   //for testing only
@@ -132,7 +146,8 @@ public class EnterpriseReportingService
       final LoadingCache<String, EnterpriseReportingConfigDTO> configCache,
       final AtomicReference<DashboardMetadataListDTO> dashboardData,
       final int currentVersion,
-      final LoadingCache<String, Integer> currentVersionCache)
+      final LoadingCache<String, Integer> currentVersionCache,
+      final TaskScheduler taskScheduler)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -144,6 +159,8 @@ public class EnterpriseReportingService
     this.dashboardMetadataRef = dashboardData;
     this.currentVersion.set(currentVersion);
     this.currentVersionCache = currentVersionCache;
+    this.taskScheduler = taskScheduler;
+
   }
 
   private CacheLoader<String, EnterpriseReportingConfigDTO> newEnterpriseReportingConfigCacheLoader() {
@@ -185,19 +202,21 @@ public class EnterpriseReportingService
   }
 
   private void reloadCachesAndUpdateLocalVersion(
-      final DashboardsVersionDTO hdsVersion)
+      final DashboardsVersionDTO remoteEnterpriseReportingVersion)
   {
     try {
       cacheDashboardMetadata();
       cacheDashboardIcons();
-      this.currentVersion.set(hdsVersion.version);
+      this.currentVersion.set(remoteEnterpriseReportingVersion.version);
+      taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this, Collections
+          .singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(remoteEnterpriseReportingVersion.version)));
     }
     catch (Exception ex) {
       log.error("error while fetching dashboard metadata from HDS.", ex);
     }
   }
 
-  private void cacheDashboardMetadata() {
+  void cacheDashboardMetadata() {
     log.debug("refreshing enterprise reporting dashboard metadata cache");
     this.dashboardMetadataRef.set(hdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH));
@@ -343,6 +362,26 @@ public class EnterpriseReportingService
     }
     catch (IOException e) {
       throw new InternalServerException("Could not read icon image", e);
+    }
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
+  }
+
+  @Override
+  public void execute(final JobExecutionContext context) throws JobExecutionException {
+    JobDataMap mergedJobDataMap = context.getMergedJobDataMap();
+
+    String latestVersionString = mergedJobDataMap.getString(TASK_PARAM_CURRENT_VERSION);
+    if (StringUtils.isNotBlank(latestVersionString)) {
+      int latestVersion = new Integer(latestVersionString);
+      if (latestVersion > currentVersion.get()) {
+        //Caching icons is not required here because we expect the peer node to already download this
+        this.currentVersion.set(latestVersion);
+        cacheDashboardMetadata();
+      }
     }
   }
 }

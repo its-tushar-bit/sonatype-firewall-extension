@@ -102,6 +102,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.firewall.metrics.DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob",
         "DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService",
+        "UpdateEnterpriseDashboardLocalCache");
   }
 
   @Inject

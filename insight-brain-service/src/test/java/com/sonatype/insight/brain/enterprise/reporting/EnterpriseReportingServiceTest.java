@@ -14,7 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -48,6 +51,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_GUAVA_CACHE_KEY;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
@@ -58,11 +65,14 @@ import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportin
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,6 +95,9 @@ public class EnterpriseReportingServiceTest
   @Mock
   private SamlUserDAO mockSamlUserDAO;
 
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
@@ -105,6 +118,7 @@ public class EnterpriseReportingServiceTest
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
     binder.bind(SamlUserDAO.class).toInstance(mockSamlUserDAO);
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }
 
@@ -141,7 +155,7 @@ public class EnterpriseReportingServiceTest
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
         mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
         mockGetLookerDashboardMetadata(),
-        0, mockLatestVersionCache);
+        0, mockLatestVersionCache,mockTaskScheduler);
     String expectedUrl = "looker.url.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
@@ -216,7 +230,7 @@ public class EnterpriseReportingServiceTest
   public void testGetBaseUrl_Error() throws Exception {
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
         mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
-        mockGetLookerDashboardMetadata(), 0, mockLatestVersionCache);
+        mockGetLookerDashboardMetadata(), 0, mockLatestVersionCache,mockTaskScheduler);
     when(mockConfigCache.get(DEFAULT_GUAVA_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
@@ -234,36 +248,41 @@ public class EnterpriseReportingServiceTest
     when(hdsClientMock.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
 
-    // Initial Load - Version loader is triggered.
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.get().dashboardMetadata);
+
     verify(hdsClientMock, times(1)).get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
 
+    verifyScheduledTaskVersionCache(1);
     Mockito.clearInvocations(hdsClientMock);
+    Mockito.clearInvocations(mockTaskScheduler);
 
-    // Second call - Loader is not yet triggered - Versions are the same.
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.get().dashboardMetadata);
+
     verify(hdsClientMock, times(0)).get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
 
+    verify(mockTaskScheduler, times(0)).scheduleOneTimeTaskForAllOtherNodes(any(), any());
     Mockito.clearInvocations(hdsClientMock);
+    Mockito.clearInvocations(mockTaskScheduler);
 
-    // Third call - Loader is triggered - Different versions.
     enterpriseReportingService.currentVersionCache.invalidateAll();
     when(hdsClientMock.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(2));
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.get().dashboardMetadata);
+
     verify(hdsClientMock, times(1)).get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(hdsClientMock, times(1)).get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verifyScheduledTaskVersionCache(2);
   }
 
   @Test
@@ -478,10 +497,45 @@ public class EnterpriseReportingServiceTest
         .isInstanceOf(NotFoundException.class);
   }
 
+  @Test
+  public void testExecute_UpdateCache() throws Exception {
+    EnterpriseReportingService spyEnterpriseReportingService =
+        spy(enterpriseReportingService);
+
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+    jobDataMap.put(EnterpriseReportingService.TASK_PARAM_CURRENT_VERSION, "1");
+    // Set the current version to an older version
+    spyEnterpriseReportingService.currentVersion.set(-1);
+
+    try {
+      spyEnterpriseReportingService.execute(mockJobExecutionContext);
+    }
+    catch (JobExecutionException e) {
+      fail("Unexpected exception thrown: " + e.getMessage());
+    }
+    assertEquals(1, spyEnterpriseReportingService.currentVersion.get());
+    verify(spyEnterpriseReportingService, times(1)).cacheDashboardMetadata();
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(
+        JobBuilder.newJob(EnterpriseReportingService.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
   private void createServiceWithDashboardMetadata(AtomicReference<DashboardMetadataListDTO> dashboardData) {
     insightWork = mock(InsightWork.class);
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
         mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, dashboardData, 0,
-        mockLatestVersionCache);
+        mockLatestVersionCache,mockTaskScheduler);
+  }
+
+  private void verifyScheduledTaskVersionCache(Integer latestVersion) {
+    Map<String, String> expectedParameters = new HashMap<>();
+    expectedParameters.put(EnterpriseReportingService.TASK_PARAM_CURRENT_VERSION, latestVersion.toString());
+    verify(mockTaskScheduler)
+        .scheduleOneTimeTaskForAllOtherNodes(enterpriseReportingService, expectedParameters);
   }
 }

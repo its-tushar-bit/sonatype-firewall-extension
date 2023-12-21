@@ -70,7 +70,6 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
-import com.sonatype.insight.brain.api.v2.service.DefaultApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -245,7 +244,7 @@ public class ApiLicenseLegalServiceTest
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    apiLicenseDataAdapterSpy = spy(new DefaultApiLicenseDataAdapter(new MultiLicenseDAO()));
+    apiLicenseDataAdapterSpy = spy(new ApiLicenseDataAdapter());
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
     lenient().when(configurationMock.isALPObservedLicenseDetectionEnabled()).thenReturn(true);
     componentInfoServiceSpy =

@@ -55,10 +55,11 @@ import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPart
 @Named
 @Singleton
 public class DefaultPolicyEvaluateService
-    extends AbstractPolicyEvaluateService
-    implements Managed
+    implements PolicyEvaluateService, Managed
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultPolicyEvaluateService.class);
+
+  private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -79,6 +80,8 @@ public class DefaultPolicyEvaluateService
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   private final InsightWork insightWork;
+
+  public boolean disablePollingIntervalForTesting = false;
 
   @Inject
   public DefaultPolicyEvaluateService(
@@ -464,5 +467,15 @@ public class DefaultPolicyEvaluateService
           .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       throw e;
     }
+  }
+
+  /**
+   * Retrieve the interval (in seconds) before checking again if a result is available.
+   *
+   * @return value of {@link #NEXT_POLLING_INTERVAL_IN_SECONDS} or 1
+   *         if {@link #disablePollingIntervalForTesting} is true
+   */
+  protected int getNextPollingInterval() {
+    return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
   }
 }

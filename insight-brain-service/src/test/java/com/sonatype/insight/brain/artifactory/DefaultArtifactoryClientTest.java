@@ -21,7 +21,6 @@ import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.report.RepositoryMatcher;
@@ -47,7 +46,7 @@ public class DefaultArtifactoryClientTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(DefaultArtifactoryClient.class);
+  public LogOutput logOutput = new LogOutput(ArtifactoryClient.class);
 
   @Rule
   public ArtifactoryMockServerRule artifactoryMockServer = new ArtifactoryMockServerRule();
@@ -59,7 +58,7 @@ public class DefaultArtifactoryClientTest
   public void testInitialize() {
     Configuration configuration = new Configuration();
     configuration.setServerUrl(artifactoryMockServer.getUrl());
-    assertThat(new DefaultArtifactoryClient(configuration)).isInstanceOf(ArtifactoryClient.class);
+    assertThat(new ArtifactoryClient(configuration)).isInstanceOf(ArtifactoryClient.class);
   }
 
   @Test
@@ -152,7 +151,7 @@ public class DefaultArtifactoryClientTest
   public void testGetServerStatus_ViaQueryParam() throws Exception {
     ArtifactoryClient artifactoryClient =
         artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), null, null);
-    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256,
+    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, ArtifactoryClient.TEST_SHA256,
         new ArtifactoryChecksumSearchResults());
 
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
@@ -171,7 +170,7 @@ public class DefaultArtifactoryClientTest
         username,
         password,
         ChecksumType.SHA256,
-        Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+        Collections.singleton(ArtifactoryClient.TEST_SHA256),
         Collections.emptySet()
     );
 
@@ -193,7 +192,7 @@ public class DefaultArtifactoryClientTest
   }
 
   private void testGetServerStatus_Error_ViaQueryParam(ArtifactoryClient artifactoryClient) throws Exception {
-    artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256, 500);
+    artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256, ArtifactoryClient.TEST_SHA256, 500);
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(500));
@@ -206,7 +205,7 @@ public class DefaultArtifactoryClientTest
         "admin",
         "admin123".toCharArray(),
         ChecksumType.SHA256,
-        Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+        Collections.singleton(ArtifactoryClient.TEST_SHA256),
         500,
         "");
     StatusType status = artifactoryClient.getServerStatusViaAQL();
@@ -229,8 +228,8 @@ public class DefaultArtifactoryClientTest
 
   private void testGetServerStatus_MissingHeader_ViaQueryParam(ArtifactoryClient artifactoryClient) throws Exception {
     artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
-        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
-            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
+        artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
         .willReturn(aResponse().withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
@@ -245,13 +244,13 @@ public class DefaultArtifactoryClientTest
 
   private void testGetServerStatus_MissingHeader_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
     artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
-        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
+        artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
         .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     new HashSet<>(Arrays.asList("repo1", "repo2")))))
         .willReturn(aResponse().withStatus(200)));
     StatusType status = artifactoryClient.getServerStatusViaAQL();
@@ -280,9 +279,9 @@ public class DefaultArtifactoryClientTest
       throws Exception
   {
     artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
-        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
-            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+        artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
 
@@ -296,15 +295,15 @@ public class DefaultArtifactoryClientTest
 
   private void testGetServerStatus_MissingHeaderValue_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
     artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
-        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
+        artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
         .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     new HashSet<>(Arrays.asList("repo1", "repo2")))))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaAQL();
 
@@ -513,8 +512,8 @@ public class DefaultArtifactoryClientTest
 
   @Test
   public void testPath() {
-    DefaultArtifactoryClient defaultArtifactoryClient = (DefaultArtifactoryClient) artifactoryClientFactory.create()
-        .forArtifactory("http://baseUrl:8081", null, null);
+    ArtifactoryClient defaultArtifactoryClient =
+        artifactoryClientFactory.create().forArtifactory("http://baseUrl:8081", null, null);
 
     assertThat(defaultArtifactoryClient.path()).isEqualTo("http://baseUrl:8081");
     assertThat(defaultArtifactoryClient.path("a")).isEqualTo("http://baseUrl:8081/a");
@@ -523,8 +522,7 @@ public class DefaultArtifactoryClientTest
     assertThat(defaultArtifactoryClient.path("/a", "/b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
     assertThat(defaultArtifactoryClient.path("/a", "b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
 
-    defaultArtifactoryClient =
-        (DefaultArtifactoryClient) artifactoryClientFactory.create().forArtifactory("http://baseUrl:8081/", null, null);
+    defaultArtifactoryClient = artifactoryClientFactory.create().forArtifactory("http://baseUrl:8081/", null, null);
 
     assertThat(defaultArtifactoryClient.path()).isEqualTo("http://baseUrl:8081/");
     assertThat(defaultArtifactoryClient.path("a")).isEqualTo("http://baseUrl:8081/a");

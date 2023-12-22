@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -61,7 +60,7 @@ public class ArtifactoryClientFactory
         authentication.setPassword(password);
         config.setServerAuth(authentication);
       }
-      return new DefaultArtifactoryClient(config);
+      return new ArtifactoryClient(config);
     }
   }
 }

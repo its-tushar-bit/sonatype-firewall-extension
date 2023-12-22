@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServ
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
-import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
+import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -205,7 +205,7 @@ public class RepositoryMatcherTest
       verify(spyRepositoryMatcher).identify(connectionArgumentCaptor.capture(), eq(bomJson));
       assertThat(connectionArgumentCaptor.getValue().getId()).isEqualTo(artifactoryConnection.getId());
       artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-          urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+          urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
       verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
       verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
           Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
@@ -290,7 +290,7 @@ public class RepositoryMatcherTest
         objectMapper.createObjectNode(), createObjectNodeWithAaData(), createObjectNodeWithAaData());
 
     artifactoryMockServer.getWireMockServer()
-        .verify(0, anyRequestedFor(urlPathEqualTo(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)));
+        .verify(0, anyRequestedFor(urlPathEqualTo(ArtifactoryClient.CHECKSUM_SEARCH_PATH)));
     verify(mockDefaultApiComponentDetailsServiceV2, never()).getComponentDetailsListFromHds(
         Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
   }
@@ -306,7 +306,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
   }
 
@@ -352,7 +352,7 @@ public class RepositoryMatcherTest
     assertThat(identified).hasSize(1);
 
     artifactoryMockServer.getWireMockServer().verify(3, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
 
     ObjectNode expectedBomJson = (ObjectNode) readJsonFile("sbom/outcome/bom.json");
     ObjectNode expectedSecurityJson = (ObjectNode) readJsonFile("sbom/outcome/security.json");
@@ -396,7 +396,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -410,7 +410,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -427,7 +427,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -441,7 +441,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(0);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -460,7 +460,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(repositoryIdentifiedComponentCache.get(sha256)).isEqualTo(identifier);
     RepositoryIdentifiedComponent repositoryIdentifiedComponent = repositoryIdentifiedComponentDAO.getByHash(sha256);
     assertThat(repositoryIdentifiedComponent).isNotNull();
@@ -481,7 +481,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
-        .verify(0, anyRequestedFor(urlPathEqualTo(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)));
+        .verify(0, anyRequestedFor(urlPathEqualTo(ArtifactoryClient.CHECKSUM_SEARCH_PATH)));
   }
 
   @Test
@@ -515,7 +515,7 @@ public class RepositoryMatcherTest
 
     assertThat(sha256Matches).isEmpty();
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -529,7 +529,7 @@ public class RepositoryMatcherTest
     assertThat(sha256Matches).hasSize(0);
     //although 2 matching components, only 1 search is attempted due to connection error
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -686,7 +686,7 @@ public class RepositoryMatcherTest
     assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1, componentIdentifier2);
     artifactoryMockServer.getWireMockServer()
         .verify(1, anyRequestedFor(
-            urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH))));
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH))));
     assertStored(date, sha256a, componentIdentifier1);
     assertStored(date, sha256b, componentIdentifier2);
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 2 checksum(s) resulted in 2 match(es).");
@@ -724,7 +724,7 @@ public class RepositoryMatcherTest
     assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
     artifactoryMockServer.getWireMockServer()
         .verify(1, anyRequestedFor(
-            urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH))));
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH))));
     assertThat(logOutput).atDebugLevel()
         .contains("Artifactory search, limited to 1 queries, for 2 checksum(s), resulted in 1 match(es).");
   }
@@ -746,7 +746,7 @@ public class RepositoryMatcherTest
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
     assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(logOutput).atDebugLevel()
         .contains("Artifactory search, limited to 1 queries, for 2 checksum(s), resulted in 1 match(es).");
   }

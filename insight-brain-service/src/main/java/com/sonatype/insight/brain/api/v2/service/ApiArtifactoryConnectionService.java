@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusReque
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
+import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;

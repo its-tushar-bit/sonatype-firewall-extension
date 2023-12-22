@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusReque
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
-import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
+import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -41,7 +41,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.TEST_SHA256;
+import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.TEST_SHA256;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiArtifactoryConnectionResourceTest
@@ -381,13 +381,13 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    artifactoryMockServer.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+    artifactoryMockServer.stubFor(post(urlPathMatching(ArtifactoryClient.AQL_SEARCH_PATH))
         .withBasicAuth("user", "pass")
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     Collections.emptySet())))
         .willReturn(aResponse().withStatus(200)));
 
@@ -405,7 +405,7 @@ public class ApiArtifactoryConnectionResourceTest
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
     dto.baseUrl = artifactoryMockServer.baseUrl();
 
-    artifactoryMockServer.stubFor(get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+    artifactoryMockServer.stubFor(get(urlPathMatching(ArtifactoryClient.CHECKSUM_SEARCH_PATH))
         .willReturn(aResponse().withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
@@ -424,15 +424,15 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    artifactoryMockServer.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+    artifactoryMockServer.stubFor(post(urlPathMatching(ArtifactoryClient.AQL_SEARCH_PATH))
         .withBasicAuth("user", "pass")
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     Collections.emptySet())))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
@@ -481,9 +481,9 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryConnection.setBaseUrl(artifactoryMockServer.baseUrl());
     dao.update(artifactoryConnection);
 
-    artifactoryMockServer.stubFor(get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+    artifactoryMockServer.stubFor(get(urlPathMatching(ArtifactoryClient.CHECKSUM_SEARCH_PATH))
             .withQueryParam("sha256", equalTo(TEST_SHA256))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
@@ -505,16 +505,16 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryConnection.setPassword(pwHandler.encryptPassword(artifactoryConnection.getPassword()));
     dao.update(artifactoryConnection);
 
-    artifactoryMockServer.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+    artifactoryMockServer.stubFor(post(urlPathMatching(ArtifactoryClient.AQL_SEARCH_PATH))
         .withBasicAuth(artifactoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(artifactoryConnection.getPassword())))
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     Collections.emptySet())))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
@@ -536,16 +536,16 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryConnection.setPassword(pwHandler.encryptPassword(artifactoryConnection.getPassword()));
     dao.update(artifactoryConnection);
 
-    artifactoryMockServer.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+    artifactoryMockServer.stubFor(post(urlPathMatching(ArtifactoryClient.AQL_SEARCH_PATH))
         .withBasicAuth(artifactoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(artifactoryConnection.getPassword())))
         .withRequestBody(
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     Collections.emptySet())))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)

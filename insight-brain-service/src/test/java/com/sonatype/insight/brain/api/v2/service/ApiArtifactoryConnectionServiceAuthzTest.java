@@ -11,9 +11,9 @@ import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
+import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;

@@ -42,10 +42,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRespo
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;

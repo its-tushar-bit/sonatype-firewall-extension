@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.artifactory;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -54,7 +53,7 @@ public class ArtifactoryClientFactoryTest
 
     ArtifactoryClient artifactoryClient = artifactoryClientBuilder.forArtifactory(serverUrl, null, null);
 
-    assertThat(artifactoryClient).isInstanceOf(DefaultArtifactoryClient.class);
+    assertThat(artifactoryClient).isInstanceOf(ArtifactoryClient.class);
     assertThat(configuration.getServerUrl()).isEqualTo(serverUrl);
     assertThat(configuration.getServerAuth()).isNull();
   }
@@ -69,7 +68,7 @@ public class ArtifactoryClientFactoryTest
 
     ArtifactoryClient artifactoryClient = artifactoryClientBuilder.forArtifactory(serverUrl, username, password);
 
-    assertThat(artifactoryClient).isInstanceOf(DefaultArtifactoryClient.class);
+    assertThat(artifactoryClient).isInstanceOf(ArtifactoryClient.class);
     assertThat(configuration.getServerUrl()).isEqualTo(serverUrl);
     SimpleAuthentication authentication = new SimpleAuthentication();
     authentication.setUsername(username);

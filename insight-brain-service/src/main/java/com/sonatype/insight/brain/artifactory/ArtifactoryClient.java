@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchEr
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
-import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.report.RepositoryMatcher;
@@ -57,10 +56,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultArtifactoryClient
-    implements ArtifactoryClient
+public class ArtifactoryClient
 {
-  private static final Logger log = LoggerFactory.getLogger(DefaultArtifactoryClient.class);
+  private static final Logger log = LoggerFactory.getLogger(ArtifactoryClient.class);
 
   public static final String CHECKSUM_SEARCH_PATH = "/api/search/checksum";
 
@@ -76,7 +74,7 @@ public class DefaultArtifactoryClient
 
   private final HttpClientContext httpClientContext;
 
-  public DefaultArtifactoryClient(Configuration configuration) {
+  public ArtifactoryClient(Configuration configuration) {
     this.configuration = configuration;
     httpClient = HttpClientUtils.create(this.configuration).build();
     httpClientContext = createHttpClientContext(this.configuration);
@@ -108,7 +106,6 @@ public class DefaultArtifactoryClient
     return httpClientContext;
   }
 
-  @Override
   public ArtifactoryChecksumSearchResults searchByChecksum(
       ChecksumType checksumType,
       String checksum,
@@ -128,7 +125,6 @@ public class DefaultArtifactoryClient
     return JsonUtils.parse(responseContent, ArtifactoryChecksumSearchResults.class);
   }
 
-  @Override
   public Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
       ChecksumType checksumType,
       Set<String> checksums,
@@ -196,14 +192,12 @@ public class DefaultArtifactoryClient
     throw new BadGatewayException(content);
   }
 
-  @Override
   public StatusType getServerStatusViaQueryParam() throws IOException {
     HttpGet request = new HttpGet(path(CHECKSUM_SEARCH_PATH) +
         UrlUtils.appendQueryParams(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), TEST_SHA256));
     return getStatusType(httpClient.execute(request, httpClientContext));
   }
 
-  @Override
   public StatusType getServerStatusViaAQL() throws IOException {
     HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
     request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils

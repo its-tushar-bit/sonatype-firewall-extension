@@ -87,6 +87,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -182,6 +183,9 @@ public abstract class AbstractRepositoryServiceTest
   private TelemetrySender telemetrySenderMock;
 
   @Mock
+  private RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventServiceMock;
+
+  @Mock
   private CurrentUser currentUser;
 
   @Mock
@@ -195,6 +199,8 @@ public abstract class AbstractRepositoryServiceTest
     binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(RequestSafeComponentsMetricEventService.class)
+        .toInstance(requestSafeComponentsMetricEventServiceMock);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }
@@ -2297,6 +2303,7 @@ public abstract class AbstractRepositoryServiceTest
             () -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, null))
         .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2348,6 +2355,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 0, System.currentTimeMillis() - start);
+    assertPostRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2366,6 +2374,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The format cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2384,6 +2393,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The format cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2404,6 +2414,7 @@ public abstract class AbstractRepositoryServiceTest
     }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
 
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2422,6 +2433,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The hash cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2440,6 +2452,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The hash cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2458,6 +2471,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The pathname cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2476,6 +2490,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The pathname cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2488,6 +2503,7 @@ public abstract class AbstractRepositoryServiceTest
             null /* componentEvaluationDataRequestList */, null))
         .withMessage("The repository must be enabled in quarantine mode.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2500,6 +2516,7 @@ public abstract class AbstractRepositoryServiceTest
             null /* componentEvaluationDataRequestList */, null))
         .withMessage("The repository must be enabled in quarantine mode.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2518,6 +2535,7 @@ public abstract class AbstractRepositoryServiceTest
             componentEvaluationDataRequestList, null))
         .withMessage("The repository format must be npm or pypi.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+    verify(requestSafeComponentsMetricEventServiceMock, never()).postRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2577,6 +2595,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
+    verify(requestSafeComponentsMetricEventServiceMock).postRequestSafeComponentsMetricEvent(1);
   }
 
   @Test
@@ -2638,6 +2657,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
+    verify(requestSafeComponentsMetricEventServiceMock).postRequestSafeComponentsMetricEvent(1);
   }
 
   @Test
@@ -2690,6 +2710,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 0, System.currentTimeMillis() - start);
+    assertPostRequestSafeComponentsMetricEvent(0);
   }
 
   @Test
@@ -2749,6 +2770,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
+    assertPostRequestSafeComponentsMetricEvent(1);
   }
 
   @Test
@@ -2808,6 +2830,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
+    assertPostRequestSafeComponentsMetricEvent(1);
   }
 
   @Test
@@ -3328,5 +3351,10 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
     }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
+  }
+
+  private void assertPostRequestSafeComponentsMetricEvent(int policyCompliantVersionCount) {
+    verify(requestSafeComponentsMetricEventServiceMock).postRequestSafeComponentsMetricEvent(
+        policyCompliantVersionCount);
   }
 }

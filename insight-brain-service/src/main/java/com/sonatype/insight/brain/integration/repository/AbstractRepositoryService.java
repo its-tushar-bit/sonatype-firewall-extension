@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -122,6 +123,8 @@ public abstract class AbstractRepositoryService
   // Visible for tests
   final LicensedFeature requiredFeature;
 
+  private final RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService;
+
   @Inject
   public AbstractRepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -132,7 +135,8 @@ public abstract class AbstractRepositoryService
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -143,6 +147,7 @@ public abstract class AbstractRepositoryService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
+    this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
   }
 
   protected void checkLicenseFeature() {
@@ -423,6 +428,7 @@ public abstract class AbstractRepositoryService
 
     sendTelemetry(componentEvaluationDataRequestList.components.size(), policyCompliantVersionCount,
         System.currentTimeMillis() - start);
+    requestSafeComponentsMetricEventService.postRequestSafeComponentsMetricEvent(policyCompliantVersionCount);
 
     return result;
   }

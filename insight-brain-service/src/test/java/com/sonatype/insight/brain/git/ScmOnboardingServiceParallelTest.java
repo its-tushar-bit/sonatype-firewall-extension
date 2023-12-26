@@ -251,9 +251,9 @@ public class ScmOnboardingServiceParallelTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(16)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(16);
+    assertThat(telemetryDataList).hasSize(29);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -317,9 +317,9 @@ public class ScmOnboardingServiceParallelTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(19)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(19);
+    assertThat(telemetryDataList).hasSize(32);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -369,9 +369,9 @@ public class ScmOnboardingServiceParallelTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(13)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(23)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(13);
+    assertThat(telemetryDataList).hasSize(23);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -414,7 +414,7 @@ public class ScmOnboardingServiceParallelTest
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(2)).update(any(SourceControlOrganizationImportEvent.class));
 
-    assertScmImportTelemetries(13);
+    assertScmImportTelemetries(13, 13);
   }
 
   private void assertBatchedImportTelemetries(
@@ -460,7 +460,7 @@ public class ScmOnboardingServiceParallelTest
     verifySourceControlEvaluationEventsCreated(5);
     verify(sourceControlOrganizationImportEventDAO, times(2)).update(any(SourceControlOrganizationImportEvent.class));
 
-    assertScmImportTelemetries(5, 5);
+    assertScmImportTelemetries(5, 5, 5);
   }
 
   @Test
@@ -499,9 +499,9 @@ public class ScmOnboardingServiceParallelTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(19)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(19);
+    assertThat(telemetryDataList).hasSize(32);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -546,9 +546,9 @@ public class ScmOnboardingServiceParallelTest
     verify(sourceControlOrganizationImportEventDAO, times(7)).update(any(SourceControlOrganizationImportEvent.class));
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(19)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(19);
+    assertThat(telemetryDataList).hasSize(32);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -591,7 +591,7 @@ public class ScmOnboardingServiceParallelTest
     assertThat(childOrgsAfterImport).isEmpty();
     assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(13);
     verifySourceControlEvaluationEventsCreated(13);
-    assertScmImportTelemetries(13);
+    assertScmImportTelemetries(13, 13);
   }
 
   @Test
@@ -671,9 +671,9 @@ public class ScmOnboardingServiceParallelTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(16)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(16);
+    assertThat(telemetryDataList).hasSize(29);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -718,28 +718,26 @@ public class ScmOnboardingServiceParallelTest
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(8)).update(any(SourceControlOrganizationImportEvent.class));
 
-    assertScmImportTelemetries(13);
+    assertScmImportTelemetries(13, 13);
 
     setImportEventStatusUpdateThreshold(20);
   }
 
-  private void assertScmImportTelemetries(int batchCount) {
+  private void assertScmImportTelemetries(int batchCount, int updatedApps) {
     //calculation mentioned here for clarification only
     int totalRepoCount = 13;
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
     int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
-    int updatedApps = 0;
     int updatedCount = batchCount + updatedApps;
     assertTelemetry(batchPercent, batchCount, totalPercent, updatedCount);
   }
 
-  private void assertScmImportTelemetries(int batchCount, int repoCount) {
+  private void assertScmImportTelemetries(int batchCount, int repoCount, int updatedApps) {
     //calculation mentioned here for clarification only
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / repoCount);
     int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / repoCount);
-    int updatedApps = 0;
     int updatedCount = batchCount + updatedApps;
     assertTelemetry(batchPercent, batchCount, totalPercent, updatedCount);
   }

@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -88,7 +87,6 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApplicationCloneServiceTest
     extends AbstractComponentTest
@@ -149,29 +147,6 @@ public class ApplicationCloneServiceTest
     assertThat(clonedApp.getContactInternalName()).isEqualTo(contactUsername);
     assertThat(clonedApp.isLegacyViolationEnabled()).isFalse();
 
-    verifyNoInteractions(telemetrySenderMock);
-  }
-
-  @Test
-  public void testCloneApplication_Application_IntegratedEnterpriseReportingEnabled() {
-    // Given
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-
-    String clonedAppName = "clonedAppName";
-    String clonedAppPublicId = "clonedAppPublicId";
-    String contactUsername = "testuser";
-    sourceApp.setContactInternalName(contactUsername);
-    // The application cloning is supposed to disable legacy violation for the cloned app.
-    // So we set it to true in the source application in order to verify
-    // that is not copied to the cloned application.
-    sourceApp.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(sourceApp);
-
-    // When
-    ApiApplicationDTO clonedAppDTO =
-        appCloneService.cloneApplication(sourceApp.getId(), clonedAppName, clonedAppPublicId);
-
-    // Then
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();

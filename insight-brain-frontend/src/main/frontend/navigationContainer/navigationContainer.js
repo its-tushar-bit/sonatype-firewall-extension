@@ -17,10 +17,8 @@ import {
   selectIsDashboardWaiversSupported,
   selectIsReportListSupported,
   selectIsApiPageSupported,
-  selectIsDataInsightsSupported,
   selectIsShowVersionEnabled,
   selectIsDeveloperDashboardEnabled,
-  selectIsIntegratedEnterpriseReportingEnabled,
   selectIsOrgsAndAppsEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
@@ -40,9 +38,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isFirewallSupported = false;
   vm.isAdvancedLegalPackSupported = false;
   vm.isApiPageEnabled = false;
-  vm.isDataInsightsEnabled = false;
   vm.isDeveloperDashboardEnabled = false;
-  vm.isIntegratedEnterpriseReportingEnabled = false;
   vm.isOrgsAndAppsEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
@@ -108,10 +104,8 @@ function mapStateToThis(state) {
     isDashboardWaiversSupported: selectIsDashboardWaiversSupported(state),
     isReportListSupported: selectIsReportListSupported(state),
     isApiPageEnabled: selectIsApiPageSupported(state),
-    isDataInsightsEnabled: selectIsDataInsightsSupported(state),
     isShowVersionEnabled: selectIsShowVersionEnabled(state),
     isDeveloperDashboardEnabled: selectIsDeveloperDashboardEnabled(state),
-    isIntegratedEnterpriseReportingEnabled: selectIsIntegratedEnterpriseReportingEnabled(state),
     isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
   };
 }

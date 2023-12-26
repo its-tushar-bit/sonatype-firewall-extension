@@ -11,7 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
@@ -37,17 +36,12 @@ public class ApplicationTelemetryCollector
 
   @Override
   public TelemetryData collectData() {
-    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
-      List<OwnerData> ownerData = applicationDAO.getAll().stream()
-          .map(app -> new OwnerData(app.getId(), OwnerType.APPLICATION.toString(), app.getName()))
-          .collect(Collectors.toList());
-      telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);
-      return telemetryData;
-    }
-    else {
-      return null;
-    }
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
+    List<OwnerData> ownerData = applicationDAO.getAll().stream()
+        .map(app -> new OwnerData(app.getId(), OwnerType.APPLICATION.toString(), app.getName()))
+        .collect(Collectors.toList());
+    telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);
+    return telemetryData;
   }
 
   @Override

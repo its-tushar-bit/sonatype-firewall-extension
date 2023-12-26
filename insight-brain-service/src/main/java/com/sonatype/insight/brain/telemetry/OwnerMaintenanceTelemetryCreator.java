@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.telemetry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -24,12 +23,10 @@ public class OwnerMaintenanceTelemetryCreator
   }
 
   public void sendOwnerMaintenanceTelemetry(Application application, String maintenanceType) {
-    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-          new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
+    final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
+        new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
 
-      sendOwnerMaintenanceTelemetry(ownerMaintenanceTelemetry);
-    }
+    sendOwnerMaintenanceTelemetry(ownerMaintenanceTelemetry);
   }
 
   private void sendOwnerMaintenanceTelemetry(OwnerMaintenanceTelemetry ownerMaintenanceTelemetry) {

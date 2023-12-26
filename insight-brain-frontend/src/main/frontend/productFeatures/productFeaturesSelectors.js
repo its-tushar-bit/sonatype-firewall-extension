@@ -77,7 +77,6 @@ export const selectIsDashboardWaiversSupported = createSelector(
   propOr(false, 'waivers-dashboard')
 );
 export const selectIsReportListSupported = createSelector(selectProductFeatures, propOr(false, 'reports-list'));
-export const selectIsDataInsightsSupported = createSelector(selectProductFeatures, propOr(false, 'data-insights'));
 export const selectIsCrowdIntegrationSupported = createSelector(
   selectProductFeatures,
   propOr(false, 'crowd-integration')
@@ -216,9 +215,4 @@ export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMo
 export const selectIsDeveloperDashboardEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'developer-dashboard')
-);
-
-export const selectIsIntegratedEnterpriseReportingEnabled = createSelector(
-  selectProductFeatures,
-  propOr(false, 'integrated-enterprise-reporting')
 );

@@ -27,7 +27,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -1260,10 +1259,7 @@ public class ApiPolicyWaiverServiceTest
     expectedAttributes.put("owner_type", ownerType.toString());
 
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
-        .isEnabled()) {
-      expectedAttributes.put("real_owner_id", ownerId);
-    }
+    expectedAttributes.put("real_owner_id", ownerId);
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_WAIVER_API);
@@ -1634,9 +1630,6 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_Application_WithEnabled() {
-    // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-
     // When
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));

@@ -18,10 +18,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -33,19 +31,17 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.InternalServerException;
-import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -56,14 +52,12 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.DEFAULT_GUAVA_CACHE_KEY;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -111,6 +105,8 @@ public class EnterpriseReportingServiceTest
 
   private final LoadingCache<String, Integer> mockLatestVersionCache = mock(LoadingCache.class);
 
+  private final Configuration mockConfiguration = mock(Configuration.class);
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
@@ -120,16 +116,6 @@ public class EnterpriseReportingServiceTest
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
-  }
-
-  @Before
-  public void setup() {
-    enableFeature();
-  }
-
-  @After
-  public void after() {
-    disableFeature();
   }
 
   @Test
@@ -148,32 +134,6 @@ public class EnterpriseReportingServiceTest
   public void testCreateSSOEmbedUrl_FeatureEnabled_OtherRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", "other"));
     createSSOEmbedUrl_FeatureEnabled();
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_FeatureEnabled_ConfigError() throws Exception {
-    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
-        mockGetLookerDashboardMetadata(),
-        0, mockLatestVersionCache,mockTaskScheduler);
-    String expectedUrl = "looker.url.com";
-    when(hdsClientMock.post(any(), anyString(), any()))
-        .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(mockConfigCache.get(DEFAULT_GUAVA_CACHE_KEY)).thenThrow(
-        new ExecutionException(new RuntimeException("error")));
-    when(currentUserMock.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-
-    assertThatExceptionOfType(InternalServerException.class)
-        .isThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
-        .withMessage("unable to load Enterprise Reporting configuration from Sonatype Data Services");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_FeatureDisabled() {
-    disableFeature();
-    assertThatExceptionOfType(NotAuthorizedException.class).isThrownBy(
-        () -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")));
   }
 
   @Test
@@ -224,18 +184,6 @@ public class EnterpriseReportingServiceTest
         EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
         .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
     assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedBaseUrl);
-  }
-
-  @Test
-  public void testGetBaseUrl_Error() throws Exception {
-    enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
-        mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache,
-        mockGetLookerDashboardMetadata(), 0, mockLatestVersionCache,mockTaskScheduler);
-    when(mockConfigCache.get(DEFAULT_GUAVA_CACHE_KEY)).thenThrow(
-        new ExecutionException(new RuntimeException("error")));
-
-    assertThatExceptionOfType(InternalServerException.class).isThrownBy(() -> enterpriseReportingService.getBaseUrl())
-        .withMessage("unable to load Enterprise Reporting configuration from Sonatype Data Services");
   }
 
   @Test
@@ -427,16 +375,6 @@ public class EnterpriseReportingServiceTest
     assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
   }
 
-  private void enableFeature() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-  }
-
-  private void disableFeature() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
-  }
-
   private static Set<String> mockGetPermissionsForUserPrincipal() {
     return new HashSet<>(Arrays.asList(Permission.EDIT_ROLES.getDisplayName(),
         Permission.WAIVE_POLICY_VIOLATIONS.getDisplayName()));
@@ -529,7 +467,7 @@ public class EnterpriseReportingServiceTest
     insightWork = mock(InsightWork.class);
     enterpriseReportingService = new EnterpriseReportingService(hdsClientMock, currentUserMock, mockUserDAO,
         mockSamlUserDAO, mockMembershipMappingService, insightWork, mockConfigCache, dashboardData, 0,
-        mockLatestVersionCache,mockTaskScheduler);
+        mockLatestVersionCache,mockTaskScheduler, mockConfiguration);
   }
 
   private void verifyScheduledTaskVersionCache(Integer latestVersion) {

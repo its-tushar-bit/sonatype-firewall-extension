@@ -202,8 +202,6 @@ public class SystemConfigurationProperty
    */
   public static final String INTERNAL_FIREWALL_ONBOARDING_ENABLED = "internalFirewallOnboardingEnabled";
 
-  public static final String INTEGRATED_ENTERPRISE_REPORTING = "integratedEnterpriseReporting";
-
   public static final String ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES =
       "enterpriseReportingVersionCacheExpirationInMinutes";
 

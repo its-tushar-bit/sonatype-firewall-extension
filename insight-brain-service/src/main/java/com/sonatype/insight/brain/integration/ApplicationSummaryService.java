@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -291,12 +290,10 @@ public class ApplicationSummaryService
     telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
         String.valueOf(appCreatedAutomatically));
 
-    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-          new OwnerMaintenanceTelemetry(application.getId(), application.getName(), OwnerMaintenanceTelemetry.TYPE_ADD);
-      telemetryData.getAttributes()
-          .put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
-    }
+    final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
+        new OwnerMaintenanceTelemetry(application.getId(), application.getName(), OwnerMaintenanceTelemetry.TYPE_ADD);
+    telemetryData.getAttributes()
+        .put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 
     telemetrySender.send(telemetryData, clientUserAgent);
   }

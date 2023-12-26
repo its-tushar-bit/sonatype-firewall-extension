@@ -14,7 +14,6 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -368,48 +367,6 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForConditionTypeViolation() {
     // setup : create a condition type policy violation
-    final int threatLevel = 7;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final boolean isScmEnabled = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(45);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
-
-    final TelemetryPurpose telemetryPurpose = TelemetryPurpose.CONDITION_TYPE_VIOLATION;
-    final String validConditionType = HygieneRatingConditionType.ID;
-
-    // when
-    telemetryCollector.addTelemetryForConditionTypeViolation(policyViolation, validConditionType);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-
-    // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(telemetryPurpose);
-    Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertThat(attributes.get(APPLICATION_ID)).isNotEqualTo(policyEvaluation.getApplicationId());
-    assertThat(attributes.get(REAL_APPLICATION_ID)).isNull();
-    assertThat(attributes.get(STAGE)).isEqualTo(policyEvaluation.getStageTypeId());
-    assertThat(attributes.get(THREAT_LEVEL)).isEqualTo(threatLevel);
-    assertThat(attributes.get(THREAT_CATEGORY)).isEqualTo(policyThreatCategory.getName());
-    assertThat(attributes.get(IS_SCM_ENABLED)).isEqualTo(isScmEnabled);
-    assertThat(attributes.get(COUNT)).isEqualTo(1);
-    assertThat(attributes.get(OPEN_TIME)).isEqualTo(openTime.getTime());
-    assertThat(attributes.get(TIME)).isEqualTo(expectedTTR);
-    assertThat(attributes.get(FIX_TIME)).isNull();
-
-    // Important check
-    assertThat(attributes.get(CONDITION_TYPE)).isEqualTo(validConditionType);
-  }
-
-  @Test
-  public void testAddTelemetryForConditionTypeViolation_IntegratedEnterpriseReportingEnabled() {
-    // setup : create a condition type policy violation
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     final int threatLevel = 7;
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
     final boolean isScmEnabled = false;

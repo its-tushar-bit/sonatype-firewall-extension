@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import java.util.List;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.ApplicationTelemetryCollector.OwnerData;
@@ -16,7 +15,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +42,6 @@ public class ApplicationTelemetryCollectorTest
 
   @Test
   public void testCollectData_FeatureEnabled_CollectApplicationIds() {
-    toggleFeature(true);
     Application app1 = tempEntity.newApplication(org.getId());
     Application app2 = tempEntity.newApplication(org.getId());
     Application app3 = tempEntity.newApplication(tempEntity.newOrganization().getId());
@@ -57,24 +54,5 @@ public class ApplicationTelemetryCollectorTest
         tuple(app1.getId(), app1.getName()),
         tuple(app2.getId(), app2.getName()),
         tuple(app3.getId(), app3.getName()));
-  }
-
-  @Test
-  public void testCollectData_FeatureDisabled_DoesNotCollectApplicationIds() {
-    toggleFeature(false);
-    tempEntity.newApplication(org.getId());
-
-    TelemetryData telemetryData = telemetryCollector.collectData();
-    assertThat(telemetryData).isNull();
-  }
-
-  private static void toggleFeature(boolean toggle) {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
-  }
-
-  @After
-  public void after() {
-    toggleFeature(false);
   }
 }

@@ -59,24 +59,10 @@ module.service('PermissionService', [
 
         return deferred.promise;
       },
-      isLabsDataInsightsEnabled: isLabsDataInsightsFeatureEnabled,
       isAutomationFeatureEnabled: isAutomationFeatureEnabled,
     };
   },
 ]);
-
-function isLabsDataInsightsFeatureEnabled() {
-  var promise = axios
-    .get(getProductFeaturesUrl())
-    .then(function (response) {
-      return response.data.includes('data-insights');
-    })
-    .catch(function () {
-      return false;
-    });
-
-  return promise;
-}
 
 function isAutomationFeatureEnabled() {
   var promise = axios

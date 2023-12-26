@@ -22,7 +22,6 @@ import {
   faSearch,
   faShieldCheck,
   faSitemap,
-  faDatabase,
   faChartPieAlt,
 } from '@fortawesome/pro-solid-svg-icons';
 
@@ -49,10 +48,8 @@ function IqSidebarNav(props) {
     isFirewallEnabled,
     isLegalEnabled,
     isApiPageEnabled,
-    isDataInsightsEnabled,
     isShowVersionEnabled,
     isDeveloperDashboardEnabled,
-    isIntegratedEnterpriseReportingEnabled,
     isOrgsAndAppsEnabled,
   } = props;
 
@@ -71,7 +68,6 @@ function IqSidebarNav(props) {
   const advSearchHref = uiRouterState.href('advancedSearch');
   const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
-  const dataInsightsHref = uiRouterState.href('dataInsights');
   const integrationsHref = uiRouterState.href('integrations');
 
   const isSelected = (entryName) => {
@@ -185,47 +181,24 @@ function IqSidebarNav(props) {
               href={apiHref}
             />
           )}
-          {isIntegratedEnterpriseReportingEnabled ? (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('enterpriseReporting')}
-              id="enterprise-reporting-navigation-button"
-              className="iq-enterprise-reporting-nav-link"
-              icon={faChartPieAlt}
-              text={
-                <>
-                  <span>Data Insights</span>
-                  <span className="iq-enterprise-reporting-nav-link__navigation-badge">
-                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
-                    Labs
-                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
-                  </span>
-                </>
-              }
-              href={enterpriseReportingHref}
-            />
-          ) : (
-            isDataInsightsEnabled && (
-              <NxGlobalSidebarNavigationLink
-                isSelected={isSelected('dataInsights')}
-                id="data-insights-navigation-button"
-                className="iq-data-insights-nav-link"
-                icon={faDatabase}
-                text={
-                  <>
-                    <span>Data Insights</span>
-                    <span className="iq-data-insights-nav-link__navigation-badge">
-                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                      <span className="iq-data-insights-nav-link__tooltip-only-text"> (</span>
-                      Labs
-                      <span className="iq-data-insights-nav-link__tooltip-only-text">)</span>
-                    </span>
-                  </>
-                }
-                href={dataInsightsHref}
-              />
-            )
-          )}
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected('enterpriseReporting')}
+            id="enterprise-reporting-navigation-button"
+            className="iq-enterprise-reporting-nav-link"
+            icon={faChartPieAlt}
+            text={
+              <>
+                <span>Data Insights</span>
+                <span className="iq-enterprise-reporting-nav-link__navigation-badge">
+                  {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                  <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
+                  NEW
+                  <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
+                </span>
+              </>
+            }
+            href={enterpriseReportingHref}
+          />
           {isDeveloperDashboardEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('integrations')}
@@ -269,10 +242,8 @@ IqSidebarNav.propTypes = {
   isFirewallEnabled: PropTypes.bool,
   isLegalEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
-  isDataInsightsEnabled: PropTypes.bool,
   isShowVersionEnabled: PropTypes.bool,
   isDeveloperDashboardEnabled: PropTypes.bool,
-  isIntegratedEnterpriseReportingEnabled: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

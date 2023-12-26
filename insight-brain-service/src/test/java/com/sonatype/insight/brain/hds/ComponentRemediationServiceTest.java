@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -21,7 +20,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -370,10 +368,9 @@ public class ComponentRemediationServiceTest
    */
 
   /**
-   * Test with advanced strategies flag as false to verify we are not getting back "with dependencies" remedies.
-   * Looking up version a1v1, a1v2, and a1v3 with a1v1 being the current version.
-   * None of the versions have dependencies.
-   * a1v1 has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
+   * Test with advanced strategies flag as false to verify we are not getting back "with dependencies" remedies. Looking
+   * up version a1v1, a1v2, and a1v3 with a1v1 being the current version. None of the versions have dependencies. a1v1
+   * has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NoDependencies_NoTransitive() {
@@ -387,8 +384,6 @@ public class ComponentRemediationServiceTest
 
   @Test
   public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_TransitiveEnabled_IEREnabled() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-
     testGetSuggestedRemediation_NoDependencies(false, true);
   }
 
@@ -414,15 +409,11 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as false but also with dependencies included
-   * to verify we are not getting back "with dependencies" remedies.
-   * Looking up versions a1v1, a1v2, a1v3, and a1v4 with a1v2 being the current version.
-   * a1v1 has no dependencies
-   * a1v2 dependencies: a2v1, a2v2
-   * a1v3 dependencies: a2v3, a2v4
-   * a1v4 dependencies: a2v3, a2v4
-   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, and a1v4 has no alerts.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
+   * Test with advanced strategies flag as false but also with dependencies included to verify we are not getting back
+   * "with dependencies" remedies. Looking up versions a1v1, a1v2, a1v3, and a1v4 with a1v2 being the current version.
+   * a1v1 has no dependencies a1v2 dependencies: a2v1, a2v2 a1v3 dependencies: a2v3, a2v4 a1v4 dependencies: a2v3, a2v4
+   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, and a1v4 has no alerts. a2v1 has failing alert,
+   * a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_WithDependencies_NoTransitive() {
@@ -472,10 +463,9 @@ public class ComponentRemediationServiceTest
    */
 
   /**
-   * Test with advanced strategies flag as true with no dependencies.
-   * Looking up versions a1v1, a1v2, and a1v3 with a1v1 being the current version.
-   * None of the versions have dependencies.
-   * a1v1 has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
+   * Test with advanced strategies flag as true with no dependencies. Looking up versions a1v1, a1v2, and a1v3 with a1v1
+   * being the current version. None of the versions have dependencies. a1v1 has failing alert, a1v2 has warning alert,
+   * and a1v3 has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NoDependencies() {
@@ -495,11 +485,10 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, a1v2, a1v3, and a1v4 with a1v1 being the current version.
-   * all versions have no dependencies
-   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, and a1v4 has no alerts.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, a1v2, a1v3, and a1v4 with
+   * a1v1 being the current version. all versions have no dependencies a1v1 has failing alert, a1v2 has warning alert,
+   * a1v3 has no alerts, and a1v4 has no alerts. a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and
+   * a2v4 has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_EmptyDependencies() {
@@ -527,12 +516,9 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up NuGet versions a1, a2, and a3 with a1 being the current version.
-   * a1 dependencies: a2
-   * a2 dependencies: a3
-   * a3 dependencies: none
-   * a1 has a warn alert (*non-failing), a2 has a warn alert, and a3 has no alerts (*non-violating).
+   * Test with advanced strategies flag as true, with dependencies. Looking up NuGet versions a1, a2, and a3 with a1
+   * being the current version. a1 dependencies: a2 a2 dependencies: a3 a3 dependencies: none a1 has a warn alert
+   * (*non-failing), a2 has a warn alert, and a3 has no alerts (*non-violating).
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NonMaven() {
@@ -590,14 +576,11 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies, no stage information.
-   * Looking up versions a1v1, a1v2, a1v3, and a1v4 with a1v1 being the current version.
-   * a1v1 has no dependencies
-   * a1v2 dependencies: a2v1, a2v2
-   * a1v3 dependencies: a2v2, a2v3
-   * a1v4 dependencies: a2v3, a2v4
-   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, and a1v4 has no alerts.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
+   * Test with advanced strategies flag as true, with dependencies, no stage information. Looking up versions a1v1,
+   * a1v2, a1v3, and a1v4 with a1v1 being the current version. a1v1 has no dependencies a1v2 dependencies: a2v1, a2v2
+   * a1v3 dependencies: a2v2, a2v3 a1v4 dependencies: a2v3, a2v4 a1v1 has failing alert, a1v2 has warning alert, a1v3
+   * has no alerts, and a1v4 has no alerts. a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4
+   * has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NoStage() {
@@ -610,10 +593,10 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V3, Arrays.asList(purlA2V2, purlA2V3));
     dependenciesMap.put(purlA1V4, Arrays.asList(purlA2V3, purlA2V4));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
-    detailsMap.put(purlA2V3,  detailsA2V3);
-    detailsMap.put(purlA2V4,  detailsA2V4);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V3, detailsA2V3);
+    detailsMap.put(purlA2V4, detailsA2V4);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
@@ -629,15 +612,11 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, a1v2, a1v3, a1v4 and a1v5 with a1v3 being the current version.
-   * a1v1 dependencies: a2v3, a2v4
-   * a1v2 dependencies: a2v1, a2v2
-   * a1v3 dependencies: a2v2, a2v3
-   * a1v4 dependencies: a2v4
-   * a1v5 dependencies: a2v5
-   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, a1v4 has no alerts, and a1v5 has warning alert.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, a2v4 has no alerts, and a2v5 has warning alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, a1v2, a1v3, a1v4 and a1v5
+   * with a1v3 being the current version. a1v1 dependencies: a2v3, a2v4 a1v2 dependencies: a2v1, a2v2 a1v3 dependencies:
+   * a2v2, a2v3 a1v4 dependencies: a2v4 a1v5 dependencies: a2v5 a1v1 has failing alert, a1v2 has warning alert, a1v3 has
+   * no alerts, a1v4 has no alerts, and a1v5 has warning alert. a2v1 has failing alert, a2v2 has warning alert, a2v3 has
+   * no alerts, a2v4 has no alerts, and a2v5 has warning alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionNotFirstInAllVersions() {
@@ -651,11 +630,11 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V4, Collections.singletonList(purlA2V4));
     dependenciesMap.put(purlA1V5, Collections.singletonList(purlA2V5));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
-    detailsMap.put(purlA2V3,  detailsA2V3);
-    detailsMap.put(purlA2V4,  detailsA2V4);
-    detailsMap.put(purlA2V5,  detailsA2V5);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V3, detailsA2V3);
+    detailsMap.put(purlA2V4, detailsA2V4);
+    detailsMap.put(purlA2V5, detailsA2V5);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
@@ -673,15 +652,11 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, a1v2, a1v3, a1v4 and a1v5 with a1v5 being the current version.
-   * a1v1 dependencies: a2v1, a2v2
-   * a1v2 dependencies: none
-   * a1v3 dependencies: a2v3
-   * a1v4 dependencies: a2v4
-   * a1v5 dependencies: a2v5
-   * a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts, a1v4 has no alerts, and a1v5 has warning alert.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, a2v4 has no alerts, and a2v5 has warning alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, a1v2, a1v3, a1v4 and a1v5
+   * with a1v5 being the current version. a1v1 dependencies: a2v1, a2v2 a1v2 dependencies: none a1v3 dependencies: a2v3
+   * a1v4 dependencies: a2v4 a1v5 dependencies: a2v5 a1v1 has failing alert, a1v2 has warning alert, a1v3 has no alerts,
+   * a1v4 has no alerts, and a1v5 has warning alert. a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts,
+   * a2v4 has no alerts, and a2v5 has warning alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionLastInAllVersions() {
@@ -695,11 +670,11 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V4, Collections.singletonList(purlA2V4));
     dependenciesMap.put(purlA1V5, Collections.singletonList(purlA2V5));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
-    detailsMap.put(purlA2V3,  detailsA2V3);
-    detailsMap.put(purlA2V4,  detailsA2V4);
-    detailsMap.put(purlA2V5,  detailsA2V5);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V3, detailsA2V3);
+    detailsMap.put(purlA2V4, detailsA2V4);
+    detailsMap.put(purlA2V5, detailsA2V5);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
@@ -715,11 +690,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v3, and a1v4 with a1v3 being the current version.
-   * a1v3 dependencies: a2v3
-   * a1v4 dependencies: none
-   * a1v3 has no alerts, and a1v4 has no alerts.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v3, and a1v4 with a1v3 being
+   * the current version. a1v3 dependencies: a2v3 a1v4 dependencies: none a1v3 has no alerts, and a1v4 has no alerts.
    * a2v3 has no alerts.
    */
   @Test
@@ -731,7 +703,7 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V3));
     dependenciesMap.put(purlA1V4, Collections.emptyList());
 
-    detailsMap.put(purlA2V3,  detailsA2V3);
+    detailsMap.put(purlA2V3, detailsA2V3);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V3, detailsDtoA1V4);
@@ -748,11 +720,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v2 with a1v2 being the current version.
-   * a1v2 dependencies: a2v2
-   * a1v2 has warning alert.
-   * a2v2 has warning alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v2 with a1v2 being the current
+   * version. a1v2 dependencies: a2v2 a1v2 has warning alert. a2v2 has warning alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionNonFailingWithDependencies() {
@@ -762,7 +731,7 @@ public class ComponentRemediationServiceTest
 
     dependenciesMap.put(purlA1V2, Collections.singletonList(purlA2V2));
 
-    detailsMap.put(purlA2V2,  detailsA2V2);
+    detailsMap.put(purlA2V2, detailsA2V2);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V2);
@@ -777,13 +746,10 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, a1v2 and a1v5 with a1v1 being the current version.
-   * a1v1 dependencies: a2v2
-   * a1v2 dependencies: a2v1
-   * a1v5 dependencies: a2v2, a2v5
-   * a1v1 has failing alert, a1v2 has warning alert, and a1v5 has warning alert.
-   * a2v1 has failing alert, a2v2 has warning alert, and a2v5 has warning alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, a1v2 and a1v5 with a1v1
+   * being the current version. a1v1 dependencies: a2v2 a1v2 dependencies: a2v1 a1v5 dependencies: a2v2, a2v5 a1v1 has
+   * failing alert, a1v2 has warning alert, and a1v5 has warning alert. a2v1 has failing alert, a2v2 has warning alert,
+   * and a2v5 has warning alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_AllViolating() {
@@ -795,9 +761,9 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V2, Collections.singletonList(purlA2V1));
     dependenciesMap.put(purlA1V5, Arrays.asList(purlA2V2, purlA2V5));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
-    detailsMap.put(purlA2V5,  detailsA2V5);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V5, detailsA2V5);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V5);
@@ -812,12 +778,9 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, and a1v6 with a1v1 being the current version.
-   * a1v1 dependencies: a2v3
-   * a1v6 dependencies: none
-   * a1v1 has failing alert, and a1v6 has failing alert.
-   * a2v3 has no alerts.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, and a1v6 with a1v1 being
+   * the current version. a1v1 dependencies: a2v3 a1v6 dependencies: none a1v1 has failing alert, and a1v6 has failing
+   * alert. a2v3 has no alerts.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_AllFailing() {
@@ -828,7 +791,7 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V1, Collections.singletonList(purlA2V3));
     dependenciesMap.put(purlA1V6, Collections.emptyList());
 
-    detailsMap.put(purlA2V3,  detailsA2V3);
+    detailsMap.put(purlA2V3, detailsA2V3);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V6);
@@ -842,10 +805,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up single version a1v3 with a1v3 being the current version.
-   * a1v3 dependencies: a2v1
-   * a1v3 has no alerts, and a2v1 has failing alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up single version a1v3 with a1v3 being the
+   * current version. a1v3 dependencies: a2v1 a1v3 has no alerts, and a2v1 has failing alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_SingleVersion_DependenciesFailing() {
@@ -855,7 +816,7 @@ public class ComponentRemediationServiceTest
 
     dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V1));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
+    detailsMap.put(purlA2V1, detailsA2V1);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V3);
@@ -870,12 +831,10 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, and a1v11 with a1v1 being the current version, test with classifiers.
-   * a1v1 dependencies: a2v1, a2v2
-   * a1v11 (with classifier) dependencies: a2v11 (with classifier)
-   * a1v1 has failing alert, and a1v11 has no alert.
-   * a2v1 has failing alert, a2v2 has warning alert, and a2v11 has no alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, and a1v11 with a1v1 being
+   * the current version, test with classifiers. a1v1 dependencies: a2v1, a2v2 a1v11 (with classifier) dependencies:
+   * a2v11 (with classifier) a1v1 has failing alert, and a1v11 has no alert. a2v1 has failing alert, a2v2 has warning
+   * alert, and a2v11 has no alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_WithClassifier() {
@@ -891,8 +850,8 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V1, Arrays.asList(purlA2V1, purlA2V2));
     dependenciesMap.put(purlA1V11WithClassifier, Collections.singletonList(purlA2V11WithClassifier));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
     detailsMap.put(purlA2V11WithClassifier, detailsA2V11);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
@@ -910,13 +869,10 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up versions a1v1, a1v3, and a1v11 with a1v1 being the current version, test with classifiers.
-   * a1v1 dependencies: a2v1, a2v2
-   * a1v11 (null classifier) dependencies: a2v11 (null classifier)
-   * a1v3 dependencies: a2v3
-   * a1v1 has failing alert, a1v3 has no alert, and a1v11 has no alert.
-   * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alert, and a2v11 has no alert.
+   * Test with advanced strategies flag as true, with dependencies. Looking up versions a1v1, a1v3, and a1v11 with a1v1
+   * being the current version, test with classifiers. a1v1 dependencies: a2v1, a2v2 a1v11 (null classifier)
+   * dependencies: a2v11 (null classifier) a1v3 dependencies: a2v3 a1v1 has failing alert, a1v3 has no alert, and a1v11
+   * has no alert. a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alert, and a2v11 has no alert.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NullClassifier() {
@@ -933,10 +889,10 @@ public class ComponentRemediationServiceTest
     dependenciesMap.put(purlA1V11NullClassifier, Collections.singletonList(purlA2V11NullClassifier));
     dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V3));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
-    detailsMap.put(purlA2V2,  detailsA2V2);
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
     detailsMap.put(purlA2V11NullClassifier, detailsA2V11);
-    detailsMap.put(purlA2V3,  detailsA2V3);
+    detailsMap.put(purlA2V3, detailsA2V3);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V11, detailsDtoA1V3);
@@ -953,10 +909,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   * Test with advanced strategies flag as true, with dependencies.
-   * Looking up single version a1v3 with a1v3 being the current version.
-   * a1v3 dependencies: a2v1
-   * a1v3 has no alerts, and a2v1 has failing alert on transitive-only policy.
+   * Test with advanced strategies flag as true, with dependencies. Looking up single version a1v3 with a1v3 being the
+   * current version. a1v3 dependencies: a2v1 a1v3 has no alerts, and a2v1 has failing alert on transitive-only policy.
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_DependencyTypePolicy() {
@@ -978,7 +932,7 @@ public class ComponentRemediationServiceTest
 
     dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V1));
 
-    detailsMap.put(purlA2V1,  detailsA2V1);
+    detailsMap.put(purlA2V1, detailsA2V1);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
     List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V3);
@@ -1143,14 +1097,7 @@ public class ComponentRemediationServiceTest
     final Map<String, Object> attributes = telemetryData.getAttributes();
     assertThat(attributes.get(OWNER_ID_TELEMETRY_ATTR)).isEqualTo(HdsClientAnalytics.obfuscate(org.getId()));
     assertThat((String) attributes.get(OWNER_TYPE_TELEMETRY_ATTR)).isEqualTo(org.getType().toString());
-
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
-        .isEnabled()) {
-      assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isTrue();
-      assertThat(attributes.get(REAL_OWNER_ID_TELEMETRY_ATTR)).isEqualTo(org.getId());
-    }
-    else {
-      assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isFalse();
-    }
+    assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isTrue();
+    assertThat(attributes.get(REAL_OWNER_ID_TELEMETRY_ATTR)).isEqualTo(org.getId());
   }
 }

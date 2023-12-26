@@ -854,7 +854,7 @@ public class ScmOnboardingServiceTest
     int batchCount = reposToImport.length;
 
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(2)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(3)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
     TelemetryData telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
@@ -1077,9 +1077,9 @@ public class ScmOnboardingServiceTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(16)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(16);
+    assertThat(telemetryDataList).hasSize(29);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -1175,9 +1175,9 @@ public class ScmOnboardingServiceTest
 
     //check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(13)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(23)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
-    assertThat(telemetryDataList).hasSize(13);
+    assertThat(telemetryDataList).hasSize(23);
     List<TelemetryData> telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
         .collect(Collectors.toList());
@@ -1219,7 +1219,7 @@ public class ScmOnboardingServiceTest
     assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(13);
     verifySourceControlEvaluationEventsCreated(13);
 
-    assertScmImportTelemetries(13);
+    assertScmImportTelemetries(13, 13);
   }
 
   private void assertBatchedImportTelemetries(
@@ -1265,7 +1265,7 @@ public class ScmOnboardingServiceTest
     assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(5);
     verifySourceControlEvaluationEventsCreated(5);
 
-    assertScmImportTelemetries(5);
+    assertScmImportTelemetries(5, 5);
   }
 
   @Test
@@ -1296,7 +1296,7 @@ public class ScmOnboardingServiceTest
     assertThat(childOrgsAfterImport).isEmpty();
     assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(13);
     verifySourceControlEvaluationEventsCreated(13);
-    assertScmImportTelemetries(13);
+    assertScmImportTelemetries(13, 13);
   }
 
   @Test
@@ -1437,15 +1437,13 @@ public class ScmOnboardingServiceTest
     return scmRepository;
   }
 
-  private void assertScmImportTelemetries(int batchCount) {
+  private void assertScmImportTelemetries(int batchCount, int updatedApps) {
     //calculation mentioned here for clarification only
     int totalRepoCount = 13;
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
     int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
-    int updatedApps = 0;
-    int updatedCount = batchCount + updatedApps;
-    assertTelemetry(batchPercent, batchCount, totalPercent, updatedCount);
+    assertTelemetry(batchPercent, batchCount, totalPercent, updatedApps);
   }
 
   private void testImportScmOrganization_InvalidParameters(
@@ -1542,7 +1540,7 @@ public class ScmOnboardingServiceTest
 
   private void assertTelemetry(final int batchPercent, final int batchCount, final int totalPercent, int updateCount) {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(1 + updateCount)).send(telemetryDataArgumentCaptor.capture());
+    verify(telemetrySenderMock, times(1 + (updateCount * 2))).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
     TelemetryData telemetryData = telemetryDataList.stream()
         .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))

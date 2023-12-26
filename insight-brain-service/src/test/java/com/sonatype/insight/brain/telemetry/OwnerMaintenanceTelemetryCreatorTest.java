@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -17,13 +16,11 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class OwnerMaintenanceTelemetryCreatorTest
@@ -43,13 +40,6 @@ public class OwnerMaintenanceTelemetryCreatorTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-  }
-
-  @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @Test
@@ -79,24 +69,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
     // Then
     assertTelemetry(application, maintenanceType);
   }
-
-  @Test
-  public void testSendOwnerMaintenanceTelemetry_IntegratedEnterpriseReportingDisabled() {
-    // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
-        false);
-    organization = tempEntity.newOrganization("Some Organization");
-    application = tempEntity.newApplication("Other App", "publicIdB", organization.getId());
-
-    // When
-    final String maintenanceType = OwnerMaintenanceTelemetry.TYPE_UPDATE;
-    telemetryCreator.sendOwnerMaintenanceTelemetry(application, maintenanceType);
-
-    // Then
-    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock, times(0)).send(telemetryDataArgumentCaptor.capture());
-  }
-
+  
   private void assertTelemetry(
       final Application application,
       final String maintenanceType)

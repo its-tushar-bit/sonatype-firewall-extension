@@ -7,12 +7,10 @@ package com.sonatype.insight.brain.integration;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -217,43 +215,6 @@ public class ApplicationSummaryServiceTest
         eq("test_client_user_agent"));
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
-        new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-
-    String appPublicId = "NoSuchAppPublicID";
-
-    // The app does not exist, so it will be created. We expect telemetry data that says the app was created
-    // automatically.
-    Date before = new Date();
-    service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    Date after = new Date();
-    assertTelemetryData(invocation[0], before, after, true);
-    clearInvocations(telemetrySenderMock);
-
-    // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created
-    // automatically.
-    before = new Date();
-    service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    after = new Date();
-    assertTelemetryData(invocation[0], before, after, false);
-    clearInvocations(telemetrySenderMock);
-
-    // The app exists and it has evaluations. We don't expect any telemetry data.
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
-    service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyNoInteractions(telemetrySenderMock);
-  }
-
-  @Test
-  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled_IEREnabled() {
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class),
-        eq("test_client_user_agent"));
-
-    Organization org = tempEntity.newOrganization();
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
         new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
@@ -261,16 +222,27 @@ public class ApplicationSummaryServiceTest
 
     String appPublicId = "NoSuchAppPublicID";
 
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-
     // The app does not exist, so it will be created. We expect telemetry data that says the app was created
     // automatically.
     Date before = new Date();
     service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     Date after = new Date();
-    assertTelemetryData(invocation[0], before, after, true);
-    assertIntegratedEnterpriseReportingEnabledTelemetryData(invocation[0], appPublicId);
+    assertTelemetryData(invocation[0], before, after, true, appPublicId);
     clearInvocations(telemetrySenderMock);
+
+    // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created
+    // automatically.
+    before = new Date();
+    service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    after = new Date();
+    assertTelemetryData(invocation[0], before, after, false, appPublicId);
+    clearInvocations(telemetrySenderMock);
+
+    // The app exists and it has evaluations. We don't expect any telemetry data.
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+    service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    verifyNoInteractions(telemetrySenderMock);
   }
 
   @Test
@@ -299,22 +271,20 @@ public class ApplicationSummaryServiceTest
     assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
-  private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected) {
-    final boolean integratedEnterpriseReportingEnabled = SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.isEnabled();
+  private void assertTelemetryData(
+      InvocationOnMock invocation,
+      Date before,
+      Date after,
+      boolean expected,
+      final String appPublicId)
+  {
     TelemetryData telemetryData = invocation.getArgument(0);
 
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
-    assertThat(telemetryData.getAttributes()).hasSize(integratedEnterpriseReportingEnabled ? 2 : 1)
+    assertThat(telemetryData.getAttributes()).hasSize(2)
         .containsEntry(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR, String.valueOf(expected));
     assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
         .isLessThanOrEqualTo(after.getTime());
-  }
-
-  private void assertIntegratedEnterpriseReportingEnabledTelemetryData(InvocationOnMock invocation,
-                                                                       final String appPublicId)
-  {
-    TelemetryData telemetryData = invocation.getArgument(0);
 
     OwnerMaintenanceTelemetry ownerMaintenanceTelemetryData =
         (OwnerMaintenanceTelemetry) telemetryData.getAttributes()

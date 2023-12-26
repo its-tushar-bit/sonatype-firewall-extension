@@ -7,17 +7,12 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 
-const authErrorMessage = `It appears you do not have permission to access this page.
-    If you believe this to be incorrect, please contact your administrator.`;
-
 export default function LabsDataInsights(props) {
-  const { loadLabsDataInsights, errorMessage, loadingLabsDataInsights, isAuthorized } = props,
-    loadError = isAuthorized ? errorMessage : authErrorMessage;
+  const { loadLabsDataInsights, errorMessage, loadingLabsDataInsights } = props,
+    loadError = errorMessage;
 
   function load() {
-    if (isAuthorized) {
-      return loadLabsDataInsights();
-    }
+    return loadLabsDataInsights();
   }
 
   useEffect(() => {
@@ -40,5 +35,4 @@ LabsDataInsights.propTypes = {
   loadingLabsDataInsights: PropTypes.bool.isRequired,
   loadLabsDataInsights: PropTypes.func.isRequired,
   errorMessage: PropTypes.string,
-  isAuthorized: PropTypes.bool.isRequired,
 };

@@ -14,10 +14,8 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -59,7 +57,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApplicationServiceTest
     extends AbstractComponentTest
@@ -165,19 +162,8 @@ public class ApplicationServiceTest
 
   @Test
   public void testAddApplication_LicenseWithoutApplicationLimit() {
-    testProductLicense.setMaxApplications(null);
-    Application app = new Application("appPublicId", "appName", org.getId());
-    app = applicationService.addApplication(app);
-
-    verifyNoInteractions(telemetrySenderMock);
-  }
-
-  @Test
-  public void testAddApplication_LicenseWithoutApplicationLimit_IntegratedEnterpriseReportingEnabled() {
     // Given
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     testProductLicense.setMaxApplications(null);
-
     Application app = new Application("appPublicId", "appName", org.getId());
 
     // When

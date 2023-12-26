@@ -60,9 +60,8 @@ iq-sidebar-nav {
   &__navigation-badge {
     $height: 22.5px;
 
-    background-color: var(--nx-swatch-yellow-60);
+    background-color: var(--nx-swatch-pink-50);
     border-radius: calc(#{$height} / 2);
-    color: var(--nx-color-text-dark);
     display: inline-block;
     font-size: 14px;
     font-weight: 600;

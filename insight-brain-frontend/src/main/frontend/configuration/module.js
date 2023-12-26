@@ -76,14 +76,6 @@ function routes($stateProvider) {
       data: {
         title: 'Data Insights',
       },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isLabsDataInsightsEnabled();
-          },
-        ],
-      },
     })
     .state('mailConfig', {
       component: 'mailConfig',

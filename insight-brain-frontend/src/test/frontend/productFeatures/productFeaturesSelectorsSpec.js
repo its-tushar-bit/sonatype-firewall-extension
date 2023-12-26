@@ -22,7 +22,6 @@ import {
   selectIsFirewallSupportedForNavigationContainer,
   selectIsDashboardSupported,
   selectIsReportListSupported,
-  selectIsDataInsightsSupported,
   selectIsInnerSourceTransitiveWaiverSupported,
   selectIsAllowExternalHyperlinksSupported,
   selectLoadErrorFeatures,
@@ -30,7 +29,6 @@ import {
   selectProductFeaturesSlice,
   selectProductFeatures,
   selectIsBaseUrlConfigurationEnabled,
-  selectIsIntegratedEnterpriseReportingEnabled,
   selectTenantScmProviderTypes,
   selectIsScmEnabled,
   selectIsAutomaticScmConfigurationEnabled,
@@ -61,7 +59,6 @@ describe('productFeaturesSelectors', () => {
           'advanced-legal-pack': true,
           'release-integrity': true,
           'firewall-auto-unquarantine': true,
-          'data-insights': true,
           'inner-source-transitive-waiver': true,
           'allow-external-hyperlinks': true,
           'integrated-enterprise-reporting': true,
@@ -211,23 +208,6 @@ describe('productFeaturesSelectors', () => {
     it('returns false if release-integrity is disabled', () => {
       mockState.productFeatures.productFeatures['release-integrity'] = false;
       expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeFalse();
-    });
-  });
-
-  describe('selectIsDataInsightsSupported', () => {
-    it('returns true if data-insights enabled', () => {
-      expect(selectIsDataInsightsSupported(mockState)).toBeTrue();
-    });
-  });
-
-  describe('selectIsIntegratedEnterpriseReportingEnabled', () => {
-    it('returns true if integrated-enterprise-reporting is enabled', () => {
-      expect(selectIsIntegratedEnterpriseReportingEnabled(mockState)).toBeTrue();
-    });
-
-    it('returns false if integrated-enterprise-reporting is disabled', () => {
-      mockState.productFeatures.productFeatures['integrated-enterprise-reporting'] = false;
-      expect(selectIsIntegratedEnterpriseReportingEnabled(mockState)).toBeFalse();
     });
   });
 

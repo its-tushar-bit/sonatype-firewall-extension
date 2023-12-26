@@ -264,23 +264,10 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testDataInsightsNavigation_ShowWhenEnabled() {
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
-    refresh();
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
-  }
-
-  @Test
-  public void testDataInsightsNavigation_HiddenWhenDisabled() {
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
-  }
-
-  @Test
   public void testDataInsightsNavigation_toDataInsights() {
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
     refresh();
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/dataInsights"));
+    waitUntilUrl(BaseUrl.resolvePageUrl("/enterpriseReportingLandingPage"));
   }
 
   @Test
@@ -293,8 +280,7 @@ public class SidebarNavigationTest
     setMissingFeatures(LicensedFeature.DASHBOARD,
         LicensedFeature.ADVANCED_LEGAL_PACK,
         LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.DATA_INSIGHTS);
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
     //setFeatures(LicensedFeature.FIREWALL);
     // this is PRODUCT_FIREWALL V1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
@@ -310,7 +296,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -319,8 +305,7 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
-    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.DATA_INSIGHTS);
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS);
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
 
@@ -335,7 +320,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -357,7 +342,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -368,7 +353,6 @@ public class SidebarNavigationTest
 
     setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.DATA_INSIGHTS,
         LicensedFeature.ORGS_AND_APPS);
 
     // this is PRODUCT_FIREWALL_FOR_ARTIFACTORY v1
@@ -385,7 +369,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -395,7 +379,6 @@ public class SidebarNavigationTest
     refresh();
 
     setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
-        LicensedFeature.DATA_INSIGHTS,
         LicensedFeature.ORGS_AND_APPS);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
@@ -411,7 +394,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -422,7 +405,6 @@ public class SidebarNavigationTest
 
     setMissingFeatures(LicensedFeature.ORGS_AND_APPS,
         LicensedFeature.ADVANCED_LEGAL_PACK,
-        LicensedFeature.DATA_INSIGHTS,
         LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
@@ -439,7 +421,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -461,7 +443,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -483,7 +465,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -495,8 +477,7 @@ public class SidebarNavigationTest
     setMissingFeatures(LicensedFeature.DASHBOARD,
         LicensedFeature.WAIVERS_DASHBOARD,
         LicensedFeature.FIREWALL,
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.DATA_INSIGHTS);
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK);
 
     refresh();
@@ -510,7 +491,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -520,7 +501,6 @@ public class SidebarNavigationTest
     refresh();
 
     setMissingFeatures(LicensedFeature.DASHBOARD,
-        LicensedFeature.DATA_INSIGHTS,
         LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.WAIVERS_DASHBOARD);
@@ -538,7 +518,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -549,8 +529,7 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
 
-    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.DATA_INSIGHTS);
+    setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK, LicensedFeature.ORGS_AND_APPS);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
         ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
@@ -566,7 +545,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
   }
 
   @Test
@@ -602,7 +581,6 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
     setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK,
-        LicensedFeature.DATA_INSIGHTS,
         LicensedFeature.DASHBOARD,
         LicensedFeature.ORGS_AND_APPS);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
@@ -619,7 +597,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     waitUntilUrl(FirewallPage.url());
   }

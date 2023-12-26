@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
@@ -220,7 +219,6 @@ public class ApiApplicationServiceTest
   @Test
   public void testUpdateApplication() {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     app.setName("New Name");
 

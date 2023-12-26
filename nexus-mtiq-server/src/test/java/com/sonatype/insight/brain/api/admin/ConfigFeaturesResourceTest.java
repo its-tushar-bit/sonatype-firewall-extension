@@ -66,7 +66,6 @@ public class ConfigFeaturesResourceTest
   private final String[] allFeatures = Stream.concat(Arrays.stream(defaultEnabledFeatures), Arrays.stream(
       new String[]{
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
-          SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
           SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId()
       }

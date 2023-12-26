@@ -12,13 +12,10 @@ import java.nio.file.Paths;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
@@ -30,18 +27,6 @@ public class EnterpriseReportingResourceTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);
-  }
-
-  @Before
-  public void before() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-  }
-
-  @After
-  public void cleanup() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test
@@ -67,16 +52,14 @@ public class EnterpriseReportingResourceTest
     tempEntity.newMembershipMapping(application4.getId(), SYSTEM_ADMIN_ROLE_ID, username);
 
     String lookerSSOUrl = "looker.someurl.com";
-    String baseUrl = "https://looker.example.com";
     hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/enterpriseReporting/ssoEmbedUrl");
-    hdsMockServer.respondWith("{\"baseUrl\":\"" + baseUrl + "\"}").atUri("rest/enterpriseReporting/config");
     DashboardRequestDTO dashboardRequestDTO =
         new DashboardRequestDTO("rolling_recap");
 
     HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
         .body(dashboardRequestDTO).post();
     assertResponseStatus(200, response);
-    String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":\"" + baseUrl + "\"}";
+    String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":null}";
     assertThat(response.getBodyText()).contains(expectedResponse);
   }
 

@@ -6,13 +6,10 @@
 package com.sonatype.insight.brain.enterprise.reporting;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class EnterpriseReportingResourceAuditTest
@@ -21,18 +18,6 @@ public class EnterpriseReportingResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);
-  }
-
-  @Before
-  public void before() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-  }
-
-  @After
-  public void after() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test

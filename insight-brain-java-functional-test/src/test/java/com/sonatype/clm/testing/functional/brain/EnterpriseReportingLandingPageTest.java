@@ -13,34 +13,29 @@ import java.util.Arrays;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.ElementsCollection;
 
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.INTEGRATED_ENTERPRISE_REPORTING;
 
 public class EnterpriseReportingLandingPageTest
     extends AbstractFunctionalTest
 {
   private final EnterpriseReportingLandingPage page = new EnterpriseReportingLandingPage();
-
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   @BeforeClass
   public static void beforeClass() {
@@ -67,7 +62,6 @@ public class EnterpriseReportingLandingPageTest
         .respondWith(new DashboardMetadataListDTO(Arrays.asList(spotlightDashboardMetadataDTO,
             nonSpotlightDashboardMetadataDTO)))
         .atUri("/rest/enterpriseReporting/dashboards");
-    enableEnterpriseReporting();
     refreshOrOpen(EnterpriseReportingLandingPage.url());
     page.enterpriseReportingNotEnabledError().shouldBe(hidden);
     pageHeaderShouldBeVisible();
@@ -131,10 +125,6 @@ public class EnterpriseReportingLandingPageTest
     thirdSubSection.$(".nx-text-link")
         .shouldHave(attribute("href", "http://links.sonatype.com/products/nexus/pro/support"));
     thirdSubSection.$(By.tagName("span")).shouldHave(text("support.sonatype.com"));
-  }
-
-  private void enableEnterpriseReporting() {
-    dao.insert(new SystemConfigurationProperty(INTEGRATED_ENTERPRISE_REPORTING, "true"));
   }
 
   private void mockHDSResponses() throws IOException {

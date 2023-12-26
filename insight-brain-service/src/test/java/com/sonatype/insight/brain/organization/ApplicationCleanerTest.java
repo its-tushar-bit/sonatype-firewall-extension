@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -52,24 +51,7 @@ public class ApplicationCleanerTest
 
   @Test
   public void testDelete_DeleteIconDirectory() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    File iconDir = new File(work.getApplicationIconDir(), app.getId());
-    iconDir.mkdirs();
-    new File(iconDir, "icon.png").createNewFile();
-
-    try (TransactionContext tx = appDAO.createTransactionContext()) {
-      tx.begin();
-      appCleaner.delete(tx, app);
-      tx.commit();
-    }
-
-    assertThat(iconDir).doesNotExist();
-  }
-
-  @Test
-  public void testDelete_DeleteIconDirectory_IntegratedEnterpriseReportingEnabled() throws Exception {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     File iconDir = new File(work.getApplicationIconDir(), app.getId());
     iconDir.mkdirs();

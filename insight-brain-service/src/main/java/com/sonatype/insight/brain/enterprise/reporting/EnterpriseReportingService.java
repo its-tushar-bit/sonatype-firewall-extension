@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -25,7 +24,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -43,7 +41,6 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
-import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.cache.CacheBuilder;
@@ -92,9 +89,10 @@ public class EnterpriseReportingService implements InsightJob
 
   final AtomicInteger currentVersion = new AtomicInteger(-1);
 
-  final LoadingCache<String, Integer> currentVersionCache;
+  // Visible for testing
+  volatile LoadingCache<String, Integer> currentVersionCache;
 
-  private final LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
+  private volatile LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
 
   private final HdsClient hdsClient;
 
@@ -109,6 +107,8 @@ public class EnterpriseReportingService implements InsightJob
   private final InsightWork insightWork;
 
   private final TaskScheduler taskScheduler;
+
+  private final Configuration configuration;
 
   @Inject
   public EnterpriseReportingService(
@@ -127,12 +127,8 @@ public class EnterpriseReportingService implements InsightJob
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
     this.insightWork = insightWork;
-    this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
-        .build(newEnterpriseReportingConfigCacheLoader());
-    this.currentVersionCache = CacheBuilder.newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()))
-        .build(newCurrentVersionCacheLoader());
     this.taskScheduler = taskScheduler;
+    this.configuration = configuration;
   }
 
   //for testing only
@@ -147,7 +143,8 @@ public class EnterpriseReportingService implements InsightJob
       final AtomicReference<DashboardMetadataListDTO> dashboardData,
       final int currentVersion,
       final LoadingCache<String, Integer> currentVersionCache,
-      final TaskScheduler taskScheduler)
+      final TaskScheduler taskScheduler,
+      final Configuration configuration)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -160,7 +157,7 @@ public class EnterpriseReportingService implements InsightJob
     this.currentVersion.set(currentVersion);
     this.currentVersionCache = currentVersionCache;
     this.taskScheduler = taskScheduler;
-
+    this.configuration = configuration;
   }
 
   private CacheLoader<String, EnterpriseReportingConfigDTO> newEnterpriseReportingConfigCacheLoader() {
@@ -197,6 +194,12 @@ public class EnterpriseReportingService implements InsightJob
       return;
     }
 
+    if (this.currentVersionCache == null) {
+      this.currentVersionCache = CacheBuilder.newBuilder()
+          .expireAfterWrite(Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()))
+          .build(newCurrentVersionCacheLoader());
+    }
+
     //this will trigger a cache refresh if needed
     this.currentVersionCache.getUnchecked(DEFAULT_GUAVA_CACHE_KEY);
   }
@@ -224,7 +227,6 @@ public class EnterpriseReportingService implements InsightJob
 
   SSOEmbedUrlDTO createSSOEmbedUrl(DashboardRequestDTO lookerDashboard) {
     AuditData.get().setLookerDashboard(lookerDashboard);
-    checkLookerIntegratedEnterpriseReportingEnabled();
     validateLookerDashboardValue(lookerDashboard);
     String requestId = UUID.randomUUID().toString().replace("-", "");
     SSOEmbedUrlDTO result = hdsClient.post(SSOEmbedUrlDTO.class, ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH,
@@ -234,17 +236,15 @@ public class EnterpriseReportingService implements InsightJob
   }
 
   public String getBaseUrl() {
-    try {
-      return lookerConfigCache.get(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
+    if (lookerConfigCache == null) {
+      lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
+          .build(newEnterpriseReportingConfigCacheLoader());
     }
-    catch (ExecutionException e) {
-      throw new InternalServerException("unable to load Enterprise Reporting configuration from " +
-          "Sonatype Data Services", e);
-    }
+
+    return lookerConfigCache.getUnchecked(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
   }
 
   public DashboardMetadataListDTO getDashboardMetadata() {
-    checkLookerIntegratedEnterpriseReportingEnabled();
     refreshCacheIfNeeded();
 
     if (dashboardMetadataRef.get() == null) {
@@ -300,13 +300,6 @@ public class EnterpriseReportingService implements InsightJob
     return userDAO.getByUsernameNotNull(username);
   }
 
-  private void checkLookerIntegratedEnterpriseReportingEnabled() {
-    if (!SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      throw new NotAuthorizedException(SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId()
-          + " feature is disabled.");
-    }
-  }
-
   void cacheDashboardIcons() {
     try (InputStream is = hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH)) {
       byte[] fetchedIcons = IOUtils.toByteArray(is);
@@ -314,7 +307,7 @@ public class EnterpriseReportingService implements InsightJob
       extractIconFiles(fetchedIcons);
     }
     catch (IOException e) {
-      log.error("Error when saving dashboard icons", e);
+      log.debug("Error when saving dashboard icons", e);
     }
   }
 

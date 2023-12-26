@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -335,6 +334,7 @@ public class ThirdPartyDataServiceTest
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", "082f05c0fe6c7be532ad651cecccde481f9f63d0");
+    expectedAttributes.put("real_application_id", "app-id");
     expectedAttributes.put("number_of_components_with_input_type_tf", "2");
     expectedAttributes.put("number_of_components_with_provider_kubernetes", "2");
     expectedAttributes.put("number_of_iac_components", "2");
@@ -371,38 +371,6 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testSendIacMetricsTelemetry() {
-    Map<String, Integer> inputTypeCount = new HashMap<>();
-    Map<String, Integer> providerCount = new HashMap<>();
-
-    inputTypeCount.put("tf", 1);
-    inputTypeCount.put("yaml", 1);
-
-    providerCount.put("aws", 1);
-    providerCount.put("kubernetes", 1);
-
-    handler.sendIacMetricsTelemetry("applicationId", inputTypeCount, providerCount, 2);
-
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-    Map<String, Object> expectedAttributes = new HashMap<>();
-    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
-    expectedAttributes.put("number_of_components_with_provider_aws", "1");
-    expectedAttributes.put("number_of_components_with_input_type_tf", "1");
-    expectedAttributes.put("number_of_components_with_provider_kubernetes", "1");
-    expectedAttributes.put("number_of_components_with_input_type_yaml", "1");
-    expectedAttributes.put("number_of_iac_components", "2");
-
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.IAC_METRICS);
-    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
-  }
-
-  @Test
-  public void testSendIacMetricsTelemetry_IntegratedEnterpriseReportingEnabled() {
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Map<String, Integer> inputTypeCount = new HashMap<>();
     Map<String, Integer> providerCount = new HashMap<>();
 

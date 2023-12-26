@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -56,9 +55,6 @@ public class TelemetryUtilsTest
 
   @Test
   public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_IEREnabled() {
-    // Given
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
-
     // When
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());

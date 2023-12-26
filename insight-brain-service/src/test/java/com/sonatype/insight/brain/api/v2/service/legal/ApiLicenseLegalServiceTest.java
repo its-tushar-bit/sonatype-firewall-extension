@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -42,7 +41,6 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -1300,20 +1298,6 @@ public class ApiLicenseLegalServiceTest
 
   @Test
   public void testGetLicenseLegalApplicationReport() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
-    mockReport(policyEvaluation);
-    ApiReportRawDataDTOV2 rawReport =
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
-        false);
-  }
-
-  @Test
-  public void testGetLicenseLegalApplicationReport_IntegratedEnterpriseReportingEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
@@ -3250,10 +3234,7 @@ public class ApiLicenseLegalServiceTest
                 licenseData.effectiveLicenses.stream()))
             .map(license -> license.licenseId)
             .collect(Collectors.toSet()));
-
-    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      applicationLicenseUsageTelemetry.setRealApplicationId(application.getId());
-    }
+    applicationLicenseUsageTelemetry.setRealApplicationId(application.getId());
 
     expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, applicationLicenseUsageTelemetry);
 

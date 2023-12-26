@@ -56,10 +56,8 @@ export default angular
         'isFirewallEnabled',
         'isLegalEnabled',
         'isApiPageEnabled',
-        'isDataInsightsEnabled',
         'isShowVersionEnabled',
         'isDeveloperDashboardEnabled',
-        'isIntegratedEnterpriseReportingEnabled',
         'isOrgsAndAppsEnabled',
       ],
       ['$state']

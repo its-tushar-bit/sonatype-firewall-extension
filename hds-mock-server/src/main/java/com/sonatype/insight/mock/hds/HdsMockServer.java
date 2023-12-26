@@ -339,6 +339,10 @@ public class HdsMockServer
           consume(baseRequest);
           sendJson(response, "{\"componentCategories\": []}");
         }
+        else if (uri.equals("/rest/enterpriseReporting/config") && "GET".equals(request.getMethod())) {
+          consume(baseRequest);
+          sendJson(response, "{}");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

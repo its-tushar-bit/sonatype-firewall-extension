@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-
 /**
  * @since 1.88
  */
@@ -43,9 +41,6 @@ public class PullRequestCommentTelemetry
   public PullRequestCommentTelemetry(final String applicationId, final int prNumber) {
     this.applicationId = applicationId;
     this.prNumber = prNumber;
-
-    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      this.realApplicationId = applicationId;
-    }
+    this.realApplicationId = applicationId;
   }
 }

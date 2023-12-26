@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.service.Configuration;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,14 +39,12 @@ public class CspHeaderFilterTest
 
   @Test
   public void testGetFrameSrc_Valid_FeatureEnabled() {
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     when(enterpriseReportingService.getBaseUrl()).thenReturn("https://sonatypeexternaldev.cloud.looker.com/");
     assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo(" frame-src 'self' sonatypeexternaldev.cloud.looker.com;");
   }
 
   @Test
   public void testGetFrameSrc_Invalid_FeatureEnabled() {
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     when(enterpriseReportingService.getBaseUrl()).thenReturn("blah");
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
   }
@@ -56,10 +52,5 @@ public class CspHeaderFilterTest
   @Test
   public void testGetFrameSrc_FeatureDisabled() {
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
-  }
-
-  @After
-  public void after() {
-    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 }

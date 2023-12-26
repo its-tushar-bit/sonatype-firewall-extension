@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.git;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -43,29 +42,8 @@ public class PullRequestCommentingMetricsServiceTest
   }
 
   @Test
-  public void testSendTelemetry_IntegratedEnterpriseReportingDisabled() {
+  public void testSendTelemetry() {
     // given: comment in PR of an application
-    PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry("app1", 100);
-    ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-
-    // when: sending telemetry
-    pullRequestCommentingMetricsService.sendTelemetry(commentTelemetry);
-
-    // then: information of the comment sent
-    verify(mockTelemetrySender, times(1)).send(argCaptor.capture());
-    TelemetryData telemetryData = argCaptor.getValue();
-    PullRequestCommentTelemetry telemetrySent =
-        (PullRequestCommentTelemetry) telemetryData.getAttributes().get(PULL_REQUEST_COMMENT_TELEMETRY);
-    assertThat(telemetrySent).isEqualTo(commentTelemetry);
-    assertThat(telemetrySent.realApplicationId).isNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_COMMENT);
-    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-  }
-
-  @Test
-  public void testSendTelemetry_IntegratedEnterpriseReportingEnabled() {
-    // given: comment in PR of an application
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     String realAppId = "app1";
     PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry(realAppId, 100);
     ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);

@@ -16,7 +16,6 @@ import {
   faShieldCheck,
   faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
-import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import * as preferenceStoreFunctions from '../../../../main/frontend/util/preferenceStore';
 import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
@@ -352,38 +351,10 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('does not render NxGlobalSidebarNavigationLink for Data Insights if it is not enabled', function () {
-      expect(
-        getShallowComponent({
-          isLoggedIn: true,
-          isLicensed: true,
-          isDataInsightsEnabled: false,
-        }).find('#data-insights-navigation-button')
-      ).not.toExist();
-    });
-
-    it('renders an NxGlobalSidebarNavigationLink for Data Insights with "Labs" badge if allowed', function () {
-      const component = getMountedComponent({
-        isLoggedIn: true,
-        isLicensed: true,
-        isDataInsightsEnabled: true,
-      });
-
-      const navLink = component.find('#data-insights-navigation-button').at(0);
-
-      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
-      expect(navLink).toHaveProp('icon', faDatabase);
-      expect(navLink).toHaveProp('href', 'href-dataInsights');
-      expect(navLink).toHaveProp('isSelected', false);
-
-      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (Labs)');
-    });
-
     it('renders an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) with "Labs" badge if allowed', function () {
       const component = getMountedComponent({
         isLoggedIn: true,
         isLicensed: true,
-        isIntegratedEnterpriseReportingEnabled: true,
       });
 
       const navLink = component.find('#enterprise-reporting-navigation-button').at(0);
@@ -393,28 +364,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('href', 'href-enterpriseReporting');
       expect(navLink).toHaveProp('isSelected', false);
 
-      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (Labs)');
-    });
-
-    it('does not render NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if it is not enabled', function () {
-      expect(
-        getShallowComponent({
-          isLoggedIn: true,
-          isLicensed: true,
-          isIntegratedEnterpriseReportingEnabled: false,
-        }).find('#enterprise-reporting-navigation-button')
-      ).not.toExist();
-    });
-
-    it('does not render NxGlobalSidebarNavigationLink for Data Insights (RNA) if Enterprise Reporting is enabled', function () {
-      expect(
-        getShallowComponent({
-          isLoggedIn: true,
-          isLicensed: true,
-          isIntegratedEnterpriseReportingEnabled: true,
-          isDataInsightsEnabled: true,
-        }).find('#data-insights-navigation-button')
-      ).not.toExist();
+      expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (NEW)');
     });
 
     describe('selected state', function () {
@@ -430,7 +380,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
@@ -462,7 +411,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
@@ -481,7 +429,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
@@ -525,17 +472,11 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDataInsightsEnabled: true,
           isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);
-      });
-
-      it('renders Data Insight as selected when the state matches', function () {
-        includesSpy.and.callFake((state) => state === 'dataInsights');
-        expect(renderAllLinks().find('#data-insights-navigation-button')).toHaveProp('isSelected', true);
       });
     });
   });

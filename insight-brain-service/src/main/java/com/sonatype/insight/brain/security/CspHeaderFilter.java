@@ -18,7 +18,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.service.Configuration;
 
@@ -65,10 +64,6 @@ public class CspHeaderFilter
 
   //visible for testing
   String getFrameSrc() {
-    if (!SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      return "";
-    }
-
     String lookerHost = getUrlHost(enterpriseReportingService.getBaseUrl());
     return lookerHost != null ? String.format(" frame-src 'self' %s;", lookerHost) : "";
   }

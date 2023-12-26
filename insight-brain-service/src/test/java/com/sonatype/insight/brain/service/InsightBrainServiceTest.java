@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
@@ -25,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiUserResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -109,14 +107,11 @@ public class InsightBrainServiceTest
   public void before() throws JobPersistenceException {
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @After
   public void after() {
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
-        false);
   }
 
   @Test

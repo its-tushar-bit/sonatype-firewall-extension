@@ -7,7 +7,8 @@
 -->
 # Tenancy Module
 
-This module provides classes that support multi tenancy. To understand how tenants are used start by reviewing the
+The [insight-brain-tenancy](https://github.com/sonatype/insight-brain/tree/main/insight-brain-tenancy) module provides
+classes that support multi tenancy. To understand how tenants are used start by reviewing the
 [Tenant Data Flow Diagram](https://docs.sonatype.com/display/MTIQ/Tenant+Data+Flow+Diagram).
 
 ## Vanity URLs

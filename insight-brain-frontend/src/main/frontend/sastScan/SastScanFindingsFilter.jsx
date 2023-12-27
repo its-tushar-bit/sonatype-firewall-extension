@@ -4,20 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxFormGroup, NxStatefulFilterDropdown } from '@sonatype/react-shared-components';
+import { NxStatefulFilterDropdown } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-export default function SastScanFindingsFilter({ className, title, options, selectedIds, onChange }) {
+export default function SastScanFindingsFilter({ className, options, selectedIds, onChange }) {
   return (
-    <NxFormGroup className={className} label={title}>
+    <div className={className}>
       <NxStatefulFilterDropdown options={options} selectedIds={selectedIds} onChange={onChange} />
-    </NxFormGroup>
+    </div>
   );
 }
 
 SastScanFindingsFilter.propTypes = {
   className: PropTypes.string,
-  title: PropTypes.string.isRequired,
   options: PropTypes.array.isRequired,
   selectedIds: PropTypes.any.isRequired,
   onChange: PropTypes.func.isRequired,

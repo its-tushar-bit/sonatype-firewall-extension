@@ -4,8 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useState } from 'react';
-import { NxTable, NxTableBody, NxTableContainer } from '@sonatype/react-shared-components';
-import SastScanFindingsHeader from 'MainRoot/sastScan/SastScanFindingsHeader';
+import {
+  NxH2,
+  NxTable,
+  NxTableBody,
+  NxTableCell,
+  NxTableContainer,
+  NxTableHead,
+  NxTableRow,
+} from '@sonatype/react-shared-components';
 import SastFinding from 'MainRoot/sastScan/SastFinding';
 import SastScanFindingsFilter from 'MainRoot/sastScan/SastScanFindingsFilter';
 import * as PropTypes from 'prop-types';
@@ -14,20 +21,33 @@ export default function SastScanFindings({ findings }) {
   const [filter, onFilterChange] = useState(new Set());
   const filterDisabled = filter.size === 0;
 
+  const [rows, setRows] = useState(findings);
+  const [sortDir, setSortDir] = useState('desc');
+
   return (
     <div className="iq_sast_scan_findings__container">
-      <SastScanFindingsFilter
-        className="iq_sast_scan_findings__filter"
-        title="Filter by Severity"
-        options={getCurrentOptions()}
-        selectedIds={filter}
-        onChange={onFilterChange}
-      />
+      <div className="iq_sast_scan_findings_header_section">
+        <NxH2>SAST Findings</NxH2>
+        <SastScanFindingsFilter
+          data-analytics-id="sonatype-developer-sast-filter-dropdown"
+          className="iq_sast_scan_finding_header_section__filter"
+          options={getCurrentOptions()}
+          selectedIds={filter}
+          onChange={onFilterChange}
+        />
+      </div>
       <NxTableContainer>
         <NxTable>
-          <SastScanFindingsHeader />
+          <NxTableHead>
+            <NxTableRow>
+              <NxTableCell isSortable sortDir={sortDir} onClick={sortBySeverity}>
+                THREATS
+              </NxTableCell>
+              <NxTableCell chevron />
+            </NxTableRow>
+          </NxTableHead>
           <NxTableBody>
-            {findings
+            {rows
               .filter((value) => filterDisabled || filter.has(value.severity))
               .map((finding) => {
                 return <SastFinding key={finding.id} finding={finding} />;
@@ -54,6 +74,27 @@ export default function SastScanFindings({ findings }) {
       .map((severity) => {
         return { id: severity, displayName: severity };
       });
+  }
+
+  function sortBySeverity() {
+    const severities = {
+      CRITICAL: 4,
+      HIGH: 3,
+      MEDIUM: 2,
+      LOW: 1,
+      NONE: 0,
+    };
+    const newSortDir = sortDir === 'desc' ? 'asc' : 'desc';
+    setSortDir(newSortDir);
+
+    const sortedRows = [...rows].sort((a, b) => {
+      if (newSortDir === 'asc') {
+        return severities[a.severity] - severities[b.severity];
+      }
+      return severities[b.severity] - severities[a.severity];
+    });
+
+    setRows(sortedRows);
   }
 }
 

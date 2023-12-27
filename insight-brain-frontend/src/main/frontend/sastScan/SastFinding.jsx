@@ -4,17 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxAccordion, NxTableCell, NxTableRow, NxThreatIndicator, useToggle } from '@sonatype/react-shared-components';
+import { NxCard, NxH3, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { capitalizeFirstLetter, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export default function SastFinding({ finding }) {
   return (
     <NxTableRow>
       <NxTableCell colSpan={4}>
         <SastFindingTitle finding={finding} />
-        <SastFindingSummary finding={finding} />
-        <SastFindingDetails finding={finding} />
+        <div className="iq_sast_scan_finding__content">
+          <SastFindingSummary finding={finding} />
+          <SastFindingDetails finding={finding} />
+        </div>
       </NxTableCell>
     </NxTableRow>
   );
@@ -23,14 +25,14 @@ export default function SastFinding({ finding }) {
 function SastFindingTitle({ finding }) {
   return (
     <div className="iq_sast_scan_finding__title">
-      <div className="iq_sast_scan_finding__title-indicator">
-        <NxThreatIndicator
-          className="iq_sast_scan_finding__title-indicator"
-          threatLevelCategory={resolveThreatLevelCategory({ finding })}
-        />{' '}
-        <strong>{finding.severity}</strong>
+      <NxThreatIndicator
+        className="iq_sast_scan_finding__title-indicator"
+        threatLevelCategory={resolveThreatLevelCategory({ finding })}
+      />
+      <div>
+        Severity <strong>{capitalizeFirstLetter(finding.severity)}</strong>
       </div>
-      <h2 className="nx-h1">{finding.ruleName}</h2>
+      <NxH3 className="nx-h3">{finding.ruleName}</NxH3>
     </div>
   );
 }
@@ -42,28 +44,28 @@ function SastFindingSummary({ finding }) {
       <SummaryItem itemName="Coordinate Name" itemValue={finding.coordinate.name} />
       <SummaryItem itemName="Coordinate Method Name" itemValue={finding.coordinate.methodName} />
       <SummaryItem itemName="Line Number" itemValue={finding.lineNumber} />
-      <SummaryItem itemName="Confidence" itemValue={finding.confidence} />
+      <SummaryItem itemName="Confidence" itemValue={capitalizeFirstLetter(finding.confidence)} />
     </div>
   );
 }
 
 function SastFindingDetails({ finding }) {
-  const [openDetails, toggleOpenDetails] = useToggle(true);
-
   if (isNilOrEmpty(finding.description) && isNilOrEmpty(finding.remediations)) {
     return null;
   }
 
   return (
-    <NxAccordion open={openDetails} onToggle={toggleOpenDetails}>
-      <NxAccordion.Header>
-        <NxAccordion.Title>Details</NxAccordion.Title>
-      </NxAccordion.Header>
-      <div className="iq_sast_scan_finding__details">
-        {!isNilOrEmpty(finding.description) && <DescriptionSection finding={finding} />}
-        {!isNilOrEmpty(finding.remediations) && <RemediationSection finding={finding} />}
-      </div>
-    </NxAccordion>
+    <NxCard.Container>
+      <NxCard className="iq_sast_scan_finding__details">
+        <NxCard.Header>
+          <NxH3>Details</NxH3>
+        </NxCard.Header>
+        <NxCard.Content className="iq_sast_scan_finding__details__content">
+          {!isNilOrEmpty(finding.description) && <DescriptionSection finding={finding} />}
+          {!isNilOrEmpty(finding.remediations) && <RemediationSection finding={finding} />}
+        </NxCard.Content>
+      </NxCard>
+    </NxCard.Container>
   );
 }
 

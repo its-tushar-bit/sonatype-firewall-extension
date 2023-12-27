@@ -527,6 +527,232 @@ export const repositoryContainerPolicies = {
   inherited: false,
 };
 
+export const repositoryContainerInheretencePolicies = { ...repositoryContainerPolicies, inherited: true };
+
+export const repositoryManagerPolicies = {
+  ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+  ownerName: 'Repository Managers',
+  ownerType: 'repository_container',
+  policies: [
+    {
+      id: '7d68e2609df546e5aef27d48d64c6055',
+      name: 'Architecture-Cleanup',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 1,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '399b6b110d2a4f09bfb7b45180ab8f55',
+      name: 'Architecture-Quality',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 1,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '2c5c26ec26834559957e77a039927c55',
+      name: 'Component-Similar',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 7,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '5397946041d54e608ffd307b7351af55',
+      name: 'Component-Unknown',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 2,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: 'd88f917a2a634c71aa152fb0d2f33c55',
+      name: 'New ROOT ORG policy',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 10,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {
+        proxy: 'warn',
+      },
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: true,
+      policyActionsOverrides: {
+        '502a0248b17c4bc7914de4ee7bf92637': {
+          proxy: 'fail',
+        },
+      },
+    },
+    {
+      id: '28cd3b9301a4496cb65a51a5cd987355',
+      name: 'Security-Critical',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 10,
+      legacyViolationAllowed: false,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '8c9d52081f2346f7a10d6c19ad40d655',
+      name: 'Security-High',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 9,
+      legacyViolationAllowed: false,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '8554a1cb446e4ccf8cce47665134ab55',
+      name: 'Security-Low',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 3,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '96316caccf3a4b36a0823b721a51c555',
+      name: 'Security-Malicious',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 10,
+      legacyViolationAllowed: false,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '5e5bcdd1f85a4a769502394d428db055',
+      name: 'Security-Medium',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 7,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {},
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: 'ab1ad13928954fbd87d1fe70d0ff5e55',
+      name: 'Security-Namespace Conflict',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 10,
+      legacyViolationAllowed: false,
+      constraints: [],
+      actions: {
+        proxy: 'fail',
+      },
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: false,
+      policyActionsOverrides: null,
+    },
+    {
+      id: '2ebdd1bfcce34f449ba837931b1f4d55',
+      name: 'Testing simple constraint',
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      threatLevel: 5,
+      legacyViolationAllowed: true,
+      constraints: [],
+      actions: {
+        proxy: 'warn',
+      },
+      notifications: {
+        userNotifications: [],
+        roleNotifications: [],
+        jiraNotifications: [],
+        webhookNotifications: [],
+      },
+      policyActionsOverrideAllowed: true,
+      policyActionsOverrides: null,
+    },
+  ],
+  policyTags: [],
+  inherited: false,
+};
+
 const rootOrganizationWithoutPolicies = {
   ownerId: 'ROOT_ORGANIZATION_ID',
   ownerName: 'Root Organization',
@@ -566,6 +792,7 @@ export const applicationWithNoPolicies = {
 };
 
 export const rootOrganizationInheretencePolicies = { ...rootOrganizationPolicies, inherited: true };
+
 export const applicationWithPolicies = {
   ownerName: 'Artifactory Test 2',
   ownerId: '6b4684c392e2453aa9a3d2483c9611c4',
@@ -1331,4 +1558,11 @@ export const repositoryContainerByOwnerPayload = {
   ownerId: 'REPOSITORY_CONTAINER_ID',
   ownerType: 'repository_container',
   policiesByOwner: [repositoryContainerPolicies, rootOrganizationInheretencePolicies],
+};
+
+export const repositoryManagerByOwnerPayload = {
+  ownerName: 'Repository Manager',
+  ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+  ownerType: 'repository_manager',
+  policiesByOwner: [repositoryManagerPolicies, repositoryContainerInheretencePolicies],
 };

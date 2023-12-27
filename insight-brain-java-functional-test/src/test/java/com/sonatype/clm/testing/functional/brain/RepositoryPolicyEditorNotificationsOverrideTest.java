@@ -39,6 +39,26 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
   }
 
   @Test
+  public void testOverrideAddAndEdit_RepositoryManager() {
+    goToRepositoryManagerSummaryPage(repositoryManager);
+    createTrivialPolicy(true);
+    PolicyEditorPage.savePolicy();
+
+    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldNotBe(checked);
+    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
+            .shouldHave(text("Allow notification overrides at repository level"));
+    PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
+    PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHaveSize(1);
+    OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
+
+    PolicyEditorPage.title().shouldHave(text("Edit Policy"));
+    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldBe(checked);
+    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
+            .shouldHave(text("Allow notification overrides at repository level"));
+  }
+
+  @Test
   public void testOverrideAddAndEdit_RepositoryContainer() {
     goToRepositoryContainerSummaryPage();
     createTrivialPolicy(true);

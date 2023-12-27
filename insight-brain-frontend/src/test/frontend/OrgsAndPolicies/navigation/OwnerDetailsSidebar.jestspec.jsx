@@ -261,6 +261,23 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
+  it('renders correct sidebar modifying Repository manager', () => {
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({
+      ownerId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
+      ownerType: 'repository_manager',
+    });
+    jest.spyOn(routerSelectors, 'selectIsRepositoriesRelated').mockReturnValue(true);
+
+    mock
+      .onGet(getOwnerDetailsUrl('repository_manager', 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232', false))
+      .reply(200, ownerDetailMockData);
+
+    renderComponent(repositoryState);
+    expect(screen.getByText('Access')).toBeVisible();
+    expect(screen.queryAllByText('Policies').length).toBe(1);
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+  });
+
   it('renders correct sidebar with correct list open at Application level', () => {
     renderComponent(appsLevelState);
 

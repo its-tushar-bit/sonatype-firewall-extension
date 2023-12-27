@@ -41,7 +41,11 @@ import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotific
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectEntityId } from '../orgsAndPoliciesSelectors';
 import classNames from 'classnames';
-import { selectIsRepositoriesRelated, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoriesRelated,
+  selectIsRepositoryContainer,
+  selectIsRepositoryManager,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
@@ -64,8 +68,10 @@ export default function PolicyEditor() {
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isLoading = ownerDetailTreeLoading || loading;
 
+  const showInheritedSection = isOrgOwner || isRepositoryContainer || isRepositoryManager;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
   const savePolicy = () => dispatch(actions.savePolicy());
   const updateOverrides = () => dispatch(actions.updateOverrides());
@@ -138,10 +144,10 @@ export default function PolicyEditor() {
         >
           <NxTile.Content>
             <EditPolicySummary />
-            {(isOrgOwner || isRepositoryContainer) && <EditPolicyInheritance></EditPolicyInheritance>}
-            <ConstraintsEditor></ConstraintsEditor>
-            <PolicyActionsEditor></PolicyActionsEditor>
-            <PolicyNotificationsEditor></PolicyNotificationsEditor>
+            {showInheritedSection && <EditPolicyInheritance />}
+            <ConstraintsEditor />
+            <PolicyActionsEditor />
+            <PolicyNotificationsEditor />
           </NxTile.Content>
         </NxStatefulForm>
       </NxTile>

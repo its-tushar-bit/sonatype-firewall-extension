@@ -42,6 +42,7 @@ describe('PolicyEditorSpec', () => {
   const POLICY_ID_OVERRIDE_NOT_ENABLED = '2a1cb71651d14a60b0fa77ef829f5ec0';
   const ROOT_ORG_ID = 'ROOT_ORGANIZATION_ID';
   const REPOSITORY_CONTAINER_ID = 'REPOSITORY_CONTAINER_ID';
+  const REPOSITORY_MANAGER_ID = 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232';
   const ORG_ID = '05602dd5ba934c318ad011ca4e4f5cfe';
   const APP_ID = 'testapp';
   const REPO_ID = 'REPOSITORY_CONTAINER_ID';
@@ -67,6 +68,8 @@ describe('PolicyEditorSpec', () => {
     };
     if (ownerType === 'repository_container') {
       initState.router.currentParams = { repositoryContainerId: REPO_ID };
+    } else if (ownerType === 'repository_manager') {
+      initState.router.currentParams = { repositoryManagerId: ownerId };
     } else if (ownerType === 'organization') {
       initState.router.currentParams = { organizationId: ownerId };
     } else {
@@ -703,7 +706,7 @@ describe('PolicyEditorSpec', () => {
   describe('Inheritance section', () => {
     it('shows the inheritance section when the owner is an org', async () => {
       setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
-      renderComponent(initState);
+      renderComponent({ ...initState });
       const inheritance = await screen.findByText('This Policy Inherits to:');
       expect(inheritance).toBeVisible();
     });
@@ -714,14 +717,25 @@ describe('PolicyEditorSpec', () => {
         REPOSITORY_CONTAINER_ID,
         POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN
       );
-      renderComponent(initState);
+      renderComponent({ ...initState });
+      const inheritance = await screen.findByText('This Policy Inherits to:');
+      expect(inheritance).toBeVisible();
+    });
+
+    it('shows the inheritance section when the owner is a repository manager', async () => {
+      setInitStateAndMockHttpRequests(
+        'repository_manager',
+        REPOSITORY_MANAGER_ID,
+        POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN
+      );
+      renderComponent({ ...initState });
       const inheritance = await screen.findByText('This Policy Inherits to:');
       expect(inheritance).toBeVisible();
     });
 
     it('hides the inheritance section when the owner is an app', async () => {
       setInitStateAndMockHttpRequests('application', APP_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
-      renderComponent(initState);
+      renderComponent({ ...initState });
       let inheritance;
       try {
         inheritance = await screen.findByText('This Policy Inherits to:');

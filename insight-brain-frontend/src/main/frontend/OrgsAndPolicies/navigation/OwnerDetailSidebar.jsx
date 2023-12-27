@@ -31,6 +31,7 @@ import {
   selectRouterState,
   selectRouterCurrentParams,
   selectIsRepositoriesRelated,
+  selectIsRepositoryManager,
   selectIsCategory,
   selectIsPolicy,
   selectIsLegacyViolation,
@@ -76,6 +77,7 @@ export default function OwnerDetailSidebar() {
   const { tags, policies, labels, licenseThreatGroups, roles } = useSelector(selectOwnerDetails);
   const doesRolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isCategory = useSelector(selectIsCategory);
   const isPolicy = useSelector(selectIsPolicy);
   const isLegacyViolations = useSelector(selectIsLegacyViolation);
@@ -100,22 +102,11 @@ export default function OwnerDetailSidebar() {
 
   const uiRouterState = useRouterState();
 
-  const getBackButtonHref = (isApp, isRepositoriesRelated, owner) => {
-    if (isRepositoriesRelated) {
-      return uiRouterState.href('management.view.repository_container', {
-        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
-      });
-    } else if (isApp) {
-      return uiRouterState.href('management.view.application', { applicationPublicId: owner.publicId });
-    } else {
-      return uiRouterState.href('management.view.organization', { organizationId: owner.id });
-    }
-  };
-
-  const backButtonHref = getBackButtonHref(isApp, isRepositoriesRelated, owner);
-
   const getLinkMainHref = (isApp, isRepositoriesRelated, owner) => {
     if (isRepositoriesRelated) {
+      if (isRepositoryManager) {
+        return uiRouterState.href('management.edit.repository_manager', { repositoryManagerId: owner.id });
+      }
       return uiRouterState.href('management.edit.repository_container', {
         repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
       });

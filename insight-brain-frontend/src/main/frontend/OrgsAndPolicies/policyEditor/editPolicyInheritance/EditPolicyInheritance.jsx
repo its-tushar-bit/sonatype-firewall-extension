@@ -32,7 +32,7 @@ import {
   selectNotificationsOverridesCount,
   selectIsOrgOwner,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
-import { selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoryContainer, selectIsRepositoryManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
 
@@ -53,6 +53,7 @@ export default function EditPolicyInheritance() {
   const notificationsOverridesCount = useSelector(selectNotificationsOverridesCount);
   const isOrgOwner = useSelector(selectIsOrgOwner);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
 
   const onCategoryToggled = (category) => {
     const categoryIndexForToggle = categories.findIndex(propEq('id', category.id));
@@ -87,6 +88,10 @@ export default function EditPolicyInheritance() {
             {isOrgOwner &&
               `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} organizations and applications.`}
             {isRepositoryContainer &&
+              `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} ${repositoryPluralized(
+                overridesCount
+              )}.`}
+            {isRepositoryManager &&
               `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} ${repositoryPluralized(
                 overridesCount
               )}.`}
@@ -147,6 +152,8 @@ export default function EditPolicyInheritance() {
 
       {isRepositoryContainer && <NxP>This Policy Inherits to All Repository Managers and Repositories within Them</NxP>}
 
+      {isRepositoryManager && <NxP>This policy inherits to all Repositories in {ownerName}</NxP>}
+
       {showActionsOverridesConfirmationModal &&
         createOverridesConfirmationModal(
           'actions',
@@ -182,6 +189,7 @@ export default function EditPolicyInheritance() {
         >
           {isRepositoryContainer && 'Allow action overrides at repository manager and repository levels'}
           {isOrgOwner && 'Allow action overrides at organization and application levels'}
+          {isRepositoryManager && 'Allow action overrides at repository level'}
         </NxCheckbox>
         <NxCheckbox
           id="editor-policy-notifications-override"
@@ -195,6 +203,7 @@ export default function EditPolicyInheritance() {
         >
           {isRepositoryContainer && 'Allow notification overrides at repository manager and repository levels'}
           {isOrgOwner && 'Allow notification overrides at organization and application levels'}
+          {isRepositoryManager && 'Allow notification overrides at repository level'}
         </NxCheckbox>
       </NxFieldset>
 

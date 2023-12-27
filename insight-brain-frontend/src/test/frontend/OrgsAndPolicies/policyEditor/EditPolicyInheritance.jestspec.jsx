@@ -128,6 +128,15 @@ describe('EditPolicyInheritance', () => {
     expect(screen.queryByLabelText(/Applications of the specified Application Categories in/i)).toBeNull();
   });
 
+  it('categories not rendered for repository manager', () => {
+    state.router.currentState.name = 'sidebarView.repository_manager';
+    state.orgsAndPolicies.policy.isOrgOwner = false;
+    renderComponent();
+
+    expect(screen.queryByLabelText(/all applications/i)).toBeNull();
+    expect(screen.queryByLabelText(/Applications of the specified Application Categories in/i)).toBeNull();
+  });
+
   describe('actions overrides section', () => {
     it('renders actions override checkbox', () => {
       renderComponent();
@@ -162,6 +171,29 @@ describe('EditPolicyInheritance', () => {
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at repository manager and repository levels/i
       );
+
+      expect(actionsOverrideCheckbox).toBeVisible();
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+    });
+
+    it('renders actions override checkbox for repository manager', () => {
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
+
+      expect(actionsOverrideCheckbox).toBeVisible();
+      expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders unchecked actions override checkbox when policy actions override is not allowed for repository manager', () => {
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
 
       expect(actionsOverrideCheckbox).toBeVisible();
       expect(actionsOverrideCheckbox).not.toBeChecked();
@@ -216,6 +248,28 @@ describe('EditPolicyInheritance', () => {
       expect(actionsOverrideCheckbox).toBeDisabled();
     });
 
+    it('renders disabled actions override checkbox when is inherited policy for repository manager', () => {
+      state.orgsAndPolicies.policy.isInherited = true;
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
+
+      expect(actionsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('renders disabled actions override checkbox when user has no edit permission for repository manager', () => {
+      state.orgsAndPolicies.policy.hasEditIqPermission = false;
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
+
+      expect(actionsOverrideCheckbox).toBeDisabled();
+    });
+
     it('renders disabled actions override checkbox when user has no edit permission', () => {
       state.orgsAndPolicies.policy.hasEditIqPermission = false;
       renderComponent();
@@ -228,7 +282,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyActionsOverrideAllowed action', () => {
-      const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       renderComponent();
 
@@ -243,7 +297,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyActionsOverrideAllowed action for repository container', () => {
-      const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
@@ -260,7 +314,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist for repository containers', () => {
-      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
       };
@@ -281,8 +335,45 @@ describe('EditPolicyInheritance', () => {
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     });
 
+    it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist for repository manager', async () => {
+      const spy = jest.spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal');
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' },
+      };
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
+      expect(actionsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+      expect(
+        await screen.findByText('Caution: Disabling overrides will reset actions for 1 repository.')
+      ).toBeVisible();
+      expect(await screen.findByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(await screen.findByRole('button', { name: 'Cancel' })).toBeVisible();
+    });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action for repository manager', () => {
+      const spy = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
     it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist', () => {
-      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
       };
@@ -304,7 +395,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyActionsOverrideAllowed action when disabling if action overrides do not exist', () => {
-      const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
       renderComponent();
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at organization and application levels/i
@@ -318,7 +409,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches toggleShowActionsOverridesConfirmationModal action when cancelling', () => {
-      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
       };
@@ -342,14 +433,11 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyActionsOverrideAllowed action when continuing', () => {
-      const spyTogglePolicyActionsOverrideAllowed = spyOn(
-        policyActions,
-        'togglePolicyActionsOverrideAllowed'
-      ).and.callThrough();
-      const spyToggleShowActionsOverridesConfirmationModal = spyOn(
+      const spyTogglePolicyActionsOverrideAllowed = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
+      const spyToggleShowActionsOverridesConfirmationModal = jest.spyOn(
         policyActions,
         'toggleShowActionsOverridesConfirmationModal'
-      ).and.callThrough();
+      );
       state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
       };
@@ -376,14 +464,11 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyActionsOverrideAllowed action when continuing for repository container', () => {
-      const spyTogglePolicyActionsOverrideAllowed = spyOn(
-        policyActions,
-        'togglePolicyActionsOverrideAllowed'
-      ).and.callThrough();
-      const spyToggleShowActionsOverridesConfirmationModal = spyOn(
+      const spyTogglePolicyActionsOverrideAllowed = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
+      const spyToggleShowActionsOverridesConfirmationModal = jest.spyOn(
         policyActions,
         'toggleShowActionsOverridesConfirmationModal'
-      ).and.callThrough();
+      );
       state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
         '15602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
@@ -394,6 +479,34 @@ describe('EditPolicyInheritance', () => {
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at repository manager and repository levels/i
       );
+      expect(actionsOverrideCheckbox).toBeChecked();
+      fireEvent.click(actionsOverrideCheckbox);
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Caution: Disabling overrides will reset actions for 2 repositories.')).toBeVisible();
+      const continueButton = screen.getByRole('button', { name: 'Continue' });
+
+      fireEvent.click(continueButton);
+
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+      expect(spyTogglePolicyActionsOverrideAllowed).toHaveBeenCalled();
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(2);
+      expect(screen.queryByText('Caution: Disabling overrides will reset actions for 2 repositories.')).toBeNull();
+    });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action when continuing for repository manager', () => {
+      const spyTogglePolicyActionsOverrideAllowed = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
+      const spyToggleShowActionsOverridesConfirmationModal = jest.spyOn(
+        policyActions,
+        'toggleShowActionsOverridesConfirmationModal'
+      );
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' },
+        '15602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' },
+      };
+      state.router.currentState.name = 'sidebarView.repository_manager';
+      state.orgsAndPolicies.policy.isOrgOwner = false;
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
       expect(actionsOverrideCheckbox).toBeChecked();
       fireEvent.click(actionsOverrideCheckbox);
       expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
@@ -509,7 +622,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyNotificationsOverrideAllowed action when enabling', () => {
-      const spy = spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed');
       state.orgsAndPolicies.policy.currentPolicy.policyNotificationsOverrideAllowed = false;
       renderComponent();
       const notificationsOverrideCheckbox = screen.getByLabelText(
@@ -524,7 +637,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches toggleShowNotificationsOverridesConfirmationModal action when disabling if notification overrides exist', () => {
-      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': {
           userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
@@ -548,7 +661,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches toggleShowNotificationsOverridesConfirmationModal action when disabling if notification overrides exist for repository container', () => {
-      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': {
           userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
@@ -572,7 +685,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyNotificationsOverrideAllowed action when disabling if notification overrides do not exist', () => {
-      const spy = spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed');
       renderComponent();
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at organization and application levels/i
@@ -586,7 +699,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches toggleShowNotificationsOverridesConfirmationModal action when cancelling', () => {
-      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      const spy = jest.spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal');
       state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': {
           userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
@@ -614,14 +727,14 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyNotificationsOverrideAllowed action when continuing', () => {
-      const spyTogglePolicyNotificationsOverrideAllowed = spyOn(
+      const spyTogglePolicyNotificationsOverrideAllowed = jest.spyOn(
         policyActions,
         'togglePolicyNotificationsOverrideAllowed'
-      ).and.callThrough();
-      const spyToggleShowNotificationsOverridesConfirmationModal = spyOn(
+      );
+      const spyToggleShowNotificationsOverridesConfirmationModal = jest.spyOn(
         policyActions,
         'toggleShowNotificationsOverridesConfirmationModal'
-      ).and.callThrough();
+      );
       state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': {
           userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
@@ -652,14 +765,14 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('dispatches togglePolicyNotificationsOverrideAllowed action when continuing for repository container', () => {
-      const spyTogglePolicyNotificationsOverrideAllowed = spyOn(
+      const spyTogglePolicyNotificationsOverrideAllowed = jest.spyOn(
         policyActions,
         'togglePolicyNotificationsOverrideAllowed'
-      ).and.callThrough();
-      const spyToggleShowNotificationsOverridesConfirmationModal = spyOn(
+      );
+      const spyToggleShowNotificationsOverridesConfirmationModal = jest.spyOn(
         policyActions,
         'toggleShowNotificationsOverridesConfirmationModal'
-      ).and.callThrough();
+      );
       state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
         '05602dd5ba934c318ad011ca4e4f5cfe': {
           userNotifications: [{ emailAddress: 'email1@email.com', stageIds: ['build', 'release'] }],

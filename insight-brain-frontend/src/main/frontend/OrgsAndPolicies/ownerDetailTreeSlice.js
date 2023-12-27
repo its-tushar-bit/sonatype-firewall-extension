@@ -12,7 +12,11 @@ import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
 
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication, selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsApplication,
+  selectIsRepositoriesRelated,
+  selectIsRepositoryManager,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
@@ -30,7 +34,11 @@ const loadOwnerDetails = createAsyncThunk(`${REDUCER_NAME}/loadOwnerDetails`, (_
   const state = getState();
   const { ownerType, ownerId } = selectOwnerProperties(state);
   const isRepositories = selectIsRepositoriesRelated(state);
-  return axios.get(getOwnerDetailsUrl(ownerType, ownerId, isRepositories)).then(prop('data')).catch(rejectWithValue);
+  const isRepositorymanager = selectIsRepositoryManager(state);
+  return axios
+    .get(getOwnerDetailsUrl(ownerType, ownerId, isRepositories && !isRepositorymanager))
+    .then(prop('data'))
+    .catch(rejectWithValue);
 });
 
 const loadOwnerDetailsRequested = (state) => {

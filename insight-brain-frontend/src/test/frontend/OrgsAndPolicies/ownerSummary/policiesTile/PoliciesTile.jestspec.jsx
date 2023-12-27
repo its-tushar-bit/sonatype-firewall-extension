@@ -16,6 +16,7 @@ import {
   organizationPoliciesByOwnerPayload,
   actionStagesPayload,
   repositoryContainerByOwnerPayload,
+  repositoryManagerByOwnerPayload,
 } from './policiesTileTestData';
 import { getNumberOfTables } from '../utils/tileAndTableTestingUtils';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -518,7 +519,99 @@ describe('PoliciesTile', () => {
           const index = ownersWithPolicies.indexOf(owner);
           if (index === 0) {
             expect(await screen.findByText('Local to ' + owner.ownerName)).toBeVisible();
-            screen.debug();
+            break;
+          } else {
+            let title = `Inherited from ${owner.ownerName}`;
+            expect(await screen.findByText(title)).toBeVisible();
+          }
+        }
+      });
+    });
+  });
+
+  describe('Owner is Repository Manager with inherited policies', () => {
+    beforeAll(() => {
+      ownerName = repositoryManagerByOwnerPayload.ownerName;
+      ownerId = repositoryManagerByOwnerPayload.ownerId;
+      ownerType = repositoryManagerByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.repository_manager',
+            url: '/repository_manager/{repositoryManagerId}',
+            data: {
+              title: 'Repository manager Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            repositoryManagerId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: repositoryManagerByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Tile Content', () => {
+      it('render all correct titles', async () => {
+        const ownersWithPolicies = repositoryManagerByOwnerPayload.policiesByOwner.filter(
+          (owner) => !isNilOrEmpty(owner.policies)
+        );
+        for (const owner of ownersWithPolicies) {
+          const index = ownersWithPolicies.indexOf(owner);
+          if (index === 0) {
+            expect(await screen.findByText('Local to ' + owner.ownerName)).toBeVisible();
             break;
           } else {
             let title = `Inherited from ${owner.ownerName}`;

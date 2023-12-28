@@ -428,7 +428,7 @@ public abstract class AbstractRepositoryService
 
     sendTelemetry(componentEvaluationDataRequestList.components.size(), policyCompliantVersionCount,
         System.currentTimeMillis() - start);
-    requestSafeComponentsMetricEventService.postRequestSafeComponentsMetricEvent(policyCompliantVersionCount);
+    requestSafeComponentsMetricEventService.postRequestSafeComponentsMetricEvent();
 
     return result;
   }

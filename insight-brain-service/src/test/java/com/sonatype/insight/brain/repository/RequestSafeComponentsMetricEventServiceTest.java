@@ -36,7 +36,7 @@ public class RequestSafeComponentsMetricEventServiceTest extends AbstractCompone
         new TestEventHandler<>(new CountDownLatch(1), RequestSafeComponentsAutoSelectMetricEvent.class);
     eventBus.register(handler);
 
-    service.postRequestSafeComponentsMetricEvent(12);
+    service.postRequestSafeComponentsMetricEvent();
     try {
       assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
       RequestSafeComponentsAutoSelectMetricEvent event = handler.getEvent();
@@ -45,11 +45,5 @@ public class RequestSafeComponentsMetricEventServiceTest extends AbstractCompone
     finally {
       eventBus.unregister(handler);
     }
-  }
-
-  @Test
-  public void testPostRequestSafeComponentsMetricEvent_policyCompliantVersionCountIsZero() {
-    service.postRequestSafeComponentsMetricEvent(0);
-    assertThat(logOutput).contains("Skipping processing as Policy Compliant Version Count is 0");
   }
 }

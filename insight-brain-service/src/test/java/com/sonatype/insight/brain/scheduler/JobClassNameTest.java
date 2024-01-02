@@ -5,13 +5,15 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import com.google.common.collect.HashBiMap;
 import org.junit.Test;
 import org.quartz.Job;
 
@@ -20,7 +22,7 @@ import static org.junit.Assert.fail;
 public class JobClassNameTest
     extends AbstractComponentTest
 {
-  private static final HashBiMap<String, String> insightJobClassNameToExpectedJobName = HashBiMap.create();
+  private static final Map<String, String> insightJobClassNameToExpectedJobName = new HashMap<>();
 
   static {
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.DefaultBranchMonitor",

@@ -25,4 +25,9 @@ public class RestEndpointTelemetry
     this.path = path;
     this.invocations = invocations;
   }
+
+  @Override
+  public String toString() {
+    return "RestEndpointTelemetry [method=" + method + ", path=" + path + ", invocations=" + invocations + "]";
+  }
 }

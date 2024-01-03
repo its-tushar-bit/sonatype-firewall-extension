@@ -7689,10 +7689,10 @@ is-unicode-supported@^0.1.0:
   resolved "https://repo.sonatype.com/repository/npm-all/is-unicode-supported/-/is-unicode-supported-0.1.0.tgz"
   integrity sha512-knxG2q4UC3u8stRGyAVJCOdxFmv5DZiRcdlIaAQXAbSfJya+OhopNotLQrstBhququ4ZpuKbDc/8S6mgXgPFPw==
 
-is-valid-hostname@^1.0.0:
-  version "1.0.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/is-valid-hostname/-/is-valid-hostname-1.0.0.tgz"
-  integrity sha512-oTlvlRUnxrEwFQoRMvEe2UOB5/++ou2dcMVMnjAixgZsZ8Rbo8cH4dYbB0fxcA9q6WsJxnYjwkzOwKiDbIIOCw==
+is-valid-hostname@1.0.2:
+  version "1.0.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/is-valid-hostname/-/is-valid-hostname-1.0.2.tgz#23fdc84e86cb793a43207686e7edb2f796e82406"
+  integrity sha512-X/kiF3Xndj6WI7l/yLyzR7V1IbQd6L4S4cewSL0fRciemPmHbaXIKR2qtf+zseH+lbMG0vFp4HvCUe7amGZVhw==
 
 is-weakref@^1.0.2:
   version "1.0.2"

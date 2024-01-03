@@ -54,10 +54,10 @@
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
     <!-- dropwizard 3.x and 4.x require Java 11 -->
-    <dropwizard.version>2.1.9</dropwizard.version>
+    <dropwizard.version>2.1.11</dropwizard.version>
     <dropwizard-web.version>1.5.0</dropwizard-web.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
-    <jersey.version>2.40</jersey.version>
+    <jersey.version>2.41</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <!-- drools 8.x requires Java 11 -->

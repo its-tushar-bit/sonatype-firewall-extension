@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.inject.Named;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -53,13 +54,54 @@ public class TelemetryContainerRequestFilter
     String path = extendedUriInfo.getPath();
     if (URL_PATTERN.matcher(path).matches()) {
       String method = containerRequestContext.getMethod();
+      // jersey 2.41 changed the way they calculate normalized templates.
+      // In order to have consistent data for telemetry, we need to parse the new normalized templates and change them
+      // to match the values from jersey <= 2.40.
       String anonymisedPath = extendedUriInfo.getMatchedTemplates().stream()
-          .map(t -> new UriTemplateParser(t.getTemplate()).getNormalizedTemplate())
+          .map(t -> normalizePathForTelemetry(new UriTemplateParser(t.getTemplate()).getNormalizedTemplate()))
           .reduce((t1, t2) -> t2.concat(t1))
           .orElse(null);
       String methodAndAnonymisedPath = method + " " + anonymisedPath;
       REST_ENDPOINT_INVOCATIONS.get().computeIfAbsent(methodAndAnonymisedPath, key -> new LongAdder()).increment();
     }
+  }
+
+  private String normalizePathForTelemetry(String path) {
+    // Example 1:
+    // Path: /api/v2/users/{username}
+    // Normalized path jersey <= 2.40: /api/v2/users/{username}
+    // Normalized path jersey > 2.40: /api/v2/users/{{username}}
+    //
+    // Example 2:
+    // Path: /api/v2/users/{username}
+    // Normalized path jersey <= 2.40:
+    // /api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}
+    // Normalized path jersey > 2.40:
+    // /api/v2/roleMemberships/{{ownerType:applicationorganization}}/{{internalOwnerId}}/role/{{roleId}}/
+    // {{memberType:usergroup}}/{{memberName}}
+
+    // Replace all {{ with { and }} with }.
+    path = path.replace("{{", "{").replace("}}", "}");
+
+    // Remove path param options
+    StringBuilder result = new StringBuilder();
+    boolean skipChar = false;
+    for (char c : path.toCharArray()) {
+      switch (c) {
+        case ':':
+          skipChar = true;
+          continue;
+        case '}':
+          skipChar = false;
+          //$FALL-THROUGH$ (for Eclipse) // fall through (for CheckStyle)
+        default:
+          if (!skipChar) {
+            result.append(c);
+          }
+      }
+    }
+
+    return result.toString();
   }
 
   @Override

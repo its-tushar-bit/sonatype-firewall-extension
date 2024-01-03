@@ -17,6 +17,8 @@ public class TenantMetadataDTO
 
   private String connectionName;
 
+  private String encryptionKeyName;
+
   public TenantMetadataDTO() {
     // no-op
   }
@@ -25,12 +27,14 @@ public class TenantMetadataDTO
       final String applicationId,
       final String applicationName,
       final String connectionId,
-      final String connectionName)
+      final String connectionName,
+      final String encryptionKeyName)
   {
     this.applicationId = applicationId;
     this.applicationName = applicationName;
     this.connectionId = connectionId;
     this.connectionName = connectionName;
+    this.encryptionKeyName = encryptionKeyName;
   }
 
   public String getApplicationId() {
@@ -65,13 +69,22 @@ public class TenantMetadataDTO
     this.connectionName = connectionName;
   }
 
+  public String getEncryptionKeyName() {
+    return encryptionKeyName;
+  }
+
+  public void setEncryptionKeyName(final String encryptionKeyName) {
+    this.encryptionKeyName = encryptionKeyName;
+  }
+
   public static TenantMetadataDTO toDTO(TenantMetadata tenantMetadata) {
     return new TenantMetadataDTO(tenantMetadata.getApplicationId(), tenantMetadata.getApplicationName(),
-        tenantMetadata.getConnectionId(), tenantMetadata.getConnectionName());
+        tenantMetadata.getConnectionId(), tenantMetadata.getConnectionName(), tenantMetadata.getEncryptionKeyName());
   }
 
   public static TenantMetadata fromDTO(TenantMetadataDTO tenantMetadataDTO) {
     return new TenantMetadata(tenantMetadataDTO.getApplicationId(), tenantMetadataDTO.getApplicationName(),
-        tenantMetadataDTO.getConnectionId(), tenantMetadataDTO.getConnectionName());
+        tenantMetadataDTO.getConnectionId(), tenantMetadataDTO.getConnectionName(),
+        tenantMetadataDTO.getEncryptionKeyName());
   }
 }

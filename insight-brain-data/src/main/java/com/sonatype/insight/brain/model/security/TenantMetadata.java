@@ -33,6 +33,9 @@ public class TenantMetadata
   @Column(name = "connection_name")
   private String connectionName;
 
+  @Column(name = "encryption_key_name")
+  private String encryptionKeyName;
+
   public TenantMetadata() {
   }
 
@@ -40,12 +43,14 @@ public class TenantMetadata
       final String applicationId,
       final String applicationName,
       final String connectionId,
-      final String connectionName)
+      final String connectionName,
+      final String encryptionKeyName)
   {
     this.applicationId = applicationId;
     this.applicationName = applicationName;
     this.connectionId = connectionId;
     this.connectionName = connectionName;
+    this.encryptionKeyName = encryptionKeyName;
   }
 
   @Override
@@ -88,5 +93,13 @@ public class TenantMetadata
 
   public void setConnectionName(final String connectionName) {
     this.connectionName = connectionName;
+  }
+
+  public String getEncryptionKeyName() {
+    return encryptionKeyName;
+  }
+
+  public void setEncryptionKeyName(final String encryptionKeyName) {
+    this.encryptionKeyName = encryptionKeyName;
   }
 }

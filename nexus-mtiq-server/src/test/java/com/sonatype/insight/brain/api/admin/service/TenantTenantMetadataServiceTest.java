@@ -38,6 +38,8 @@ public class TenantTenantMetadataServiceTest
 
   public static final String CONN_NAME = "connName";
 
+  public static final String ENC_KEY_NAME = "encKeyName";
+
   @Mock
   private TenantValidator tenantValidator;
 
@@ -57,7 +59,7 @@ public class TenantTenantMetadataServiceTest
   @Test
   public void shouldInsertAuth0Configuration() {
     testAsNewTenant(tenant -> {
-      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
 
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(tenantMetadataDAO.get()).thenReturn(null);
@@ -72,16 +74,18 @@ public class TenantTenantMetadataServiceTest
       assertEquals(APP_NAME, argument.getValue().getApplicationName());
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
+      assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
     });
   }
 
   @Test
   public void shouldUpdateAuth0Configuration() {
     testAsNewTenant(tenant -> {
-      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
 
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
-      when(tenantMetadataDAO.get()).thenReturn(TenantMetadataDTO.fromDTO(expected1));
+      when(tenantMetadataDAO.get()).thenReturn(
+          TenantMetadataDTO.fromDTO(new TenantMetadataDTO(null, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME)));
 
       underTest.insertOrUpdateMetadata(expected1, tenant.tenantSlug);
 
@@ -93,6 +97,7 @@ public class TenantTenantMetadataServiceTest
       assertEquals(APP_NAME, argument.getValue().getApplicationName());
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
+      assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
     });
   }
 
@@ -101,7 +106,7 @@ public class TenantTenantMetadataServiceTest
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
 
-      TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+      TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
 
       assertThatThrownBy(
           () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
@@ -112,7 +117,7 @@ public class TenantTenantMetadataServiceTest
 
   @Test
   public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
-    TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+    TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
 
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(

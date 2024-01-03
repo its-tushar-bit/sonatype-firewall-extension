@@ -264,7 +264,7 @@ public class DeleteTenantsJobTest
   private void provisionTenant(Tenant tenant, String auth0AppId) throws Exception {
     provisionTenant(tenant.tenantSlug);
     tenantManager.setTenant(tenant);
-    tenantMetadataDAO.insert(new TenantMetadata(auth0AppId, "appName", "connId", "connName"));
+    tenantMetadataDAO.insert(new TenantMetadata(auth0AppId, "appName", "connId", "connName", "encKeyName"));
   }
 
   private void scheduleJobsForTenant() {

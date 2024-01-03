@@ -88,7 +88,7 @@ public class MtiqUserResourceTest
 
   @Test
   public void test_inviteUser() throws Exception {
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
     mtiqUserDTO.setFirstName("foo");
@@ -105,7 +105,7 @@ public class MtiqUserResourceTest
 
   @Test
   public void test_deleteUser() throws Exception {
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
     samlUserDAO.insert(new SamlUser("foo@bar.com", "foo", "bar", "foo@bar.com", Collections.emptySet()));
 
     assertThat(samlUserDAO.getAll()).hasSize(1);

@@ -25,7 +25,6 @@ import com.sonatype.insight.keycloak.KeycloakServerUtil;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,7 +44,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.CollectionCondition.size;
-
 import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage.NewUserForm;
 
 public class MtiqUserManagementTest
@@ -109,7 +107,7 @@ public class MtiqUserManagementTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
 
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connectionId", "connectionName"));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connectionId", "connectionName", "encKeyName"));
   }
 
   @After
@@ -165,7 +163,7 @@ public class MtiqUserManagementTest
 
     deleteModal.header().shouldHave(text("Delete User"));
     deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
-         KEYCLOAK_USER_EMAIL_2 + ". This action cannot be undone."));
+        KEYCLOAK_USER_EMAIL_2 + ". This action cannot be undone."));
 
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
@@ -253,7 +251,7 @@ public class MtiqUserManagementTest
     page.userItems().shouldHave(size(2));
 
     NewUserForm newUserForm = goToInviteUserForm();
-    
+
     newUserForm.firstNameInput().val("User");
     newUserForm.lastNameInput().val("Three");
     newUserForm.emailInput().val("user3@example.com");
@@ -271,8 +269,8 @@ public class MtiqUserManagementTest
   }
 
   /**
-   * Login as user2, logout, then login as user1. End result is that the IQ server is aware of both users and
-   * you are currently logged in as user1
+   * Login as user2, logout, then login as user1. End result is that the IQ server is aware of both users and you are
+   * currently logged in as user1
    */
   private void loginBothSamlUsers() {
     KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_2, password);

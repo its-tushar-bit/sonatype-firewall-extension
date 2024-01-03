@@ -20,12 +20,12 @@ public class TenantMetadataDAOTest
   @Test
   public void tenant_canWriteUniqueMetadata() {
     testAsNewTenant(tenant1 -> {
-      TenantMetadata expected1 = new TenantMetadata("appId1", "appName1", "connId1", "connName1");
+      TenantMetadata expected1 = new TenantMetadata("appId1", "appName1", "connId1", "connName1", "encKeyName");
 
       underTest.insert(expected1);
 
       testAsNewTenant(tenant2 -> {
-        TenantMetadata expected2 = new TenantMetadata("appId2", "appName2", "connId2", "connName2");
+        TenantMetadata expected2 = new TenantMetadata("appId2", "appName2", "connId2", "connName2", "encKeyName");
 
         underTest.insert(expected2);
         TenantMetadata actual2 = underTest.get();

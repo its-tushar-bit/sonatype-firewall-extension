@@ -16,14 +16,9 @@ import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 public class TenantMetadataConfigurationService
 {
-  private static final Logger log = LoggerFactory.getLogger(TenantMetadataConfigurationService.class);
-
   private final TenantUtil tenantUtil;
 
   private final TenantValidator tenantValidator;
@@ -50,7 +45,6 @@ public class TenantMetadataConfigurationService
     }
 
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
-      log.debug("Tenant {} doesn't exist", tenantSlug.replaceAll("[\n\r]", "_"));
       throw new NotFoundException("Tenant doesn't exist");
     }
 

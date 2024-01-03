@@ -41,17 +41,16 @@ describe('FirewallMetrics', () => {
     expect(namespaceAttacksBlockedLinkMock.mock.calls.length).toBe(0);
     expect(onComponentsQuarantinedLinkClickMock.mock.calls.length).toBe(0);
 
-    const viewDetailsButtons = screen.queryAllByRole('button', { name: 'View details' });
-    expect(viewDetailsButtons.length).toBe(2);
+    const seeDetailsBelowButtons = screen.queryAllByRole('button', { name: 'See details below' });
+    expect(seeDetailsBelowButtons.length).toBe(3);
 
-    fireEvent.click(viewDetailsButtons[0]);
+    fireEvent.click(seeDetailsBelowButtons[0]);
     expect(supplyChainAttacksLinkMock.mock.calls.length).toBe(1);
 
-    fireEvent.click(viewDetailsButtons[1]);
+    fireEvent.click(seeDetailsBelowButtons[1]);
     expect(namespaceAttacksBlockedLinkMock.mock.calls.length).toBe(1);
 
-    const seeDetailsBelowButton = screen.queryAllByRole('button', { name: 'See details below' });
-    fireEvent.click(seeDetailsBelowButton[0]);
+    fireEvent.click(seeDetailsBelowButtons[2]);
     expect(onComponentsQuarantinedLinkClickMock.mock.calls.length).toBe(1);
   });
 
@@ -88,8 +87,8 @@ describe('FirewallMetrics', () => {
     expect(links[2]).toHaveTextContent('View waived components');
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons[0]).toHaveTextContent('View details');
-    expect(buttons[1]).toHaveTextContent('View details');
+    expect(buttons[0]).toHaveTextContent('See details below');
+    expect(buttons[1]).toHaveTextContent('See details below');
     expect(buttons[2]).toHaveTextContent('See details below');
 
     const icons = container.querySelectorAll('.iq-firewall-metrics-content__icon');

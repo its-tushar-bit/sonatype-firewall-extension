@@ -83,7 +83,7 @@ export default function FirewallMetrics(props) {
             value={supplyChainAttacksBlocked}
             valueLabel="(all time)"
             link="#"
-            linkLabel="View details"
+            linkLabel="See details below"
             onLinkButtonClick={onSupplyChainAttacksBlockedLinkClick}
           />
           <FirewallMetricsContent
@@ -93,7 +93,7 @@ export default function FirewallMetrics(props) {
             value={namespaceAttacksBlocked}
             valueLabel="(all time)"
             link="#"
-            linkLabel="View details"
+            linkLabel="See details below"
             onLinkButtonClick={onNamespaceAttacksBlockedLinkClick}
           />
         </NxGrid.Column>

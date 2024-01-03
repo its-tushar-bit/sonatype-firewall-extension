@@ -37,7 +37,7 @@ export const initialState = {
   showRepositories: false,
   toggleOrganizationsCheck: true,
   toggleApplicationsCheck: true,
-  toggleRepositoryManagersCheck: true,
+  toggleRepositoryManagersCheck: false,
   filteredEntries: {
     applications: [],
     organizations: [],

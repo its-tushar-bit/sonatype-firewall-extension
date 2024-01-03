@@ -226,6 +226,7 @@ public class RepositoriesSummaryViewTest
 
     configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
     configurationTable.row(2, 1).managerId().shouldHave(text(repositoryManager2.getInstanceId()));
+    sidebar().getRepoManagerList().click();
     sidebar().getRepoManagerList().children().get(0).shouldHave(text("customName"));
 
     configurationTable.row(1, 1).editRepositoryManagerNameButton().click();
@@ -243,6 +244,7 @@ public class RepositoriesSummaryViewTest
     editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").setValue("customName2");
     editRepositoryManagerNameModal.getElement().$(".nx-load-error__retry").click();
 
+    sidebar().getRepoManagerList().click();
     configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
     sidebar().getRepoManagerList().children().get(0).shouldHave(text("customName"));
     configurationTable.row(2, 1).managerId().shouldHave(text("customName2"));

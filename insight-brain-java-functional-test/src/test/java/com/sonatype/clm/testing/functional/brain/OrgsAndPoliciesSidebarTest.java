@@ -110,6 +110,8 @@ public class OrgsAndPoliciesSidebarTest
     orgsAndPoliciesSidebar.repositories().click();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.children().shouldHaveSize(6);
+    repoManagerList.children().get(0).shouldNotBe(visible);
+    repoManagerList.click();
     repoManagerList.shouldHave(text(namedRepositoryManager.getName()));
 
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Container level");

@@ -17,10 +17,17 @@ import SastFinding from 'MainRoot/sastScan/SastFinding';
 import SastScanFindingsFilter from 'MainRoot/sastScan/SastScanFindingsFilter';
 import * as PropTypes from 'prop-types';
 
+const severities = {
+  CRITICAL: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+  NONE: 0,
+};
+
 export default function SastScanFindings({ findings }) {
   const [filter, onFilterChange] = useState(new Set());
   const filterDisabled = filter.size === 0;
-
   const [rows, setRows] = useState(findings);
   const [sortDir, setSortDir] = useState('desc');
 
@@ -50,7 +57,7 @@ export default function SastScanFindings({ findings }) {
             {rows
               .filter((value) => filterDisabled || filter.has(value.severity))
               .map((finding) => {
-                return <SastFinding key={finding.id} finding={finding} />;
+                return <SastFinding key={finding.sastFindingId} finding={finding} />;
               })}
           </NxTableBody>
         </NxTable>
@@ -69,21 +76,15 @@ export default function SastScanFindings({ findings }) {
   }
   function getCurrentOptions() {
     return getAvailableSeverities()
-      .sort()
-      .reverse()
+      .sort((a, b) => {
+        return severities[b] - severities[a];
+      })
       .map((severity) => {
         return { id: severity, displayName: severity };
       });
   }
 
   function sortBySeverity() {
-    const severities = {
-      CRITICAL: 4,
-      HIGH: 3,
-      MEDIUM: 2,
-      LOW: 1,
-      NONE: 0,
-    };
     const newSortDir = sortDir === 'desc' ? 'asc' : 'desc';
     setSortDir(newSortDir);
 

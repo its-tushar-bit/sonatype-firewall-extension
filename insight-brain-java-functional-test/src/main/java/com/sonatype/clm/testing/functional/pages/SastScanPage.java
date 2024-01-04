@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -18,7 +19,7 @@ public class SastScanPage
   }
 
   public static String urlToCreate(String applicationId, String sastScanId) {
-    return BaseUrl.resolvePageUrl("/application/${applicationId}/sastScan/{ownerId}", applicationId, sastScanId);
+    return BaseUrl.resolvePageUrl("/application/{applicationId}/sastScan/{sastScanId}", applicationId, sastScanId);
   }
 
   public static SelenideElement title() {
@@ -35,5 +36,9 @@ public class SastScanPage
 
   public static SelenideElement findingsTable() {
     return $(".iq_sast_scan_findings__container .nx-table");
+  }
+
+  public static ElementsCollection sastFindingTableDataRows() {
+    return findingsTable().findAll(" tbody .nx-table-row");
   }
 }

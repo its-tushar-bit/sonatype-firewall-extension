@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -71,6 +72,9 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.sast.SastFinding;
+import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -1091,6 +1095,30 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     applicationDAO.delete(application);
 
     assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadeToSastFinding() {
+    final Application application = tempEntity.newApplicationWithParent();
+    final SastScanDAO sastScanDAO = new SastScanDAO();
+    final SastScan sastScan = tempEntity.newSastScan(application.getId());
+    final SastFindingDAO sastFindingDAO = new SastFindingDAO();
+    final SastFinding sastFinding = new SastFinding();
+    sastFinding.setSastScanId(sastScan.getId());
+    sastFinding.setCwe("CWE");
+    sastFinding.setConfidence(SastFindingConfidence.MEDIUM);
+    sastFinding.setSeverity(SastFindingSeverity.HIGH);
+    sastFinding.setDescription("someDescription");
+    sastFinding.setCoordinate("{\"namespace\":\"namespace\",\"name\":\"CWE\",\"methodName\":\"method\"}");
+    sastFinding.setLineNumber(null);
+    sastFinding.setRuleName("someRuleName");
+    tempEntity.newSastFinding(sastFinding);
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNotNull();
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    applicationDAO.delete(application);
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
   }
 
   @Test

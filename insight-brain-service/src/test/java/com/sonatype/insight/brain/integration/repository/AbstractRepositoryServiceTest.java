@@ -80,6 +80,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -87,7 +88,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -3351,9 +3351,5 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
     }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
-  }
-
-  private void assertPostRequestSafeComponentsMetricEvent() {
-    verify(requestSafeComponentsMetricEventServiceMock).postRequestSafeComponentsMetricEvent();
   }
 }

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class RepositoryClientConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryClientConfigurationDAO dao = new RepositoryClientConfigurationDAO();
+  private RepositoryClientConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryClientConfigurationDAO();
+  }
 
   @After
   public void exit() {

@@ -10,23 +10,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiOrganizationAdapterTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Test
   public void testConvert_EntityListToDTO() {
     Organization org = tempEntity.newOrganization();

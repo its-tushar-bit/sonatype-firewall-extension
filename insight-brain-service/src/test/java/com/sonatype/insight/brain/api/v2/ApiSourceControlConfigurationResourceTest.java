@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSourceControlConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final SourceControlConfigurationDAO dao = new SourceControlConfigurationDAO();
+  private SourceControlConfigurationDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(SourceControlConfigurationDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

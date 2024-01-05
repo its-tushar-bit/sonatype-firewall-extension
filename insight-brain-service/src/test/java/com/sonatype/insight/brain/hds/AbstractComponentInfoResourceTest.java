@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -42,6 +43,8 @@ public abstract class AbstractComponentInfoResourceTest
   protected abstract String getResourcePath();
 
   private Application application;
+
+  private MultiLicenseDAO multiLicenseDAO;
 
   protected Owner getOwner() {
     return application;
@@ -99,6 +102,7 @@ public abstract class AbstractComponentInfoResourceTest
      */
     setFeatures();
 
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
     application = tempEntity.newApplicationWithParent("AbstractComponentInfoResourceTest");
   }
 
@@ -133,7 +137,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   protected void testGetComponentDetailsList_EvaluateComponentPermission() throws Exception {
-    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES, multiLicenseDAO);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
@@ -165,7 +169,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   void testGetComponentDetailsList_ReadPermission() throws Exception {
-    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES, multiLicenseDAO);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
@@ -183,7 +187,7 @@ public abstract class AbstractComponentInfoResourceTest
 
   @Test
   public void testGetComponentVersionInfo() throws Exception {
-    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES, multiLicenseDAO);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);

@@ -14,6 +14,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -60,13 +62,21 @@ public class BitbucketCodeInsightsService
 
   private final BaseUrl baseUrl;
 
+  private final PolicyDAO policyDAO;
+
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public BitbucketCodeInsightsService(
       final ApplicationDAO applicationDAO,
-      final BaseUrl baseUrl)
+      final BaseUrl baseUrl,
+      final PolicyDAO policyDAO,
+      final OrganizationDAO organizationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.baseUrl = baseUrl;
+    this.policyDAO = policyDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   @Override
@@ -97,7 +107,9 @@ public class BitbucketCodeInsightsService
           sourceCommitPolicyEvaluation,
           policyViolationDiff,
           baseUrl.getConfigured(),
-          locationDiscoveryResult);
+          locationDiscoveryResult,
+          policyDAO,
+          organizationDAO);
 
       BitbucketApiClient<?, ?> bitbucketApiClient = getBitbucketApiClient(gitClientFactory, gitRepositoryInfo);
 

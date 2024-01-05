@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.jaxrs.JsonUtils;
@@ -29,16 +29,23 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Module;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqUserResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationResourceTest
 {
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private SamlUserDAO samlUserDAO;
 
-  private final TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
+  private TenantMetadataDAO tenantMetadataDAO;
+
+  @Before
+  public void localTestBefore() {
+    samlUserDAO = getCLMServer().getInstance(SamlUserDAO.class);
+    tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
+  }
 
   @Override
   protected List<Module> getBrainModules() {

@@ -18,12 +18,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -39,6 +42,8 @@ import org.apache.shiro.util.CollectionUtils;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+@Named
+@Singleton
 public class SourceControlDAO
     extends AbstractOperationalSqlDAO<SourceControl>
 {
@@ -47,13 +52,15 @@ public class SourceControlDAO
   // Visible for tests
   static final long PULL_REQUEST_POLLING_INITIAL_OFFSET_MS = 1000L * 60 * 60 * 72; // 72 hours
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO;
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+  private final GitApiClientFactory gitApiClientFactory;
+
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
   // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
@@ -77,6 +84,23 @@ public class SourceControlDAO
       // Or: we don't have any source-stage PE
       // This case happens if the user manually creates the application with source control information
       "      OR lpe.application_id IS NULL ";
+
+  @Inject
+  public SourceControlDAO(
+      final OperationalDataStore operationalDataStore,
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final OwnerDAO ownerDAO,
+      final GitApiClientFactory gitApiClientFactory,
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
+  {
+    super(operationalDataStore);
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
+    this.ownerDAO = ownerDAO;
+    this.gitApiClientFactory = gitApiClientFactory;
+    this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+  }
 
   /**
    * The purpose of this method is to update the pull request poll time so it is consistent at this particular instant.
@@ -122,7 +146,7 @@ public class SourceControlDAO
       // for each application where the poll time is not already set, the poll time is set to earliest date between
       // the earliest policy evaluation with an associated commit or the given default polling time
       txn.createNativeQuery(
-          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control sc" +
+          "UPDATE " + getDatabaseSchema() + ".source_control sc" +
               " SET pull_request_poll_time = (" +
               " SELECT" +
               "  CASE WHEN first_commit_time IS NULL THEN ?1" +
@@ -131,7 +155,7 @@ public class SourceControlDAO
               "       END" +
               " FROM (" +
               "     SELECT application_id, min(time) AS first_commit_time" +
-              "     FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_evaluation" +
+              "     FROM " + getDatabaseSchema() + ".policy_evaluation" +
               "     WHERE commit_hash IS NOT NULL" +
               "     GROUP BY application_id" +
               "     ) AS first_policy_eval_commit" +
@@ -146,7 +170,7 @@ public class SourceControlDAO
     try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
       txn.createNativeQuery(
-          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() +
+          "UPDATE " + getDatabaseSchema() +
               ".source_control SET pull_request_poll_time = ?1" +
               " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;"
       ).setParameter(1, defaultPollingTime).executeUpdate();
@@ -160,7 +184,7 @@ public class SourceControlDAO
 
       // set poll time to null where repo url is null
       txn.createNativeQuery(
-          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() +
+          "UPDATE " + getDatabaseSchema() +
               ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;"
       ).executeUpdate();
 
@@ -375,7 +399,7 @@ public class SourceControlDAO
       if (sourceControlsWithSameRepositoryUrl.size() == 1) {
         // This is the only SourceControl with the old repository URL.
         // Delete all SourceControlPullRequests for this repository URL.
-        new SourceControlPullRequestDAO().deleteByRepositoryUrl(tx, existingSourceControl.getRepositoryUrl());
+        sourceControlPullRequestDAO.deleteByRepositoryUrl(tx, existingSourceControl.getRepositoryUrl());
       }
     }
 
@@ -404,7 +428,7 @@ public class SourceControlDAO
       if (sourceControlsWithSameRepositoryUrl.size() == 1) {
         // This is the only SourceControl with this repository URL.
         // Delete all SourceControlPullRequests for this repository URL.
-        new SourceControlPullRequestDAO().deleteByRepositoryUrl(tx, entity.getRepositoryUrl());
+        sourceControlPullRequestDAO.deleteByRepositoryUrl(tx, entity.getRepositoryUrl());
       }
     }
 
@@ -612,7 +636,7 @@ public class SourceControlDAO
   }
 
   private String injectSchemaName(final String sql) {
-    return sql.replace("_SCHEMA_", OperationalDataStoreProvider.getDatabaseSchema());
+    return sql.replace("_SCHEMA_", getDatabaseSchema());
   }
 
   /**

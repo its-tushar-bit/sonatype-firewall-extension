@@ -8,12 +8,14 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.Collection;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,10 +30,23 @@ public class MultiLicenseDAOTest
 {
   private static final String MOCK_REMOTE_LICENSE_ID = "test";
 
+  private MultiLicenseLicenseInternalDAO multiLicenseLicenseDAO;
+
+  private LicenseDAO licenseDAO;
+
+  private MultiLicenseDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    multiLicenseLicenseDAO = daoFactory.createMultiLicenseLicenseInternalDAO();
+    licenseDAO = daoFactory.createLicenseDAO();
+    dao = daoFactory.createMultiLicenseDAO();
+  }
+
   @Test
   public void testCRUD() {
-    MultiLicenseDAO dao = new MultiLicenseDAO();
-
     String shortName = "SDN";
     assertThat(dao.getByName(shortName)).isNull();
     MultiLicense multiLicense = new MultiLicense();
@@ -63,7 +78,6 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetAll() {
-    MultiLicenseDAO dao = new MultiLicenseDAO();
     Collection<MultiLicense> multiLicenses = dao.getAll();
 
     assertThat(multiLicenses).isNotEmpty();
@@ -71,19 +85,16 @@ public class MultiLicenseDAOTest
 
   @Test(expected = NotFoundException.class)
   public void testGetLicensesByMultiLicenseIdNotFound() {
-    MultiLicenseDAO dao = new MultiLicenseDAO();
     dao.getLicensesByMultiLicenseIdNotNull("Not-To-Be-Found");
   }
 
   @Test
   public void testGetLicensesByMultiLicenseIdRefreshedRemotely() {
-    MultiLicenseDAO dao = new MultiLicenseDAO();
-
     assertThatThrownBy(() -> dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("A multi-license with ID '" + MOCK_REMOTE_LICENSE_ID + "' does not exist locally or remotely.");
 
-    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater(daoFactory);
     LicenseDataUpdater.setUpdater(updater);
 
     assertThat(dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID)).isNotNull();
@@ -93,7 +104,6 @@ public class MultiLicenseDAOTest
   @Test
   public void testLicenseDataRefresh() {
     String newId = "new multi license id";
-    MultiLicenseDAO dao = new MultiLicenseDAO();
     assertThat(dao.getById(newId)).isNull();
     int count = dao.getAll().size();
 
@@ -105,11 +115,10 @@ public class MultiLicenseDAOTest
     MultiLicenseLicenseInternal multiLicenseLicense = new MultiLicenseLicenseInternal();
     multiLicenseLicense.setMultiLicenseId(newMultiLicense.getId());
     multiLicenseLicense.setLicenseId("GPL-2.0");
-    MultiLicenseLicenseInternalDAO multiLicenseLicenseDAO = new MultiLicenseLicenseInternalDAO();
     multiLicenseLicenseDAO.insert(multiLicenseLicense);
     assertThat(dao.getById(newId)).isNull();
 
-    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
+    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater(licenseDAO, dao));
 
     assertThat(dao.getById(newId)).isNotNull();
     assertThat(dao.getAll()).hasSize(count + 1);
@@ -121,8 +130,8 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetByIdNoReload() {
-    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
-    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    MultiLicenseDAO spyDao = spy(dao);
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater(daoFactory);
     LicenseDataUpdater.setUpdater(updater);
     assertThat(spyDao.getByIdNoReload("not-to-be-found")).isNull();
 
@@ -134,8 +143,8 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetByIdNoReloadNotNull() {
-    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
-    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    MultiLicenseDAO spyDao = spy(dao);
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater(daoFactory);
     LicenseDataUpdater.setUpdater(updater);
     assertThat(spyDao.getByIdNoReload("not-to-be-found")).isNull();
 
@@ -149,8 +158,8 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetByNameNoReload() {
-    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
-    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    MultiLicenseDAO spyDao = spy(dao);
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater(daoFactory);
     LicenseDataUpdater.setUpdater(updater);
     assertThat(spyDao.getByNameNoReload("not-to-be-found")).isNull();
 
@@ -162,8 +171,8 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetByNameNoReloadNotNull() {
-    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
-    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    MultiLicenseDAO spyDao = spy(dao);
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater(daoFactory);
     LicenseDataUpdater.setUpdater(updater);
     assertThat(spyDao.getByNameNoReload("not-to-be-found")).isNull();
 
@@ -180,11 +189,12 @@ public class MultiLicenseDAOTest
   private static class MockLicenseDataUpdater
       extends LicenseDataUpdater
   {
-    final LicenseDAO licenseDAO = new LicenseDAO();
+    final MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO;
 
-    final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-
-    final MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
+    MockLicenseDataUpdater(DAOFactory daoFactory) {
+      super(daoFactory.createLicenseDAO(), daoFactory.createMultiLicenseDAO());
+      multiLicenseLicenseInternalDAO = daoFactory.createMultiLicenseLicenseInternalDAO();
+    }
 
     License license;
 

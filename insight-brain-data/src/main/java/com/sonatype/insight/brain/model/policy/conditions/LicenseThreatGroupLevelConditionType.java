@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -19,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWi
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class LicenseThreatGroupLevelConditionType
     extends AbstractLicenseThreatGroupConditionType<Integer>
 {

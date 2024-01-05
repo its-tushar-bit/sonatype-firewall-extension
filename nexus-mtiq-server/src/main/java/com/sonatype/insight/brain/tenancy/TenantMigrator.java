@@ -10,9 +10,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
@@ -32,18 +30,14 @@ public class TenantMigrator
 
   private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
-  private final MultiTenantDatabaseConfigProvider databaseConfigProvider;
-
   public TenantMigrator(
-      DatabaseProvisionUtils databaseProvisionUtils,
-      MultiTenantInsightConfig insightConfig,
-      MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
+      final DatabaseProvisionUtils databaseProvisionUtils,
+      final MultiTenantInsightConfig insightConfig,
+      final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.insightConfig = insightConfig;
     this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
-    databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
-    databaseProvisionUtils.initializeDatabasesWithoutMigration(databaseConfigProvider);
   }
 
   public void migrateGlobalSchema() {
@@ -68,7 +62,10 @@ public class TenantMigrator
   }
 
   public void migrateAllSchemas() {
-    List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
+    databaseProvisionUtils.initializeDatabasesWithoutMigration();
+
+    List<String> schemas =
+        DatabaseUtil.getSchemasList(databaseProvisionUtils.getOperationalDataStore().getDataSource());
 
     List<Tenant> tenants = schemas.stream()
         .filter(schema -> schema.startsWith("t_"))
@@ -104,7 +101,7 @@ public class TenantMigrator
     try {
       DatabaseMigrator.setForceEnableMigration(true);
 
-      databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
+      databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);

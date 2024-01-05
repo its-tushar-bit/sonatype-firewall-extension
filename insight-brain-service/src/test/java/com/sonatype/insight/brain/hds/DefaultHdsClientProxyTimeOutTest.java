@@ -18,7 +18,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -34,7 +33,6 @@ import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -49,9 +47,6 @@ import static org.mockito.Mockito.when;
 public class DefaultHdsClientProxyTimeOutTest
     extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Inject
   private PasswordHandler passwordHandler;
 
@@ -124,7 +119,7 @@ public class DefaultHdsClientProxyTimeOutTest
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, "1");
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
-    telemetryId = new TelemetryId(config);
+    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");

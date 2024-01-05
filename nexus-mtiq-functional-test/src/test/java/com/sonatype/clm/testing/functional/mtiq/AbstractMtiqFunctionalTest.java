@@ -22,14 +22,19 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -38,6 +43,7 @@ import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -47,8 +53,6 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestHelper;
-import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -56,6 +60,8 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TestRestTenantUtil;
+import com.sonatype.insight.brain.testing.MultiTenantTestInsightBrainServiceFactory;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -74,7 +80,6 @@ import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.dropwizard.server.DefaultServerFactory;
-
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -118,7 +123,11 @@ public abstract class AbstractMtiqFunctionalTest
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractMtiqFunctionalTest.class);
 
-  protected static final TestProductLicenseManager productLicenseManager;
+  private static final int VIEWPORT_WIDTH = 1366;
+
+  private static final int VIEWPORT_HEIGHT = 1024;
+
+  protected static final TestProductLicenseManager testProductLicenseManager;
 
   protected static final TestLicenseFingerprinter licenseFingerprinter;
 
@@ -136,57 +145,63 @@ public abstract class AbstractMtiqFunctionalTest
 
   protected static final ReverseProxyServer reverseProxyServer;
 
-  private static final int VIEWPORT_WIDTH = 1366;
-
-  private static final int VIEWPORT_HEIGHT = 1024;
-
   protected static final TestRestTenantUtil testRestTenantUtil;
 
-  private static String getBaseUrl(String contextPath) {
-    String url = reverseProxyServer.getUrl();
-    if (url.endsWith("/")) {
-      url = url.substring(0, url.length() - 1);
-    }
-    url += contextPath;
-    if (!url.endsWith("/")) {
-      url += '/';
-    }
-    return url;
-  }
+  private static final TestProductLicenseRule testProductLicenseRule;
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
+  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+
+  @Rule
+  public TestName testName = new TestName();
+
+  public static MultiTenantDatabaseContainerRule multiTenantDatabaseContainerRule =
+      MultiTenantDatabaseContainerRule.getInstance();
+
+  private PersistedUserSessionDAO persistedUserSessionDAO;
+
+  private ShiroSessionDAO shiroSessionDAO;
 
   static {
-    productLicenseManager = new TestProductLicenseManager();
-    testProductLicense = new TestProductLicense(productLicenseManager);
+    // Init DB for functional tests
+    MultiTenantInsightConfig insightConfig = startDBAndGetInsightConfig();
+
+    testProductLicenseManager = new TestProductLicenseManager();
+    testProductLicense = new TestProductLicense(testProductLicenseManager);
     licenseFingerprinter = new TestLicenseFingerprinter();
     testRestTenantUtil = new TestRestTenantUtil();
+    testProductLicenseRule = new TestProductLicenseRule(multiTenantDatabaseContainerRule.getDatabaseContainer());
     jiraService = Mockito.mock(JiraService.class);
     auth0ApiSupplier = Mockito.mock(MultiTenantAuth0ApiSupplier.class);
     auth0ManagementAPI = Mockito.mock(Auth0ManagementAPI.class);
     auth0AuthAPI = Mockito.mock(Auth0AuthAPI.class);
     initMocks();
 
-    MultiTenantBrainServiceTestHelper.setup();
-    MultiTenantBrainServiceTestHelper.createDatabaseContainer();
-
-    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
-
     // Reuse the configurator to allow reuse of MTIQ server
+    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
     Configurator mtiqConfigurator = config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
-      ((MultiTenantInsightConfig) config).setDeleteBuiltInAdmin(false);
-
-      Configurator conf = MultiTenantBrainServiceTestService.getConfigurator();
-      conf.configure(config);
+      MultiTenantInsightConfig mtiqConfig = (MultiTenantInsightConfig) config;
+      mtiqConfig.setDeleteBuiltInAdmin(false);
+      // For MTIQ functional tests, the DB is initialized by the server using the provided config
+      mtiqConfig.setMainDatabase(insightConfig.getMainDatabase());
+      mtiqConfig.setLocksDatabase(insightConfig.getLocksDatabase());
     };
 
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(),
-        mtiqConfigurator);
+    testCLMServer =
+        new TestCLMServer(new MultiTenantTestInsightBrainServiceFactory(), false /* isProxyRequiredToReachHds */,
+            getBrainModules(), mtiqConfigurator, multiTenantDatabaseContainerRule.getDatabaseContainer());
 
     reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
 
     try {
+      // Insert license so it can be populated on server start-up
+      testProductLicenseRule.insertLicenseIfNeeded();
+
       testCLMServer.start();
-      testCLMServer.getCLMServer().setHdsUrl();
       reverseProxyServer.start();
 
       Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
@@ -199,26 +214,8 @@ public abstract class AbstractMtiqFunctionalTest
     }
   }
 
-  public static void setBaseUrl(String baseUrl) {
-    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
-    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
-  }
-
-  public static void provisionTenant(String tenantSlug) {
-    TenantProvisioningService service = testCLMServer.getCLMServer().getInstance(TenantProvisioningService.class);
-    service.provisionTenant(tenantSlug);
-  }
-
-  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
-    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
-        enableDefaultPasswordWarning);
-    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
-  }
-
   @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity()
+  public TemporaryEntity tempEntity = new TemporaryEntity(multiTenantDatabaseContainerRule)
   {
     @Override
     public void after() {
@@ -244,14 +241,60 @@ public abstract class AbstractMtiqFunctionalTest
     // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
   }
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  private static MultiTenantInsightConfig startDBAndGetInsightConfig() {
+    try {
+      TenantTestHelper.initMultiTenantMode();
+      // Start the database by manually calling the rule.
+      multiTenantDatabaseContainerRule.setTestName("MtiqFunctionalTest");
+      multiTenantDatabaseContainerRule.before();
+    }
+    catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
 
-  @Rule
-  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+    DatabaseConfig databaseConfig =
+        multiTenantDatabaseContainerRule.getDatabaseConfigProvider().getDatabaseConfig(DatabaseName.ods);
 
-  @Rule
-  public TestName testName = new TestName();
+    MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
+    insightConfig.setMainDatabase(databaseConfig);
+    insightConfig.setLocksDatabase(databaseConfig); // for testing use the same database for locks
+
+    return insightConfig;
+  }
+
+  private static String getBaseUrl(String contextPath) {
+    String url = reverseProxyServer.getUrl();
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
+    url += contextPath;
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    return url;
+  }
+
+  public static void setBaseUrl(String baseUrl) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
+  }
+
+  public static void provisionTenant(String tenantSlug) {
+    TenantProvisioningService service = testCLMServer.getCLMServer().getInstance(TenantProvisioningService.class);
+    service.provisionTenant(tenantSlug);
+
+    TenantTestHelper.testAs(tenantSlug, tenant -> {
+      (new TestProductLicenseRule(multiTenantDatabaseContainerRule)).insertLicenseIfNeeded();
+    });
+  }
+
+  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        enableDefaultPasswordWarning);
+    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+  }
 
   private static void initMocks() {
     try {
@@ -340,6 +383,13 @@ public abstract class AbstractMtiqFunctionalTest
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
 
+    DAOFactory daoFactory = new TestDAOFactory(multiTenantDatabaseContainerRule.getDatabaseContainer());
+    persistedUserSessionDAO = daoFactory.createPersistedUserSessionDAO();
+    shiroSessionDAO = daoFactory.createShiroSessionDAO();
+
+    // Re-inject classes that have static dependencies
+    StaticInjectionTestHelper.inject(daoFactory);
+
     // Set up the tenant within which the test runs
     Tenant testTenant = TenantTestHelper.setupNewTestTenant(testName);
     try {
@@ -366,10 +416,13 @@ public abstract class AbstractMtiqFunctionalTest
     }
     TenantTestHelper.setGlobalTenant();
     testCLMServer.getHdsServer().reset();
-    if (productLicenseManager.wasChanged()) {
-      productLicenseManager.reset();
-      installLicense();
-    }
+
+    TenantTestHelper.testAs(testRestTenantUtil.getTenantSlug(), tenant -> {
+      if (testProductLicenseManager.wasChanged()) {
+        testProductLicenseManager.reset();
+        installLicense();
+      }
+    });
 
     hardreset();
     testRestTenantUtil.clearTenantSlug();
@@ -416,7 +469,7 @@ public abstract class AbstractMtiqFunctionalTest
         bind(TenantUtil.class).toInstance(testRestTenantUtil);
         bind(ProductLicense.class).toInstance(testProductLicense);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
+        bind(TestProductLicenseManager.class).toInstance(testProductLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(JiraService.class).toInstance(jiraService);
         bind(MultiTenantAuth0ApiSupplier.class).toInstance(auth0ApiSupplier);
@@ -645,12 +698,12 @@ public abstract class AbstractMtiqFunctionalTest
 
   protected static void executeJavaScript(String script) {
     WebDriver driver = WebDriverRunner.getWebDriver();
-    JavascriptExecutor js = (JavascriptExecutor)driver;
+    JavascriptExecutor js = (JavascriptExecutor) driver;
     js.executeScript(script);
   }
 
   protected void setFeatures(LicensedFeature... features) {
-    productLicenseManager.setFeatures(features);
+    testProductLicenseManager.setFeatures(features);
     installLicense();
   }
 
@@ -663,18 +716,18 @@ public abstract class AbstractMtiqFunctionalTest
   }
 
   protected void setLicensedProducts(String... products) {
-    productLicenseManager.setProducts(products);
+    testProductLicenseManager.setProducts(products);
     installLicense();
   }
 
   protected void setExpirationDate(Date date) {
-    productLicenseManager.setExpirationDate(date);
+    testProductLicenseManager.setExpirationDate(date);
     installLicense();
   }
 
   protected void installLicense() {
     try {
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+      lookup(CLMLicenseManager.class)
           .installLicense(new ByteArrayInputStream(new byte[1]));
     }
     catch (Exception e) {
@@ -683,7 +736,7 @@ public abstract class AbstractMtiqFunctionalTest
   }
 
   protected void uninstallLicense() {
-    testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).uninstallLicense();
+    lookup(CLMLicenseManager.class).uninstallLicense();
   }
 
   // Close all tabs/windows except the currently active one.
@@ -703,8 +756,11 @@ public abstract class AbstractMtiqFunctionalTest
   }
 
   protected void cleanupAllPersistedUserSessions() {
-    ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
-    new PersistedUserSessionDAO().getAll().stream().map(PersistedUserSession::getId)
+    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
         .forEach(shiroSessionDAO::deleteById);
+  }
+
+  protected <T> T lookup(Class<T> type) {
+    return testCLMServer.getCLMServer().getInstance(type);
   }
 }

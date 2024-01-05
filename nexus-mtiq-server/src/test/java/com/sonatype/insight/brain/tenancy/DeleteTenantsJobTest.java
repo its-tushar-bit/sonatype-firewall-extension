@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
@@ -23,7 +24,7 @@ import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
@@ -51,7 +52,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class DeleteTenantsJobTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   public static final String BAD_APPLICATION_ID = "badId";
 
@@ -71,6 +72,8 @@ public class DeleteTenantsJobTest
 
   TenantMetadataDAO tenantMetadataDAO;
 
+  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   public void setup() {
     tenantManager = super.getTestCLMServer().getCLMServer().getInstance(TenantManager.class);
@@ -78,8 +81,9 @@ public class DeleteTenantsJobTest
     config = super.getTestCLMServer().getCLMServer().getInstance(InsightConfig.class);
     dataStore = super.getTestCLMServer().getCLMServer().getInstance(OperationalDataStore.class);
     taskScheduler = super.getTestCLMServer().getCLMServer().getInstance(MultiTenantTaskScheduler.class);
-    deletedTenantDAO = new DeletedTenantDAO();
-    tenantMetadataDAO = new TenantMetadataDAO();
+    deletedTenantDAO = getCLMServer().getInstance(DeletedTenantDAO.class);
+    tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
+    systemConfigurationPropertyDAO = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
 
     // Clean deleted tenant table
     for (DeletedTenant deletedTenant : deletedTenantDAO.getAll()) {
@@ -167,7 +171,7 @@ public class DeleteTenantsJobTest
   public void testDeleteTenant_jobRegistration() {
     MultiTenantTaskScheduler taskScheduler = mock(MultiTenantTaskScheduler.class);
 
-    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null, null);
+    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null, null, null);
 
     deleteTenantsJob.register();
 
@@ -203,7 +207,7 @@ public class DeleteTenantsJobTest
   private void assertTenantWasDeleted(Tenant tenant) throws SchedulerException {
     assertTenantDeletionIsCompleted(tenant.tenantSlug);
 
-    assertThat(DatabaseUtil.schemaExists(dataStore.getDataSource(), tenant.databaseSchema)).isFalse();
+    assertThat(DatabaseUtil.schemaExists(dataStore.getDataSourceWithoutInit(), tenant.databaseSchema)).isFalse();
     assertThat(config.getSonatypeWork().exists()).isFalse();
     assertThat(config.getClusterDirectory().exists()).isFalse();
 
@@ -238,13 +242,16 @@ public class DeleteTenantsJobTest
   private void runDeleteTenantJobWithCustomRetentionPeriod(long retentionPeriodInHours) {
     TenantThreadLocal.runAsGlobal(() -> {
       try {
-        tempEntity.newSystemConfigurationProperty(TENANT_RETENTION_PERIOD_CONFIG_KEY,
-            String.valueOf(retentionPeriodInHours));
+        systemConfigurationPropertyDAO.set(TENANT_RETENTION_PERIOD_CONFIG_KEY, String.valueOf(retentionPeriodInHours));
 
         deleteTenantsJob.execute(null);
       }
       catch (JobExecutionException e) {
         throw new RuntimeException(e);
+      }
+      finally {
+        systemConfigurationPropertyDAO.delete(
+            systemConfigurationPropertyDAO.getByName(TENANT_RETENTION_PERIOD_CONFIG_KEY));
       }
       return null;
     });

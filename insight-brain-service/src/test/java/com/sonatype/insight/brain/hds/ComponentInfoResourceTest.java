@@ -63,6 +63,16 @@ public class ComponentInfoResourceTest
 
   private Repository repository;
 
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  @Before
+  public void setUp() {
+    applicationDAO = lookup(ApplicationDAO.class);
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
+  }
+
   protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
                                                final String ownerId,
                                                final String hash,
@@ -136,7 +146,7 @@ public class ComponentInfoResourceTest
   public void testGetComponentVersionInfo_FromInnerSourceRepository() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     app.setRepositoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.2.0", "", "jar");
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
@@ -343,9 +353,8 @@ public class ComponentInfoResourceTest
 
   private Set<License> toLicenseSet(String... licenseIds) {
     Set<License> result = new LinkedHashSet<>();
-    MultiLicenseDAO dao = new MultiLicenseDAO();
     for (String licenseId : licenseIds) {
-      MultiLicense multiLicense = dao.getByIdNotNull(licenseId);
+      MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull(licenseId);
       result.add(toLicenseDTO(multiLicense));
     }
     return result;

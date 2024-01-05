@@ -25,7 +25,11 @@ import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageInc
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.*;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -40,10 +44,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Spy;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class ApplicationCountHistoryServiceTest
@@ -56,10 +60,8 @@ public class ApplicationCountHistoryServiceTest
   @Mock
   private DateTimeService dateTimeService;
 
-  @Spy
   private PolicyViolationDAO policyViolationDAO;
 
-  @Spy
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
@@ -74,10 +76,13 @@ public class ApplicationCountHistoryServiceTest
 
   private Organization givenOrganization;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private SourceControlDAO sourceControlDAO;
 
   @Override
   public void configure(Binder binder) {
+    policyViolationDAO = spy(daoFactory.createPolicyViolationDAO());
+    policyEvaluationDAO = spy(daoFactory.createPolicyEvaluationDAO());
     binder.bind(DateTimeService.class).toInstance(dateTimeService);
     binder.bind(PolicyViolationDAO.class).toInstance(policyViolationDAO);
     binder.bind(PolicyEvaluationDAO.class).toInstance(policyEvaluationDAO);

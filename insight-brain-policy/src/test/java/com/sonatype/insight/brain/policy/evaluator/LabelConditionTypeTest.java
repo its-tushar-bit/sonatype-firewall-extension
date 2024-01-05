@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
@@ -198,7 +199,7 @@ public class LabelConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLabelId() {
     Condition condition = new Condition(LabelConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> new LabelConditionType().validateCondition(null, condition, applicationId))
+    assertThatThrownBy(() -> ConditionTypes.LabelConditionType.validateCondition(null, condition, applicationId))
         .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid label id: abc");
   }
 

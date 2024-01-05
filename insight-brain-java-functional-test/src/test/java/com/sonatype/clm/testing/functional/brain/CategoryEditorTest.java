@@ -6,8 +6,8 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -23,7 +23,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,9 +40,9 @@ public class CategoryEditorTest
 {
   private static final String CATEGORY_NAME = "a category";
 
-  private final TagDAO tagDAO = new TagDAO();
+  private TagDAO tagDAO;
 
-  private final ApplicationTagDAO appTagDao = new ApplicationTagDAO();
+  private ApplicationTagDAO appTagDao;
 
   private Organization org;
 
@@ -49,6 +56,9 @@ public class CategoryEditorTest
 
   @Before
   public void init() {
+    tagDAO = lookup(TagDAO.class);
+    appTagDao = lookup(ApplicationTagDAO.class);
+
     org = tempEntity.newOrganization("CategoryEditorTest Organization");
     category = tempEntity.newTag(org.getId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url(org));

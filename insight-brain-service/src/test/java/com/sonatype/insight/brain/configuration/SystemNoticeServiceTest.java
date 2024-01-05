@@ -19,6 +19,9 @@ public class SystemNoticeServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private SystemNoticeDAO systemNoticeDAO;
+
+  @Inject
   private SystemNoticeService service;
 
   @Test
@@ -33,7 +36,7 @@ public class SystemNoticeServiceTest
     SystemNotice systemNotice = new SystemNotice();
     systemNotice.setMessage(message);
     SystemNotice updated = service.updateSystemNotice(systemNotice);
-    SystemNotice stored = new SystemNoticeDAO().get();
+    SystemNotice stored = systemNoticeDAO.get();
     assertThat(updated.getMessage()).isEqualTo(stored.getMessage());
     assertThat(updated.isEnabled()).isEqualTo(stored.isEnabled());
   }

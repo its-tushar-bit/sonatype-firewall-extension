@@ -23,10 +23,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +36,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiComponentDetailsResourceV2Test
     extends AbstractResourceTest
 {
-  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper;
+
+  @Before
+  public void setUp() {
+    PolicyDAO policyDAO = lookup(PolicyDAO.class);
+    componentEvaluationV2Helper = new ComponentEvaluationV2Helper(policyDAO);
+  }
 
   @Test
   public void testGetComponentDetails() throws Exception {

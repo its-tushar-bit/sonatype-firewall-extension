@@ -50,7 +50,9 @@ public class ApiArtifactoryConnectionResourceTest
   @Rule
   public WireMockRule artifactoryMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private final ArtifactoryConnectionDAO dao = new ArtifactoryConnectionDAO();
+  private ArtifactoryConnectionDAO dao;
+
+  private OrganizationDAO organizationDAO;
 
   private PasswordHandler pwHandler;
 
@@ -60,13 +62,17 @@ public class ApiArtifactoryConnectionResourceTest
 
   @Before
   public void before() {
+    dao = lookup(ArtifactoryConnectionDAO.class);
+    ApplicationDAO applicationDAO = lookup(ApplicationDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+
     pwHandler = getCLMServer().getInstance(PasswordHandler.class);
     app = tempEntity.newApplicationWithParent();
     app.setArtifactoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     org = tempEntity.newOrganization();
     org.setArtifactoryConnectionEnabled(true);
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
   }
   
   private void feature(boolean enable) {
@@ -234,7 +240,7 @@ public class ApiArtifactoryConnectionResourceTest
     Application application = tempEntity.newApplication(organization.getId());
     organization.setAllowArtifactoryConnectionOverride(false);
     organization.setArtifactoryConnectionEnabled(true);
-    new OrganizationDAO().update(organization);
+    organizationDAO.update(organization);
     ArtifactoryConnection orgArtifactoryConnection =
         tempEntity.newArtifactoryConnection(
             organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());

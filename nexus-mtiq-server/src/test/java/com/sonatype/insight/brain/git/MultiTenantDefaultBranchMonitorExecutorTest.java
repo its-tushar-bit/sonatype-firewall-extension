@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -46,16 +47,16 @@ public class MultiTenantDefaultBranchMonitorExecutorTest
   private SourceControlEventPublisher mockEventPublisher;
 
   @Mock
-  private MultiTenantDefaultBranchMonitorExecutor.TenantProvider mockTenantProvider;
+  private TenantService mockTenantService;
 
   private final List<String> allTenants = Arrays.asList("slug1", "slug2", "slug3", "slug4");
 
   @Before
   public void setUp() throws Exception {
-    when(mockTenantProvider.getTenantSlug()).thenReturn("slug1");
-    when(mockTenantProvider.getAllTenantsNames()).thenReturn(allTenants);
+    when(mockTenantService.getTenantSlug()).thenReturn("slug1");
+    when(mockTenantService.getAllTenantsNames()).thenReturn(allTenants);
     underTest = new MultiTenantDefaultBranchMonitorExecutor(mockTaskScheduler, mockSourceControlDAO, mockEventPublisher,
-        mockTenantProvider);
+        mockTenantService);
   }
 
   @Test
@@ -84,7 +85,7 @@ public class MultiTenantDefaultBranchMonitorExecutorTest
 
   @Test
   public void whenTenantDoesNotExist_ScheduleNotStarted() {
-    when(mockTenantProvider.getTenantSlug()).thenReturn("does not exist");
+    when(mockTenantService.getTenantSlug()).thenReturn("does not exist");
 
     underTest.schedule(mock(InsightJob.class));
 
@@ -110,13 +111,13 @@ public class MultiTenantDefaultBranchMonitorExecutorTest
   public void rescheduleJobWillAlterStartTimeIfTenantsChange() {
     ArgumentCaptor<LocalDateTime> argument = ArgumentCaptor.forClass(LocalDateTime.class);
 
-    when(mockTenantProvider.getTenantSlug()).thenReturn("slug2");
+    when(mockTenantService.getTenantSlug()).thenReturn("slug2");
 
     underTest.performScan(mock(InsightJob.class));
     verify(mockTaskScheduler).scheduleOneTimeTask(any(), argument.capture());
     verifySlugStartTime(argument.getValue(), 6, 0, 0);
 
-    when(mockTenantProvider.getAllTenantsNames()).thenReturn(
+    when(mockTenantService.getAllTenantsNames()).thenReturn(
         Arrays.asList("slug1", "slug2", "slug3", "slug4", "slug5")
     );
 

@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -26,15 +29,32 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.6
  */
+@Named
+@Singleton
 public class LicenseOverrideDAO
 {
   public static final int MAX_COMMENT_SIZE = 1000;
 
-  private LicenseOverrideInternalDAO licenseOverrideInternalDAO = new LicenseOverrideInternalDAO();
+  private final LicenseOverrideInternalDAO licenseOverrideInternalDAO;
 
-  private LicenseOverrideLicenseInternalDAO licenseOverrideLicenseInternalDAO = new LicenseOverrideLicenseInternalDAO();
+  private final LicenseOverrideLicenseInternalDAO licenseOverrideLicenseInternalDAO;
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public LicenseOverrideDAO(
+      final LicenseOverrideInternalDAO licenseOverrideInternalDAO,
+      final LicenseOverrideLicenseInternalDAO licenseOverrideLicenseInternalDAO,
+      final OwnerDAO ownerDAO,
+      final LicenseDAO licenseDAO)
+  {
+    this.licenseOverrideInternalDAO = licenseOverrideInternalDAO;
+    this.licenseOverrideLicenseInternalDAO = licenseOverrideLicenseInternalDAO;
+    this.ownerDAO = ownerDAO;
+    this.licenseDAO = licenseDAO;
+  }
 
   public LicenseOverride getById(String id) {
     LicenseOverrideInternal licenseOverride = licenseOverrideInternalDAO.getById(id);
@@ -200,7 +220,7 @@ public class LicenseOverrideDAO
         throw new BadRequestException("Expected at least one license ID for license override.");
       }
       for (String licenseId : entity.getLicenseIds()) {
-        new LicenseDAO().getByIdNotNull(licenseId);
+        licenseDAO.getByIdNotNull(licenseId);
       }
     }
     else {

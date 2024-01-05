@@ -19,13 +19,13 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -73,18 +73,23 @@ public class PolicyViolationAggregationService
 
   private final DashboardUtils dashboardUtils;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
-  public PolicyViolationAggregationService(StageTypeService stageTypeService,
-                                           PolicyEvaluationDAO policyEvaluationDAO,
-                                           PolicyViolationDAO policyViolationDAO,
-                                           PolicyViolationAggregationDAO violationAggregationDAO,
-                                           DashboardUtils dashboardUtils)
+  public PolicyViolationAggregationService(
+      final StageTypeService stageTypeService,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyViolationAggregationDAO violationAggregationDAO,
+      final DashboardUtils dashboardUtils,
+      final ClusterLockManager clusterLockManager)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
     this.stageTypeService = stageTypeService;
     this.dashboardUtils = dashboardUtils;
+    this.clusterLockManager = clusterLockManager;
   }
 
   private Set<String> getStageTypeIds() {
@@ -114,7 +119,7 @@ public class PolicyViolationAggregationService
     Set<String> stageTypeIds = getStageTypeIds();
 
     for (String applicationId : applicationIds) {
-      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(applicationId)) {
+      try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(applicationId)) {
         clusterLock.lock();
 
         generatePolicyViolationAggregations(applicationId, currentDateTime, stageTypeIds, includeLatestData);

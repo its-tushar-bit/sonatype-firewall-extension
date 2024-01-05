@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -36,8 +35,6 @@ public class TenantSchemaService
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
-  private final MultiTenantDatabaseConfigProvider databaseConfigProvider;
-
   @Inject
   public TenantSchemaService(
       OperationalDataStore operationalDataStore,
@@ -51,8 +48,6 @@ public class TenantSchemaService
     this.dataMartDataStore = dataMartDataStore;
     this.insightConfig = insightConfig;
     this.databaseProvisionUtils = databaseProvisionUtils;
-
-    databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
 
   /**
@@ -80,7 +75,7 @@ public class TenantSchemaService
     validateCurrentTenant(tenantSlug);
 
     try {
-      databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
+      databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
     }
     catch (RuntimeException e) {
       //we are passing up any exception when migrating a Tenant schema

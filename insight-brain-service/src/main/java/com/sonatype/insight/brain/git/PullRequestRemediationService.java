@@ -13,6 +13,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
@@ -37,6 +38,8 @@ public class PullRequestRemediationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final SourceControlUtils sourceControlUtils;
 
   private final Provider<PullRequestTask> pullRequestTaskProvider;
@@ -48,6 +51,7 @@ public class PullRequestRemediationService
       PullRequestExecutor pullRequestExecutor,
       GitClientFactory gitClientFactory,
       ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
       SourceControlUtils sourceControlUtils,
       Provider<PullRequestTask> pullRequestTaskProvider,
       SourceControlSshService sourceControlSshService)
@@ -55,6 +59,7 @@ public class PullRequestRemediationService
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
     this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.sourceControlUtils = sourceControlUtils;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.sourceControlSshService = sourceControlSshService;
@@ -82,7 +87,8 @@ public class PullRequestRemediationService
           application,
           event.getScanId(),
           event.getStageTypeId(),
-          event.getPullRequestContents());
+          event.getPullRequestContents(),
+          organizationDAO);
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
       pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);

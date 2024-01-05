@@ -57,14 +57,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class QuarantinedComponentResourceTest
     extends AbstractResourceTest
 {
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
   private Repository repository;
 
   private Configuration configuration;
 
   @Before
   public void setup() {
+    quarantinedComponentAccessDAO = lookup(QuarantinedComponentAccessDAO.class);
     repository = tempEntity.newRepository();
-    configuration = getCLMServer().getInstance(Configuration.class);
+    configuration = lookup(Configuration.class);
   }
 
   @Test
@@ -126,7 +129,7 @@ public class QuarantinedComponentResourceTest
 
     // when anonymous request
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when
@@ -169,7 +172,7 @@ public class QuarantinedComponentResourceTest
     assertThat(response.getStatusCode()).isEqualTo(401);
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when authenticated request
@@ -690,7 +693,7 @@ public class QuarantinedComponentResourceTest
   }
 
   private void disableAnonymousAccess() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
   }
 
   private static String encodeToken(QuarantinedComponentAccess quarantinedComponentAccess) {

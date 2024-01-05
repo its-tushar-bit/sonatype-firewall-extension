@@ -62,6 +62,8 @@ public class ComponentDetailsEditLicensesTest
 
   private static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
 
+  private LicenseOverrideDAO licenseOverrideDAO;
+
   private Application app;
 
   private TestReportEvaluator evaluator;
@@ -76,6 +78,8 @@ public class ComponentDetailsEditLicensesTest
 
   @Before
   public void start() throws IOException {
+    licenseOverrideDAO = lookup(LicenseOverrideDAO.class);
+
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
     parentOrg = tempEntity.newOrganization("ParentApplicationReportTest");
     Organization org = tempEntity.newOrganization("ApplicationReportTest", parentOrg);
@@ -147,7 +151,6 @@ public class ComponentDetailsEditLicensesTest
     statusSelect.getSelectedOption().shouldHave(value("Acknowledged"));
 
     // Check backend for 'Acknowledged' override
-    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override =
         licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(parentOrg.getId(),
             JAVANCSS_IDENTIFIER);
@@ -367,7 +370,6 @@ public class ComponentDetailsEditLicensesTest
     testDefaultValuesAfterCloseWithoutSaving(licenseDetectionsTile, editLicensesPopover);
 
     // Check backend for 'Acknowledged' override
-    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override =
         licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getOrganizationId(),
             JAVANCSS_IDENTIFIER);

@@ -8,15 +8,55 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class ConditionValueTypes
 {
+  private static ComponentCategoryDAO componentCategoryDAO;
+
+  private static LicenseDAO licenseDAO;
+
+  private static OwnerDAO ownerDAO;
+
+  private static LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private static LabelDAO labelDAO;
+
+  private static VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  /**
+   * There are some condition value types need data from the database, so this method is intended to properly initialize
+   * the DAOs used to get that information
+   */
+  @Inject
+  public static void injectConditionValueTypes(
+      final ComponentCategoryDAO componentCategoryDAO,
+      final LicenseDAO licenseDAO,
+      final OwnerDAO ownerDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final LabelDAO labelDAO,
+      final VulnerabilityGroupDAO vulnerabilityGroupDAO)
+  {
+    ConditionValueTypes.componentCategoryDAO = componentCategoryDAO;
+    ConditionValueTypes.licenseDAO = licenseDAO;
+    ConditionValueTypes.ownerDAO = ownerDAO;
+    ConditionValueTypes.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    ConditionValueTypes.labelDAO = labelDAO;
+    ConditionValueTypes.vulnerabilityGroupDAO = vulnerabilityGroupDAO;
+  }
+
   public static Collection<ConditionValueType<?>> getAll(String ownerId) {
     List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<>();
     allConditionValueTypes.add(new AgeInDaysValueType());
-    allConditionValueTypes.add(new ComponentCategoryValueType());
+    allConditionValueTypes.add(new ComponentCategoryValueType(componentCategoryDAO));
     allConditionValueTypes.add(new ComponentFormatValueType());
     allConditionValueTypes.add(new CoordinatesValueType());
     allConditionValueTypes.add(new PackageUrlValueType());
@@ -25,10 +65,10 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new IntegrityRatingValueType());
     allConditionValueTypes.add(new IntegerValueType());
     allConditionValueTypes.add(new IdentificationSourceValueType());
-    allConditionValueTypes.add(new LabelValueType(ownerId));
+    allConditionValueTypes.add(new LabelValueType(ownerId, labelDAO));
     allConditionValueTypes.add(new LicenseStatusValueType());
-    allConditionValueTypes.add(new LicenseThreatGroupValueType(ownerId));
-    allConditionValueTypes.add(new LicenseValueType());
+    allConditionValueTypes.add(new LicenseThreatGroupValueType(ownerId, ownerDAO, licenseThreatGroupDAO));
+    allConditionValueTypes.add(new LicenseValueType(licenseDAO));
     allConditionValueTypes.add(new MatchStateValueType());
     allConditionValueTypes.add(new PercentageValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityStatusValueType());
@@ -39,7 +79,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityCweValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType());
     allConditionValueTypes.add(new IacControlValueType());
-    allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId));
+    allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId, ownerDAO, vulnerabilityGroupDAO));
     allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());
     return allConditionValueTypes;
   }

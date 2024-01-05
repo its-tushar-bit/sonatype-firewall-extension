@@ -20,8 +20,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -31,8 +30,8 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryPolicyViolationDAO dao = new RepositoryPolicyViolationDAO();
+  private RepositoryPolicyViolationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryPolicyViolationDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -159,32 +165,23 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testDeleteByRepositoryId_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
 
-    try (PostgresServer postgres = new PostgresServer()) {
-      // Create a postgres ODS database
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+    repository = tempEntity.newRepository();
 
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
+    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
 
-      repository = tempEntity.newRepository();
-
-      tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
-      tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
-      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
-
-      try (TransactionContext tx = dao.createTransactionContext()) {
-        tx.begin();
-        dao.deleteByRepositoryId(tx, repository.getId());
-        tx.commit();
-      }
-
-      assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryId(tx, repository.getId());
+      tx.commit();
     }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+
+    assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
@@ -193,17 +190,10 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetRepositoryResultsDetailsNotAggregate_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
-      testGetRepositoryResultsDetailsNonAggregate();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetailsNonAggregate();
   }
 
   private void testGetRepositoryResultsDetailsNonAggregate() {
@@ -251,17 +241,10 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetRepositoryResultsDetailsAggregate_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
-      testGetRepositoryResultsDetailsAggregate();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetailsAggregate();
   }
 
   private void testGetRepositoryResultsDetailsAggregate() {
@@ -307,17 +290,10 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetRepositoryResultsDetails_FilterQuarantineTime_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
-      testGetRepositoryResultsDetails_FilterQuarantineTime();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetails_FilterQuarantineTime();
   }
 
   private void testGetRepositoryResultsDetails_FilterQuarantineTime() {
@@ -384,17 +360,10 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetRepositoryResultsDetails_FilterThreatLevel_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
-      testGetRepositoryResultsDetails_FilterThreatLevel();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetails_FilterThreatLevel();
   }
 
   private void testGetRepositoryResultsDetails_FilterThreatLevel() {

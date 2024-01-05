@@ -10,13 +10,12 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -38,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantSchemaServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private OperationalDataStore operationalDataStore;
@@ -64,12 +63,9 @@ public class TenantSchemaServiceTest
   private TenantSchemaService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-    underTest =
-        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, insightConfig,
-            databaseProvisionUtils);
+    underTest = new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, insightConfig,
+        databaseProvisionUtils);
   }
 
   @Test
@@ -122,8 +118,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
     });
   }
 
@@ -134,8 +129,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(global.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
     });
   }
 
@@ -143,8 +137,8 @@ public class TenantSchemaServiceTest
   public void shouldPassUpExceptions_migrateSchema() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
-      doThrow(new RuntimeException()).when(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      doThrow(new RuntimeException()).when(databaseProvisionUtils)
+          .initializeDatabasesWithMigration(any(InsightConfig.class));
 
       assertThatNoException().isThrownBy(() -> underTest.migrateSchema(tenant.tenantSlug));
     });

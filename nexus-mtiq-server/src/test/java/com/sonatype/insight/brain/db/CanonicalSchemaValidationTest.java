@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
@@ -94,7 +93,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </ul>
  */
 public class CanonicalSchemaValidationTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -153,6 +152,12 @@ public class CanonicalSchemaValidationTest
       assertTenantsSchemasAreTheExpected(newTenant, tenant, (schema1, schema2) -> {
         assertThat(schema1).isNotEqualTo(schema2);
       });
+    });
+  }
+
+  private void migrateTenant(Tenant tenant) {
+    TenantTestHelper.testAs(tenant, t -> {
+      new DatabaseMigrator(databaseRule).migrate(true);
     });
   }
 

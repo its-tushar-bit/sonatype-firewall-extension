@@ -29,11 +29,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -46,7 +46,6 @@ import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -61,6 +60,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RepositoryComponentDAOTest
     extends AbstractDbDAOTest
 {
+  public static final int PARTITION_THRESHOLD = 2;
+
   private final Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
 
   private final Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 1, 0).toInstant(ZoneOffset.UTC));
@@ -77,14 +78,18 @@ public class RepositoryComponentDAOTest
 
   private final Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 1, 0).toInstant(ZoneOffset.UTC));
 
-  private final RepositoryComponentDAO dao = new RepositoryComponentDAO();
+  private RepositoryComponentDAO dao;
 
-  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
   private Repository repositoryTwo;
 
   @Before
-  public void before() {
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryComponentDAO();
+    quarantinedComponentAccessDAO = daoFactory.createQuarantinedComponentAccessDAO();
     repositoryTwo = tempEntity.newRepository();
   }
 
@@ -186,7 +191,7 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetByRepositoryIdAndPathnames_GetsRepositoryComponentInBatches() {
     List<RepositoryComponent> components = new ArrayList<>();
-    for (int i = 0; i < TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1; i++) {
+    for (int i = 0; i < PARTITION_THRESHOLD + 1; i++) {
       components.add(tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
           ComponentIdentifier.createMavenCoordinates("g", "a", "v" + i, "c", "jar")));
     }
@@ -198,8 +203,8 @@ public class RepositoryComponentDAOTest
     List<RepositoryComponent> repositoryComponents =
         dao.getByRepositoryIdAndPathnames(repository.getId(), pathnames);
 
-    assertThat(components).hasSize(TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1);
-    assertThat(repositoryComponents).hasSize(TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1);
+    assertThat(components).hasSize(PARTITION_THRESHOLD + 1);
+    assertThat(repositoryComponents).hasSize(PARTITION_THRESHOLD + 1);
     for (RepositoryComponent expected : components) {
       assertIsContainedIn(expected, repositoryComponents);
     }
@@ -292,65 +297,59 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
     tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
-    ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
-    ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
-    assertThat(ClusterLock.lockExists(ClusterLock
+
+    ClusterLockManager clusterLockManager = new H2ClusterLockManager();
+    clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
+    clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
 
     dao.deleteByRepositoryId(null /* TransactionContext */, repository.getId());
 
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
     assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
   @Test
+  @PostgresTest
   public void testDeleteByRepositoryId_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
 
-    try (PostgresServer postgres = new PostgresServer()) {
-      // Create a postgres ODS database
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+    repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    RepositoryComponent repositoryComponent2 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
+    tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
+    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(3);
 
-      assertThat(dao.isDatabaseEmbedded()).isFalse();
+    clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
+    clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
 
-      repository = tempEntity.newRepository();
-      RepositoryComponent repositoryComponent1 =
-          tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-      RepositoryComponent repositoryComponent2 =
-          tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-      tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-      tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
-      tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
-      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(3);
-      ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
-      ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
-      assertThat(ClusterLock.lockExists(ClusterLock
-          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
-      assertThat(ClusterLock.lockExists(ClusterLock
-          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
-
-      try (TransactionContext tx = dao.createTransactionContext()) {
-        tx.begin();
-        dao.deleteByRepositoryId(tx, repository.getId());
-        tx.commit();
-      }
-
-      assertThat(ClusterLock.lockExists(ClusterLock
-          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
-      assertThat(ClusterLock.lockExists(ClusterLock
-          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
-      assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
-      assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryId(tx, repository.getId());
+      tx.commit();
     }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
+    assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -1014,16 +1013,5 @@ public class RepositoryComponentDAOTest
     assertThat(component.getQuarantineTime()).isEqualTo(quarantineTime);
     assertThat(component.getUnquarantineTime()).isEqualTo(unquarantineTime);
     assertThat(component.getAutoUnquarantined()).isEqualTo(autoUnquarantined);
-  }
-
-  private static class TestRepositoryComponentDAO
-      extends RepositoryComponentDAO
-  {
-    public static final int PARTITION_THRESHOLD = 2;
-
-    @Override
-    public int getInOperatorThreshold() {
-      return PARTITION_THRESHOLD;
-    }
   }
 }

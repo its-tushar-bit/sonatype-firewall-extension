@@ -5,13 +5,12 @@
  */
 package com.sonatype.insight.brain.db;
 
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 
 public class MultiTenantDatabaseConfigProvider
-    extends DatabaseConfigProvider
+    extends PostgresDatabaseConfigProvider
 {
   public MultiTenantDatabaseConfigProvider(final InsightConfig config) {
     super(config);
@@ -19,8 +18,14 @@ public class MultiTenantDatabaseConfigProvider
 
   @Override
   public DatabaseConfig getDatabaseConfig(final DatabaseName databaseName) {
-    MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) config;
+    MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) insightConfig;
+
     // Return the custom `mainDatabase` entry from the MTIQ config
-    return multiTenantInsightConfig.getMainDatabase();
+    DatabaseConfig databaseConfig = multiTenantInsightConfig.getMainDatabase();
+
+    // Set DriverClassName as expected by our DatabaseUtil class
+    databaseConfig.setDriverClassName("org.postgresql.Driver");
+
+    return databaseConfig;
   }
 }

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +31,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
+  private PolicyDAO policyDAO;
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Before
+  public void setUp() {
+    policyDAO = lookup(PolicyDAO.class);
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+  }
+
   private HttpRequest evaluateRequest(String appId, String scanId, Stage stage) {
     return restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
         .body(stage);
@@ -41,7 +52,7 @@ public class PolicyEvaluateResourceTest
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     // Simulate that the report is available
     String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
@@ -62,7 +73,7 @@ public class PolicyEvaluateResourceTest
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.UNKNOWN);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
@@ -79,7 +90,7 @@ public class PolicyEvaluateResourceTest
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     // Simulate that the report is available
     String scanId = mockReport("/" + getClass().getSimpleName() + "/report");

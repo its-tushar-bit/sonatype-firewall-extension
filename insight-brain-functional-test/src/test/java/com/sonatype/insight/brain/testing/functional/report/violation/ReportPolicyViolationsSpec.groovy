@@ -24,7 +24,7 @@ import spock.lang.Stepwise
 class ReportPolicyViolationsSpec
 extends BaseSpec {
   @Shared
-  private static PolicyDAO policyDAO = new PolicyDAO()
+  private static PolicyDAO policyDAO
 
   private static cannedTestReport = '/canned-reports/small-report2.zip'
 
@@ -34,6 +34,9 @@ extends BaseSpec {
 
   @Override
   def setupSpec() {
+    // get DAOs
+    policyDAO = lookup(PolicyDAO.class);
+
     // create app
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().getId())
 

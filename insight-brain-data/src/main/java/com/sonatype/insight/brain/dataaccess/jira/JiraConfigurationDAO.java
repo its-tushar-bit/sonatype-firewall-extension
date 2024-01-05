@@ -9,8 +9,12 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.CharBuffer;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -21,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @since 1.139
  */
+@Named
+@Singleton
 public class JiraConfigurationDAO
     extends AbstractOperationalSqlDAO<JiraConfiguration>
 {
@@ -66,6 +72,11 @@ public class JiraConfigurationDAO
   static final String LONG_CUSTOM_FIELDS_JSON_ERROR_MSG = "The custom fields json cannot exceed 8192 characters.";
 
   public static final String NOT_FOUND_ERROR_MSG = "JIRA not configured.";
+
+  @Inject
+  public JiraConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public JiraConfiguration get() {
     return getById(SINGLETON_ENTITY_ID);

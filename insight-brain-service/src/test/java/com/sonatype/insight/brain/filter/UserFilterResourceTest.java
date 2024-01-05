@@ -20,6 +20,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
@@ -29,7 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserFilterResourceTest
     extends AbstractResourceTest
 {
-  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+  private UserFilterDAO userFilterDAO;
+
+  @Before
+  public void setUp() {
+    userFilterDAO = lookup(UserFilterDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

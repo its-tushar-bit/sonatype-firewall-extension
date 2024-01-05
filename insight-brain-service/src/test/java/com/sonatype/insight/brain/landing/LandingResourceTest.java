@@ -23,7 +23,7 @@ public class LandingResourceTest
     extends AbstractResourceTest
 {
   private static final String BASE_URL = "http://localhost/testbaseurl";
-  
+
   @Test
   public void testHome() throws Exception {
     HttpResponse response = restRequest().anon().get();
@@ -32,9 +32,10 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_NonEmptyContextPath() throws Exception {
-    initServer(config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext"));
+    startIqTestServer(
+        config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext"));
     assertThat(restRequest().getUrl()).contains("/testContext/");
 
     HttpResponse response = restRequest().anon().get();
@@ -43,7 +44,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_ForceBaseUrl() throws Exception {
     initServerForcingBaseUrl();
 
@@ -53,7 +54,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_SSL() throws Exception {
     initServerForSSL();
 
@@ -63,7 +64,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_SSL_ForcingBaseUrl() throws Exception {
     initServerForSSLAndForcingBaseUrl();
 
@@ -83,7 +84,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProto_ForceBaseUrl() throws Exception {
     initServerForcingBaseUrl();
 
@@ -96,7 +97,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProto_SSL() throws Exception {
     initServerForSSL();
 
@@ -109,7 +110,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProto_SSL_ForceBaseUrl() throws Exception {
     initServerForSSLAndForcingBaseUrl();
 
@@ -132,7 +133,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedHost_ForceBaseUrl() throws Exception {
     initServerForcingBaseUrl();
 
@@ -145,7 +146,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedHost_SSL() throws Exception {
     initServerForSSL();
 
@@ -158,7 +159,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedHost_SSL_ForceBaseUrl() throws Exception {
     initServerForSSLAndForcingBaseUrl();
 
@@ -183,7 +184,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProtoAndXForwardedHost_ForceBaseUrl() throws Exception {
     initServerForcingBaseUrl();
 
@@ -198,7 +199,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProtoAndXForwardedHost_SSL() throws Exception {
     initServerForSSL();
 
@@ -213,7 +214,7 @@ public class LandingResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHome_XForwardedProtoAndXForwardedHost_SSL_ForceBaseUrl() throws Exception {
     initServerForSSLAndForcingBaseUrl();
 
@@ -240,7 +241,7 @@ public class LandingResourceTest
   }
 
   private void initServer(final boolean ssl, final boolean forceBaseUrl) throws Exception {
-    initServer(config -> {
+    startIqTestServer(config -> {
       if (ssl) {
         HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
         applicationHttpsConnector.setUseForwardedHeaders(true);

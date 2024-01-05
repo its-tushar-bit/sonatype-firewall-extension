@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +47,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryResourceTest
     extends AbstractResourceTest
 {
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private RepositoryDAO repositoryDAO;
+
+  private PolicyDAO policyDAO;
+
+  @Before
+  public void setUp() {
+    proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+  }
+
   @Test
   public void testUnquarantineComponent() throws Exception {
     Repository repo = tempEntity.newRepository();
@@ -70,7 +87,7 @@ public class RepositoryResourceTest
     assertThat(actualRepo.repository.getId()).isEqualTo(repo.getId());
     assertThat(actualRepo.repository.getPublicId()).isEqualTo(repo.getPublicId());
     assertThat(actualRepo.managerInstanceId)
-        .isEqualTo(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId());
+        .isEqualTo(repositoryManagerDAO.getById(repo.getRepositoryManagerId()).getInstanceId());
   }
 
   @Test
@@ -86,7 +103,7 @@ public class RepositoryResourceTest
     assertThat(actual.repository.getId()).isEqualTo(repo.getId());
     assertThat(actual.repository.getPublicId()).isEqualTo(repo.getPublicId());
     assertThat(actual.managerInstanceId)
-        .isEqualTo(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId());
+        .isEqualTo(repositoryManagerDAO.getById(repo.getRepositoryManagerId()).getInstanceId());
   }
 
   @Test
@@ -105,7 +122,7 @@ public class RepositoryResourceTest
     HttpResponse deleteResponse = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
     assertResponseStatus(204, deleteResponse);
-    assertThat(new RepositoryDAO().getById(repo.getId())).isNull();
+    assertThat(repositoryDAO.getById(repo.getId())).isNull();
   }
 
   @Test
@@ -139,7 +156,7 @@ public class RepositoryResourceTest
     Date unquarantineTime = new Date();
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "testPathname", "testHash", componentIdentifier,
         firstPolicyEvaluationTime, quarantineTime, unquarantineTime);
-    
+
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_EVALUATION_TIMESTAMPS_PATH)
             .parameter(repo.getId()).query("componentIdentifier", componentIdentifier).get();
@@ -283,7 +300,7 @@ public class RepositoryResourceTest
             pattern.getNamePattern(), repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(),
             false /* enabled */);
     // Sanity check
-    assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isTrue();
+    assertThat(proprietaryComponentNamePatternDAO.getById(pattern.getId()).isEnabled()).isTrue();
 
     HttpResponse response =
         restRequest()
@@ -291,7 +308,7 @@ public class RepositoryResourceTest
             .body(proprietaryComponentNamePatternDTO).post();
 
     assertResponseStatus(204, response);
-    assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isFalse();
+    assertThat(proprietaryComponentNamePatternDAO.getById(pattern.getId()).isEnabled()).isFalse();
   }
 
   @Test
@@ -299,13 +316,13 @@ public class RepositoryResourceTest
     RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
     configuredRepoManager.setConfigured(true);
     configuredRepoManager.setConfigureTime(new Date());
-    new RepositoryManagerDAO().update(configuredRepoManager);
+    repositoryManagerDAO.update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
     unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-01 (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
     unconfiguredRepoManager.setProductName("Nexus");
     unconfiguredRepoManager.setProductVersion("3.60.0-01");
-    new RepositoryManagerDAO().update(unconfiguredRepoManager);
+    repositoryManagerDAO.update(unconfiguredRepoManager);
 
     HttpResponse response = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH).get();
@@ -350,11 +367,11 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
 
-    repositoryManager = new RepositoryManagerDAO().getByInstanceIdNotNull(repositoryManager.getInstanceId());
+    repositoryManager = repositoryManagerDAO.getByInstanceIdNotNull(repositoryManager.getInstanceId());
     assertThat(repositoryManager.isConfigured()).isEqualTo(true);
     assertThat(repositoryManager.getConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
 
-    repository = new RepositoryDAO().getById(repository.getId());
+    repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
@@ -383,7 +400,6 @@ public class RepositoryResourceTest
             .body(firewallOnboardingOptionsDTO).put();
     assertResponseStatus(204, response);
 
-    PolicyDAO policyDAO = new PolicyDAO();
     Policy foundPolicy = policyDAO.getById(securityMaliciousPolicy.getId());
     assertThat(foundPolicy.getActions()).hasSize(1);
     assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
@@ -405,7 +421,7 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
 
-    RepositoryManager repositoryManagerResult = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager repositoryManagerResult = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(repositoryManagerResult.getName()).isEqualTo("name2");
   }

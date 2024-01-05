@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
@@ -190,7 +191,7 @@ public class ComponentCategoryConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(ComponentCategoryConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> new ComponentCategoryConditionType()
+    assertThatThrownBy(() -> ConditionTypes.ComponentCategoryConditionType
         .validateCondition(null, condition, null /* applicationId */)).isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Value not supported: abc");
   }

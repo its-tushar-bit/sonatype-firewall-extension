@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,9 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -67,6 +66,8 @@ public class ApiSearchServiceV2
 
   private final ReportService reportService;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
   @Inject
   public ApiSearchServiceV2(
       final BaseUrl baseUrl,
@@ -74,7 +75,8 @@ public class ApiSearchServiceV2
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
-      final ReportService reportService)
+      final ReportService reportService,
+      final ComponentLoaderFactory componentLoaderFactory)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
@@ -82,6 +84,7 @@ public class ApiSearchServiceV2
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
+    this.componentLoaderFactory = componentLoaderFactory;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(
@@ -203,7 +206,8 @@ public class ApiSearchServiceV2
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
         List<Component> components =
-            new ComponentDAO(app).getAll(null, null, bomReportEntry.buf, dependenciesReportEntry.buf);
+            componentLoaderFactory.createComponentLoader(app)
+                .getAll(null, null, bomReportEntry.buf, dependenciesReportEntry.buf);
 
         for (Component component : components) {
           if (candidateHash.equals(component.getHash())) {

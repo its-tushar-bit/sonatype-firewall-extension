@@ -31,6 +31,10 @@ public class TestRestTenantUtil
     this.tenantSlug = tenantSlug;
   }
 
+  public String getTenantSlug() {
+    return tenantSlug;
+  }
+
   public void clearTenantSlug() {
     tenantSlug = null;
   }

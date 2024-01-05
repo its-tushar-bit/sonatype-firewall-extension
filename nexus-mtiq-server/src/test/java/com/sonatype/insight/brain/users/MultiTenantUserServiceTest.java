@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -30,11 +30,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MultiTenantUserServiceTest
-    extends AbstractMultiTenantBrainServiceTest
+    extends AbstractMultiTenantBaseIntegrationResourceTest
 {
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private SamlUserDAO samlUserDAO;
 
-  private final TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
+  private TenantMetadataDAO tenantMetadataDAO;
 
   private final MultiTenantAuth0ManagementService auth0ManagementService =
       Mockito.mock(MultiTenantAuth0ManagementService.class);
@@ -49,6 +49,9 @@ public class MultiTenantUserServiceTest
 
   @Before
   public void setUp() throws Exception {
+    samlUserDAO = getCLMServer().getInstance(SamlUserDAO.class);
+    tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
+
     underTest = new MultiTenantUserService(webSessionManager, sessionDAO, samlUserDAO, tenantMetadataDAO,
         auth0ManagementService, currentUser);
   }

@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.util.Date;
 import java.util.List;
+import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -28,22 +30,30 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuartzHSQLDBDelegateTest
+    extends AbstractDatabaseTest
 {
   private static final Logger log = LoggerFactory.getLogger(QuartzHSQLDBDelegateTest.class);
+
+  private DataSource dataSource;
+
+  @Before
+  public void before() {
+    dataSource = databaseRule.getOperationalDataStore().getDataSource();
+  }
 
   @Test
   public void testSelectTriggerToAcquire() throws Exception {
     String instanceId = "me";
     QuartzHSQLDBDelegate quartzHSQLDBDelegate = createQuartzHSQLDBDelegate(instanceId);
     JobDetail job = JobBuilder.newJob(TestJob.class).build();
-    quartzHSQLDBDelegate.insertJobDetail(OperationalDataStoreProvider.getDataSource().getConnection(), job);
+    quartzHSQLDBDelegate.insertJobDetail(dataSource.getConnection(), job);
     Trigger triggerForMe = createAndPersistTrigger(quartzHSQLDBDelegate, job, instanceId, new Date());
     createAndPersistTrigger(quartzHSQLDBDelegate, job, "other1", new Date());
     Trigger staleTriggerForOther = createAndPersistTrigger(quartzHSQLDBDelegate, job, "other2",
         new Date(System.currentTimeMillis() - (StdJDBCDelegateUtils.ORPHANED_MILLIS + 1)));
 
     List<TriggerKey> triggerKeys =
-        quartzHSQLDBDelegate.selectTriggerToAcquire(OperationalDataStoreProvider.getDataSource().getConnection(),
+        quartzHSQLDBDelegate.selectTriggerToAcquire(dataSource.getConnection(),
             Long.MAX_VALUE, 0, Integer.MAX_VALUE);
 
     assertThat(triggerKeys).extracting(Key::getName)
@@ -54,7 +64,8 @@ public class QuartzHSQLDBDelegateTest
     QuartzHSQLDBDelegate quartzHSQLDBDelegate = new QuartzHSQLDBDelegate();
     ClassLoadHelper classLoadHelper = new CascadingClassLoadHelper();
     classLoadHelper.initialize();
-    quartzHSQLDBDelegate.initialize(log, QuartzJobStoreTX.TABLE_PREFIX, TaskScheduler.DEFAULT_SCHEDULER_NAME,
+    String tablePrefix = databaseRule.getOperationalDataStore().getDatabaseSchema() + ".QRTZ_";
+    quartzHSQLDBDelegate.initialize(log, tablePrefix, TaskScheduler.DEFAULT_SCHEDULER_NAME,
         instanceId, classLoadHelper, false, null);
     return quartzHSQLDBDelegate;
   }
@@ -71,7 +82,7 @@ public class QuartzHSQLDBDelegateTest
     assertThat(trigger).isInstanceOf(OperableTrigger.class);
     OperableTrigger operableTrigger = (OperableTrigger) trigger;
     operableTrigger.setNextFireTime(nextFireTime);
-    stdJDBCDelegate.insertTrigger(OperationalDataStoreProvider.getDataSource().getConnection(), operableTrigger,
+    stdJDBCDelegate.insertTrigger(dataSource.getConnection(), operableTrigger,
         Constants.STATE_WAITING, job);
     return trigger;
   }

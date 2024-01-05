@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.SamlUserGroupHelper;
@@ -24,11 +25,12 @@ public class MultiTenantUserDirectory
   @Inject
   public MultiTenantUserDirectory(
       UserDAO userDao,
+      LdapServerDAO ldapServerDAO,
       SamlUserGroupHelper samlUserGroupHelper,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
-    super(userDao, samlUserGroupHelper, ldapService, crowdClientFactory);
+    super(userDao, ldapServerDAO, samlUserGroupHelper, ldapService, crowdClientFactory);
   }
 
   /**

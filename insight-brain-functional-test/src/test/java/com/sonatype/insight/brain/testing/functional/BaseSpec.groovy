@@ -5,29 +5,42 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.StaticInjectionTestHelper
 import com.sonatype.insight.brain.TestLicenseFingerprinter
 import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
+import com.sonatype.insight.brain.dataaccess.DAOFactory
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider
-import com.sonatype.insight.brain.db.DataSourceFactory
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory
+import com.sonatype.insight.brain.db.DatabaseConfigProvider
 import com.sonatype.insight.brain.db.DatabaseContainer
-import com.sonatype.insight.brain.db.DatamartProvider
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider
+import com.sonatype.insight.brain.db.DatabaseName
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider
+import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore
+import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore
+import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache
 import com.sonatype.insight.brain.service.HdsMockServerRule
+import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
+import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory
+import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils
 import com.sonatype.insight.test.networking.PortAllocator
-import com.sonatype.insight.test.networking.SslProperties;
-
+import com.sonatype.insight.test.networking.SslProperties
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
 
@@ -37,21 +50,19 @@ import groovy.util.logging.Slf4j
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.rules.TestName
+import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.logging.LogEntry
 import org.openqa.selenium.logging.LogType
-import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.remote.RemoteWebDriver
 import spock.lang.Shared
 
 @Slf4j
 abstract class BaseSpec
 extends GebReportingSpec {
-  static {
-    SslProperties.use();
-  }
-
   @Shared
   private int hdsPort = PortAllocator.nextFreePort()
+
+  static DatabaseContainer databaseContainer
 
   @Shared
   @ClassRule
@@ -63,14 +74,52 @@ extends GebReportingSpec {
 
   @Shared
   @ClassRule
-  TemporaryEntity temporaryEntity
+  TemporaryEntity temporaryEntity = new TemporaryEntity(databaseContainer)
 
   @Rule
   TestName testName = new TestName()
 
-  static OrganizationDAO organizationDAO = new OrganizationDAO()
+  @Shared
+  OrganizationDAO organizationDAO
 
-  static ApplicationDAO applicationDAO = new ApplicationDAO()
+  @Shared
+  ApplicationDAO applicationDAO
+
+  static {
+    // Creating a Database Container and initializing the DB that will be used for the entire functional test suite.
+    // This MUST happen before the server start or before the TemporaryEntity before method is called
+
+    databaseContainer = createDatabaseContainer()
+
+    initDatabase()
+
+    SslProperties.use();
+  }
+
+  static def createDatabaseContainer() {
+    DataSourceProvider dataSourceProvider = new H2InMemoryTestDataSourceProvider()
+    DatabaseConfigProvider databaseConfigProvider = new H2InMemoryDatabaseConfigProvider();
+
+    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.ods))
+    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation))
+    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.dm))
+    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans))
+
+    DatabaseProvisionUtils databaseProvisionUtils = new DatabaseProvisionUtils(operationalDataStore,
+        aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore)
+    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
+        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore)
+    return databaseContainer
+  }
+
+  static def initDatabase() {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils()
+    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig())
+  }
 
   def getBrainModules() {
     return Arrays.asList(new AbstractModule() {
@@ -84,23 +133,23 @@ extends GebReportingSpec {
   }
 
   def createServiceRule() {
-    DataSourceFactory dataSourceFactory = new DataSourceFactory()
-    DatabaseProvisionUtils databaseProvisionUtils = new DatabaseProvisionUtils(
-        OperationalDataStoreProvider.getInstance(),
-        AggregationDataStoreProvider.getInstance(),
-        DatamartProvider.getInstance(),
-        ThirdPartyScansProvider.getInstance()
-    )
-    DatabaseContainer databaseContainer = new DatabaseContainer(dataSourceFactory, databaseProvisionUtils);
-    new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        "http://localhost:" + hdsPort, databaseContainer, false, getBrainModules())
+    new TestInsightBrainServiceRule(new DefaultInsightBrainServiceFactory(), PortAllocator.nextFreePort(),
+        PortAllocator.nextFreePort(), "http://localhost:" + hdsPort, databaseContainer, false, getBrainModules())
   }
 
   def setupSpec() {
+    // Init DAOs
+    organizationDAO = lookup(OrganizationDAO.class)
+    applicationDAO = lookup(ApplicationDAO.class)
+
     // Use port as reported by service under test since it's not known until runtime.
     def baseUrl = resolveBaseUrl(driver, "http://localhost:${serviceRule.getPort()}/")
-
     System.setProperty("geb.build.baseUrl", baseUrl)
+
+    // Re-inject classes that have static dependencies
+    DAOFactory daoFactory = new TestDAOFactory(databaseContainer)
+    StaticInjectionTestHelper.inject(daoFactory)
+
     // HTTP CSP headers that prohibit eval break webdriver control of phantomjs
     serviceRule.setCspEnabled(false)
     BrowserInfo.init(driver)
@@ -298,5 +347,9 @@ extends GebReportingSpec {
   Date daysAgo(Date date, int days) {
     // ensure "n days ago" is at least "n * 24 hours ago", even with DST
     return new Date((date - days).time - 2 * 60 * 60 * 1000);
+  }
+
+  protected <T> T lookup(Class<T> type) {
+    serviceRule.getInstance(type);
   }
 }

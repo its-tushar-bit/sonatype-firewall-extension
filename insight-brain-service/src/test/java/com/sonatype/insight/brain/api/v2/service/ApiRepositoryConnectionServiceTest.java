@@ -61,6 +61,12 @@ public class ApiRepositoryConnectionServiceTest
   private RepositoryConnectionDAO dao;
 
   @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private PasswordHandler passwordHandler;
 
   @Mock
@@ -71,10 +77,6 @@ public class ApiRepositoryConnectionServiceTest
 
   @Mock
   private RepositoryClient client;
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Override
   public void configure(final Binder binder) {
@@ -126,7 +128,7 @@ public class ApiRepositoryConnectionServiceTest
 
   private void assertRepositoryConnectionDTO(RepositoryConnection expected, ApiRepositoryConnectionDTO actual) {
     assertThat(actual.repositoryConnectionId).isEqualTo(expected.getId());
-    assertThat(actual.ownerType).isEqualTo(new OwnerDAO().getById(expected.getOwnerId()).getType());
+    assertThat(actual.ownerType).isEqualTo(ownerDAO.getById(expected.getOwnerId()).getType());
     assertThat(actual.ownerId).isEqualTo(expected.getOwnerId());
     assertThat(actual.format).isEqualTo(expected.getFormat());
     assertThat(actual.isAnonymous).isEqualTo(expected.getUsername() == null);
@@ -966,7 +968,7 @@ public class ApiRepositoryConnectionServiceTest
 
     repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), dto);
 
-    Application application = new ApplicationDAO().getByIdNotNull(app.getId());
+    Application application = applicationDAO.getByIdNotNull(app.getId());
     assertThat(application.isRepositoryConnectionEnabled()).isEqualTo(expectedEnabled);
   }
 

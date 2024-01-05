@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -207,9 +208,10 @@ public class ApiEvaluationResourceV2AuditTest
   }
 
   private ApiComponentEvaluationRequestDTOV2 createEvaluateRequest(int componentCount) {
+    PolicyDAO policyDAO = lookup(PolicyDAO.class);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     for (int c = 0; c < componentCount; c++) {
-      request.components.add(new ComponentEvaluationV2Helper()
+      request.components.add(new ComponentEvaluationV2Helper(policyDAO)
           .createComponent(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h"));
     }
     return request;

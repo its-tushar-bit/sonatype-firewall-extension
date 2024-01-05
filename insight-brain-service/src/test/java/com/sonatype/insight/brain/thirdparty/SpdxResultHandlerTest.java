@@ -15,17 +15,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
@@ -40,28 +42,30 @@ import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.parsers.XmlParser;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Spy;
 import org.spdx.library.model.SpdxDocument;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SpdxResultHandlerTest
-    extends AbstractComponentTest
+    extends AbstractDataTest
 {
-  @Spy
-  private SpdxResultHandler spdxResultHandler;
+  private ThirdPartyFileDAO thirdPartyFileDAO;
 
-  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
-  @Spy
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
-  @Spy
-  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
+
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private SpdxResultHandler spdxResultHandler;
 
   private final String loggerName = SpdxResultHandler.class.getName();
 
@@ -70,6 +74,21 @@ public class SpdxResultHandlerTest
 
   @Rule
   public LogOutput logOutputUtils = new LogOutput(ThirdPartyUtils.class.getName());
+
+  @Before
+  public void setUp() {
+    thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
+    thirdPartyVexDAO = daoFactory.createThirdPartyVulnerabilityExploitabilityExchangeDAO();
+    thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
+    thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+
+    multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO);
+  }
 
   @Test
   public void testHandleAndFilterContents_Purl_Then_Sha1_Then_Coordinates() throws Exception {

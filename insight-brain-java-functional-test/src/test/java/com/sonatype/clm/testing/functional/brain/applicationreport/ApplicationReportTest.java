@@ -85,13 +85,17 @@ public class ApplicationReportTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
   private Application app;
 
   private TestReportEvaluator evaluator;
+
+  private ApplicationDAO applicationDAO;
+
+  private PolicyDAO policyDAO;
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
 
   private LegacyViolationService legacyViolationService;
 
@@ -103,10 +107,15 @@ public class ApplicationReportTest
 
   @Before
   public void start() throws IOException {
+    applicationDAO = lookup(ApplicationDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     Organization org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);
@@ -127,7 +136,7 @@ public class ApplicationReportTest
 
   @Test
   public void testSummary() throws Exception {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
@@ -165,7 +174,7 @@ public class ApplicationReportTest
     legacyViolationsIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
     // The activateLegacyViolations above re-evals and refreshes the page
-    policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
         DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
@@ -198,7 +207,7 @@ public class ApplicationReportTest
     setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING);
     refresh();
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
@@ -238,7 +247,7 @@ public class ApplicationReportTest
     legacyViolationsIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
     // The activateLegacyViolations above re-evals and refreshes the page
-    policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
         DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
@@ -270,7 +279,7 @@ public class ApplicationReportTest
     policyEvaluation.setForMonitoring(true);
     policyEvaluation.setTime(new Date(policyEvaluation.getTime().getTime() + 1000));
     detachEntity(policyEvaluation);
-    new PolicyEvaluationDAO().insert(policyEvaluation);
+    policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
 
@@ -365,7 +374,7 @@ public class ApplicationReportTest
 
   @Test
   public void testTextIndicators() throws Exception {
-    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+    Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
@@ -436,7 +445,7 @@ public class ApplicationReportTest
     reportPage.resultRow(1).policyName().shouldHave(text("None"));
     reportPage.resultRow(1).threatNumber().shouldHave(text("0"));
 
-    new PolicyWaiverDAO().delete(waiver);
+    policyWaiverDAO.delete(waiver);
     evaluator.reevaluatePolicy();
     refresh();
 
@@ -573,7 +582,7 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
-    Policy securityHigh = new PolicyDAO().getByName("Security-High").get(0);
+    Policy securityHigh = policyDAO.getByName("Security-High").get(0);
     //
     tempEntity.newWaiver(securityHigh.getId(), app.getId());
 
@@ -789,7 +798,7 @@ public class ApplicationReportTest
 
   @Test
   public void testReevaluate() {
-    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+    Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
 
     reportPage.headers().componentNameFilterInput().setValue("mycila");
@@ -956,7 +965,7 @@ public class ApplicationReportTest
   }
 
   private void activateLegacyViolations() throws Exception {
-    Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
+    Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
 
     app.setLegacyViolationEnabled(true);
     licenseBanned.setLegacyViolationAllowed(true);

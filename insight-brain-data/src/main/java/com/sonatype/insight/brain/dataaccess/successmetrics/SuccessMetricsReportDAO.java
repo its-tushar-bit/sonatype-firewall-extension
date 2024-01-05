@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -18,9 +22,22 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.37
  */
+@Named
+@Singleton
 public class SuccessMetricsReportDAO
     extends AbstractAggregationSqlDAO<SuccessMetricsReport>
 {
+  private final SuccessMetricsReportDataDAO successMetricsReportDataDAO;
+
+  @Inject
+  public SuccessMetricsReportDAO(
+      final AggregationDataStore aggregationDataStore,
+      final SuccessMetricsReportDataDAO successMetricsReportDataDAO)
+  {
+    super(aggregationDataStore);
+    this.successMetricsReportDataDAO = successMetricsReportDataDAO;
+  }
+
   @Override
   public SuccessMetricsReport getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM SuccessMetricsReport entity" + //
@@ -59,7 +76,7 @@ public class SuccessMetricsReportDAO
     if (successMetrics.getCreateTime() == null) {
       successMetrics.setCreateTime(new Date());
     }
-    
+
     super.insert(tx, successMetrics);
   }
 
@@ -70,7 +87,6 @@ public class SuccessMetricsReportDAO
 
   @Override
   public void delete(TransactionContext tx, SuccessMetricsReport successMetricsReport) {
-    SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
     SuccessMetricsReportData successMetricsReportData = successMetricsReportDataDAO
         .getById(successMetricsReport.getId());
 

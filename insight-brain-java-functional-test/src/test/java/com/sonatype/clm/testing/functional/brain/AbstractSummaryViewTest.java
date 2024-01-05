@@ -86,6 +86,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractSummaryViewTest
     extends AbstractFunctionalTest
 {
+  private OwnerDAO ownerDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private RoleDAO roleDAO;
+
   protected Owner currentOwner;
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
@@ -104,6 +112,10 @@ public abstract class AbstractSummaryViewTest
 
   @Before
   public void before() {
+    ownerDAO = lookup(OwnerDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    roleDAO = lookup(RoleDAO.class);
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
@@ -280,18 +292,17 @@ public abstract class AbstractSummaryViewTest
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
       Application app = (Application) currentOwner;
       app.setRepositoryConnectionEnabled(repoConnectionsEnabled);
-      new ApplicationDAO().update(app);
+      applicationDAO.update(app);
     }
     else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       Organization org = (Organization) currentOwner;
       org.setRepositoryConnectionEnabled(repoConnectionsEnabled);
-      new OrganizationDAO().update(org);
+      organizationDAO.update(org);
     }
   }
 
   @Test
   public void testInnerSourceRepositoryTile_Configured_Inherited() {
-    OrganizationDAO organizationDAO = new OrganizationDAO();
     Organization parentOwner = organizationDAO.getById(currentOwner.getParentOwnerId());
     try {
       RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
@@ -395,19 +406,18 @@ public abstract class AbstractSummaryViewTest
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
       Application app = (Application) currentOwner;
       app.setArtifactoryConnectionEnabled(artifactoryConnectionEnabled);
-      new ApplicationDAO().update(app);
+      applicationDAO.update(app);
     }
     else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       Organization org = (Organization) currentOwner;
       org.setArtifactoryConnectionEnabled(artifactoryConnectionEnabled);
-      new OrganizationDAO().update(org);
+      organizationDAO.update(org);
     }
   }
 
   @Test
   public void testArtifactoryRepositoryTile_Configured_Inherited() {
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
-    OrganizationDAO organizationDAO = new OrganizationDAO();
     Organization parentOwner = organizationDAO.getById(currentOwner.getParentOwnerId());
     try {
       ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(currentOwner.getParentOwnerId(),
@@ -507,7 +517,6 @@ public abstract class AbstractSummaryViewTest
     locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
 
     User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
-    RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
     Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
     tempEntity.newMembershipMapping(currentOwner.getId(), writeRole.getId(), testUser.getUsername());
@@ -726,7 +735,7 @@ public abstract class AbstractSummaryViewTest
 
     List<Owner> parentOwners = new ArrayList<>();
 
-    for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
+    for (Owner owner : ownerDAO.walkHierarchy(currentOwner.getParentOwnerId())) {
       List<LicenseThreatGroup> ltgs = new ArrayList<>();
       List<Label> labels = new ArrayList<>();
       List<Policy> policies = new ArrayList<>();
@@ -816,7 +825,7 @@ public abstract class AbstractSummaryViewTest
   public void testDeleteOwner() {
     List<Owner> parentOwners = new ArrayList<>();
 
-    for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
+    for (Owner owner : ownerDAO.walkHierarchy(currentOwner.getParentOwnerId())) {
       parentOwners.add(owner);
     }
 
@@ -832,7 +841,7 @@ public abstract class AbstractSummaryViewTest
 
     deleteModal.shouldBe(hidden);
 
-    currentOwner = new OwnerDAO().getById(currentOwner.getId());
+    currentOwner = ownerDAO.getById(currentOwner.getId());
 
     OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
     assertThat(currentOwner).isNotNull();
@@ -849,7 +858,7 @@ public abstract class AbstractSummaryViewTest
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
 
-    currentOwner = new OwnerDAO().getById(currentOwner.getId());
+    currentOwner = ownerDAO.getById(currentOwner.getId());
 
     assertThat(currentOwner).isNull();
 
@@ -1158,7 +1167,7 @@ public abstract class AbstractSummaryViewTest
 
   protected int getHierarchySize(Owner owner) {
     int hierarchySize = 0;
-    Iterator<Owner> iterator = new OwnerDAO().walkHierarchy(owner).iterator();
+    Iterator<Owner> iterator = ownerDAO.walkHierarchy(owner).iterator();
 
     for (; iterator.hasNext(); ++hierarchySize) {
       iterator.next();

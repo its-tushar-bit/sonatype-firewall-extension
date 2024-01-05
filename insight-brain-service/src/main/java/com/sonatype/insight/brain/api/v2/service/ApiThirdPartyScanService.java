@@ -133,7 +133,7 @@ public class ApiThirdPartyScanService
 
     log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
         + "The status ID of the operation is {}.", applicationId, source, stageTypeId, scanRequestId);
-    Application app = new ApplicationDAO().getById(applicationId);
+    Application app = applicationDAO.getById(applicationId);
     ScanResult scanResult = createScanFile(app, sbom, source, format, type);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,

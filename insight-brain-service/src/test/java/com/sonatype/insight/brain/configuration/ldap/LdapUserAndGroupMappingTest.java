@@ -7,19 +7,17 @@ package com.sonatype.insight.brain.configuration.ldap;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,12 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.7
  */
 public class LdapUserAndGroupMappingTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   private LdapAuthenticationMethod authentication;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();

@@ -32,7 +32,8 @@ public class IntegrationServiceAuthzTest
   @Inject
   private IntegrationService integrationService;
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  @Inject
+  private ApplicationDAO appDAO;
 
   private Application app1;
 

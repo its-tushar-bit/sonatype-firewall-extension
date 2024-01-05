@@ -9,7 +9,8 @@ import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseContainerSupport;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -44,13 +45,13 @@ public class DbMigrationCommand
     try {
       DatabaseMigrator.setForceEnableMigration(true);
 
-      // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
-      DatabaseContainer databaseContainer = createDatabaseContainer();
+      DatabaseContainer databaseContainer = createDatabaseContainer(insightConfig);
 
       DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-      databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+      databaseProvisionUtils.initializeDatabasesWithoutMigration();
 
-      tryCheckLastCheckinTimeNotRecent(getAttemptsToWaitForLastCheckinToNotBeRecent());
+      tryCheckLastCheckinTimeNotRecent(databaseProvisionUtils.getOperationalDataStore(),
+          getAttemptsToWaitForLastCheckinToNotBeRecent());
 
       databaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig);
     }
@@ -59,17 +60,19 @@ public class DbMigrationCommand
     }
   }
 
-  protected boolean quartzSchedulerStateTableExists() {
-    return DatabaseUtil.quartzSchedulerStateTableExists(OperationalDataStoreProvider.getDataSource());
+  protected boolean quartzSchedulerStateTableExists(final OperationalDataStore operationalDataStore) {
+    return DatabaseUtil.quartzSchedulerStateTableExists(operationalDataStore.getDataSource(),
+        operationalDataStore.getDatabaseSchema());
   }
 
-  void tryCheckLastCheckinTimeNotRecent(int attemptsToWait) {
-    if (!quartzSchedulerStateTableExists()) {
+  void tryCheckLastCheckinTimeNotRecent(final OperationalDataStore operationalDataStore, int attemptsToWait) {
+    if (!quartzSchedulerStateTableExists(operationalDataStore)) {
       return;
     }
     int attemptedToWait = 0;
     while (true) {
-      Long lastCheckinTime = DatabaseUtil.getLastCheckinTime(OperationalDataStoreProvider.getDataSource());
+      Long lastCheckinTime = DatabaseUtil.getLastCheckinTime(operationalDataStore.getDataSource(),
+          operationalDataStore.getDatabaseSchema());
       if (lastCheckinTime == null) {
         return;
       }
@@ -110,7 +113,7 @@ public class DbMigrationCommand
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer() {
-    return new DatabaseContainer();
+  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+    return new DefaultDatabaseContainer(insightConfig);
   }
 }

@@ -19,6 +19,8 @@ import org.junit.Test;
 public class FirewallMigrationResourceAuditTest
     extends AbstractAuditTest
 {
+  private RepositoryDAO repositoryDAO;
+
   private RepositoryManager targetRepositoryManager;
 
   private Repository targetRepository;
@@ -29,6 +31,7 @@ public class FirewallMigrationResourceAuditTest
 
   @Before
   public void before() {
+    repositoryDAO = lookup(RepositoryDAO.class);
     targetRepositoryManager = tempEntity.newRepositoryManager();
     targetRepository = tempEntity.newRepository(targetRepositoryManager, "targetRepositoryPublicId");
     sourceRepositoryManager = tempEntity.newRepositoryManager();
@@ -47,7 +50,7 @@ public class FirewallMigrationResourceAuditTest
   @Test
   public void testMigrateRepositoryHistory_QuarantineEnabled() throws Exception {
     sourceRepository.setQuarantineEnabled(true);
-    new RepositoryDAO().update(sourceRepository);
+    repositoryDAO.update(sourceRepository);
     migrateRepositoryHistoryRequest().post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.MIGRATE_REPOSITORY, null);

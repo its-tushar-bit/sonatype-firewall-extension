@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiProxyServerConfigurationResourceAuditTest
     extends AbstractAuditTest
 {
-  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    proxyServerConfigurationDAO = lookup(ProxyServerConfigurationDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

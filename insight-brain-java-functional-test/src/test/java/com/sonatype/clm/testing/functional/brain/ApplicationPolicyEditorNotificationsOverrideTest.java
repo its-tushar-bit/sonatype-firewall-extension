@@ -69,8 +69,6 @@ import static org.mockito.Mockito.when;
 public class ApplicationPolicyEditorNotificationsOverrideTest
     extends AbstractFunctionalTest
 {
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
   private Organization organization;
 
   private Application application;
@@ -104,6 +102,12 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
 
   private NxRadio overrideParentNotifications = notificationsSection.overrideParentNotifications();
 
+  private PolicyDAO policyDAO;
+
+  private WebhookDAO webhookDAO;
+
+  private RoleDAO roleDAO;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
@@ -112,6 +116,10 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
 
   @Before
   public void before() throws Exception {
+    policyDAO = lookup(PolicyDAO.class);
+    webhookDAO = lookup(WebhookDAO.class);
+    roleDAO = lookup(RoleDAO.class);
+
     organization = tempEntity.newOrganization("TestOrganization");
     application =
         tempEntity.newApplication(getClass().getSimpleName() + "ȧpp", "TestApplication", organization.getId());
@@ -358,8 +366,8 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
     Notifications notifications = new Notifications(
         new UserNotification("email1@domain", allStageIds),
         new UserNotification("email2@domain"),
-        new RoleNotification(role1.getId(), allStageIds),
-        new RoleNotification(role2.getId()),
+        new RoleNotification(role1.getId(), role1.getName(), allStageIds),
+        new RoleNotification(role2.getId(), role2.getName()),
         new WebhookNotification(webhook1.getId(), allStageIdsWithoutProxy),
         new WebhookNotification(webhook2.getId()),
         new JiraNotification("projectKey1", 1, allStageIdsWithoutProxy),
@@ -378,8 +386,8 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
     Notifications notifications = new Notifications(
         new UserNotification("email1@domain"),
         new UserNotification("email2@domain", allStageIds),
-        new RoleNotification(role1.getId()),
-        new RoleNotification(role2.getId(), allStageIds),
+        new RoleNotification(role1.getId(), role1.getName()),
+        new RoleNotification(role2.getId(), role2.getName(), allStageIds),
         new WebhookNotification(webhook1.getId()),
         new WebhookNotification(webhook2.getId(), allStageIdsWithoutProxy),
         new JiraNotification("projectKey1", 1),
@@ -422,11 +430,11 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
     }
     if (notification instanceof RoleNotification) {
       return NotificationsSection.notificationFor(
-          new RoleDAO().getById(((RoleNotification) notification).getRoleId()).getName());
+          roleDAO.getById(((RoleNotification) notification).getRoleId()).getName());
     }
     if (notification instanceof WebhookNotification) {
       return NotificationsSection.notificationFor(
-          "Webhook: " + new WebhookDAO().getById(((WebhookNotification) notification).getWebhookId()).getUrl());
+          "Webhook: " + webhookDAO.getById(((WebhookNotification) notification).getWebhookId()).getUrl());
     }
     if (notification instanceof JiraNotification) {
       return NotificationsSection.notificationFor(

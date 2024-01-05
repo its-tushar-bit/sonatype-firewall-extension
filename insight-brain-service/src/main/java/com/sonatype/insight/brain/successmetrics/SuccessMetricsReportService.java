@@ -9,12 +9,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditUtils;
+import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -32,10 +31,17 @@ public class SuccessMetricsReportService
 
   private final CurrentUser currentUser;
 
+  private final AuditService auditService;
+
   @Inject
-  public SuccessMetricsReportService(SuccessMetricsReportDAO successMetricsReportDAO, CurrentUser currentUser) {
+  public SuccessMetricsReportService(
+      final SuccessMetricsReportDAO successMetricsReportDAO,
+      final CurrentUser currentUser,
+      final AuditService auditService)
+  {
     this.successMetricsReportDAO = successMetricsReportDAO;
     this.currentUser = currentUser;
+    this.auditService = auditService;
   }
 
   List<SuccessMetricsReportDTO> getSuccessMetricsReportsForCurrentUser() throws IOException {
@@ -105,7 +111,7 @@ public class SuccessMetricsReportService
                                          final Set<String> organizationIds)
   {
     AuditData.get().setSuccessMetricsReport(report).setData("selectedOrganizations",
-        AuditUtils.getSelectedOrganizationsById(organizationIds))
-        .setData("selectedApplications", AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds));
+            auditService.getSelectedOrganizationsById(organizationIds))
+        .setData("selectedApplications", auditService.getSelectedApplicationsById(applicationIds, organizationIds));
   }
 }

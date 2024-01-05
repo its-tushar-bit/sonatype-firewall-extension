@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -50,27 +48,35 @@ public class ComponentDetailService
 
   private final ApplicationService appService;
 
-  private final UserDirectory userDirectory;
-
   private final ApplicationComponentDAO applicationComponentDAO;
 
   private final StageTypeService stageTypeService;
 
   private final ProductLicense productLicense;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final ApplicationAdapter appAdapter;
+
   @Inject
   public ComponentDetailService(
       ApplicationService appService,
-      UserDirectory userDirectory,
       ApplicationComponentDAO applicationComponentDAO,
       StageTypeService stageTypeService,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      PolicyEvaluationDAO policyEvaluationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      ApplicationAdapter appAdapter)
   {
     this.appService = appService;
-    this.userDirectory = userDirectory;
     this.applicationComponentDAO = applicationComponentDAO;
     this.stageTypeService = stageTypeService;
     this.productLicense = productLicense;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.appAdapter = appAdapter;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
@@ -81,9 +87,6 @@ public class ComponentDetailService
 
     List<ApplicationComponentDetailsDTO> result = new ArrayList<>();
 
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-
     List<StageType> stageTypes = new ArrayList<>();
     for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
       if (!StageTypes.isIgnoredForDashboard(stageType.getId())) {
@@ -92,7 +95,6 @@ public class ComponentDetailService
     }
 
     // Get the list of applications the user can see
-    ApplicationAdapter appAdapter = ApplicationAdapter.getInstance(userDirectory);
     List<Application> applications = appService.getApplications();
     for (Application application : applications) {
       if (!isComponentPartOfApplication(application, hash)) {

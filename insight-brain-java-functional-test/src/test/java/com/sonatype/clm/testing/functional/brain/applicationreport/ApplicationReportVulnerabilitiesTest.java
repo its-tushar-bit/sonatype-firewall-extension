@@ -64,18 +64,21 @@ public class ApplicationReportVulnerabilitiesTest
 
   private final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
   private LegacyViolationService legacyViolationService;
 
   @Before
   public void starts() throws IOException {
+    policyDAO = lookup(PolicyDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);

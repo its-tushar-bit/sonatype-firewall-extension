@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +35,32 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 {
-  private final LdapServerDAO dao = new LdapServerDAO();
+  private LdapConnectionDAO ldapConnectionDAO;
+
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
+  private UserTokenDAO userTokenDAO;
+
+  private DashboardFilterDAO dashboardFilterDAO;
+
+  private UserFilterDAO userFilterDAO;
+
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  private LdapServerDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    ldapConnectionDAO = daoFactory.createLdapConnectionDAO();
+    ldapUserMappingDAO = daoFactory.createLdapUserMappingDAO();
+    userTokenDAO = daoFactory.createUserTokenDAO();
+    dashboardFilterDAO = daoFactory.createDashboardFilterDAO();
+    userFilterDAO = daoFactory.createUserFilterDAO();
+    userViewedProductNotificationDAO = daoFactory.createUserViewedProductNotificationDAO();
+    dao = daoFactory.createLdapServerDAO();
+  }
 
   @Override
   protected LdapServer createNameable(String a) {
@@ -162,8 +188,8 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer1);
 
-    assertThat(new LdapConnectionDAO().getById(ldapConnection1.getId())).isNull();
-    assertThat(new LdapConnectionDAO().getById(ldapConnection2.getId())).isNotNull();
+    assertThat(ldapConnectionDAO.getById(ldapConnection1.getId())).isNull();
+    assertThat(ldapConnectionDAO.getById(ldapConnection2.getId())).isNotNull();
   }
 
   @Test
@@ -175,8 +201,8 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer1);
 
-    assertThat(new LdapUserMappingDAO().getById(ldapUserMapping1.getId())).isNull();
-    assertThat(new LdapUserMappingDAO().getById(ldapUserMapping2.getId())).isNotNull();
+    assertThat(ldapUserMappingDAO.getById(ldapUserMapping1.getId())).isNull();
+    assertThat(ldapUserMappingDAO.getById(ldapUserMapping2.getId())).isNotNull();
   }
 
   @Test
@@ -187,8 +213,8 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer);
 
-    assertThat(new UserTokenDAO().getById(userToken1.getId())).isNull();
-    assertThat(new UserTokenDAO().getById(userToken2.getId())).isNotNull();
+    assertThat(userTokenDAO.getById(userToken1.getId())).isNull();
+    assertThat(userTokenDAO.getById(userToken2.getId())).isNotNull();
   }
 
   @Test
@@ -201,8 +227,8 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer);
 
-    assertThat(new DashboardFilterDAO().getById(dashboardFilter1.getId())).isNull();
-    assertThat(new DashboardFilterDAO().getById(dashboardFilter2.getId())).isNotNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNotNull();
   }
 
   @Test
@@ -215,7 +241,6 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer);
 
-    UserFilterDAO userFilterDAO = new UserFilterDAO();
     assertThat(userFilterDAO.getById(userFilter1.getId())).isNull();
     assertThat(userFilterDAO.getById(userFilter2.getId())).isNotNull();
   }
@@ -230,7 +255,7 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 
     dao.delete(ldapServer);
 
-    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification1.getId())).isNull();
-    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification2.getId())).isNotNull();
+    assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification1.getId())).isNull();
+    assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification2.getId())).isNotNull();
   }
 }

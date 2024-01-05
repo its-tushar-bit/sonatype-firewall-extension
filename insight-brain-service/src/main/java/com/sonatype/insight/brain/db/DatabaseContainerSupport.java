@@ -36,8 +36,6 @@ public interface DatabaseContainerSupport
 {
   /**
    * Create the {@link DatabaseContainer} for the application/command
-   * TODO - Soon in database layer refactoring work this method will pass in an {@link InsightConfig} object (or the
-   * inner {@link com.sonatype.insight.db.DatabaseConfig)}
    */
-  DatabaseContainer createDatabaseContainer();
+  DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig);
 }

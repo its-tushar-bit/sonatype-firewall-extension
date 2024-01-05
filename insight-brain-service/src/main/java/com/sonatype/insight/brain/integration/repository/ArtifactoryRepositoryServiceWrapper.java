@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -55,10 +54,14 @@ class ArtifactoryRepositoryServiceWrapper
   private final RepositoryDAO repositoryDAO;
 
   @Inject
-  public ArtifactoryRepositoryServiceWrapper(final ArtifactoryRepositoryService repositoryService) {
+  public ArtifactoryRepositoryServiceWrapper(
+      final ArtifactoryRepositoryService repositoryService,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
+  {
     this.repositoryService = repositoryService;
-    this.repositoryManagerDAO = new RepositoryManagerDAO();
-    this.repositoryDAO = new RepositoryDAO();
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryDAO = repositoryDAO;
   }
 
   /**

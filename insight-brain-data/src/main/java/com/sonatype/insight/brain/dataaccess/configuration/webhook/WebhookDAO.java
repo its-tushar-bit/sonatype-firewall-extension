@@ -7,17 +7,28 @@ package com.sonatype.insight.brain.dataaccess.configuration.webhook;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class WebhookDAO
     extends AbstractOperationalSqlDAO<Webhook>
 {
+  @Inject
+  public WebhookDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void insert(final TransactionContext tx, final Webhook webhook) {
     validate(webhook);

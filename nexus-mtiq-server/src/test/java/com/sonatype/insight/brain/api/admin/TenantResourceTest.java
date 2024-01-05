@@ -11,7 +11,7 @@ import javax.ws.rs.core.HttpHeaders;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   protected HttpRequest restRequest(String path) {
     return super.adminRequest().path("api/").path(path);
@@ -36,7 +36,8 @@ public class TenantResourceTest
     List<String> tenantsList = response.getBodyList();
 
     assertResponseStatus(200, response);
-    assertThat(tenantsList).hasSize(3); // the 2 new tenants + tenant created by test setup in super class
+    // the 2 new tenants + tenant created by test setup in super class + template tenant
+    assertThat(tenantsList).hasSize(4);
     assertThat(tenantsList).contains(tenant1Slug, tenant2Slug);
   }
 

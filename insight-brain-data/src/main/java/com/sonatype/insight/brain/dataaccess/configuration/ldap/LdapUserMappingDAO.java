@@ -5,16 +5,28 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class LdapUserMappingDAO
     extends AbstractOperationalSqlDAO<LdapUserMapping>
 {
+  @Inject
+  public LdapUserMappingDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public LdapUserMapping getByServerId(String serverId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByServerId(tx, serverId);

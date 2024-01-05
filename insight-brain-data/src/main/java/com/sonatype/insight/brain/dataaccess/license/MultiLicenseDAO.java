@@ -13,8 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
@@ -25,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Copied from com.sonatype.insight.datamart.dao.MultiLicenseDAO
+@Named
+@Singleton
 public class MultiLicenseDAO
     extends AbstractDatamartSqlDAO<MultiLicense>
 {
@@ -35,6 +41,14 @@ public class MultiLicenseDAO
   private static volatile Map<String, MultiLicense> multiLicensesByName = null;
 
   private static volatile Map<String, Set<License>> licenseSetsById = null;
+
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public MultiLicenseDAO(final DataMartDataStore dataMartDataStore, final LicenseDAO licenseDAO) {
+    super(dataMartDataStore);
+    this.licenseDAO = licenseDAO;
+  }
 
   @Override
   public MultiLicense getById(TransactionContext tx, String id) {
@@ -58,7 +72,7 @@ public class MultiLicenseDAO
     MultiLicense multiLicense = multiLicensesById.get(id);
     if (multiLicense == null) {
       log.info("Cannot find a multi-license with ID '{}'.  Refreshing license data.", id);
-      LicenseDataUpdater.update();
+      LicenseDataUpdater.update(licenseDAO, this);
       multiLicense = multiLicensesById.get(id);
     }
     return multiLicense;
@@ -79,7 +93,7 @@ public class MultiLicenseDAO
     MultiLicense multiLicense = multiLicensesByName.get(name);
     if (multiLicense == null) {
       log.info("Cannot find a multi-license with name '{}'.  Refreshing license data.", name);
-      LicenseDataUpdater.update();
+      LicenseDataUpdater.update(licenseDAO, this);
       multiLicense = multiLicensesByName.get(name);
     }
     return multiLicense;
@@ -103,7 +117,7 @@ public class MultiLicenseDAO
     Set<License> licenses = licenseSetsById.get(id);
     if (licenses == null) {
       log.info("Cannot find a multi-license with ID '{}'.  Refreshing license data.", id);
-      LicenseDataUpdater.update();
+      LicenseDataUpdater.update(licenseDAO, this);
       load();
     }
 
@@ -118,7 +132,7 @@ public class MultiLicenseDAO
   /**
    * Load and cache license information from locally available data
    */
-  void load() {
+  public void load() {
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();
 
@@ -145,7 +159,6 @@ public class MultiLicenseDAO
       }
       multiLicensesByName = newMultiLicensesByName;
 
-      LicenseDAO licenseDAO = new LicenseDAO();
       for (MultiLicenseLicenseInternal mapping : mappings) {
         License license = licenseDAO.getByIdNotNull(mapping.getLicenseId());
         newLicenseSetsById.get(mapping.getMultiLicenseId()).add(license);

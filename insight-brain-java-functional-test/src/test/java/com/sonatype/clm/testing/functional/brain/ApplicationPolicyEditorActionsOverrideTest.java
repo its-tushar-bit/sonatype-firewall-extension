@@ -14,8 +14,14 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.ActionsSection;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.NxTooltip;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.OverridesConfirmationModal;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList;
+import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -57,9 +63,11 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
   private static final String TEST_APPLICATION_PUBLIC_ID = "TestApplication";
 
-  private Owner currentOwner;
+  private RoleDAO roleDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
+
+  private Owner currentOwner;
 
   private Organization organization;
 
@@ -73,6 +81,9 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
   @Before
   public void init() {
+    roleDAO = lookup(RoleDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+
     organization = tempEntity.newOrganization(TEST_ORGANIZATION_PUBLIC_ID);
     application = tempEntity.newApplication(getClass().getSimpleName() + "ȧpp", TEST_APPLICATION_PUBLIC_ID,
       organization.getId());
@@ -391,7 +402,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actions.forEach(policy::setAction);
     policy.getNotifications().add(
         new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
-    policy.getNotifications().add(new RoleNotification(new RoleDAO().getByName("Developer").getId(), Stage.ID_BUILD));
+    String roleName = "Developer";
+    policy.getNotifications().add(new RoleNotification(roleDAO.getByName(roleName).getId(), roleName, Stage.ID_BUILD));
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 

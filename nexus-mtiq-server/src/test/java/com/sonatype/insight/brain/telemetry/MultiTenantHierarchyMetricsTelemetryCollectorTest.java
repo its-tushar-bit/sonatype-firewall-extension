@@ -13,10 +13,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
@@ -26,7 +26,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantHierarchyMetricsTelemetryCollectorTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private HierarchyMetricsTelemetryCollector telemetryCollector;
 
@@ -38,14 +38,14 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
   @Override
   public void setup() {
     super.setup();
-    organizationDAO = new OrganizationDAO();
-    applicationDAO = new ApplicationDAO();
-    RepositoryDAO repositoryDAO = new RepositoryDAO();
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
-    ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    applicationDAO = daoFactory.createApplicationDAO();
+    RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
+    RepositoryComponentDAO repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    ApplicationComponentDAO applicationComponentDAO = daoFactory.createApplicationComponentDAO();
+    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    PolicyViolationDAO policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    PolicyEvaluationDAO policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
     telemetryCollector = new HierarchyMetricsTelemetryCollector(applicationDAO, organizationDAO, repositoryDAO,
         repositoryComponentDAO, applicationComponentDAO, repositoryPolicyViolationDAO, policyViolationDAO,
         policyEvaluationDAO);

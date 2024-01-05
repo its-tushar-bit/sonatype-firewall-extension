@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
@@ -120,9 +121,9 @@ public class ReportResource
 
   private final BaseUrl baseUrl;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO;
 
-  private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final ReportService reportService;
 
@@ -138,6 +139,8 @@ public class ReportResource
 
   private final PdfGeneratorService pdfGeneratorService;
 
+  private final ClusterLockManager clusterLockManager;
+
   static {
     Set<Character> invalid = new HashSet<>(
         Arrays.asList(new Character[] { '*', '\\', '/', '?', ':', '|', '"', '<', '>' }));
@@ -149,25 +152,32 @@ public class ReportResource
   }
 
   @Inject
-  public ReportResource(final ReportService reportService,
-                        final ScanPolicyEvaluator scanPolicyEvaluator,
-                        ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
-                        InsightWork work,
-                        BaseUrl baseUrl,
-                        ApiReportDataServiceV2 reportDataService,
-                        ReleaseGraphService releaseGraphService,
-                        VersionService versionService,
-                        PdfGeneratorService pdfGeneratorService)
+  public ReportResource(
+      final ApplicationDAO applicationDAO,
+      final ReportService reportService,
+      final ScanPolicyEvaluator scanPolicyEvaluator,
+      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
+      final InsightWork work,
+      final BaseUrl baseUrl,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApiReportDataServiceV2 reportDataService,
+      final ReleaseGraphService releaseGraphService,
+      final VersionService versionService,
+      final PdfGeneratorService pdfGeneratorService,
+      final ClusterLockManager clusterLockManager)
   {
+    this.applicationDAO = applicationDAO;
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.baseUrl = baseUrl;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
+    this.clusterLockManager = clusterLockManager;
   }
 
   /**
@@ -627,7 +637,7 @@ public class ReportResource
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
-    final JsonStore store = new JsonFileStore(work.getAuditDir(appId), appId);
+    final JsonStore store = new JsonFileStore(work.getAuditDir(appId), appId, clusterLockManager);
     final ContainerNode<?> key = decodeKey(encodedKey);
     final ContainerNode<?> feed = store.history(key, path.split("[+]+"));
     if (feed != null) {

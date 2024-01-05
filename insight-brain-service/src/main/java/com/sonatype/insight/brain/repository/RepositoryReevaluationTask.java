@@ -15,7 +15,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -31,7 +32,7 @@ public class RepositoryReevaluationTask
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryReevaluationTask.class);
 
-  private RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO;
 
   private final Repository repository;
 
@@ -41,23 +42,27 @@ public class RepositoryReevaluationTask
 
   private final int maxRepositoryEvaluationRequestSize;
 
+  private final ClusterLockManager clusterLockManager;
+
   public RepositoryReevaluationTask(
       Repository repository,
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
       Executor executor,
-      int maxRepositoryEvaluationRequestSize)
+      int maxRepositoryEvaluationRequestSize,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final ClusterLockManager clusterLockManager)
   {
     this.repository = repository;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.executor = executor;
     this.maxRepositoryEvaluationRequestSize = maxRepositoryEvaluationRequestSize;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @Override
   public void run() {
-    ClusterLock clusterLock = null;
-    try {
-      clusterLock = ClusterLock.createForRepositoryReevaluation(repository);
+    try (ClusterLock clusterLock = clusterLockManager.createForRepositoryReevaluation(repository)) {
       if (clusterLock.tryLock()) {
         log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
@@ -99,9 +104,6 @@ public class RepositoryReevaluationTask
       log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
       AuditData.get().setException(e);
-      if (clusterLock != null) {
-        clusterLock.unlock();
-      }
     }
   }
 

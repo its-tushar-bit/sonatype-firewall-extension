@@ -41,7 +41,7 @@ public class MoveApplicationTest
   private static final String POLICY_MONITORING_MISSING_MSG = "The new parent organization does not use continuous"
       + " policy monitoring.";
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private ApplicationDAO appDAO;
 
   private Application application;
 
@@ -55,6 +55,8 @@ public class MoveApplicationTest
 
   @Before
   public void init() {
+    appDAO = lookup(ApplicationDAO.class);
+
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 

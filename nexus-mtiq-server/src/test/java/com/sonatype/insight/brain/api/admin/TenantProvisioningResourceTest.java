@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantProvisioningResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   @Override
   protected HttpRequest restRequest() {
@@ -61,7 +61,7 @@ public class TenantProvisioningResourceTest
     HttpResponse createResponse = provisionTenant(tenantName);
     assertResponseStatus(204, createResponse);
 
-    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+    DeletedTenantDAO deletedTenantDAO = getCLMServer().getInstance(DeletedTenantDAO.class);
     assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNull();
 
     HttpResponse deleteResponse = deleteTenant(tenantName);
@@ -75,7 +75,7 @@ public class TenantProvisioningResourceTest
   public void shouldReturn400WhenTenantDoesntExist() throws Exception {
     String tenantName = generateTestTenantName();
 
-    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+    DeletedTenantDAO deletedTenantDAO = getCLMServer().getInstance(DeletedTenantDAO.class);
     assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNull();
 
     HttpResponse deleteResponse = deleteTenant(tenantName);

@@ -5,12 +5,24 @@
  */
 package com.sonatype.insight.brain.dataaccess.artifactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 
+@Named
+@Singleton
 public class ArtifactoryConnectionDAO
     extends AbstractOperationalSqlDAO<ArtifactoryConnection>
 {
+  @Inject
+  public ArtifactoryConnectionDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   private static final String SELECT_ENTITY = "SELECT entity FROM ArtifactoryConnection entity ";
 
   public ArtifactoryConnection getByOwnerId(String ownerId) {

@@ -5,13 +5,14 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzJobStoreTXTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private ProductLicense productLicense;
@@ -38,15 +39,18 @@ public class MultiTenantQuartzJobStoreTXTest
   @Mock
   private OperationalDataStore operationalDataStore;
 
+  @Mock
+  private ClusterLockManager clusterLockManager;
+
   private TestMultiTenantQuartzJobStoreTX underTest;
 
   @Before
-  @Override
   public void setup() {
     try {
       underTest = new TestMultiTenantQuartzJobStoreTX(productLicense,
           insightConfig,
-          operationalDataStore);
+          operationalDataStore,
+          clusterLockManager);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -77,9 +81,10 @@ public class MultiTenantQuartzJobStoreTXTest
     public TestMultiTenantQuartzJobStoreTX(
         ProductLicense productLicense,
         InsightConfig insightConfig,
-        OperationalDataStore operationalDataStore) throws InvalidConfigurationException
+        OperationalDataStore operationalDataStore,
+        ClusterLockManager clusterLockManager) throws InvalidConfigurationException
     {
-      super(productLicense, insightConfig, operationalDataStore, new TenantUtil());
+      super(productLicense, insightConfig, operationalDataStore, new TenantUtil(), clusterLockManager);
     }
 
     @Override

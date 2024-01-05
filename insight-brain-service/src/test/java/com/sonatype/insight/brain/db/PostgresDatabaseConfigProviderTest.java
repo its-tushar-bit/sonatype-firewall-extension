@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.db;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
+import org.postgresql.Driver;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class PostgresDatabaseConfigProviderTest
+{
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  private InsightConfig insightConfig;
+
+  private PostgresDatabaseConfigProvider postgresDatabaseConfigProvider;
+
+  @Before
+  public void init() {
+    insightConfig = new InsightConfig();
+    postgresDatabaseConfigProvider = new PostgresDatabaseConfigProvider(insightConfig);
+  }
+
+  @Test
+  public void testGetDatabaseEngine() {
+    assertThat(postgresDatabaseConfigProvider.getDatabaseEngine().equals(PostgresDatabaseEngine.INSTANCE));
+  }
+
+  @Test
+  public void testGetDatabaseConfig_NoPortOrParameters() {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    insightConfig.setDatabase(dbConfig);
+
+    DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
+
+    assertThat(databaseConfig).isNotNull();
+    assertThat(databaseConfig.getDriverClassName()).isEqualTo(Driver.class.getName());
+    assertThat(databaseConfig.getUsername()).isEqualTo("testuser");
+    assertThat(databaseConfig.getPassword()).isEqualTo("testpass");
+    assertThat(databaseConfig.getUrl()).isEqualTo("jdbc:postgresql://localhost/test-db");
+  }
+
+  @Test
+  public void testGetDatabaseConfig_CustomPort() {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setPort(6543);
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("");
+    insightConfig.setDatabase(dbConfig);
+
+    DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
+
+    assertThat(databaseConfig).isNotNull();
+    assertThat(databaseConfig.getDriverClassName()).isEqualTo(Driver.class.getName());
+    assertThat(databaseConfig.getUsername()).isEqualTo("testuser");
+    assertThat(databaseConfig.getPassword()).isEqualTo("");
+    assertThat(databaseConfig.getUrl()).isEqualTo("jdbc:postgresql://localhost:6543/test-db");
+  }
+
+  @Test
+  public void testGetDatabaseConfig_CustomParameters() {
+    Map<String, String> dbParams = new LinkedHashMap<>();
+    dbParams.put("user", "paramuser");
+    dbParams.put("password", "parampass");
+    dbParams.put("key1", "value1");
+    dbParams.put("key2", "value2");
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    dbConfig.setParameters(dbParams);
+    insightConfig.setDatabase(dbConfig);
+
+    DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
+
+    assertThat(databaseConfig).isNotNull();
+    assertThat(databaseConfig.getDriverClassName()).isEqualTo(Driver.class.getName());
+    assertThat(databaseConfig.getUsername()).isEqualTo("testuser");
+    assertThat(databaseConfig.getPassword()).isEqualTo("testpass");
+    assertThat(databaseConfig.getUrl()).isEqualTo("jdbc:postgresql://localhost/test-db?key1=value1&key2=value2");
+  }
+
+  @Test
+  public void testGetDatabaseConfig_CustomOdsMaxIdle() {
+    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
+        new com.sonatype.insight.brain.service.DatabaseConfig();
+    dbConfig.setType("postgresql");
+    dbConfig.setHostname("localhost");
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    insightConfig.setDatabase(dbConfig);
+
+    // ODS is null
+    DatabaseConfig databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
+    assertThat(databaseConfig).isNotNull();
+    assertThat(databaseConfig.getMaxIdleConnections()).isNull();
+
+    // Non-ODS is 3
+    databaseConfig = postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.dm);
+    assertThat(databaseConfig).isNotNull();
+    assertThat(databaseConfig.getMaxIdleConnections()).isEqualTo(3);
+  }
+}

@@ -75,6 +75,9 @@ public class ComponentRemediationServiceTest
 
   private static final String REAL_OWNER_ID_TELEMETRY_ATTR = "real_owner_id";
 
+  @Inject
+  private PolicyDAO policyDAO;
+
   @Mock
   private HdsClient hdsClientMock;
 
@@ -915,7 +918,7 @@ public class ComponentRemediationServiceTest
   @Test
   public void testGetSuggestedRemediation_Advanced_DependencyTypePolicy() {
     enableTransitiveSolver();
-    new PolicyDAO().delete(policyG1A2V1);
+    policyDAO.delete(policyG1A2V1);
     Policy policy = new Policy("policyG1A2V1", "policyG1A2V1");
     policy.setOwnerId(org.getParentOwnerId());
     policy.setThreatLevel(10);

@@ -9,13 +9,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -36,6 +35,9 @@ public class RepositoryComponentDisplayNameMigratorTest
 
   @Inject
   private RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator;
+
+  @Inject
+  private OperationalDataStore operationalDataStore;
 
   @Test
   public void testMigrate() throws Exception {
@@ -73,9 +75,9 @@ public class RepositoryComponentDisplayNameMigratorTest
   }
 
   private void nullifyDisplayNames() throws SQLException {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
         PreparedStatement updateStmt =
-            connection.prepareStatement("UPDATE " + OperationalDataStoreProvider.getDatabaseSchema()
+            connection.prepareStatement("UPDATE " + operationalDataStore.getDatabaseSchema()
                 + ".repository_component" + " SET display_name = NULL")) {
       updateStmt.execute();
     }

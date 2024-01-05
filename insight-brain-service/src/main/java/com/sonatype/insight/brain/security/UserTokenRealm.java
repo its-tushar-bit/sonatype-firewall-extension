@@ -58,13 +58,29 @@ public class UserTokenRealm
 
   private final CrowdClientFactory crowdClientFactory;
 
+  private final LdapServerDAO ldapServerDAO;
+
+  private final UserTokenDAO userTokenDAO;
+
+  private final UserDAO userDAO;
+
+  private final SamlUserDAO samlUserDAO;
+
   @Inject
   public UserTokenRealm(
       PasswordService passwordService,
       LdapService ldapService,
       UserTokenService userTokenService,
-      CrowdClientFactory crowdClientFactory)
+      CrowdClientFactory crowdClientFactory,
+      LdapServerDAO ldapServerDAO,
+      UserTokenDAO userTokenDAO,
+      UserDAO userDAO,
+      SamlUserDAO samlUserDAO)
   {
+    this.ldapServerDAO = ldapServerDAO;
+    this.userTokenDAO = userTokenDAO;
+    this.userDAO = userDAO;
+    this.samlUserDAO = samlUserDAO;
     setName("UserTokenRealm");
 
     this.ldapService = ldapService;
@@ -87,7 +103,7 @@ public class UserTokenRealm
 
     // If the authentication is attempted with a user token,
     // then the provided username must match a user token's userCode.
-    UserToken userToken = new UserTokenDAO().getByUserCode(username);
+    UserToken userToken = userTokenDAO.getByUserCode(username);
     if (userToken == null) {
       // Leave it to other realms to authenticate the user.
       return null;
@@ -108,7 +124,7 @@ public class UserTokenRealm
   }
 
   private SimpleAuthenticationInfo doGetInternalRealmAuthenticationInfo(UserToken userToken) {
-    User user = new UserDAO().getByUsername(userToken.getUsername());
+    User user = userDAO.getByUsername(userToken.getUsername());
     return new SimpleAuthenticationInfo( //
         new UserPrincipal(userToken.getUsername(), user.calculateDisplayName(), ID), //
         userToken.getPassCode(), //
@@ -116,7 +132,7 @@ public class UserTokenRealm
   }
 
   private SimpleAuthenticationInfo doGetSamlRealmAuthenticationInfo(UserToken userToken) {
-    SamlUser samlUser = new SamlUserDAO().getByUsername(userToken.getUsername());
+    SamlUser samlUser = samlUserDAO.getByUsername(userToken.getUsername());
     return new SimpleAuthenticationInfo( //
         new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), //
         userToken.getPassCode(), //
@@ -155,7 +171,7 @@ public class UserTokenRealm
 
   private SimpleAuthenticationInfo doGetLdapRealmAuthenticationInfo(UserToken userToken) {
     String username = userToken.getUsername();
-    LdapServer ldapServer = new LdapServerDAO().getById(userToken.getRealmId());
+    LdapServer ldapServer = ldapServerDAO.getById(userToken.getRealmId());
 
     try {
       LdapUser ldapUser = ldapService.getUserByName(ldapServer, username);

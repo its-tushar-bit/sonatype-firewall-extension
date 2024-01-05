@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -152,6 +152,8 @@ public class IndexService
 
   private final ForkJoinPool searchIndexPool;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
   @Override
   public String getJobName() {
     return TASK_NAME;
@@ -203,7 +205,8 @@ public class IndexService
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
       TaskScheduler taskScheduler,
       LuceneComponents luceneComponents,
-      ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO)
+      ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
+      ComponentLoaderFactory componentLoaderFactory)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -219,6 +222,7 @@ public class IndexService
     this.taskScheduler = taskScheduler;
     this.luceneComponents = luceneComponents;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
+    this.componentLoaderFactory = componentLoaderFactory;
 
     searchIndexPool = ExecutorThreadPools.getInstance()
       .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT,
@@ -682,7 +686,8 @@ public class IndexService
         return Collections.emptyList();
       }
 
-      return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
+      return componentLoaderFactory.createComponentLoader(application)
+          .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
               dependenciesReportEntry.buf)
           .parallelStream()
           .map(new TenantAwareFunction<Component, List<Document>>(

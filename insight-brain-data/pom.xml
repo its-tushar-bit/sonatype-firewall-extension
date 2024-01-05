@@ -77,16 +77,7 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-db</artifactId>
-      <scope>test</scope>
-      <classifier>tests</classifier>
-      <version>${project.version}</version>
-      <exclusions>
-        <!-- Exclude this transitive as it impacts the tests in this package -->
-        <exclusion>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </exclusion>
-      </exclusions>
+      <type>test-jar</type>
     </dependency>
 
     <dependency>
@@ -116,6 +107,11 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>com.sonatype.clm</groupId>
@@ -164,8 +160,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>postgres-server</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -257,6 +253,9 @@
                 <include>**/TestLicenseThreatGroups.json</include>
                 <include>**/DisplayFieldValueAssertionUtil*</include>
                 <include>**/TestPolicyWaiverBuilder*</include>
+                <include>**/AbstractDataTest*</include>
+                <include>**/TestDAOFactory*</include>
+                <include>**/ConditionTypesTestHelper*</include>
               </includes>
             </configuration>
           </execution>

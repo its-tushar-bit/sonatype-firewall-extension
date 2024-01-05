@@ -90,6 +90,12 @@ public class WebhookDispatcherTest
   private static final int EVENT_TIMEOUT_MS = 5000;
 
   @Inject
+  private WebhookDAO webhookDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
   private WebhookDispatcher webhookDispatcher;
 
   @Inject
@@ -187,7 +193,7 @@ public class WebhookDispatcherTest
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
 
@@ -212,7 +218,7 @@ public class WebhookDispatcherTest
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
 
@@ -231,7 +237,7 @@ public class WebhookDispatcherTest
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
 
@@ -254,7 +260,7 @@ public class WebhookDispatcherTest
   public void test_ApplicationWebhooksLicensed_SendsOnlyApplicationEvents() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
@@ -527,7 +533,6 @@ public class WebhookDispatcherTest
 
   @Test
   public void testOn_SkipsNonConfiguredWebhooks() {
-    WebhookDAO webhookDAO = new WebhookDAO();
     Webhook webhook = tempEntity
         .newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
     asyncEventBus.post(new ManagementEvent());

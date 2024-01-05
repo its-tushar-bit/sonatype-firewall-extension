@@ -58,6 +58,12 @@ public class ReportListTest
 
   private static final String CANNED_SMALL_REPORT_URI = "/canned-reports/small-report";
 
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private ApplicationDAO applicationDAO;
+
   public Application app;
 
   @BeforeClass
@@ -68,9 +74,13 @@ public class ReportListTest
 
   @Before
   public void start() throws IOException {
+    sourceControlEventDAO = lookup(SourceControlEventDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     Organization org = tempEntity.newOrganization("ApplicationReportTestOrgWithAReallyLongName");
     policyImportExport.importOrganization(org, referencePolicies);
@@ -172,7 +182,7 @@ public class ReportListTest
 
     // when: complete source stage policy eval
     sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    new SourceControlEventDAO().update(sourceControlEvent);
+    sourceControlEventDAO.update(sourceControlEvent);
     evaluatePolicy("id-source-scan", CANNED_SMALL_REPORT_URI, Stage.ID_SOURCE);
     Selenide.sleep(2000);
     refreshOrOpen(ReportListPage.url());
@@ -215,7 +225,7 @@ public class ReportListTest
     Application app1 = tempEntity.newApplication("nameOneApp", "publicId1", org3.getId());
     Application app2 = tempEntity.newApplication("nametwoApp", "publicId2", org1.getId());
     Application app3 = tempEntity.newApplication("nameThreeApp", "publicId3", org2.getId());
-    List<Application> apps = new ApplicationDAO().getAll();
+    List<Application> apps = applicationDAO.getAll();
 
     refresh();
 
@@ -310,9 +320,9 @@ public class ReportListTest
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
-    orgs.addAll(new OrganizationDAO().getAll().stream()
+    orgs.addAll(organizationDAO.getAll().stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
-    apps.addAll(new ApplicationDAO().getAll());
+    apps.addAll(applicationDAO.getAll());
     for (int result = 0; result < ReportListPage.RESULTS_PER_PAGE; result++) {
       String orgSuffix = getAlphabeticalSequenceElement(result);
       String appSuffix = getAlphabeticalSequenceElement(result);

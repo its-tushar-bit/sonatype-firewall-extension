@@ -5,17 +5,21 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,35 +31,39 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MigrateTenantsCommandTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   // system under test
   private MigrateTenantsCommand spyMigrateTenantsCommand;
 
   private DatabaseProvisionUtils spyDatabaseProvisionUtils;
 
+  private TenantService tenantService;
+
   private MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
   @Before
   @Override
-  public void setUp() {
-    super.setUp();
+  public void setup() {
+    super.setup();
 
-    spyDatabaseProvisionUtils = spy(multiTenantDatabaseTestRule.databaseProvisionUtils);
+    tenantService = new TenantService(new TenantUtil(), databaseRule.getOperationalDataStore());
+
+    // get the spy out of TestDatabaseContainer
+    spyDatabaseProvisionUtils = databaseRule.getDatabaseContainer().getDatabaseProvisionUtils();
 
     spyMigrateTenantsCommand = spy(new MigrateTenantsCommand()
     {
       @Override
-      public DatabaseContainer createDatabaseContainer() {
-        return new DatabaseContainer(
-            multiTenantDatabaseTestRule.multiTenantDataSourceFactory, spyDatabaseProvisionUtils
-        );
+      public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+        return new MultiTenantDatabaseContainer(
+            (MultiTenantPostgresDataSourceProvider) databaseRule.getDataSourceProvider(), spyDatabaseProvisionUtils,
+            databaseRule.getOperationalDataStore(), databaseRule.getAggregationDataStore(),
+            databaseRule.getDataMartDataStore(), databaseRule.getThirdPartyScansDataStore());
       }
     });
 
-    OperationalDataStore operationalDataStore = multiTenantDatabaseTestRule.operationalDataStore;
-    multiTenantGlobalSchemaProtection =
-        new MultiTenantGlobalSchemaProtection(operationalDataStore);
+    multiTenantGlobalSchemaProtection = new MultiTenantGlobalSchemaProtection(databaseRule.getOperationalDataStore());
   }
 
   @Test
@@ -76,16 +84,26 @@ public class MigrateTenantsCommandTest
   @Test
   public void testRunMigration() {
     multiTenantGlobalSchemaProtection.createWriteProtection();
+
+    // Provision at least one new tenant
     provisionNewTenant();
 
-    testAsGlobalTenant(g -> {
-      spyMigrateTenantsCommand.run(null, null, multiTenantDatabaseTestRule.insightConfig);
+    // Reset the counts after provisioning
+    Mockito.reset(spyDatabaseProvisionUtils);
 
-      verify(spyDatabaseProvisionUtils, times(3)).initializeDatabasesWithoutMigration(
-          any(MultiTenantDatabaseConfigProvider.class));
-      verify(spyDatabaseProvisionUtils, times(2)).initializeDatabases(any(MultiTenantInsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
-      verify(spyDatabaseProvisionUtils, times(2)).migrateDatabasesIfNeeded(any(MultiTenantInsightConfig.class));
+    // Get current total tenant count
+    int currentTenantCount = tenantService.getAllTenantsNames().size();
+
+    testAsGlobalTenant(g -> {
+      MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
+      spyMigrateTenantsCommand.run(null, null, insightConfig);
+
+      // One for each tenant and +1 for the global one executed in TenantMigrate.migrateAllSchemas
+      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 2)).initializeDatabasesWithoutMigration();
+      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).initializeDatabasesWithMigration(
+          any(MultiTenantInsightConfig.class));
+      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).migrateDatabasesIfNeeded(
+          any(MultiTenantInsightConfig.class));
     });
   }
 }

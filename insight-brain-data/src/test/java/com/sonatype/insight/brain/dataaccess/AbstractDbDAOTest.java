@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -12,11 +13,13 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import org.junit.Before;
 import org.junit.Rule;
 
+/**
+ * This base class is created with the only purpose of test DAOs, and it should only be used for that. This base test
+ * class will ensure a DB is provisioned * and ready to be used in your tests.
+ */
 public abstract class AbstractDbDAOTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Rule
   public DatamartUpdaterState datamartUpdaterState = new DatamartUpdaterState();
 

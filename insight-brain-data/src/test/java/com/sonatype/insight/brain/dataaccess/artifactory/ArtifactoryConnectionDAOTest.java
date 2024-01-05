@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +17,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ArtifactoryConnectionDAOTest
     extends AbstractDbDAOTest
 {
-  private final ArtifactoryConnectionDAO dao = new ArtifactoryConnectionDAO();
+  private ArtifactoryConnectionDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createArtifactoryConnectionDAO();
+  }
 
   @Test
   public void testCRUD() {

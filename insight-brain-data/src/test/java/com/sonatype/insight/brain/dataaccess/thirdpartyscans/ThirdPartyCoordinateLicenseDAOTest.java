@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ThirdPartyCoordinateLicenseDAOTest
     extends AbstractDbDAOTest
 {
-  private final ThirdPartyCoordinateLicenseDAO dao = new ThirdPartyCoordinateLicenseDAO();
+  private ThirdPartyCoordinateLicenseDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createThirdPartyCoordinateLicenseDAO();
+  }
 
   @Test
   public void testCRUD() {

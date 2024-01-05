@@ -5,78 +5,50 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
-import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.postgres.PostgresServer;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.service.InsightConfig;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantDbMigrationCommandTest
+    extends AbstractMultiTenantDatabaseTest
 {
-  // system under test
-  private MultiTenantDbMigrationCommand multiTenantDbMigrationCommand;
-
-  @BeforeClass
-  public static void beforeClass() {
-    new TenantUtil().setGlobalTenant();
-  }
-
-  @AfterClass
-  public static void tearDown() {
-    TenantTestHelper.resetAfterTest();
+  @After
+  public void after() {
+    // databases for this are not reusable
+    databaseRule.markDatabaseAsDirty();
   }
 
   @Test
+  @PostgresTest(suppressMigrations = false, cleanDatabase = true)
   public void testQuartzTableDoesExist() {
-    try (PostgresServer postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION)) {
-      // do migration (setup global schema) and global quartz table does exist
-      setupTest(postgresServer.getDatabaseConfig(), true);
-      assertThat(multiTenantDbMigrationCommand.quartzSchedulerStateTableExists()).isTrue();
-    }
+    // do migration (setup global schema) and global quartz table does exist
+    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new TestMultiTenantDbMigrationCommand();
+    assertThat(
+        multiTenantDbMigrationCommand.quartzSchedulerStateTableExists(databaseRule.getOperationalDataStore())).isTrue();
   }
 
   @Test
+  @PostgresTest(suppressMigrations = true, cleanDatabase = true)
   public void testQuartzTableDoesNotExist() {
-    try (PostgresServer postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION)) {
-      // do NOT DO migration (setup global schema) and global quartz table DOES NOT exist
-      setupTest(postgresServer.getDatabaseConfig(), false);
-      assertThat(multiTenantDbMigrationCommand.quartzSchedulerStateTableExists()).isFalse();
-    }
+    // do NOT DO migration (setup global schema) and global quartz table DOES NOT exist
+    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new TestMultiTenantDbMigrationCommand();
+    assertThat(
+        multiTenantDbMigrationCommand.quartzSchedulerStateTableExists(
+            databaseRule.getOperationalDataStore())).isFalse();
   }
 
-  private void setupTest(final DatabaseConfig databaseConfig, final boolean migrate) {
-    MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
-    insightConfig.setMainDatabase(databaseConfig);
-    insightConfig.setLocksDatabase(databaseConfig); // for testing use the same config for locks
-
-    MultiTenantDataSourceFactory dataSourceFactory = new MultiTenantDataSourceFactory();
-    dataSourceFactory.setInsightConfig(insightConfig);
-
-    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
-
-    // only need ODS for this test
-    OperationalDataStore operationalDataStore =
-        new MultiTenantOperationalDataStore(dataSourceFactory, databaseMigrator);
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
-
-    if (migrate) {
-      operationalDataStore.initWithMigration(databaseConfig, true);
+  private class TestMultiTenantDbMigrationCommand
+      extends MultiTenantDbMigrationCommand
+  {
+    @Override
+    public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+      return databaseRule.getDatabaseContainer();
     }
-    else {
-      operationalDataStore.initWithoutMigration(databaseConfig);
-    }
-
-    multiTenantDbMigrationCommand = new MultiTenantDbMigrationCommand();
   }
 }

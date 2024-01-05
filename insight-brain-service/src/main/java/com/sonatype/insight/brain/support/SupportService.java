@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -51,8 +50,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.ByteStreams;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -104,6 +103,12 @@ public class SupportService
 
   private final Set<File> excludedDirs;
 
+  private final DbDiagnostics dbDiagnostics;
+
+  private final LdapServerDAO ldapServerDAO;
+
+  private final LdapUserMappingDAO ldapUserMappingDAO;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -114,7 +119,10 @@ public class SupportService
                         final SystemInfo systemInfo,
                         final ConfigurationInfo configurationInfo,
                         final SourceControlConfigurationInfo sourceControlConfigurationInfo,
-                        final InsightWork work)
+                        final InsightWork work,
+                        final DbDiagnostics dbDiagnostics,
+                        final LdapServerDAO ldapServerDAO,
+                        final LdapUserMappingDAO ldapUserMappingDAO)
   {
     this.config = config;
     this.configuration = configuration;
@@ -131,6 +139,9 @@ public class SupportService
         work.getDataDir(),
         work.getTrashDir(),
         work.getScanDir());
+    this.dbDiagnostics = dbDiagnostics;
+    this.ldapServerDAO = ldapServerDAO;
+    this.ldapUserMappingDAO = ldapUserMappingDAO;
   }
 
   File getWorkDir() {
@@ -311,8 +322,7 @@ public class SupportService
         true);
 
     final List<LdapConfig> ldapServers = new ArrayList<>();
-    final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
-    for (final LdapServer ldapServer : new LdapServerDAO().getAll()) {
+    for (final LdapServer ldapServer : ldapServerDAO.getAll()) {
       final LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
       final LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
       ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
@@ -332,7 +342,7 @@ public class SupportService
         SupportFileType.CONFIG, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(DbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
+        writeTextToFile(dbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
         "dbFileInfo",
         SupportFileType.INFO,
         true);

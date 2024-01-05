@@ -16,7 +16,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ClientIPAddressFilterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final String REST_PATH = "rest/ci/scan/testApp";
 

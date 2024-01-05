@@ -36,20 +36,19 @@ public class FirewallMigrationWorker
 {
   private static final Logger log = LoggerFactory.getLogger(FirewallMigrationWorker.class);
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO;
 
-  private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private static final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+  private final LicenseOverrideDAO licenseOverrideDAO;
 
-  private static final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO 
-      = new SecurityVulnerabilityOverrideDAO();
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
 
-  private static final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO;
 
-  private static final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+  private final RepositoryMigrationDAO repositoryMigrationDAO;
 
   private final Repository sourceRepository;
 
@@ -60,11 +59,25 @@ public class FirewallMigrationWorker
   FirewallMigrationWorker(
       Repository sourceRepository,
       Repository targetRepository,
-      RepositoryMigration repositoryMigration)
+      RepositoryMigration repositoryMigration,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      LicenseOverrideDAO licenseOverrideDAO,
+      SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      RepositoryMigrationDAO repositoryMigrationDAO)
   {
     this.sourceRepository = sourceRepository;
     this.targetRepository = targetRepository;
     this.repositoryMigration = repositoryMigration;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.licenseOverrideDAO = licenseOverrideDAO;
+    this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.repositoryMigrationDAO = repositoryMigrationDAO;
   }
 
   @Override

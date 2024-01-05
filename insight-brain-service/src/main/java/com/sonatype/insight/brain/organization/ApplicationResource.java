@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -37,7 +36,6 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -71,8 +69,6 @@ public class ApplicationResource
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
-  private final UserDirectory userDirectory;
-
   private final InsightWork work;
 
   private ApplicationService applicationService;
@@ -81,23 +77,25 @@ public class ApplicationResource
 
   private final ApplicationManagementService applicationManagementService;
 
+  private final ApplicationAdapter applicationAdapter;
+
   @Inject
   public ApplicationResource(
       final InsightWork work,
       final BaseUrl baseUrl,
       final RobotImageService robotImageService,
-      final UserDirectory userDirectory,
       final ApplicationService applicationService,
       final NgUploadResponseGenerator ngUploadResponseGenerator,
       final OrganizationDAO organizationDAO,
-      final ApplicationManagementService applicationManagementService)
+      final ApplicationManagementService applicationManagementService,
+      final ApplicationAdapter applicationAdapter)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
-    this.userDirectory = userDirectory;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
     this.applicationManagementService = applicationManagementService;
+    this.applicationAdapter = applicationAdapter;
   }
 
   @GET
@@ -114,7 +112,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
     List<Application> apps = applicationService.getApplications();
-    final List<ApplicationDTO> applications = ApplicationAdapter.getInstance(userDirectory).convert(apps);
+    final List<ApplicationDTO> applications = applicationAdapter.convert(apps);
     return applications;
   }
 
@@ -150,7 +148,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
     Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
-    return ApplicationAdapter.getInstance(userDirectory).convert(application);
+    return applicationAdapter.convert(application);
   }
 
   /**
@@ -163,7 +161,7 @@ public class ApplicationResource
       @PathParam("applicationPublicId") String applicationPublicId)
   {
     Application application = applicationService.getApplicationByPublicIdForLegalReviewer(applicationPublicId);
-    return ApplicationAdapter.getInstance(userDirectory).convert(application);
+    return applicationAdapter.convert(application);
   }
 
   /**
@@ -233,7 +231,7 @@ public class ApplicationResource
   public ApplicationDTO addApplication(Application application) {
     AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
     application = applicationService.addApplication(application);
-    return ApplicationAdapter.getInstance(userDirectory).convert(application);
+    return applicationAdapter.convert(application);
   }
 
   @PUT
@@ -243,7 +241,7 @@ public class ApplicationResource
   public ApplicationDTO updateApplication(Application application) {
     AuditData.get().setApplicationWithDetails(application);
     application = applicationService.updateApplication(application);
-    return ApplicationAdapter.getInstance(userDirectory).convert(application);
+    return applicationAdapter.convert(application);
   }
 
   @DELETE

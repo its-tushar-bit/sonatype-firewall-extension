@@ -5,29 +5,24 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.postgres.PostgresServer;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
+import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
 
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryComponentNamePatternMigratorTest
+    extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  private void runScript(DataSource dataSource, String scriptName) throws Exception {
+  private void runScript(String scriptName) throws Exception {
     String scriptResource;
     if (scriptName.startsWith("schema_incremental_")) {
       scriptResource = "db/insight_brain_ods/" + scriptName;
@@ -35,60 +30,46 @@ public class ProprietaryComponentNamePatternMigratorTest
     else {
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
-    new DatabaseMigrator().runScript(dataSource, "", scriptResource + ".sql");
+
+    new DataStoreMigrator(databaseRule.getOperationalDataStore())
+        .runScript("", scriptResource + ".sql");
   }
 
-  private DataSource getH2DataSource(String scriptName) throws Exception {
-    File databasePath = new File(tempDir.newFolder(), "test-db");
-    BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName("org.h2.Driver");
-    dataSource.setUrl(
-        "jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
-    dataSource.setUsername("sa");
-    dataSource.setPassword("");
-    dataSource.setMaxTotal(50);
-    dataSource.setMaxIdle(50);
-    runScript(dataSource, "create_schema");
-    runScript(dataSource, "set_schema_h2");
-    runScript(dataSource, "schema");
-    runScript(dataSource, "schema_incremental_0291");
-    runScript(dataSource, scriptName);
-    return dataSource;
+  private void populateH2Database(String scriptName) throws Exception {
+    runScript("create_schema");
+    runScript("set_schema_h2");
+    runScript("schema");
+    runScript("schema_incremental_0291");
+    runScript(scriptName);
   }
 
-  private DataSource getPostgresDataSource(PostgresServer postgres, String scriptName) throws Exception {
-    BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName("org.postgresql.Driver");
-    dataSource.setUrl(postgres.getJdbcUrl());
-    dataSource.setUsername(postgres.getUsername());
-    dataSource.setPassword(postgres.getPassword());
-    dataSource.setMaxTotal(50);
-    dataSource.setMaxIdle(50);
-    runScript(dataSource, "create_schema");
-    runScript(dataSource, "set_schema_postgres");
-    runScript(dataSource, "schema");
-    runScript(dataSource, "schema_incremental_0291");
-    runScript(dataSource, scriptName);
-    return dataSource;
+  private void populatePostgresDatabase(String scriptName) throws Exception {
+    runScript("create_schema");
+    runScript("set_schema_postgres");
+    runScript("schema");
+    runScript("schema_incremental_0291");
+    runScript(scriptName);
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_H2() throws Exception {
-    DataSource dataSource = getH2DataSource("data_before");
-    testMigrate(dataSource);
+    populateH2Database("data_before");
+    testMigrate();
   }
 
   @Test
+  @PostgresTest(suppressMigrations = true)
   public void testMigrate_Postgres() throws Exception {
-    try (PostgresServer postgres = new PostgresServer()) {
-      DataSource dataSource = getPostgresDataSource(postgres, "data_before");
-      testMigrate(dataSource);
-    }
+    populatePostgresDatabase("data_before");
+    testMigrate();
   }
 
-  private void testMigrate(DataSource dataSource) throws Exception {
-    new ProprietaryComponentNamePatternMigrator().migrate(dataSource);
-    runScript(dataSource, "schema_incremental_0292");
+  private void testMigrate() throws Exception {
+    DataSource dataSource = databaseRule.getOperationalDataStore().getDataSource();
+    new ProprietaryComponentNamePatternMigrator().migrate(dataSource,
+        databaseRule.getOperationalDataStore().getDatabaseSchema());
+    runScript("schema_incremental_0292");
 
     // Assert the repo manager was added correctly
     String repoManagerId = null;

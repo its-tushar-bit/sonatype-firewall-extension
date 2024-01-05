@@ -32,11 +32,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ApplicationComponentLicenseDAOTest
     extends AbstractDbDAOTest
 {
+  private LicenseOverrideDAO licenseOverrideDAO;
+
   private ApplicationComponentLicenseDAO dao;
 
   @Before
-  public void before() {
-    dao = new ApplicationComponentLicenseDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    dao = daoFactory.createApplicationComponentLicenseDAO();
   }
 
   @Test
@@ -237,7 +242,7 @@ public class ApplicationComponentLicenseDAOTest
                 newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
                 newApplicationComponentLicensesDTO(applicationComponent2, "license-2"));
 
-    new LicenseOverrideDAO().delete(licenseOverride);
+    licenseOverrideDAO.delete(licenseOverride);
 
     tempEntity.newLicenseOverride(testApplication.getId(), applicationComponent2.getComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("CC0-1.0", "PUBLIC-DOMAIN"));

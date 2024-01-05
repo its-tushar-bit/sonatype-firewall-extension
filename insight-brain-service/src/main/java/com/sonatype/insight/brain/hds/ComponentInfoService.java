@@ -20,7 +20,6 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -93,17 +92,21 @@ public class ComponentInfoService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentInfoService.class);
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private LicenseDAO licenseDAO = new LicenseDAO();
-
-  private ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
-
   private License unspecifiedLicense;
 
   private List<ComponentCategory> otherComponentCategories;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final ApplicationDAO applicationDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  private final ComponentCategoryDAO componentCategoryDAO;
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final PolicyDAO policyDAO;
 
   private final HdsClient hdsClient;
 
@@ -119,6 +122,8 @@ public class ComponentInfoService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
+  private final IdUtils idUtils;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -131,7 +136,14 @@ public class ComponentInfoService
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
       RepositoryQueryService repositoryQueryService,
-      MultiLicenseDAO multiLicenseDAO)
+      MultiLicenseDAO multiLicenseDAO,
+      ApplicationDAO applicationDAO,
+      LicenseDAO licenseDAO,
+      ComponentCategoryDAO componentCategoryDAO,
+      LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO,
+      final IdUtils idUtils)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -140,6 +152,13 @@ public class ComponentInfoService
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.repositoryQueryService = repositoryQueryService;
     this.multiLicenseDAO = multiLicenseDAO;
+    this.applicationDAO = applicationDAO;
+    this.licenseDAO = licenseDAO;
+    this.componentCategoryDAO = componentCategoryDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
+    this.idUtils = idUtils;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -174,7 +193,7 @@ public class ComponentInfoService
       DependencyType dependencyType) throws IOException
   {
     auditComponentAccess(componentIdentifier, hash);
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest,
         identificationSource, scanId, dependencyType);
   }
@@ -388,7 +407,7 @@ public class ComponentInfoService
   /**
    * Returns a list of component details for the given application and component identifier. It does not evaluate
    * policies and it does not return policy violations.
-   * 
+   *
     * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
    */
   @Deprecated
@@ -400,7 +419,7 @@ public class ComponentInfoService
       String matchState)
   {
     auditComponentAccess(componentIdentifier, null);
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
@@ -425,7 +444,7 @@ public class ComponentInfoService
   /**
    * Returns a list of component details for the given owner and component identifier.
    * It also evaluates policies and returns max threat levels per category, as well as count of violated policies.
-   * 
+   *
    * Requires READ or EVALUATE_COMPONENT permissions.
    */
   ComponentVersionInfoDTO getComponentVersionInfo(
@@ -459,7 +478,7 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType)
   {
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     // For performance, it's very important to use only one instance of ComponentDetailsLoader.
     // See https://sonatype.atlassian.net/browse/CLM-28129
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
@@ -552,7 +571,7 @@ public class ComponentInfoService
   }
 
   protected Map<String, Policy> getPoliciesById(Owner owner) {
-    return new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
+    return policyDAO.getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
         .collect(Collectors.toMap(Policy::getId, Function.identity()));
   }
 
@@ -570,7 +589,7 @@ public class ComponentInfoService
 
     return policyMaxThreatLevelsByCategory;
   }
-  
+
   private Map<String,Integer> maxPolicyThreatLevelToString(Map<PolicyThreatCategory, Integer> maxPolicyThreat) {
     Map<String,Integer> result = new HashMap<>();
     maxPolicyThreat.forEach((k, v) -> {
@@ -826,7 +845,7 @@ public class ComponentInfoService
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
 
     ComponentLicenses result = new ComponentLicenses();
 
@@ -887,7 +906,7 @@ public class ComponentInfoService
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
 
     ComponentMultiLicenses result = new ComponentMultiLicenses();
 
@@ -947,8 +966,8 @@ public class ComponentInfoService
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
-    String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    Owner owner = new OwnerDAO().getById(internalId);
+    String internalId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    Owner owner = ownerDAO.getById(internalId);
 
     ComponentDetails componentDetails =
         getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);

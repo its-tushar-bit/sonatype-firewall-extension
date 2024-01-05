@@ -45,7 +45,14 @@ public class ApiCompositeSourceControlServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private SourceControlDAO sourceControlDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private PlexusCipher plexusCipher;
 
   private Application app;
 
@@ -58,11 +65,6 @@ public class ApiCompositeSourceControlServiceTest
   private Organization rootOrganization;
 
   private SourceControl rootOrgSourcecontrol;
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  @Inject
-  private PlexusCipher plexusCipher;
 
   private static final String ENC = "CMMDwoV";
 

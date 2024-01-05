@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiComponentLabelResourceV2Test
     extends AbstractResourceTest
 {
-  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private ComponentLabelDAO componentLabelDAO;
+
+  @Before
+  public void setUp() {
+    componentLabelDAO = lookup(ComponentLabelDAO.class);
+  }
 
   @Test
   public void testSetComponentLabel_Application() throws Exception {

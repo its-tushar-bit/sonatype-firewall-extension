@@ -13,7 +13,11 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -42,11 +46,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AuditContainerRequestFilterTest
+    extends AbstractDataTest
 {
   private static final String BAD_ID = "badId";
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TestAuditSession testAuditSession = new TestAuditSession();
@@ -87,7 +89,13 @@ public class AuditContainerRequestFilterTest
     pathParameters = new MultivaluedHashMap<>();
     lenient().when(mockUriInfo.getPathParameters()).thenReturn(pathParameters);
     testAuditSession.set(mockAuditData);
-    auditContainerRequestFilter = new AuditContainerRequestFilter(mockResourceInfo);
+
+    ApplicationDAO applicationDAO = daoFactory.createApplicationDAO();
+    OrganizationDAO organizationDAO = daoFactory.createOrganizationDAO();
+    RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
+    RepositoryManagerDAO repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+    auditContainerRequestFilter = new AuditContainerRequestFilter(applicationDAO, organizationDAO, repositoryDAO,
+        repositoryManagerDAO, mockResourceInfo);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     repositoryManager = tempEntity.newRepositoryManager();

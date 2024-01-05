@@ -46,6 +46,9 @@ public class TestProductLicense
     }
   }
 
+  /**
+   * Perform initial set up for a test license. Needs to be called before first use.
+   */
   public void reset() {
     try {
       testProductLicenseManager.reset();

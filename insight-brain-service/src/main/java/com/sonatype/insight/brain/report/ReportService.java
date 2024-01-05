@@ -210,7 +210,7 @@ public class ReportService
           "Expanded Coverage (XC) is no longer supported. " +
               "We have incorporated support for all languages that were maintained in XC in Lifecycle");
     }
-    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
         scanId);
 
     metadata.setReportTime(evaluation.getTime());

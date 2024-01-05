@@ -5,17 +5,29 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.127
  */
+@Named
+@Singleton
 public class RepositoryClientConfigurationDAO
     extends AbstractOperationalSqlDAO<RepositoryClientConfiguration>
 {
   public static final String SINGLETON_ENTITY_ID = "repository-client-configuration";
+
+  @Inject
+  public RepositoryClientConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   /**
    * @return The repository client configuration or {@code null} if none.

@@ -10,13 +10,21 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserIdePolicyEvaluationDAOTest extends AbstractDbDAOTest
 {
-  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
+  private UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    userIdePolicyEvaluationDAO = daoFactory.createUserIdePolicyEvaluationDAO();
+  }
 
   @Test
   public void testGetCount_oneUser() {

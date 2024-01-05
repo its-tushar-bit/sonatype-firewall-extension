@@ -21,7 +21,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.TEST_COMPONENT_IDENTIFIER;

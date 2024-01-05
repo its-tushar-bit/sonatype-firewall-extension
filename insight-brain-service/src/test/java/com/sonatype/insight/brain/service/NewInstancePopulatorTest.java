@@ -31,30 +31,45 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewInstancePopulatorTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
-  private final LabelDAO labelDAO = new LabelDAO();
+  private LabelDAO labelDAO;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  private final TagDAO tagDAO = new TagDAO();
+  private TagDAO tagDAO;
 
-  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private PolicyTagDAO policyTagDAO;
+
+  @Before
+  public void setUp() {
+    // Using DAOFactory instead of lookup as we have several tests using @ManualIqServerInit annotation
+    applicationDAO = daoFactory.createApplicationDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    labelDAO = daoFactory.createLabelDAO();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    tagDAO = daoFactory.createTagDAO();
+    policyTagDAO = daoFactory.createPolicyTagDAO();
+  }
 
   @After
   public void cleanup() {
@@ -97,7 +112,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_NoOrgsOrPolicies_SampleDataEnabled_CreatesSampleData()
       throws Exception
   {
@@ -106,14 +121,14 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_NoOrgsOrPolicies_SampleDataDisabled_SampleDataNotCreated() throws Exception {
     initServer(false, false);
     assertSampleDataCreated(false);
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataEnabled_CreatesSampleData()
       throws Exception
   {
@@ -123,7 +138,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataDisabled_SampleDataNotCreated()
       throws Exception
   {
@@ -133,7 +148,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_ExistingPolicy_SampleDataEnabled_SampleDataNotCreated() throws Exception {
     tempEntity.newPolicy();
 
@@ -142,7 +157,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_ExistingOrg_SampleDataEnabled_SampleDataNotCreated() throws Exception {
     tempEntity.newOrganization();
 
@@ -151,7 +166,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportEnabled_ImportsReferencePolicies()
       throws Exception
   {
@@ -160,7 +175,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportDisabled_ReferencePoliciesNotImported()
       throws Exception
   {
@@ -169,7 +184,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportEnabled_ImportsReferencePolicies()
       throws Exception
   {
@@ -179,7 +194,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportDisabled_ReferencePoliciesNotImported()
       throws Exception
   {
@@ -189,7 +204,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_ExistingPolicy_PolicyImportEnabled_ReferencePoliciesNotImported()
       throws Exception
   {
@@ -200,7 +215,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_ExistingOrg_PolicyImportEnabled_ReferencePoliciesNotImported()
       throws Exception
   {
@@ -211,7 +226,7 @@ public class NewInstancePopulatorTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_PolicyImportRetriedAfterInitialHdsFailure() throws Exception {
     Configurator configurator = config -> {
       config.setCreateSampleData(true);
@@ -220,7 +235,7 @@ public class NewInstancePopulatorTest
 
     hdsRespondWith("Maintenance, come back later").andStatus(503).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 
-    initServer(configurator);
+    startIqTestServer(configurator);
 
     assertReferencePoliciesImported(false);
 
@@ -240,7 +255,7 @@ public class NewInstancePopulatorTest
         .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
     hdsRespondWith(getClass().getResource("/NewInstancePopulatorTest/licenses.json")).atUri("rest/license");
 
-    initServer(configurator);
+    startIqTestServer(configurator);
   }
 
   private void assertSampleDataCreated(boolean shouldHaveBeenCreated) {

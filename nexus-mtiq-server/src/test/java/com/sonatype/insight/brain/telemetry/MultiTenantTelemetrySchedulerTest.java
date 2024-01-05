@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTelemetrySchedulerTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private MultiTenantTaskScheduler taskScheduler;
@@ -67,20 +67,6 @@ public class MultiTenantTelemetrySchedulerTest
       multiTenantTelemetryScheduler.register();
 
       verify(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
-    });
-  }
-
-  @Test
-  public void testExecute_ScheduleForMultiTenant() throws Exception {
-    testAsSingleTenant(t -> {
-      doAnswer(unused -> {
-        assertTenantSet(t);
-        return null;
-      }).when(multiTenantTelemetryTask).execute(null);
-
-      multiTenantTelemetryScheduler.execute(null);
-
-      verify(multiTenantTelemetryTask).execute(null);
     });
   }
 }

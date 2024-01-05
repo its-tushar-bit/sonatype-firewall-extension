@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.admin.service;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -33,10 +33,17 @@ public class TenantCacheService
 
   private final TenantValidator tenantValidator;
 
+  private final OperationalDataStore operationalDataStore;
+
   @Inject
-  public TenantCacheService(final TenantUtil tenantUtil, final TenantValidator tenantValidator) {
+  public TenantCacheService(
+      final TenantUtil tenantUtil,
+      final TenantValidator tenantValidator,
+      final OperationalDataStore operationalDataStore)
+  {
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
+    this.operationalDataStore = operationalDataStore;
   }
 
   public String getCache(final String tenantSlug) {
@@ -50,7 +57,7 @@ public class TenantCacheService
     }
 
     OpenJPAEntityManagerFactory jpaEntityManagerFactory =
-        (OpenJPAEntityManagerFactory)OperationalDataStoreProvider.getInstance().getJPAEntityManagerFactory();
+        (OpenJPAEntityManagerFactory) operationalDataStore.getJPAEntityManagerFactory();
     StoreCache storeCache = jpaEntityManagerFactory.getStoreCache();
     CacheStatistics statistics = storeCache.getStatistics();
     try {

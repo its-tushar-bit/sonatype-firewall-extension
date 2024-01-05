@@ -12,7 +12,7 @@ import org.apache.shiro.guice.aop.ShiroAopModule;
 
 /**
  * Binds AOP interceptors to enforce authorization.
- * 
+ *
  * @since 1.7
  */
 public class SecurityAopModule
@@ -20,7 +20,11 @@ public class SecurityAopModule
 {
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
-    AuthorizationChecker authzChecker = new AuthorizationChecker();
+    ContextResolver contextResolver = new ContextResolver();
+    requestInjection(contextResolver);
+    AuthorizationChecker authzChecker = new AuthorizationChecker(contextResolver);
+    requestInjection(authzChecker);
+
     bind(AuthorizationChecker.class).toInstance(authzChecker);
     bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker));
     bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker));

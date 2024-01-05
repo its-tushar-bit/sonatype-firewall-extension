@@ -51,6 +51,9 @@ public class SourceControlScanServiceAuditTest
   @Inject
   private PasswordHandler passwordHandler;
 
+  @Inject
+  private SourceControlDAO sourceControlDAO;
+
   @Mock
   private GitApi mockGitApi;
 
@@ -178,6 +181,6 @@ public class SourceControlScanServiceAuditTest
     SourceControl sourceControl = tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null,
         new String(passwordHandler.encryptPassword("token".toCharArray())), SourceControlProvider.GITHUB);
     sourceControl.setSourceControlEvaluationsEnabled(true);
-    new SourceControlDAO().update(sourceControl);
+    sourceControlDAO.update(sourceControl);
   }
 }

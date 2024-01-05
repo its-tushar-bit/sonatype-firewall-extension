@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ThirdPartyFileDAOTest
     extends AbstractDbDAOTest
 {
-  private final ThirdPartyFileDAO dao = new ThirdPartyFileDAO();
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  private ThirdPartyScanDAO thirdPartyScanDAO;
+
+  private ThirdPartyFileDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
+    thirdPartyScanDAO = daoFactory.createThirdPartyScanDAO();
+    thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    dao = daoFactory.createThirdPartyFileDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -70,24 +87,20 @@ public class ThirdPartyFileDAOTest
 
     dao.delete(thirdPartyFile);
 
-    ThirdPartyFileCoordinateDAO coordDAO = new ThirdPartyFileCoordinateDAO();
-    ThirdPartyFileCoordinateDAO coordSecurityDAO = new ThirdPartyFileCoordinateDAO();
-    ThirdPartyCoordinateLicenseDAO coordLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
-
     assertThat(dao.getById(thirdPartyFile.getId())).isNull();
-    assertThat(new ThirdPartyScanDAO().getById(scan.getId())).isNull();
-    assertThat(coordDAO.getById(coord1.getId())).isNull();
-    assertThat(coordDAO.getById(coord2.getId())).isNull();
-    assertThat(coordSecurityDAO.getById(tpcs11.getId())).isNull();
-    assertThat(coordSecurityDAO.getById(tpcs12.getId())).isNull();
-    assertThat(coordSecurityDAO.getById(tpcs21.getId())).isNull();
-    assertThat(coordSecurityDAO.getById(tpcs12.getId())).isNull();
-    assertThat(coordSecurityDAO.getById(tpcs21.getId())).isNull();
+    assertThat(thirdPartyScanDAO.getById(scan.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(coord1.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(coord2.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs11.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs12.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs21.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs12.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs21.getId())).isNull();
 
-    assertThat(coordLicenseDAO.getById(coordLic11.getId())).isNull();
-    assertThat(coordLicenseDAO.getById(coordLic12.getId())).isNull();
-    assertThat(coordLicenseDAO.getById(coordLic21.getId())).isNull();
-    assertThat(coordLicenseDAO.getById(coordLic22.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic11.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic12.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic21.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic22.getId())).isNull();
   }
 
   @Test

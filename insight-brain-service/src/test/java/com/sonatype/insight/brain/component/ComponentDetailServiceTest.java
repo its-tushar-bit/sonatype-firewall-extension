@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.component;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
@@ -45,6 +44,12 @@ public class ComponentDetailServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
   private ComponentDetailService componentDetailService;
 
   @Inject
@@ -71,7 +76,7 @@ public class ComponentDetailServiceTest
     tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash);
     // add another policy violation for a different stage and with a different threat level
     policy1.setThreatLevel(2);
-    new PolicyDAO().update(policy1);
+    policyDAO.update(policy1);
     while (System.currentTimeMillis() <= policyEvaluation1.getTime().getTime()) {
       // just spinning until next policy eval time is guaranteed to be greater than time for the eval created above
     }
@@ -173,7 +178,7 @@ public class ComponentDetailServiceTest
     String policyId = policy.getId();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "groupId", "artifactId", "version", hash, "reason");
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
@@ -256,7 +261,7 @@ public class ComponentDetailServiceTest
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2");
     violation.setActionTypeId(FailActionType.ID);
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);

@@ -12,16 +12,22 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -29,7 +35,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -53,6 +59,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class ApplicationDAO
     extends AbstractOperationalSqlDAO<Application>
 {
@@ -61,6 +69,90 @@ public class ApplicationDAO
   private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
 
   public static final int MAX_PUBLIC_ID_LENGTH = 200;
+
+  private final Provider<SourceControlDAO> sourceControlDAOProvider;
+
+  private final SourceControlEventDAO sourceControlEventDAO;
+
+  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider;
+
+  private final Provider<LabelDAO> labelDAOProvider;
+
+  private final Provider<PolicyDAO> policyDAOProvider;
+
+  private final Provider<OwnerDAO> ownerDAOProvider;
+
+  private final ApplicationTagDAO applicationTagDAO;
+
+  private final Provider<ApplicationComponentDAO> applicationComponentDAOProvider;
+
+  private final ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private final InnerSourceComponentDAO innerSourceComponentDAO;
+
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final PolicyViolationAggregationDAO policyViolationAggregationDAO;
+
+  private final RepositoryConnectionDAO repositoryConnectionDAO;
+
+  private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
+
+  private final SastScanDAO sastScanDAO;
+
+  private final ClusterLockManager clusterLockManager;
+
+  @Inject
+  public ApplicationDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
+      final Provider<SourceControlDAO> sourceControlDAOProvider,
+      final SourceControlEventDAO sourceControlEventDAO,
+      final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider,
+      final Provider<LabelDAO> labelDAOProvider,
+      final Provider<PolicyDAO> policyDAOProvider,
+      final Provider<OwnerDAO> ownerDAOProvider,
+      final ApplicationTagDAO applicationTagDAO,
+      final Provider<ApplicationComponentDAO> applicationComponentDAOProvider,
+      final ProprietaryConfigDAO proprietaryConfigDAO,
+      final InnerSourceComponentDAO innerSourceComponentDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final PolicyViolationAggregationDAO policyViolationAggregationDAO,
+      final RepositoryConnectionDAO repositoryConnectionDAO,
+      final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
+      final SastScanDAO sastScanDAO,
+      final ClusterLockManager clusterLockManager)
+  {
+    super(operationalDataStore, searchIndexManager);
+    this.sourceControlDAOProvider = sourceControlDAOProvider;
+    this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.licenseThreatGroupDAOProvider = licenseThreatGroupDAOProvider;
+    this.labelDAOProvider = labelDAOProvider;
+    this.policyDAOProvider = policyDAOProvider;
+    this.ownerDAOProvider = ownerDAOProvider;
+    this.applicationTagDAO = applicationTagDAO;
+    this.applicationComponentDAOProvider = applicationComponentDAOProvider;
+    this.proprietaryConfigDAO = proprietaryConfigDAO;
+    this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.policyViolationAggregationDAO = policyViolationAggregationDAO;
+    this.repositoryConnectionDAO = repositoryConnectionDAO;
+    this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
+    this.sastScanDAO = sastScanDAO;
+    this.clusterLockManager = clusterLockManager;
+  }
 
   public Application getByPublicId(TransactionContext tx, String publicId) {
     if (publicId == null || publicId.trim().isEmpty()) {
@@ -272,148 +364,6 @@ public class ApplicationDAO
     super.update(tx, application);
   }
 
-  @Override
-  public void delete(TransactionContext tx, Application application) {
-    long start = System.currentTimeMillis();
-
-    // Cascade to source control config
-    new SourceControlDAO().deleteByOwnerId(tx, application.getId());
-
-    // Cascade to source control default branch commit history
-    // We don't enroll this operation in the transaction because:
-    // Policy evaluation deletions will cascade to commit history and the policy evaluation deletions are not enrolled
-    // in transaction. This means the same commit history records we delete here may be already deleted (and the
-    // deletion committed) before the current transaction is committed or flushed and that results in
-    // OptimisticLockException.
-    new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(application.getId());
-
-    // Cascade to source control events
-    // SourceControl events reference policy evaluations, so policy evaluation deletions will cascade to source control
-    // events. Since we don't enroll policy evaluation deletions in the current transaction, the linked source control
-    // events will be deleted in a separate transaction.
-    // On H2, when multiple applications are deleted in the same transaction (for ex, the parent organization is
-    // deleted), if we enroll the deletion of source control events in the current transaction, this can deadlock with
-    // the deletions of source control events cascaded from policy evaluation deletions.
-    // In other words, if we enroll the deletion of source control events in the current transaction here,
-    // it's possible that multiple transactions will try to get a table lock on the "source_control_event" table and
-    // that will result in a JPA OptimisticLockException.
-    // See https://issues.sonatype.org/browse/INT-4896
-    new SourceControlEventDAO().deleteByApplicationId(application.getId());
-
-    // Cascade to source control pull request results
-    new SourceControlPullRequestResultDAO().deleteByApplicationId(tx, application.getId());
-
-    // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
-    // This improves performance and keeps db operations (including commits) reasonably short, which means other
-    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
-    // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
-    // are left behind in case of a failure.
-
-    // Cascade to policy violations
-    new PolicyViolationDAO().deleteByApplicationId(tx, application.getId());
-
-    // Cascade to policy evaluations
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
-      // The update of the last policy evaluation is time consuming. Since the application is deleted and all policy
-      // evaluations are deleted as well, there is no point in updating the last policy evaluation. This improves
-      // performance 75 times.
-
-      // We do not enroll the policy evaluation deletes in the transaction on purpose. For applications with a lot of
-      // policy evaluations, the transaction becomes huge and that slows down the delete operation. By doing the policy
-      // evaluation deletes outside of the transaction, performance is improved 17 times.
-      policyEvaluationDAO.delete(policyEvaluation, false /* updateLastPolicyEvaluation */);
-    }
-
-    // Cascade to license threat groups
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
-    }
-
-    // Cascade to labels
-    LabelDAO labelDAO = new LabelDAO();
-    List<Label> labels = labelDAO.getByOwnerId(tx, application.getId());
-    for (Label label : labels) {
-      labelDAO.delete(tx, label);
-    }
-
-    // Cascade to policies
-    new PolicyDAO().deleteByOwnerId(tx, application.getId());
-
-    // Cascade to owned entities
-    new OwnerDAO().cascadeDelete(tx, application);
-
-    // Cascade to applied tags
-    ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
-    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(tx, application.getId());
-    for (ApplicationTag appTag : appTags) {
-      applicationTagDAO.delete(tx, appTag);
-    }
-
-    // Cascade to components
-    ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
-    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(tx, application.getId());
-    for (ApplicationComponent appComponent : appComponents) {
-      applicationComponentDAO.delete(tx, appComponent);
-    }
-
-    // Cascade to proprietary config
-    ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
-    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, application.getId());
-    if (proprietaryConfig != null) {
-      proprietaryConfigDAO.delete(tx, proprietaryConfig);
-    }
-
-    // Cascade to locks
-    ClusterLock.deleteForPolicyViolations(tx, application);
-    ClusterLock.deleteForPolicyViolationAggregations(tx, application.getId());
-    ClusterLock.deleteForPolicyEvaluations(tx, application);
-    ClusterLock.deleteForAuditJsonFileStore(tx, application.getId());
-    ClusterLock.deleteForPdfGeneration(tx, application);
-
-    // Cascade to InnerSource components
-    InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
-    List<InnerSourceComponent> innerSourceComponents =
-        innerSourceComponentDAO.getByApplicationId(tx, application.getId());
-    for (InnerSourceComponent innerSourceComponent : innerSourceComponents) {
-      innerSourceComponentDAO.delete(tx, innerSourceComponent);
-    }
-
-    // Cascade to SastScan table
-    new SastScanDAO().deleteByApplicationId(tx, application.getId());
-
-    super.delete(tx, application);
-
-    // Cascade to membership mappings
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
-      membershipMappingDAO.delete(tx, membershipMapping);
-    }
-
-    // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
-    PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
-    try (TransactionContext aggregationTx = policyViolationAggregationDAO.createTransactionContext()) {
-      aggregationTx.begin();
-
-      policyViolationAggregationDAO.deleteByApplicationId(aggregationTx, application.getId());
-
-      aggregationTx.commit();
-    }
-
-    // Cascade to repository connections
-    RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
-    for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, application.getId())) {
-      repositoryConnectionDAO.delete(tx, repositoryConnection);
-    }
-
-    long duration = System.currentTimeMillis() - start;
-    if (duration > 500) {
-      log.debug("Deleted application '{}' with id {} in {} ms.", application.getName(), application.getId(), duration);
-    }
-  }
-
   private void validate(Application application) {
     NameHelper.validate("Name", application.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
   }
@@ -428,9 +378,10 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByOrganizationIdAndLabelLowercase(TransactionContext tx,
-                                                                String organizationId,
-                                                                String labelLowercase)
+  public List<Application> getByOrganizationIdAndLabelLowercase(
+      TransactionContext tx,
+      String organizationId,
+      String labelLowercase)
   {
     final String oQuery = "SELECT app FROM Label label, Application app" + //
         " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
@@ -439,8 +390,8 @@ public class ApplicationDAO
   }
 
   /**
-   * fetches the #Application objects associated with the given repository URL;  the association is specified via
-   * the #SourceControl entries
+   * fetches the #Application objects associated with the given repository URL;  the association is specified via the
+   * #SourceControl entries
    *
    * @return List of #Application objects associated with the given repository URL or an empty list if there are none
    */
@@ -468,10 +419,10 @@ public class ApplicationDAO
     Get a list of applications that are not found in the list of applications with CI evals
      */
     final StringBuilder appsWithoutCIQuery = new StringBuilder("SELECT DISTINCT app.application_id" +
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application app" +
+        " FROM " + getDatabaseSchema() + ".application app" +
         " LEFT JOIN (" +
         "    SELECT DISTINCT peci.application_id" +
-        "    FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_evaluation peci" +
+        "    FROM " + getDatabaseSchema() + ".policy_evaluation peci" +
         "    WHERE peci.scan_trigger_type = ?1" +
         "    AND peci.reevaluation = false" +
         "    AND peci.for_monitoring = false" +
@@ -499,5 +450,141 @@ public class ApplicationDAO
   @Override
   protected SearchIndexChange newSearchIndexChange(Application entity) {
     return new SearchIndexChange(ChangeType.APPLICATION, entity.getId());
+  }
+
+  @Override
+  public void delete(TransactionContext tx, Application application) {
+    long start = System.currentTimeMillis();
+
+    // Cascade to source control config
+    sourceControlDAOProvider.get().deleteByOwnerId(tx, application.getId());
+
+    // Cascade to source control default branch commit history
+    // We don't enroll this operation in the transaction because:
+    // Policy evaluation deletions will cascade to commit history and the policy evaluation deletions are not enrolled
+    // in transaction. This means the same commit history records we delete here may be already deleted (and the
+    // deletion committed) before the current transaction is committed or flushed and that results in
+    // OptimisticLockException.
+    sourceControlDefaultBranchCommitHistoryDAO.deleteByApplicationId(application.getId());
+
+    // Cascade to source control events
+    // SourceControl events reference policy evaluations, so policy evaluation deletions will cascade to source control
+    // events. Since we don't enroll policy evaluation deletions in the current transaction, the linked source control
+    // events will be deleted in a separate transaction.
+    // On H2, when multiple applications are deleted in the same transaction (for ex, the parent organization is
+    // deleted), if we enroll the deletion of source control events in the current transaction, this can deadlock with
+    // the deletions of source control events cascaded from policy evaluation deletions.
+    // In other words, if we enroll the deletion of source control events in the current transaction here,
+    // it's possible that multiple transactions will try to get a table lock on the "source_control_event" table and
+    // that will result in a JPA OptimisticLockException.
+    // See https://issues.sonatype.org/browse/INT-4896
+    sourceControlEventDAO.deleteByApplicationId(application.getId());
+
+    // Cascade to source control pull request results
+    sourceControlPullRequestResultDAO.deleteByApplicationId(tx, application.getId());
+
+    // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
+    // This improves performance and keeps db operations (including commits) reasonably short, which means other
+    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
+    // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
+    // are left behind in case of a failure.
+
+    // Cascade to policy violations
+    policyViolationDAO.deleteByApplicationId(tx, application.getId());
+
+    // Cascade to policy evaluations
+    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
+      // The update of the last policy evaluation is time consuming. Since the application is deleted and all policy
+      // evaluations are deleted as well, there is no point in updating the last policy evaluation. This improves
+      // performance 75 times.
+
+      // We do not enroll the policy evaluation deletes in the transaction on purpose. For applications with a lot of
+      // policy evaluations, the transaction becomes huge and that slows down the delete operation. By doing the policy
+      // evaluation deletes outside of the transaction, performance is improved 17 times.
+      policyEvaluationDAO.delete(policyEvaluation, false /* updateLastPolicyEvaluation */);
+    }
+
+    // Cascade to license threat groups
+    LicenseThreatGroupDAO licenseThreatGroupDAO = this.licenseThreatGroupDAOProvider.get();
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
+    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+      licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
+    }
+
+    // Cascade to labels
+    LabelDAO labelDAO = labelDAOProvider.get();
+    List<Label> labels = labelDAO.getByOwnerId(tx, application.getId());
+    for (Label label : labels) {
+      labelDAO.delete(tx, label);
+    }
+
+    // Cascade to policies
+    policyDAOProvider.get().deleteByOwnerId(tx, application.getId());
+
+    // Cascade to owned entities
+    ownerDAOProvider.get().cascadeDelete(tx, application);
+
+    // Cascade to applied tags
+    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(tx, application.getId());
+    for (ApplicationTag appTag : appTags) {
+      applicationTagDAO.delete(tx, appTag);
+    }
+
+    // Cascade to components
+    ApplicationComponentDAO applicationComponentDAO = applicationComponentDAOProvider.get();
+    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(tx, application.getId());
+    for (ApplicationComponent appComponent : appComponents) {
+      applicationComponentDAO.delete(tx, appComponent);
+    }
+
+    // Cascade to proprietary config
+    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, application.getId());
+    if (proprietaryConfig != null) {
+      proprietaryConfigDAO.delete(tx, proprietaryConfig);
+    }
+
+    // Cascade to locks
+    clusterLockManager.deleteForPolicyViolations(tx, application);
+    clusterLockManager.deleteForPolicyViolationAggregations(tx, application.getId());
+    clusterLockManager.deleteForPolicyEvaluations(tx, application);
+    clusterLockManager.deleteForAuditJsonFileStore(tx, application.getId());
+    clusterLockManager.deleteForPdfGeneration(tx, application);
+
+    // Cascade to InnerSource components
+    List<InnerSourceComponent> innerSourceComponents =
+        innerSourceComponentDAO.getByApplicationId(tx, application.getId());
+    for (InnerSourceComponent innerSourceComponent : innerSourceComponents) {
+      innerSourceComponentDAO.delete(tx, innerSourceComponent);
+    }
+
+    // Cascade to SastScan table
+    sastScanDAO.deleteByApplicationId(tx, application.getId());
+
+    // Delete application DAO
+    super.delete(tx, application);
+
+    // Cascade to membership mappings
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
+      membershipMappingDAO.delete(tx, membershipMapping);
+    }
+
+    // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
+    try (TransactionContext aggregationTx = policyViolationAggregationDAO.createTransactionContext()) {
+      aggregationTx.begin();
+
+      policyViolationAggregationDAO.deleteByApplicationId(aggregationTx, application.getId());
+
+      aggregationTx.commit();
+    }
+
+    // Cascade to repository connections
+    for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, application.getId())) {
+      repositoryConnectionDAO.delete(tx, repositoryConnection);
+    }
+
+    long duration = System.currentTimeMillis() - start;
+    if (duration > 500) {
+      log.debug("Deleted application '{}' with id {} in {} ms.", application.getName(), application.getId(), duration);
+    }
   }
 }

@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiHashComponentIdentifierResourceTest
     extends AbstractResourceTest
 {
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  @Before
+  public void setUp() {
+    hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.CLAIM_PATH_V2);
@@ -75,7 +83,7 @@ public class ApiHashComponentIdentifierResourceTest
 
     assertResponseStatus(200, response);
     HashComponentIdentifier storedHashComponentIdentifier =
-        new HashComponentIdentifierDAO().getByHash(givenDTO.hash);
+        hashComponentIdentifierDAO.getByHash(givenDTO.hash);
     ApiHashComponentIdentifierDTO returnedDTO = response.getBody(ApiHashComponentIdentifierDTO.class);
     assertThat(givenDTO).usingRecursiveComparison().isEqualTo(returnedDTO);
     assertClaimedComponent(returnedDTO, storedHashComponentIdentifier);
@@ -89,7 +97,7 @@ public class ApiHashComponentIdentifierResourceTest
     HttpResponse response = restRequest().path(hashComponentIdentifier.getHash()).delete();
 
     assertResponseStatus(204, response);
-    assertThat(new HashComponentIdentifierDAO().getByHash(hashComponentIdentifier.getHash())).isNull();
+    assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash())).isNull();
   }
 
   private void assertClaimedComponent(ApiHashComponentIdentifierDTO actual, HashComponentIdentifier expected) {

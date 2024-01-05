@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -25,16 +25,24 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationAccessEditorTest
     extends AbstractAccessEditorTest
 {
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
   private String serverId;
 
   @Before
   public void init() {
+    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
+
     // note the ȧ being used to force a character to be encoded
     super.init(tempEntity.newApplicationWithParent("test_ȧpp_id", "ApplicationAccessEditorTest app"));
   }
@@ -63,7 +71,7 @@ public class ApplicationAccessEditorTest
     LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(serverId);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();

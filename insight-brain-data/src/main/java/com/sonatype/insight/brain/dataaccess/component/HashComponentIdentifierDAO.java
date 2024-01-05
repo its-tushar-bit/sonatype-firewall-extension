@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.util.Collection;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -21,10 +25,17 @@ import com.google.common.collect.Lists;
 
 import static java.util.stream.Collectors.toList;
 
+@Named
+@Singleton
 public class HashComponentIdentifierDAO
     extends AbstractOperationalSqlDAO<HashComponentIdentifier>
 {
   public static final String NOT_FOUND_MESSAGE = "There is no claimed component with hash ";
+
+  @Inject
+  public HashComponentIdentifierDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public HashComponentIdentifier getByHashNotNull(String hash) {
     HashComponentIdentifier hashComponentIdentifier = getByHash(hash);

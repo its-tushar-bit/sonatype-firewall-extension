@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ProxyServerConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final ProxyServerConfigurationDAO dao = new ProxyServerConfigurationDAO();
+  private ProxyServerConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createProxyServerConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

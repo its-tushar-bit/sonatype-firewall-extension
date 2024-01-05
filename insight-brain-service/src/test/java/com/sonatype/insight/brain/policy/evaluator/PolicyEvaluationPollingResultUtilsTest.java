@@ -24,8 +24,8 @@ public class PolicyEvaluationPollingResultUtilsTest
   @Inject
   private PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
-  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
-      new PersistedPolicyEvaluationPollingResultDAO();
+  @Inject
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   @Test
   public void testHandleException() {

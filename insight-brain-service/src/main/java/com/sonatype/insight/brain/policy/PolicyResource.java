@@ -13,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -89,19 +88,41 @@ public class PolicyResource
 
   private final NgUploadResponseGenerator ngUploadResponseGenerator;
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
-
   private final ManagementEventService managementEventService;
+
+  private final OwnerDAO ownerDAO;
+
+  private final PolicyTagDAO policyTagDAO;
+
+  private final PolicyDAO policyDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final IdUtils idUtils;
 
   @Inject
   public PolicyResource(
       PolicyImportExport policyImportExport,
       NgUploadResponseGenerator ngUploadResponseGenerator,
-      final ManagementEventService managementEventService)
+      final ManagementEventService managementEventService,
+      final OwnerDAO ownerDAO,
+      final PolicyTagDAO policyTagDAO,
+      final PolicyDAO policyDAO,
+      final OrganizationDAO organizationDAO,
+      final ApplicationDAO applicationDAO,
+      final IdUtils idUtils)
   {
     this.policyImportExport = policyImportExport;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
     this.managementEventService = managementEventService;
+    this.ownerDAO = ownerDAO;
+    this.policyTagDAO = policyTagDAO;
+    this.policyDAO = policyDAO;
+    this.organizationDAO = organizationDAO;
+    this.applicationDAO = applicationDAO;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -117,9 +138,9 @@ public class PolicyResource
   {
     log.debug("Received request to get all policies for {} id {}", ownerType, ownerId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    return new PolicyDAO().getByOwnerId(internalOwnerId);
+    return policyDAO.getByOwnerId(internalOwnerId);
   }
 
   /**
@@ -195,12 +216,12 @@ public class PolicyResource
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
 
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+
     // Get all applicable policies
-    List<Policy> policies = getApplicableByOwnerIdWithHierarchy(ownerType, ownerId);
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
 
     // Init the result structure
-    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
     for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
       String currentOwnerId = currentOwner.getId();
@@ -238,9 +259,9 @@ public class PolicyResource
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     policy.setOwnerId(internalOwnerId);
-    new PolicyDAO().insert(policy);
+    policyDAO.insert(policy);
     AuditData.get().setPolicyWithDetails(policy);
     managementEventService.postEvent(CREATED, policy);
 
@@ -258,9 +279,8 @@ public class PolicyResource
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyDAO policyDAO = new PolicyDAO();
     if (!internalOwnerId.equals(policyDAO.getByIdNotNull(policy.getId()).getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
     }
@@ -290,10 +310,9 @@ public class PolicyResource
 
     AuditData auditData = AuditData.get().setData("overridingOwnerId", ownerId);
 
-    PolicyDAO policyDAO = new PolicyDAO();
     Policy policy = policyDAO.getByIdNotNull(policyId);
     auditData.setPolicy(policy);
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     boolean actionsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("actions");
     boolean notificationsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("notifications");
@@ -360,9 +379,8 @@ public class PolicyResource
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyDAO policyDAO = new PolicyDAO();
     Policy policy = policyDAO.getByIdNotNull(policyId);
     if (!internalOwnerId.equals(policy.getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with ID " + policyId + " for " + ownerType + " ID " + ownerId);
@@ -379,13 +397,13 @@ public class PolicyResource
   public PolicyExportResult exportPolicies(@PathParam("ownerType") final OwnerType ownerType,
                                            @PathParam("ownerId") String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (OwnerType.ORGANIZATION.equals(ownerType)) {
-      return policyImportExport.exportOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId));
+      return policyImportExport.exportOrganization(organizationDAO.getByIdNotNull(internalOwnerId));
     }
     else {
-      return policyImportExport.exportApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId));
+      return policyImportExport.exportApplication(applicationDAO.getByIdNotNull(internalOwnerId));
     }
   }
 
@@ -411,15 +429,15 @@ public class PolicyResource
   }
 
   private List<Policy> getApplicableByOwnerIdWithHierarchy(final OwnerType ownerType, String ownerId) {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    return new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
+    return policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
   }
 
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {
     if (OwnerType.ORGANIZATION.equals(ownerType)) {
       PolicyExportResult exportDTO = readPolicyExportResult(in);
-      return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(ownerId), exportDTO);
+      return policyImportExport.importOrganization(organizationDAO.getByIdNotNull(ownerId), exportDTO);
     }
     else {
       throw new BadRequestException("Importing policies into an application is no longer supported.");

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +26,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SuccessMetricsReportDAOTest
     extends AbstractDbDAOTest
 {
-  private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
+  private SuccessMetricsReportDAO successMetricsReportDAO;
+
+  private SuccessMetricsReportDataDAO successMetricsReportDataDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    successMetricsReportDataDAO = daoFactory.createSuccessMetricsReportDataDAO();
+    successMetricsReportDAO = daoFactory.createSuccessMetricsReportDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -159,19 +170,19 @@ public class SuccessMetricsReportDAOTest
   public void testDelete_DeletesRelatedSuccessMetricsReportData() {
     SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("username", "metrics", "{}");
     SuccessMetricsReportData reportData = tempEntity.newSuccessMetricsReportData(report.getId());
-    SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
 
     successMetricsReportDAO.delete(report);
 
     assertThat(successMetricsReportDataDAO.getById(reportData.getId())).isNull();
   }
 
-  private void assertMetrics(SuccessMetricsReport actualMetrics,
-                             String username,
-                             String scopeJson,
-                             String name,
-                             String nameLowercaseNoWhitespace,
-                             Date createTime)
+  private void assertMetrics(
+      SuccessMetricsReport actualMetrics,
+      String username,
+      String scopeJson,
+      String name,
+      String nameLowercaseNoWhitespace,
+      Date createTime)
   {
     assertThat(actualMetrics).isNotNull();
     assertThat(actualMetrics.getId()).isNotNull();

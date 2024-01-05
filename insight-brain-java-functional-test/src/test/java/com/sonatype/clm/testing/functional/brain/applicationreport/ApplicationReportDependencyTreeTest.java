@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DependencyTreePage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
@@ -28,7 +28,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class ApplicationReportDependencyTreeTest
     extends AbstractFunctionalTest
@@ -52,7 +55,7 @@ public class ApplicationReportDependencyTreeTest
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     assert referencePolicyUrl != null;
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     Organization org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);

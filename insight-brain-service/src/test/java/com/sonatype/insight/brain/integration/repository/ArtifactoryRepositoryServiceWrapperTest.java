@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.UUID;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -44,7 +43,8 @@ public class ArtifactoryRepositoryServiceWrapperTest
   public void testAllDelegatedServiceMethodsInvoked() {
     // need a mock service for this test, all we want to verify is that the delegate is invoked
     ArtifactoryRepositoryService artifactoryRepositoryService = mock(ArtifactoryRepositoryService.class);
-    wrapper = new ArtifactoryRepositoryServiceWrapper(artifactoryRepositoryService);
+    wrapper =
+        new ArtifactoryRepositoryServiceWrapper(artifactoryRepositoryService, repositoryDAO, repositoryManagerDAO);
 
     String repositoryManagerInstanceId = "foo";
     String repositoryPublicId = "bar";

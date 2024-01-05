@@ -31,8 +31,10 @@ public class ComponentObligationAttributionDAOTest
   private ComponentObligationAttributionDAO dao;
 
   @Before
-  public void before() {
-    dao = new ComponentObligationAttributionDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createComponentObligationAttributionDAO();
   }
 
   @Test

@@ -23,16 +23,21 @@ public class AbstractMembershipMappingAuditTest
 {
   private List<MembershipMapping> originalMembershipMappings;
 
+  private MembershipMappingDAO membershipMappingDAO;
+
+  private RoleDAO roleDAO;
+
   @Before
-  public void saveOriginalMembershipMappings() {
-    originalMembershipMappings = new MembershipMappingDAO().getAll().stream()
+  public void setUp() {
+    membershipMappingDAO = lookup(MembershipMappingDAO.class);
+    roleDAO = lookup(RoleDAO.class);
+    originalMembershipMappings = membershipMappingDAO.getAll().stream()
         .map(mm -> new MembershipMapping(mm.getContextId(), mm.getRoleId(), mm.getMemberName(), mm.getMemberType()))
         .collect(Collectors.toList());
   }
 
   @After
   public void restoreOriginalMembershipMappings() {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.getAll().forEach(membershipMappingDAO::delete);
     originalMembershipMappings.forEach(membershipMappingDAO::insert);
   }
@@ -48,7 +53,7 @@ public class AbstractMembershipMappingAuditTest
   }
 
   private void assertRoleData(final AuditDTO auditDTO, final String roleId) {
-    Role role = new RoleDAO().getByIdNotNull(roleId);
+    Role role = roleDAO.getByIdNotNull(roleId);
     assertCustomData(auditDTO, "roleId", role.getId());
     assertCustomData(auditDTO, "roleName", role.getName());
   }

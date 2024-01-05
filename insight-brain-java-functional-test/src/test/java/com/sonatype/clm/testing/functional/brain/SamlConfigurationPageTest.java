@@ -9,8 +9,8 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
@@ -18,12 +18,12 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
-import org.apache.commons.io.FileUtils;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -51,7 +51,7 @@ public class SamlConfigurationPageTest
   public void after() {
     logout();
     clearAlerts();
-    new SamlConfigurationDAO().delete();
+    lookup(SamlConfigurationDAO.class).delete();
   }
 
   @Test

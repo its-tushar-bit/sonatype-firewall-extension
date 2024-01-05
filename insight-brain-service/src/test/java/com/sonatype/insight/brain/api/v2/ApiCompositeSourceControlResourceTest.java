@@ -36,14 +36,17 @@ public class ApiCompositeSourceControlResourceTest
 
   private Organization rootOrganization;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private SourceControlDAO sourceControlDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   private SourceControl rootOrgSourceControl;
 
   @Before
   public void setup() {
+    sourceControlDAO = lookup(SourceControlDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     rootOrgSourceControl =

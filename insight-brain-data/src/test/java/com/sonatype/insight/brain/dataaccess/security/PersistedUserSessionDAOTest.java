@@ -20,6 +20,7 @@ import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PersistedUserSessionDAOTest
     extends AbstractDbDAOTest
 {
-  private final PersistedUserSessionDAO persistedUserSessionDAO = new PersistedUserSessionDAO();
+  private PersistedUserSessionDAO persistedUserSessionDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    persistedUserSessionDAO = daoFactory.createPersistedUserSessionDAO();
+  }
 
   @Test
   public void testCRUD() {

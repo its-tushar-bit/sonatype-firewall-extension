@@ -26,7 +26,6 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -80,6 +79,15 @@ public class SystemInfoTest
   private static final String AUDIT_LOG_FILENAME = "myAuditLogFilename";
 
   private static final String POLICY_VIOLATION_LOG_FILENAME = "myPolicyViolationLogFilename";
+
+  @Inject
+  private SamlConfigurationDAO samlConfigurationDAO;
+
+  @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Inject
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   @Inject
   private SystemInfo systemInfo;
@@ -544,7 +552,7 @@ public class SystemInfoTest
     samlConfig.setIdentityProviderMetadataXml(IOUtils.toString(
         getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/saml-identity-provider-metadata.xml"),
         StandardCharsets.UTF_8));
-    new SamlConfigurationDAO().update(samlConfig);
+    samlConfigurationDAO.update(samlConfig);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlInfo samlInfo = new ObjectMapper().readValue(systemInfo.getSamlInfo(), SamlInfo.class);
@@ -620,7 +628,7 @@ public class SystemInfoTest
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("test@example.com");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
 
     mailConfiguration = new ObjectMapper().readValue(systemInfo.getMailConfig(), MailConfiguration.class);
 
@@ -645,7 +653,7 @@ public class SystemInfoTest
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("test@example.com");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
 
     mailConfiguration = new ObjectMapper().readValue(systemInfo.getMailConfig(), MailConfiguration.class);
 
@@ -681,7 +689,7 @@ public class SystemInfoTest
     proxyServerConfiguration.setUsername("testUsername");
     proxyServerConfiguration.setPassword(passwordHandler.encryptPassword("testPassword".toCharArray()));
     proxyServerConfiguration.setExcludeHosts("host1,host2");
-    new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
+    proxyServerConfigurationDAO.set(proxyServerConfiguration);
 
     proxyServerConfiguration =
         new ObjectMapper().readValue(systemInfo.getProxyServerConfiguration(), ProxyServerConfiguration.class);
@@ -703,7 +711,7 @@ public class SystemInfoTest
     proxyServerConfiguration.setUsername("testUsername");
     proxyServerConfiguration.setPassword(null);
     proxyServerConfiguration.setExcludeHosts("host1,host2");
-    new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
+    proxyServerConfigurationDAO.set(proxyServerConfiguration);
 
     proxyServerConfiguration =
         new ObjectMapper().readValue(systemInfo.getProxyServerConfiguration(), ProxyServerConfiguration.class);
@@ -725,7 +733,7 @@ public class SystemInfoTest
     proxyServerConfiguration.setUsername("testUsername");
     proxyServerConfiguration.setPassword(passwordHandler.encryptPassword("testPassword".toCharArray()));
     proxyServerConfiguration.setExcludeHosts(null);
-    new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
+    proxyServerConfigurationDAO.set(proxyServerConfiguration);
 
     proxyServerConfiguration =
         new ObjectMapper().readValue(systemInfo.getProxyServerConfiguration(), ProxyServerConfiguration.class);

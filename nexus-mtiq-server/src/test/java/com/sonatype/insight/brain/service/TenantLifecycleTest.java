@@ -9,7 +9,7 @@ import java.io.File;
 
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantLifecycleTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   CLMLicenseManager licenseManager;
@@ -39,7 +39,6 @@ public class TenantLifecycleTest
   TenantLifecycle underTest;
 
   @Before
-  @Override
   public void setup() {
     underTest = new TenantLifecycle(licenseManager,
         dataMigrator,

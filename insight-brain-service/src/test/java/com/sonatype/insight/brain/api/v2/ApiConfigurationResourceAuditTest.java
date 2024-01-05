@@ -17,12 +17,18 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiConfigurationResourceAuditTest
     extends AbstractAuditTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

@@ -9,8 +9,8 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
@@ -20,13 +20,16 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryIdentifiedComponentCacheTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
 
+  private RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
+
   @Before
   public void before() {
-    RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO = new RepositoryIdentifiedComponentDAO();
+    repositoryIdentifiedComponentDAO = daoFactory.createRepositoryIdentifiedComponentDAO();
+
     RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader =
         new RepositoryIdentifiedComponentCacheLoader(repositoryIdentifiedComponentDAO);
     repositoryIdentifiedComponentCache =
@@ -48,7 +51,6 @@ public class RepositoryIdentifiedComponentCacheTest
     Tenant tenant2 = testAsNewTenant(t2 -> testPut(hash2, componentIdentifier2));
 
     TenantTestHelper.testAs(tenant1.tenantSlug, t1 -> {
-      RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO = new RepositoryIdentifiedComponentDAO();
       assertThat(repositoryIdentifiedComponentCache.get(hash1)).isNotNull();
       assertThat(repositoryIdentifiedComponentDAO.getByHash(hash1)).isNotNull();
       assertThat(repositoryIdentifiedComponentCache.get(hash2)).isNull();
@@ -56,7 +58,6 @@ public class RepositoryIdentifiedComponentCacheTest
     });
 
     TenantTestHelper.testAs(tenant2.tenantSlug, t2 -> {
-      RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO = new RepositoryIdentifiedComponentDAO();
       assertThat(repositoryIdentifiedComponentCache.get(hash1)).isNull();
       assertThat(repositoryIdentifiedComponentDAO.getByHash(hash1)).isNull();
       assertThat(repositoryIdentifiedComponentCache.get(hash2)).isNotNull();
@@ -65,7 +66,6 @@ public class RepositoryIdentifiedComponentCacheTest
   }
 
   private void testPut(String hash, ComponentIdentifier componentIdentifier) {
-    RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO = new RepositoryIdentifiedComponentDAO();
     assertThat(repositoryIdentifiedComponentCache.get(hash)).isNull();
     assertThat(repositoryIdentifiedComponentDAO.getByHash(hash)).isNull();
     Date date = new Date();

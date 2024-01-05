@@ -63,9 +63,10 @@ public class OwnerHierarchy
       List<Organization> orgs,
       List<Application> apps,
       List<RepositoryManager> repositoryManagers,
-      List<Repository> repositories)
+      List<Repository> repositories,
+      OrganizationDAO organizationDAO)
   {
-    this.organizationDAO = new OrganizationDAO();
+    this.organizationDAO = organizationDAO;
     this.syntheticOrganizationMap = new HashMap<>();
     this.applicationMap = new HashMap<>();
     this.repositoryManagerMap = new HashMap<>();

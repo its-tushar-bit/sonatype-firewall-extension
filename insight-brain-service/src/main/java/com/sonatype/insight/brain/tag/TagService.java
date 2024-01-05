@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -68,6 +67,8 @@ public class TagService
 
   private final ManagementEventService managementEventService;
 
+  private final IdUtils idUtils;
+
   @Inject
   public TagService(ApplicationService applicationService,
                     ApplicationTagDAO applicationTagDAO,
@@ -77,7 +78,8 @@ public class TagService
                     ApplicationDAO applicationDAO,
                     OrganizationDAO organizationDAO,
                     PolicyDAO policyDAO,
-                    ManagementEventService managementEventService)
+                    ManagementEventService managementEventService,
+                    final IdUtils idUtils)
   {
     this.applicationService = applicationService;
     this.applicationTagDAO = applicationTagDAO;
@@ -88,6 +90,7 @@ public class TagService
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.managementEventService = managementEventService;
+    this.idUtils = idUtils;
   }
 
   public List<ApiApplicationCategoryDTO> getTagsUsedByApplications() {
@@ -102,7 +105,7 @@ public class TagService
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ApplicableTagsDTO tags = new ApplicableTagsDTO();
     tags.applicationCategoriesByOwner = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
@@ -116,7 +119,7 @@ public class TagService
 
   @Authorize(permission = Permission.READ)
   public List<ApiApplicationCategoryDTO> getTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String id) {
-    String internalOwnerId = IdUtils.getInternalOwnerId(OwnerType.ORGANIZATION, id);
+    String internalOwnerId = idUtils.getInternalOwnerId(OwnerType.ORGANIZATION, id);
     List<ApiApplicationCategoryDTO> applicationCategoryList =
         tagDAO.getByOrganizationId(internalOwnerId).stream().map(TagService::toDTO).collect(Collectors.toList());
     return applicationCategoryList;
@@ -181,7 +184,7 @@ public class TagService
   public List<Tag> getAppliedApplicationTags(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
-    return tagDAO.getByApplicationId(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId));
+    return tagDAO.getByApplicationId(idUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId));
   }
 
   @Authorize(permission = Permission.READ)
@@ -202,7 +205,7 @@ public class TagService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final List<Tag> tags)
   {
-    String applicationId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
+    String applicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
 
     List<ApplicationTag> applicationTags = new ArrayList<>();
     try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
@@ -227,7 +230,7 @@ public class TagService
                                  @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                  String policyId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     assertInHierarchy(internalOwnerId, policyDAO.getById(policyId));
 
     return tagDAO.getByPolicyId(policyId);
@@ -239,7 +242,7 @@ public class TagService
                              String policyId,
                              final List<Tag> newTags)
   {
-    String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Policy policy = policyDAO.getByIdNotNull(policyId);
     if (!internalId.equals(policy.getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for owner id " + ownerId);

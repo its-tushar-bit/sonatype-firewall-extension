@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
@@ -15,23 +21,22 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.12
  */
+@Named
+@Singleton
 public class LastPolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<LastPolicyEvaluation>
 {
-  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx,
-                                                   final String applicationId,
-                                                   final String stageTypeId)
+  @Inject
+  public LastPolicyEvaluationDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager)
   {
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    // see if there is a most recent value
-    String sQuery = "SELECT e from PolicyEvaluation e " + //
-        "WHERE e.applicationId = ?1 " + //
-        "AND e.stageTypeId = ?2 " + //
-        "AND e.isForObsoleteScan = false " + //
-        "ORDER BY e.time DESC";
+    super(operationalDataStore, searchIndexManager);
+  }
 
-    PolicyEvaluation newestPolicyEvaluation = policyEvaluationDAO.createQuery(sQuery, applicationId, stageTypeId)
-        .forceSingleResult().get(tx);
+  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx,
+                                                   final PolicyEvaluation newestPolicyEvaluation)
+  {
     if (newestPolicyEvaluation != null) {
       insert(tx, new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),
           newestPolicyEvaluation.getStageTypeId()));

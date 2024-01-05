@@ -98,13 +98,17 @@ public class SuccessMetricsChartsTest
 
   private final String browserName = System.getProperty("browser");
 
-  private static void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
-    PolicyViolationDAO violationDAO = new PolicyViolationDAO();
-    for (PolicyViolation fixedViolation : violationDAO
+  private PolicyViolationDAO policyViolationDAO;
+
+  private void fixViolations(
+      PolicyEvaluation evaluation,
+      Predicate<PolicyViolation> exclude)
+  {
+    for (PolicyViolation fixedViolation : policyViolationDAO
         .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
       if (exclude == null || !exclude.test(fixedViolation)) {
         fixedViolation.setFixTime(evaluation.getTime());
-        violationDAO.update(fixedViolation);
+        policyViolationDAO.update(fixedViolation);
       }
     }
   }
@@ -122,6 +126,8 @@ public class SuccessMetricsChartsTest
 
   @Before
   public void navigate() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+
     // always use the same date to have consistent results in weekly charts
     setTimeTo(thisMonth);
     Application app1 = tempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");

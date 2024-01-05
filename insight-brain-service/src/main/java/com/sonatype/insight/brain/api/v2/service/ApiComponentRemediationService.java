@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -57,13 +56,16 @@ public class ApiComponentRemediationService
 
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
+  private final IdUtils idUtils;
+
   @Inject
   public ApiComponentRemediationService(
       ComponentInfoService componentInfoService,
       ComponentRemediationService componentRemediationService,
       HdsClient hdsClient,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
-      ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
+      IdUtils idUtils)
   {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
@@ -71,6 +73,7 @@ public class ApiComponentRemediationService
     this.hdsClient = hdsClient;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -134,7 +137,7 @@ public class ApiComponentRemediationService
       throw new BadRequestException("Invalid Component Identifier or packageUrl");
     }
 
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     // For performance, it's very important to use only one instance of ComponentDetailsLoader.
     // See https://sonatype.atlassian.net/browse/CLM-28129
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);

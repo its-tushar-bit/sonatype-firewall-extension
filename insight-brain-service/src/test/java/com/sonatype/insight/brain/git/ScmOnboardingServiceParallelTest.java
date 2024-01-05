@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -22,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganiza
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
-
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,7 +37,6 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -60,12 +57,18 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.git.ScmOnboardingService.*;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.setImportEventStatusUpdateThreshold;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportMaxRepositoriesPerBatch;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ScmOnboardingServiceParallelTest
     extends AbstractComponentTest
@@ -111,11 +114,11 @@ public class ScmOnboardingServiceParallelTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  private SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO
-      = spy(new SourceControlOrganizationImportEventDAO());
+  private SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO;
 
   @Override
   public void configure(final Binder binder) {
+    sourceControlOrganizationImportEventDAO = spy(daoFactory.createSourceControlOrganizationImportEventDAO());
     binder.bind(SourceControlEventPublisher.class).toInstance(mockSourceControlEventPublisher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(SourceControlOrganizationImportEventDAO.class).toInstance(sourceControlOrganizationImportEventDAO);

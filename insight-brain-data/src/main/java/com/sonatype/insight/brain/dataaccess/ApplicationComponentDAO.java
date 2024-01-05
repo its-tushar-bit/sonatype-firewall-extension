@@ -12,9 +12,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -22,10 +26,27 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.11
  */
+@Named
+@Singleton
 public class ApplicationComponentDAO
     extends AbstractOperationalSqlDAO<ApplicationComponent>
 {
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
+
+  private final AggregateFileDAO aggregateFileDAO;
+
+  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+
+  @Inject
+  public ApplicationComponentDAO(
+      final OperationalDataStore operationalDataStore,
+      final AggregateFileDAO aggregateFileDAO,
+      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO)
+  {
+    super(operationalDataStore);
+    this.aggregateFileDAO = aggregateFileDAO;
+    this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
+  }
 
   @Override
   public void update(TransactionContext tx, ApplicationComponent entity) {
@@ -35,10 +56,10 @@ public class ApplicationComponentDAO
   @Override
   public void delete(TransactionContext tx, ApplicationComponent applicationComponent) {
     // Cascade to aggregate files
-    new AggregateFileDAO().deleteByApplicationComponentId(tx, applicationComponent.getId());
+    aggregateFileDAO.deleteByApplicationComponentId(tx, applicationComponent.getId());
 
     // Cascade to application component licenses
-    new ApplicationComponentLicenseDAO().deleteByApplicationComponentId(tx, applicationComponent.getId());
+    applicationComponentLicenseDAO.deleteByApplicationComponentId(tx, applicationComponent.getId());
     super.delete(tx, applicationComponent);
   }
 

@@ -22,8 +22,8 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
@@ -99,6 +99,8 @@ public class DependencyResolver
 
   private final ApplicationDAO applicationDAO;
 
+  private final ProprietaryConfigService proprietaryConfigService;
+
   private AtomicInteger knownArtifactCount = new AtomicInteger();
 
   private AtomicInteger totalArtifactCount = new AtomicInteger();
@@ -115,21 +117,13 @@ public class DependencyResolver
       JsonNode dataJson,
       JsonNode summaryJson,
       Application application,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      InnerSourceComponentDAO innerSourceComponentDAO,
+      ApplicationDAO applicationDAO,
+      ProprietaryConfigService proprietaryConfigService)
   {
-    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, application, telemetrySender);
-  }
-
-  private DependencyResolver(
-      final JsonNode dependenciesJson,
-      final JsonNode bomJson,
-      final JsonNode dataJson,
-      final JsonNode summaryJson,
-      final Application application,
-      final TelemetrySender telemetrySender)
-  {
-    this(dependenciesJson, bomJson, dataJson, summaryJson, application, telemetrySender, new InnerSourceComponentDAO(),
-        new ApplicationDAO());
+    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, application, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService);
   }
 
   //visible for testing
@@ -141,7 +135,8 @@ public class DependencyResolver
       final Application application,
       final TelemetrySender telemetrySender,
       final InnerSourceComponentDAO innerSourceComponentDAO,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final ProprietaryConfigService proprietaryConfigService)
   {
 
     this.dependenciesJson = dependenciesJson;
@@ -152,6 +147,7 @@ public class DependencyResolver
     this.telemetrySender = telemetrySender;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.applicationDAO = applicationDAO;
+    this.proprietaryConfigService = proprietaryConfigService;
     if (summaryJson != null) {
       knownArtifactCount = new AtomicInteger(summaryJson.path(KNOWN_ARTIFACT_COUNT).asInt());
       totalArtifactCount = new AtomicInteger(summaryJson.path(TOTAL_ARTIFACT_COUNT).asInt());
@@ -435,7 +431,7 @@ public class DependencyResolver
   // Visible for testing
   boolean isProprietaryComponent(PackageUrlIdentifier componentPurl) {
     if (isProprietary == null) {
-      isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+      isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
     }
     return componentPurl.toComponentIdentifier().getProprietaryCoordinates().stream().anyMatch(isProprietary);
   }
@@ -569,19 +565,19 @@ public class DependencyResolver
     bomObjectNode
         .put(FIELD_INNER_SOURCE, bomObjectNode.path(FIELD_INNER_SOURCE).asBoolean(false) || isInnerSource);
     if (!isDirect && parentComponentPurl != null) {
-      if (bomObjectNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
-        bomObjectNode.putArray(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
+      if (bomObjectNode.path(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
+        bomObjectNode.putArray(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
       }
-      ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
+      ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
       if (!contains(parentComponentPurls, parentComponentPurl)) {
         parentComponentPurls.add(parentComponentPurl.getPackageUrl());
       }
     }
     if (innerSourceData != null) {
-      if (bomObjectNode.path(ComponentDAO.INNER_SOURCE_DATA_FIELD).isMissingNode()) {
-        bomObjectNode.putArray(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+      if (bomObjectNode.path(ComponentLoader.INNER_SOURCE_DATA_FIELD).isMissingNode()) {
+        bomObjectNode.putArray(ComponentLoader.INNER_SOURCE_DATA_FIELD);
       }
-      ArrayNode innerSourceDataArray = (ArrayNode) bomObjectNode.get(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+      ArrayNode innerSourceDataArray = (ArrayNode) bomObjectNode.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
       if (!contains(innerSourceDataArray, innerSourceData)) {
         innerSourceDataArray.add(JsonUtils.asTree(innerSourceData));
       }

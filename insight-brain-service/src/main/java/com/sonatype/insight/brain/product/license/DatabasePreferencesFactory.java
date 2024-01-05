@@ -6,10 +6,11 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.util.prefs.Preferences;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.license.model.CLMLicenseBuilder;
 
 import org.sonatype.licensing.PreferencesFactory;
@@ -19,7 +20,12 @@ import org.sonatype.licensing.PreferencesFactory;
 public class DatabasePreferencesFactory
     implements PreferencesFactory
 {
-  private final DatabasePreferences licensePreferences = new DatabasePreferences();
+  private final DatabasePreferences licensePreferences;
+
+  @Inject
+  public DatabasePreferencesFactory(final ProductLicenseDAO productLicenseDAO) {
+    licensePreferences = new DatabasePreferences(productLicenseDAO);
+  }
 
   @Override
   public Preferences nodeForPackage(Class<?> c) {

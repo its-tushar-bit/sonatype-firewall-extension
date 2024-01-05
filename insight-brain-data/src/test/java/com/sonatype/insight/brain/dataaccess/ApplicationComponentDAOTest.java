@@ -11,13 +11,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.persistence.Query;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -28,10 +26,10 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,11 +41,20 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private final ApplicationComponentDAO dao = new ApplicationComponentDAO();
+  private ApplicationComponentDAO dao;
 
-  private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+  private AggregateFileDAO aggregateFileDAO;
 
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createApplicationComponentDAO();
+    aggregateFileDAO = daoFactory.createAggregateFileDAO();
+    applicationComponentLicenseDAO = daoFactory.createApplicationComponentLicenseDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -125,15 +132,9 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(false);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(false);
   }
 
   @Test
@@ -142,15 +143,9 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetByApplicationIdsAndStageTypeIds_AppFiltering(false, null);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetByApplicationIdsAndStageTypeIds_AppFiltering(false, null);
   }
 
   private void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
@@ -285,7 +280,7 @@ public class ApplicationComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
         new Date(date.getTime() + 3000)).getId();
     tempEntity.newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID,
-        "hash-4", ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
+            "hash-4", ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
         .getId();
 
     Set<String> appIds = Collections.singleton(application.getId());

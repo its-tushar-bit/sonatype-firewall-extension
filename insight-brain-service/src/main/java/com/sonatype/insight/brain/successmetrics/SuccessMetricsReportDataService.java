@@ -18,7 +18,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -94,14 +93,21 @@ public class SuccessMetricsReportDataService
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("dd MMM").withLocale(Locale.ENGLISH);
 
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
-  public SuccessMetricsReportDataService(ApplicationService applicationService,
-                                         ApplicationComponentDAO applicationComponentDAO,
-                                         StageTypeService stageTypeService,
-                                         PolicyViolationAggregationService policyViolationAggregationService,
-                                         SuccessMetricsReportService successMetricsReportService,
-                                         SuccessMetricsReportDataDAO successMetricsReportDataDAO,
-                                         PolicyViolationAggregationDAO violationAggregationDAO)
+  public SuccessMetricsReportDataService(
+      ApplicationService applicationService,
+      ApplicationComponentDAO applicationComponentDAO,
+      StageTypeService stageTypeService,
+      PolicyViolationAggregationService policyViolationAggregationService,
+      SuccessMetricsReportService successMetricsReportService,
+      SuccessMetricsReportDataDAO successMetricsReportDataDAO,
+      PolicyViolationAggregationDAO violationAggregationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.applicationService = applicationService;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -110,6 +116,8 @@ public class SuccessMetricsReportDataService
     this.successMetricsReportService = successMetricsReportService;
     this.successMetricsReportDataDAO = successMetricsReportDataDAO;
     this.violationAggregationDAO = violationAggregationDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   /**
@@ -651,9 +659,6 @@ public class SuccessMetricsReportDataService
                                                                  Set<String> stageTypeIds,
                                                                  Date date)
   {
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-
     Map<String, ComponentInfo> retval = new HashMap<>();
 
     for (PolicyEvaluation evaluation : policyEvaluationDAO

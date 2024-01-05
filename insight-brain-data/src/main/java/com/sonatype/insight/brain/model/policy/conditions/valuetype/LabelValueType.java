@@ -21,13 +21,16 @@ public class LabelValueType
 
   private final String ownerId;
 
-  public LabelValueType(String ownerId) {
-    this(null, ownerId);
+  private final LabelDAO labelDAO;
+
+  public LabelValueType(String ownerId, LabelDAO labelDAO) {
+    this(null, ownerId, labelDAO);
   }
 
-  public LabelValueType(TransactionContext tx, String ownerId) {
+  public LabelValueType(TransactionContext tx, String ownerId, LabelDAO labelDAO) {
     this.tx = tx;
     this.ownerId = ownerId;
+    this.labelDAO = labelDAO;
   }
 
   @Override
@@ -47,7 +50,6 @@ public class LabelValueType
 
   @Override
   public List<Label> getAvailableValues() {
-    final LabelDAO labelDAO = new LabelDAO();
     return tx != null ? labelDAO.getByOwnerIdWithHierarchy(tx, ownerId) : labelDAO.getByOwnerIdWithHierarchy(ownerId);
   }
 }

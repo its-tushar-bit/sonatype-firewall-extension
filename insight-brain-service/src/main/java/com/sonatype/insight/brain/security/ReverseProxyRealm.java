@@ -43,9 +43,12 @@ public class ReverseProxyRealm
 
   private final LdapService ldapService;
 
+  private final UserDAO userDAO;
+
   @Inject
-  public ReverseProxyRealm(LdapService ldapService) {
+  public ReverseProxyRealm(LdapService ldapService, UserDAO userDAO) {
     this.ldapService = ldapService;
+    this.userDAO = userDAO;
     setAuthenticationTokenClass(ReverseProxyAuthenticationToken.class);
     setCredentialsMatcher(new AllowAllCredentialsMatcher());
   }
@@ -71,7 +74,7 @@ public class ReverseProxyRealm
   }
 
   private AuthenticationInfo doGetInternalRealmAuthenticationInfo(String username) {
-    User user = new UserDAO().getByUsername(username);
+    User user = userDAO.getByUsername(username);
     if (user != null) {
       return new SimpleAuthenticationInfo(new UserPrincipal(user.getUsername(), user.calculateDisplayName(), ID),
           null, getName());

@@ -163,6 +163,7 @@ public class SourceControlScanServiceTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense.reset();
 
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
 
@@ -475,4 +476,3 @@ public class SourceControlScanServiceTest
     verify(sourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(APP_ID);
   }
 }
-

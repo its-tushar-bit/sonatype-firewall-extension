@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 import com.codeborne.selenide.SelenideElement;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,11 +48,11 @@ public abstract class AbstractLTGEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  protected final LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+  protected LicenseThreatGroupDAO ltgDAO;
 
-  protected final LicenseDAO licenseDAO = new LicenseDAO();
+  protected LicenseDAO licenseDAO;
 
-  protected final LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  protected LicenseThreatGroupLicenseDAO ltgLicenseDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -63,6 +64,13 @@ public abstract class AbstractLTGEditorTest
     this.currentOwner = currentOwner;
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+  }
+
+  @Before
+  public void setUp() {
+    ltgDAO = lookup(LicenseThreatGroupDAO.class);
+    licenseDAO = lookup(LicenseDAO.class);
+    ltgLicenseDAO = lookup(LicenseThreatGroupLicenseDAO.class);
   }
 
   @Test

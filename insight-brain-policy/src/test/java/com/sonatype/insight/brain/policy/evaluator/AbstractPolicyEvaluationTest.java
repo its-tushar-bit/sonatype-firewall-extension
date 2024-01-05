@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,13 +23,24 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
@@ -38,6 +48,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Binder;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,11 +59,19 @@ import static org.assertj.core.api.Assertions.fail;
 public abstract class AbstractPolicyEvaluationTest
     extends InjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Rule(order = 1)
+  public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractPolicyEvaluationTest.class);
+
+  protected DAOFactory daoFactory;
+
+  @Rule(order = 2)
+  public TemporaryEntity tempEntity = new TemporaryEntity(databaseRule);
 
   @Inject
   protected ComponentPolicyEvaluator componentPolicyEvaluator;
+
+  @Inject
+  protected LabelDAO labelDAO;
 
   @Before
   @Override
@@ -61,7 +80,25 @@ public abstract class AbstractPolicyEvaluationTest
     if (sisuUrlCaches == null) {
       System.setProperty("sisu.url.caches", "true");
     }
+
+    daoFactory = new TestDAOFactory(databaseRule);
+
+    // Re-inject classes that have static dependencies
+    ConditionTypesTestHelper.initConditionTypes(daoFactory);
+    ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
+
     super.setUp();
+  }
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(OperationalDataStore.class).toInstance(databaseRule.getOperationalDataStore());
+    binder.bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
+    binder.bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
+    binder.bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
+
+    binder.requestStaticInjection(ConditionTypes.class);
+    binder.requestStaticInjection(ConditionValueTypes.class);
   }
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
@@ -69,7 +106,7 @@ public abstract class AbstractPolicyEvaluationTest
   }
 
   protected List<PolicyAlert> evaluate(Stage stage, Policy policy, List<Component> components) {
-    DroolsGenerator.generate(policy);
+    DroolsGenerator.generate(policy, labelDAO);
     return componentPolicyEvaluator.evaluate(null /* applicationId */, stage, Collections.singletonList(policy),
             components).getActiveAlerts();
   }
@@ -290,7 +327,6 @@ public abstract class AbstractPolicyEvaluationTest
   }
 
   private static ComponentIdentifier createLqaComponentIdentifier(String format, String... coord) {
-    
     LqaFormat lqaFormat = LqaFormat.getByLqaFormat(format);
     if (lqaFormat != null) {
       Map<String, String> coords;
@@ -309,7 +345,7 @@ public abstract class AbstractPolicyEvaluationTest
     }
     return createGenericComponentIdentifier(format, coord);
   }
-  
+
   private static ComponentIdentifier createGenericComponentIdentifier(String format, String... coord) {
     Map<String, String> coordinates = new LinkedHashMap<>();
     coordinates.put("namespace", coord[0]);

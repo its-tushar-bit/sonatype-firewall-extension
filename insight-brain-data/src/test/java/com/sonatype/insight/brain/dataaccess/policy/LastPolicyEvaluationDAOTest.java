@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,9 +27,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LastPolicyEvaluationDAOTest
     extends AbstractDbDAOTest
 {
-  final LastPolicyEvaluationDAO dao = new LastPolicyEvaluationDAO();
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  final PolicyEvaluationDAO peDao = new PolicyEvaluationDAO();
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private LastPolicyEvaluationDAO dao;
+
+  private PolicyEvaluationDAO peDao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    dao = daoFactory.createLastPolicyEvaluationDAO();
+    peDao = daoFactory.createPolicyEvaluationDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -97,12 +112,12 @@ public class LastPolicyEvaluationDAOTest
 
   @Test
   public void testInsert_RecordSearchIndexChange() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     PolicyEvaluation eval =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", new Date());
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LAST_POLICY_EVALUATION);
     assertThat(searchIndexChanges.get(0).getChangeData())

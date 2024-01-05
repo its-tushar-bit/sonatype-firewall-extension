@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -50,7 +49,6 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -112,6 +110,8 @@ public class CLMLicenseManager
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ProductLicense productLicense;
 
   private final ProductLicenseDetailsCache productLicenseDetailsCache;
@@ -136,6 +136,7 @@ public class CLMLicenseManager
   public CLMLicenseManager(
       final InsightConfig config,
       final MigrationTrackerDAO migrationTrackerDAO,
+      final ApplicationDAO applicationDAO,
       final ProductLicense productLicense,
       final ProductLicenseDetailsCache productLicenseDetailsCache,
       final ProductLicenseManager licenseManager,
@@ -147,6 +148,7 @@ public class CLMLicenseManager
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
     this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
@@ -443,7 +445,7 @@ public class CLMLicenseManager
     }
 
     if (applicationLimitToDisplay != null) {
-      applicationCountToDisplay = (int) new ApplicationDAO().getCount();
+      applicationCountToDisplay = (int) applicationDAO.getCount();
     }
 
     Properties properties = productLicense.isValid() ? licenseManager.getLicenseDetails().getProperties() : null;

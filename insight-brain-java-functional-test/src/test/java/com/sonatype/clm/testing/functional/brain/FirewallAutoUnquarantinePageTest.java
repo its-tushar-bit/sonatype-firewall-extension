@@ -39,7 +39,7 @@ public class FirewallAutoUnquarantinePageTest
 {
   private final FirewallAutoUnquarantinePage page = new FirewallAutoUnquarantinePage();
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -49,6 +49,8 @@ public class FirewallAutoUnquarantinePageTest
 
   @Before
   public void before() {
+    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
+
     setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
   }

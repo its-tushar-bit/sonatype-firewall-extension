@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.Collections;
 
 import com.sonatype.clm.dto.model.component.ComponentCategoryList;
-import com.sonatype.insight.brain.dataaccess.AbstractComponentCategoryUpdater;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -17,8 +17,6 @@ import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
@@ -39,13 +37,18 @@ public class ComponentCategoryUpdaterUnitTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  private ComponentCategoryDAO componentCategoryDAO;
+
   @Inject
   private ComponentCategoryUpdater componentCategoryUpdater;
 
   @Override
   public void configure(Binder binder) {
+    componentCategoryDAO = spy(daoFactory.createComponentCategoryDAO());
+
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    binder.bind(ComponentCategoryDAO.class).toInstance(componentCategoryDAO);
     super.configure(binder);
   }
 
@@ -83,11 +86,8 @@ public class ComponentCategoryUpdaterUnitTest
 
   @Test
   public void testDoLoadComponentCategories() {
-    try (MockedStatic<AbstractComponentCategoryUpdater> mockAbstractComponentCategoryUpdater = Mockito.mockStatic(
-        AbstractComponentCategoryUpdater.class)) {
-      componentCategoryUpdater.doLoadComponentCategories();
+    componentCategoryUpdater.doLoadComponentCategories();
 
-      mockAbstractComponentCategoryUpdater.verify(AbstractComponentCategoryUpdater::loadComponentCategories);
-    }
+    verify(componentCategoryDAO).load();
   }
 }

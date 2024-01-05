@@ -11,6 +11,7 @@ import java.util.Collections;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class FirewallIgnorePatternsDAOTest
     extends AbstractDbDAOTest
 {
-  private final FirewallIgnorePatternsDAO dao = new FirewallIgnorePatternsDAO();
+  private FirewallIgnorePatternsDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createFirewallIgnorePatternsDAO();
+  }
 
   @Test
   public void testReadUpdate() {

@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationCountHistoryDAOTest
     extends AbstractDbDAOTest
 {
-  private final ApplicationCountHistoryDAO applicationCountHistoryDAO = new ApplicationCountHistoryDAO();
+  private ApplicationCountHistoryDAO applicationCountHistoryDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    applicationCountHistoryDAO = daoFactory.createApplicationCountHistoryDAO();
+  }
 
   @Test
   public void testGetApplicationCountAtOrDefault_shouldBeAbleToGetUpdatedCount_GivenOnlyInitialEntry() {

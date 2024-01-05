@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
@@ -28,7 +29,14 @@ public class WebhookDAOTest
 {
   private static final String VALID_URL = "http://localhost:3000";
 
-  private final WebhookDAO dao = new WebhookDAO();
+  private WebhookDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createWebhookDAO();
+  }
 
   @Test
   public void testCRUD_Http() {

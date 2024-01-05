@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
@@ -48,6 +47,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -60,6 +60,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyWaiverResourceTest
     extends AbstractResourceTest
 {
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private PolicyTagDAO policyTagDAO;
+
+  private PolicyDAO policyDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private OwnerDAO ownerDAO;
+
+  @Before
+  public void setUp() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    policyTagDAO = lookup(PolicyTagDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    ownerDAO = lookup(OwnerDAO.class);
+  }
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyWaiverResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
@@ -132,7 +151,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testCRU_NullConstraintFacts() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
+    startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
@@ -156,7 +175,7 @@ public class PolicyWaiverResourceTest
       throws Exception
   {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
+    startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
@@ -173,7 +192,7 @@ public class PolicyWaiverResourceTest
         "admin", "Admin BuiltIn", responseWaiver);
     assertThat(responseWaiver.getAssociatedPackageUrl()).isNotNull()
         .isEqualTo("pkg:maven/groupId/artifactId@versionId?type=jar");
-    assertThat(new PolicyWaiverDAO().getById(responseWaiver.getId()).getConstraintFactsJson())
+    assertThat(policyWaiverDAO.getById(responseWaiver.getId()).getConstraintFactsJson())
         .isEqualTo(constraintFactsJson);
 
     // Get
@@ -263,7 +282,7 @@ public class PolicyWaiverResourceTest
   }
 
   private void testGetPolicyWaiversByHash(Owner owner) throws Exception {
-    OwnerDAO ownerDAO = new OwnerDAO();
+    OwnerDAO ownerDAO = this.ownerDAO;
     Owner parent = ownerDAO.getById(owner.getParentOwnerId());
     Owner grandparent = ownerDAO.getById(parent.getParentOwnerId());
 
@@ -350,7 +369,7 @@ public class PolicyWaiverResourceTest
 
   private void testGetPolicyWaiversByHash_TimeBasedWaivers(Owner owner) throws Exception {
     DateTime now = DateTime.now();
-    OwnerDAO ownerDAO = new OwnerDAO();
+    OwnerDAO ownerDAO = this.ownerDAO;
     Owner parent = ownerDAO.getById(owner.getParentOwnerId());
     Owner grandparent = ownerDAO.getById(parent.getParentOwnerId());
 
@@ -460,7 +479,7 @@ public class PolicyWaiverResourceTest
         tempEntity.newWaiver("hash", policy.getId(), app.getId(), null, EXACT_COMPONENT, "Test Comment");
 
     // update policy tags so it no longer applies to the application
-    new PolicyTagDAO().delete(policyTag);
+    policyTagDAO.delete(policyTag);
     tempEntity.newPolicyTag(policy.getId(), tag2.getId());
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", "hash").get();
@@ -483,7 +502,7 @@ public class PolicyWaiverResourceTest
   {
     assertPolicyWaiver(policyId, ownerId, comment, constraintFactsJson, constraints, creatorId, creatorName,
         actual);
-    assertThat(actual.policyName).isEqualTo(new PolicyDAO().getById(policyId).getName());
+    assertThat(actual.policyName).isEqualTo(policyDAO.getById(policyId).getName());
   }
 
   private void assertPolicyWaiver(
@@ -511,7 +530,7 @@ public class PolicyWaiverResourceTest
   public void testGetApplicableContexts() throws Exception {
     String appPublicId = "testGetApplicableContexts";
     Organization org = tempEntity.newOrganization();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     Application app = tempEntity.newApplication(appPublicId, org.getId());
 
     // Verify application level
@@ -560,7 +579,7 @@ public class PolicyWaiverResourceTest
     ApplicableContext result = response.getBody(ApplicableContext.class);
 
     LinkedList<Owner> ownerHierarchy = new LinkedList<>();
-    for (Owner owner : new OwnerDAO().walkHierarchy(repository)) {
+    for (Owner owner : ownerDAO.walkHierarchy(repository)) {
       ownerHierarchy.push(owner);
     }
 
@@ -615,7 +634,7 @@ public class PolicyWaiverResourceTest
 
   // not all owner types are valid for policy creation
   private Policy createPolicy(String ownerId) {
-    for (Owner owner : new OwnerDAO().walkHierarchy(ownerId)) {
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       if (isPolicyApplicable(owner.getType())) {
         return tempEntity.newPolicy(owner);
       }

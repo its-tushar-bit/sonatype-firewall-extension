@@ -80,6 +80,9 @@ public class ThirdPartyScanResultsProcessorTest
   @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
+  @Inject
+  private ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
+
   @Mock
   private TelemetrySender telemetrySender;
 
@@ -90,7 +93,8 @@ public class ThirdPartyScanResultsProcessorTest
   @Before
   public void before() {
     thirdPartyScanResultsProcessorSpy =
-        spy(new ThirdPartyScanResultsProcessor(thirdPartyScanDAO, thirdPartyFileDAO, telemetrySender));
+        spy(new ThirdPartyScanResultsProcessor(thirdPartyScanDAO, thirdPartyFileDAO, telemetrySender,
+            thirdPartyResultHandlerFactory));
   }
 
   @Test

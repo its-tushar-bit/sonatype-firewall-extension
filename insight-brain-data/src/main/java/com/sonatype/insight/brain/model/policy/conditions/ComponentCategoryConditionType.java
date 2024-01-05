@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -21,6 +24,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.85
  */
+@Singleton
+@Named
 public class ComponentCategoryConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -31,6 +36,13 @@ public class ComponentCategoryConditionType
   static {
     supportedOperators.add("is");
     supportedOperators.add("is not");
+  }
+
+  private final ComponentCategoryDAO componentCategoryDAO;
+
+  @Inject
+  public ComponentCategoryConditionType(final ComponentCategoryDAO componentCategoryDAO) {
+    this.componentCategoryDAO = componentCategoryDAO;
   }
 
   @Override
@@ -56,7 +68,7 @@ public class ComponentCategoryConditionType
   @Override
   public String explainCondition(final Condition condition) {
     return getName() + ' ' + condition.getOperator() + ' ' +
-        new ComponentCategoryDAO().getById(condition.getValue()).getName();
+        componentCategoryDAO.getById(condition.getValue()).getName();
   }
 
   @Override
@@ -65,7 +77,7 @@ public class ComponentCategoryConditionType
         matchFact.getComponent().getComponentCategories().stream().map(ComponentCategory::getPath)
             .collect(Collectors.joining(", "));
     return "Component Category was " + categoriesFromMatchFact + ("is not".equals(condition.getOperator()) ?
-        ", not " + new ComponentCategoryDAO().getById(condition.getValue()).getPath() : "");
+        ", not " + componentCategoryDAO.getById(condition.getValue()).getPath() : "");
   }
 
   @Override
@@ -79,7 +91,7 @@ public class ComponentCategoryConditionType
   {
     super.validateCondition(tx, condition, ownerId);
 
-    if (new ComponentCategoryDAO().getById(condition.getValue()) == null) {
+    if (componentCategoryDAO.getById(condition.getValue()) == null) {
       throw new InvalidConditionException(condition, "Value not supported: " + condition.getValue());
     }
   }
@@ -94,7 +106,6 @@ public class ComponentCategoryConditionType
     if (component.getComponentCategories() == null) {
       return false;
     }
-    ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
     List<ComponentCategory> children = componentCategoryDAO.getChildren(value);
     boolean result = component.getComponentCategories().stream()
         .anyMatch(componentCategory -> value.equals(componentCategory.getId()) || children.contains(componentCategory));

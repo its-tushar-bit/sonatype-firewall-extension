@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
@@ -24,6 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyTagResourceTest
     extends AbstractResourceTest
 {
+  private TagDAO tagDAO;
+
+  @Before
+  public void setUp() {
+    tagDAO = lookup(TagDAO.class);
+  }
+
   private HttpRequest restRequest(String policyId, OwnerType ownerType, String ownerId) {
     return super.restRequest().path(PolicyTagResource.RESOURCE_PATH).parameter(policyId, ownerType, ownerId);
   }
@@ -70,7 +78,7 @@ public class PolicyTagResourceTest
     Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags).hasSize(1);
     assertTag(tag, tags[0]);
-    tags = new TagDAO().getByPolicyId(policyId).toArray(new Tag[0]);
+    tags = tagDAO.getByPolicyId(policyId).toArray(new Tag[0]);
     assertThat(tags).hasSize(1);
     assertTag(tag, tags[0]);
   }

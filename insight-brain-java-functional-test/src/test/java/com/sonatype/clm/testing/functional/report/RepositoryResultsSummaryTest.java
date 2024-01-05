@@ -67,6 +67,8 @@ import static com.sonatype.clm.testing.functional.brain.FirewallComponentDetails
 public class RepositoryResultsSummaryTest
     extends AbstractFunctionalTest
 {
+  private MultiLicenseDAO multiLicenseDAO;
+
   private Repository repo;
 
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
@@ -90,6 +92,8 @@ public class RepositoryResultsSummaryTest
 
   @Before
   public void before() {
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
+
     RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     repo = tempEntity.newRepository(repositoryManager, "central");
@@ -1280,7 +1284,6 @@ public class RepositoryResultsSummaryTest
       ComponentIdentifier componentIdentifier,
       String licenseCondition)
   {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
     componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());

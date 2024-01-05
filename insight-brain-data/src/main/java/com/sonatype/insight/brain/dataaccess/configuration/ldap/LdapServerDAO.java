@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
@@ -15,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -23,9 +27,42 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class LdapServerDAO
     extends AbstractOperationalSqlDAO<LdapServer>
 {
+  private final LdapConnectionDAO ldapConnectionDAO;
+
+  private final LdapUserMappingDAO ldapUserMappingDAO;
+
+  private final UserTokenDAO userTokenDAO;
+
+  private final DashboardFilterDAO dashboardFilterDAO;
+
+  private final UserFilterDAO userFilterDAO;
+
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  @Inject
+  public LdapServerDAO(
+      final OperationalDataStore operationalDataStore,
+      final LdapConnectionDAO ldapConnectionDAO,
+      final LdapUserMappingDAO ldapUserMappingDAO,
+      final UserTokenDAO userTokenDAO,
+      final DashboardFilterDAO dashboardFilterDAO,
+      final UserFilterDAO userFilterDAO,
+      final UserViewedProductNotificationDAO userViewedProductNotificationDAO)
+  {
+    super(operationalDataStore);
+    this.ldapConnectionDAO = ldapConnectionDAO;
+    this.ldapUserMappingDAO = ldapUserMappingDAO;
+    this.userTokenDAO = userTokenDAO;
+    this.dashboardFilterDAO = dashboardFilterDAO;
+    this.userFilterDAO = userFilterDAO;
+    this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
+  }
+
   private LdapServer getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The LdapServer name cannot be null or empty.");
@@ -83,12 +120,12 @@ public class LdapServerDAO
 
   @Override
   public void delete(TransactionContext tx, LdapServer entity) {
-    new LdapConnectionDAO().deleteByServerId(tx, entity.getId());
-    new LdapUserMappingDAO().deleteByServerId(tx, entity.getId());
-    new UserTokenDAO().deleteByRealmId(tx, entity.getId());
-    new DashboardFilterDAO().deleteByRealmId(tx, entity.getId());
-    new UserFilterDAO().deleteByRealmId(tx, entity.getId());
-    new UserViewedProductNotificationDAO().deleteByRealmId(tx, entity.getId());
+    ldapConnectionDAO.deleteByServerId(tx, entity.getId());
+    ldapUserMappingDAO.deleteByServerId(tx, entity.getId());
+    userTokenDAO.deleteByRealmId(tx, entity.getId());
+    dashboardFilterDAO.deleteByRealmId(tx, entity.getId());
+    userFilterDAO.deleteByRealmId(tx, entity.getId());
+    userViewedProductNotificationDAO.deleteByRealmId(tx, entity.getId());
     super.delete(tx, entity);
   }
 

@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -36,7 +35,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -88,7 +88,7 @@ public class RepositoryPolicyEvaluator
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
 
   private final FirewallAuditHdsClient auditHdsClient;
 
@@ -106,6 +106,8 @@ public class RepositoryPolicyEvaluator
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final ClusterLockManager clusterLockManager;
+
   private final AsyncEventBus eventBus;
 
   private final ApiFirewallMetricsService firewallMetricsService;
@@ -115,6 +117,7 @@ public class RepositoryPolicyEvaluator
       ComponentPolicyEvaluator componentPolicyEvaluator,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      PolicyDAO policyDAO,
       FirewallAuditHdsClient auditHdsClient,
       FirewallQuarantineHdsClient quarantineHdsClient,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
@@ -123,6 +126,7 @@ public class RepositoryPolicyEvaluator
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      final ClusterLockManager clusterLockManager,
       AsyncEventBus eventBus,
       ApiFirewallMetricsService firewallMetricsService
   )
@@ -130,6 +134,7 @@ public class RepositoryPolicyEvaluator
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.policyDAO = policyDAO;
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -138,6 +143,7 @@ public class RepositoryPolicyEvaluator
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
     this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.clusterLockManager = clusterLockManager;
     this.eventBus = eventBus;
     this.firewallMetricsService = firewallMetricsService;
   }
@@ -239,7 +245,7 @@ public class RepositoryPolicyEvaluator
     }
 
     // Evaluate the policies
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(repository.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
         policies, components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
@@ -372,10 +378,9 @@ public class RepositoryPolicyEvaluator
       CreateRepositoryPolicyViolationsEvent event)
   {
     RepositoryComponent repositoryComponent;
-    try (
-        ClusterLock clusterLock =
-            ClusterLock.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
-        TransactionContext tx = policyDAO.createTransactionContext()) {
+    try (ClusterLock clusterLock =
+             clusterLockManager.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
+         TransactionContext tx = policyDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
 

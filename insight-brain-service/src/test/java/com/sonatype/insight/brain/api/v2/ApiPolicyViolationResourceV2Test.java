@@ -46,6 +46,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
@@ -58,6 +59,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyViolationResourceV2Test
     extends AbstractResourceTest
 {
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Before
+  public void setUp() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+  }
+
   @Test
   public void testGetPolicyViolations() throws Exception {
     Organization org = tempEntity.newOrganization();
@@ -205,7 +213,7 @@ public class ApiPolicyViolationResourceV2Test
     String packageUrlAllVersionsWaiver2 = PackageUrlIdentifier.toPackageUrl(identifierForAllVersionsWaiver2);
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
 
     String policyId = policy.getId();
     String policy2Id = policy2.getId();

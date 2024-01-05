@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.db.DatabaseConfig;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ResetAdminCommandTest
+    extends AbstractDataTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -39,39 +40,44 @@ public class ResetAdminCommandTest
 
   @Before
   public void before() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
-    OperationalDataStoreProvider
-        .init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
-    userDAO = new UserDAO();
-    membershipMappingDAO = new MembershipMappingDAO();
-  }
-
-  @After
-  public void after() {
-    DataSourceFactory.clear_ForTestsOnly();
+    userDAO = daoFactory.createUserDAO();
+    membershipMappingDAO = daoFactory.createMembershipMappingDAO();
   }
 
   @Test
+  @H2DiskTest
   public void testRun_AdminDoesNotExist() {
     userDAO.delete(getAdmin());
 
-    new ResetAdminCommand().run(null, null, insightConfig);
+    runTest();
 
     assertAdmin();
   }
 
   @Test
+  @H2DiskTest
   public void testRun_AdminExists() {
     User admin = getAdmin();
     admin.setPassword("password");
     userDAO.update(admin);
     membershipMappingDAO.getAll().forEach(membershipMappingDAO::delete);
 
-    new ResetAdminCommand().run(null, null, insightConfig);
+    runTest();
 
     assertAdmin();
+  }
+
+  private void runTest() {
+    new ResetAdminCommand()
+    {
+      // Use the provided OperationalDataStore from DatabaseRule
+      @Override
+      protected OperationalDataStore getOperationalDataStore(final DatabaseConfig databaseConfig) {
+        return databaseRule.getOperationalDataStore();
+      }
+    }.run(null, null, insightConfig);
   }
 
   private User getAdmin() {
@@ -79,7 +85,7 @@ public class ResetAdminCommandTest
   }
 
   private List<String> getMembers(String roleId) {
-    return new MembershipMappingDAO().getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId).stream()
+    return membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId).stream()
         .filter(membershipMapping -> membershipMapping.getMemberType().equals(MemberType.USER))
         .map(MembershipMapping::getMemberName).collect(Collectors.toList());
   }

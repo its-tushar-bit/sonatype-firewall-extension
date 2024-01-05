@@ -12,6 +12,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.cache.MultiTenantQueryCache;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -32,25 +33,24 @@ public class MultiTenantOperationalDataStore
   private final Map<Tenant, EntityManagerFactory> entityManagerFactoryForLocks = new ConcurrentHashMap<>();
 
   public MultiTenantOperationalDataStore(
-      final MultiTenantDataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
+      final MultiTenantPostgresDataSourceProvider dataSourceProvider,
+      final DatabaseConfig databaseConfig)
   {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    OperationalDataStoreProvider.setInstance(this);
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override
-  protected void init(
-      final DatabaseConfig databaseConfig,
-      final boolean migrateDatabase,
-      final Boolean migrateToNewViolationModel)
-  {
-    super.init(databaseConfig, migrateDatabase, migrateToNewViolationModel);
+  public void initialize() {
+    // short-circuit if we are already initialized
+    if (isInitialized()) {
+      return;
+    }
+    super.initialize();
 
     // Create database items for locks
-    MultiTenantDataSourceFactory multiTenantDataSourceFactory = (MultiTenantDataSourceFactory) dataSourceFactory;
-    DataSource locksDataSource = multiTenantDataSourceFactory.createLocksDataSource();
+    MultiTenantPostgresDataSourceProvider multiTenantPostgresDataSourceProvider =
+        (MultiTenantPostgresDataSourceProvider) dataSourceProvider;
+    DataSource locksDataSource = multiTenantPostgresDataSourceProvider.getLocksDataSource();
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", locksDataSource);
     props.put("openjpa.jdbc.Schema", getDatabaseSchema());

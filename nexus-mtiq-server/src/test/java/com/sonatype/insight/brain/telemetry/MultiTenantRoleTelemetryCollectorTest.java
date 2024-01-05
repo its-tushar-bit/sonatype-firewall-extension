@@ -10,9 +10,9 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
@@ -21,7 +21,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRoleTelemetryCollectorTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private RoleTelemetryCollector telemetryCollector;
 
@@ -31,9 +31,9 @@ public class MultiTenantRoleTelemetryCollectorTest
   @Override
   public void setup() {
     super.setup();
-    roleDAO = new RoleDAO();
-    RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    roleDAO = daoFactory.createRoleDAO();
+    RolePermissionDAO rolePermissionDAO = daoFactory.createRolePermissionDAO();
+    MembershipMappingDAO membershipMappingDAO = daoFactory.createMembershipMappingDAO();
     telemetryCollector = new RoleTelemetryCollector(roleDAO, rolePermissionDAO, membershipMappingDAO);
   }
 

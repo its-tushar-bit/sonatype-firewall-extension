@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -66,9 +67,11 @@ public class PullRequestLineFeedback
       final String applicationPublicId,
       final String featureBranchScanId,
       final Optional<String> codeSuggestion,
-      final boolean scmImprovementsEnabled
+      final boolean scmImprovementsEnabled,
+      final OrganizationDAO organizationDAO
   )
   {
+    super(organizationDAO);
     this.violations = checkNotNull(violations, "violations is required and cannot be null");
     this.displayName = checkNotNull(displayName, "displayName is required and cannot be null");
     this.remediationVersionDTO = remediationVersionDTO;

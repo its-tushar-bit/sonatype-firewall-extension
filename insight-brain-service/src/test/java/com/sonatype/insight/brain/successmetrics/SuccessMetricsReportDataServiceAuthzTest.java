@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -45,6 +44,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SuccessMetricsReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
   @Inject
   private SuccessMetricsReportDataService successMetricsReportDataService;
 
@@ -333,7 +335,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     // violation appears in eval1 but is resolved in eval2
     PolicyViolation violation = tempEntity.newPolicyViolation(eval1, policy);
     violation.setFixTime(eval2Date);
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
   }
 
   private void assertMttrResults(List<MttrDTO> mttrDTOs, LocalDate today) {

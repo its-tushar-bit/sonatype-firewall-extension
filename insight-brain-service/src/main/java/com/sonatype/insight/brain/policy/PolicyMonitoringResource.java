@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -52,7 +52,22 @@ public class PolicyMonitoringResource
   public static final String RESOURCE_PATH =
       "rest/policyMonitoring/{ownerType: application|organization|repository}/{ownerId}";
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final IdUtils idUtils;
+
+  @Inject
+  public PolicyMonitoringResource(
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final OwnerDAO ownerDAO,
+      final IdUtils idUtils)
+  {
+    this.policyMonitoringDAO = policyMonitoringDAO;
+    this.ownerDAO = ownerDAO;
+    this.idUtils = idUtils;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -60,7 +75,7 @@ public class PolicyMonitoringResource
   public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return policyMonitoringDAO.getByOwnerId(internalOwnerId);
   }
 
@@ -76,11 +91,10 @@ public class PolicyMonitoringResource
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ApplicablePolicyMonitors results = new ApplicablePolicyMonitors();
     results.policyMonitoringByOwner = new ArrayList<>();
 
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
@@ -100,7 +114,7 @@ public class PolicyMonitoringResource
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                               PolicyMonitoring policyMonitoring)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (ProxyStageType.ID.equals(policyMonitoring.getStageTypeId())) {
       if (!Organization.ROOT_ORGANIZATION_ID.equals(ownerId) && !OwnerType.REPOSITORY.equals(ownerType)) {
@@ -130,7 +144,7 @@ public class PolicyMonitoringResource
   public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdNotNull(ownerId);
     policyMonitoringDAO.delete(policyMonitoring);

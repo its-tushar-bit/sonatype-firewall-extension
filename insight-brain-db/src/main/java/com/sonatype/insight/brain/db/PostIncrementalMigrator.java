@@ -9,5 +9,5 @@ import javax.sql.DataSource;
 
 public interface PostIncrementalMigrator
 {
-  void migrate(DataSource dataSource) throws Exception;
+  void migrate(DataSource dataSource, String databaseSchema) throws Exception;
 }

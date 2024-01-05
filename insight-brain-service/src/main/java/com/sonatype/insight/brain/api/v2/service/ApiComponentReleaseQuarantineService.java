@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -78,6 +77,10 @@ public class ApiComponentReleaseQuarantineService
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final PolicyDAO policyDAO ;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
+
   @Inject
   public ApiComponentReleaseQuarantineService(
       RepositoryDAO repositoryDAO,
@@ -85,7 +88,9 @@ public class ApiComponentReleaseQuarantineService
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      PolicyDAO policyDAO,
+      PolicyWaiverDAO policyWaiverDAO)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -93,6 +98,8 @@ public class ApiComponentReleaseQuarantineService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.policyDAO = policyDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
   }
 
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
@@ -187,7 +194,7 @@ public class ApiComponentReleaseQuarantineService
     policyWaiver.setCreateTime(now);
     policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
 
-    new PolicyWaiverDAO().insert(tx, policyWaiver);
+    policyWaiverDAO.insert(tx, policyWaiver);
 
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
       auditPolicyWaiver(policyWaiver, repository);
@@ -269,7 +276,7 @@ public class ApiComponentReleaseQuarantineService
   private void auditPolicyWaiver(PolicyWaiver policyWaiver, Repository repository) {
     AuditData.get().setRepository(repository)
         .setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
+        .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {

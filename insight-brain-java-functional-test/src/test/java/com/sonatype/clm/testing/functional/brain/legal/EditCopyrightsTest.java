@@ -40,6 +40,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class EditCopyrightsTest
     extends AbstractFunctionalTest
 {
+  private ComponentObligationDAO componentObligationDAO;
+
   private Application app;
 
   private ComponentIdentifier componentId;
@@ -53,6 +55,8 @@ public class EditCopyrightsTest
   @Before
   public void before() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
+    componentObligationDAO = lookup(ComponentObligationDAO.class);
   }
 
   private void init(String hash, ComponentIdentifier componentIdentifier, String testFileSuffix) {
@@ -306,7 +310,7 @@ public class EditCopyrightsTest
   private void doModifyObligationStatus() {
     ComponentLegalOverviewPage.editCopyrightButton().shouldBe(Condition.visible).click();
 
-    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+    assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(
         Organization.ROOT_ORGANIZATION_ID, componentId, "Inclusion of Copyright")).isNull();
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
@@ -331,7 +335,7 @@ public class EditCopyrightsTest
     modal.should(Condition.disappear);
 
     // The status in the DB should change
-    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+    assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(
         Organization.ROOT_ORGANIZATION_ID, componentId, "Inclusion of Copyright").getStatus())
             .isEqualTo(ObligationStatus.FLAGGED);
   }

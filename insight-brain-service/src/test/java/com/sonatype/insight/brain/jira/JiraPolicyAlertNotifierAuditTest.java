@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.jira;
 
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -46,6 +45,9 @@ public class JiraPolicyAlertNotifierAuditTest
 
   @Mock
   private JiraClient mockJiraClient;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Inject
   private JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
@@ -118,7 +120,7 @@ public class JiraPolicyAlertNotifierAuditTest
     Policy policy = tempEntity.newPolicy(app);
     policy.getNotifications().add(new JiraNotification(PROJECT_KEY, 1, STAGE_ID));
     policy.getNotifications().add(new JiraNotification(PROJECT_KEY, 2, STAGE_ID));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     return Arrays.asList(createPolicyNotification(policy, "hash1"), createPolicyNotification(policy, "hash2"));
   }

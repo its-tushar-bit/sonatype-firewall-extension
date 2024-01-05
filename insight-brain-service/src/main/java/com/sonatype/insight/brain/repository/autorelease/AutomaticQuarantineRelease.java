@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,8 +27,9 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -67,17 +67,41 @@ public class AutomaticQuarantineRelease
 
   private final ApiFirewallService apiFirewallService;
 
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public AutomaticQuarantineRelease(
-      ProductLicense productLicense,
-      AuditRecorder auditRecorder,
-      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      ApiFirewallService apiFirewallService)
+      final ProductLicense productLicense,
+      final AuditRecorder auditRecorder,
+      final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      final ApiFirewallService apiFirewallService,
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final OwnerDAO ownerDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ClusterLockManager clusterLockManager)
   {
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.apiFirewallService = apiFirewallService;
+    this.policyMonitoringDAO = policyMonitoringDAO;
+    this.ownerDAO = ownerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.clusterLockManager = clusterLockManager;
   }
 
   public void run() {
@@ -85,7 +109,7 @@ public class AutomaticQuarantineRelease
 
     long start = System.currentTimeMillis();
 
-    List<PolicyMonitoring> policyMonitorings = new PolicyMonitoringDAO().getAll();
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getAll();
     if (policyMonitorings.isEmpty()) {
       log.info("Policy monitoring was not configured for any applications, organizations, or repositories.");
       return;
@@ -121,11 +145,9 @@ public class AutomaticQuarantineRelease
     long start = System.currentTimeMillis();
     log.info("Starting automatic quarantine release");
 
-    OwnerDAO ownerDAO = new OwnerDAO();
-
-    List<Repository> repositories = new RepositoryDAO().getAll();
+    List<Repository> repositories = repositoryDAO.getAll();
     for (Repository repository : repositories) {
-      try (ClusterLock clusterLock = ClusterLock.createForRepositoryReevaluation(repository)) {
+      try (ClusterLock clusterLock = clusterLockManager.createForRepositoryReevaluation(repository)) {
         if (clusterLock.tryLock()) {
           log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
@@ -230,7 +252,7 @@ public class AutomaticQuarantineRelease
     Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
 
     List<RepositoryComponent> quarantinedComponents =
-        new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
+        repositoryComponentDAO.getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
 
     List<RepositoryComponent> applicableQuarantinedComponents = new ArrayList<>();
 
@@ -265,7 +287,7 @@ public class AutomaticQuarantineRelease
       final RepositoryComponent quarantinedComponent,
       final Set<String> supportedConditionTypes)
   {
-    List<RepositoryPolicyViolation> violations = new RepositoryPolicyViolationDAO()
+    List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
         .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
 
     for (RepositoryPolicyViolation violation : violations) {

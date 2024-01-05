@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,11 +25,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ThirdPartyCoordinateSecurityDAOTest
     extends AbstractDbDAOTest
 {
-  private final ThirdPartyCoordinateSecurityDAO dao = new ThirdPartyCoordinateSecurityDAO();
-
   private static final Comparator<ThirdPartyCoordinateSecurity> THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR =
       Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId)
           .thenComparing(ThirdPartyCoordinateSecurity::getFileCoordinateId);
+
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  private ThirdPartyCoordinateSecurityDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    thirdPartyVulnerabilityExploitabilityExchangeDAO =
+        daoFactory.createThirdPartyVulnerabilityExploitabilityExchangeDAO();
+    dao = daoFactory.createThirdPartyCoordinateSecurityDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -113,13 +125,10 @@ public class ThirdPartyCoordinateSecurityDAOTest
 
     dao.delete(coordSec1);
 
-    ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO =
-        new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
-
     assertThat(dao.getById(coordSec1.getId())).isNull();
     assertThat(dao.getById(coordSec2.getId())).isNotNull();
-    assertThat(vexDAO.getById(vexData.getId())).isNull();
-    assertThat(vexDAO.getById(vexData2.getId())).isNotNull();
+    assertThat(thirdPartyVulnerabilityExploitabilityExchangeDAO.getById(vexData.getId())).isNull();
+    assertThat(thirdPartyVulnerabilityExploitabilityExchangeDAO.getById(vexData2.getId())).isNotNull();
   }
 
   @Test

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 
@@ -30,7 +29,7 @@ public class PerpetualLockDAOTest
   @Override
   public void setup() {
     super.setup();
-    perpetualLockDAO = new PerpetualLockDAO();
+    perpetualLockDAO = daoFactory.createPerpetualLockDAO();
     assertThat(perpetualLockDAO.getAll()).hasSize(0);
   }
 

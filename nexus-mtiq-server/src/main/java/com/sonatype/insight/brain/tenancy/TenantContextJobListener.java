@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 
@@ -29,6 +30,8 @@ public class TenantContextJobListener
 
   private final TenantManager tenantManager;
 
+  private final TenantService tenantService;
+
   private final TenantUtil tenantUtil;
 
   private final DeletedTenantDAO deletedTenantDAO;
@@ -36,10 +39,12 @@ public class TenantContextJobListener
   @Inject
   TenantContextJobListener(
       final TenantManager tenantManager,
+      final TenantService tenantService,
       final TenantUtil tenantUtil,
       final DeletedTenantDAO deletedTenantDAO)
   {
     this.tenantManager = tenantManager;
+    this.tenantService = tenantService;
     this.tenantUtil = tenantUtil;
     this.deletedTenantDAO = deletedTenantDAO;
   }
@@ -85,7 +90,7 @@ public class TenantContextJobListener
   }
 
   private void registerAllNonDeletedTenants() {
-    List<String> allTenants = tenantUtil.getAllTenants();
+    List<String> allTenants = tenantService.getAllTenantsNames();
     List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
         .map(DeletedTenant::getId).collect(Collectors.toList());
 

@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
@@ -68,15 +69,18 @@ public class PolicyAlertScmNotifier
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
+  private final OrganizationDAO organizationDAO;
+
   @VisibleForTesting
   PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
 
   /**
    * notifier for sending to hosted git source control manager service
    *
-   * @param remediationPullRequestFeatureCheck        service to check if pull request feature is enabled
-   * @param remediationService             service to lookup suggested remediations
-   * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
+   * @param remediationPullRequestFeatureCheck service to check if pull request feature is enabled
+   * @param remediationService                 service to lookup suggested remediations
+   * @param policyAlertSourceCodeOrganizer     service to aggregate policy alerts
+   * @param organizationDAO
    */
   @Inject
   public PolicyAlertScmNotifier(
@@ -86,7 +90,8 @@ public class PolicyAlertScmNotifier
       final BaseUrl baseUrl,
       final SourceControlUtils sourceControlUtils,
       final PullRequestRemediationService pullRequestRemediationService,
-      final SourceControlEventPublisher sourceControlEventPublisher)
+      final SourceControlEventPublisher sourceControlEventPublisher,
+      final OrganizationDAO organizationDAO)
   {
     this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.remediationService = remediationService;
@@ -95,6 +100,7 @@ public class PolicyAlertScmNotifier
     this.sourceControlUtils = sourceControlUtils;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
+    this.organizationDAO = organizationDAO;
   }
 
   /**
@@ -160,7 +166,7 @@ public class PolicyAlertScmNotifier
               new PullRequestRemediationDetails(entry.getKey(), nextVersion,
                   remediationVersion.get().getBreakingChangesCount(), branchName, entry.getValue(), app,
                   scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider,
-                  gitRepositoryInfo.normalizedRepositoryUrl);
+                  gitRepositoryInfo.normalizedRepositoryUrl, organizationDAO);
           publishRemediationPullRequestEvent(pullRequestRemediationDetails);
         }
       }

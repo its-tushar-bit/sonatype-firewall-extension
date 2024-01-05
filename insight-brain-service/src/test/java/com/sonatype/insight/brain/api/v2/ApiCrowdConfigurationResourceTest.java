@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,11 +34,16 @@ public class ApiCrowdConfigurationResourceTest
   private static final String EXPECTED_FEATURE_DISABLED_MESSAGE =
       SystemConfigurationPropertyFeature.CROWD_INTEGRATION.getId() + " feature is disabled.";
 
-  private final CrowdConfigurationDAO dao = new CrowdConfigurationDAO();
+  private CrowdConfigurationDAO dao;
 
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2);
+  }
+
+  @Before
+  public void setUp() {
+    dao = lookup(CrowdConfigurationDAO.class);
   }
 
   @Test

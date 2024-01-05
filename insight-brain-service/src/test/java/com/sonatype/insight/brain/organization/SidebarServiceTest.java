@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -45,6 +44,21 @@ public class SidebarServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private RoleDAO roleDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
   private SidebarService sidebarService;
 
   @Override
@@ -73,7 +87,7 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
   }
 
   @Test
@@ -96,7 +110,7 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
   }
 
   @Test
@@ -114,7 +128,7 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
   }
 
   @Test
@@ -133,7 +147,7 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
   }
 
   @Test
@@ -152,12 +166,12 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
   }
 
   @Test
   public void testGetOwnerList() {
-    Organization rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     Organization orgOne = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(orgOne.getId());
     Application appTwo = tempEntity.newApplication(orgOne.getId());
@@ -291,7 +305,7 @@ public class SidebarServiceTest
       tempEntity.newOrganization();
     }
     List<Organization> orgs =
-        sortOwners(new OrganizationDAO().getByParentOrganizationId(Organization.ROOT_ORGANIZATION_ID));
+        sortOwners(organizationDAO.getByParentOrganizationId(Organization.ROOT_ORGANIZATION_ID));
     List<String> expectedIdsOrderedByName = orgs.stream().map(Organization::getId).collect(Collectors.toList());
 
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
@@ -308,7 +322,7 @@ public class SidebarServiceTest
       // The new app has a random name
       tempEntity.newApplication(org.getId());
     }
-    List<Application> apps = sortOwners(new ApplicationDAO().getByOrganizationId(org.getId()));
+    List<Application> apps = sortOwners(applicationDAO.getByOrganizationId(org.getId()));
     List<String> expectedIdsOrderedByName = apps.stream().map(Application::getPublicId).collect(Collectors.toList());
 
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
@@ -324,7 +338,7 @@ public class SidebarServiceTest
       // The new repo manager has a random name
       tempEntity.newRepositoryManager();
     }
-    List<RepositoryManager> repoManagers = sortOwners(new RepositoryManagerDAO().getAll());
+    List<RepositoryManager> repoManagers = sortOwners(repositoryManagerDAO.getAll());
     List<String> expectedIdsOrderedByName =
         repoManagers.stream().map(RepositoryManager::getId).collect(Collectors.toList());
 
@@ -343,7 +357,7 @@ public class SidebarServiceTest
       // The new repo has a random name
       tempEntity.newRepository(repoManager);
     }
-    List<Repository> repos = sortOwners(new RepositoryDAO().getAll());
+    List<Repository> repos = sortOwners(repositoryDAO.getAll());
     List<String> expectedIdsOrderedByName = repos.stream().map(Repository::getId).collect(Collectors.toList());
 
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();

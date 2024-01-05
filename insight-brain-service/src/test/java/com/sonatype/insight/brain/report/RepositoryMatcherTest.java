@@ -16,7 +16,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -34,8 +33,8 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigur
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
-import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
+import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -43,8 +42,8 @@ import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -52,7 +51,6 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightMail;
@@ -69,9 +67,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -120,7 +116,8 @@ public class RepositoryMatcherTest
   @Inject
   private RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
 
-  private static OrganizationDAO organizationDAO;
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Inject
   private ApplicationDAO applicationDAO;
@@ -147,17 +144,13 @@ public class RepositoryMatcherTest
     super.configure(binder);
   }
 
-  @BeforeClass
-  public static void beforeClass() {
-    organizationDAO = new OrganizationDAO();
-  }
-
   @Before
   public void before() {
-    application = tempEntity.newApplicationWithParent();
     Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     rootOrg.setArtifactoryConnectionEnabled(true);
     organizationDAO.update(rootOrg);
+
+    application = tempEntity.newApplicationWithParent();
     artifactoryMockServer.setPath("/artifactory");
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
         artifactoryMockServer.getUrl(), null, null);
@@ -165,15 +158,12 @@ public class RepositoryMatcherTest
 
   @After
   public void after() {
-    repositoryIdentifiedComponentDAO.getAll().forEach(repositoryIdentifiedComponentDAO::delete);
-    repositoryIdentifiedComponentCache.getLoadingCache().invalidateAll();
-  }
-
-  @AfterClass
-  public static void afterClass() {
     Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     rootOrg.setArtifactoryConnectionEnabled(null);
     organizationDAO.update(rootOrg);
+
+    repositoryIdentifiedComponentDAO.getAll().forEach(repositoryIdentifiedComponentDAO::delete);
+    repositoryIdentifiedComponentCache.getLoadingCache().invalidateAll();
   }
 
   @Test
@@ -194,27 +184,23 @@ public class RepositoryMatcherTest
     ObjectNode securityJson = createObjectNodeWithAaData();
     RepositoryMatcher spyRepositoryMatcher = spy(matcher);
 
-    try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
-      Set<ComponentIdentifier> match =
-          spyRepositoryMatcher.match(application, bomJson, dataJson, summaryJson, licensesJson, securityJson);
+    Set<ComponentIdentifier> match =
+        spyRepositoryMatcher.match(application, bomJson, dataJson, summaryJson, licensesJson, securityJson);
 
-      assertThat(match).containsExactly(identifier);
-      ArgumentCaptor<ArtifactoryConnection> connectionArgumentCaptor =
-          ArgumentCaptor.forClass(ArtifactoryConnection.class);
-      verify(spyRepositoryMatcher).identify(connectionArgumentCaptor.capture(), eq(bomJson));
-      assertThat(connectionArgumentCaptor.getValue().getId()).isEqualTo(artifactoryConnection.getId());
-      artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-          urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
-      verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
-      verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
-          Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
-      repositoryMatcher.verify(
-          () -> RepositoryMatcher.updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
-              eq(licensesJson), eq(securityJson), any(), any()));
-      assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
-      assertThat(logOutput).atErrorLevel().isEmpty();
-    }
+    assertThat(match).containsExactly(identifier);
+    ArgumentCaptor<ArtifactoryConnection> connectionArgumentCaptor =
+        ArgumentCaptor.forClass(ArtifactoryConnection.class);
+    verify(spyRepositoryMatcher).identify(connectionArgumentCaptor.capture(), eq(bomJson));
+    assertThat(connectionArgumentCaptor.getValue().getId()).isEqualTo(artifactoryConnection.getId());
+    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
+    verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
+        Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+    verify(spyRepositoryMatcher).updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
+            eq(licensesJson), eq(securityJson), any(), any());
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -244,7 +230,7 @@ public class RepositoryMatcherTest
     String baseUrl = "http://baseUrl/";
     apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
-    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
         artifactoryMockServer.getUrl(), "username", passwordHandler.encryptPassword("password".toCharArray()));
     artifactoryMockServer.mockSearchByChecksumsUsingAQLError(
@@ -553,7 +539,7 @@ public class RepositoryMatcherTest
 
   @Test
   public void testIdentify_NoConfiguredArtifactoryConnections() throws Exception {
-    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
     Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(artifactoryConnection,
         readJsonFile("match-proprietary/bom.json"));
 
@@ -576,7 +562,7 @@ public class RepositoryMatcherTest
     Organization org = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     org.setArtifactoryConnectionEnabled(false);
     organizationDAO.update(org);
-    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection =
         tempEntity.newArtifactoryConnection(application.getId(), artifactoryMockServer.getUrl(), null, null);
     application.setArtifactoryConnectionEnabled(true);
@@ -599,7 +585,7 @@ public class RepositoryMatcherTest
 
   @Test
   public void testIdentify_ArtifactoryConfig_Inherited_From_Parent_Org() throws Exception {
-    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection = tempEntity.newArtifactoryConnection(application.getParentOwnerId(),
         artifactoryMockServer.getUrl(), null, null);
     Organization org = organizationDAO.getByIdNotNull(application.getParentOwnerId());
@@ -928,7 +914,7 @@ public class RepositoryMatcherTest
         componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
     assertThat(objectNode.get(ComponentIdentifier.MAVEN_EXTENSION).asText()).isEqualTo(
         componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION));
-    assertThat(objectNode.get(ComponentDAO.DISPLAY_NAME_FIELD)).isEqualTo(
+    assertThat(objectNode.get(ComponentLoader.DISPLAY_NAME_FIELD)).isEqualTo(
         JsonUtils.asTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
   }
 
@@ -948,7 +934,7 @@ public class RepositoryMatcherTest
     assertThat(objectNode.has(ComponentIdentifier.VERSION)).isFalse();
     assertThat(objectNode.has(ComponentIdentifier.MAVEN_CLASSIFIER)).isFalse();
     assertThat(objectNode.has(ComponentIdentifier.MAVEN_EXTENSION)).isFalse();
-    assertThat(objectNode.get(ComponentDAO.DISPLAY_NAME_FIELD)).isEqualTo(
+    assertThat(objectNode.get(ComponentLoader.DISPLAY_NAME_FIELD)).isEqualTo(
         JsonUtils.asTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
   }
 
@@ -1261,7 +1247,7 @@ public class RepositoryMatcherTest
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_MATCH_STATE).asText()).isEqualTo(MatchState.EXACT.getId());
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_MATCHED_BY_COORDINATES).asBoolean()).isTrue();
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_CATALOG_DATE)).isEqualTo(NullNode.getInstance());
-    assertThat(licenseNode.get(ComponentDAO.DISPLAY_NAME_FIELD)).isEqualTo(
+    assertThat(licenseNode.get(ComponentLoader.DISPLAY_NAME_FIELD)).isEqualTo(
         JsonUtils.asTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
   }
 
@@ -1296,7 +1282,7 @@ public class RepositoryMatcherTest
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_MATCH_STATE).asText()).isEqualTo(MatchState.EXACT.getId());
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_MATCHED_BY_COORDINATES).asBoolean()).isTrue();
     assertThat(licenseNode.get(RepositoryMatcher.FIELD_CATALOG_DATE).asLong()).isEqualTo(evaluation.catalogDate);
-    assertThat(licenseNode.get(ComponentDAO.DISPLAY_NAME_FIELD)).isEqualTo(
+    assertThat(licenseNode.get(ComponentLoader.DISPLAY_NAME_FIELD)).isEqualTo(
         JsonUtils.asTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
   }
 
@@ -1532,7 +1518,7 @@ public class RepositoryMatcherTest
     ObjectNode summaryJson = objectMapper.createObjectNode();
     Map<ComponentIdentifier, ComponentEvaluationData> evaluationByIdentifier = new HashMap<>();
 
-    RepositoryMatcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, null, null,
+    matcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, null, null,
         bomNodeByIdentifier, evaluationByIdentifier);
 
     assertThat(dataJson.size()).isZero();
@@ -1564,31 +1550,32 @@ public class RepositoryMatcherTest
     ObjectNode securityJson = objectMapper.createObjectNode();
     securityJson.putArray("aaData");
 
-    try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS);
-         MockedStatic<ProprietaryConfigService> proprietaryConfigService =
-             Mockito.mockStatic(ProprietaryConfigService.class, CALLS_REAL_METHODS)) {
+    try (MockedStatic<RepositoryMatcher> mockedRepositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
+        CALLS_REAL_METHODS)) {
       Set<ComponentIdentifier> componentIdentifiers =
-          RepositoryMatcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
+          matcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
               securityJson, bomNodeByIdentifier, evaluationByIdentifier);
 
       assertThat(componentIdentifiers).containsExactlyInAnyOrder(componentIdentifier1, componentIdentifier2);
       assertThat(summaryJson.get(RepositoryMatcher.FIELD_KNOWN_ARTIFACT_COUNT).asInt()).isEqualTo(2);
-      repositoryMatcher.verify(
+      mockedRepositoryMatcher.verify(
           () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier1), any(), eq(true), any(), eq(false)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any(), eq(false)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any(), eq(false)));
-      repositoryMatcher.verify(
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any(), eq(false)));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any(), eq(false)));
+      mockedRepositoryMatcher.verify(
           () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier2), any(), eq(false), any(), eq(false)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any(), eq(false)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any(), eq(false)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateDataJson(any(), anyInt(), anyInt()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSummaryJson(any(), anyInt(), anyInt()));
-      proprietaryConfigService.verify(() -> ProprietaryConfigService.createIsProprietary(eq(application.getId())));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any(), eq(false)));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any(), eq(false)));
+      mockedRepositoryMatcher.verify(() -> RepositoryMatcher.updateDataJson(any(), anyInt(), anyInt()));
+      mockedRepositoryMatcher.verify(() -> RepositoryMatcher.updateSummaryJson(any(), anyInt(), anyInt()));
     }
   }
 
@@ -1617,30 +1604,32 @@ public class RepositoryMatcherTest
     ObjectNode securityJson = objectMapper.createObjectNode();
     securityJson.putArray("aaData");
 
-    try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS); MockedStatic<ProprietaryConfigService> proprietaryConfigService =
-             Mockito.mockStatic(ProprietaryConfigService.class, CALLS_REAL_METHODS)) {
+    try (MockedStatic<RepositoryMatcher> mockedRepositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
+        CALLS_REAL_METHODS)) {
       Set<ComponentIdentifier> componentIdentifiers =
-          RepositoryMatcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
+          matcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
               securityJson, bomNodeByIdentifier, evaluationByIdentifier);
 
       assertThat(componentIdentifiers).containsExactlyInAnyOrder(componentIdentifier1, componentIdentifier2);
       assertThat(summaryJson.get(RepositoryMatcher.FIELD_KNOWN_ARTIFACT_COUNT).asInt()).isEqualTo(2);
-      repositoryMatcher.verify(
+      mockedRepositoryMatcher.verify(
           () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier1), any(), eq(true), any(), eq(true)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any(), eq(true)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any(), eq(true)));
-      repositoryMatcher.verify(
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any(), eq(true)));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any(), eq(true)));
+      mockedRepositoryMatcher.verify(
           () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier2), any(), eq(false), any(), eq(true)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any(), eq(true)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any(), eq(true)));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateDataJson(any(), anyInt(), anyInt()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSummaryJson(any(), anyInt(), anyInt()));
-      proprietaryConfigService.verify(() -> ProprietaryConfigService.createIsProprietary(eq(application.getId())));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any(), eq(true)));
+      mockedRepositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any(), eq(true)));
+      mockedRepositoryMatcher.verify(() -> RepositoryMatcher.updateDataJson(any(), anyInt(), anyInt()));
+      mockedRepositoryMatcher.verify(() -> RepositoryMatcher.updateSummaryJson(any(), anyInt(), anyInt()));
     }
   }
 

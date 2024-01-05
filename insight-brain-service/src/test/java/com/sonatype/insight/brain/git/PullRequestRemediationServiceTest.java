@@ -6,12 +6,12 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-
 import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
@@ -64,6 +64,8 @@ public class PullRequestRemediationServiceTest
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
+  private OrganizationDAO organizationDAO;
+
   public PullRequestRemediationServiceTest() {
     super(PullRequestRemediationService.class);
   }
@@ -73,8 +75,10 @@ public class PullRequestRemediationServiceTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
+    organizationDAO = daoFactory.createOrganizationDAO();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
-        mockApplicationDAO, mockSourceControlUtils, mockPullRequestTaskProvider, mockSourceControlSshService);
+        mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockPullRequestTaskProvider,
+        mockSourceControlSshService);
   }
 
   private Application setupApplication(String appId) {

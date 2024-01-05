@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
 {
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private DashboardFilterDAO dashboardFilterDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dashboardFilterDAO = daoFactory.createDashboardFilterDAO();
+  }
 
   @Override
   protected DashboardFilter createNameable(String a) {

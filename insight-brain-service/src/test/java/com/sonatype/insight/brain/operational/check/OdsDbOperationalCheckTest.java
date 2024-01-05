@@ -6,26 +6,33 @@
 package com.sonatype.insight.brain.operational.check;
 
 import java.sql.Connection;
-import java.sql.Statement;
 import java.util.Map;
+import javax.sql.DataSource;
 
-import javax.inject.Inject;
-
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.test.InjectedTest;
 
 import com.codahale.metrics.health.HealthCheck.Result;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class OdsDbOperationalCheckTest
-    extends InjectedTest
+    extends AbstractDatabaseTest
 {
-  @Inject
   private OdsDbOperationalCheck odsDbOperationalCheck;
+
+  private OperationalDataStore operationalDataStore;
+
+  @Before
+  public void before() {
+    this.operationalDataStore = spy(databaseRule.getOperationalDataStore());
+    odsDbOperationalCheck = new OdsDbOperationalCheck(this.operationalDataStore);
+  }
 
   @Test
   public void testExecute_Healthy() {
@@ -37,17 +44,14 @@ public class OdsDbOperationalCheckTest
 
   @Test
   public void testExecute_Unhealthy() throws Exception {
-    try {
-      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-          Statement statement = connection.createStatement()) {
-        statement.execute("DROP SCHEMA " + OperationalDataStore.ID);
-      }
-      Result result = odsDbOperationalCheck.execute();
-      assertThat(result.isHealthy()).isFalse();
-      assertThat(result.getMessage()).contains("Cannot access the database: ");
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    DataSource mockDataSource = mock();
+    Connection mockConnection = mock();
+    when(operationalDataStore.getDataSource()).thenReturn(mockDataSource);
+    when(mockDataSource.getConnection()).thenReturn(mockConnection);
+    when(mockConnection.isValid(3)).thenReturn(false);
+
+    Result result = odsDbOperationalCheck.execute();
+    assertThat(result.isHealthy()).isFalse();
+    assertThat(result.getMessage()).startsWith("Cannot access the database. The connection timed out after");
   }
 }

@@ -14,18 +14,24 @@ public abstract class AbstractComponentCategoryUpdater
 
   private static AbstractComponentCategoryUpdater updater;
 
-  public static final synchronized void update() {
+  protected final ComponentCategoryDAO componentCategoryDAO;
+
+  public AbstractComponentCategoryUpdater(ComponentCategoryDAO componentCategoryDAO) {
+    this.componentCategoryDAO = componentCategoryDAO;
+  }
+
+  public static final synchronized void update(ComponentCategoryDAO componentCategoryDAO) {
     if (updater == null) {
       log.warn("Cannot update component category data because there is no component category updater.");
       return;
     }
 
     updater.doUpdate();
-    loadComponentCategories();
+    componentCategoryDAO.load();
   }
 
-  public static synchronized void loadComponentCategories() {
-    new ComponentCategoryDAO().load();
+  public synchronized void loadComponentCategories() {
+    componentCategoryDAO.load();
   }
 
   // for testing only

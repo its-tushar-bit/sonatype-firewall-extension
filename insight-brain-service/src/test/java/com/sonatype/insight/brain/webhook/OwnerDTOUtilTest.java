@@ -32,6 +32,9 @@ public class OwnerDTOUtilTest
   @Inject
   private OwnerDTOUtil ownerDTOUtil;
 
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   @Test
   public void testBuildOwnerDTO_Organization() {
     Organization organization = tempEntity.newOrganization();
@@ -132,7 +135,7 @@ public class OwnerDTOUtilTest
   @Test
   public void testBuildOwnerDTO_DeletedOwner() {
     Application application = tempEntity.newApplicationWithParent("publicId");
-    new ApplicationDAO().delete(application);
+    applicationDAO.delete(application);
 
     OwnerEvent event = new OwnerEvent();
     event.owner = application;

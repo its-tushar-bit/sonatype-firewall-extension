@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
@@ -37,6 +36,9 @@ public class ApiSourceControlEvaluationServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
   private ApiSourceControlEvaluationService apiSourceControlEvaluationService;
 
   @Inject
@@ -61,7 +63,7 @@ public class ApiSourceControlEvaluationServiceTest
     assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
         .startsWith("api/v2/evaluation/applications/" + app.getId() + "/status/");
 
-    List<SourceControlEvent> sourceControlEvents = new SourceControlEventDAO().getAll();
+    List<SourceControlEvent> sourceControlEvents = sourceControlEventDAO.getAll();
     assertThat(sourceControlEvents).hasSize(1);
     SourceControlEvent sourceControlEvent = sourceControlEvents.get(0);
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(app.getId());
@@ -89,7 +91,7 @@ public class ApiSourceControlEvaluationServiceTest
     assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
         .startsWith("api/v2/evaluation/applications/" + app.getId() + "/status/");
 
-    List<SourceControlEvent> sourceControlEvents = new SourceControlEventDAO().getAll();
+    List<SourceControlEvent> sourceControlEvents = sourceControlEventDAO.getAll();
     assertThat(sourceControlEvents).hasSize(1);
     SourceControlEvent sourceControlEvent = sourceControlEvents.get(0);
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(app.getId());

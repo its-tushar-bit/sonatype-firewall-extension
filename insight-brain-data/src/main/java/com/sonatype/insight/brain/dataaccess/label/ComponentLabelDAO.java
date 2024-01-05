@@ -9,18 +9,39 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+@Named
+@Singleton
 public class ComponentLabelDAO
     extends AbstractOperationalSqlDAO<ComponentLabel>
 {
+  private final OwnerDAO ownerDAO;
+
+  private final LabelDAO labelDAO;
+
+  @Inject
+  public ComponentLabelDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final LabelDAO labelDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.labelDAO = labelDAO;
+  }
+
   public List<ComponentLabel> getByLabelId(TransactionContext tx, String labelId) {
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.labelId=?1";
@@ -41,7 +62,6 @@ public class ComponentLabelDAO
 
   public List<ComponentLabel> getByOwnerIdAndHashWithHierarchy(String ownerId, String hash) {
     List<ComponentLabel> labels = new ArrayList<>();
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       labels.addAll(getByOwnerIdAndHash(owner.getId(), hash));
     }
@@ -112,7 +132,6 @@ public class ComponentLabelDAO
   }
 
   private void validate(TransactionContext tx, ComponentLabel entity) {
-    LabelDAO labelDAO = new LabelDAO();
     Label label = labelDAO.getByIdNotNull(tx, entity.getLabelId());
     ComponentLabel other =
         getByOwnerIdAndHashAndLabelId(tx, entity.getOwnerId(), entity.getHash(), entity.getLabelId());

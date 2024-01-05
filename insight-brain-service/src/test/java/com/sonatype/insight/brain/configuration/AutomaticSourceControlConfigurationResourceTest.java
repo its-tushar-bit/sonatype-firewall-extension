@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutomaticSourceControlConfigurationResourceTest
     extends AbstractResourceTest
 {
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(AutomaticSourceControlConfigurationResource.RESOURCE_PATH);
@@ -25,8 +33,6 @@ public class AutomaticSourceControlConfigurationResourceTest
 
   @Test
   public void testGetAutomaticSourceControl() throws Exception {
-    AutomaticSourceControlConfigurationDAO
-        automaticSourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
 
     HttpResponse response = restRequest().get();
@@ -44,8 +50,6 @@ public class AutomaticSourceControlConfigurationResourceTest
     AutomaticSourceControlConfiguration configuration = response.getBody(AutomaticSourceControlConfiguration.class);
     assertThat(configuration.isEnabled()).isTrue();
 
-    AutomaticSourceControlConfigurationDAO
-        automaticSourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     assertThat(automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()).isTrue();
   }
 }

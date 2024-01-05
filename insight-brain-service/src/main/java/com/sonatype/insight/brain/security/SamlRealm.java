@@ -44,9 +44,12 @@ public class SamlRealm
 
   private final SamlUserGroupHelper samlUserGroupHelper;
 
+  private final SamlConfigurationDAO samlConfigurationDAO;
+
   @Inject
-  public SamlRealm(SamlUserGroupHelper samlUserGroupHelper) {
+  public SamlRealm(SamlUserGroupHelper samlUserGroupHelper, SamlConfigurationDAO samlConfigurationDAO) {
     super(new AllowAllCredentialsMatcher());
+    this.samlConfigurationDAO = samlConfigurationDAO;
     setName("SAML");
     setAuthenticationTokenClass(SamlAuthenticationToken.class);
     this.samlUserGroupHelper = samlUserGroupHelper;
@@ -58,7 +61,7 @@ public class SamlRealm
     log.debug("Authenticated SAML principal {} with attributes {} and friendly attributes {}",
         samlPrincipal.getName(), samlPrincipal.getAttributes(), getFriendlyAttributes(samlPrincipal));
 
-    SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
+    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
     String username =
         Optional.ofNullable(getFirstAttribute(samlPrincipal, samlConfiguration.getUsernameAttributeName()))
             .orElse(samlPrincipal.getName());

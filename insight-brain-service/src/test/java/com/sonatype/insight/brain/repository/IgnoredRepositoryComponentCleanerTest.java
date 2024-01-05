@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Collections;
 import java.util.HashMap;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
@@ -72,7 +71,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
   @Test
   public void testStart_NotMigrated() {
-    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
 
     ignoredRepositoryComponentMigrator.register();
 
@@ -81,7 +80,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
   @Test
   public void testExecute() throws Exception {
-    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
     Repository repository = tempEntity.newRepository("rm1", "r1", "maven2");
     tempEntity.newRepositoryComponent(repository, "a/sha", MatchState.UNKNOWN, "hash");
 
@@ -102,7 +101,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
   @Test
   public void testExecute_HdsError() throws Exception {
-    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
     tempEntity.newRepository("rm1", "r1", "maven2");
 
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))

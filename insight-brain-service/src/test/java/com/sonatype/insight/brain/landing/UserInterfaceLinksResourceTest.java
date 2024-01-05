@@ -156,20 +156,26 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testLinkToReport_WithSourceQuery_Anonymous() throws Exception {
     testLinkToReport_WithSourceQuery(true /* anonymous */);
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
+  public void testLinkToReport_WithSourceQuery_Anonymous_IntegratedEnterpriseReportingEnabled() throws Exception {
+    testLinkToReport_WithSourceQuery(true /* anonymous */);
+  }
+
+  @Test
+  @ManualIqServerInit
   public void testLinkToReport_WithSourceQuery_UserIsLoggedIn() throws Exception {
     testLinkToReport_WithSourceQuery(false /* anonymous */);
   }
 
   private void testLinkToReport_WithSourceQuery(boolean anonymous) throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
+    startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
@@ -212,10 +218,10 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testLinkToReport_WithoutSourceQuery() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
+    startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));

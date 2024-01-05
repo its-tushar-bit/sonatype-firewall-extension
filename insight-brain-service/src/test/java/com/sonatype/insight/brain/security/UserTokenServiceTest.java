@@ -14,7 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
@@ -76,7 +75,7 @@ public class UserTokenServiceTest
 
   @Override
   public void configure(Binder binder) {
-    spySamlUserDAO = spy(new SamlUserDAO());
+    spySamlUserDAO = spy(daoFactory.createSamlUserDAO());
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
     binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
     super.configure(binder);

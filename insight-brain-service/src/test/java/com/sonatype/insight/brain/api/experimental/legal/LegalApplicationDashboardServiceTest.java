@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationCompon
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -68,6 +69,9 @@ public class LegalApplicationDashboardServiceTest
 
   @Inject
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
 
   @Mock
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
@@ -581,7 +585,7 @@ public class LegalApplicationDashboardServiceTest
 
   private List<ApiLicenseDTOV2> getApiLicenses(List<String> licenseIds) {
     List<ApiLicenseDTOV2> licenses = new ArrayList<>(licenseIds.size());
-    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
+    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter(multiLicenseDAO);
 
     for (String licenseId : licenseIds) {
       List<ApiLicenseThreatDTOV2> groups =

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDT
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -62,11 +63,13 @@ public class ApiEvaluationResourceV2Test
 
   private static final int NUM_TRIES = 20;
 
+  private SourceControlEventDAO sourceControlEventDAO;
+
   private Organization org;
 
   private Application app;
 
-  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper;
 
   private static final String SCAN_ID = "scanId";
 
@@ -76,6 +79,9 @@ public class ApiEvaluationResourceV2Test
 
   @Before
   public void setupApplication() {
+    PolicyDAO policyDAO = lookup(PolicyDAO.class);
+    componentEvaluationV2Helper = new ComponentEvaluationV2Helper(policyDAO);
+    sourceControlEventDAO = lookup(SourceControlEventDAO.class);
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
   }
@@ -553,9 +559,6 @@ public class ApiEvaluationResourceV2Test
     tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
         new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "customBranch", null);
 
-    // and we can query for Source Control events
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
-
     // and events are empty
     assertThat(sourceControlEventDAO.getAll()).isEmpty();
 
@@ -598,9 +601,6 @@ public class ApiEvaluationResourceV2Test
     PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
     tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
         new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "customBranch", null);
-
-    // and we can query for Source Control events
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
 
     // and events are empty
     assertThat(sourceControlEventDAO.getAll()).isEmpty();

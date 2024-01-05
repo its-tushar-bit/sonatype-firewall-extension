@@ -25,6 +25,15 @@ public interface TestInsightBrainService
     default String getConfigFilePath() {
       return DEFAULT_CONFIG_FILE_PATH;
     }
+
+    /**
+     * The {@link Configurator} interface is used to determine if the test IQ instance needs to be restarted or not. The
+     * default is 'false' since any test that uses a custom Configurator will want a clean IQ to start, however base
+     * class usage will often want to return true.
+     */
+    default boolean isReusable() {
+      return false;
+    }
   }
 
   void setHttpPort(int port);

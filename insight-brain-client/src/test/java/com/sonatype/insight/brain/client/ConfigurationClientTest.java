@@ -30,21 +30,32 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ConfigurationClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  @Before
+  public void setUp() {
+    automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+  }
+
   @Test
   public void testValidateConfiguration_AllGood() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
@@ -352,14 +363,12 @@ public class ConfigurationClientTest
 
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     Organization org = tempEntity.newOrganization();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     boolean result = client.verifyOrCreateApplication(appPublicId, null);
     assertThat(result).isTrue();
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(org.getId());
   }
 
@@ -369,15 +378,13 @@ public class ConfigurationClientTest
 
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
     Organization org = tempEntity.newOrganization();
     boolean result = client.verifyOrCreateApplication(appPublicId, org.getId());
     assertThat(result).isTrue();
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(org.getId());
   }
 

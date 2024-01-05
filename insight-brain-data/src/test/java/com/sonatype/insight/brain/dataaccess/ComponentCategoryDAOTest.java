@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,9 +19,17 @@ import static org.mockito.Mockito.mock;
 public class ComponentCategoryDAOTest
     extends AbstractDbDAOTest
 {
+  private ComponentCategoryDAO componentCategoryDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    componentCategoryDAO = daoFactory.createComponentCategoryDAO();
+  }
+
   @Test
   public void test_getAll() {
-    ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
     List<ComponentCategory> componentCategories = componentCategoryDAO.getAll();
     assertThat(componentCategories).isNotEmpty().isSortedAccordingTo(
         Comparator.comparing(ComponentCategory::getPath, String.CASE_INSENSITIVE_ORDER));
@@ -29,26 +38,24 @@ public class ComponentCategoryDAOTest
   @Test
   public void test_getById_RefreshesComponentCategories() {
     String newId = "newId";
-    ComponentCategoryDAO dao = new ComponentCategoryDAO();
-    assertThat(dao.getById(newId)).isNull();
-    int count = dao.getAll().size();
+    assertThat(componentCategoryDAO.getById(newId)).isNull();
+    int count = componentCategoryDAO.getAll().size();
 
     ComponentCategory newCategory = new ComponentCategory(newId, "Test Category");
-    dao.insert(newCategory);
-    assertThat(dao.getById(newId)).isNull();
+    componentCategoryDAO.insert(newCategory);
+    assertThat(componentCategoryDAO.getById(newId)).isNull();
 
     AbstractComponentCategoryUpdater.setUpdater(mock(AbstractComponentCategoryUpdater.class));
 
-    assertThat(dao.getById(newId)).isNotNull();
-    assertThat(dao.getAll()).hasSize(count + 1);
+    assertThat(componentCategoryDAO.getById(newId)).isNotNull();
+    assertThat(componentCategoryDAO.getAll()).hasSize(count + 1);
 
-    dao.delete(newCategory);
-    dao.load();
+    componentCategoryDAO.delete(newCategory);
+    componentCategoryDAO.load();
   }
 
   @Test
   public void test_getChildren() {
-    ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
     ComponentCategory category1 = new ComponentCategory("category1", "Test Category1");
     ComponentCategory level1 = new ComponentCategory("level1", "Test Category1/level1");
     ComponentCategory level2 = new ComponentCategory("level2", "Test Category1/level1/level2");

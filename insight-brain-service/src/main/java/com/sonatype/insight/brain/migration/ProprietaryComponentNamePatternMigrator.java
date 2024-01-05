@@ -12,10 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -28,19 +26,22 @@ public class ProprietaryComponentNamePatternMigrator
   private static final Logger log = LoggerFactory.getLogger(ProprietaryComponentNamePatternMigrator.class);
 
   @Override
-  public void migrate(DataSource dataSource) throws Exception {
+  public void migrate(final DataSource dataSource, final String databaseSchema) throws Exception {
     long start = System.currentTimeMillis();
     log.info("Migrating proprietary component name patterns...");
 
-    List<OldProprietaryComponentNamePattern> oldPatterns = OldProprietaryComponentNamePattern.getAll(dataSource);
+    List<OldProprietaryComponentNamePattern> oldPatterns =
+        OldProprietaryComponentNamePattern.getAll(dataSource, databaseSchema);
     log.info("Found {} proprietary component name patterns.", oldPatterns.size());
 
     for (OldProprietaryComponentNamePattern oldPattern : oldPatterns) {
-      String repositoryManagerId = getOrCreateRepositoryManagerId(dataSource, oldPattern.repositorymanagerInstanceId);
+      String repositoryManagerId =
+          getOrCreateRepositoryManagerId(dataSource, oldPattern.repositorymanagerInstanceId, databaseSchema);
       String repositoryId =
-          getOrCreateRepositoryId(dataSource, repositoryManagerId, oldPattern.repositoryPublicId, oldPattern.format);
+          getOrCreateRepositoryId(dataSource, repositoryManagerId, oldPattern.repositoryPublicId, oldPattern.format,
+              databaseSchema);
 
-      updateProprietaryComponentNamePattern(dataSource, oldPattern.id, repositoryId);
+      updateProprietaryComponentNamePattern(dataSource, oldPattern.id, repositoryId, databaseSchema);
     }
 
     log.info("Migrated {} proprietary component name patterns in {} ms.", oldPatterns.size(),
@@ -48,12 +49,13 @@ public class ProprietaryComponentNamePatternMigrator
   }
 
   private String getOrCreateRepositoryManagerId(
-      DataSource dataSource,
-      String repositoryManagerInstanceId) throws SQLException
+      final DataSource dataSource,
+      final String repositoryManagerInstanceId,
+      final String databaseSchema) throws SQLException
   {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement("SELECT repository_manager_id FROM "
-            + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_manager WHERE instance_id = ?");) {
+            + databaseSchema + ".repository_manager WHERE instance_id = ?");) {
       statement.setString(1, repositoryManagerInstanceId);
       try (ResultSet resultSet = statement.executeQuery()) {
         while (resultSet.next()) {
@@ -65,7 +67,7 @@ public class ProprietaryComponentNamePatternMigrator
     String repositoryManagerId = newUUID();
     try (Connection connection = dataSource.getConnection();
         PreparedStatement insertStmt =
-            connection.prepareStatement("INSERT INTO " + OperationalDataStoreProvider.getDatabaseSchema()
+            connection.prepareStatement("INSERT INTO " + databaseSchema
                 + ".repository_manager (repository_manager_id, instance_id) VALUES (?, ?)");) {
       connection.setAutoCommit(true);
       insertStmt.setString(1, repositoryManagerId);
@@ -79,15 +81,16 @@ public class ProprietaryComponentNamePatternMigrator
   }
 
   private String getOrCreateRepositoryId(
-      DataSource dataSource,
-      String repositoryManagerId,
-      String repositoryPublicId,
-      String format) throws SQLException
+      final DataSource dataSource,
+      final String repositoryManagerId,
+      final String repositoryPublicId,
+      final String format,
+      final String databaseSchema) throws SQLException
   {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement =
             connection.prepareStatement(
-                "SELECT repository_id, repository_type FROM " + OperationalDataStoreProvider.getDatabaseSchema()
+                "SELECT repository_id, repository_type FROM " + databaseSchema
                     + ".repository WHERE repository_manager_id = ? AND public_id = ?");) {
       statement.setString(1, repositoryManagerId);
       statement.setString(2, repositoryPublicId);
@@ -105,7 +108,7 @@ public class ProprietaryComponentNamePatternMigrator
     String repositoryId = newUUID();
     try (Connection connection = dataSource.getConnection();
         PreparedStatement insertStmt =
-            connection.prepareStatement("INSERT INTO " + OperationalDataStoreProvider.getDatabaseSchema()
+            connection.prepareStatement("INSERT INTO " + databaseSchema
                 + ".repository (repository_id, repository_manager_id, public_id, repository_type, format, enabled, "
                 + "quarantine_enabled, policy_compliant_component_selection_enabled, "
                 + "namespace_confusion_protection_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");) {
@@ -133,13 +136,14 @@ public class ProprietaryComponentNamePatternMigrator
   }
 
   private void updateProprietaryComponentNamePattern(
-      DataSource dataSource,
-      String proprietaryComponentNamePatternId,
-      String repositoryId) throws SQLException
+      final DataSource dataSource,
+      final String proprietaryComponentNamePatternId,
+      final String repositoryId,
+      final String databaseSchema) throws SQLException
   {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement updateStmt = connection.prepareStatement("UPDATE "
-            + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern"
+            + databaseSchema + ".proprietary_component_name_pattern"
             + " SET repository_id=? WHERE proprietary_component_name_pattern_id=?");) {
       connection.setAutoCommit(true);
       updateStmt.setString(1, repositoryId);
@@ -165,12 +169,14 @@ public class ProprietaryComponentNamePatternMigrator
       format = resultSet.getString(4);
     }
 
-    static List<OldProprietaryComponentNamePattern> getAll(DataSource dataSource) throws SQLException {
+    static List<OldProprietaryComponentNamePattern> getAll(final DataSource dataSource, final String databaseSchema)
+        throws SQLException
+    {
       try (Connection connection = dataSource.getConnection();
           PreparedStatement statement = connection.prepareStatement(
               "SELECT proprietary_component_name_pattern_id, repository_manager_instance_id, "
                   + "repository_public_id, format FROM "
-                  + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern");) {
+                  + databaseSchema + ".proprietary_component_name_pattern");) {
         List<OldProprietaryComponentNamePattern> result = new ArrayList<>();
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {

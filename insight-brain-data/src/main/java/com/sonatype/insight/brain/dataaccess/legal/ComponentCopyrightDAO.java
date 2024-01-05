@@ -7,11 +7,16 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
@@ -21,9 +26,26 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class ComponentCopyrightDAO
     extends AbstractOperationalSqlDAO<ComponentCopyright>
 {
+  private final OwnerDAO ownerDAO;
+
+  private final Provider<CopyrightOverrideDAO> copyrightOverrideDAOProvider;
+
+  @Inject
+  public ComponentCopyrightDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final Provider<CopyrightOverrideDAO> copyrightOverrideDAOProvider)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.copyrightOverrideDAOProvider = copyrightOverrideDAOProvider;
+  }
+
   public List<ComponentCopyright> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
         " WHERE entity.ownerId=?1";
@@ -63,7 +85,6 @@ public class ComponentCopyrightDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       ComponentCopyright componentCopyright =
           getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
@@ -110,7 +131,7 @@ public class ComponentCopyrightDAO
   @Override
   public void delete(TransactionContext tx, ComponentCopyright componentCopyright) {
     // Cascade to copyright overrides
-    CopyrightOverrideDAO copyrightOverrideDAO = new CopyrightOverrideDAO();
+    CopyrightOverrideDAO copyrightOverrideDAO = copyrightOverrideDAOProvider.get();
     for (CopyrightOverride copyrightOverride : copyrightOverrideDAO
         .getByComponentCopyrightId(tx, componentCopyright.getId())) {
       copyrightOverrideDAO.delete(tx, copyrightOverride);

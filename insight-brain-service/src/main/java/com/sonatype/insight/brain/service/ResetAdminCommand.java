@@ -11,16 +11,27 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
+import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseEngine;
 
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
@@ -45,6 +56,8 @@ public class ResetAdminCommand
     DEFAULT_ADMIN.setId("ADMIN");
   }
 
+  private OperationalDataStore operationalDataStore;
+
   ResetAdminCommand() {
     super("reset-admin", "Resets the admin user back to its default configuration.");
   }
@@ -55,8 +68,10 @@ public class ResetAdminCommand
         .recordSystemEvent(AuditEvent.RESET_USER_PASSWORD)) {
       AuditData.get().setData("username", DEFAULT_ADMIN.getUsername());
       try {
-        DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
-        OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
+        DatabaseConfig databaseConfig = DatabaseConfigProviderFactory.createDatabaseConfigProvider(insightConfig)
+            .getDatabaseConfig(DatabaseName.ods);
+        operationalDataStore = getOperationalDataStore(databaseConfig);
+        operationalDataStore.initialize();
         resetAdminUser();
         log.info("Successfully reset the admin user back to its default configuration.");
       }
@@ -68,8 +83,14 @@ public class ResetAdminCommand
     }
   }
 
+  protected OperationalDataStore getOperationalDataStore(final DatabaseConfig databaseConfig) {
+    DatabaseEngine databaseEngine = DatabaseUtil.getDatabaseEngine(databaseConfig);
+    DataSourceProvider dataSourceProvider = DataSourceProviderFactory.createDataSourceProvider(databaseEngine);
+    return new DefaultOperationalDataStore(dataSourceProvider, databaseConfig);
+  }
+
   private void resetAdminUser() {
-    UserDAO userDAO = new UserDAO();
+    UserDAO userDAO = getUserDAO();
     try (TransactionContext tx = userDAO.createTransactionContext()) {
       tx.begin();
       User admin = userDAO.getByUsername(tx, DEFAULT_ADMIN.getUsername());
@@ -86,8 +107,22 @@ public class ResetAdminCommand
     }
   }
 
+  private UserDAO getUserDAO() {
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO(operationalDataStore);
+    UserTokenDAO userTokenDAO = new UserTokenDAO(operationalDataStore);
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO(operationalDataStore);
+    UserFilterDAO userFilterDAO = new UserFilterDAO(operationalDataStore);
+    UserViewedProductNotificationDAO userViewedProductNotificationDAO =
+        new UserViewedProductNotificationDAO(operationalDataStore);
+    UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO(operationalDataStore);
+    UserDAO userDAO =
+        new UserDAO(operationalDataStore, membershipMappingDAO, userTokenDAO, dashboardFilterDAO, userFilterDAO,
+            userViewedProductNotificationDAO, userIdePolicyEvaluationDAO);
+    return userDAO;
+  }
+
   private void setAdminMemberOfIfNeeded(TransactionContext tx, String roleId) {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO(operationalDataStore);
     if (membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId).stream().noneMatch(
         membershipMapping -> membershipMapping.includes(DEFAULT_ADMIN.getUsername(), Collections.emptySet()))) {
       membershipMappingDAO.insert(tx,

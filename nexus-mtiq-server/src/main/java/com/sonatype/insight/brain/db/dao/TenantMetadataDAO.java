@@ -5,12 +5,20 @@
  */
 package com.sonatype.insight.brain.db.dao;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 
 public class TenantMetadataDAO
     extends AbstractOperationalSqlDAO<TenantMetadata>
 {
+  @Inject
+  public TenantMetadataDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public TenantMetadata get() {
     String sQuery = "SELECT entity FROM TenantMetadata entity";
     return createQuery(sQuery).forceSingleResult().get();

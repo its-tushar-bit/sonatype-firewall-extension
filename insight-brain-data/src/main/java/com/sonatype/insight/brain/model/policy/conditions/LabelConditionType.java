@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -18,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class LabelConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -25,9 +30,16 @@ public class LabelConditionType
 
   private static List<String> supportedOperators = new ArrayList<>();
 
+  private final LabelDAO labelDAO;
+
   static {
     supportedOperators.add("is");
     supportedOperators.add("is not");
+  }
+
+  @Inject
+  public LabelConditionType(final LabelDAO labelDAO) {
+    this.labelDAO = labelDAO;
   }
 
   @Override
@@ -47,7 +59,7 @@ public class LabelConditionType
     super.validateCondition(tx, condition, ownerId);
 
     String labelId = condition.getValue();
-    LabelValueType labelValueType = new LabelValueType(tx, ownerId);
+    LabelValueType labelValueType = new LabelValueType(tx, ownerId, labelDAO);
     for (Label label : labelValueType.getAvailableValues()) {
       if (label.getId().equals(labelId)) {
         return;
@@ -73,19 +85,18 @@ public class LabelConditionType
 
   @Override
   public String generateDroolsConditionValue(TransactionContext tx, String value) {
-    Label label = new LabelDAO().getById(tx, value);
+    Label label = labelDAO.getById(tx, value);
     return asDroolsString(value) + asDroolsComment("label: " + label.getLabel());
   }
 
   @Override
   public String explainCondition(final Condition condition) {
-    return getName() + ' ' + condition.getOperator() + " '" + new LabelDAO().getById(condition.getValue()).getLabel()
+    return getName() + ' ' + condition.getOperator() + " '" + labelDAO.getById(condition.getValue()).getLabel()
         + '\'';
   }
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    final LabelDAO labelDAO = new LabelDAO();
     TriggerLabel conditionTrigger = (TriggerLabel) matchFact
         .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
     Label label = labelDAO.getById(conditionTrigger.id);

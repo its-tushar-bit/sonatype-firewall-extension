@@ -6,11 +6,12 @@
 package com.sonatype.insight.brain.policy.violation;
 
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -36,10 +37,21 @@ public class PolicyViolationLoggerFactory
 
   private final CurrentUser currentUser;
 
+  private final OrganizationDAO organizationDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
-  public PolicyViolationLoggerFactory(ProductLicense productLicense, final CurrentUser currentUser) {
+  public PolicyViolationLoggerFactory(
+      ProductLicense productLicense,
+      final CurrentUser currentUser,
+      final OrganizationDAO organizationDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
+  {
     this.productLicense = productLicense;
     this.currentUser = currentUser;
+    this.organizationDAO = organizationDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   public OrganizationPolicyViolationLogger newLogger(Date logTimestamp, Organization organization) {
@@ -49,15 +61,16 @@ public class PolicyViolationLoggerFactory
   }
 
   public ApplicationPolicyViolationLogger newLogger(Date logTimestamp, Application application) {
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
     return new ApplicationPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
-        application, currentUser);
+        application, organization, currentUser);
   }
 
   public RepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
     return new RepositoryPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository,
-        currentUser);
+        currentUser, repositoryManagerDAO);
   }
 
   private void logPotentialMisconfiguration() {

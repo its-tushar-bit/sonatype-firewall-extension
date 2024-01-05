@@ -25,11 +25,16 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ComponentCopyrightDAOTest
     extends AbstractDbDAOTest
 {
+  private CopyrightOverrideDAO copyrightOverrideDAO;
+
   private ComponentCopyrightDAO dao;
 
   @Before
-  public void before() {
-    dao = new ComponentCopyrightDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createComponentCopyrightDAO();
+    copyrightOverrideDAO = daoFactory.createCopyrightOverrideDAO();
   }
 
   @Test
@@ -202,7 +207,6 @@ public class ComponentCopyrightDAOTest
 
     dao.delete(componentCopyright);
 
-    CopyrightOverrideDAO copyrightOverrideDAO = new CopyrightOverrideDAO();
     assertThat(dao.getById(componentCopyright.getId())).isNull();
     assertThat(copyrightOverrideDAO.getById(copyrightOverride1.getId())).isNull();
     assertThat(copyrightOverrideDAO.getById(copyrightOverride2.getId())).isNull();

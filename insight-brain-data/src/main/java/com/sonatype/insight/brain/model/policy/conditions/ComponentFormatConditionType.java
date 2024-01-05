@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
@@ -21,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @since 1.136
  */
+@Singleton
+@Named
 public class ComponentFormatConditionType
     extends AbstractComponentConditionType<String>
 {

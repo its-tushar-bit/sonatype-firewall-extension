@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalDate;
+import javax.inject.Named;
 
 /**
  * @since 1.170
  */
+@Named
 public class SourceControlUserActivityTelemetryDTO
 {
   private String sourceControlUserActivityId;

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.component;
 
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -17,10 +16,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
-import org.mockito.Spy;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class RepositoryIdentifiedComponentCacheLoaderTest
@@ -29,11 +28,11 @@ public class RepositoryIdentifiedComponentCacheLoaderTest
   @Inject
   private RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader;
 
-  @Spy
   private RepositoryIdentifiedComponentDAO spyRepositoryIdentifiedComponentDAO;
 
   @Override
   public void configure(Binder binder) {
+    spyRepositoryIdentifiedComponentDAO = spy(daoFactory.createRepositoryIdentifiedComponentDAO());
     binder.bind(RepositoryIdentifiedComponentDAO.class).toInstance(spyRepositoryIdentifiedComponentDAO);
     super.configure(binder);
   }

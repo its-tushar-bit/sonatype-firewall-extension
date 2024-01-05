@@ -34,7 +34,7 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.mockito.Mockito;
 import org.openqa.selenium.Keys;
 
-import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -43,7 +43,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.CollectionCondition.size;
+import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
 import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage.NewUserForm;
 
 public class MtiqUserManagementTest
@@ -67,7 +67,7 @@ public class MtiqUserManagementTest
 
   private MtiqUserManagementPage page = new MtiqUserManagementPage();
 
-  private TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
+  private TenantMetadataDAO tenantMetadataDAO;
 
   private String userId1;
 
@@ -107,6 +107,7 @@ public class MtiqUserManagementTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
 
+    tenantMetadataDAO = lookup(TenantMetadataDAO.class);
     tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connectionId", "connectionName", "encKeyName"));
   }
 

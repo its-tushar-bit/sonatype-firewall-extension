@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
@@ -26,6 +25,9 @@ public class RoleServiceTest
 {
   @Inject
   private RoleService roleService;
+
+  @Inject
+  private RoleDAO roleDAO;
 
   @Test
   public void testGetAllRoles() {
@@ -149,7 +151,7 @@ public class RoleServiceTest
 
   @Test
   public void testGetRolesAsApiRoleListDTO() {
-    List<Role> allRoles = new RoleDAO().getAll();
+    List<Role> allRoles = roleDAO.getAll();
     List<ApiRoleDTO> roles = roleService.getRolesAsApiRoleListDTO().roles;
 
     assertThat(roles).hasSize(allRoles.size());

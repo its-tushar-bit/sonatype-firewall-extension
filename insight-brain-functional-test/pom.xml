@@ -50,7 +50,7 @@
             Don't halt on failures, so that the damage control report can pick up the test results.
             CI builds set this to true so that it can analyze the test results.
             If you want to use it locally then pass the property maven.test.failure.ignore to the build.
-            
+
             <testFailureIgnore>true</testFailureIgnore>
           -->
           <excludes>
@@ -158,6 +158,11 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>

@@ -43,7 +43,7 @@ import static com.codeborne.selenide.Condition.visible;
 public class WebhookConfigurationTest
     extends AbstractFunctionalTest
 {
-  private final WebhookDAO webhookDAO = new WebhookDAO();
+  private WebhookDAO webhookDAO;
 
   private final WebhookEditPage webhookEditPage = new WebhookEditPage();
 
@@ -59,6 +59,8 @@ public class WebhookConfigurationTest
 
   @Before
   public void before() {
+    webhookDAO = lookup(WebhookDAO.class);
+
     insertWebhooks();
     refreshOrOpen(WebhookConfigurationPage.url());
     webhookConfigurationPage.should(appear);

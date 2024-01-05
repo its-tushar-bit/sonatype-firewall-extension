@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiProxyServerConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    proxyServerConfigurationDAO = lookup(ProxyServerConfigurationDAO.class);
+  }
 
   @Override
   protected void afterDatabaseReset() {

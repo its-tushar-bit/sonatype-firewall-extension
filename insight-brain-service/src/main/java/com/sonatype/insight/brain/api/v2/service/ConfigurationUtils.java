@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -72,7 +73,14 @@ public class ConfigurationUtils
 
   public static final String NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE = "NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE";
 
+  private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   private ConfigurationUtils() {}
+
+  @Inject
+  public static void injectDependencies(final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
+    ConfigurationUtils.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+  }
 
   public static String urlValueToString(Object value) {
     if (value == null) {
@@ -101,7 +109,7 @@ public class ConfigurationUtils
 
   public static String forceBaseUrlToString(TransactionContext tx, Object value) {
     Boolean booleanValue = (Boolean) value;
-    String baseUrl = new SystemConfigurationPropertyDAO().get(tx, SystemConfigurationProperty.BASE_URL);
+    String baseUrl = systemConfigurationPropertyDAO.get(tx, SystemConfigurationProperty.BASE_URL);
     if (booleanValue != null && booleanValue) {
       log.error("DEPRECATION NOTICE: Forcing use of server base URL: {}, any 'X-Forwarded-*' headers will be " +
           "ignored. More information at http://links.sonatype.com/products/clm/docs/base-url", baseUrl);

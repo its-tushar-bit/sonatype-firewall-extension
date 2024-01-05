@@ -19,6 +19,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
@@ -28,7 +29,12 @@ import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
 public class UserFilterResourceAuditTest
     extends AbstractAuditTest
 {
-  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+  private UserFilterDAO userFilterDAO;
+
+  @Before
+  public void setUp() {
+    userFilterDAO = lookup(UserFilterDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

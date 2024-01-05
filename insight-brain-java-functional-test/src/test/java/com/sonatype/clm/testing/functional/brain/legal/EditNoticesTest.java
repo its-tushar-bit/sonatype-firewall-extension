@@ -73,7 +73,7 @@ public class EditNoticesTest
 
   @Before
   public void init() throws IOException {
-    rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     owners = Arrays.asList(app, org, rootOrg);
@@ -97,8 +97,8 @@ public class EditNoticesTest
     testCLMServer.getHdsServer()
         .respondWith("[]")
         .atUri("/rest/legal/source-link");
-    componentLegalFileDAO = new ComponentLegalFileDAO();
-    legalFileOverrideDAO = new LegalFileOverrideDAO();
+    componentLegalFileDAO = lookup(ComponentLegalFileDAO.class);
+    legalFileOverrideDAO = lookup(LegalFileOverrideDAO.class);
   }
 
   private void loadByHash() {

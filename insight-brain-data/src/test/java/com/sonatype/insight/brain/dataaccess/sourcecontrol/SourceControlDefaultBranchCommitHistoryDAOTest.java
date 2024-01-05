@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.EntityExistsException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -19,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,8 +27,14 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 public class SourceControlDefaultBranchCommitHistoryDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
+  private SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    defaultBranchCommitHistoryDAO = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
+  }
 
   @Test
   public void testCRUD() throws InterruptedException {

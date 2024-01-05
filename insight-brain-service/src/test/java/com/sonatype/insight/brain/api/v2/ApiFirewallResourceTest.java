@@ -54,8 +54,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -66,20 +65,32 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiFirewallResourceTest
-    extends AbstractResourceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final ObjectMapper JSON = new ObjectMapper();
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private RepositoryComponentDAO repositoryComponentDAO;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private RepositoryDAO repositoryDAO;
+
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Before
+  public void setUp() {
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
+    quarantinedComponentAccessDAO = lookup(QuarantinedComponentAccessDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+  }
 
   @Test
   public void testGetFirewallUnquarantineSummary() throws Exception {
@@ -477,31 +488,27 @@ public class ApiFirewallResourceTest
 
   @Test
   public void testSetQuarantinedComponentViewAnonymousAccess() throws Exception {
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isTrue();
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
             ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET)
         .parameter(false).put();
     assertResponseStatus(204, response);
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isFalse();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isFalse();
   }
 
   @Test
   public void testGetQuarantinedComponentViewAnonymousAccess() throws Exception {
-    Assume.assumeFalse("QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS is banned in MTIQ",
-        MultiTenantBrainServiceTestService.isTestingAgainstMtiq());
-    // This REST endpoint must work with anonymous access (i.e. no authentication required)
-
     // Sanity check
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isTrue();
 
     HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS).anon().get();
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).hasToString("true");
 
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
 
     response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS).anon().get();
@@ -768,9 +775,9 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(204, response);
 
-    assertThat(new RepositoryManagerDAO().getById(repositoryManager.getId())).isNull();
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
   }
-  
+
   @Test
   public void testAddRepositoryManager() throws Exception {
     ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
@@ -794,7 +801,7 @@ public class ApiFirewallResourceTest
     assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo("testProductVersion");
 
     // Assert the repository manager data in the db
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(apiRepositoryManagerDTO.id);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
     assertThat(repositoryManager.getInstanceId()).isEqualTo("testInstanceId");
     assertThat(repositoryManager.getName()).isEqualTo("testName");
     assertThat(repositoryManager.getProductName()).isEqualTo("testProductName");

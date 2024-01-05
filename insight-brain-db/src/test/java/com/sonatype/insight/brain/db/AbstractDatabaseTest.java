@@ -10,36 +10,27 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Map;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 
 public abstract class AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @Rule(order = 1)
+  public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractDatabaseTest.class);
 
-  @Before
-  @After
-  public void clearDataSources() {
-    DataSourceFactory.clear_ForTestsOnly();
+  protected File getDatabasePath() {
+    Map<String, Object> metadata = databaseRule.getDatabaseMetadata();
+    return new File((String) metadata.get(H2DiskTest.DATABASE_PATH));
   }
 
   protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
-    File databasePath = new File(databaseDir, databaseName);
-    DatabaseConfig databaseConfig = new DatabaseConfig();
-    databaseConfig.setDriverClassName("org.h2.Driver");
-    databaseConfig.setUrl("jdbc:h2:" + databasePath.getAbsolutePath() +
-        ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
-    databaseConfig.setUsername("sa");
-    databaseConfig.setPassword("");
-    databaseConfig.setMaxConnections(50);
-    return databaseConfig;
+    return databaseRule.getDatabaseConfig(databaseName);
   }
 
   protected void copyDatabase(File databaseDir, String resourceDir) {

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Collection;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConditionTypesTest
+    extends AbstractDataTest
 {
   @Test
   public void testGetAll() {

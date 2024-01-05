@@ -23,6 +23,8 @@ import org.junit.Test;
 public class PolicyWaiverResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  private PolicyWaiverDAO policyWaiverDAO;
+
   private Policy policy;
 
   @Override
@@ -32,6 +34,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Before
   public void init() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     policy = tempEntity.newPolicy(app);
   }
 
@@ -42,14 +45,14 @@ public class PolicyWaiverResourceAuthzTest
     HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null,
         Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
     HttpResponse response = testAuthzPost(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
-    new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
+    policyWaiverDAO.delete(response.getBody(PolicyWaiver.class));
 
     grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
 
     request.body(new PolicyWaiver("hash", policy.getId(), null,
         Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
     response = testAuthzPost(request.parameter(OwnerType.ORGANIZATION, org.getId()));
-    new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
+    policyWaiverDAO.delete(response.getBody(PolicyWaiver.class));
   }
 
   @Test

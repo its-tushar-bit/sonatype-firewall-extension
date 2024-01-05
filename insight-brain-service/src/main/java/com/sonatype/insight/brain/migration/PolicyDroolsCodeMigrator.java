@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.migration;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -39,9 +39,19 @@ public class PolicyDroolsCodeMigrator
   // v5 since 1.95
   static final int DROOLS_CODE_VERSION = 5;
 
+  private final LabelDAO labelDAO;
+
+  private final PolicyDAO policyDAO;
+
   @Inject
-  public PolicyDroolsCodeMigrator(MigrationTrackerDAO migrationTrackerDAO) {
+  public PolicyDroolsCodeMigrator(
+      final MigrationTrackerDAO migrationTrackerDAO,
+      final LabelDAO labelDAO,
+      final PolicyDAO policyDAO)
+  {
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.labelDAO = labelDAO;
+    this.policyDAO = policyDAO;
   }
 
   void migrate() {
@@ -59,11 +69,10 @@ public class PolicyDroolsCodeMigrator
     long start = System.currentTimeMillis();
     log.debug("Generating policy code...");
 
-    PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getAll();
     log.info("Found {} policies.", policies.size());
     for (Policy policy : policies) {
-      DroolsGenerator.generate(policy);
+      DroolsGenerator.generate(policy, labelDAO);
       // NOTE: Due to CLM-8176, we skip validation and focus on just updating the Drools code
       policyDAO.update(policy, false);
     }

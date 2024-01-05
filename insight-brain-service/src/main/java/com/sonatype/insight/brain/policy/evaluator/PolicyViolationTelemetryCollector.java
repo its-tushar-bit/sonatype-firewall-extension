@@ -61,13 +61,16 @@ public class PolicyViolationTelemetryCollector
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
   private List<TelemetryData> telemetryDataList = new ArrayList<>();
 
   private boolean isScmEnabled;
 
   private Date timeOfPolicyEvaluation;
 
-  public PolicyViolationTelemetryCollector(boolean isScmEnabled) {
+  public PolicyViolationTelemetryCollector(final PolicyWaiverDAO policyWaiverDAO, boolean isScmEnabled) {
+    this.policyWaiverDAO = policyWaiverDAO;
     this.isScmEnabled = isScmEnabled;
     timeOfPolicyEvaluation = new Date();
   }
@@ -204,7 +207,7 @@ public class PolicyViolationTelemetryCollector
 
   private String getPolicyWaiverExpirationDays(String policyWaiverId) {
     if (policyWaiverId != null) {
-      PolicyWaiver policyWaiver = new PolicyWaiverDAO().getById(policyWaiverId);
+      PolicyWaiver policyWaiver = policyWaiverDAO.getById(policyWaiverId);
       if (policyWaiver != null && policyWaiver.getExpiryTime() != null) {
         return String.valueOf(TimeUnit.MILLISECONDS
             .toDays(policyWaiver.getExpiryTime().getTime() - policyWaiver.getCreateTime().getTime()));

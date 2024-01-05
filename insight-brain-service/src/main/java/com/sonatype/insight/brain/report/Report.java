@@ -26,14 +26,18 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -48,6 +52,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -99,9 +104,59 @@ public final class Report
 
   private static final String DIRECT_DEPENDENCY_NODE = "directDependency";
 
+  private static ComponentLoaderFactory componentLoaderFactory;
+
+  private static ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  private static LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private static LicenseDAO licenseDAO;
+
+  private static HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  private static LicenseOverrideDAO licenseOverrideDAO;
+
+  private static SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private static MultiLicenseDAO multiLicenseDAO;
+
+  private static ApplicationDAO applicationDAO;
+
+  private static InnerSourceComponentDAO innerSourceComponentDAO;
+
+  private static ProprietaryConfigService proprietaryConfigService;
+
   private static enum ReportType
   {
     FULL, ERROR
+  }
+
+  @Inject
+  public static void inject(
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ThirdPartyComponentDAO thirdPartyComponentDAO,
+      final LicenseDAO licenseDAO,
+      final HashComponentIdentifierDAO hashComponentIdentifierDAO,
+      final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      final MultiLicenseDAO multiLicenseDAO,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final ApplicationDAO applicationDAO,
+      final InnerSourceComponentDAO innerSourceComponentDAO,
+      final ProprietaryConfigService proprietaryConfigService
+  )
+  {
+    Report.componentLoaderFactory = componentLoaderFactory;
+    Report.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    Report.licenseDAO = licenseDAO;
+    Report.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+    Report.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    Report.multiLicenseDAO = multiLicenseDAO;
+    Report.licenseOverrideDAO = licenseOverrideDAO;
+    Report.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    Report.applicationDAO = applicationDAO;
+    Report.innerSourceComponentDAO = innerSourceComponentDAO;
+    Report.proprietaryConfigService = proprietaryConfigService;
   }
 
   public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
@@ -243,10 +298,9 @@ public final class Report
       }
     }
 
-    LicenseDAO licenseDAO = new LicenseDAO();
     License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
 
-    ComponentDAO componentDAO = new ComponentDAO(application);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(application);
     for (JsonNode licenseJsonNode : licenses.get("aaData")) {
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
 
@@ -255,7 +309,7 @@ public final class Report
           isALPObservedLicenseEnabled,
           notSupportedLicense);
 
-      final Component component = componentDAO.getComponent(licenseJsonNode);
+      final Component component = componentLoader.getComponent(licenseJsonNode);
       ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
       Integer threatLevel = component.getLicenseThreatLevel();
       licenseNode.put("effectiveLicenseThreat", threatLevel);
@@ -279,7 +333,7 @@ public final class Report
       for (JsonNode matchedComponentJsonNode : matchedComponentNodes) {
         ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
 
-        final Component matchedComponent = componentDAO.getComponent(matchedComponentJsonNode);
+        final Component matchedComponent = componentLoader.getComponent(matchedComponentJsonNode);
         matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
         if (matchedComponent.isLicenseOverridden()) {
           matchedComponentNode.put("overriddenLicenseThreat", matchedComponent.getLicenseThreatLevel());
@@ -429,7 +483,6 @@ public final class Report
                                                                              ContainerNode<?> dataJson,
                                                                              ContainerNode<?> summaryJsonData)
   {
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     int exactlyMatchedComponentCount = 0;
     int partiallyMatchedComponentCount = 0;
     int knownArtifactCount = 0;
@@ -477,7 +530,7 @@ public final class Report
     data.put("partiallyMatchedComponentCount", partiallyMatchedComponentCount);
     data.put(EXACTLY_MATCHED_COMPONENT_COUNT, exactlyMatchedComponentCount);
     data.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount);
-    
+
     // the pdf report uses summary.json not data.json
     summary.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount);
 
@@ -549,8 +602,6 @@ public final class Report
   private static Set<ComponentIdentifier> applyLicenseOverrides(ContainerNode<?> licensesJsonData,
                                                                 Application application)
   {
-    LicenseDAO licenseDAO = new LicenseDAO();
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
     if (!hasAnyLicenseOverrides(licenseOverrideDAO, application.getId())) {
@@ -592,8 +643,6 @@ public final class Report
   }
 
   private static void applySecurityVulnerabilityOverrides(ContainerNode<?> securityJsonData, Application application) {
-    SecurityVulnerabilityOverrideDAO overrideDAO = new SecurityVulnerabilityOverrideDAO();
-
     ArrayNode securityAaData = (ArrayNode) securityJsonData.get("aaData");
     Iterator<JsonNode> iterSecurityData = securityAaData.iterator();
     int overrideCount = 0;
@@ -602,7 +651,8 @@ public final class Report
       String hash = securityJsonNode.get("hash").asText();
       String source = securityJsonNode.get("source").asText();
       String referenceId = securityJsonNode.get("reference").asText();
-      SecurityVulnerabilityOverride override = overrideDAO.getByOwnerIdHashSourceAndReferenceId(application.getId(),
+      SecurityVulnerabilityOverride override =
+          securityVulnerabilityOverrideDAO.getByOwnerIdHashSourceAndReferenceId(application.getId(),
           hash, source, referenceId);
       if (override != null) {
         overrideCount++;
@@ -622,8 +672,6 @@ public final class Report
       Collection<HashComponentIdentifier> hashComponentIdentifiers,
       Application application)
   {
-    LicenseDAO licenseDAO = new LicenseDAO();
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
     int licenseOverrideCount = 0;
@@ -714,7 +762,6 @@ public final class Report
     ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, LICENSES_JSON_FILENAME);
     ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);
     ContainerNode<?> dependenciesJsonData = loadReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME);
-    ThirdPartyComponentDAO thirdPartyComponentDAO = new ThirdPartyComponentDAO(null);
     thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
         reportFile);
 
@@ -725,7 +772,8 @@ public final class Report
     saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
     DependencyResolver
-        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender)
+        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender,
+            innerSourceComponentDAO, applicationDAO, proprietaryConfigService)
         .resolve();
 
     componentIdentifiers.addAll(
@@ -826,9 +874,8 @@ public final class Report
       throws IOException
   {
     Map<String, Integer> threatLevelsBySimpleLicenseId =
-        new LicenseThreatGroupDAO().getLicenseThreatLevelsByApplication(application);
+        licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
 
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode licenseTable = mapper.createObjectNode();
     for (MultiLicense multiLicense : multiLicenseDAO.getAll()) {

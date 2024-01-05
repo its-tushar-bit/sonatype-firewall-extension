@@ -33,7 +33,7 @@ import static com.codeborne.selenide.Condition.text;
 public class OrgsAndPoliciesTreeViewLimitedPermissionTest
     extends AbstractFunctionalTest
 {
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
   private List<Organization> organizations;
 
@@ -50,6 +50,8 @@ public class OrgsAndPoliciesTreeViewLimitedPermissionTest
 
   @Before
   public void init() {
+    applicationDAO = lookup(ApplicationDAO.class);
+
     organizations = tempEntity.newRelatedOrganizationsAsList(2, 3, 3, new NameSupplierDictionary());
     syntheticOrgs =
         organizations.stream().filter(org -> org.getParentOrganizationId().equals(Organization.ROOT_ORGANIZATION_ID))

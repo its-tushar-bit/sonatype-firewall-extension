@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,7 +41,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LicenseThreatGroupLevelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  private static final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  @Inject
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Inject
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
+
+  @Inject
+  private ComponentLoaderFactory componentLoaderFactory;
 
   private Organization org;
 
@@ -189,7 +198,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     licenseThreatGroupDAO.insert(orgLicenseThreatGroup);
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(org.getId(),
         orgLicenseThreatGroup.getId(), "Apache-2.0");
-    new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
+    licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
 
     // Create policy constraints
     Constraint constraint = createConstraint(">=", "7");
@@ -201,15 +210,15 @@ public class LicenseThreatGroupLevelConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    ComponentDAO componentDAO = new ComponentDAO(app);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(component1);
+    componentLoader.loadLicenseThreatGroups(component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(component2);
+    componentLoader.loadLicenseThreatGroups(component2);
     components.add(component2);
 
     // Evaluate the policy

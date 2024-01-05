@@ -50,7 +50,7 @@ public class LicenseFileDetailsTest
 
   @Before
   public void init() throws IOException {
-    rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     app = tempEntity.newApplicationWithParent(LicenseFileDetailsTest.class.getSimpleName(), "app", "org");
     componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474",

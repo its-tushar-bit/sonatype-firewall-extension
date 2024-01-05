@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
@@ -21,7 +22,12 @@ import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 public class ApiConfigFeaturesServiceAuditTest
     extends AbstractAuditTest
 {
-  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO configurationPropertyDAO;
+
+  @Before
+  public void setUp() {
+    configurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

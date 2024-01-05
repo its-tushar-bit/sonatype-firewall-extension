@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.scheduler;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzConnectionProviderTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private OperationalDataStore operationalDataStore;
@@ -33,23 +32,16 @@ public class MultiTenantQuartzConnectionProviderTest
 
   @Test
   public void shouldUseGlobalTenantToGetConnection() throws Exception {
-    OperationalDataStore previousInstance = OperationalDataStoreProvider.getInstance();
+    when(operationalDataStore.getDataSource()).thenReturn(dataSource);
+    when(dataSource.getConnection()).thenAnswer(invocationOnMock -> {
+      assertTenantSet(GLOBAL_TENANT);
+      return null;
+    });
 
-    try {
-      OperationalDataStoreProvider.setInstance(operationalDataStore);
-      when(operationalDataStore.getDataSource()).thenReturn(dataSource);
-      when(dataSource.getConnection()).thenAnswer(invocationOnMock -> {
-        assertTenantSet(GLOBAL_TENANT);
-        return null;
-      });
+    MultiTenantQuartzConnectionProvider connectionProvider =
+        new MultiTenantQuartzConnectionProvider(operationalDataStore);
+    connectionProvider.getConnection();
 
-      MultiTenantQuartzConnectionProvider connectionProvider = new MultiTenantQuartzConnectionProvider();
-      connectionProvider.getConnection();
-
-      verify(dataSource).getConnection();
-    }
-    finally {
-      OperationalDataStoreProvider.setInstance(previousInstance);
-    }
+    verify(dataSource).getConnection();
   }
 }

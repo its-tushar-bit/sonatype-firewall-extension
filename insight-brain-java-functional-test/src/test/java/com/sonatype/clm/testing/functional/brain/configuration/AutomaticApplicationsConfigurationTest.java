@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -30,10 +31,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutomaticApplicationsConfigurationTest
     extends AbstractFunctionalTest
 {
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
   }
 
   @Test
@@ -117,9 +125,6 @@ public class AutomaticApplicationsConfigurationTest
   }
 
   private void verifyConfiguration(boolean enabled, Organization organization) {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isEqualTo(enabled);
     assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());
   }

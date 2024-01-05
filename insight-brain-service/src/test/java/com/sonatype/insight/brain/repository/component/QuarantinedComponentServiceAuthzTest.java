@@ -27,6 +27,9 @@ public class QuarantinedComponentServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
+  @Inject
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
   @Inject
@@ -59,20 +62,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantinedComponent_AnonymousDisabled_Unauthenticated() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantinedComponent(token);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantinedComponent_AnonymousDisabled_Unauthorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantinedComponent(token);
   }
 
   @Test
   public void testGetQuarantinedComponent_AnonymousDisabled_Authorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantinedComponent(token);
   }
@@ -84,20 +87,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantinedComponentOverview_AnonymousDisabled_Unauthenticated() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantinedComponentOverview(token);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantinedComponentOverview_AnonymousDisabled_Unauthorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantinedComponentOverview(token);
   }
 
   @Test
   public void testGetQuarantinedComponentOverview_AnonymousDisabled_Authorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantinedComponentOverview(token);
   }
@@ -109,20 +112,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantinedComponentPolicyViolations_AnonymousDisabled_Unauthenticated() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantinedComponentPolicyViolations(token);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantinedComponentPolicyViolations_AnonymousDisabled_Unauthorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantinedComponentPolicyViolations(token);
   }
 
   @Test
   public void testGetQuarantinedComponentPolicyViolations_AnonymousDisabled_Authorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantinedComponentPolicyViolations(token);
   }
@@ -134,20 +137,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantinedComponentOtherVersions_AnonymousDisabled_Unauthenticated() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantinedComponentOtherVersions(token, 1, 2, true);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantinedComponentOtherVersions_AnonymousDisabled_Unauthorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantinedComponentOtherVersions(token, 1, 2, true);
   }
 
   @Test
   public void testGetQuarantinedComponentOtherVersions_AnonymousDisabled_Authorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantinedComponentOtherVersions(token, 1, 2, true);
   }
@@ -159,20 +162,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Unauthenticated() throws Exception {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Unauthorized() throws Exception {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test
   public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Authorized() throws Exception {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
@@ -184,20 +187,20 @@ public class QuarantinedComponentServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetQuarantineComponentVersionRemediation_AnonymousDisabled_Unauthenticated() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetQuarantineComponentVersionRemediation_AnonymousDisabled_Unauthorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     login();
     quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
   }
 
   @Test
   public void testGetQuarantineComponentVersionRemediation_AnonymousDisabled_Authorized() {
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     grantReadPermission(repository.getId());
     quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
   }

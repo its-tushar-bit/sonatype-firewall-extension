@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
@@ -50,6 +49,12 @@ public class TagServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private TagDAO tagDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
   private TagService tagService;
 
   @Inject
@@ -74,7 +79,7 @@ public class TagServiceTest
     assertThat(dto.color).isEqualTo(Color.yellow.toValue());
     assertThat(dto.organizationId).isEqualTo(organization.getId());
 
-    Tag created = new TagDAO().getById(dto.id);
+    Tag created = tagDAO.getById(dto.id);
     assertThat(created.getId()).isEqualTo(dto.id);
     assertThat(created.getName()).isEqualTo("label");
     assertThat(created.getDescription()).isEqualTo("description");
@@ -142,7 +147,7 @@ public class TagServiceTest
     assertThat(dto.color).isEqualTo(Color.yellow.toValue());
     assertThat(dto.organizationId).isEqualTo(organization.getId());
 
-    Tag created = new TagDAO().getById(dto.id);
+    Tag created = tagDAO.getById(dto.id);
     assertThat(created.getId()).isEqualTo(dto.id);
     assertThat(created.getName()).isEqualTo("label");
     assertThat(created.getDescription()).isEqualTo("description");
@@ -167,7 +172,7 @@ public class TagServiceTest
     assertThat(dto.color).isEqualTo(Color.dark_blue.toValue());
     assertThat(dto.organizationId).isEqualTo(organization.getId());
 
-    Tag created = new TagDAO().getById(dto.id);
+    Tag created = tagDAO.getById(dto.id);
     assertThat(created.getId()).isEqualTo(dto.id);
     assertThat(created.getName()).isEqualTo("updated");
     assertThat(created.getDescription()).isEqualTo("also modified");
@@ -219,7 +224,7 @@ public class TagServiceTest
     assertThat(dto.color).isEqualTo(Color.dark_red.toValue());
     assertThat(dto.organizationId).isEqualTo(organization.getId());
 
-    Tag created = new TagDAO().getById(dto.id);
+    Tag created = tagDAO.getById(dto.id);
     assertThat(created).isNotNull();
     assertThat(created.getName()).isEqualTo("New name");
     assertThat(created.getDescription()).isEqualTo("Description updated");
@@ -382,7 +387,7 @@ public class TagServiceTest
   @Test
   public void testGetApplicableTags() {
     Organization org = tempEntity.newOrganization();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     Tag orgTag = tempEntity.newTag(org.getId(), "Org Tag");
     Tag parentTag = tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
@@ -403,7 +408,7 @@ public class TagServiceTest
   @Test
   public void testGetAppliedTags() {
     Organization org = tempEntity.newOrganization();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     Application application = tempEntity.newApplication(org.getId());
     ApplicationTag orgTag = tempEntity.newApplicationTag(application.getId(), tempEntity.newTag(org.getId(), "Org Tag")
         .getId());
@@ -427,7 +432,7 @@ public class TagServiceTest
   @Test
   public void testGetAppliedPolicyTags() {
     Organization org = tempEntity.newOrganization();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     Policy policy = tempEntity.newPolicy(org);
 
     PolicyTag orgTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(org.getId(), "Org Tag").getId());

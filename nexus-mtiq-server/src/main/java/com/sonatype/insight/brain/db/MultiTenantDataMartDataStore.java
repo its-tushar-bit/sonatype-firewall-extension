@@ -5,20 +5,20 @@
  */
 package com.sonatype.insight.brain.db;
 
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.db.DatabaseConfig;
 
 public class MultiTenantDataMartDataStore
     extends AbstractMultiTenantDataStore
     implements DataMartDataStore
 {
   public MultiTenantDataMartDataStore(
-      final DataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
+      final MultiTenantPostgresDataSourceProvider dataSourceProvider,
+      final DatabaseConfig databaseConfig)
   {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    DatamartProvider.setInstance(this);
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override

@@ -63,6 +63,10 @@ public class ViolationDetailsTest
 
   private PolicyViolation deletedPolicyViolation;
 
+  private PolicyDAO policyDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(DashboardPage.url());
@@ -71,7 +75,8 @@ public class ViolationDetailsTest
 
   @Before
   public void before() {
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    policyDAO = lookup(PolicyDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
 
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
@@ -106,7 +111,7 @@ public class ViolationDetailsTest
 
     Policy deletedPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Deleted Policy", 2);
     deletedPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, deletedPolicy);
-    new PolicyDAO().delete(deletedPolicy);
+    policyDAO.delete(deletedPolicy);
 
     mockHdsResponseForVulnerabilityDetails();
   }

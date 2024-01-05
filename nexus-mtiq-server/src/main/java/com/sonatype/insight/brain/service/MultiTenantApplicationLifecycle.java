@@ -11,6 +11,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.hds.ComponentCategoryUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
@@ -28,11 +31,13 @@ import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
  */
 @Named
 @Singleton
-@Priority(1)
+@Priority(MultiTenantApplicationLifecycle.PRIORITY)
 public class MultiTenantApplicationLifecycle
     extends DefaultApplicationLifecycle
     implements Managed
 {
+  public static final int PRIORITY = 1;
+
   private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
   @Inject
@@ -46,10 +51,13 @@ public class MultiTenantApplicationLifecycle
       AuditRecorder auditRecorder,
       ComponentCategoryUpdater componentCategoryUpdater,
       TaskScheduler taskScheduler,
+      ComponentCategoryDAO componentCategoryDAO,
+      LicenseDAO licenseDAO,
+      MultiLicenseDAO multiLicenseDAO,
       MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
     super(configuration, licenseManager, dataMigrator, newInstancePopulator, licenseDataUpdater, versionService,
-        auditRecorder, componentCategoryUpdater, taskScheduler);
+        auditRecorder, componentCategoryUpdater, taskScheduler, componentCategoryDAO, licenseDAO, multiLicenseDAO);
     this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
   }
 

@@ -71,6 +71,7 @@ public class MTIQFeatureServiceTest
   public void setup() {
     tenantUtil.setGlobalTenant();
     underTest = new TestableMTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
+    ApiConfigFeaturesService.injectDependencies(systemConfigurationPropertyDAO);
   }
 
   @Test

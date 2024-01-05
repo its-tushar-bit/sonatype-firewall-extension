@@ -24,22 +24,30 @@ import javax.servlet.Filter;
 import javax.validation.Validator;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.db.DatabaseConfigProvider;
+import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseContainerSupport;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DbMigrationCommand;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -189,24 +197,24 @@ public class InsightBrainService
 
       // Second `run` is the entry point for the `ServerCommand` which is the main http server
       @Override
-      protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
+      protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig)
           throws Exception
       {
-        Files.createDirectories(configuration.getSonatypeWork().toPath());
-        Files.createDirectories(configuration.getClusterDirectory().toPath());
-        insightFileLock = new InsightFileLock(configuration);
+        Files.createDirectories(insightConfig.getSonatypeWork().toPath());
+        Files.createDirectories(insightConfig.getClusterDirectory().toPath());
+        insightFileLock = new InsightFileLock(insightConfig);
         insightFileLock.lock();
 
         MDCUsernameScope.forSystem();
         printVersion();
 
         // Note DatabaseContainer is created within the DropWizard 'ServerCommand#run' (see also DbMigrationCommand)
-        databaseContainer = createDatabaseContainer();
+        databaseContainer = createAndInitDatabaseContainer(insightConfig);
 
         String configArg = namespace.getString("file");
         InsightBrainService.configFile = new File(configArg).getAbsoluteFile();
         log.info("Configuration file: {}", InsightBrainService.configFile);
-        super.run(bootstrap, namespace, configuration);
+        super.run(bootstrap, namespace, insightConfig);
       }
 
       @Override
@@ -261,20 +269,25 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
 
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
-
-    validateMinimumSchemaVersion(databaseProvisionUtils);
-
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
   }
 
-  // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
   @Override
-  public DatabaseContainer createDatabaseContainer() {
-    return new DatabaseContainer();
+  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+    return new DefaultDatabaseContainer(insightConfig);
+  }
+
+  private DatabaseContainer createAndInitDatabaseContainer(InsightConfig configuration) {
+    DatabaseContainer databaseContainer = createDatabaseContainer(configuration);
+
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    databaseProvisionUtils.initializeDatabasesWithMigration(configuration);
+
+    validateMinimumSchemaVersion(databaseProvisionUtils);
+
+    return databaseContainer;
   }
 
   // Visible for testing
@@ -442,7 +455,7 @@ public class InsightBrainService
   }
 
   protected DatabaseConfigProvider getDatabaseConfigProvider(InsightConfig insightConfig) {
-    return new DatabaseConfigProvider(insightConfig);
+    return DatabaseConfigProviderFactory.createDatabaseConfigProvider(insightConfig);
   }
 
   @Override
@@ -515,7 +528,14 @@ public class InsightBrainService
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
         bind(ExecutorThreadPools.class).to(DefaultExecutorThreadPools.class);
+
         requestStaticInjection(ExecutorThreadPools.class);
+        requestStaticInjection(ConditionTypes.class);
+        requestStaticInjection(ConditionValueTypes.class);
+        requestStaticInjection(ConfigurationUtils.class);
+        requestStaticInjection(Report.class);
+        requestStaticInjection(ComponentDetailsLoader.class);
+        requestStaticInjection(ApiConfigFeaturesService.class);
 
         bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
       }
@@ -525,15 +545,16 @@ public class InsightBrainService
     Module dbModule = new AbstractModule()
     {
       @Override
-      protected void configure() {
-        bind(OperationalDataStore.class).toInstance(OperationalDataStoreProvider.getInstance());
-        bind(AggregationDataStore.class).toInstance(AggregationDataStoreProvider.getInstance());
-        bind(DataMartDataStore.class).toInstance(DatamartProvider.getInstance());
-        bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
+      public void configure() {
+        bind(OperationalDataStore.class).toInstance(databaseContainer.getOperationalDataStore());
+        bind(AggregationDataStore.class).toInstance(databaseContainer.getAggregationDataStore());
+        bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
+        bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
+        bind(DataStoreProvider.class).toInstance(databaseContainer);
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
+        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
       }
     };
-
     return Arrays.asList(bindings, authc, authz, dbModule);
   }
 

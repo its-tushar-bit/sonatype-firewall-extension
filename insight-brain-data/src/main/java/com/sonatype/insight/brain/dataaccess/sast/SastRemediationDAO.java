@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.sast;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class SastRemediationDAO
     extends AbstractOperationalSqlDAO<SastRemediation>
 {
+  @Inject
+  public SastRemediationDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void update(final TransactionContext tx, final SastRemediation entity) {
     throw new UnsupportedOperationException("The SastRemediation table does not support update operations");

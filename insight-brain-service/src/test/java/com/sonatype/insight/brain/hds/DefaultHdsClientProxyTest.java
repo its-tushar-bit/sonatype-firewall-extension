@@ -64,6 +64,9 @@ public class DefaultHdsClientProxyTest
   private Configuration configuration;
 
   @Inject
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  @Inject
   private ApiProxyServerConfigurationService proxyServerConfigurationService;
 
   @Before
@@ -146,7 +149,7 @@ public class DefaultHdsClientProxyTest
 
   @Test
   public void testProxyServerConfigurationChanged() {
-    new ProxyServerConfigurationDAO().delete();
+    proxyServerConfigurationDAO.delete();
     setHdsUrl("http://proxy.test/");
     tempEntity.setProxyServerConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     configuration.proxyServerConfigurationChanged();

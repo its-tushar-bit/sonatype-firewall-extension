@@ -27,7 +27,17 @@
       <artifactId>insight-brain-data</artifactId>
       <type>test-jar</type>
     </dependency>
-    
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+
     <dependency>
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>

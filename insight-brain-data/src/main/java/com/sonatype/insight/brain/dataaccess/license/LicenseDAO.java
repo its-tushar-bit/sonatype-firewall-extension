@@ -11,8 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -21,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Copied from com.sonatype.insight.datamart.dao.LicenseDAO
+@Named
+@Singleton
 public class LicenseDAO
     extends AbstractDatamartSqlDAO<License>
 {
@@ -31,6 +38,17 @@ public class LicenseDAO
   private static volatile Map<String, License> licensesById = null;
 
   private static volatile Map<String, License> licensesByName = null;
+
+  private final Provider<MultiLicenseDAO> multiLicenseDAOProvider;
+
+  @Inject
+  public LicenseDAO(
+      final DataMartDataStore dataMartDataStore,
+      final Provider<MultiLicenseDAO> multiLicenseDAOProvider)
+  {
+    super(dataMartDataStore);
+    this.multiLicenseDAOProvider = multiLicenseDAOProvider;
+  }
 
   @Override
   public License getById(TransactionContext tx, String id) {
@@ -47,7 +65,7 @@ public class LicenseDAO
     License license = licensesById.get(id);
     if (license == null) {
       log.info("Cannot find a license with ID '{}'.  Refreshing license data.", id);
-      LicenseDataUpdater.update();
+      LicenseDataUpdater.update(this, multiLicenseDAOProvider.get());
       license = licensesById.get(id);
     }
     return license;
@@ -108,7 +126,7 @@ public class LicenseDAO
     License license = licensesByName.get(name);
     if (license == null) {
       log.info("Cannot find a license with name '{}'.  Refreshing license data.", name);
-      LicenseDataUpdater.update();
+      LicenseDataUpdater.update(this, multiLicenseDAOProvider.get());
       license = licensesByName.get(name);
     }
     return license;

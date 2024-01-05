@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,10 +36,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapResourceTest
     extends AbstractResourceTest
 {
-  private static final LdapServerDAO ldapServerDAO = new LdapServerDAO();
-
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
+
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
+  private LdapConnectionDAO ldapConnectionDAO;
+
+  private LdapServerDAO ldapServerDAO;
+
+  @Before
+  public void setUp() {
+    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
+    ldapConnectionDAO = lookup(LdapConnectionDAO.class);
+    ldapServerDAO = lookup(LdapServerDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -111,7 +123,7 @@ public class LdapResourceTest
     assertThat(addedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
 
-    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
+    LdapUserMapping persistedLdapUserMapping = ldapUserMappingDAO.getById(expectedLdapUserMapping.getId());
     assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
 
@@ -150,7 +162,7 @@ public class LdapResourceTest
     assertThat(addedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapConnection);
 
-    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    LdapConnection persistedLdapConnection = ldapConnectionDAO.getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
@@ -173,7 +185,7 @@ public class LdapResourceTest
     ldapConnection = response.getBody(LdapConnection.class);
     assertThat(ldapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapConnection);
-    persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    persistedLdapConnection = ldapConnectionDAO.getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());

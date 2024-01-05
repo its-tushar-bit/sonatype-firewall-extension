@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -20,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.kie.api.io.ResourceType;
 import org.kie.internal.builder.KnowledgeBuilder;
@@ -29,7 +32,15 @@ import org.kie.internal.io.ResourceFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DroolsGeneratorTest
+    extends AbstractDataTest
 {
+  private LabelDAO labelDAO;
+
+  @Before
+  public void setUp() {
+    labelDAO = daoFactory.createLabelDAO();
+  }
+
   @Test
   public void testGenerate() {
     final List<Constraint> constraints = new ArrayList<>();
@@ -52,7 +63,7 @@ public class DroolsGeneratorTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
 
-    DroolsGenerator.generate(policy);
+    DroolsGenerator.generate(policy, labelDAO);
     System.out.println(policy.getDroolsCode());
     // TODO Add asserts - for now it's good if we get no exceptions :)
 

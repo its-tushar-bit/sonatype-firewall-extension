@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.filter;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.UserFilter;
@@ -25,10 +29,17 @@ import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_N
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class UserFilterDAO
     extends AbstractOperationalSqlDAO<UserFilter>
 {
   private static final Logger log = LoggerFactory.getLogger(UserFilterDAO.class);
+
+  @Inject
+  public UserFilterDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   @Override
   public void insert(TransactionContext tx, UserFilter userFilter) {

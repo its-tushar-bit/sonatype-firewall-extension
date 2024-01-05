@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
@@ -43,9 +44,9 @@ public class AdvancedSearchPageTest
 
   private final AdvancedSearchPage page = new AdvancedSearchPage();
 
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
-
   private final InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+
+  private SystemConfigurationPropertyDAO dao;
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
       throws Exception
@@ -60,6 +61,11 @@ public class AdvancedSearchPageTest
   public static void beforeClass() {
     refreshOrOpen(AdvancedSearchPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
   }
 
   @Test

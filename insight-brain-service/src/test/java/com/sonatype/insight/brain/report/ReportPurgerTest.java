@@ -27,11 +27,11 @@ import javax.persistence.LockModeType;
 import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -42,8 +42,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -76,7 +74,13 @@ public class ReportPurgerTest
   private DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
   @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
   private Configuration configuration;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -316,103 +320,79 @@ public class ReportPurgerTest
   }
 
   @Test
+  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
   public void testPurgeReports_RetryAfterLockTimeout() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
-      odsDatabaseConfig.setUrl("jdbc:h2:" + tempDir.newFolder("data").getAbsolutePath() + "/ods"
-          + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE");
-      odsDatabaseConfig.setUsername("sa");
-      odsDatabaseConfig.setPassword("");
-      OperationalDataStoreProvider.init(odsDatabaseConfig, true);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(6)));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(5)));
 
-      init();
-      dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
-      mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(6)));
-      mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(5)));
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Exception> error = new AtomicReference<>();
+    Thread thread = new Thread(() -> {
+      try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
+        tx.begin();
+        policyEvaluationDAO //
+            .createQuery("SELECT entity FROM PolicyEvaluation entity") //
+            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+            .getList(tx);
+        latch.countDown();
+        Thread.sleep(2 * 1000);
+        tx.commit();
+      }
+      catch (Exception e) {
+        error.set(e);
+      }
+    });
+    thread.start();
 
-      CountDownLatch latch = new CountDownLatch(1);
-      AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread(() -> {
-        try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-          tx.begin();
-          new PolicyEvaluationDAO() //
-              .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-              .getList(tx);
-          latch.countDown();
-          Thread.sleep(2 * 1000);
-          tx.commit();
-        }
-        catch (Exception e) {
-          error.set(e);
-        }
-      });
-      thread.start();
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    reportPurger = spy(reportPurger);
+    long start = System.currentTimeMillis();
+    reportPurger.purgeReports();
+    long stop = System.currentTimeMillis();
 
-      assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-      reportPurger = spy(reportPurger);
-      long start = System.currentTimeMillis();
-      reportPurger.purgeReports();
-      long stop = System.currentTimeMillis();
-
-      assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-1");
-      verify(reportPurger).getDelayForRetry(0);
-      verify(reportPurger).getDelayForRetry(1);
-      verify(reportPurger, never()).getDelayForRetry(2);
-      assertThat(stop - start).isLessThan(5 * 1000);
-      assertThat(error).hasValue(null);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-1");
+    verify(reportPurger).getDelayForRetry(0);
+    verify(reportPurger).getDelayForRetry(1);
+    verify(reportPurger, never()).getDelayForRetry(2);
+    assertThat(stop - start).isLessThan(5 * 1000);
+    assertThat(error).hasValue(null);
   }
 
   @Test
+  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
   public void testPurgeReports_RetryAfterLockTimeout_LimitedRetry() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
-      odsDatabaseConfig.setUrl("jdbc:h2:" + tempDir.newFolder("data").getAbsolutePath() + "/ods"
-          + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE");
-      odsDatabaseConfig.setUsername("sa");
-      odsDatabaseConfig.setPassword("");
-      OperationalDataStoreProvider.init(odsDatabaseConfig, true);
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
 
-      init();
-      dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Exception> error = new AtomicReference<>();
+    Thread thread = new Thread(() -> {
+      try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
+        tx.begin();
+        policyEvaluationDAO //
+            .createQuery("SELECT entity FROM PolicyEvaluation entity") //
+            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+            .getList(tx);
+        latch.countDown();
+        Thread.sleep(2 * 1000);
+        tx.commit();
+      }
+      catch (Exception e) {
+        error.set(e);
+      }
+    });
+    thread.start();
 
-      CountDownLatch latch = new CountDownLatch(1);
-      AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread(() -> {
-        try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-          tx.begin();
-          new PolicyEvaluationDAO() //
-              .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-              .getList(tx);
-          latch.countDown();
-          Thread.sleep(2 * 1000);
-          tx.commit();
-        }
-        catch (Exception e) {
-          error.set(e);
-        }
-      });
-      thread.start();
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    reportPurger = spy(reportPurger);
+    when(reportPurger.getDelayForRetry(anyInt())).thenReturn(Duration.ZERO);
+    assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> reportPurger.purgeReports());
+    verify(reportPurger).getDelayForRetry(9);
+    verify(reportPurger, never()).getDelayForRetry(10);
 
-      assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-      reportPurger = spy(reportPurger);
-      when(reportPurger.getDelayForRetry(anyInt())).thenReturn(Duration.ZERO);
-      assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> reportPurger.purgeReports());
-      verify(reportPurger).getDelayForRetry(9);
-      verify(reportPurger, never()).getDelayForRetry(10);
+    assertThat(error).hasValue(null);
 
-      assertThat(error).hasValue(null);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    thread.join(); // wait for `thread` to complete so that cleanup (e.g. TemporaryEntity) works correctly
   }
 
   @Test
@@ -440,16 +420,9 @@ public class ReportPurgerTest
   }
 
   @Test
+  @PostgresTest
   public void testPurgeReports_DeletesClusterLocks_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      init();
-      testPurgeReports_DeletesClusterLocks();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testPurgeReports_DeletesClusterLocks();
   }
 
   private void testPurgeReports_DeletesClusterLocks() {
@@ -463,24 +436,30 @@ public class ReportPurgerTest
     // policyEvaluation1 has no report files
     mockReport(policyEvaluation2);
     mockReport(policyEvaluation3);
-    ClusterLock.createForPolicyEvaluation(app, policyEvaluation1.getScanId());
-    ClusterLock.createForPolicyEvaluation(app, policyEvaluation2.getScanId());
-    ClusterLock.createForPolicyEvaluation(app, policyEvaluation3.getScanId());
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
+    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation1.getScanId());
+    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation2.getScanId());
+    clusterLockManager.createForPolicyEvaluation(app, policyEvaluation3.getScanId());
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
         .isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
         .isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
         .isTrue();
 
     reportPurger.purgeReports();
 
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-3");
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
         .isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
         .isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
         .isTrue();
   }
 }

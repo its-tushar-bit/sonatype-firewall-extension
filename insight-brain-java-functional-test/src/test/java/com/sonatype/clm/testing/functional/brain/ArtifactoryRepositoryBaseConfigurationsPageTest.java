@@ -47,15 +47,15 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
   @Rule
   public WireMockRule artifactoryMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private final Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+  private ApplicationDAO applicationDAO;
 
   private Organization org;
 
   private Application app;
+
+  private Organization rootOrg;
 
   @BeforeClass
   public static void beforeClass() {
@@ -65,6 +65,11 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
 
   @Before
   public void before() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
+    rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
     rootOrg.setArtifactoryConnectionEnabled(null);
     rootOrg.setAllowArtifactoryConnectionOverride(true);

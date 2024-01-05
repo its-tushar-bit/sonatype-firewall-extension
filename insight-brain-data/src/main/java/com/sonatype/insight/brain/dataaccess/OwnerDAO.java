@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
@@ -54,15 +58,90 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+@Named
+@Singleton
 public class OwnerDAO
 {
-  private static ApplicationDAO appDAO = new ApplicationDAO();
+  private final ApplicationDAO appDAO;
 
-  private static OrganizationDAO orgDAO = new OrganizationDAO();
+  private final OrganizationDAO orgDAO;
 
-  private static RepositoryDAO repoDAO = new RepositoryDAO();
+  private final RepositoryDAO repoDAO;
 
-  private static RepositoryManagerDAO repoManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repoManagerDAO;
+
+  private final Provider<PolicyWaiverDAO> policyWaiverDAOProvider;
+
+  private final Provider<LicenseOverrideDAO> licenseOverrideDAOProvider;
+
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private final Provider<PolicyDAO> policyDAOProvider;
+
+  private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  private final Provider<ComponentCopyrightDAO> componentCopyrightDAOProvider;
+
+  private final Provider<ComponentLegalFileDAO> componentLegalFileDAOProvider;
+
+  private final Provider<ComponentObligationDAO> componentObligationDAOProvider;
+
+  private final Provider<ComponentObligationAttributionDAO> componentObligationAttributionDAOProvider;
+
+  private final Provider<VulnerabilityGroupDAO> vulnerabilityGroupDAOProvider;
+
+  private final Provider<VulnerabilityCustomRemediationDAO> vulnerabilityCustomRemediationDAOProvider;
+
+  private final Provider<VulnerabilityCustomCweDAO> vulnerabilityCustomCweDAOProvider;
+
+  private final Provider<VulnerabilityCustomCvssVectorDAO> vulnerabilityCustomCvssVectorDAOProvider;
+
+  private final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider;
+
+  @Inject
+  public OwnerDAO(
+      final ApplicationDAO appDAO,
+      final OrganizationDAO orgDAO,
+      final RepositoryDAO repoDAO,
+      final RepositoryManagerDAO repoManagerDAO,
+      final Provider<PolicyWaiverDAO> policyWaiverDAOProvider,
+      final Provider<LicenseOverrideDAO> licenseOverrideDAOProvider,
+      final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      final Provider<PolicyDAO> policyDAOProvider,
+      final DataRetentionPolicyDAO dataRetentionPolicyDAO,
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final Provider<ComponentCopyrightDAO> componentCopyrightDAOProvider,
+      final Provider<ComponentLegalFileDAO> componentLegalFileDAOProvider,
+      final Provider<ComponentObligationDAO> componentObligationDAOProvider,
+      final Provider<ComponentObligationAttributionDAO> componentObligationAttributionDAOProvider,
+      final Provider<VulnerabilityGroupDAO> vulnerabilityGroupDAOProvider,
+      final Provider<VulnerabilityCustomRemediationDAO> vulnerabilityCustomRemediationDAOProvider,
+      final Provider<VulnerabilityCustomCweDAO> vulnerabilityCustomCweDAOProvider,
+      final Provider<VulnerabilityCustomCvssVectorDAO> vulnerabilityCustomCvssVectorDAOProvider,
+      final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider)
+  {
+    this.appDAO = appDAO;
+    this.orgDAO = orgDAO;
+    this.repoDAO = repoDAO;
+    this.repoManagerDAO = repoManagerDAO;
+    this.policyWaiverDAOProvider = policyWaiverDAOProvider;
+    this.licenseOverrideDAOProvider = licenseOverrideDAOProvider;
+    this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.policyDAOProvider = policyDAOProvider;
+    this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
+    this.policyMonitoringDAO = policyMonitoringDAO;
+    this.componentCopyrightDAOProvider = componentCopyrightDAOProvider;
+    this.componentLegalFileDAOProvider = componentLegalFileDAOProvider;
+    this.componentObligationDAOProvider = componentObligationDAOProvider;
+    this.componentObligationAttributionDAOProvider = componentObligationAttributionDAOProvider;
+    this.vulnerabilityGroupDAOProvider = vulnerabilityGroupDAOProvider;
+    this.vulnerabilityCustomRemediationDAOProvider = vulnerabilityCustomRemediationDAOProvider;
+    this.vulnerabilityCustomCweDAOProvider = vulnerabilityCustomCweDAOProvider;
+    this.vulnerabilityCustomCvssVectorDAOProvider = vulnerabilityCustomCvssVectorDAOProvider;
+    this.vulnerabilityCustomCvssSeverityDAOProvider = vulnerabilityCustomCvssSeverityDAOProvider;
+  }
 
   public Owner getById(TransactionContext tx, String id) {
     if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(id)) {
@@ -224,21 +303,20 @@ public class OwnerDAO
 
   public void cascadeDelete(TransactionContext tx, Owner owner) {
     // Cascade to policy waivers
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    PolicyWaiverDAO policyWaiverDAO = policyWaiverDAOProvider.get();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       policyWaiverDAO.delete(tx, policyWaiver);
     }
 
     // Cascade to license overrides
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverrideDAO licenseOverrideDAO = licenseOverrideDAOProvider.get();
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, owner.getId());
     for (LicenseOverride licenseOverride : licenseOverrides) {
       licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
     // Cascade to security vulnerability overrides
-    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
     List<SecurityVulnerabilityOverride> securityVulnerabilityOverrides = securityVulnerabilityOverrideDAO.getByOwnerId(
         tx, owner.getId());
     for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
@@ -246,7 +324,7 @@ public class OwnerDAO
     }
 
     // Cascade to policy overrides
-    PolicyDAO policyDAO = new PolicyDAO();
+    PolicyDAO policyDAO = policyDAOProvider.get();
     for (Policy policy : policyDAO.getAll(tx)) {
       boolean updated = false;
       if (policy.getPolicyActionsOverrides() != null && policy.getPolicyActionsOverrides().containsKey(owner.getId())) {
@@ -264,74 +342,75 @@ public class OwnerDAO
     }
 
     // Cascade to data retention policies
-    DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
     for (DataRetentionPolicy dataRetentionPolicy : dataRetentionPolicyDAO.getByOwnerId(tx, owner.getId()).values()) {
       dataRetentionPolicyDAO.delete(tx, dataRetentionPolicy);
     }
 
     // Cascade to policy monitoring
-    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
     if (policyMonitoring != null) {
       policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
     // Cascade to component copyrights
-    ComponentCopyrightDAO componentCopyrightDAO = new ComponentCopyrightDAO();
+    ComponentCopyrightDAO componentCopyrightDAO = componentCopyrightDAOProvider.get();
     for (ComponentCopyright componentCopyright : componentCopyrightDAO.getByOwnerId(tx, owner.getId())) {
       componentCopyrightDAO.delete(tx, componentCopyright);
     }
 
     // Cascade to component legal files
-    ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
+    ComponentLegalFileDAO componentLegalFileDAO = componentLegalFileDAOProvider.get();
     for (ComponentLegalFile componentLegalFile : componentLegalFileDAO.getByOwnerId(tx, owner.getId())) {
       componentLegalFileDAO.delete(tx, componentLegalFile);
     }
 
     // Cascade to component obligations
-    ComponentObligationDAO componentObligationDAO = new ComponentObligationDAO();
+    ComponentObligationDAO componentObligationDAO = componentObligationDAOProvider.get();
     for (ComponentObligation componentObligation : componentObligationDAO.getByOwnerId(tx, owner.getId())) {
       componentObligationDAO.delete(tx, componentObligation);
     }
 
     // Cascade to component obligation attributions
-    ComponentObligationAttributionDAO componentObligationAttributionDAO = new ComponentObligationAttributionDAO();
+    ComponentObligationAttributionDAO componentObligationAttributionDAO =
+        componentObligationAttributionDAOProvider.get();
     for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributionDAO
         .getByOwnerId(tx, owner.getId())) {
       componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
     }
 
     // Cascade to vulnerability groups
-    VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
+    VulnerabilityGroupDAO vulnerabilityGroupDAO = vulnerabilityGroupDAOProvider.get();
     for (VulnerabilityGroup vulnerabilityGroup : vulnerabilityGroupDAO.getByOwnerId(tx, owner.getId())) {
       vulnerabilityGroupDAO.delete(tx, vulnerabilityGroup);
     }
 
     // Cascade to vulnerability custom remediation
-    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO = new VulnerabilityCustomRemediationDAO();
+    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
+        vulnerabilityCustomRemediationDAOProvider.get();
     for (VulnerabilityCustomRemediation vulnerabilityCustomRemediation : vulnerabilityCustomRemediationDAO
         .getByOwnerId(tx, owner.getId())) {
       vulnerabilityCustomRemediationDAO.delete(tx, vulnerabilityCustomRemediation);
     }
 
     // Cascade to vulnerability custom CWE
-    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = vulnerabilityCustomCweDAOProvider.get();
     for (VulnerabilityCustomCwe vulnerabilityCustomCwe : vulnerabilityCustomCweDAO.getByOwnerId(tx, owner.getId())) {
       vulnerabilityCustomCweDAO.delete(tx, vulnerabilityCustomCwe);
     }
 
     // Cascade to vulnerability custom CVSS vector data
-    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssDAO = new VulnerabilityCustomCvssVectorDAO();
+    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssDAO = vulnerabilityCustomCvssVectorDAOProvider.get();
     for (VulnerabilityCustomCvssVector vulnerabilityCustomCvss : vulnerabilityCustomCvssDAO.getByOwnerId(tx,
         owner.getId())) {
       vulnerabilityCustomCvssDAO.delete(tx, vulnerabilityCustomCvss);
     }
 
     // Cascade to vulnerability custom CVSS severity data
-    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO = new VulnerabilityCustomCvssSeverityDAO();
+    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
+        vulnerabilityCustomCvssSeverityDAOProvider.get();
     for (VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity :
         vulnerabilityCustomCvssSeverityDAO.getByOwnerId(tx,
-        owner.getId())) {
+            owner.getId())) {
       vulnerabilityCustomCvssSeverityDAO.delete(tx, vulnerabilityCustomCvssSeverity);
     }
   }

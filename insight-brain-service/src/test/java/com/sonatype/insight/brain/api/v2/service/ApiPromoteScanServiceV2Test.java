@@ -82,6 +82,12 @@ public class ApiPromoteScanServiceV2Test
   @Inject
   private InsightWork insightWork;
 
+  @Inject
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  @Inject
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
@@ -215,7 +221,6 @@ public class ApiPromoteScanServiceV2Test
       verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
     }
     finally {
-      ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
       thirdPartyCoordinateSecurityDAO.getAll().forEach(thirdPartyCoordinateSecurityDAO::delete);
     }
   }
@@ -271,7 +276,7 @@ public class ApiPromoteScanServiceV2Test
 
   private void awaitPromoteScanResult(String statusId, long timeout, TimeUnit unit) {
     await().atMost(timeout, unit)
-        .until(() -> !PolicyEvaluationStatus.PENDING.equals(new PersistedPolicyEvaluationPollingResultDAO()
+        .until(() -> !PolicyEvaluationStatus.PENDING.equals(persistedPolicyEvaluationPollingResultDAO
             .getByApplicationIdAndStatusId(app.getId(), statusId).getPolicyEvaluationPollingResult().getStatus()));
   }
 

@@ -28,10 +28,12 @@ public class HashComponentIdentifierResourceAuditTest
 
   private static final String COMMENT = "comment";
 
-  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Before
   public void before() throws Exception {
+    hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
+
     mockComponentSummary(COMPONENT_IDENTIFIER, ComponentSummary.create(false));
   }
 

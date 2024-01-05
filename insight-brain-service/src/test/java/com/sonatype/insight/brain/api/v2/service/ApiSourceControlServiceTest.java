@@ -105,15 +105,23 @@ public class ApiSourceControlServiceTest
   @Mock
   private GitClientFactory mockGitClientFactory;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private SourceControlDAO sourceControlDAO;
+
+  @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
 
   private Application app;
 
   private Organization org;
 
   private SourceControl rootOrgSourcecontrol;
-
-  private final SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
 
   @Mock
   private GitApiFactory gitApiFactory;
@@ -318,8 +326,6 @@ public class ApiSourceControlServiceTest
     }
 
     // try automatic scm
-    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
-        new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(enabled);
 
     ApiSourceControlDTO result =
@@ -995,7 +1001,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetRateLimits_NoSourceControlConfigured() {
-    Organization rootOrganization = new OrganizationDAO().getById(ROOT_ORGANIZATION_ID);
+    Organization rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
     tempEntity.newApplicationWithParent();
 
     ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);

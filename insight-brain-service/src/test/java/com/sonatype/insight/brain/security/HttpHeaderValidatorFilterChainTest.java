@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Test;
 
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.21
  */
 public class HttpHeaderValidatorFilterChainTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Override
   protected HttpRequest restRequest() {

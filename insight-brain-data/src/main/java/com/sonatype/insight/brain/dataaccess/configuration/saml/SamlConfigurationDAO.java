@@ -5,15 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.saml;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.72
  */
+@Named
+@Singleton
 public class SamlConfigurationDAO
 {
-  private static SamlConfigurationInternalDAO samlConfigurationInternalDAO = new SamlConfigurationInternalDAO();
+  private final SamlConfigurationInternalDAO samlConfigurationInternalDAO;
+
+  @Inject
+  public SamlConfigurationDAO(final SamlConfigurationInternalDAO samlConfigurationInternalDAO) {
+    this.samlConfigurationInternalDAO = samlConfigurationInternalDAO;
+  }
 
   public SamlConfiguration getById(String id) {
     return SamlConfigurationInternal.toSamlConfiguration(samlConfigurationInternalDAO.getById(id));

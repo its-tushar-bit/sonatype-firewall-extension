@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Creates a backup of an H2 database. The backup includes instructions for restoring the database from the backup.
- * 
+ *
  * @since 1.15.0
  */
 public class H2DatabaseBackup
@@ -41,7 +40,7 @@ public class H2DatabaseBackup
 
     log.debug("Creating database backup '{}'...", dbBackupDir.getAbsolutePath());
 
-    if (databaseConfig == null) {
+    if (DatabaseUtil.isInMemoryDatabase(databaseConfig)) {
       throw new IllegalArgumentException("Cannot backup an in-memory H2 database.");
     }
 

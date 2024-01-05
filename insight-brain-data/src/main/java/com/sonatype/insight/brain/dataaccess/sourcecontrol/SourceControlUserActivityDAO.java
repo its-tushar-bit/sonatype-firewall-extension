@@ -12,17 +12,27 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUserActivity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class SourceControlUserActivityDAO
     extends AbstractOperationalSqlDAO<SourceControlUserActivity>
 {
+  @Inject
+  public SourceControlUserActivityDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void insert(TransactionContext tx, final SourceControlUserActivity entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
@@ -59,10 +69,10 @@ public class SourceControlUserActivityDAO
     if (userActivities.isEmpty()) {
       return;
     }
-
+    String dbSchema = getDatabaseSchema();
     SourceControlUserActivityDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder()
-            : new DefaultSourceControlUserActivityDAOQueryBuilder();
+        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
+            : new DefaultSourceControlUserActivityDAOQueryBuilder(dbSchema);
 
     List<SourceControlUserActivity> batchActivities = new ArrayList<>(queryBuilder.getBatchLimit());
     for (final SourceControlUserActivity userActivity : userActivities) {
@@ -94,11 +104,6 @@ public class SourceControlUserActivityDAO
     }
   }
 
-  private boolean isDatabasePostgresql() {
-    return !OperationalDataStoreProvider.isDatabaseInMemory() && org.postgresql.Driver.class.getName()
-        .equals(OperationalDataStoreProvider.getDatabaseConfig().getDriverClassName());
-  }
-
   private interface SourceControlUserActivityDAOQueryBuilder
   {
     String getMassiveInsertNativeQuery(int activitiesToInsert);
@@ -116,9 +121,15 @@ public class SourceControlUserActivityDAO
 
     private static final int BATCH_UPDATE_LIMIT = AbstractOperationalSqlDAO.H2_IN_OPERATOR_THRESHOLD;
 
+    private final String databaseSchema;
+
+    public DefaultSourceControlUserActivityDAOQueryBuilder(final String databaseSchema) {
+      this.databaseSchema = databaseSchema;
+    }
+
     @Override
     public String getMassiveInsertNativeQuery(int activitiesToInsert) {
-      return "MERGE INTO " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control_user_activity" +
+      return "MERGE INTO " + databaseSchema + ".source_control_user_activity" +
           " (source_control_user_activity_id, source_control_user_id, commit_year_month)" +
           " KEY (source_control_user_id, commit_year_month)" +
           " VALUES (?, ?, ?)" + StringUtils.repeat(", (?, ?, ?)", activitiesToInsert - 1);
@@ -143,9 +154,15 @@ public class SourceControlUserActivityDAO
 
     private static final int BATCH_UPDATE_LIMIT = AbstractOperationalSqlDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
 
+    private final String databaseSchema;
+
+    public PostgresqlSourceControlUserActivityDAOQueryBuilder(final String databaseSchema) {
+      this.databaseSchema = databaseSchema;
+    }
+
     @Override
     public String getMassiveInsertNativeQuery(int activitiesToInsert) {
-      return "INSERT INTO " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control_user_activity" +
+      return "INSERT INTO " + databaseSchema + ".source_control_user_activity" +
           " (source_control_user_activity_id, source_control_user_id, commit_year_month)" +
           " VALUES (?, ?, ?)" + StringUtils.repeat(", (?, ?, ?)", activitiesToInsert - 1) +
           " ON CONFLICT (source_control_user_id, commit_year_month) DO NOTHING";
@@ -191,9 +208,10 @@ public class SourceControlUserActivityDAO
     if (sourceControlUserActivityIds.isEmpty()) {
       return updatedIds;
     }
+    String dbSchema = getDatabaseSchema();
     SourceControlUserActivityDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder()
-            : new DefaultSourceControlUserActivityDAOQueryBuilder();
+        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
+            : new DefaultSourceControlUserActivityDAOQueryBuilder(dbSchema);
     Set<String> batchActivityIds = new HashSet<>(queryBuilder.getUpdateBatchLimit());
     for (final String userActivityId : sourceControlUserActivityIds) {
       batchActivityIds.add(userActivityId);

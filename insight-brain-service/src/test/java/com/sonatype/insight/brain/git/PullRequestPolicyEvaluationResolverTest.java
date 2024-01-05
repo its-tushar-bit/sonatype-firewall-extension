@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -24,7 +24,6 @@ import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -42,9 +41,6 @@ import static org.mockito.Mockito.verify;
 public class PullRequestPolicyEvaluationResolverTest
     extends VerifiableLoggingTestBase
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Mock
   private GitCommitHistoryService mockGitCommitHistoryService;
 
@@ -57,6 +53,8 @@ public class PullRequestPolicyEvaluationResolverTest
   @Mock
   private SourceControlUtils sourceControlUtils;
 
+  private ApplicationDAO applicationDAO;
+
   private Application application;
 
   public PullRequestPolicyEvaluationResolverTest() {
@@ -68,6 +66,7 @@ public class PullRequestPolicyEvaluationResolverTest
   public void setup() {
     super.setup();
     MockitoAnnotations.openMocks(this);
+    applicationDAO = daoFactory.createApplicationDAO();
     application = tempEntity.newApplicationWithParent();
   }
 
@@ -658,7 +657,8 @@ public class PullRequestPolicyEvaluationResolverTest
           mockPullRequestEligibilityValidator,
           mockPullRequestInfoClient,
           mockSourceControlScanService,
-          sourceControlUtils);
+          sourceControlUtils,
+          applicationDAO);
     }
   }
 }

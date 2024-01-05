@@ -28,17 +28,16 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-//import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.DISABLED_GROUP_SEARCH_WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractMtiqAccessEditorTest
     extends AbstractMtiqFunctionalTest
 {
-  private static final List<Role> APPLICATION_ROLES = new RoleDAO().getApplicationRoles();
+  private List<Role> applicationRoles;
 
-  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+  protected MembershipMappingDAO membershipMappingDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  protected RoleDAO roleDAO;
 
   protected Owner currentOwner;
 
@@ -48,17 +47,24 @@ public abstract class AbstractMtiqAccessEditorTest
     loginAsAdmin();
   }
 
+  @Before
+  public void setUp() {
+    roleDAO = lookup(RoleDAO.class);
+    membershipMappingDAO = lookup(MembershipMappingDAO.class);
+    applicationRoles = roleDAO.getApplicationRoles();
+  }
+
   protected void init(Owner owner) {
     this.currentOwner = owner;
 
     tempEntity.newSamlConfiguration();
     SamlUser u1 = tempEntity.newSamlUser("a-john@doe.net", "John", "Doe", "a-john@doe.net");
     SamlUser u2 = tempEntity.newSamlUser("b-jane@doe.net", "Jane", "Doe", "b-jane@doe.net");
-    Role role = APPLICATION_ROLES.get(0);
+    Role role = applicationRoles.get(0);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
 
-    role = APPLICATION_ROLES.get(2);
+    role = applicationRoles.get(2);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
 
     refreshOrOpen(OwnerSummaryPage.url(owner));

@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -25,17 +28,28 @@ import com.sonatype.insight.brain.utils.ComponentFactUtil;
 /**
  * @since 1.21.0
  */
+@Named
+@Singleton
 public class PolicyNotificationUtil
 {
-  public static List<PolicyNotification> createPolicyNotifications(
+  private final OwnerDAO ownerDAO;
+
+  private final PolicyDAO policyDAO;
+
+  @Inject
+  public PolicyNotificationUtil(final OwnerDAO ownerDAO, final PolicyDAO policyDAO) {
+    this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
+  }
+
+  public List<PolicyNotification> createPolicyNotifications(
       Owner owner,
       List<PolicyViolation> policyViolations,
       String stageTypeId,
       boolean forMonitoring)
   {
     List<PolicyNotification> result = new ArrayList<>();
-    PolicyDAO policyDAO = new PolicyDAO();
-    List<String> ownerIds = new OwnerDAO().getOwnerIds(owner);
+    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
 
     Map<String, PolicyFact> policyFactsByPolicyId = new LinkedHashMap<>();
     for (PolicyViolation policyViolation : policyViolations) {

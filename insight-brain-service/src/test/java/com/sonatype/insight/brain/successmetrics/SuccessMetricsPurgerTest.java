@@ -23,8 +23,7 @@ import javax.persistence.LockModeType;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -34,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.db.DatabaseConfig;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -168,61 +166,49 @@ public class SuccessMetricsPurgerTest
   }
 
   @Test
+  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
   public void testPurgeSuccessMetrics_RetryAfterLockTimeout() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
-      odsDatabaseConfig.setUrl("jdbc:h2:" + tempDir.newFolder("data").getAbsolutePath() + "/ods"
-          + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE");
-      odsDatabaseConfig.setUsername("sa");
-      odsDatabaseConfig.setPassword("");
-      OperationalDataStoreProvider.init(odsDatabaseConfig, true);
+    Organization org = tempEntity.newOrganization();
+    dataRetentionPolicyDAO.insert(
+        new DataRetentionPolicy(org.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, true, null, 365));
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-1", monthsAgo(26));
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
 
-      Organization org = tempEntity.newOrganization();
-      dataRetentionPolicyDAO.insert(
-          new DataRetentionPolicy(org.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, true, null, 365));
-      Application app = tempEntity.newApplication(org.getId());
-      PolicyEvaluation evaluation =
-          tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-1", monthsAgo(26));
-      tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
+    CountDownLatch latchLocked = new CountDownLatch(1);
+    CountDownLatch latchUnlock = new CountDownLatch(1);
+    AtomicReference<Exception> error = new AtomicReference<>();
+    Thread thread = new Thread(() -> {
+      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+        tx.begin();
+        policyViolationDAO //
+            .createQuery("SELECT entity FROM PolicyViolation entity") //
+            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+            .getList(tx);
+        latchLocked.countDown();
+        latchUnlock.await(10, TimeUnit.SECONDS);
+        tx.commit();
+      }
+      catch (Exception e) {
+        error.set(e);
+      }
+    });
+    thread.start();
 
-      CountDownLatch latchLocked = new CountDownLatch(1);
-      CountDownLatch latchUnlock = new CountDownLatch(1);
-      AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread(() -> {
-        try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-          tx.begin();
-          new PolicyViolationDAO() //
-              .createQuery("SELECT entity FROM PolicyViolation entity") //
-              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-              .getList(tx);
-          latchLocked.countDown();
-          latchUnlock.await(10, TimeUnit.SECONDS);
-          tx.commit();
-        }
-        catch (Exception e) {
-          error.set(e);
-        }
-      });
-      thread.start();
+    successMetricsPurger = spy(successMetricsPurger);
+    doAnswer(invocation -> {
+      int retry = invocation.getArgument(0);
+      if (retry > 0) {
+        latchUnlock.countDown();
+      }
+      return invocation.callRealMethod();
+    }).when(successMetricsPurger).getDelayForRetry(anyInt());
 
-      successMetricsPurger = spy(successMetricsPurger);
-      doAnswer(invocation -> {
-        int retry = invocation.getArgument(0);
-        if (retry > 0) {
-          latchUnlock.countDown();
-        }
-        return invocation.callRealMethod();
-      }).when(successMetricsPurger).getDelayForRetry(anyInt());
-
-      assertThat(latchLocked.await(10, TimeUnit.SECONDS)).isTrue();
-      successMetricsPurger.purgeSuccessMetrics();
-      verify(successMetricsPurger).getDelayForRetry(1);
-      assertThat(error).hasValue(null);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(latchLocked.await(10, TimeUnit.SECONDS)).isTrue();
+    successMetricsPurger.purgeSuccessMetrics();
+    verify(successMetricsPurger).getDelayForRetry(1);
+    assertThat(error).hasValue(null);
   }
 
   @Test

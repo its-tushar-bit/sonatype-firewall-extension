@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
 import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,22 +18,19 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
+import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyViolationMigratorTest
+    extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
   private static class PolicyViolation
   {
     String applicationId;
@@ -100,7 +96,7 @@ public class PolicyViolationMigratorTest
     }
   }
 
-  private void runScript(DataSource dataSource, String scriptName) throws Exception {
+  private void runScript(String scriptName) throws Exception {
     String scriptResource;
     if (scriptName.startsWith("schema_incremental_")) {
       scriptResource = "db/insight_brain_ods/" + scriptName;
@@ -108,29 +104,21 @@ public class PolicyViolationMigratorTest
     else {
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
-    new DatabaseMigrator().runScript(dataSource, "", scriptResource + ".sql");
+    new DataStoreMigrator(databaseRule.getOperationalDataStore())
+        .runScript("", scriptResource + ".sql");
   }
 
-  private DataSource getDataSource(String scriptName) throws Exception {
-    File databasePath = new File(tempDir.newFolder(), "test-db");
-    BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName("org.h2.Driver");
-    dataSource.setUrl(
-        "jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
-    dataSource.setUsername("sa");
-    dataSource.setPassword("");
-    dataSource.setMaxTotal(50);
-    dataSource.setMaxIdle(50);
-    runScript(dataSource, "schema");
-    runScript(dataSource, "schema_incremental_0115");
-    runScript(dataSource, scriptName);
-    return dataSource;
+  private void populateH2Database(String scriptName) throws Exception {
+    runScript("schema");
+    runScript("schema_incremental_0115");
+    runScript(scriptName);
   }
 
   private List<PolicyViolation> migrate(String testScriptName) throws Exception {
-    DataSource dataSource = getDataSource(testScriptName);
-    new PolicyViolationMigrator().migrate(dataSource);
-    runScript(dataSource, "schema_incremental_0116");
+    populateH2Database(testScriptName);
+    DataSource dataSource = databaseRule.getOperationalDataStore().getDataSource();
+    new PolicyViolationMigrator().migrate(dataSource, databaseRule.getOperationalDataStore().getDatabaseSchema());
+    runScript("schema_incremental_0116");
     return loadViolations(dataSource);
   }
 
@@ -201,6 +189,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_Basics() throws Exception {
     List<PolicyViolation> violations = migrate("basics");
     assertThat(violations).hasSize(3);
@@ -215,6 +204,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_OpenToWaived() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived");
     assertThat(violations).hasSize(1);
@@ -224,6 +214,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_OpenToWaivedToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-fixed");
     assertThat(violations).hasSize(1);
@@ -233,6 +224,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_OpenToWaivedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-waived-to-open");
     assertThat(violations).hasSize(2);
@@ -245,6 +237,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_OpenToFixed() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed");
     assertThat(violations).hasSize(1);
@@ -254,6 +247,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_OpenToFixedToOpen() throws Exception {
     List<PolicyViolation> violations = migrate("open-to-fixed-to-open");
     assertThat(violations).hasSize(2);
@@ -266,6 +260,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_LatestViolationState() throws Exception {
     List<PolicyViolation> violations = migrate("latest-violation-state");
     assertThat(violations).hasSize(1);
@@ -275,6 +270,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_InitialWaiverInfo() throws Exception {
     List<PolicyViolation> violations = migrate("initial-waiver-info");
     assertThat(violations).hasSize(1);
@@ -284,12 +280,14 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_ObsoleteReevaluation() throws Exception {
     List<PolicyViolation> violations = migrate("obsolete-reevaluation");
     assertThat(violations).isEmpty();
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testMigrate_BrokenViolation() {
     assertThatExceptionOfType(UncheckedIOException.class)
         .isThrownBy(() -> migrate("broken-violation")).withMessageContaining("eval-0-vio-0");

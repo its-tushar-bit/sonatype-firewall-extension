@@ -11,13 +11,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Statement;
-
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
+import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.dropwizard.cli.Cli;
@@ -50,12 +53,16 @@ public class CompactCommand
       throw new BadRequestException("The " + getName() + " command is supported only for h2 databases.");
     }
 
-    final DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
+    final DatabaseConfig databaseConfig = DatabaseConfigProviderFactory
+        .createDatabaseConfigProvider(insightConfig)
+        .getDatabaseConfig(DatabaseName.ods);
+    final DataSourceProvider dataSourceProvider =
+        DataSourceProviderFactory.createDataSourceProvider(H2DatabaseEngine.INSTANCE);
+    final DataSource dataSource = dataSourceProvider.getDataSource(databaseConfig, OperationalDataStore.ID);
+
     final Path databaseFile = Paths.get(H2DatabaseUtil.getDatabasePath(databaseConfig).getAbsolutePath() + ".h2.db");
     try {
       final long originalSize = Files.size(databaseFile);
-      OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
-      DataSource dataSource = OperationalDataStoreProvider.getDataSource();
       log.info("Compacting {}", databaseFile);
       log.info("This might take a while, please be patient.");
       final long startTime = System.currentTimeMillis();

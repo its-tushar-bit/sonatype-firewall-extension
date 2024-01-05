@@ -110,6 +110,10 @@ public class QuarantineComponentReportTest
 
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
   private Repository repository;
 
   private RepositoryManager repositoryManager;
@@ -126,6 +130,9 @@ public class QuarantineComponentReportTest
 
   @Before
   public void before() {
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
+    quarantinedComponentAccessDAO = lookup(QuarantinedComponentAccessDAO.class);
+
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
 
     repositoryManager = tempEntity.newRepositoryManager();
@@ -150,7 +157,6 @@ public class QuarantineComponentReportTest
   }
 
   private ComponentDetails createComponentDetail(String hash, ComponentIdentifier componentIdentifier) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
     componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());
@@ -438,7 +444,7 @@ public class QuarantineComponentReportTest
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(),
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO,
             testCLMServer.getCLMServer().getInstance(Configuration.class));
     Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
@@ -876,12 +882,12 @@ public class QuarantineComponentReportTest
   @Test
   public void testLoginModalAnonymousAccessConfiguration() {
     LoginModal loginModal = new LoginModal();
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    quarantinedComponentAccessDAO.setAnonymousAccess(false);
     encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     loginModal.shouldBe(visible);
     loginModal.cancelButton().shouldNotBe(visible);
-    new QuarantinedComponentAccessDAO().setAnonymousAccess(true);
+    quarantinedComponentAccessDAO.setAnonymousAccess(true);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     loginModal.shouldNotBe(visible);
     MainHeader.loginButton().shouldBe(visible);

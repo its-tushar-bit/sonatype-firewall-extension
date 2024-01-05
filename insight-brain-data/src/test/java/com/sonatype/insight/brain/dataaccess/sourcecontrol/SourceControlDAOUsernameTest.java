@@ -35,7 +35,7 @@ public class SourceControlDAOUsernameTest
   // This is the list of providers that we *KNOW* do not allow username
   private static final List<SourceControlProvider> USERNAME_NOT_ALLOWED_PROVIDERS = ImmutableList.of(GITHUB, GITLAB);
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private SourceControlDAO sourceControlDAO;
 
   private final SourceControlProvider sourceControlProvider;
 
@@ -55,9 +55,11 @@ public class SourceControlDAOUsernameTest
         .collect(Collectors.toList());
   }
 
-  @Override
   @Before
+  @Override
   public void setup() {
+    super.setup();
+    sourceControlDAO = daoFactory.createSourceControlDAO();
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
   }

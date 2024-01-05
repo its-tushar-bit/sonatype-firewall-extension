@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
@@ -51,6 +50,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
@@ -67,6 +67,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyWaiverResourceTest
     extends AbstractResourceTest
 {
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Before
+  public void setUp() {
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+  }
+
   @Test
   public void testDeletePolicyWaiver() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
@@ -79,7 +92,7 @@ public class ApiPolicyWaiverResourceTest
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(new PolicyWaiverDAO().getById(policyWaiver.getId())).isNull();
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
   }
 
   @Test
@@ -362,7 +375,7 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolation, policyWaivers.get(0), "waiver comment",
         policyViolation.getHash(), expiryTime);
@@ -382,8 +395,7 @@ public class ApiPolicyWaiverResourceTest
        The api will now not allow creating waiver with expiry date in the past.
      */
 
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    AbstractPolicyViolation abstractPolicyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
+    AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getById(policyViolation.getId());
     Date expiryTime = DateTime.now().minusDays(1).toDate();
     String waiverComment = "some comment";
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
@@ -399,11 +411,11 @@ public class ApiPolicyWaiverResourceTest
     }
 
     // should not return a policy as the one existing is expired
-    List<PolicyWaiver> activePolicyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> activePolicyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(activePolicyWaivers).isEmpty();
 
     // getByOwnerId should still return the expired policy
-    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    List<PolicyWaiver> allPolicyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolation, allPolicyWaivers.get(0), waiverComment,
         policyViolation.getHash(), expiryTime);
@@ -458,7 +470,7 @@ public class ApiPolicyWaiverResourceTest
 
     assertResponseStatus(204, response);
 
-    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    List<PolicyWaiver> allPolicyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
         waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
@@ -507,7 +519,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = operator.apply(request).post();
     assertResponseStatus(204, response);
-    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    List<PolicyWaiver> allPolicyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
         waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
@@ -552,7 +564,7 @@ public class ApiPolicyWaiverResourceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_RepositoryManager() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
     RepositoryPolicyViolation repositoryPolicyViolation =
@@ -624,7 +636,7 @@ public class ApiPolicyWaiverResourceTest
       String comment,
       String hash)
   {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     assertPolicyWaiver(ownerId, policy, abstractPolicyViolation, policyWaivers.get(0), comment, hash, null);
   }

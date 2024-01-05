@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
 {
-  private final RepositoryManagerDAO dao = new RepositoryManagerDAO();
+  private RepositoryManagerDAO dao;
+
+  private RepositoryDAO repositoryDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryManagerDAO();
+    repositoryDAO = daoFactory.createRepositoryDAO();
+  }
 
   @Override
   protected RepositoryManager createNameable(String a) {
@@ -120,7 +131,6 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repoManager, "publicId");
 
-    RepositoryDAO repositoryDAO = new RepositoryDAO();
     // sanity check
     assertThat(repositoryDAO.getByRepositoryManagerId(repoManager.getId())).isNotEmpty();
 

@@ -450,7 +450,7 @@ public class ComponentPolicyEvaluatorTest
     // randomly generate a series of policies
     for (int i = 0; i <= 25 * Math.random(); i++) {
       Policy policy = randomPolicy();
-      DroolsGenerator.generate(policy);
+      DroolsGenerator.generate(policy, labelDAO);
       policies.add(policy);
     }
 
@@ -496,7 +496,7 @@ public class ComponentPolicyEvaluatorTest
     }
 
     // Convert facts into alerts
-    PolicyResults policyResults = ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
+    PolicyResults policyResults = componentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
         new Stage(BuildStageType.ID), false /* forMonitoring */);
     final List<PolicyAlert> expectedAlerts = policyResults.getActiveAlerts();
 
@@ -505,7 +505,7 @@ public class ComponentPolicyEvaluatorTest
       Collections.shuffle(policyFacts);
       Collections.shuffle(policies);
 
-      policyResults = ComponentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
+      policyResults = componentPolicyEvaluator.toPolicyResults(null /* ownerId */, policies, policyFacts,
           new Stage(BuildStageType.ID), false /* forMonitoring */);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 

@@ -230,9 +230,7 @@ public class RepositoryComponentDeleteServiceTest
     repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     // Assertions
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
     assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
 
     verifyNoInteractions(repositoryComponentTelemetryCreator);
@@ -258,9 +256,7 @@ public class RepositoryComponentDeleteServiceTest
     repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     // Assertions
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
     assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
 
     verifyNoInteractions(repositoryComponentTelemetryCreator);

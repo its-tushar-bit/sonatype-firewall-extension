@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
 import java.util.Collections;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
@@ -39,6 +39,9 @@ public class ProprietaryConfigMigratorTest
 
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
 
   @Before
   public void before() {
@@ -119,7 +122,8 @@ public class ProprietaryConfigMigratorTest
   }
 
   private void writeProprietaryConfigFile(com.sonatype.clm.dto.model.ProprietaryConfig config) throws IOException {
-    new JsonFileStore(work.getDataDir(), "test").commit(ProprietaryConfigMigrator.PROPRIETARY_CONFIG_FILENAME,
+    new JsonFileStore(work.getDataDir(), "test", clusterLockManager).commit(
+        ProprietaryConfigMigrator.PROPRIETARY_CONFIG_FILENAME,
         JsonUtils.stamp("user", "ip", null, JsonUtils.asTree(config)));
   }
 }

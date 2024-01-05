@@ -8,9 +8,6 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.model.ValidationResult;
-import com.sonatype.insight.dataaccess.TransactionContext;
-
 public class Constraint
 {
   private String id;
@@ -71,29 +68,6 @@ public class Constraint
     }
     condition.setConditionIndex(conditions.size());
     conditions.add(condition);
-  }
-
-  public ValidationResult validate(TransactionContext tx, String ownerId) {
-    ValidationResult result = new ValidationResult();
-    if (name == null || name.trim().isEmpty()) {
-      result.addError("The constraint name must not be null or empty");
-    }
-    if (conditions == null || conditions.isEmpty()) {
-      result.addError("Constraint '" + name + "' has no conditions");
-      return result;
-    }
-
-    ValidationResult conditionsResult = new ValidationResult();
-    for (Condition condition : conditions) {
-      conditionsResult.merge(condition.validate(tx, ownerId));
-    }
-
-    if (!conditionsResult.isValid()) {
-      result.addError("Constraint '" + name + "' has invalid conditions:");
-      result.merge(conditionsResult);
-    }
-
-    return result;
   }
 
   @Override

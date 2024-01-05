@@ -16,7 +16,7 @@ public class RootOrganizationLegacyViolationsEditorTest
 {
   @Before
   public void init() {
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     super.init(rootOrg);
   }
 

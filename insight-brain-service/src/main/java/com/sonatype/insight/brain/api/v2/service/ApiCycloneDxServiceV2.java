@@ -121,19 +121,23 @@ public class ApiCycloneDxServiceV2
 
   private final VersionService versionService;
 
+  private static MultiLicenseDAO multiLicenseDAO;
+
   @Inject
   public ApiCycloneDxServiceV2(
       ApiReportDataServiceV2 apiReportDataServiceV2,
       ApplicationHelper applicationHelper,
       BaseUrl baseUrl,
       PolicyEvaluationDAO policyEvaluationDAO,
-      VersionService versionService)
+      VersionService versionService,
+      MultiLicenseDAO multiLicenseDAO)
   {
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.applicationHelper = applicationHelper;
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.versionService = versionService;
+    this.multiLicenseDAO = multiLicenseDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -585,7 +589,7 @@ public class ApiCycloneDxServiceV2
   }
 
   private static Set<License> convert(ApiLicenseDTO apiLicense) {
-    return new MultiLicenseDAO().getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream()
+    return multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream()
         .map(l -> createLicense(l.getId(), l.getShortDisplayName())).collect(Collectors.toSet());
   }
 

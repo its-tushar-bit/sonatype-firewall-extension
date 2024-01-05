@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +17,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SuccessMetricsReportDataDAOTest
     extends AbstractDbDAOTest
 {
-  private final SuccessMetricsReportDataDAO dao = new SuccessMetricsReportDataDAO();
+  private SuccessMetricsReportDataDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSuccessMetricsReportDataDAO();
+  }
 
   @Test
   public void testCRUD() {

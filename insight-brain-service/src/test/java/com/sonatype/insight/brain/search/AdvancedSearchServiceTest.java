@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.search;
 
 import java.io.File;
 import java.util.Arrays;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -27,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AdvancedSearchServiceTest
     extends AbstractComponentTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
-
   @Inject
   private AdvancedSearchService advancedSearchService;
 
@@ -40,6 +37,9 @@ public class AdvancedSearchServiceTest
 
   @Inject
   private TaskScheduler taskScheduler;
+
+  @Inject
+  private SystemConfigurationPropertyDAO dao;
 
   @Mock
   private TelemetrySender telemetrySenderMock;

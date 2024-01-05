@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -22,6 +25,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.106
  */
+@Singleton
+@Named
 public class ProprietaryNameConflictConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -33,6 +38,13 @@ public class ProprietaryNameConflictConditionType
 
   private static List<String> supportedOperators =
       Collections.unmodifiableList(Arrays.asList(OP_IS_PRESENT, OP_IS_NOT_PRESENT));
+
+  private final RepositoryDAO repositoryDAO;
+
+  @Inject
+  public ProprietaryNameConflictConditionType(final RepositoryDAO repositoryDAO) {
+    this.repositoryDAO = repositoryDAO;
+  }
 
   @Override
   public String getId() {
@@ -64,7 +76,7 @@ public class ProprietaryNameConflictConditionType
     Optional<ProprietaryComponentName> conflict = matchFact.getComponent().getConflictingProprietaryName();
     if (conflict.isPresent()) {
       ProprietaryComponentName name = conflict.get();
-      Repository repository = new RepositoryDAO().getByIdNotNull(name.getRepositoryId());
+      Repository repository = repositoryDAO.getByIdNotNull(name.getRepositoryId());
       return "Component name conflicts with proprietary component " + name.getProprietaryNamePattern() + " from "
           + repository.getPublicId();
     }

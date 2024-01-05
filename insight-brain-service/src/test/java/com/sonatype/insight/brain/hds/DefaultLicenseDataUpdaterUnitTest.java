@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
 
-import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -17,8 +18,6 @@ import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
@@ -39,13 +38,22 @@ public class DefaultLicenseDataUpdaterUnitTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  private LicenseDAO licenseDAO;
+
+  private MultiLicenseDAO multiLicenseDAO;
+
   @Inject
   private DefaultLicenseDataUpdater defaultLicenseDataUpdater;
 
   @Override
   public void configure(Binder binder) {
+    licenseDAO = spy(daoFactory.createLicenseDAO());
+    multiLicenseDAO = spy(daoFactory.createMultiLicenseDAO());
+
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    binder.bind(LicenseDAO.class).toInstance(licenseDAO);
+    binder.bind(MultiLicenseDAO.class).toInstance(multiLicenseDAO);
     super.configure(binder);
   }
 
@@ -85,10 +93,9 @@ public class DefaultLicenseDataUpdaterUnitTest
 
   @Test
   public void testDoLoadLicenses() {
-    try (MockedStatic<LicenseDataUpdater> mockLicenseDataUpdater = Mockito.mockStatic(LicenseDataUpdater.class)) {
-      defaultLicenseDataUpdater.doLoadLicenses();
+    defaultLicenseDataUpdater.doLoadLicenses();
 
-      mockLicenseDataUpdater.verify(LicenseDataUpdater::loadLicenses);
-    }
+    verify(licenseDAO).load();
+    verify(multiLicenseDAO).load();
   }
 }

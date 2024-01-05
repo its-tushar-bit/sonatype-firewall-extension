@@ -39,10 +39,14 @@ public class ApplicationPolicyEditorTest
 {
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
+  private RoleDAO roleDAO;
+
   private Application application;
 
   @Before
   public void init() {
+    roleDAO = lookup(RoleDAO.class);
+
     //note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
@@ -86,7 +90,7 @@ public class ApplicationPolicyEditorTest
       // user with only permission to view the app
       String username = "foo";
       tempEntity.newUser(username);
-      tempEntity.newMembershipMapping(application.getId(), new RoleDAO().getByName("Owner").getId(), username);
+      tempEntity.newMembershipMapping(application.getId(), roleDAO.getByName("Owner").getId(), username);
 
       login(username, TemporaryEntity.USER_PASSWORD_CLEAR);
       refreshOrOpen(PolicyEditorPage.urlToEdit(application, policy.getId()));

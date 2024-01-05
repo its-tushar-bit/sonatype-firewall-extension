@@ -15,7 +15,6 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -51,6 +50,8 @@ public class SamlAuthcTest
 
   private static final String ENCRYPT_ASSERTION = "encryptAssertion";
 
+  private SamlConfigurationDAO samlConfigurationDAO;
+
   private KeyPair idpSigningKeyPair;
 
   private String idpMetadata;
@@ -65,10 +66,10 @@ public class SamlAuthcTest
 
   @Before
   public void init() throws Exception {
-    SamlConfigurationDAO samlConfigDAO = new SamlConfigurationDAO();
+    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
     SamlConfiguration samlConfig = new SamlConfiguration();
-    samlConfigDAO.insert(samlConfig);
-    samlConfigDAO.delete();
+    samlConfigurationDAO.insert(samlConfig);
+    samlConfigurationDAO.delete();
     idpSigningKeyPair = samlConfig.getSigningKeyPair();
     idpMetadata = newIdpMetadata(samlConfig.getCertificate());
   }
@@ -122,7 +123,7 @@ public class SamlAuthcTest
     Set<String> flags = new HashSet<>(Arrays.asList(options));
     BaseSAML2BindingBuilder<BaseSAML2BindingBuilder<?>> builder = new BaseSAML2BindingBuilder<>();
     builder.signWith(null, idpSigningKeyPair);
-    builder.encrypt(new SamlConfigurationDAO().get().getSigningKeyPair().getPublic());
+    builder.encrypt(samlConfigurationDAO.get().getSigningKeyPair().getPublic());
 
     if (flags.contains(SIGN_ASSERTION)) {
       Element assertion = DocumentUtil.getElement(document, JBossSAMLConstants.ASSERTION.getAsQName());

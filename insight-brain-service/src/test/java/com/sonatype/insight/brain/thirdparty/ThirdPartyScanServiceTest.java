@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ThirdPartyScanServiceTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private ScanUploader scanUploader;
 

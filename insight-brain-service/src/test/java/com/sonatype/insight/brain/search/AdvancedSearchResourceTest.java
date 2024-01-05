@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.search.AdvancedSearchResource.RESOURCE_PATH;
@@ -22,6 +23,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AdvancedSearchResourceTest
     extends AbstractResourceTest
 {
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(RESOURCE_PATH);
@@ -47,8 +55,6 @@ public class AdvancedSearchResourceTest
     HttpResponse response = restRequest().path(STATUS_PATH).body(statusDTO).put();
 
     assertResponseStatus(204, response);
-    assertThat(
-        new SystemConfigurationPropertyDAO().getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue())
-        .isEqualTo("true");
+    assertThat(dao.getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue()).isEqualTo("true");
   }
 }

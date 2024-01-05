@@ -18,10 +18,11 @@ public class DatabasePreferences
   
   public static final String LICENSE_DETAILS_KEY = "licenseDetails";
 
-  private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
+  private final ProductLicenseDAO productLicenseDAO;
 
-  public DatabasePreferences() {
+  public DatabasePreferences(final ProductLicenseDAO productLicenseDAO) {
     super(null, "");
+    this.productLicenseDAO = productLicenseDAO;
   }
 
   @Override

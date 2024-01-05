@@ -42,13 +42,23 @@ public class ClairScannerResultHandler
 {
   private static final Gson GSON = new Gson();
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
-
-  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
-
-  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
-
   private static final Logger log = LoggerFactory.getLogger(ClairScannerResultHandler.class);
+
+  private final ThirdPartyFileDAO thirdPartyFileDAO;
+
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  public ClairScannerResultHandler(
+      final ThirdPartyFileDAO thirdPartyFileDAO,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO)
+  {
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+  }
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(

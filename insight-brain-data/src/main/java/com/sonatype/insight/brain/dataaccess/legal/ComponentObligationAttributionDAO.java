@@ -14,11 +14,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -27,9 +31,22 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class ComponentObligationAttributionDAO
     extends AbstractOperationalSqlDAO<ComponentObligationAttribution>
 {
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public ComponentObligationAttributionDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+  }
+
   public List<ComponentObligationAttribution> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
         " WHERE entity.ownerId=?1";
@@ -90,7 +107,6 @@ public class ComponentObligationAttributionDAO
       ComponentIdentifier componentIdentifier)
   {
     Map<String, ComponentObligationAttribution> obligationNameToAttribution = new HashMap<>();
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       List<ComponentObligationAttribution> componentObligationAttributions =
           getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
@@ -118,7 +134,6 @@ public class ComponentObligationAttributionDAO
   {
     List<ComponentObligationAttribution> results = new ArrayList<>();
     Set<String> missingObligations = new HashSet<>(obligationNames);
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       List<ComponentObligationAttribution> componentObligationAttributions =
           getByOwnerIdAndComponentIdentifierAndObligationNames(tx, owner.getId(), componentIdentifier,

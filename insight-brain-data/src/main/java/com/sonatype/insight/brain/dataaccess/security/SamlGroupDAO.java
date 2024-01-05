@@ -9,16 +9,33 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections.CollectionUtils;
 
+@Named
+@Singleton
 public class SamlGroupDAO
     extends AbstractOperationalSqlDAO<SamlGroup>
 {
+  private final SamlUserGroupDAO samlUserGroupDAO;
+
+  @Inject
+  public SamlGroupDAO(
+      final OperationalDataStore operationalDataStore,
+      final SamlUserGroupDAO samlUserGroupDAO)
+  {
+    super(operationalDataStore);
+    this.samlUserGroupDAO = samlUserGroupDAO;
+  }
+
   @Override
   public List<SamlGroup> getAll() {
     String sQuery = "SELECT entity FROM SamlGroup entity" + //
@@ -94,7 +111,6 @@ public class SamlGroupDAO
   @Override
   public void delete(TransactionContext tx, SamlGroup entity) {
     // Cascade to saml user group mappings
-    SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
     samlUserGroupDAO.deleteBySamlGroupId(tx, entity.getId());
 
     super.delete(tx, entity);

@@ -65,7 +65,8 @@ public class ApiReportDataServiceV2Test
   @Inject
   private InsightWork work;
 
-  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
 
   @Inject
   private LicenseOverrideDAO licenseOverrideDAO;

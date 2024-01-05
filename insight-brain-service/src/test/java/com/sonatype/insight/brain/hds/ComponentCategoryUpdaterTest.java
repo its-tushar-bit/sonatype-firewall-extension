@@ -10,19 +10,26 @@ import java.util.Collections;
 import com.sonatype.clm.dto.model.component.ComponentCategoryList;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentCategoryUpdaterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
+  private ComponentCategoryDAO componentCategoryDAO;
+
+  @Before
+  public void setUp() {
+    componentCategoryDAO = lookup(ComponentCategoryDAO.class);
+  }
+
   @Test
   public void testComponentCategory() {
-    ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
     assertThat(componentCategoryDAO.getById("0")).isNull();
 
     ComponentCategoryList componentCategoryList = new ComponentCategoryList();
@@ -43,7 +50,6 @@ public class ComponentCategoryUpdaterTest
 
     try {
       String newId = "New category id";
-      ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
       assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> componentCategoryDAO.getById(newId))
           .withMessageStartingWith("Could not retrieve component category data from Sonatype HDS:");
     }

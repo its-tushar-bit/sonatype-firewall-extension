@@ -33,8 +33,8 @@ public class DroolsGenerator
   private DroolsGenerator() {
   }
 
-  public static void generate(Policy policy) {
-    try (TransactionContext tx = new LabelDAO().createTransactionContext()) {
+  public static void generate(Policy policy, LabelDAO labelDAO) {
+    try (TransactionContext tx = labelDAO.createTransactionContext()) {
       generate(tx, policy);
     }
   }

@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,9 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RoleResourceTest
     extends AbstractResourceTest
 {
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
 
-  private final RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+  private RolePermissionDAO rolePermissionDAO;
+
+  @Before
+  public void setUp() {
+    roleDAO = lookup(RoleDAO.class);
+    rolePermissionDAO = lookup(RolePermissionDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -101,7 +108,7 @@ public class RoleResourceTest
     Role role = tempEntity.newRole(false);
     HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).delete();
     assertResponseStatus(204, response);
-    assertThat(new RoleDAO().getById(role.getId())).isNull();
+    assertThat(roleDAO.getById(role.getId())).isNull();
   }
 
   private PermissionCategoryDTO createPermissionCategoryDTO(final String categoryDisplayName) {

@@ -81,6 +81,7 @@ public class PullRequestCommentingEventHandlerTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense.reset();
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }
 

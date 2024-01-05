@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -22,7 +23,8 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -51,11 +53,22 @@ public class ComponentDetailsLoader
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
 
-  private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+  private static HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
-  private final LicenseDAO licenseDAO = new LicenseDAO();
+  private static MultiLicenseDAO multiLicenseDAO;
 
-  private final ComponentDAO componentDAO;
+  @Inject
+  public static void inject(
+      final HashComponentIdentifierDAO hashComponentIdentifierDAO,
+      final MultiLicenseDAO multiLicenseDAO)
+  {
+    ComponentDetailsLoader.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+    ComponentDetailsLoader.multiLicenseDAO = multiLicenseDAO;
+  }
+
+  private final LicenseDAO licenseDAO;
+
+  private final ComponentLoader componentLoader;
 
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
@@ -64,9 +77,12 @@ public class ComponentDetailsLoader
   ComponentDetailsLoader(
       Owner owner,
       ProprietaryComponentNameDetector proprietaryComponentNameDetector,
-      Configuration configuration)
+      Configuration configuration,
+      LicenseDAO licenseDAO,
+      ComponentLoaderFactory componentLoaderFactory)
   {
-    componentDAO = new ComponentDAO(owner);
+    this.licenseDAO = licenseDAO;
+    componentLoader = componentLoaderFactory.createComponentLoader(owner);
     this.proprietaryComponentNameDetector =
         OwnerType.REPOSITORY.equals(owner.getType()) ? proprietaryComponentNameDetector : null;
     this.configuration = configuration;
@@ -194,7 +210,6 @@ public class ComponentDetailsLoader
   }
 
   private static Set<License> loadLicenses(Set<String> licenseIds) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     Set<License> licenses = new HashSet<>();
     for (String licenseId : licenseIds) {
       License license = new License(licenseId, multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
@@ -343,7 +358,7 @@ public class ComponentDetailsLoader
 
   private Component getComponent(ComponentDetails componentDetails) {
     Component component =
-        componentDAO.getComponent(componentDetails, configuration.isALPObservedLicenseDetectionEnabled());
+        componentLoader.getComponent(componentDetails, configuration.isALPObservedLicenseDetectionEnabled());
     if (proprietaryComponentNameDetector != null) {
       component.setConflictingProprietaryName(
           proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));

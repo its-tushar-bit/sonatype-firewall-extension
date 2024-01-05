@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -43,6 +42,9 @@ public class RepositoryPolicyAlertEmailerAuditTest
 
   private static final Comparator<AuditDTO> EMAIL_COMPARATOR = Comparator
       .comparing(auditDTO -> (String) auditDTO.data.getOrDefault("emailAddress", ""));
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Inject
   private RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
@@ -95,7 +97,7 @@ public class RepositoryPolicyAlertEmailerAuditTest
     Policy policy = tempEntity.newPolicy();
     policy.getNotifications().add(new UserNotification(EMAILS.get(0), ProxyStageType.ID));
     policy.getNotifications().add(new UserNotification(EMAILS.get(1), ProxyStageType.ID));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     List<PolicyNotification> policyNotifications = new ArrayList<>();
     policyNotifications.add(createPolicyNotification(policy, "hash1"));
     policyNotifications.add(createPolicyNotification(policy, "hash2"));

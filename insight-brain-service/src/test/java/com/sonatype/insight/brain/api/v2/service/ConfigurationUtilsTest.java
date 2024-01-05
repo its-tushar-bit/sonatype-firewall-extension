@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -39,6 +40,9 @@ import static org.junit.Assert.assertNull;
 public class ConfigurationUtilsTest
     extends AbstractComponentTest
 {
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -67,10 +71,9 @@ public class ConfigurationUtilsTest
 
   @Test
   public void testForceBaseUrlToString_True() {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
 
-    try (TransactionContext tx = new SystemConfigurationPropertyDAO().createTransactionContext()) {
+    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       assertThat(ConfigurationUtils.forceBaseUrlToString(tx, true)).isEqualTo(Boolean.toString(true));
     }
 
@@ -81,10 +84,9 @@ public class ConfigurationUtilsTest
 
   @Test
   public void testForceBaseUrlToString_False() {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
 
-    try (TransactionContext tx = new SystemConfigurationPropertyDAO().createTransactionContext()) {
+    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       assertThat(ConfigurationUtils.forceBaseUrlToString(tx, false)).isEqualTo(Boolean.toString(false));
     }
 
@@ -93,10 +95,9 @@ public class ConfigurationUtilsTest
 
   @Test
   public void testForceBaseUrlToString_Null() {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
 
-    try (TransactionContext tx = new SystemConfigurationPropertyDAO().createTransactionContext()) {
+    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       assertThat(ConfigurationUtils.forceBaseUrlToString(tx, null)).isNull();
     }
 
@@ -370,7 +371,7 @@ public class ConfigurationUtilsTest
     assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.WITH_REPORTS))
             .isEqualTo(ConfigurationUtils.WITH_REPORTS);
   }
-  
+
   @Test
   public void testValidateCustomMessage_Null() {
     assertThat(ConfigurationUtils.validateCustomMessage(null)).isNull();

@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
@@ -35,28 +34,31 @@ public class ApplicationManagementService
 {
   private final ApplicationService applicationService;
 
-  private final UserDirectory userDirectory;
-
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private final SourceControlEventFinder sourceControlEventFinder;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final ApplicationAdapter applicationAdapter;
+
   @Inject
   public ApplicationManagementService(
       final ApplicationService applicationService,
-      final UserDirectory userDirectory,
       final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       final SourceControlEventFinder sourceControlEventFinder,
-      final ScanPolicyEvaluator scanPolicyEvaluator
-  )
+      final ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApplicationAdapter applicationAdapter)
   {
     this.applicationService = applicationService;
-    this.userDirectory = userDirectory;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.sourceControlEventFinder = sourceControlEventFinder;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.applicationAdapter = applicationAdapter;
   }
 
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(String applicationPublicId) {
@@ -82,7 +84,7 @@ public class ApplicationManagementService
 
     List<Application> applications = applicationService.getApplications();
     List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, nameFilter);
+        applicationAdapter.createApplicationManagementSummaries(applications, nameFilter);
 
     Comparator<ApplicationManagementSummaryDTO> comparator = getComparator(order);
     applicationManagementSummaryDTOs.sort(comparator);
@@ -124,7 +126,7 @@ public class ApplicationManagementService
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
     final ApplicationManagementSummaryDTO applicationManagement =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummary(application);
+        applicationAdapter.createApplicationManagementSummary(application);
     loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;
@@ -171,7 +173,7 @@ public class ApplicationManagementService
     for (StageType stageType : StageTypes.getAll()) {
       stageTypeIds.add(stageType.getId());
     }
-    List<PolicyEvaluation> policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIds(summariesByAppId
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(summariesByAppId
         .keySet());
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       if (stageTypeIds.contains(policyEvaluation.getStageTypeId())) {

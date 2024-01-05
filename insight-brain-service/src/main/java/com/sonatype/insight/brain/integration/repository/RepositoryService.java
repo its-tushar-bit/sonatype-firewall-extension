@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,7 +14,10 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -62,11 +64,16 @@ public class RepositoryService extends AbstractRepositoryService
       FirewallQuarantineHdsClient quarantineHdsClient,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       TelemetrySender telemetrySender,
+      RepositoryManagerDAO repositoryManagerDAO,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
-        quarantineHdsClient, telemetrySender, requestSafeComponentsMetricEventService);
+        quarantineHdsClient, telemetrySender, repositoryManagerDAO, repositoryDAO, repositoryComponentDAO,
+        repositoryPolicyViolationDAO, requestSafeComponentsMetricEventService);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 
@@ -93,7 +100,6 @@ public class RepositoryService extends AbstractRepositoryService
   }
 
   private Repository getOrCreateRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
-    RepositoryDAO repositoryDAO = new RepositoryDAO();
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManagerInstanceId, repositoryPublicId);
 

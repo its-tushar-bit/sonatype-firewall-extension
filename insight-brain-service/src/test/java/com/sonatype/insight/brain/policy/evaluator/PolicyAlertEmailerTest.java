@@ -132,7 +132,26 @@ public class PolicyAlertEmailerTest
   @Mock
   private CrowdClientFactory mockCrowdClientFactory;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  @Inject
+  private PolicyNotificationUtil policyNotificationUtil;
+
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private LdapServerDAO ldapServerDAO;
+
+  @Inject
+  private UserDAO userDAO;
+
+  @Inject
+  private MembershipMappingDAO membershipMappingDAO;
+
+  @Inject
+  private OwnerDAO ownerDAO;
+
+  @Inject
+  private LdapUserMappingDAO ldapUserMappingDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -177,7 +196,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     Policy policy = tempEntity.newPolicy(app);
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -202,7 +221,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
 
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -224,7 +243,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     Exception ex = new RuntimeException();
@@ -253,7 +272,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -275,7 +294,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -297,7 +316,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -325,11 +344,11 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -354,10 +373,10 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -365,7 +384,7 @@ public class PolicyAlertEmailerTest
 
     String newAddress = "newaddress@sonatype.com";
     user.setEmail(newAddress);
-    new UserDAO().update(user);
+    userDAO.update(user);
 
     policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications, 0);
     assertEmailAddresses(oldAddress, newAddress);
@@ -387,10 +406,10 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -417,11 +436,11 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -444,11 +463,11 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -471,13 +490,13 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
-    List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+    List<LdapServer> ldapServers = ldapServerDAO.getAll();
     assertThat(ldapServers).hasSize(2);
 
     Throwable expectedException = new NamingException("Naming exception!");
@@ -486,13 +505,14 @@ public class PolicyAlertEmailerTest
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory =
-        new UserDirectory(new UserDAO(), samlUserGroupHelper, ldapServiceSpy, mockCrowdClientFactory);
+        new UserDirectory(userDAO, ldapServerDAO, samlUserGroupHelper, ldapServiceSpy, mockCrowdClientFactory);
     PolicyAlertEmailResolver policyAlertEmailResolver = new PolicyAlertEmailResolver(
         userDirectory,
         ldapServiceSpy,
-        new OwnerDAO(),
+        ownerDAO,
         samlUserGroupHelper,
-        new MembershipMappingDAO(),
+        membershipMappingDAO,
+        ldapServerDAO,
         mockCrowdClientFactory
     );
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(
@@ -534,11 +554,12 @@ public class PolicyAlertEmailerTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId,
         false /* reevaluation */, true /* forMonitoring */, new Date());
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications()
+        .add(new RoleNotification(role.getId(), role.getName(), Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -558,7 +579,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -653,11 +674,11 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app);
-    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
   }
@@ -681,7 +702,7 @@ public class PolicyAlertEmailerTest
 
     ldapService.upsertLdapConnection(createLdapConnection(ldapServer1, testLdapServer1));
 
-    new LdapUserMappingDAO().insert(createUserMapping(ldapServer1, useStaticGroups));
+    ldapUserMappingDAO.insert(createUserMapping(ldapServer1, useStaticGroups));
   }
 
   private void startLdapServer2() throws Exception {
@@ -696,7 +717,7 @@ public class PolicyAlertEmailerTest
 
     ldapService.upsertLdapConnection(createLdapConnection(ldapServer2, testLdapServer2));
 
-    new LdapUserMappingDAO().insert(createUserMapping(ldapServer2, useStaticGroups));
+    ldapUserMappingDAO.insert(createUserMapping(ldapServer2, useStaticGroups));
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {

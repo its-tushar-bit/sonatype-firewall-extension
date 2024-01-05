@@ -33,12 +33,14 @@ public class FirewallReleaseIntegrityLicenseListenerTest
   @Inject
   private FirewallReleaseIntegrityLicenseListener listener;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
-      new AutoUnquarantinePolicyConditionTypeDAO();
+  @Inject
+  private AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  @Inject
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
   @After
   public void cleanup() {

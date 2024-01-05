@@ -35,7 +35,7 @@ public class ApplicationCleanerTest
   private ApplicationCleaner appCleaner;
 
   @Inject
-  private ApplicationDAO appDAO;
+  private ApplicationDAO applicationDAO;
 
   @Inject
   private InsightWork work;
@@ -58,7 +58,7 @@ public class ApplicationCleanerTest
     new File(iconDir, "icon.png").createNewFile();
 
     // When
-    try (TransactionContext tx = appDAO.createTransactionContext()) {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       appCleaner.delete(tx, app);
       tx.commit();

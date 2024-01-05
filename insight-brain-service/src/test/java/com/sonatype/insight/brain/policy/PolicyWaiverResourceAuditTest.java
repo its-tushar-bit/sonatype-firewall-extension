@@ -33,12 +33,13 @@ public class PolicyWaiverResourceAuditTest
 {
   private static final String COMPONENT_HASH = "hash";
 
-  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private PolicyWaiverDAO policyWaiverDAO;
 
   private Policy policy;
 
   @Before
   public void before() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     policy = tempEntity.newPolicy();
   }
 

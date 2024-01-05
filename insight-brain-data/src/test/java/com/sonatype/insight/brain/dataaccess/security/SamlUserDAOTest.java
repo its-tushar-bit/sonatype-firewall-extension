@@ -17,8 +17,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -29,8 +28,8 @@ import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,18 +38,29 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SamlUserDAOTest
     extends AbstractDbDAOTest
 {
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private SamlUserDAO samlUserDAO;
 
-  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
+  private UserTokenDAO userTokenDAO;
 
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private DashboardFilterDAO dashboardFilterDAO;
 
-  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+  private UserFilterDAO userFilterDAO;
 
-  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
-      new UserViewedProductNotificationDAO();
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
-  private final SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
+  private SamlUserGroupDAO samlUserGroupDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    samlUserDAO = daoFactory.createSamlUserDAO();
+    userTokenDAO = daoFactory.createUserTokenDAO();
+    dashboardFilterDAO = daoFactory.createDashboardFilterDAO();
+    userFilterDAO = daoFactory.createUserFilterDAO();
+    userViewedProductNotificationDAO = daoFactory.createUserViewedProductNotificationDAO();
+    samlUserGroupDAO = daoFactory.createSamlUserGroupDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -376,27 +386,15 @@ public class SamlUserDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testFindUsersByNameOrUsernameQuery_PrefixAndSuffixUserName_postgres() {
-    testInPostgres(() -> {
-      SamlUser samlUser1 = tempEntity.newSamlUser("userA-postgres-1", "johnny", "smith", null, null);
-      SamlUser samlUser2 = tempEntity.newSamlUser("userB-postgres-2", "bobby", "smithson", null, null);
-      tempEntity.newSamlUser("other", "john", "doe", null, null);
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA-postgres-1", "johnny", "smith", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB-postgres-2", "bobby", "smithson", null, null);
+    tempEntity.newSamlUser("other", "john", "doe", null, null);
 
-      assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
-          .usingRecursiveFieldByFieldElementComparator()
-          .containsExactly(samlUser1, samlUser2);
-    });
-  }
-
-  private void testInPostgres(Runnable test) {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      test.run();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
   }
 
   private SamlUser createSamlUser() {

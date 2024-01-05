@@ -7,11 +7,6 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.UUID;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestName;
 
@@ -40,9 +35,14 @@ public class TenantTestHelper
   }
 
   public static Tenant testAsNewTenant(TestName testName, ConsumerWithException<Tenant> test) {
-    Tenant tenant = createTenant(testName);
+    String tenantName = createTenantNameFromTest(testName);
+    return testAsNewTenant(tenantName, test);
+  }
 
-    TenantTestHelper.testAs(tenant, test);
+  public static Tenant testAsNewTenant(String tenantName, ConsumerWithException<Tenant> test) {
+    Tenant tenant = createTenant(tenantName);
+
+    testAs(tenant, test);
 
     return tenant;
   }
@@ -62,11 +62,15 @@ public class TenantTestHelper
     }
   }
 
-  static Tenant createTenant(TestName testName) {
-    return new Tenant(createTenantName(testName));
+  static Tenant createTenant(final String tenantName) {
+    return new Tenant(tenantName);
   }
 
-  public static String createTenantName(TestName testName) {
+  static Tenant createTenant(TestName testName) {
+    return new Tenant(createTenantNameFromTest(testName));
+  }
+
+  public static String createTenantNameFromTest(TestName testName) {
     String test = StringUtils.left(testName.getMethodName().toLowerCase().replace('_', '-'), 45);
     String randomness = StringUtils.left(UUID.randomUUID().toString(), 10);
 
@@ -83,15 +87,6 @@ public class TenantTestHelper
 
   public static void resetAfterTest() {
     TenantTestHelper.setSingleTenant();
-
-    resetDataSourceProviders();
-  }
-
-  public static void resetDataSourceProviders() {
-    OperationalDataStoreProvider.setInstance(null);
-    AggregationDataStoreProvider.setInstance(null);
-    ThirdPartyScansProvider.setInstance(null);
-    DatamartProvider.setInstance(null);
   }
 
   public static void testAs(String tenantName, ConsumerWithException<Tenant> test) {

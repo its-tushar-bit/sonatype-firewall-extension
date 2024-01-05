@@ -10,18 +10,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -32,17 +32,26 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionValidator;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.ConstraintValidator;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyValidator;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.NotificationsValidator;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotificationValidator;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -59,48 +68,60 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.7
  */
 public class PolicyImportExportTest
+    extends AbstractComponentTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Inject
+  private PolicyDAO policyDAO;
 
-  private PolicyImportExport policyImportExport;
+  @Inject
+  private LabelDAO labelDAO;
+
+  @Inject
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Inject
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
+
+  @Inject
+  private ComponentLabelDAO componentLabelDAO;
+
+  @Inject
+  private TagDAO tagDAO;
+
+  @Inject
+  private PolicyTagDAO policyTagDAO;
+
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private RoleDAO roleDAO;
 
   private Organization fromOrg;
 
   private Application fromApp;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
-  private final LabelDAO labelDAO = new LabelDAO();
-
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-
-  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-
-  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-
-  private final TagDAO tagDAO = new TagDAO();
-
-  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-
-  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  @Inject
+  private PolicyImportExport policyImportExport;
 
   @Before
-  public void setUp() {
-    policyImportExport = new PolicyImportExport();
+  public void before() {
     fromOrg = tempEntity.newOrganization();
-    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(fromOrg.getId(), tempEntity);
     fromApp = tempEntity.newApplication(fromOrg.getId());
   }
 
   private void deleteFromOrg() {
-    new ApplicationDAO().delete(fromApp);
-    new OrganizationDAO().delete(fromOrg);
+    applicationDAO.delete(fromApp);
+    organizationDAO.delete(fromOrg);
   }
 
   @Test
@@ -171,8 +192,6 @@ public class PolicyImportExportTest
         now.toDate(), now.plusHours(1).toDate());
     tempEntity.newWaiver("expired", appPolicy.getId(), toApp.getId(), null, "comment",
         now.toDate(), now.toDate());
-
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
     // only interested in the deletion so import an empty DTO
     policyImportExport.importOrganization(toOrg, new PolicyExportResult());
@@ -481,7 +500,20 @@ public class PolicyImportExportTest
     assertThat(policies).hasSize(1);
     assertThat(policies.get(0).getName()).isEqualTo(policy.getName());
     assertThat(policies.get(0).getId()).isNotEqualTo(policy.getId());
-    ValidationResult policyValidationResult = policies.get(0).validate(null, orgId);
+
+    ConditionValidator conditionValidator = new ConditionValidator();
+    ConstraintValidator constraintValidator = new ConstraintValidator(conditionValidator);
+    UserNotificationValidator userNotificationValidator = new UserNotificationValidator();
+    RoleNotificationValidator roleNotificationValidator =
+        new RoleNotificationValidator(() -> roleDAO);
+    JiraNotificationValidator jiraNotificationValidator = new JiraNotificationValidator();
+    WebhookNotificationValidator webhookNotificationValidator = new WebhookNotificationValidator();
+    NotificationsValidator notificationsValidator =
+        new NotificationsValidator(userNotificationValidator, roleNotificationValidator, jiraNotificationValidator,
+            webhookNotificationValidator);
+    PolicyValidator policyValidator = new PolicyValidator(constraintValidator, notificationsValidator);
+
+    ValidationResult policyValidationResult = policyValidator.validate(null, policies.get(0), orgId);
     assertThat(policyValidationResult.isValid()).as(policyValidationResult.toMessageString()).isTrue();
   }
 

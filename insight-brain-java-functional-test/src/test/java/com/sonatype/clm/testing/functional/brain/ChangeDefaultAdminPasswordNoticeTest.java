@@ -33,10 +33,11 @@ public class ChangeDefaultAdminPasswordNoticeTest
       RoleManagementPage.url()
   };
 
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
 
   @Before
   public void before() {
+    userDAO = lookup(UserDAO.class);
     setEnableDefaultPasswordWarning(true);
     refreshOrOpen(DashboardPage.url());
   }

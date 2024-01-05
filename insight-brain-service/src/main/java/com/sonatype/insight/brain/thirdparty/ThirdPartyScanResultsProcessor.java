@@ -74,15 +74,19 @@ public class ThirdPartyScanResultsProcessor
 
   private final TelemetrySender telemetrySender;
 
+  private final ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
+
   @Inject
   public ThirdPartyScanResultsProcessor(
       ThirdPartyScanDAO thirdPartyScanDAO,
       ThirdPartyFileDAO thirdPartyFileDAO,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory)
   {
     this.telemetrySender = telemetrySender;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.thirdPartyResultHandlerFactory = thirdPartyResultHandlerFactory;
   }
 
   public String filterAndSaveData(
@@ -301,6 +305,6 @@ public class ThirdPartyScanResultsProcessor
   }
 
   ThirdPartyScanResultHandler createHandler(ItemContentType contentItemType) {
-    return ThirdPartyResultHandlerFactory.newHandler(contentItemType);
+    return thirdPartyResultHandlerFactory.newHandler(contentItemType);
   }
 }

@@ -49,11 +49,11 @@ public class MembershipMappingResourceTest
 
   private User userC;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
 
   private User adminUser;
 
@@ -89,6 +89,9 @@ public class MembershipMappingResourceTest
 
   @Before
   public void init() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    userDAO = lookup(UserDAO.class);
+    roleDAO = lookup(RoleDAO.class);
     org = tempEntity.newOrganization("test-org");
     app = tempEntity.newApplication("test-app", "test-app", org.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");

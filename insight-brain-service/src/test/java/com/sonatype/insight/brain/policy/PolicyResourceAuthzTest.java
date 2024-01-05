@@ -19,11 +19,19 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class PolicyResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  private PolicyDAO policyDAO;
+
+  @Before
+  public void setUp() {
+    policyDAO = lookup(PolicyDAO.class);
+  }
+
   private Policy newPolicy() {
     Policy policy = new Policy(null, "Policy " + tempEntity.uuid());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
@@ -229,21 +237,21 @@ public class PolicyResourceAuthzTest
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setPolicyActionsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     testAuthzPut(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
 
     grantWritePermission(org.getId());
 
     policy = tempEntity.newPolicy(org);
     policy.setPolicyActionsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     testAuthzPut(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
 
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     policy.setPolicyActionsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     testAuthzPut(
         request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }

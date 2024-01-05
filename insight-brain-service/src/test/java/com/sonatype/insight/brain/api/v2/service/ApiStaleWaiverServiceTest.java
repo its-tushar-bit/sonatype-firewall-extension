@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -69,6 +68,12 @@ public class ApiStaleWaiverServiceTest
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  private OwnerDAO ownerDAO;
 
   private Policy policy;
 
@@ -303,7 +308,7 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithRootOrganizationWaivers() {
-    Owner waiverOwnerRootOrg = new OwnerDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Owner waiverOwnerRootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Application app1InWaiverScope = tempEntity.newApplication("app1", org.getId());
     Application app2InWaiverScope = tempEntity.newApplication("app2", org.getId());
     Organization org2 = tempEntity.newOrganization();
@@ -422,7 +427,7 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithRootOrganizationWaiversAndStaleEvaluations() {
-    Owner waiverOwnerRootOrg = new OwnerDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Owner waiverOwnerRootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Application app1InWaiverScope = tempEntity.newApplication("app1", org.getId());
     Organization org2 = tempEntity.newOrganization();
     Application app2InWaiverScope = tempEntity.newApplication("app2", org2.getId());
@@ -805,7 +810,7 @@ public class ApiStaleWaiverServiceTest
             MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), staleEvaluationTime);
 
     // remove component from repo
-    new RepositoryComponentDAO().delete(repositoryComponent);
+    repositoryComponentDAO.delete(repositoryComponent);
 
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
     assertThat(staleRepositoryWaivers).hasSize(1);

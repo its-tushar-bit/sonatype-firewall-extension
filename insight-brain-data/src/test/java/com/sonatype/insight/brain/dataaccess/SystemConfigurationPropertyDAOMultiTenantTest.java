@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -44,6 +45,9 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
   @Mock
   Query query;
 
+  @Mock
+  OperationalDataStore operationalDataStore;
+
   SystemConfigurationProperty property;
 
   SystemConfigurationProperty globalTenantProperty;
@@ -55,7 +59,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
   public void setup() {
     super.setup();
 
-    this.underTest = new MockSystemConfigurationPropertyDAO();
+    this.underTest = new MockSystemConfigurationPropertyDAO(operationalDataStore);
 
     this.property = new SystemConfigurationProperty(PROPERTY_NAME, PROPERTY_VALUE);
     this.globalTenantProperty = new SystemConfigurationProperty(PROPERTY_NAME, GLOBAL_TENANT_PROPERTY_VALUE);
@@ -170,6 +174,16 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
       extends SystemConfigurationPropertyDAO
   {
     private final List<Tenant> usedTenants = new ArrayList<>();
+
+    public MockSystemConfigurationPropertyDAO(OperationalDataStore operationalDataStore) {
+      super(operationalDataStore);
+    }
+
+    // This method is overridden to prevent having to mock all the transaction internals
+    @Override
+    public TransactionContext createTransactionContext() {
+      return mock(TransactionContext.class);
+    }
 
     // This method is overridden to prevent having to mock all the transaction internals
     @Override

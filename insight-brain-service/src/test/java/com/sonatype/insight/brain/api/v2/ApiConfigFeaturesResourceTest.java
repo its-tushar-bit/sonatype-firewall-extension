@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_DASHBOARD;
@@ -26,7 +27,12 @@ import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 public class ApiConfigFeaturesResourceTest
     extends AbstractResourceTest
 {
-  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO configurationPropertyDAO;
+
+  @Before
+  public void setUp() {
+    configurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -68,7 +74,7 @@ public class ApiConfigFeaturesResourceTest
 
   @Test
   public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition() throws Exception {
-    new SystemConfigurationPropertyDAO().delete(
+    configurationPropertyDAO.delete(
         configurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED));
     assertResponseStatus(NO_CONTENT_204,
         restRequest().path(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION).delete());

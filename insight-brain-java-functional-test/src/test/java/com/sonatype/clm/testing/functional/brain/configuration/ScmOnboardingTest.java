@@ -100,7 +100,7 @@ public class ScmOnboardingTest
   @After
   public void clearCookies() {
     Selenide.clearBrowserCookies();
-    OrganizationDAO organizationDAO = new OrganizationDAO();
+    OrganizationDAO organizationDAO = lookup(OrganizationDAO.class);
     organizationDAO.getByNames(singleton("Foo Organization")).forEach(organizationDAO::delete);
   }
 

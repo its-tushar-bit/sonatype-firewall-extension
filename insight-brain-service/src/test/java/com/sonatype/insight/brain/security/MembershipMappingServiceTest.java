@@ -77,6 +77,18 @@ public class MembershipMappingServiceTest
   private MembershipMappingDAO membershipMappingDAO;
 
   @Inject
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
+  @Inject
+  private RoleDAO roleDAO;
+
+  @Inject
+  private OwnerDAO ownerDAO;
+
+  @Inject
+  private UserDAO userDAO;
+
+  @Inject
   private LdapService ldapService;
 
   @Rule
@@ -163,24 +175,24 @@ public class MembershipMappingServiceTest
     MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
     Member expectedMember = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(),
         user.getEmail(), InternalRealm.DISPLAY_NAME);
-    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.APPLICATION_EVALUATOR_ROLE_ID), owner,
+    assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.APPLICATION_EVALUATOR_ROLE_ID), owner,
         expectedMember);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(1);
     expectedMember = new Member(MemberType.GROUP, "test_group1", "test_group1", null, null);
-    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.COMPONENT_EVALUATOR_ROLE_ID), owner,
+    assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.COMPONENT_EVALUATOR_ROLE_ID), owner,
         expectedMember);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(2);
     expectedMember =
         new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
-    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.DEVELOPER_ROLE_ID), owner, expectedMember);
+    assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.DEVELOPER_ROLE_ID), owner, expectedMember);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(3);
-    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.LEGAL_REVIEWER_ROLE_ID), owner, null);
+    assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.LEGAL_REVIEWER_ROLE_ID), owner, null);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(4);
-    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.OWNER_ROLE_ID), owner, null);
+    assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.OWNER_ROLE_ID), owner, null);
   }
 
   @Test
@@ -199,12 +211,12 @@ public class MembershipMappingServiceTest
 
     MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
     Member expectedMember = new Member(MemberType.GROUP, "test_group1", "test_group1", null, null);
-    assertMembersByRoleGlobal(membersByRoles, new RoleDAO().getById(Role.POLICY_ADMIN_ROLE_ID), expectedMember);
+    assertMembersByRoleGlobal(membersByRoles, roleDAO.getById(Role.POLICY_ADMIN_ROLE_ID), expectedMember);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(1);
     expectedMember =
         new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
-    assertMembersByRoleGlobal(membersByRoles, new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID),
+    assertMembersByRoleGlobal(membersByRoles, roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID),
         expectedMember);
   }
 
@@ -219,7 +231,7 @@ public class MembershipMappingServiceTest
     assertThat(membersByRoles.roleDescription).isEqualTo(expectedRole.getDescription());
 
     int ownerHierarchyDepth = 0;
-    for (Owner owner : new OwnerDAO().walkHierarchy(expectedOwner)) {
+    for (Owner owner : ownerDAO.walkHierarchy(expectedOwner)) {
       MembersByOwner membersByOwner = membersByRoles.membersByOwner.get(ownerHierarchyDepth);
       assertThat(membersByOwner.ownerType).isEqualTo(owner.getType());
       if (OwnerType.APPLICATION.equals(owner.getType())) {
@@ -265,7 +277,7 @@ public class MembershipMappingServiceTest
 
     assertThat(membersByOwner.members).hasSize(2);
     Member member = membersByOwner.members.get(0);
-    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
+    User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
     assertThat(member.getType()).isEqualTo(MemberType.USER);
     assertThat(member.getInternalName()).isEqualTo(admin.getUsername());
     assertThat(member.getDisplayName()).isEqualTo(admin.calculateDisplayName());
@@ -287,7 +299,7 @@ public class MembershipMappingServiceTest
 
     ldapService.upsertLdapConnection(createLdapConnection(ldapServer, testLdapServer));
 
-    new LdapUserMappingDAO().insert(createUserMapping(ldapServer));
+    ldapUserMappingDAO.insert(createUserMapping(ldapServer));
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
@@ -775,7 +787,7 @@ public class MembershipMappingServiceTest
     ldapUserMapping.setGroupMappingType(groupMappingType);
     ldapUserMapping.setDynamicGroupSearchEnabled(false);
 
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
@@ -786,7 +798,7 @@ public class MembershipMappingServiceTest
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
 
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   private void assertApiMemberDTO(

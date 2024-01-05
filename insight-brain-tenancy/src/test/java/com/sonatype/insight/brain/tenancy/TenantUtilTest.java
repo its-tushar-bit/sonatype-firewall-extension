@@ -5,34 +5,20 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.IS_MTIQ_BATCH;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantUtilTest
@@ -40,21 +26,6 @@ public class TenantUtilTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-  @Mock
-  OperationalDataStore operationalDataStore;
-
-  @Mock
-  DataSource dataSource;
-
-  @Before
-  @Override
-  public void setup() {
-    super.setup();
-
-    when(operationalDataStore.getDataSource()).thenReturn(dataSource);
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
-  }
 
   @Test
   public void shouldReturnMultiTenantTrue() {
@@ -153,36 +124,6 @@ public class TenantUtilTest
     environmentVariables.set(IS_MTIQ_BATCH, "false");
 
     assertThat(new TenantUtil().isMtiqBatchMode()).isFalse();
-  }
-
-  @Test
-  public void shouldGetAllTenantsFromDb() {
-    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      String tenant1 = "tenant1";
-      String tenant2 = "tenant2";
-
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource))
-          .thenReturn(asList("t_" + tenant1, "t_" + tenant2));
-
-      List<String> allTenants = new TenantUtil().getAllTenants();
-
-      assertThat(allTenants).containsExactly(tenant1, tenant2);
-    }
-  }
-
-  @Test
-  public void shouldGetAllTenantsNamesFromDb() {
-    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      String tenant1 = "tenant1";
-      String tenant2 = "tenant2";
-
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource))
-          .thenReturn(asList("t_" + tenant1, "t_" + tenant2));
-
-      List<String> allTenants = new TenantUtil().getAllTenantsNames();
-
-      assertThat(allTenants).containsExactly(tenant1, tenant2);
-    }
   }
 
   @Test

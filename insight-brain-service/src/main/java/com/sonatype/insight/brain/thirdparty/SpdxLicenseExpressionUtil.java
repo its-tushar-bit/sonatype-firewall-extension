@@ -26,7 +26,11 @@ public class SpdxLicenseExpressionUtil
 {
   private static final Logger log = LoggerFactory.getLogger(SpdxLicenseExpressionUtil.class);
 
-  protected final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  protected final MultiLicenseDAO multiLicenseDAO;
+
+  public SpdxLicenseExpressionUtil(final MultiLicenseDAO multiLicenseDAO) {
+    this.multiLicenseDAO = multiLicenseDAO;
+  }
 
   /**
    * Extracts license information from SPDX license expressions

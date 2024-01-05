@@ -13,10 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,12 +30,29 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+  private final OrganizationDAO orgDAO;
+
+  private final Provider<LicenseThreatGroupLicenseDAO> licenseThreatGroupLicenseDAOProvider;
+
+  @Inject
+  public LicenseThreatGroupDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final OrganizationDAO orgDAO,
+      final Provider<LicenseThreatGroupLicenseDAO> licenseThreatGroupLicenseDAOProvider)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.orgDAO = orgDAO;
+    this.licenseThreatGroupLicenseDAOProvider = licenseThreatGroupLicenseDAOProvider;
+  }
 
   public List<LicenseThreatGroup> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
@@ -208,7 +230,7 @@ public class LicenseThreatGroupDAO
 
   @Override
   public void delete(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAOProvider.get();
     List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO
         .getByLicenseThreatGroupId(tx, licenseThreatGroup.getId());
     for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
@@ -282,7 +304,7 @@ public class LicenseThreatGroupDAO
         .collect(Collectors.toMap(LicenseThreatGroup::getId, LicenseThreatGroup::getThreatLevel));
 
     Map<String, Integer> threatLevelsByLicenseId = new HashMap<>();
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAOProvider.get();
     for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenseDAO
         .getByLicenseThreatGroupIds(threatLevelsByLicenseThreatGroupId.keySet())) {
       String licenseId = licenseThreatGroupLicense.getLicenseId();

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.component;
 
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -46,6 +45,12 @@ public class HashComponentIdentifierServiceTest
   private static final String COMMENT = "test-comment";
 
   private static final Date CREATED_TIME = new Date();
+
+  @Inject
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  @Inject
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Inject
   private HashComponentIdentifierService hashComponentIdentifierService;
@@ -114,7 +119,6 @@ public class HashComponentIdentifierServiceTest
     assertHashComponentIdentifierDTO(response, updatedComponentIdentifier, COMMENT, CREATED_TIME);
 
     // Now check the license overrides
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(),
         updatedComponentIdentifier);
     assertThat(override).isNotNull();
@@ -122,7 +126,7 @@ public class HashComponentIdentifierServiceTest
 
     // cleanup
     licenseOverrideDAO.delete(override);
-    new HashComponentIdentifierDAO().delete(hashComponentIdentifier);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test

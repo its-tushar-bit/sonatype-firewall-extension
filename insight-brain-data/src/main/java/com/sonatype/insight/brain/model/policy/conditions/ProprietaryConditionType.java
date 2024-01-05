@@ -7,12 +7,16 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class ProprietaryConditionType
     extends AbstractComponentConditionType<String>
 {

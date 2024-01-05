@@ -27,8 +27,10 @@ public class LegalFileOverrideDAOTest
   private LegalFileOverrideDAO dao;
 
   @Before
-  public void before() {
-    dao = new LegalFileOverrideDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createLegalFileOverrideDAO();
   }
 
   @Test

@@ -10,9 +10,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidProprietaryConfigRegexException;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -21,11 +25,18 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.22
  */
+@Named
+@Singleton
 public class ProprietaryConfigDAO
     extends AbstractOperationalSqlDAO<ProprietaryConfig>
 {
   // copied from insight-scanner/RegexSelector.java
   static final List<String> REGEX_BLACK_LIST = Collections.unmodifiableList(Arrays.asList(".*", "^.*$"));
+
+  @Inject
+  public ProprietaryConfigDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public ProprietaryConfig getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {

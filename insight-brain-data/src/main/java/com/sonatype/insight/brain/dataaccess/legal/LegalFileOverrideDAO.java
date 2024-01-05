@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Collections;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
@@ -21,9 +25,26 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class LegalFileOverrideDAO
     extends AbstractOperationalSqlDAO<LegalFileOverride>
 {
+  private final ComponentLegalFileDAO componentLegalFileDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public LegalFileOverrideDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final ComponentLegalFileDAO componentLegalFileDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.componentLegalFileDAO = componentLegalFileDAO;
+  }
+
   public List<LegalFileOverride> getByComponentLegalFileId(TransactionContext tx, String componentLegalFileId) {
     String sQuery = "SELECT entity FROM LegalFileOverride entity" + //
         " WHERE entity.componentLegalFileId=?1";
@@ -42,7 +63,6 @@ public class LegalFileOverrideDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType type)
   {
-    ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
     ComponentLegalFile componentLegalFile =
         componentLegalFileDAO.getByOwnerIdAndComponentIdentifierAndType(tx, ownerId, componentIdentifier, type);
     if (componentLegalFile == null) {
@@ -67,7 +87,6 @@ public class LegalFileOverrideDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType type)
   {
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       List<LegalFileOverride> legalFileOverrides =
           getByOwnerIdAndComponentIdentifierAndType(tx, owner.getId(), componentIdentifier, type);

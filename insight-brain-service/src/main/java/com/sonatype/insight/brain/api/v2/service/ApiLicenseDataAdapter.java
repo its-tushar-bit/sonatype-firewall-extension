@@ -35,10 +35,6 @@ public class ApiLicenseDataAdapter
     this.multiLicenseDAO = multiLicenseDAO;
   }
 
-  public ApiLicenseDataAdapter() {
-    multiLicenseDAO = new MultiLicenseDAO();
-  }
-
   public ApiLicenseDataDTO convertToDTO(final Component component) {
     ApiLicenseDataDTO licenseDataDTO = new ApiLicenseDataDTO();
     convert(component, licenseDataDTO);

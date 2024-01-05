@@ -33,7 +33,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -98,18 +97,30 @@ class SystemInfo
 
   private final SamlDeploymentManager samlDeploymentManager;
 
+  private final SamlConfigurationDAO samlConfigurationDAO;
+
+  private final MailConfigurationDAO mailConfigurationDAO;
+
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
   @Inject
   SystemInfo(
       final InsightConfig insightConfig,
       final InsightWork insightWork,
       final ProductLicense productLicense,
       final CLMLicenseManager clmLicenseManager,
+      final SamlConfigurationDAO samlConfigurationDAO,
+      final MailConfigurationDAO mailConfigurationDAO,
+      final ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       SamlDeploymentManager samlDeploymentManager)
   {
     this.insightConfig = insightConfig;
     this.insightWork = insightWork;
     this.productLicense = productLicense;
     this.clmLicenseManager = clmLicenseManager;
+    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.mailConfigurationDAO = mailConfigurationDAO;
+    this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.samlDeploymentManager = samlDeploymentManager;
   }
 
@@ -434,7 +445,7 @@ class SystemInfo
 
   String getSamlInfo() {
     SamlInfo samlInfo = new SamlInfo();
-    samlInfo.samlConfiguration = new SamlConfigurationDAO().get();
+    samlInfo.samlConfiguration = samlConfigurationDAO.get();
     if (samlInfo.samlConfiguration == null) {
       return "null";
     }
@@ -465,7 +476,7 @@ class SystemInfo
   }
 
   String getMailConfig() {
-    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
     if (mailConfiguration == null) {
       return "null";
     }
@@ -494,7 +505,7 @@ class SystemInfo
   }
 
   String getProxyServerConfiguration() {
-    ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfigurationDAO().get();
+    ProxyServerConfiguration proxyServerConfiguration = proxyServerConfigurationDAO.get();
     if (proxyServerConfiguration == null) {
       return "null";
     }

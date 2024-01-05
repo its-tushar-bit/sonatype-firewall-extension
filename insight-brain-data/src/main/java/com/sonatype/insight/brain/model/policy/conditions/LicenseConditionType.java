@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -18,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValue
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class LicenseConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -28,6 +33,13 @@ public class LicenseConditionType
   static {
     supportedOperators.add("is");
     supportedOperators.add("is not");
+  }
+
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public LicenseConditionType(final LicenseDAO licenseDAO) {
+    this.licenseDAO = licenseDAO;
   }
 
   @Override
@@ -47,7 +59,8 @@ public class LicenseConditionType
     super.validateCondition(tx, condition, ownerId);
 
     String licenseId = condition.getValue();
-    if (LicenseValueType.getLicenseById(licenseId) == null) {
+    License license = licenseDAO.getById(licenseId);
+    if (license == null) {
       throw new InvalidConditionException(condition, "Invalid license id: " + licenseId);
     }
   }
@@ -70,12 +83,12 @@ public class LicenseConditionType
   @Override
   public String explainCondition(final Condition condition) {
     return getName() + ' ' + condition.getOperator() + " '"
-        + new LicenseDAO().getById(condition.getValue()).getShortDisplayName() + '\'';
+        + licenseDAO.getById(condition.getValue()).getShortDisplayName() + '\'';
   }
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    License license = new LicenseDAO().getById(condition.getValue());
+    License license = licenseDAO.getById(condition.getValue());
     String licenseName = license != null ? license.getShortDisplayName() : condition.getValue();
 
     return ("is".equals(condition.getOperator()) ? "Found" : "Did not find") + " '" + licenseName + "' license";

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryConnectionDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
+  private RepositoryConnectionDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryConnectionDAO();
+  }
 
   @Test
   public void testCRUD() {

@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -44,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
@@ -148,6 +148,36 @@ public class RepositoryPolicyEvaluatorTest
   private RepositoryComponentDAO repositoryComponentDAO;
 
   @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO;
+
+  @Inject
+  private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
+
+  @Inject
+  private VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO;
+
+  @Inject
+  private VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO;
+
+  @Inject
+  private VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  @Inject
+  private VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
+
+  @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
   private AsyncEventBus mockEventBus;
 
   @Inject
@@ -172,6 +202,8 @@ public class RepositoryPolicyEvaluatorTest
   public LogOutput policyViolationLoggerOutput = new LogOutput(
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
+  private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
@@ -183,6 +215,8 @@ public class RepositoryPolicyEvaluatorTest
 
   @Before
   public void before() {
+    policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
+
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
@@ -193,7 +227,7 @@ public class RepositoryPolicyEvaluatorTest
     mailConfiguration.setHostname("127.0.0.1");
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
   }
 
   private void mockHdsRequest(
@@ -275,7 +309,7 @@ public class RepositoryPolicyEvaluatorTest
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
-    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+    policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
         repository, before, after, policyViolations, currentUser.getUsernameOrSystem());
   }
 
@@ -409,7 +443,7 @@ public class RepositoryPolicyEvaluatorTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
-    
+
     try {
       assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isFalse();
     }
@@ -452,7 +486,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // Delete the policy and evaluate again. All policy violations should be logged as fixed.
     Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
@@ -509,7 +543,7 @@ public class RepositoryPolicyEvaluatorTest
     policyViolationLoggerOutput.clear();
 
     // remove the original waiver, add a waiver for the other policy and re-evaluate
-    new PolicyWaiverDAO().delete(policy2Waiver);
+    policyWaiverDAO.delete(policy2Waiver);
     tempEntity.newWaiver(policy1.getId(), repository.getId());
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
@@ -606,7 +640,7 @@ public class RepositoryPolicyEvaluatorTest
     assertViolationWaiverDetails(waivedViolation2, policyWaiver2, policy2ViolationWaiveTime);
 
     // remove the original waiver re-evaluate
-    new PolicyWaiverDAO().delete(policyWaiver1);
+    policyWaiverDAO.delete(policyWaiver1);
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
@@ -895,7 +929,7 @@ public class RepositoryPolicyEvaluatorTest
 
     Policy policy = tempEntity.newPolicy(repository.getId());
     policy.setAction("proxy", "fail");
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -959,7 +993,7 @@ public class RepositoryPolicyEvaluatorTest
 
     Policy policy = tempEntity.newPolicy(repository.getId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -996,7 +1030,7 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryComponents.get(0).getUnquarantineTime()).isNull();
 
     // Remove policy and evaluate again. The component should still be unquarantined.
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
         null /* clientUserAgent */);
@@ -1019,7 +1053,7 @@ public class RepositoryPolicyEvaluatorTest
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path1", createTime, "h1",
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
 
-    new RepositoryComponentDAO().insert(repositoryComponent);
+    repositoryComponentDAO.insert(repositoryComponent);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -1045,7 +1079,7 @@ public class RepositoryPolicyEvaluatorTest
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), any(),
             (List) MockitoHamcrest.argThat(hasSize(0)));
 
-    List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
 
     assertThat(repositoryComponents).hasSize(1);
   }
@@ -1080,7 +1114,7 @@ public class RepositoryPolicyEvaluatorTest
     vulnerabilityCustomCwe.setLastUpdatedAt(new Date());
     vulnerabilityCustomCwe.setLastUpdatedByUsername("testUser");
     vulnerabilityCustomCwe.setCwe(customCweId);
-    new VulnerabilityCustomCweDAO().insert(vulnerabilityCustomCwe);
+    vulnerabilityCustomCweDAO.insert(vulnerabilityCustomCwe);
 
     testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
   }
@@ -1112,7 +1146,7 @@ public class RepositoryPolicyEvaluatorTest
     vulnerabilityCustomRemediation.setRefId(securityVulnerability.getRefId());
     vulnerabilityCustomRemediation.setOwnerId(repository.getId());
     vulnerabilityCustomRemediation.setLastUpdatedByUsername("testUser");
-    new VulnerabilityCustomRemediationDAO().insert(vulnerabilityCustomRemediation);
+    vulnerabilityCustomRemediationDAO.insert(vulnerabilityCustomRemediation);
 
     testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
   }
@@ -1132,7 +1166,7 @@ public class RepositoryPolicyEvaluatorTest
     customCvssVector.setLastUpdatedByUsername("testUser");
     customCvssVector.setLastUpdatedAt(new Date());
     customCvssVector.setVector(condition.getValue());
-    new VulnerabilityCustomCvssVectorDAO().insert(customCvssVector);
+    vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
 
     testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
   }
@@ -1175,7 +1209,7 @@ public class RepositoryPolicyEvaluatorTest
     vulnerabilityCustomCvssSeverity.setRefId(securityVulnerability.getRefId());
     vulnerabilityCustomCvssSeverity.setLastUpdatedByUsername("testUser");
     vulnerabilityCustomCvssSeverity.setSeverity(Float.valueOf(customSeverity));
-    new VulnerabilityCustomCvssSeverityDAO().insert(vulnerabilityCustomCvssSeverity);
+    vulnerabilityCustomCvssSeverityDAO.insert(vulnerabilityCustomCvssSeverity);
 
     testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
   }
@@ -1200,10 +1234,10 @@ public class RepositoryPolicyEvaluatorTest
     SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
     VulnerabilityGroup vulnerabilityGroup = new VulnerabilityGroup("testGroupName", Organization.ROOT_ORGANIZATION_ID);
     vulnerabilityGroup.setId(condition.getValue());
-    new VulnerabilityGroupDAO().insert(vulnerabilityGroup);
+    vulnerabilityGroupDAO.insert(vulnerabilityGroup);
     VulnerabilityGroupVulnerability vulnerabilityGroupVulnerability =
         new VulnerabilityGroupVulnerability(vulnerabilityGroup.getId(), securityVulnerability.getRefId());
-    new VulnerabilityGroupVulnerabilityDAO().insert(vulnerabilityGroupVulnerability);
+    vulnerabilityGroupVulnerabilityDAO.insert(vulnerabilityGroupVulnerability);
 
     testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
   }
@@ -1238,7 +1272,7 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     List<RepositoryPolicyViolation> policyViolations =
-        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
     RepositoryPolicyViolation policyViolation = policyViolations.get(0);
@@ -1299,7 +1333,7 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     List<RepositoryPolicyViolation> policyViolations =
-        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
     RepositoryPolicyViolation policyViolation = policyViolations.get(0);
@@ -1345,7 +1379,7 @@ public class RepositoryPolicyEvaluatorTest
     Notifications notificationsOverride = new Notifications();
     notificationsOverride.add(new UserNotification(userEmailAddress, ProxyStageType.ID));
     policy.addPolicyNotificationsOverride(ownerIdForOverrides, notificationsOverride);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     // Prepare request and mock the HDS request
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1371,7 +1405,7 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     List<RepositoryPolicyViolation> policyViolations =
-        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
     RepositoryPolicyViolation policyViolation = policyViolations.get(0);

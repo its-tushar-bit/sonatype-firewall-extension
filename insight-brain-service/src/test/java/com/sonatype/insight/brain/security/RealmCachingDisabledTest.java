@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.test.InjectedTest;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.apache.shiro.realm.CachingRealm;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RealmCachingDisabledTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Inject
   private Collection<CachingRealm> cachingRealms;

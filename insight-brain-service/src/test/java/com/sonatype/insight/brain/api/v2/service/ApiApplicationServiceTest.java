@@ -64,6 +64,9 @@ public class ApiApplicationServiceTest
   @Inject
   private ApiApplicationAdapter apiApplicationAdapter;
 
+  @Inject
+  private MembershipMappingDAO membershipMappingDAO;
+
   @Mock
   private TelemetrySender telemetrySenderMock;
 
@@ -92,7 +95,7 @@ public class ApiApplicationServiceTest
     app.name = "appName";
     app.organizationId = org.getId();
     app = applicationService.addApplication(app);
-    List<MembershipMapping> mappings = new MembershipMappingDAO()
+    List<MembershipMapping> mappings = membershipMappingDAO
         .getByContextIdAndRoleId(app.id, Role.OWNER_ROLE_ID);
     assertThat(mappings).hasSize(1);
     assertThat(mappings.get(0).getMemberName()).isEqualTo(USERNAME);

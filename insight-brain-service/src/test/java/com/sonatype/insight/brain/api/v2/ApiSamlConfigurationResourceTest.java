@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-
 import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -35,10 +34,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSamlConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+  private SamlConfigurationDAO samlConfigurationDAO;
 
   @After
   public void cleanup() {
+    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
     samlConfigurationDAO.delete();
     getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -43,16 +43,30 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class ProprietaryConfigService
 {
-  private ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private final ProprietaryConfigDAO proprietaryConfigDAO;
 
-  private OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
+
+  private final IdUtils idUtils;
+
+  @Inject
+  public ProprietaryConfigService(
+      final ProprietaryConfigDAO proprietaryConfigDAO,
+      final OwnerDAO ownerDAO,
+      final IdUtils idUtils)
+  {
+
+    this.proprietaryConfigDAO = proprietaryConfigDAO;
+    this.ownerDAO = ownerDAO;
+    this.idUtils = idUtils;
+  }
 
   @Authorize(permission = Permission.READ)
   public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfigHierarchy proprietaryConfigHierarchy = new ProprietaryConfigHierarchy();
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
@@ -75,7 +89,7 @@ public class ProprietaryConfigService
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final ProprietaryConfig proprietaryConfig)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfig existingConfigByOwner = proprietaryConfigDAO.getByOwnerId(internalOwnerId);
 
     proprietaryConfig.setOwnerId(internalOwnerId);
@@ -98,7 +112,7 @@ public class ProprietaryConfigService
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final FilePathRegex filePathRegex)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(internalOwnerId);
     boolean shouldInsertAsNewConfig = false;
 
@@ -152,11 +166,11 @@ public class ProprietaryConfigService
    * NOTE: Permissions are NOT checked for this call
    */
   public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(OwnerType ownerType, String ownerId) {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return getProprietaryConfig(internalOwnerId, ownerDAO, proprietaryConfigDAO);
   }
 
-  public static com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(
+  public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(
       String internalOwnerId,
       OwnerDAO ownerDAO,
       ProprietaryConfigDAO proprietaryConfigDAO)
@@ -209,9 +223,9 @@ public class ProprietaryConfigService
         .setData("regexMatchers", proprietaryConfig.getRegexes());
   }
 
-  public static Predicate<String> createIsProprietary(String internalOwnerId) {
+  public Predicate<String> createIsProprietary(String internalOwnerId) {
     com.sonatype.clm.dto.model.ProprietaryConfig proprietaryConfig =
-        getProprietaryConfig(internalOwnerId, new OwnerDAO(), new ProprietaryConfigDAO());
+        getProprietaryConfig(internalOwnerId, ownerDAO, proprietaryConfigDAO);
     List<Selector> selectors = new ArrayList<>();
     if (!proprietaryConfig.getPackages().isEmpty()) {
       selectors.add(PathSelector.forProprietaryPackages(

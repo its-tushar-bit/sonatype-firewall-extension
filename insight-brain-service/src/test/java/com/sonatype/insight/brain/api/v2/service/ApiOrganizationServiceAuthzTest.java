@@ -25,6 +25,9 @@ public class ApiOrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
   private ApiOrganizationService apiOrganizationService;
 
   @Test
@@ -68,7 +71,6 @@ public class ApiOrganizationServiceAuthzTest
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
     ApiOrganizationDTO newOrganizationDTO = apiOrganizationService.addOrganization(apiOrganizationDTO);
 
-    OrganizationDAO organizationDAO = new OrganizationDAO();
     Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
     organizationDAO.delete(organization);
   }

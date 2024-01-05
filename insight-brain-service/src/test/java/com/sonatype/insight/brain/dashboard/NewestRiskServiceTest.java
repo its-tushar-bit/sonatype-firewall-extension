@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -54,6 +53,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class NewestRiskServiceTest
     extends AbstractComponentTest
 {
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
   @Inject
   private NewestRiskService newestRiskService;
 
@@ -518,10 +520,10 @@ public class NewestRiskServiceTest
     // Set different constraint facts on the policy violations to ensure they are different.
     violation1.setConstraintFacts(Collections
         .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
-    new PolicyViolationDAO().update(violation1);
+    policyViolationDAO.update(violation1);
     violation2.setConstraintFacts(Collections
         .singletonList(buildConstraintFact(org1Policy, "{\"conditionIndex\":1,\"trigger\":{\"foo\":\"bar\"}}")));
-    new PolicyViolationDAO().update(violation2);
+    policyViolationDAO.update(violation2);
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService.getNewestRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,

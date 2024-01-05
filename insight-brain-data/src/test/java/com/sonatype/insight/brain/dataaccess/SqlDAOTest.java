@@ -10,113 +10,68 @@ import java.util.Date;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlDAOTest
+    extends AbstractDbDAOTest
 {
   @Test
+  @PostgresTest
   public void testSqlDAOsAreStateless_ODSDatabase() {
-    // SQL DAOs are supposed to be stateless.
-    // In particular, if we reinitialize the database, any existent SQL DAO instance should work with the new database.
-    // In this test, we create an instance of a DAO using the current default in-memory H2 db and switch the db to
-    // postgres.
-    // Any entity instance created by this DAO should be in the Postgres db, not the H2 db.
-    OrganizationDAO beforeDAO = new OrganizationDAO();
-
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      Organization org = new Organization("test");
-      beforeDAO.insert(org);
-      OrganizationDAO afterDAO = new OrganizationDAO();
-      assertThat(afterDAO.getById(org.getId())).isNotNull();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    OrganizationDAO beforeDAO = daoFactory.createOrganizationDAO();
+    Organization org = new Organization("test");
+    beforeDAO.insert(org);
+    OrganizationDAO afterDAO = daoFactory.createOrganizationDAO();
+    assertThat(afterDAO.getById(org.getId())).isNotNull();
   }
 
   @Test
+  @PostgresTest
   public void testSqlDAOsAreStateless_DatamartDatabase() {
-    // SQL DAOs are supposed to be stateless.
-    // In particular, if we reinitialize the database, any existent SQL DAO instance should work with the new database.
-    // In this test, we create an instance of a DAO using the current default in-memory H2 db and switch the db to
-    // postgres.
-    // Any entity instance created by this DAO should be in the Postgres db, not the H2 db.
-    LicenseDAO beforeDAO = new LicenseDAO();
+    LicenseDAO beforeDAO = daoFactory.createLicenseDAO();
     beforeDAO.load();
+    License license = new License(null, "test short name", "test long name");
 
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      DatamartProvider.init(postgres.getDatabaseConfig());
-      License license = new License(null, "test short name", "test long name");
-      beforeDAO.insert(license);
-      beforeDAO.load();
-      LicenseDAO afterDAO = new LicenseDAO();
-      assertThat(afterDAO.getById(license.getId())).isNotNull();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-      beforeDAO.load(); // also sync license cache with new db state
-    }
+    beforeDAO.insert(license);
+
+    beforeDAO.load();
+    LicenseDAO afterDAO = daoFactory.createLicenseDAO();
+    assertThat(afterDAO.getById(license.getId())).isNotNull();
+    beforeDAO.load(); // also sync license cache with new db state
   }
 
   @Test
+  @PostgresTest
   public void testSqlDAOsAreStateless_AggregationDatabase() {
-    // SQL DAOs are supposed to be stateless.
-    // In particular, if we reinitialize the database, any existent SQL DAO instance should work with the new database.
-    // In this test, we create an instance of a DAO using the current default in-memory H2 db and switch the db to
-    // postgres.
-    // Any entity instance created by this DAO should be in the Postgres db, not the H2 db.
-    SuccessMetricsReportDAO beforeDAO = new SuccessMetricsReportDAO();
+    SuccessMetricsReportDAO beforeDAO = daoFactory.createSuccessMetricsReportDAO();
+    SuccessMetricsReport successMetricsReport = new SuccessMetricsReport("test");
+    successMetricsReport.setUsername("test");
+    successMetricsReport.setScopeJson("");
 
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      AggregationDataStoreProvider.init(postgres.getDatabaseConfig());
-      SuccessMetricsReport successMetricsReport = new SuccessMetricsReport("test");
-      successMetricsReport.setUsername("test");
-      successMetricsReport.setScopeJson("");
-      beforeDAO.insert(successMetricsReport);
-      SuccessMetricsReportDAO afterDAO = new SuccessMetricsReportDAO();
-      assertThat(afterDAO.getById(successMetricsReport.getId())).isNotNull();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    beforeDAO.insert(successMetricsReport);
+
+    SuccessMetricsReportDAO afterDAO = daoFactory.createSuccessMetricsReportDAO();
+    assertThat(afterDAO.getById(successMetricsReport.getId())).isNotNull();
   }
 
   @Test
+  @PostgresTest
   public void testSqlDAOsAreStateless_ThirdPartScansDatabase() {
-    // SQL DAOs are supposed to be stateless.
-    // In particular, if we reinitialize the database, any existent SQL DAO instance should work with the new database.
-    // In this test, we create an instance of a DAO using the current default in-memory H2 db and switch the db to
-    // postgres.
-    // Any entity instance created by this DAO should be in the Postgres db, not the H2 db.
-    ThirdPartyFileDAO beforeDAO = new ThirdPartyFileDAO();
+    ThirdPartyFileDAO beforeDAO = daoFactory.createThirdPartyFileDAO();
 
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      ThirdPartyScansProvider.init(postgres.getDatabaseConfig());
-      ThirdPartyFile thirdPartyFile = new ThirdPartyFile("test", new Date());
-      beforeDAO.insert(thirdPartyFile);
-      ThirdPartyFileDAO afterDAO = new ThirdPartyFileDAO();
-      assertThat(afterDAO.getById(thirdPartyFile.getId())).isNotNull();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile("test", new Date());
+
+    beforeDAO.insert(thirdPartyFile);
+
+    ThirdPartyFileDAO afterDAO = daoFactory.createThirdPartyFileDAO();
+    assertThat(afterDAO.getById(thirdPartyFile.getId())).isNotNull();
   }
 }

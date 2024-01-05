@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH;
@@ -41,11 +41,18 @@ public class DefaultApiScmOnboardingResourceTest
   private static final Pattern STATUS_URL_PATTERN = Pattern.compile(
       "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9]*)");
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private SourceControlOrganizationImportEventDAO scmImportEventDao = new SourceControlOrganizationImportEventDAO();
+  private SourceControlOrganizationImportEventDAO scmImportEventDAO;
+
+  @Before
+  public void setUp() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    scmImportEventDAO = lookup(SourceControlOrganizationImportEventDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -76,11 +83,11 @@ public class DefaultApiScmOnboardingResourceTest
     String eventId = extractEventId(importTicket);
 
     await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
+        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgs).hasSize(3);
-    SourceControlOrganizationImportEvent importEvent = scmImportEventDao.getById(eventId);
+    SourceControlOrganizationImportEvent importEvent = scmImportEventDAO.getById(eventId);
     assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
 
     ImportFailures importResults = JsonUtils.parse(importEvent.getImportErrors().getBytes(), ImportFailures.class);
@@ -116,8 +123,8 @@ public class DefaultApiScmOnboardingResourceTest
     String eventId = extractEventId(importTicket);
 
     await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
-    SourceControlOrganizationImportEvent importEvent = scmImportEventDao.getById(eventId);
+        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
+    SourceControlOrganizationImportEvent importEvent = scmImportEventDAO.getById(eventId);
     assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
 
     ImportFailures importResults = JsonUtils.parse(importEvent.getImportErrors().getBytes(), ImportFailures.class);
@@ -165,7 +172,7 @@ public class DefaultApiScmOnboardingResourceTest
     String eventId = extractEventId(importTicket);
 
     await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
+        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
 
     HttpResponse statusResponse = restRequest()
         .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)

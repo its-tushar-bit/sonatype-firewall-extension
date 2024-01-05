@@ -33,6 +33,9 @@ public class ClearRolePermissionCacheTest
     extends AbstractComponentTest
 {
   @Inject
+  private RoleDAO roleDAO;
+
+  @Inject
   private ClearRolePermissionCache clearRolePermissionCache;
 
   @Mock
@@ -66,7 +69,7 @@ public class ClearRolePermissionCacheTest
       Mockito.reset(mockTaskScheduler);
 
       // Delete should trigger the job
-      new RoleDAO().delete(role);
+      roleDAO.delete(role);
       verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(clearRolePermissionCache);
     }
     finally {

@@ -64,19 +64,23 @@ class SamlFilter
 
   private final Configuration configuration;
 
+  private final SamlConfigurationDAO samlConfigurationDAO;
+
   @Inject
   public SamlFilter(
       SamlDeploymentManager samlDeploymentManager,
       LandingService landingService,
       SamlSessionIdMapper samlSessionIdMapper,
       SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder,
-      Configuration configuration)
+      Configuration configuration,
+      SamlConfigurationDAO samlConfigurationDAO)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
     this.samlIdPLogoutUrlBuilder = samlIdPLogoutUrlBuilder;
     this.configuration = configuration;
+    this.samlConfigurationDAO = samlConfigurationDAO;
   }
 
   // Visible for testing
@@ -170,7 +174,7 @@ class SamlFilter
       else {
         // let the UI know that SAML SSO should be a login option
         httpResponse.setHeader("WWW-Authenticate", "SAML");
-        SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
+        SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
         if (samlConfiguration != null) {
           httpResponse.setHeader("X-SAML-IdP", samlConfiguration.getIdentityProviderName());
         }

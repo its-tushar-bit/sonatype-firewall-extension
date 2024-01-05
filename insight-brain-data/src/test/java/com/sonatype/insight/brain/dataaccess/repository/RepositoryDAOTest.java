@@ -16,16 +16,15 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -44,8 +43,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +54,41 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RepositoryDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryDAO dao = new RepositoryDAO();
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private RepositoryMigrationDAO repositoryMigrationDAO;
+
+  private PolicyMonitoringDAO policyMonitoringDAO;
+
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private PolicyDAO policyDAO;
+
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  private RepositoryDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryDAO();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    repositoryMigrationDAO = daoFactory.createRepositoryMigrationDAO();
+    policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
+    proprietaryComponentNamePatternDAO = daoFactory.createProprietaryComponentNamePatternDAO();
+    repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
+    licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -144,7 +177,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new RepositoryComponentDAO().getById(repositoryComponent.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(repositoryComponent.getId())).isNull();
   }
 
   @Test
@@ -154,7 +187,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId())).isNull();
+    assertThat(repositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
   }
 
   @Test
@@ -165,7 +198,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new LicenseOverrideDAO().getById(licenseOverride.getId())).isNull();
+    assertThat(licenseOverrideDAO.getById(licenseOverride.getId())).isNull();
   }
 
   @Test
@@ -175,7 +208,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId())).isNull();
+    assertThat(securityVulnerabilityOverrideDAO.getById(securityVulnerabilityOverride.getId())).isNull();
   }
 
   @Test
@@ -183,7 +216,6 @@ public class RepositoryDAOTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repository.getId(), "Comment");
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
 
     dao.delete(repository);
@@ -197,34 +229,28 @@ public class RepositoryDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testDelete_CascadesToRepositoryComponentLocks_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testDelete_CascadesToRepositoryComponentLocks();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testDelete_CascadesToRepositoryComponentLocks();
   }
 
   private void testDelete_CascadesToRepositoryComponentLocks() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent.getPathname())
+    clusterLockManager.createForRepositoryComponent(repository.getId(), repositoryComponent.getPathname())
         .close();
     String orphanComponentPathname = "orphanComponentPathname";
-    ClusterLock.createForRepositoryComponent(repository.getId(), orphanComponentPathname).close();
-    assertThat(ClusterLock.lockExists(ClusterLock
+    clusterLockManager.createForRepositoryComponent(repository.getId(), orphanComponentPathname).close();
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent.getPathname()))).isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), orphanComponentPathname))).isTrue();
 
-    new RepositoryDAO().delete(repository);
+    dao.delete(repository);
 
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent.getPathname()))).isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock
+    assertThat(clusterLockManager.lockExists(ClusterLockManager
         .getLockIdForRepositoryComponent(repository.getId(), orphanComponentPathname))).isFalse();
   }
 
@@ -234,49 +260,43 @@ public class RepositoryDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testDelete_CascadesToRepositoryReevaluationLocks_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testDelete_CascadesToRepositoryReevaluationLocks();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testDelete_CascadesToRepositoryReevaluationLocks();
   }
 
   private void testDelete_CascadesToRepositoryReevaluationLocks() {
     Repository repository = tempEntity.newRepository();
-    ClusterLock.createForRepositoryReevaluation(repository);
-    assertThat(ClusterLock
-        .lockExists(ClusterLock.getLockIdForRepositoryReevaluation(repository))).isTrue();
+    clusterLockManager.createForRepositoryReevaluation(repository);
+    assertThat(clusterLockManager
+        .lockExists(ClusterLockManager.getLockIdForRepositoryReevaluation(repository))).isTrue();
 
-    new RepositoryDAO().delete(repository);
+    dao.delete(repository);
 
-    assertThat(ClusterLock
-        .lockExists(ClusterLock.getLockIdForRepositoryReevaluation(repository))).isFalse();
+    assertThat(clusterLockManager
+        .lockExists(ClusterLockManager.getLockIdForRepositoryReevaluation(repository))).isFalse();
   }
 
   @Test
   public void testDelete_CascadesToRepositoryMigration() {
     Repository repository = tempEntity.newRepository();
     tempEntity.newRepositoryMigration(repository);
-    assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNotNull();
+    assertThat(repositoryMigrationDAO.getByRepositoryId(repository.getId())).isNotNull();
 
-    new RepositoryDAO().delete(repository);
+    dao.delete(repository);
 
-    assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNull();
+    assertThat(repositoryMigrationDAO.getByRepositoryId(repository.getId())).isNull();
   }
 
   @Test
   public void testDelete_CascadesToPolicyMonitoring() {
     Repository repository = tempEntity.newRepository("testCascadeDeleteToPolicyMonitoring");
     tempEntity.newPolicyMonitoring(repository.getId(), Stage.ID_PROXY);
-    assertThat(new PolicyMonitoringDAO().getByOwnerId(repository.getId())).isNotNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId())).isNotNull();
 
     dao.delete(repository);
 
-    assertThat(new PolicyMonitoringDAO().getByOwnerId(repository.getId())).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId())).isNull();
   }
 
   @Test
@@ -286,11 +306,11 @@ public class RepositoryDAOTest
         ComponentIdentifier.FORMAT_NPM);
 
     tempEntity.newProprietaryComponentNamePattern(repository, "namespacePattern", null);
-    assertThat(new ProprietaryComponentNamePatternDAO().getByRepositoryId(repository.getId())).isNotEmpty();
+    assertThat(proprietaryComponentNamePatternDAO.getByRepositoryId(repository.getId())).isNotEmpty();
 
     dao.delete(repository);
 
-    assertThat(new ProprietaryComponentNamePatternDAO().getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(proprietaryComponentNamePatternDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
@@ -540,7 +560,7 @@ public class RepositoryDAOTest
     repository = dao.getById(repository.getId());
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
     assertThat(repositoryComponent.isQuarantined()).isFalse();
     assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
     assertThat(repositoryComponent.getAutoUnquarantined()).isFalse();
@@ -563,8 +583,8 @@ public class RepositoryDAOTest
     repository = dao.getById(repository.getId());
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    assertThat(new RepositoryComponentDAO().getById(repositoryComponent.getId())).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getById(repositoryPolicyViolation.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(repositoryComponent.getId())).isNull();
+    assertThat(repositoryPolicyViolationDAO.getById(repositoryPolicyViolation.getId())).isNull();
   }
 
   @Test
@@ -573,7 +593,7 @@ public class RepositoryDAOTest
     Repository repository =
         tempEntity.newRepository(repoManager, "SomePublicID", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     repository.setNamespaceConfusionProtectionEnabled(true);
-    new RepositoryDAO().update(repository);
+    dao.update(repository);
     ProprietaryComponentNamePattern proprietaryComponentNamePattern =
         tempEntity.newProprietaryComponentNamePattern(repository, "foo", null);
 
@@ -583,12 +603,12 @@ public class RepositoryDAOTest
 
     repository = dao.getById(repository.getId());
 
-    assertThat(new ProprietaryComponentNamePatternDAO().getById(proprietaryComponentNamePattern.getId())).isNull();
+    assertThat(proprietaryComponentNamePatternDAO.getById(proprietaryComponentNamePattern.getId())).isNull();
   }
 
   @Test
   public void testGetCount() {
-    // Note: First repo is being created in test setup of base class 
+    // Note: First repo is being created in test setup of base class
     tempEntity.newRepository("repo2");
     assertThat(dao.getCount()).isEqualTo(2);
 
@@ -615,10 +635,10 @@ public class RepositoryDAOTest
     policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
     policyWithOverrides.addPolicyNotificationsOverride(repository.getId(), policyNotificationsOverride);
     policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
-    new PolicyDAO().update(policyWithOverrides);
+    policyDAO.update(policyWithOverrides);
 
     dao.delete(repository);
-    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
+    Policy policy = policyDAO.getById(policyWithOverrides.getId());
     assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
     assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
   }

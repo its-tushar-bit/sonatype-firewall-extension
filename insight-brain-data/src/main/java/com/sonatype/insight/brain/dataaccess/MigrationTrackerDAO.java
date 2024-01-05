@@ -6,13 +6,24 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Objects;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class MigrationTrackerDAO
     extends AbstractOperationalSqlDAO<MigrationTracker>
 {
+  @Inject
+  public MigrationTrackerDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void insert(TransactionContext tx, MigrationTracker entity) {
     Objects.requireNonNull(entity.getId(), "MigrationTracker entity cannot be inserted without an id!");

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,17 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SearchIndexChangeDAOTest
     extends AbstractDbDAOTest
 {
-  private final SearchIndexChangeDAO dao = new SearchIndexChangeDAO();
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private SearchIndexChangeDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSearchIndexChangeDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+  }
 
   @Test
   public void testUpdate() {
@@ -30,7 +41,7 @@ public class SearchIndexChangeDAOTest
 
   @Test
   public void testInsert_AdvancedSearchDisabled() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "false"));
     dao.getAll().forEach(dao::delete);
     assertThat(dao.getAll()).isEmpty();
@@ -41,7 +52,7 @@ public class SearchIndexChangeDAOTest
 
   @Test
   public void testInsert_AdvancedSearchEnabled() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
 
     SearchIndexChange change = new SearchIndexChange(ChangeType.APPLICATION, "appId");

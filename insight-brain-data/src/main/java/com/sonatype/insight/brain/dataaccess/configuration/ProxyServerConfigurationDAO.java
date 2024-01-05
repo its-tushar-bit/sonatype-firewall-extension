@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -15,10 +20,17 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @since 1.84
  */
+@Named
+@Singleton
 public class ProxyServerConfigurationDAO
     extends AbstractOperationalSqlDAO<ProxyServerConfiguration>
 {
   public static final String SINGLETON_ENTITY_ID = "proxy-server-configuration";
+
+  @Inject
+  public ProxyServerConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   /**
    * @return The proxy server configuration or {@code null} if none.

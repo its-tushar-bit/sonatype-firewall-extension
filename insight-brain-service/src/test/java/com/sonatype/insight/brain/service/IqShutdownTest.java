@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import com.google.inject.Inject;
 import org.junit.After;
@@ -19,7 +20,7 @@ import org.quartz.Scheduler;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IqShutdownTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   /**
    * Tests against https://issues.sonatype.org/browse/CLM-24625. This bug was caused by the TaskScheduler being shutdown

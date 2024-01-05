@@ -53,8 +53,10 @@ public class AttributionReportTemplateDAOTest
   }
 
   @Before
-  public void before() {
-    dao = new AttributionReportTemplateDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createAttributionReportTemplateDAO();
     List<AttributionReportTemplate> reports = dao.getAll();
     reports.forEach(report -> dao.delete(report));
   }

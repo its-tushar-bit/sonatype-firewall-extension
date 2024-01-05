@@ -10,15 +10,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -41,10 +41,17 @@ public class SourceControlComponentLoader
 
   private final ApplicationDAO applicationDAO;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
   @Inject
-  SourceControlComponentLoader(final ReportService reportService, final ApplicationDAO applicationDAO) {
+  SourceControlComponentLoader(
+      final ReportService reportService,
+      final ApplicationDAO applicationDAO,
+      final ComponentLoaderFactory componentLoaderFactory)
+  {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
+    this.componentLoaderFactory = componentLoaderFactory;
   }
 
   public SourceControlComponentDetails getSourceControlComponentDetails(
@@ -68,16 +75,16 @@ public class SourceControlComponentLoader
     ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
     ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
 
-    ComponentDAO componentDAO = new ComponentDAO(application);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(application);
     List<Component> components;
     if (dependenciesReportEntry == null) {
       // only display name will be available; no dependency information
-      components = componentDAO
+      components = componentLoader
           .getAll(null /* license data */, null /* security data */, bomReportEntry.buf, null  /* dependency data */);
     }
     else {
       // display name and dependency information will be available
-      components = componentDAO
+      components = componentLoader
           .getAll(null /* license data */, null /* security data */, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
     collectComponentInfo(componentDetails, components);

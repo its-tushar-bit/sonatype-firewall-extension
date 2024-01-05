@@ -8,21 +8,37 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class SourceControlUserDAO
     extends AbstractOperationalSqlDAO<SourceControlUser>
 {
+  private final SourceControlUserActivityDAO sourceControlUserActivityDAO;
+
+  @Inject
+  public SourceControlUserDAO(
+      final OperationalDataStore operationalDataStore,
+      final SourceControlUserActivityDAO sourceControlUserActivityDAO)
+  {
+    super(operationalDataStore);
+    this.sourceControlUserActivityDAO = sourceControlUserActivityDAO;
+  }
+
   @Override
   public void delete(final TransactionContext tx, final SourceControlUser entity) {
     // Cascade to source control user activity
-    new SourceControlUserActivityDAO().deleteBySourceControlUserId(tx, entity.getId());
+    sourceControlUserActivityDAO.deleteBySourceControlUserId(tx, entity.getId());
     super.delete(tx, entity);
   }
 
@@ -46,9 +62,10 @@ public class SourceControlUserDAO
       return;
     }
 
+    String dbSchema = getDatabaseSchema();
     SourceControlUserDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserDAOQueryBuilder()
-            : new DefaultSourceControlUserDAOQueryBuilder();
+        isDatabasePostgresql() ? new PostgresqlSourceControlUserDAOQueryBuilder(dbSchema)
+            : new DefaultSourceControlUserDAOQueryBuilder(dbSchema);
 
     final javax.persistence.Query query =
         tx.createNativeQuery(queryBuilder.getMassiveInsertNativeQuery(usersToInsert));
@@ -61,11 +78,6 @@ public class SourceControlUserDAO
     query.executeUpdate();
   }
 
-  private boolean isDatabasePostgresql() {
-    return !OperationalDataStoreProvider.isDatabaseInMemory() && org.postgresql.Driver.class.getName()
-        .equals(OperationalDataStoreProvider.getDatabaseConfig().getDriverClassName());
-  }
-
   private interface SourceControlUserDAOQueryBuilder
   {
     String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert);
@@ -74,13 +86,18 @@ public class SourceControlUserDAO
   private static class DefaultSourceControlUserDAOQueryBuilder
       implements SourceControlUserDAOQueryBuilder
   {
+    private final String databaseSchema;
+
+    public DefaultSourceControlUserDAOQueryBuilder(final String databaseSchema) {
+      this.databaseSchema = databaseSchema;
+    }
+
     @Override
     public String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert) {
-      final String dbSchema = OperationalDataStoreProvider.getDatabaseSchema();
-      return "INSERT INTO " + dbSchema + ".source_control_user (source_control_user_id, application_id, email)" +
+      return "INSERT INTO " + databaseSchema + ".source_control_user (source_control_user_id, application_id, email)" +
           " SELECT sour.* FROM ( SELECT ? || '' as id,? || '' as app,? || '' as em" +
           StringUtils.repeat(" UNION SELECT ? || '' as id,? || '' as app,? || '' as em", usersToInsert.size() - 1) +
-          ") sour WHERE NOT EXISTS (SELECT source_control_user_id FROM " + dbSchema + ".source_control_user " +
+          ") sour WHERE NOT EXISTS (SELECT source_control_user_id FROM " + databaseSchema + ".source_control_user " +
           "WHERE application_id=sour.app AND email=sour.em)";
     }
   }
@@ -88,10 +105,15 @@ public class SourceControlUserDAO
   private static class PostgresqlSourceControlUserDAOQueryBuilder
       implements SourceControlUserDAOQueryBuilder
   {
+    private final String databaseSchema;
+
+    public PostgresqlSourceControlUserDAOQueryBuilder(final String databaseSchema) {
+      this.databaseSchema = databaseSchema;
+    }
+
     @Override
     public String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert) {
-      final String dbSchema = OperationalDataStoreProvider.getDatabaseSchema();
-      return "INSERT INTO " + dbSchema + ".source_control_user (source_control_user_id, application_id, email) " +
+      return "INSERT INTO " + databaseSchema + ".source_control_user (source_control_user_id, application_id, email) " +
           "VALUES (?, ?, ?)" + StringUtils.repeat(", (?, ?, ?)", usersToInsert.size() - 1) +
           " ON CONFLICT (application_id, email) DO NOTHING";
     }

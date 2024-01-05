@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -45,6 +44,9 @@ import static org.mockito.Mockito.when;
 public class PullRequestCommentingRemediationServiceTest
     extends AbstractComponentTest
 {
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   @Mock
   private ComponentInfoService mockComponentInfoService;
 
@@ -93,7 +95,7 @@ public class PullRequestCommentingRemediationServiceTest
   {
 
     // given:
-    service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
+    service = new PullRequestCommentingRemediationService(applicationDAO, mockComponentInfoService,
         mockComponentRemediationService, mockProductLicense, componentDetailsLoaderFactory);
 
     ComponentIdentifier id1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
@@ -135,7 +137,7 @@ public class PullRequestCommentingRemediationServiceTest
   @Test
   public void testGetRemediationVersionMap_remediationNotFound() {
     // given:
-    service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
+    service = new PullRequestCommentingRemediationService(applicationDAO, mockComponentInfoService,
         mockComponentRemediationService, mockProductLicense, componentDetailsLoaderFactory);
 
     ComponentIdentifier id2 = ComponentIdentifier.createNpmCoordinates("artifact-2", "2.0.0");

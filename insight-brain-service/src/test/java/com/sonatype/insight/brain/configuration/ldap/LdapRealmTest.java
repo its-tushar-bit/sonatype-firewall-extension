@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.configuration.ldap;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.SslSettings;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -18,6 +17,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -25,7 +25,6 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,11 +37,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @since 1.7
  */
 public class LdapRealmTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -63,6 +59,9 @@ public class LdapRealmTest
 
   @Inject
   private LdapRealm realm;
+
+  @Inject
+  private LdapUserMappingDAO ldapUserMappingDAO;
 
   private LdapServer ldapServer;
 
@@ -297,7 +296,7 @@ public class LdapRealmTest
       testLdapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     }
 
-    new LdapUserMappingDAO().insert(ldapUserMapping);
+    ldapUserMappingDAO.insert(ldapUserMapping);
 
     testLdapServer.start();
     testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");

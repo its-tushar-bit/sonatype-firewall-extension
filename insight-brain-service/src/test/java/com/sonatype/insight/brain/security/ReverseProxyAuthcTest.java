@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.http.HttpStatus;
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ReverseProxyAuthcTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
@@ -55,8 +55,8 @@ public class ReverseProxyAuthcTest
   @Parameterized.Parameters(name = "ldapConfigured={0}, ldapUser={1}, localUser={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {false, false, false}, // totally unknown username, no LDAP configured 
-        {true, false, false},  // totally unknown username, LDAP configured  
+        {false, false, false}, // totally unknown username, no LDAP configured
+        {true, false, false},  // totally unknown username, LDAP configured
         {false, false, true},  // username only present in local db, no LDAP configured
         {true, false, true},   // username only present in local db, LDAP configured
         {true, true, false},   // username only present in LDAP

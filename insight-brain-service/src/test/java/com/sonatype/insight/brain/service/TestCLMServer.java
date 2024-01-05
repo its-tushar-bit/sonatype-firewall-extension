@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import com.google.inject.Module;
@@ -39,6 +40,7 @@ public class TestCLMServer
   private static int totalStopTime;
 
   public TestCLMServer(
+      InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
       List<Module> modules,
       Configurator configurator,
@@ -47,6 +49,7 @@ public class TestCLMServer
   {
     this(isProxyRequiredToReachHds, hdsMockServer,
         new TestInsightBrainServiceRule(
+            insightBrainServiceFactory,
             PortAllocator.nextFreePort(),
             PortAllocator.nextFreePort(),
             hdsMockServer.getHttpUrl(),
@@ -69,16 +72,18 @@ public class TestCLMServer
   }
 
   public TestCLMServer(
+      InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
       List<Module> modules,
       Configurator configurator)
   {
     // null for DatabaseContainer indicates that the default one will be created
     // See TestInsightBrainService#createDatabaseContainer
-    this(isProxyRequiredToReachHds, modules, configurator, /* DatabaseContainer */ null);
+    this(insightBrainServiceFactory, isProxyRequiredToReachHds, modules, configurator, /* DatabaseContainer */ null);
   }
 
   public TestCLMServer(
+      InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
       List<Module> modules,
       Configurator configurator,
@@ -91,7 +96,8 @@ public class TestCLMServer
     hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
     hdsMockServerOwned = true;
 
-    brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
+    brain = new TestInsightBrainServiceRule(insightBrainServiceFactory,
+        PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
         "http://localhost:" + hdsMockServerPort, databaseContainer, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }

@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
@@ -25,7 +26,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
 {
-  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+  private UserFilterDAO userFilterDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    userFilterDAO = daoFactory.createUserFilterDAO();
+  }
 
   @Override
   protected UserFilter createNameable(String a) {

@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.signature.Signature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ScanClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final String APP_ID = "ScanClientTest_AppId";
 
@@ -51,11 +51,15 @@ public class ScanClientTest
 
   private static final int LEGACY_VIOLATION_COUNT = 50;
 
+  private ApplicationDAO applicationDAO;
+
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Before
   public void createApplication() {
+    applicationDAO = lookup(ApplicationDAO.class);
+
     tempEntity.newApplicationWithParent(APP_ID, "test");
   }
 
@@ -123,7 +127,7 @@ public class ScanClientTest
 
     String scanId = tempEntity.uuid();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(new ApplicationDAO().getByPublicId(APP_ID).getId(), BuildStageType.ID, scanId);
+        tempEntity.newPolicyEvaluation(applicationDAO.getByPublicId(APP_ID).getId(), BuildStageType.ID, scanId);
     mockReport(policyEvaluation, getClass().getSimpleName());
 
     Signature signature = new Signature();

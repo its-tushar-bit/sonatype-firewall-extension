@@ -43,6 +43,9 @@ public class ApiRepositoryConnectionServiceAuthzTest
   @Inject
   private RepositoryConnectionDAO dao;
 
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   @Mock
   private RepositoryClientFactory mockFactory;
 
@@ -63,7 +66,7 @@ public class ApiRepositoryConnectionServiceAuthzTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     app.setRepositoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
   }
 
   @Test(expected = UnauthenticatedException.class)

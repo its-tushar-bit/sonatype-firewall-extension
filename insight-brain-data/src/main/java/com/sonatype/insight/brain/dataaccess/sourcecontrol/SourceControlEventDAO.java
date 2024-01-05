@@ -10,10 +10,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -32,6 +35,8 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 
+@Named
+@Singleton
 public class SourceControlEventDAO
     extends AbstractOperationalSqlDAO<SourceControlEvent>
 {
@@ -47,6 +52,11 @@ public class SourceControlEventDAO
 
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
+  @Inject
+  public SourceControlEventDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public int reserveEventsForInstance(final String instanceId) {
     int result = 0;
 
@@ -57,18 +67,18 @@ public class SourceControlEventDAO
       // (i.e. 'new', 'in progress') already assigned to another instance
       result = txn
           .createNativeQuery(
-              "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control_event" +
+              "UPDATE " + getDatabaseSchema() + ".source_control_event" +
                   " SET instance_id = ?1" +
                   " WHERE source_control_event_id IN (" +
                   "   SELECT unassigned_events.id FROM (" +
                   "     SELECT source_control_event_id AS id" +
-                  "       FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control_event" +
+                  "       FROM " + getDatabaseSchema() + ".source_control_event" +
                   "       WHERE instance_id IS NULL" +
                   "       FOR UPDATE" +
                   "     ) AS unassigned_events," +
                   "     (" +
                   "       SELECT count(*) AS reserved_count " +
-                  "       FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control_event" +
+                  "       FROM " + getDatabaseSchema() + ".source_control_event" +
                   "       WHERE instance_id IS NOT NULL" +
                   "       AND instance_id != ?1" +
                   "       AND event_status IN ('new', 'in progress')" +

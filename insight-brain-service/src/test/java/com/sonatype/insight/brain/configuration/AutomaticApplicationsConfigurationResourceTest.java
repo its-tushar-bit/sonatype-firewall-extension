@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,6 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutomaticApplicationsConfigurationResourceTest
     extends AbstractResourceTest
 {
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(AutomaticApplicationsConfigurationResource.RESOURCE_PATH);
@@ -45,9 +53,6 @@ public class AutomaticApplicationsConfigurationResourceTest
     AutomaticApplicationsConfiguration configuration = response.getBody(AutomaticApplicationsConfiguration.class);
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getParentOrganizationId()).isEqualTo(organization.getId());
-
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO 
-        = new AutomaticApplicationsConfigurationDAO();
 
     assertThat(automaticApplicationsConfigurationDAO.isEnabled()).isTrue();
     assertThat(automaticApplicationsConfigurationDAO.getOrganizationId()).isEqualTo(organization.getId());

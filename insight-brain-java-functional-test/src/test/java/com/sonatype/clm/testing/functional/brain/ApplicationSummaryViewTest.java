@@ -90,9 +90,13 @@ public class ApplicationSummaryViewTest
 {
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private RoleDAO roleDAO;
+
+  private SourceControlDAO sourceControlDAO;
+
+  private OrganizationDAO organizationDAO;
 
   private Application application;
 
@@ -107,6 +111,11 @@ public class ApplicationSummaryViewTest
 
   @Before
   public void init() {
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    roleDAO = lookup(RoleDAO.class);
+    sourceControlDAO = lookup(SourceControlDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+
     //note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
@@ -515,7 +524,7 @@ public class ApplicationSummaryViewTest
 
         evaluationStatusModal.closeButton().shouldBe(visible, enabled);
 
-        PolicyEvaluation policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(
+        PolicyEvaluation policyEvaluations = policyEvaluationDAO.getLastByApplicationIdAndStageId(
             application.getId(), StageTypes.RELEASE.getId());
 
         assertThat(policyEvaluations).isNotNull();
@@ -741,7 +750,6 @@ public class ApplicationSummaryViewTest
   @Test
   public void testAccessTile_Inherited_Truncation() {
     Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
-    RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
     tempEntity
         .newMembershipMapping(organization.getId(), readRole.getId(), "Group", MemberType.GROUP);

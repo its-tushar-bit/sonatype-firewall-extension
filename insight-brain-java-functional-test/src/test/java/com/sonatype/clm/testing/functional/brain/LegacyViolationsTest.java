@@ -41,11 +41,11 @@ public class LegacyViolationsTest
 
   private Application application;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private PolicyViolationDAO policyViolationDAO;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -55,6 +55,10 @@ public class LegacyViolationsTest
 
   @Before
   public void init() {
+    policyDAO = lookup(PolicyDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
     application.setLegacyViolationEnabled(true);

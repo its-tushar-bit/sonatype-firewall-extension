@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -71,25 +70,45 @@ public class PolicyWaiverResource
   public static final String RESOURCE_PATH = SERVICE_BASEPATH
       + "{ownerType: application|organization|repository|repository_container|repository_manager}/{ownerId}";
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
+  private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PolicyDAO policyDAO;
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
   private final CurrentUser currentUser;
 
+  private final IdUtils idUtils;
+
   @Inject
   public PolicyWaiverResource(
+      final OwnerDAO ownerDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final PolicyDAO policyDAO,
       final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
-      final CurrentUser currentUser) 
+      final CurrentUser currentUser,
+      final IdUtils idUtils)
   {
+    this.ownerDAO = ownerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.applicationComponentDAO = applicationComponentDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.policyDAO = policyDAO;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
     this.currentUser = currentUser;
+    this.idUtils = idUtils;
   }
 
   @POST
@@ -102,7 +121,7 @@ public class PolicyWaiverResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       PolicyWaiver policyWaiver)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (policyWaiver.getConstraintFactsJson() == null || policyWaiver.getConstraintFactsJson().isEmpty()) {
       throw new BadRequestException("Policy waiver must have constraint facts.");
@@ -114,7 +133,7 @@ public class PolicyWaiverResource
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     policyWaiver.setComponentMatchStrategy(policyWaiver.getHash() == null ? ALL_COMPONENTS : EXACT_COMPONENT);
     policyWaiver.setAssociatedPackageUrl(getPurlForPolicyWaiver(policyWaiver, ownerType));
-    new PolicyWaiverDAO().insert(policyWaiver);
+    policyWaiverDAO.insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);
     return policyWaiver;
@@ -197,9 +216,8 @@ public class PolicyWaiverResource
       @PathParam("hash") String hash)
   {
     AuditData.get().setComponentHash(hash);
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyDAO policyDAO = new PolicyDAO();
     Map<String, String> policyNamesById = new HashMap<>();
     Function<String, String> policyNameLoader =
         policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
@@ -224,7 +242,7 @@ public class PolicyWaiverResource
   {
     PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     List<PolicyWaiver> waivers =
-        new PolicyWaiverDAO().getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
+        policyWaiverDAO.getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
     List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();
@@ -255,8 +273,8 @@ public class PolicyWaiverResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("policyId") String policyId)
   {
-    Policy policy = new PolicyDAO().getByIdNotNull(policyId);
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    Policy policy = policyDAO.getByIdNotNull(policyId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     ApplicableContext context = null;
     boolean foundPolicyInHierarchy = false;
@@ -341,7 +359,7 @@ public class PolicyWaiverResource
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
     AuditData.get().setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
+        .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {

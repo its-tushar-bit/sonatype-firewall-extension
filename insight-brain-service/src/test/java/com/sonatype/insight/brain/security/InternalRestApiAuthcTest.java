@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.policy.LicensedStagesResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.report.ReportResource;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Test;
 
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests authentication aspects of the internal REST API in general.
  */
 public class InternalRestApiAuthcTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private HttpResponse login() throws Exception {
     return restRequest().path(UserSessionResource.RESOURCE_PATH).noCsrfToken().post();

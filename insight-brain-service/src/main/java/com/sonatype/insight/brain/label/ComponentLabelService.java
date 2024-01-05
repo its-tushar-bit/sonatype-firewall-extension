@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.label;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,14 +33,18 @@ public class ComponentLabelService
 
   private final OwnerDAO ownerDAO;
 
+  private final IdUtils idUtils;
+
   @Inject
   public ComponentLabelService(final LabelDAO labelDAO,
                                final ComponentLabelDAO componentLabelDAO,
-                               final OwnerDAO ownerDAO)
+                               final OwnerDAO ownerDAO,
+                               final IdUtils idUtils)
   {
     this.labelDAO = labelDAO;
     this.componentLabelDAO = componentLabelDAO;
     this.ownerDAO = ownerDAO;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -54,7 +57,7 @@ public class ComponentLabelService
                                           final String hash)
   {
     AuditData.get().setComponentHash(hash);
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedLabels result = new AppliedLabels();
 
@@ -75,7 +78,7 @@ public class ComponentLabelService
                                 final String hash,
                                 Label label)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     label = labelDAO.getByIdNotNull(label.getId());
     ComponentLabel componentLabel = new ComponentLabel(internalOwnerId, label.getId(), hash);
     componentLabelDAO.insert(componentLabel);
@@ -91,7 +94,7 @@ public class ComponentLabelService
                                    final String hash,
                                    final String labelId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Label label = labelDAO.getByIdNotNull(labelId);
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);
     if (componentLabel == null) {

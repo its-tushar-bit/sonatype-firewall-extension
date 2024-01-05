@@ -29,6 +29,12 @@ import org.junit.Test;
 public class LegacyViolationResourceAuditTest
     extends AbstractAuditTest
 {
+  private PolicyDAO policyDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
   private Organization organization;
 
   private Application application;
@@ -37,6 +43,10 @@ public class LegacyViolationResourceAuditTest
 
   @Before
   public void before() {
+    policyDAO = lookup(PolicyDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplicationWithParent();
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
@@ -50,21 +60,21 @@ public class LegacyViolationResourceAuditTest
   @Test
   public void testGrantLegacyViolationStatus() throws Exception {
     application.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(application);
+    applicationDAO.update(application);
 
     Policy policyLegacyAllowed = tempEntity.newPolicy();
     policyLegacyAllowed.setLegacyViolationAllowed(true);
-    new PolicyDAO().update(policyLegacyAllowed);
+    policyDAO.update(policyLegacyAllowed);
 
     // Policy violation that is already in legacy status - is not counted
     PolicyViolation policyViolationAlreadyLegacy = tempEntity.newPolicyViolation(policyEvaluation, policyLegacyAllowed);
     policyViolationAlreadyLegacy.setLegacyViolationTime(new Date());
-    new PolicyViolationDAO().update(policyViolationAlreadyLegacy);
+    policyViolationDAO.update(policyViolationAlreadyLegacy);
 
     // Policy violation for a policy that cannot be found - is counted
     Policy policyDoesNotExist = tempEntity.newPolicy();
     tempEntity.newPolicyViolation(policyEvaluation, policyDoesNotExist);
-    new PolicyDAO().delete(policyDoesNotExist);
+    policyDAO.delete(policyDoesNotExist);
 
     // Policy violation for a policy that does not allow legacy status - is not counted
     tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy());

@@ -80,6 +80,8 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
+  private ApplicationDAO applicationDAO;
+
   private Application app;
 
   @BeforeClass
@@ -90,6 +92,8 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Before
   public void start() throws IOException {
+    applicationDAO = lookup(ApplicationDAO.class);
+
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
 
     SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
@@ -240,7 +244,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .atUri("rest/component/dependencies");
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
     app.setRepositoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     RepositoryConnection repositoryConnection =
         tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
@@ -259,7 +263,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .atUri("rest/component/dependencies");
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
     app.setRepositoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);

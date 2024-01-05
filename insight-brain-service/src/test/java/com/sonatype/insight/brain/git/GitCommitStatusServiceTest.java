@@ -79,6 +79,7 @@ public class GitCommitStatusServiceTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense.reset();
 
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }
@@ -537,7 +538,7 @@ public class GitCommitStatusServiceTest
     private String applicationId;
 
     private String applicationPublicId;
-    
+
     private Boolean commitStatusEnabled;
 
     private Exception apiClientThrowsException = null;

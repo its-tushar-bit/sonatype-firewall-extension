@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.git;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -29,7 +30,8 @@ public class PullRequestPollingTrackerTest
 {
   private static final long MS_PER_MINUTE = 60_000;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private SourceControlDAO sourceControlDAO;
 
   // test subject
   private PullRequestPollingTracker pollingTracker;

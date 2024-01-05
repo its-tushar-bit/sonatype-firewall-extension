@@ -117,7 +117,7 @@ public class DashboardWaiversTest
 
   private final Instant thirtyDaysFromNow = now.plus(30, ChronoUnit.DAYS);
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   private static final String NO_DATA_MSG =
       "No data available in the last 30 days given the applied filters and permissions.";
@@ -141,6 +141,7 @@ public class DashboardWaiversTest
 
   @Before
   public void before() {
+    organizationDAO = lookup(OrganizationDAO.class);
     rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
   }
 

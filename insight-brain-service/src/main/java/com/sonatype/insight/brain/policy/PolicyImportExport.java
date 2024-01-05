@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -66,28 +65,49 @@ public class PolicyImportExport
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyImportExport.class);
 
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  private final LicenseDAO licenseDAO = new LicenseDAO();
+  private final LicenseDAO licenseDAO;
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO;
 
-  private LabelDAO labelDAO = new LabelDAO();
+  private final LabelDAO labelDAO;
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO;
 
-  private final TagDAO tagDAO = new TagDAO();
+  private final TagDAO tagDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
 
-  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-  
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final PolicyTagDAO policyTagDAO;
+
+  private final OwnerDAO ownerDAO;
 
   @Inject
-  public PolicyImportExport() {
+  public PolicyImportExport(
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
+      final LicenseDAO licenseDAO,
+      final OrganizationDAO organizationDAO,
+      final LabelDAO labelDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final TagDAO tagDAO,
+      final PolicyDAO policyDAO,
+      final PolicyTagDAO policyTagDAO,
+      final OwnerDAO ownerDAO)
+  {
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
+    this.licenseDAO = licenseDAO;
+    this.organizationDAO = organizationDAO;
+    this.labelDAO = labelDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.tagDAO = tagDAO;
+    this.policyDAO = policyDAO;
+    this.policyTagDAO = policyTagDAO;
+    this.ownerDAO = ownerDAO;
   }
 
   /**
@@ -326,7 +346,6 @@ public class PolicyImportExport
           idMap.put(labelId, label.getId());
           auditImportLabel(organization, label);
         }
-
       }
       for (Policy policy : exportDTO.policies) {
         for (Constraint constraint : policy.getConstraints()) {

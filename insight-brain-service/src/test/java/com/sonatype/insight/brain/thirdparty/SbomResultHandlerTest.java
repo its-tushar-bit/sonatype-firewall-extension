@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -62,9 +64,9 @@ import org.cyclonedx.model.vulnerability.Vulnerability10.ScoreSource;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Severity;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.parsers.XmlParser;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Spy;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
@@ -80,20 +82,25 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SbomResultHandlerTest
     extends AbstractComponentTest
 {
-  @Spy
-  private SbomResultHandler sbomResultHandler;
+  @Inject
+  private ThirdPartyFileDAO thirdPartyFileDAO;
 
   @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
-  private MultiLicenseDAO multiLicenseDAO;
-
-  @Spy
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
-  @Spy
+  @Inject
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Inject
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
+
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private SbomResultHandler sbomResultHandler;
 
   private final String loggerName = SbomResultHandler.class.getName();
 
@@ -102,6 +109,13 @@ public class SbomResultHandlerTest
 
   @Rule
   public LogOutput logOutputUtils = new LogOutput(ThirdPartyUtils.class.getName());
+
+  @Before
+  public void before() {
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO);
+  }
 
   @Test
   public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {

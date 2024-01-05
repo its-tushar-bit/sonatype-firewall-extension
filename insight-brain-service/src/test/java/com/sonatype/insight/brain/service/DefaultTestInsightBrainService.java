@@ -14,9 +14,8 @@ import javax.servlet.ServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentsAutoReleasedConsolidatorCronJob;
@@ -51,6 +50,8 @@ import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseEngine;
+import com.sonatype.insight.db.H2DatabaseEngine;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -280,16 +281,7 @@ public class DefaultTestInsightBrainService
     adminConnector.setPort(testAdminPort);
     // disable graceful shutdown, i.e. don't waste time waiting nor risk timeout errors
     defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(0));
-    if (testHdsUrl != null) {
-      new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, testHdsUrl);
-    }
 
-    if (testProxyServerConfiguration != null) {
-      new ProxyServerConfigurationDAO().set(testProxyServerConfiguration);
-    }
-    else {
-      new ProxyServerConfigurationDAO().delete();
-    }
     insightConfig = config;
 
     initWorkDirectory(config.getSonatypeWork());
@@ -303,6 +295,8 @@ public class DefaultTestInsightBrainService
 
     RestRequestFilter.configure(env, (request, response) -> getRestRequestFilterHandler().accept(request, response));
 
+    config.setHdsUrl(testHdsUrl);
+
     super.run(config, env);
 
     disableForTesting();
@@ -311,11 +305,8 @@ public class DefaultTestInsightBrainService
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer() {
-    // If no DatabaseContainer was pre-configured then create the default one
-    if (databaseContainer == null) {
-      databaseContainer = super.createDatabaseContainer();
-    }
+  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+    // Use the DatabaseContainer set by the test code, don't create a new one
     return databaseContainer;
   }
 
@@ -372,17 +363,20 @@ public class DefaultTestInsightBrainService
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
     }
-    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, null);
   }
 
   @Override
   protected DatabaseConfigProvider getDatabaseConfigProvider(InsightConfig insightConfig) {
-    // Use in memory db
-    return new DatabaseConfigProvider(insightConfig)
-    {
+    return new DatabaseConfigProvider() {
       @Override
-      public DatabaseConfig getDatabaseConfig(DatabaseName databaseName) {
+      public DatabaseConfig getDatabaseConfig(final DatabaseName databaseName) {
+        // Use in memory db
         return null;
+      }
+
+      @Override
+      public DatabaseEngine getDatabaseEngine() {
+        return H2DatabaseEngine.INSTANCE;
       }
     };
   }

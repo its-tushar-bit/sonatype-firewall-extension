@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
@@ -31,9 +32,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiUserResourceTest
     extends AbstractResourceTest
 {
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
 
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private SamlUserDAO samlUserDAO;
+
+  @Before
+  public void setUp() {
+    userDAO = lookup(UserDAO.class);
+    samlUserDAO = lookup(SamlUserDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -49,7 +56,7 @@ public class ApiUserResourceTest
 
     assertResponseStatus(204, response);
     User user = userDAO.getByUsernameNotNull(inputUserDTO.username);
-    assertMatchingUser(inputUserDTO);
+    assertMatchingUser(inputUserDTO, user);
 
     // Read
     response = restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();

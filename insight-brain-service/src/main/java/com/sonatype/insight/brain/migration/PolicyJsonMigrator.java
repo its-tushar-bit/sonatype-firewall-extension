@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -49,10 +50,17 @@ public class PolicyJsonMigrator
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final RoleDAO roleDAO;
+
   @Inject
-  public PolicyJsonMigrator(MigrationTrackerDAO migrationTrackerDAO, PolicyInternalDAO policyInternalDAO) {
+  public PolicyJsonMigrator(
+      MigrationTrackerDAO migrationTrackerDAO,
+      PolicyInternalDAO policyInternalDAO,
+      RoleDAO roleDAO)
+  {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.policyInternalDAO = policyInternalDAO;
+    this.roleDAO = roleDAO;
   }
 
   public void migrate() throws IOException {
@@ -124,7 +132,9 @@ public class PolicyJsonMigrator
     Notification notification = notificationsByTarget.get(key);
     if (notification == null) {
       if (NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
-        notification = new RoleNotification(action.getTarget());
+        String roleId = action.getTarget();
+        String roleName = roleDAO.getById(roleId).getName();
+        notification = new RoleNotification(action.getTarget(), roleName);
       }
       else {
         notification = new UserNotification(action.getTarget());

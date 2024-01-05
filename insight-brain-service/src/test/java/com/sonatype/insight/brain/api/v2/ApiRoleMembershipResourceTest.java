@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
@@ -38,7 +39,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiRoleMembershipResourceTest
     extends AbstractResourceTest
 {
-  private final MembershipMappingDAO dao = new MembershipMappingDAO();
+  private MembershipMappingDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(MembershipMappingDAO.class);
+  }
 
   @Test
   public void testGrantRoleMembershipApplicationOrOrganization_Application() throws Exception {

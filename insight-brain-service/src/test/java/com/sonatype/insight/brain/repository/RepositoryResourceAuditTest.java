@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,19 @@ public class RepositoryResourceAuditTest
 
   private static final String PATHNAME = "pathname";
 
+  private RepositoryDAO repositoryDAO;
+
+  private PolicyDAO policyDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Before
+  public void setUp() {
+    repositoryDAO = lookup(RepositoryDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+  }
+
   @Test
   public void testDeleteRepository() throws Exception {
     Repository repository = tempEntity.newRepository();
@@ -53,7 +67,7 @@ public class RepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_REPOSITORY, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "repositoryManagerInstanceId",
-        new RepositoryManagerDAO().getById(repository.getRepositoryManagerId()).getInstanceId());
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
   }
 
   @Test
@@ -229,7 +243,7 @@ public class RepositoryResourceAuditTest
       assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
       if (auditDTO.data.size() > 2) {
         foundRepositoryAuditData = true;
-        repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+        repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             repository.getPublicId());
         assertRepositoryData(auditDTO, repository);
       }
@@ -342,7 +356,7 @@ public class RepositoryResourceAuditTest
     assertThat(auditDTOs).hasSize(1);
     auditDTOs = getLogEntries(AuditEvent.UPDATE_POLICY);
     assertThat(auditDTOs).hasSize(1);
-    Policy policy = new PolicyDAO().getById(securityMaliciousPolicy.getId());
+    Policy policy = policyDAO.getById(securityMaliciousPolicy.getId());
     assertPolicyData(auditDTOs.get(0), policy, false /* deleted */);
   }
 

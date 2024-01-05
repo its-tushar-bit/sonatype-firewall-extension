@@ -42,7 +42,8 @@ public class ApiProxyServerConfigurationServiceTest
   @Inject
   private PasswordHandler passwordHandler;
 
-  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  @Inject
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   @Mock
   private ProxyServerConfigurationListener proxyServerConfigurationListener;

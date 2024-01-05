@@ -7,16 +7,27 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections.CollectionUtils;
 
+@Named
+@Singleton
 public class SamlUserGroupDAO
     extends AbstractOperationalSqlDAO<SamlUserGroup>
 {
+  @Inject
+  public SamlUserGroupDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public SamlUserGroup getBySamlUserIdAndSamlGroupId(String samlUserId, String samlGroupId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getBySamlUserIdAndSamlGroupId(tx, samlUserId, samlGroupId);

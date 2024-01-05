@@ -34,10 +34,17 @@ public class InsightMail
 
   private final PasswordHandler passwordHandler;
 
+  private final MailConfigurationDAO mailConfigurationDAO;
+
   @Inject
-  public InsightMail(Configuration configuration, PasswordHandler passwordHandler) {
+  public InsightMail(
+      Configuration configuration,
+      PasswordHandler passwordHandler,
+      MailConfigurationDAO mailConfigurationDAO)
+  {
     this.configuration = configuration;
     this.passwordHandler = passwordHandler;
+    this.mailConfigurationDAO = mailConfigurationDAO;
   }
 
   public char[] decryptPassword(char[] encryptedPassword) {
@@ -49,7 +56,7 @@ public class InsightMail
   }
 
   public String getServer() {
-    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
     return mailConfiguration == null ? null : mailConfiguration.getHostname() + ':' + mailConfiguration.getPort();
   }
 
@@ -58,7 +65,7 @@ public class InsightMail
   }
 
   public void sendHtml(String mailAddress, String subject, String body) {
-    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
     sendHtml(mailConfiguration, mailAddress, subject, body);
   }
 

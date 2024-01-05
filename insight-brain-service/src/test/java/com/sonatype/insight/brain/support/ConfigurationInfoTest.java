@@ -28,9 +28,11 @@ public class ConfigurationInfoTest
   @Inject
   private Configuration configuration;
 
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Test
   public void testGetConfigurationInfo() throws Exception {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     setHdsUrl(null);
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "https://clm-staging.sonatype.com/");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, String.valueOf(false));

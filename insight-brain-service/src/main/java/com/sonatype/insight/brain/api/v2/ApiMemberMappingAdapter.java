@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
@@ -23,13 +25,21 @@ import com.sonatype.insight.brain.security.MembersByRole;
 /**
  * @since 1.11.0
  */
+@Named
 public class ApiMemberMappingAdapter
 {
-  public static ApiRoleMemberMappingListDTO convert(ApplicableMembershipMappings mappings) {
+  private final ApplicationDAO applicationDAO;
+
+  @Inject
+  public ApiMemberMappingAdapter(final ApplicationDAO applicationDAO) {
+    this.applicationDAO = applicationDAO;
+  }
+
+  public ApiRoleMemberMappingListDTO convert(ApplicableMembershipMappings mappings) {
     return convert(mappings, null);
   }
 
-  static ApiRoleMemberMappingListDTO convert(
+  ApiRoleMemberMappingListDTO convert(
       final ApplicableMembershipMappings mappings,
       final OwnerType ownerType)
   {
@@ -46,7 +56,7 @@ public class ApiMemberMappingAdapter
             // We need to convert it to internal app id when converting to ApiMemberDTO.
             String internalOwnerId;
             if (OwnerType.APPLICATION.equals(membersByOwner.ownerType)) {
-              internalOwnerId = new ApplicationDAO().getByPublicId(membersByOwner.ownerId).getId();
+              internalOwnerId = applicationDAO.getByPublicId(membersByOwner.ownerId).getId();
             }
             else {
               internalOwnerId = membersByOwner.ownerId;

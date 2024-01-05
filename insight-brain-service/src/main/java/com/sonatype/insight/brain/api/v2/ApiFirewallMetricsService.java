@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -51,20 +49,22 @@ public class ApiFirewallMetricsService
   private static final Set<LicensedFeature> FIREWALL_METRICS_LICENSED_FEATURES =
       ImmutableSet.of(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
-  private static final String MALICIOUS_CODE_SUMMARY_SUFFIX =
-      ConditionTypes.SecurityVulnerabilityCategoryConditionType.getSupportedOperators().get(0) + " "
-          + SecurityVulnerabilityCategory.MALICIOUS_CODE.getName();
+  private final String maliciousCodeSummarySuffix;
 
   private final FirewallMetricsDAO firewallMetricsDAO;
 
   private final ProductLicense productLicense;
 
   @Inject
-  public ApiFirewallMetricsService(final FirewallMetricsDAO firewallMetricsDAO,
-                                   final ProductLicense productLicense)
+  public ApiFirewallMetricsService(
+      final FirewallMetricsDAO firewallMetricsDAO,
+      final ProductLicense productLicense,
+      final SecurityVulnerabilityCategoryConditionType securityVulnerabilityCategoryConditionType)
   {
     this.firewallMetricsDAO = firewallMetricsDAO;
     this.productLicense = productLicense;
+    maliciousCodeSummarySuffix = securityVulnerabilityCategoryConditionType.getSupportedOperators().get(0) + " "
+        + SecurityVulnerabilityCategory.MALICIOUS_CODE.getName();
   }
 
   @Authorize(permission = Permission.READ)
@@ -130,7 +130,7 @@ public class ApiFirewallMetricsService
             hasProprietaryNameConflict = true;
           }
           else if (conditionFact.getConditionTypeId().equals(SecurityVulnerabilityCategoryConditionType.ID)
-              && conditionFact.getSummary().endsWith(MALICIOUS_CODE_SUMMARY_SUFFIX)) {
+              && conditionFact.getSummary().endsWith(maliciousCodeSummarySuffix)) {
             hasSecurityVulnerabilityCategoryMaliciousCode = true;
           }
 

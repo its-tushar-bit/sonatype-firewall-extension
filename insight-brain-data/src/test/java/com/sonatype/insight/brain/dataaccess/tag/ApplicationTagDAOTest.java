@@ -26,12 +26,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationTagDAOTest
     extends AbstractDbDAOTest
 {
-  private final ApplicationTagDAO dao = new ApplicationTagDAO();
+  private ApplicationTagDAO dao;
 
   private Tag tag;
 
   @Before
-  public void before() {
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createApplicationTagDAO();
     tag = tempEntity.newTag(organization.getId());
   }
 

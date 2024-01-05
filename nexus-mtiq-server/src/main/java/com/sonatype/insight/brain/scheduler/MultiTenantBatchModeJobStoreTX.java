@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -26,9 +27,10 @@ public class MultiTenantBatchModeJobStoreTX
       ProductLicense productLicense,
       InsightConfig insightConfig,
       OperationalDataStore operationalDataStore,
-      TenantUtil tenantUtil)
+      TenantUtil tenantUtil,
+      ClusterLockManager clusterLockManager)
       throws InvalidConfigurationException
   {
-    super(productLicense, insightConfig, operationalDataStore, tenantUtil);
+    super(productLicense, insightConfig, operationalDataStore, tenantUtil, clusterLockManager);
   }
 }

@@ -19,18 +19,11 @@ package com.sonatype.insight.brain.database;
 public class MtiqTempUtils
 {
   /**
-   * See {@link #logTodo(String)}
-   */
-  public static void logTodo() {
-    logTodo("");
-  }
-
-  /**
    * Log the provided message to the console with a prefix including the text 'MTIQ TODO', the class name, method, and
    * line number where the log entry occurred.
    */
   public static void logTodo(final String message) {
-    if (System.getProperty("mtiqTodo") != null) {
+    if (System.getProperty("mtiqTodo") != null || System.getenv("mtiqTodo") != null) {
       StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
       StackTraceElement ste = stackTraceElements[2];
       System.out.println(

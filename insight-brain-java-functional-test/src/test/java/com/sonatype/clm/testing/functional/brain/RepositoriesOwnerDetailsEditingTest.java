@@ -15,6 +15,7 @@ public class RepositoriesOwnerDetailsEditingTest
 {
   @Before
   public void init() {
-    super.init(new OwnerDAO().getById(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    OwnerDAO ownerDAO = lookup(OwnerDAO.class);
+    super.init(ownerDAO.getById(RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 }

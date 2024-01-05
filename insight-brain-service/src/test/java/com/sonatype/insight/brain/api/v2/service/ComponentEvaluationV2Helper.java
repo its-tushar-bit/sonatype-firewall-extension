@@ -52,7 +52,11 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class ComponentEvaluationV2Helper
 {
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
+
+  public ComponentEvaluationV2Helper(final PolicyDAO policyDAO) {
+    this.policyDAO = policyDAO;
+  }
 
   public ComponentEvaluationData createComponentEvaluationData(
       final ComponentIdentifier componentIdentifier,

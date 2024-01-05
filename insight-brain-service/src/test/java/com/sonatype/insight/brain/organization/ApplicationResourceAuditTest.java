@@ -20,6 +20,8 @@ import org.junit.Test;
 public class ApplicationResourceAuditTest
     extends AbstractAuditTest
 {
+  private ApplicationDAO applicationDAO;
+
   private Organization organization;
 
   private Application application;
@@ -30,6 +32,7 @@ public class ApplicationResourceAuditTest
 
   @Before
   public void before() {
+    applicationDAO = lookup(ApplicationDAO.class);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
   }
@@ -41,7 +44,7 @@ public class ApplicationResourceAuditTest
     application.setContactInternalName(contact.getUsername());
     applicationRequest().body(application).post();
 
-    Application persistedApp = new ApplicationDAO().getByName(application.getName());
+    Application persistedApp = applicationDAO.getByName(application.getName());
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(persistedApp, auditDTO, application.getContactInternalName());

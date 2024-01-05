@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
-
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -114,6 +113,10 @@ public class ComponentDetailsTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
+  private PolicyDAO policyDAO;
+
+  private ApplicationDAO applicationDAO;
+
   private Organization parentOrg;
 
   private Organization org;
@@ -130,9 +133,12 @@ public class ComponentDetailsTest
 
   @Before
   public void start() throws IOException {
+    policyDAO = lookup(PolicyDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
@@ -1152,12 +1158,12 @@ public class ComponentDetailsTest
   }
 
   private void activateLegacyViolation() {
-    Policy licenseBannedPolicy = new PolicyDAO().getByName("License-Banned").get(0);
+    Policy licenseBannedPolicy = policyDAO.getByName("License-Banned").get(0);
 
     app.setLegacyViolationEnabled(true);
     licenseBannedPolicy.setLegacyViolationAllowed(true);
-    new ApplicationDAO().update(app);
-    new PolicyDAO().update(licenseBannedPolicy);
+    applicationDAO.update(app);
+    policyDAO.update(licenseBannedPolicy);
     LegacyViolationService legacyViolationService =
         testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());

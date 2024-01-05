@@ -40,6 +40,9 @@ public class DbDataTest
     extends AbstractComponentTest
 {
   @Inject
+  private WebhookDAO webhookDAO;
+
+  @Inject
   private DbData dbData;
 
   @Inject
@@ -62,7 +65,7 @@ public class DbDataTest
   public void testGetWebhook_secretEmpty() {
     final Webhook tempWebhook = tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
     tempWebhook.setSecretKey("");
-    new WebhookDAO().update(tempWebhook);
+    webhookDAO.update(tempWebhook);
 
     assertThat(getWebhook().getSecretKey()).isEqualTo("");
   }

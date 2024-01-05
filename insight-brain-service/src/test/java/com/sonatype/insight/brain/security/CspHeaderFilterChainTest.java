@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CspHeaderFilterChainTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testHeaders() throws Exception {

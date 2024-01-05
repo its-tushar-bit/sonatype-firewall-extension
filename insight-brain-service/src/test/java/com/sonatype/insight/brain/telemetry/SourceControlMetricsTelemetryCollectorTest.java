@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -29,12 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.when;
 
-public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponentTest
+public class SourceControlMetricsTelemetryCollectorTest
+    extends AbstractComponentTest
 {
+  @Inject
+  private SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
   @Mock
   private SourceControlDAO sourceControlDAO;
-
-  private final SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
 
   @Mock
   private ApplicationDAO applicationDAO;

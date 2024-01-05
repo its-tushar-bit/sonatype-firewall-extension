@@ -19,6 +19,12 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -49,6 +55,19 @@ public class ContainerResultHandler
   private static final Logger log = LoggerFactory.getLogger(ContainerResultHandler.class);
 
   public static final String SONATYPE_CONTAINER = "Sonatype-Container";
+
+  public ContainerResultHandler(
+      final ThirdPartyFileDAO thirdPartyFileDAO,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO)
+  {
+    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO,
+        multiLicenseDAO, thirdPartyVexDAO);
+  }
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(

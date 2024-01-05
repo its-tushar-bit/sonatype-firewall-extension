@@ -15,6 +15,11 @@ import org.junit.rules.TestName;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 
+/**
+ * This class is to support multi-tenant tests OUTSIDE of the nexus-mtiq-server module. Specifically this calls
+ * {@link TenantTestHelper#resetAfterTest()} which puts it back into single-tenant mode which is not wanted in the full
+ * multi-tenant tests. Tests in the `nexus-mtiq-server` module should use `AbstractMultiTenantTest`
+ */
 public abstract class MultiTenantTestSupport
 {
   @Rule

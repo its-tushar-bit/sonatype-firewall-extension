@@ -10,9 +10,14 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
@@ -23,9 +28,27 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.9
  */
+@Named
+@Singleton
 public class PolicyInternalDAO
     extends AbstractOperationalSqlDAO<PolicyInternal>
 {
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PolicyTagDAO policyTagDAO;
+
+  @Inject
+  public PolicyInternalDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final PolicyTagDAO policyTagDAO)
+  {
+    super(operationalDataStore, searchIndexManager);
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.policyTagDAO = policyTagDAO;
+  }
+
   List<PolicyInternal> getByIds(Collection<String> ids) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.id IN (?1)";
@@ -82,14 +105,12 @@ public class PolicyInternalDAO
   @Override
   public void delete(TransactionContext tx, PolicyInternal policy) {
     // Cascade to policy waivers
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(tx, policy.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       policyWaiverDAO.delete(tx, policyWaiver);
     }
 
     // Cascade to policy tags
-    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(tx, policy.getId());
     for (PolicyTag policyTag : policyTags) {
       policyTagDAO.delete(tx, policyTag);

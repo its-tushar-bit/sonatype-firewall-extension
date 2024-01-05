@@ -5,16 +5,28 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class LdapConnectionDAO
     extends AbstractOperationalSqlDAO<LdapConnection>
 {
+  @Inject
+  public LdapConnectionDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public LdapConnection getByServerId(String serverId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByServerId(tx, serverId);

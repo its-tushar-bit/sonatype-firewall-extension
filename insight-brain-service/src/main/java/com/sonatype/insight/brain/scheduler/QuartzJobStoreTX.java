@@ -10,14 +10,12 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
@@ -77,13 +75,13 @@ public class QuartzJobStoreTX
   private static final String DATA_SOURCE_NAME = "ods";
 
   // Visible for testing
-  static final String TABLE_PREFIX = OperationalDataStoreProvider.getDatabaseSchema() + ".QRTZ_";
-
   private final ProductLicense productLicense;
 
   private final InsightConfig insightConfig;
 
   protected final OperationalDataStore operationalDataStore;
+
+  private final ClusterLockManager clusterLockManager;
 
   private volatile boolean productLicenseLoaded;
 
@@ -93,19 +91,21 @@ public class QuartzJobStoreTX
   public QuartzJobStoreTX(
       ProductLicense productLicense,
       InsightConfig insightConfig,
-      OperationalDataStore operationalDataStore)
+      OperationalDataStore operationalDataStore,
+      final ClusterLockManager clusterLockManager)
       throws InvalidConfigurationException
   {
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
     this.operationalDataStore = operationalDataStore;
+    this.clusterLockManager = clusterLockManager;
     initialize();
   }
 
   // Visible for testing
   void initialize() throws InvalidConfigurationException {
     setDataSource(DATA_SOURCE_NAME);
-    setTablePrefix(OperationalDataStoreProvider.getDatabaseSchema() + ".QRTZ_");
+    setTablePrefix(operationalDataStore.getDatabaseSchema() + ".QRTZ_");
     setUseProperties("true");
     setClusterCheckinInterval(CLUSTER_CHECKIN_INTERVAL_MILLIS);
     DatabaseEngine dbEngine = DatabaseUtil.getDatabaseEngine(operationalDataStore.getDataSource());
@@ -152,7 +152,8 @@ public class QuartzJobStoreTX
   }
 
   private boolean shouldExitDueToSchemaMigration() {
-    boolean schemaMigrationUnfinished = ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigrationInProgress());
+    boolean schemaMigrationUnfinished =
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForSchemaMigrationInProgress());
     if (schemaMigrationUnfinished) {
       log.error(SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
     }
@@ -298,6 +299,6 @@ public class QuartzJobStoreTX
   }
 
   protected ConnectionProvider buildQuartzConnectionProvider() {
-    return new QuartzConnectionProvider();
+    return new QuartzConnectionProvider(operationalDataStore);
   }
 }

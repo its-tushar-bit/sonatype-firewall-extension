@@ -31,24 +31,25 @@ public class ApplicationCleaner
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationCleaner.class);
 
-  private final ApplicationDAO applicationDAO;
-
   private final InsightWork work;
 
   private final FileCleaner fileCleaner;
 
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public ApplicationCleaner(
       final InsightWork work,
       final FileCleaner fileCleaner,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
+      final ApplicationDAO applicationDAO)
   {
     this.work = work;
     this.fileCleaner = fileCleaner;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
-    applicationDAO = new ApplicationDAO();
+    this.applicationDAO = applicationDAO;
   }
 
   public void delete(final TransactionContext tx, final Application application) throws IOException {

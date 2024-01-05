@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiDataRetentionPolicyResourceTest
     extends AbstractResourceTest
 {
+  private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  @Before
+  public void setUp() {
+    dataRetentionPolicyDAO = lookup(DataRetentionPolicyDAO.class);
+  }
+
   private HttpRequest restRequest(String organizationId) {
     return restRequest()
         .path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
@@ -102,7 +110,7 @@ public class ApiDataRetentionPolicyResourceTest
     HttpResponse response = restRequest(org.getId()).body(dto).put();
     assertResponseStatus(204, response);
 
-    Map<String, DataRetentionPolicy> policies = new DataRetentionPolicyDAO().getByOwnerId(org.getId());
+    Map<String, DataRetentionPolicy> policies = dataRetentionPolicyDAO.getByOwnerId(org.getId());
     assertThat(policies).containsOnlyKeys(Stage.ID_BUILD);
     DataRetentionPolicy policy = policies.get(Stage.ID_BUILD);
     assertThat(policy.isPurgingEnabled()).isTrue();

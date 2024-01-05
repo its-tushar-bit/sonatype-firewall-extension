@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
@@ -26,6 +28,8 @@ import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class ShiroSessionDAO
     extends AbstractSessionDAO
 {
@@ -43,13 +47,9 @@ public class ShiroSessionDAO
 
   private final PersistedUserSessionDAO persistedUserSessionDAO;
 
-  // Visible for testing
-  ShiroSessionDAO(PersistedUserSessionDAO persistedUserSessionDAO) {
+  @Inject
+  public ShiroSessionDAO(PersistedUserSessionDAO persistedUserSessionDAO) {
     this.persistedUserSessionDAO = persistedUserSessionDAO;
-  }
-
-  public ShiroSessionDAO() {
-    this(new PersistedUserSessionDAO());
   }
 
   @Override

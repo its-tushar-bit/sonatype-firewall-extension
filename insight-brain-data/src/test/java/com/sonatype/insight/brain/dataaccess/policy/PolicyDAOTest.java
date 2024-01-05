@@ -18,8 +18,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -39,7 +38,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,11 +48,34 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyDAOTest
     extends AbstractDbDAOTest
 {
+  private OwnerDAO ownerDAO;
+
+  private PolicyInternalDAO policyInternalDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private PolicyTagDAO policyTagDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
   private PolicyDAO policyDAO;
 
   @Before
-  public void setUp() {
-    policyDAO = new PolicyDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    ownerDAO = daoFactory.createOwnerDAO();
+    policyInternalDAO = daoFactory.createPolicyInternalDAO();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    policyTagDAO = daoFactory.createPolicyTagDAO();
+    policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    policyDAO = daoFactory.createPolicyDAO();
   }
 
   @Test
@@ -94,7 +115,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
 
-    Owner parentOwner = new OwnerDAO().getParentOwner(organization);
+    Owner parentOwner = ownerDAO.getParentOwner(organization);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
     assertInsertPolicyWithDuplicateName(parentOwner.getId(), policyName, application);
@@ -113,7 +134,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy";
     tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
 
-    Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
+    Owner expectedOwner = ownerDAO.getParentOwner(organization);
 
     // Add another policy with a case-/whitespace-equivalent name at app level
     assertInsertPolicyWithDuplicateName(application.getId(), policyName, expectedOwner);
@@ -128,7 +149,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy";
     tempEntity.newPolicy(repository.getRepositoryManagerId(), policyName);
 
-    Owner expectedOwner = new OwnerDAO().getParentOwner(repository);
+    Owner expectedOwner = ownerDAO.getParentOwner(repository);
 
     // Add another policy with a case-/whitespace-equivalent name at repository level
     assertInsertPolicyWithDuplicateName(repository.getId(), policyName, expectedOwner);
@@ -180,7 +201,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy";
     tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
 
-    Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
+    Owner expectedOwner = ownerDAO.getParentOwner(organization);
 
     // Update another policy with a case-/whitespace-equivalent name at app level
     assertUpdatePolicyWithDuplicateName(application, policyName, expectedOwner);
@@ -195,7 +216,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy";
     tempEntity.newPolicy(repository.getParentOwnerId(), policyName);
 
-    Owner expectedOwner = new OwnerDAO().getParentOwner(repository);
+    Owner expectedOwner = ownerDAO.getParentOwner(repository);
 
     // Update another policy with a case-/whitespace-equivalent name at repository level
     assertUpdatePolicyWithDuplicateName(repository, policyName, expectedOwner);
@@ -207,7 +228,7 @@ public class PolicyDAOTest
     String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
 
-    Owner parentOwner = new OwnerDAO().getParentOwner(organization);
+    Owner parentOwner = ownerDAO.getParentOwner(organization);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
     assertUpdatePolicyWithDuplicateName(parentOwner, policyName, application);
@@ -323,7 +344,7 @@ public class PolicyDAOTest
     tempEntity.newPolicy(application.getId());
     assertThat(policyDAO.getByOwnerId(application.getId())).hasSize(1);
 
-    try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
       tx.begin();
       policyDAO.deleteByOwnerId(tx, application.getId());
       tx.commit();
@@ -438,7 +459,6 @@ public class PolicyDAOTest
     Policy policy = tempEntity.newPolicy(application.getId());
 
     tempEntity.newWaiver(policy.getId(), "ownerId");
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(policy.getId());
     assertThat(policyWaivers).hasSize(1);
 
@@ -453,7 +473,6 @@ public class PolicyDAOTest
 
     Tag tag = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
-    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(policy.getId());
     assertThat(policyTags).hasSize(1);
 
@@ -468,7 +487,6 @@ public class PolicyDAOTest
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanid");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getByApplicationId(policyEvaluation.getApplicationId())).hasSize(1);
 
     policyDAO.delete(policy);
@@ -504,15 +522,9 @@ public class PolicyDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetByOwnerIds_PostgresLimit() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetByOwnerIds_internal();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetByOwnerIds_internal();
   }
 
   private void testGetByOwnerIds_internal() {
@@ -548,7 +560,7 @@ public class PolicyDAOTest
     Policy policy2 = tempEntity.newPolicy(organization.getId(), "Policy 2");
     tempEntity.newPolicy(organization.getId());
 
-    try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
       Policy policy = policyDAO.getByOwnerIdAndName(tx, application.getId(), "policy1");
       assertThat(policy).isNotNull();
       assertThat(policy.getId()).isEqualTo(policy1.getId());
@@ -561,25 +573,25 @@ public class PolicyDAOTest
 
   @Test
   public void testCRUD_RecordSearchIndexChange() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     Policy policy = tempEntity.newPolicy(application);
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     policyDAO.update(policy);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     policyDAO.delete(policy);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());

@@ -23,8 +23,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -34,9 +33,9 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,10 +46,26 @@ public class PolicyEvaluationDAOTest
 {
   private static final String COMMIT_HASH = "abcdef1234abcdef1234abcdef1234abcdef1234";
 
+  private SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO;
+
+  private PolicyEvaluationDAO dao;
+
+  private SourceControlPullRequestCommentDAO pullRequestCommentDAO;
+
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    defaultBranchCommitHistoryDAO = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
+    dao = daoFactory.createPolicyEvaluationDAO();
+    pullRequestCommentDAO = daoFactory.createSourceControlPullRequestCommentDAO();
+    sourceControlEventDAO = daoFactory.createSourceControlEventDAO();
+  }
+
   @Test
   public void testCRUD() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -82,8 +97,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdAndScanId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -100,8 +113,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdAndStageId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -118,8 +129,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdAndStageId_Reevaluation() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -138,8 +147,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdAndStageId_ReevaluationOfOldScan() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -160,8 +167,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastPrimaryByApplicationIdAndStageId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -197,8 +202,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIdsGetsNewest() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -219,8 +222,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIdsFiltersInvalidAppIdsAndStages() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2",
         "AbstractDbDAOTest_AppPublicId2", organization.getId());
 
@@ -250,8 +251,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIdsDealsWithDuplicateTimes() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Date time1 = new Date();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan1", time1);
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan2", time1);
@@ -268,8 +267,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIdsDealsWithTwoApps() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
@@ -289,8 +286,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIds_ReevaluationOfOldScan() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -313,8 +308,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIds_ReevaluationOfMultipleOldScan() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -359,21 +352,14 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForPostgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(false);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(false);
   }
 
   private void testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(boolean isEmbeddedDb) {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     Date time1 = new Date();
     Application application2 = tempEntity.newApplication(organization.getId());
@@ -401,8 +387,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testValidateForObsoleteScan_Insert() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     PolicyEvaluation policyEvaluation =
         new PolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", "system",
             ScanTriggerType.CLI);
@@ -413,8 +397,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIds() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     Date time1 = new Date();
     Application application2 = tempEntity.newApplication(organization.getId());
@@ -432,15 +414,9 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetLastByApplicationIds_InOperatorOptimizationForPostgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetLastByApplicationIds_InOperatorOptimization(false);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetLastByApplicationIds_InOperatorOptimization(false);
   }
 
   @Test
@@ -451,7 +427,6 @@ public class PolicyEvaluationDAOTest
   private void testGetLastByApplicationIds_InOperatorOptimization(boolean isDatabaseEmbedded) {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     String stageTypeId = ReleaseStageType.ID;
     Date time1 = new Date();
@@ -479,8 +454,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testDelete_UpdateLastPolicyEvaluation() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -502,8 +475,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testDelete_DoNotUpdateLastPolicyEvaluation() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
     String scanId = "PolicyEvaluationDAOTest";
 
@@ -533,8 +504,6 @@ public class PolicyEvaluationDAOTest
         tempEntity.newSourceControlDefaultBranchCommitHistory(
             application.getId(), policyEvaluation.getCommitHash(), new Date(), policyEvaluation.getId()
         );
-    SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
-        new SourceControlDefaultBranchCommitHistoryDAO();
 
     // when : fetch the history
     SourceControlDefaultBranchCommitHistory fetchedDefaultBranchCommitHistory =
@@ -546,8 +515,7 @@ public class PolicyEvaluationDAOTest
     assertThat(fetchedDefaultBranchCommitHistory).isNotNull();
 
     // when : deleting the policy evaluation
-    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
-    policyEvaluationDao.delete(policyEvaluation);
+    dao.delete(policyEvaluation);
 
     // then : the history no longer exists
     fetchedDefaultBranchCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdAndPolicyEvaluationId(
@@ -586,7 +554,6 @@ public class PolicyEvaluationDAOTest
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
     );
-    SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
     pullRequestCommentDAO.insert(pullRequestComment);
 
     final String componentHash = "componentHash1";
@@ -616,8 +583,7 @@ public class PolicyEvaluationDAOTest
     assertThat(fetchedLineComment).isNotNull();
 
     // when : deleting one of the policy evaluations
-    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
-    policyEvaluationDao.delete(policyEvaluationChooser.choose(sourcePolicyEvaluation, targetPolicyEvaluation));
+    dao.delete(policyEvaluationChooser.choose(sourcePolicyEvaluation, targetPolicyEvaluation));
 
     // then : the comment no longer exists
     fetchedPullRequestComment = pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(
@@ -640,13 +606,11 @@ public class PolicyEvaluationDAOTest
     SourceControlEvent sourceControlEvent =
         tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation);
 
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
     assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
 
     // when the policy evaluation is deleted
-    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
-    policyEvaluationDao.delete(sourcePolicyEvaluation);
+    dao.delete(sourcePolicyEvaluation);
 
     // then the source control event is deleted
     SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
@@ -655,8 +619,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetBetweenDatesByApplicationIdAndStageIds() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Date now = new Date();
     Date earlier = new Date(now.getTime() - 1000);
     Date later = new Date(now.getTime() + 1000);
@@ -683,8 +645,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetOldestByApplicationId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Date date2 = new Date();
     Date date1 = new Date(date2.getTime() - 1000);
     Date date3 = new Date(date2.getTime() + 1000);
@@ -703,8 +663,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetPrimaryNonMonitoringByApplicationIdAndStageId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
 
@@ -724,8 +682,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetPrimaryForMonitoringByApplicationId() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
 
@@ -744,8 +700,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByCommitHash() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date date = new Date();
     final Application app1 = tempEntity.newApplicationWithParent();
     final Application app2 = tempEntity.newApplicationWithParent();
@@ -764,7 +718,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLastByCommitHashPerApplication() {
     // given: two applications with multiple policy evaluations each
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     final Application app1 = tempEntity.newApplication("app1", organization.getId());
     final Application app2 = tempEntity.newApplication("app2", organization.getId());
     Date now = new Date();
@@ -786,16 +739,12 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByCommitHash_NotFound() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     assertThat(dao.getLastByCommitHash(COMMIT_HASH))
         .isNull();
   }
 
   @Test
   public void testGetLastByApplicationAndCommitHash() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date date = new Date();
     final Application app1 = tempEntity.newApplicationWithParent();
 
@@ -812,8 +761,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationAndCommitHash_NotFound() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date date = new Date();
     final Application app1 = tempEntity.newApplicationWithParent();
     final Application app2 = tempEntity.newApplicationWithParent();
@@ -832,8 +779,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationAndAbbreviatedCommitHash() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date date = new Date();
     final Application app1 = tempEntity.newApplicationWithParent();
 
@@ -850,8 +795,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationAndAbbreviatedCommitHash_NotFound() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date date = new Date();
     final Application app1 = tempEntity.newApplicationWithParent();
     final Application app2 = tempEntity.newApplicationWithParent();
@@ -869,8 +812,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testHasExternalPolicyEvaluations() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Application app1 = tempEntity.newApplicationWithParent();
     OffsetDateTime now = OffsetDateTime.now();
     final Date cutoffDate = Date.from(now.minusDays(7).toInstant());
@@ -892,8 +833,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetCount() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
@@ -906,8 +845,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastInTimeRangeByApplicationAndStage() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date baselineDate = new Date();
     final Date minDate = new Date(baselineDate.getTime() - 2500);
     final Date maxDate = new Date(baselineDate.getTime() - 50);
@@ -940,8 +877,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastInTimeRangeByApplicationAndStage_MinDate() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date baselineDate = new Date();
     final Date minDate = new Date(baselineDate.getTime() - 2500);
     final Date maxDate = new Date(baselineDate.getTime() - 50);
@@ -958,8 +893,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastInTimeRangeByApplicationAndStage_NoneMatch() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date baselineDate = new Date();
     final Date minDate = new Date(baselineDate.getTime() - 2500);
     final Date maxDate = new Date(baselineDate.getTime() - 50);
@@ -986,8 +919,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastInTimeRangeByApplicationAndStage_NullMaxDate() {
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     final Date baselineDate = new Date();
     final Date minDate = new Date(baselineDate.getTime() - 2500);
     final Application app1 = tempEntity.newApplicationWithParent();
@@ -1016,9 +947,6 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLimitedAmountByApplicationId_none() {
-    //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
     //when fetching evaluations
     List<PolicyEvaluation> policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), 100, null);
 
@@ -1030,7 +958,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLimitedAmountByApplicationId_single() {
     //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date());
 
     //when fetching evaluations
@@ -1044,7 +971,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLimitedAmountByApplicationId_multiple() {
     //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date());
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan2", false, false, new Date());
 
@@ -1059,7 +985,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLimitedAmountByApplicationId_byStage() {
     //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan0", false, false, new Date());
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date());
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan2", false, false, new Date());
@@ -1081,7 +1006,6 @@ public class PolicyEvaluationDAOTest
     Date today = Date.from(Instant.now());
 
     //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan0", false, false, yesterday);
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, today);
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan2", false, false, today);
@@ -1100,7 +1024,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLimitedAmountByApplicationId_limited() {
     //setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     final int policyEvalCount = 5;
     for (int i = 0; i < policyEvalCount; i++) {
       tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan" + i, false, false, new Date());
@@ -1124,7 +1047,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLastByApplicationIdCommitHashAndStageId() {
     // setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     String commitHash = "hash";
 
     // add a couple BUILD stage policy evaluations for the same commit hash
@@ -1184,7 +1106,6 @@ public class PolicyEvaluationDAOTest
   @Test
   public void testGetLastByApplicationAndCommitHashAndTriggerType() {
     // setup
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     String commitHash = "hash";
 
     // add a couple BUILD stage policy evaluations for the same commit hash
@@ -1243,7 +1164,6 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
         false, false, false, preCutOffDate, "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     // 05/17/2021
     Date cutOffDate = new Date(1621220400000L);
 
@@ -1274,7 +1194,6 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
         true, false, true, now.getTime(), "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
     // 05/17/2021
     Date sinceUtcDate = new Date(1621220400000L);
 
@@ -1298,8 +1217,6 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
         false, false, false, new Date(), "hash-3", ScanTriggerType.CLI);
     // App 4 has no evals
-
-    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     boolean hasCIIntegrationEvaluationApp1 = dao.hasCIIntegrationEvaluation(application.getId());
     assertThat(hasCIIntegrationEvaluationApp1).isTrue();

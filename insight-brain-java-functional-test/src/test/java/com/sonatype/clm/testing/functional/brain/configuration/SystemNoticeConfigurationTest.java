@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,7 +41,7 @@ public class SystemNoticeConfigurationTest
 
   private final SystemNotice systemNotice = new SystemNotice();
 
-  private final SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+  private SystemNoticeDAO systemNoticeDAO;
 
   private String text;
 
@@ -50,6 +51,11 @@ public class SystemNoticeConfigurationTest
   public static void beforeClass() {
     refreshOrOpen(SystemNoticeConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    systemNoticeDAO = lookup(SystemNoticeDAO.class);
   }
 
   @Test

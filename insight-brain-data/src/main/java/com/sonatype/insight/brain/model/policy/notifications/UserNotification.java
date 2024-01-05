@@ -7,12 +7,7 @@ package com.sonatype.insight.brain.model.policy.notifications;
 
 import java.util.Objects;
 
-import javax.mail.internet.InternetAddress;
-
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.21
@@ -37,22 +32,6 @@ public class UserNotification
 
   public void setEmailAddress(String emailAddress) {
     this.emailAddress = emailAddress;
-  }
-
-  @Override
-  protected void validate(ValidationResult validationResult) {
-    if (StringUtils.isBlank(emailAddress)) {
-      validationResult.addError("Invalid notification: A valid e-mail address is required");
-    }
-    else {
-      try {
-        new InternetAddress(emailAddress);
-      }
-      catch (Exception e) {
-        validationResult
-            .addError("Invalid notification: A valid e-mail address is required instead of: " + emailAddress);
-      }
-    }
   }
 
   @Override

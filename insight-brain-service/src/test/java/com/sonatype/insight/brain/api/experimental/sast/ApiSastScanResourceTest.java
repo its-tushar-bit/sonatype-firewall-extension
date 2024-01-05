@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.api.experimental.sast;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.assertSastScan;
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTOWith2Findings;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +23,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSastScanResourceTest
     extends AbstractResourceTest
 {
+  private SastTestUtil sastTestUtil;
+
+  @Before
+  public void setUp() {
+    SastScanDAO sastScanDAO = lookup(SastScanDAO.class);
+    SastFindingDAO sastFindingDAO = lookup(SastFindingDAO.class);
+    SastRemediationDAO sastRemediationDAO = lookup(SastRemediationDAO.class);
+    sastTestUtil = new SastTestUtil(sastScanDAO, sastFindingDAO, sastRemediationDAO);
+  }
+
   @Test
   public void testCreateSastScan_Success() throws Exception {
     // Given an existing application
@@ -37,7 +50,7 @@ public class ApiSastScanResourceTest
     final SastScanResponseDTO sastScanResponseDTO = response.getBody(SastScanResponseDTO.class);
 
     // Then assert the proper SastScan fields are populated
-    assertSastScan(application.getId(), sastScanResponseDTO);
+    sastTestUtil.assertSastScan(application.getId(), sastScanResponseDTO);
   }
 
   @Test
@@ -65,7 +78,7 @@ public class ApiSastScanResourceTest
     final SastScanResponseDTO sastScanResponseDTO = getResponse.getBody(SastScanResponseDTO.class);
 
     // Then assert the proper SastScan fields are populated
-    assertSastScan(application.getId(), sastScanResponseDTO);
+    sastTestUtil.assertSastScan(application.getId(), sastScanResponseDTO);
   }
 
   @Test

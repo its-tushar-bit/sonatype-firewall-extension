@@ -29,6 +29,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,9 +37,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGroup>
 {
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
+
+  private LicenseDAO licenseDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    licenseDAO = daoFactory.createLicenseDAO();
+  }
 
   @Override
   protected LicenseThreatGroup createNameable(String a) {
@@ -100,8 +115,6 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
 
   @Test
   public void testCascadeDelete() {
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-
     // Create
     LicenseThreatGroup group = new LicenseThreatGroup();
     group.setOwnerId(application.getId());
@@ -345,7 +358,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
 
-    Collection<License> licenses = new LicenseDAO().getAll();
+    Collection<License> licenses = licenseDAO.getAll();
     for (License license : licenses) {
       Integer threat =
           licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, license.getId());
@@ -437,7 +450,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
 
   @Test
   public void testGetHighestLicenseTheatGroupWithHierarchy() {
-    Organization root = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization root = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 

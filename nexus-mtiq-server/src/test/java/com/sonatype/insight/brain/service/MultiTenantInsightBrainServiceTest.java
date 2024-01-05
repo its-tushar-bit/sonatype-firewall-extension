@@ -5,19 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
+
+import com.google.inject.ConfigurationException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@RunWith(MockitoJUnitRunner.class)
 public class MultiTenantInsightBrainServiceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   @Test
   public void shouldExcludeDefaultTenantManagedInitializer() {
-    boolean accepted = new MultiTenantInsightBrainService().acceptComponent(DefaultTenantManagedInitializer.class);
+    assertThat(getCLMServer().getInstance(TenantManagedInitializer.class))
+        .isInstanceOf(MultiTenantTenantManagedInitializer.class);
 
-    assertThat(accepted).isFalse();
+    assertThatExceptionOfType(ConfigurationException.class).isThrownBy(
+        () -> getCLMServer().getInstance(DefaultTenantManagedInitializer.class)
+    ).withMessageContaining("DefaultTenantManagedInitializer is not explicitly bound");
   }
 }

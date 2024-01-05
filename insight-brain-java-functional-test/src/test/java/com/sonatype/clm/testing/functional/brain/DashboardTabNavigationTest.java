@@ -41,6 +41,8 @@ public class DashboardTabNavigationTest
 
   private Policy policy;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   private static final List<ComponentData> COMPONENTS = new ArrayList<>();
 
   private final List<PolicyWaiver> existingWaivers = new ArrayList<>();
@@ -67,6 +69,8 @@ public class DashboardTabNavigationTest
   }
 
   public void setupData() {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+
     org = tempEntity.newOrganization("DashboardPolicySummarySpec");
     app = tempEntity
         .newApplication("DashboardPolicySummarySpecApp", "DashboardPolicySummarySpecApp", org.getPublicId());
@@ -223,7 +227,7 @@ public class DashboardTabNavigationTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+    dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   private static class ComponentData

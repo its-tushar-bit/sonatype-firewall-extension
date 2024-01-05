@@ -11,11 +11,24 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.InheritedCategoriesList;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.InheritedCategory;
+import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
+import com.sonatype.clm.testing.functional.elements.NxList;
+import com.sonatype.clm.testing.functional.elements.NxToast;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -65,12 +78,21 @@ public class OrganizationSummaryViewTest
 
   private Organization rootOrganization;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private SourceControlDAO sourceControlDAO;
+
+  private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  private OwnerDAO ownerDAO;
 
   @Before
   public void init() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    sourceControlDAO = lookup(SourceControlDAO.class);
+    dataRetentionPolicyDAO = lookup(DataRetentionPolicyDAO.class);
+    ownerDAO = lookup(OwnerDAO.class);
+
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
     super.init(organization);
@@ -283,7 +305,7 @@ public class OrganizationSummaryViewTest
     List<List<Tag>> ownerTags = new ArrayList<>();
     List<Owner> owners = new ArrayList<>();
 
-    for (Owner owner : new OwnerDAO().walkHierarchy(organization)) {
+    for (Owner owner : ownerDAO.walkHierarchy(organization)) {
       List<Tag> tags = new ArrayList<>();
       owners.add(owner);
 
@@ -398,20 +420,19 @@ public class OrganizationSummaryViewTest
 
     tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Max Age: 1 year"));
 
-    DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
     DataRetentionPolicy customMaxCount = new DataRetentionPolicy();
     customMaxCount.setOwnerId(organization.getId());
     customMaxCount.setContextId(Stage.ID_DEVELOP);
     customMaxCount.setPurgingEnabled(true);
     customMaxCount.setMaxCount(6);
-    dao.insert(customMaxCount);
+    dataRetentionPolicyDAO.insert(customMaxCount);
 
     DataRetentionPolicy sourceMaxAgeWeeks = new DataRetentionPolicy();
     sourceMaxAgeWeeks.setOwnerId(organization.getId());
     sourceMaxAgeWeeks.setContextId(Stage.ID_SOURCE);
     sourceMaxAgeWeeks.setPurgingEnabled(true);
     sourceMaxAgeWeeks.setMaxAgeInDays(21);
-    dao.insert(sourceMaxAgeWeeks);
+    dataRetentionPolicyDAO.insert(sourceMaxAgeWeeks);
 
     DataRetentionPolicy customMaxAgeAndMaxCount = new DataRetentionPolicy();
     customMaxAgeAndMaxCount.setOwnerId(organization.getId());
@@ -419,26 +440,26 @@ public class OrganizationSummaryViewTest
     customMaxAgeAndMaxCount.setPurgingEnabled(true);
     customMaxAgeAndMaxCount.setMaxAgeInDays(14);
     customMaxAgeAndMaxCount.setMaxCount(8);
-    dao.insert(customMaxAgeAndMaxCount);
+    dataRetentionPolicyDAO.insert(customMaxAgeAndMaxCount);
 
     DataRetentionPolicy disabled = new DataRetentionPolicy();
     disabled.setOwnerId(organization.getId());
     disabled.setContextId(Stage.ID_RELEASE);
     disabled.setPurgingEnabled(false);
-    dao.insert(disabled);
+    dataRetentionPolicyDAO.insert(disabled);
 
     DataRetentionPolicy customMaxAge = new DataRetentionPolicy();
     customMaxAge.setOwnerId(organization.getId());
     customMaxAge.setContextId(Stage.ID_OPERATE);
     customMaxAge.setPurgingEnabled(true);
     customMaxAge.setMaxAgeInDays(7);
-    dao.insert(customMaxAge);
+    dataRetentionPolicyDAO.insert(customMaxAge);
 
     DataRetentionPolicy dontPurgeSuccessMetrics = new DataRetentionPolicy();
     dontPurgeSuccessMetrics.setOwnerId(organization.getId());
     dontPurgeSuccessMetrics.setContextId(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     dontPurgeSuccessMetrics.setPurgingEnabled(false);
-    dao.insert(dontPurgeSuccessMetrics);
+    dataRetentionPolicyDAO.insert(dontPurgeSuccessMetrics);
 
     refresh();
     SidebarNavigation.closeNavigationSidebar();

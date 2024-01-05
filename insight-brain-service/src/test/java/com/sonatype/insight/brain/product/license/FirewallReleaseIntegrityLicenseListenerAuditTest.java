@@ -24,9 +24,11 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
   @Inject
   private FirewallReleaseIntegrityLicenseListener firewallReleaseIntegrityLicenseListener;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  @Inject
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
   @After
   public void cleanup() {

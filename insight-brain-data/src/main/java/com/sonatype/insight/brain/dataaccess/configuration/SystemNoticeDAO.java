@@ -5,17 +5,29 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.29.0
  */
+@Named
+@Singleton
 public class SystemNoticeDAO
     extends AbstractOperationalSqlDAO<SystemNotice>
 {
   private static final String SYSTEM_NOTICE_ID = "system-notice";
+
+  @Inject
+  public SystemNoticeDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public SystemNotice get() {
     String sQuery = "SELECT entity FROM SystemNotice entity WHERE entity.id=?1";

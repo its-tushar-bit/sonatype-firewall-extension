@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.LogOutput;
 
@@ -42,7 +42,7 @@ import org.junit.Rule;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyEvaluatorTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class);

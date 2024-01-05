@@ -9,10 +9,15 @@ import java.net.URL;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
@@ -30,6 +35,8 @@ public class TestInsightBrainServiceRule
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  private final InsightBrainServiceFactory insightBrainServiceFactory;
+
   protected final int port;
 
   protected final int adminPort;
@@ -46,7 +53,10 @@ public class TestInsightBrainServiceRule
 
   protected TestInsightBrainService brain;
 
+  private DAOFactory daoFactory;
+
   public TestInsightBrainServiceRule(
+      InsightBrainServiceFactory insightBrainServiceFactory,
       int port,
       int adminPort,
       String hdsUrl,
@@ -54,12 +64,14 @@ public class TestInsightBrainServiceRule
       boolean isHdsProxyRequired,
       List<Module> modules)
   {
+    this.insightBrainServiceFactory = insightBrainServiceFactory;
     this.port = port;
     this.adminPort = adminPort;
     this.hdsUrl = hdsUrl;
     this.databaseContainer = databaseContainer;
     this.isHdsProxyRequired = isHdsProxyRequired;
     this.modules = modules;
+    daoFactory = new TestDAOFactory(databaseContainer);
   }
 
   @Override
@@ -75,14 +87,8 @@ public class TestInsightBrainServiceRule
   public void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
-      log.info("Starting MultiTenantTestInsightBrainService on port {}, admin port {}", port, adminPort);
-      brain = MultiTenantBrainServiceTestService.createNewTestInsightBrainService();
-    }
-    else {
-      log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
-      brain = new DefaultTestInsightBrainService();
-    }
+    brain = insightBrainServiceFactory.createTestInsightBrainService();
+    log.info("Starting {} on port {}, admin port {}", brain.getClass().getSimpleName(), port, adminPort);
 
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
@@ -101,15 +107,38 @@ public class TestInsightBrainServiceRule
       brain.addModules(modules);
     }
     brain.setConfigurator(configurator);
+
+    // Need to set this configuration on DB before server start
+    setProxyConfigurationOnDB();
+
     brain.start();
 
     log.info("Started TestInsightBrainService in {} ms.", System.currentTimeMillis() - start);
+  }
+
+  private void setProxyConfigurationOnDB() {
+    ProxyServerConfiguration proxyServerConfiguration = getProxyServerConfiguration();
+    ProxyServerConfigurationDAO proxyServerConfigurationDAO = daoFactory.createProxyServerConfigurationDAO();
+    if (proxyServerConfiguration != null) {
+      proxyServerConfigurationDAO.set(proxyServerConfiguration);
+    }
+    else {
+      proxyServerConfigurationDAO.delete();
+    }
   }
 
   public void setHdsUrl() {
     ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
+  }
+
+  public void setProxyConfiguration() {
+    setProxyConfigurationOnDB();
+
+    if (isHdsProxyRequired) {
+      getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
+    }
   }
 
   public void setCspEnabled(boolean cspEnabled) {
@@ -178,5 +207,9 @@ public class TestInsightBrainServiceRule
 
   public boolean isRunning() {
     return brain != null;
+  }
+
+  public boolean getIsHdsProxyRequired() {
+    return isHdsProxyRequired;
   }
 }

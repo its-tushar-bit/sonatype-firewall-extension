@@ -56,17 +56,25 @@ public class ScanFileCleaner
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final ApplicationDAO applicationDAO;
+
   public boolean disableForTesting;
 
   @Inject
   public ScanFileCleaner(
       InsightWork insightWork,
       TaskScheduler taskScheduler,
-      MigrationTrackerDAO migrationTrackerDAO)
+      MigrationTrackerDAO migrationTrackerDAO,
+      PolicyEvaluationDAO policyEvaluationDAO,
+      ApplicationDAO applicationDAO)
   {
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.applicationDAO = applicationDAO;
   }
 
   @Override
@@ -107,8 +115,7 @@ public class ScanFileCleaner
     log.debug("Deleting obsolete scan files...");
 
     int deletedFilesCount = 0;
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    List<Application> apps = new ApplicationDAO().getAll();
+    List<Application> apps = applicationDAO.getAll();
     for (Application app : apps) {
       String appId = app.getId();
 

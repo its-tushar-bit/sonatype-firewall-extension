@@ -14,7 +14,7 @@ import java.util.Base64;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.client.utils.Authentication;
 
 import com.google.common.net.HttpHeaders;
@@ -23,7 +23,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InvalidRequestFilterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testBackslashSemicolonBlockedByDefault() throws Exception {

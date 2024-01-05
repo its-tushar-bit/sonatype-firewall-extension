@@ -34,6 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiApplicationResourceV2AuditTest
     extends AbstractMembershipMappingAuditTest
 {
+  private ApplicationDAO applicationDAO;
+
   private Organization organization;
 
   private Organization targetOrganization;
@@ -42,6 +44,8 @@ public class ApiApplicationResourceV2AuditTest
 
   @Before
   public void before() {
+    applicationDAO = lookup(ApplicationDAO.class);
+
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication("appName", "appPubId", organization.getId(), "appContactName");
     targetOrganization = tempEntity.newOrganization();
@@ -54,7 +58,7 @@ public class ApiApplicationResourceV2AuditTest
 
     ApiApplicationDTO applicationDTO = applicationDTO(tag1, tag2);
     applicationRequest().body(applicationDTO).post();
-    Application application = new ApplicationDAO().getByName(applicationDTO.name);
+    Application application = applicationDAO.getByName(applicationDTO.name);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, applicationDTO.contactUserName);
@@ -69,7 +73,7 @@ public class ApiApplicationResourceV2AuditTest
   public void testAddApplication_EmptyCategories() throws Exception {
     ApiApplicationDTO applicationDTO = applicationDTO();
     applicationRequest().body(applicationDTO).post();
-    Application application = new ApplicationDAO().getByName(applicationDTO.name);
+    Application application = applicationDAO.getByName(applicationDTO.name);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, application, application.getContactInternalName());

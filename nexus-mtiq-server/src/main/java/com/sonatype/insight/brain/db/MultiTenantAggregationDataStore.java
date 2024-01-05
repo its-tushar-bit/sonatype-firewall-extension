@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.db;
 
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.db.DatabaseConfig;
 
 public class MultiTenantAggregationDataStore
     extends AbstractMultiTenantDataStore
     implements AggregationDataStore
 {
   public MultiTenantAggregationDataStore(
-      final DataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
+      final MultiTenantPostgresDataSourceProvider dataSourceProvider,
+      final DatabaseConfig databaseConfig)
   {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    AggregationDataStoreProvider.setInstance(this);
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override

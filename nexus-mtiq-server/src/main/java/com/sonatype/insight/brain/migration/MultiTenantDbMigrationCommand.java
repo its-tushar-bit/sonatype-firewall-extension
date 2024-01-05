@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 public class MultiTenantDbMigrationCommand
     extends DbMigrationCommand
@@ -16,8 +16,8 @@ public class MultiTenantDbMigrationCommand
   }
 
   @Override
-  protected boolean quartzSchedulerStateTableExists() {
+  protected boolean quartzSchedulerStateTableExists(final OperationalDataStore operationalDataStore) {
     // Multi-tenant quartz is in the global table
-    return DatabaseUtil.tableExists(OperationalDataStoreProvider.getDataSource(), "global", "qrtz_scheduler_state");
+    return DatabaseUtil.tableExists(operationalDataStore.getDataSource(), "global", "qrtz_scheduler_state");
   }
 }

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -460,7 +459,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1242,7 +1241,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1254,7 +1253,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
+          new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
 
     String absolutePath = tempDir.newFolder().getAbsolutePath();
     service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath));

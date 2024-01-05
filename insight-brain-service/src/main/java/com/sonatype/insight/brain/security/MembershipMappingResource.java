@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -49,9 +48,12 @@ public class MembershipMappingResource
 
   private final MembershipMappingService membershipMappingService;
 
+  private final IdUtils idUtils;
+
   @Inject
-  public MembershipMappingResource(final MembershipMappingService membershipMappingService) {
+  public MembershipMappingResource(final MembershipMappingService membershipMappingService, final IdUtils idUtils) {
     this.membershipMappingService = membershipMappingService;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -64,7 +66,7 @@ public class MembershipMappingResource
   public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final OwnerType ownerType,
                                                                       @PathParam("ownerId") final String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return membershipMappingService.getApplicableMembershipMappings(ownerType, internalOwnerId);
   }
 
@@ -80,7 +82,7 @@ public class MembershipMappingResource
                                           @PathParam("roleId") final String roleId,
                                           final List<Member> members)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Map<String, List<Member>> membersByRoleId = new HashMap<>();
     membersByRoleId.put(roleId, members);
     membershipMappingService.setMembershipMappings(ownerType, internalOwnerId, membersByRoleId);

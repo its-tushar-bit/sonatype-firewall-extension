@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class QuarantinedComponentAccessDAOTest
     extends AbstractDbDAOTest
 {
-  private final QuarantinedComponentAccessDAO dao = new QuarantinedComponentAccessDAO();
+  private QuarantinedComponentAccessDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createQuarantinedComponentAccessDAO();
+  }
 
   @Test
   public void testCRUD() {

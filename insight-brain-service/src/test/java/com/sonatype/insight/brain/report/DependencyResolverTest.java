@@ -17,15 +17,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
@@ -33,7 +34,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -46,9 +49,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -61,16 +62,20 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class DependencyResolverTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private TelemetrySender telemetrySender;
 
   private InnerSourceComponentDAO innerSourceComponentDAOSpy;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+  @Inject
+  private InnerSourceComponentDAO innerSourceComponentDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private ProprietaryConfigService proprietaryConfigService;
 
   private Application app;
 
@@ -212,7 +217,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
     assertThat(innerSourceComponents).hasSize(9);
@@ -255,7 +261,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
     assertThat(innerSourceComponents).hasSize(9);
@@ -299,7 +306,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertDependencyInfo(bomJson, 4, 6, 3, 5, 4, 14, 0, summaryJson, dataJson, appInnerSource, knownComponents);
@@ -348,7 +356,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-known/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-known/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 4, 7, 3, 5, 6, 17, 0, summaryJson, dataJson, appInnerSource);
 
@@ -378,7 +387,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-nested-transitive/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-nested-transitive/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
     assertDependencyInfo(bomJson, 4, 17, 3, 15, 5, 25, 1, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -410,7 +420,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-unknown-components/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-unknown-components/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 1, 2, 1, 2, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
@@ -441,7 +452,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-root/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-root/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, app);
 
@@ -462,7 +474,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
@@ -483,7 +496,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
     assertThat(innerSourceComponents).hasSize(2);
@@ -510,7 +524,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
 
@@ -525,7 +540,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier knownDirect =
         ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -561,7 +577,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier knownDirect =
         ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -605,7 +622,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-transitive-and-direct/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-transitive-and-direct/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier knownDirect = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -626,7 +644,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multiple-parents/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multiple-parents/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier knownDirect1 = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-direct-1", "2.8.1", "", "jar");
@@ -668,7 +687,8 @@ public class DependencyResolverTest
     Set<InnerSourceData> expectedInnerSourceData = Sets
         .newHashSet(new InnerSourceData(appInnerSource1.getName(), appInnerSource1.getId(), null));
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertBomNodeDependencyInfo(bomJson, innerSourceId, true, true, null, expectedInnerSourceData);
     assertSummaryCounters(summaryJson, dataJson, 3, 4);
@@ -706,7 +726,8 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
@@ -725,7 +746,8 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
@@ -747,7 +769,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
     assertDependencyInfo(bomJson, 3, 7, 2, 6, 0, 10, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -770,7 +793,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-otherformat/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-otherformat/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 2, 1, 1, 1, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
@@ -795,7 +819,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-sbom/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
     assertDependencyInfo(bomJson, 1, 1, 1, 1, 0, 2, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -819,7 +844,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-sbom-third-party/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom-third-party/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 3, 3, 0, 0, 0, 6, 0, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -837,7 +863,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
     JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 1, 0, 0, 0, 0, 0, 1, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -855,7 +882,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
     JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 2, 4, 0, 0, 0, 5, 1, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -872,7 +900,8 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertDependencyInfo(bomJson, 3, 2, 1, 2, 1, 6, 0, summaryJson, dataJson, appInnerSource);
 
@@ -913,7 +942,8 @@ public class DependencyResolverTest
     assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
     assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
 
     assertThat(bomNode.get("directDependency")).isNotNull();
     assertThat(bomNode.get("innerSource")).isNotNull();
@@ -932,7 +962,8 @@ public class DependencyResolverTest
     Application other = tempEntity.newApplicationWithParent();
     tempEntity.newProprietaryConfig(application.getId(), null, Collections.singletonList("p1"));
     tempEntity.newProprietaryConfig(other.getId(), null, Collections.singletonList("p2"));
-    DependencyResolver dependencyResolver = DependencyResolver.getInstance(null, null, null, null, application, null);
+    DependencyResolver dependencyResolver =
+        DependencyResolver.getInstance(null, null, null, null, application, null, null, null, proprietaryConfigService);
     assertThat(dependencyResolver.isProprietary).isNull();
 
     assertThat(dependencyResolver.isProprietaryComponent(new PackageUrlIdentifier("pkg:npm/p1@v"))).isTrue();
@@ -968,7 +999,7 @@ public class DependencyResolverTest
     assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
     assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
     Set<ComponentIdentifier> actualParentIds = null;
-    JsonNode parentComponentPurls = bomNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
+    JsonNode parentComponentPurls = bomNode.path(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
     if (parentComponentPurls.isArray() && !parentComponentPurls.isEmpty()) {
       actualParentIds = new LinkedHashSet<>();
       for (JsonNode parentComponentPurl : parentComponentPurls) {
@@ -982,7 +1013,7 @@ public class DependencyResolverTest
     }
     assertThat(actualParentIds).isEqualTo(parentIds);
     if (innerSourceData != null) {
-      JsonNode innerSourceDataArray = bomNode.get(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+      JsonNode innerSourceDataArray = bomNode.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
       Set<InnerSourceData> actualInnerSourceData = toInnerSourceDataSet(innerSourceDataArray);
       assertThat(actualInnerSourceData).containsExactlyInAnyOrder(innerSourceData.toArray(new InnerSourceData[0]));
     }
@@ -1059,8 +1090,8 @@ public class DependencyResolverTest
     Pair<Integer, Integer> componentsCount =
         getDependencyInfo(bomJson, direct, transitive, unknownDepType, componentList);
 
-    int actualUnknownCount  = componentsCount.getRight();
-    int actualKnownCount  = componentsCount.getLeft();
+    int actualUnknownCount = componentsCount.getRight();
+    int actualKnownCount = componentsCount.getLeft();
 
     assertThat(actualKnownCount).isEqualTo(expectedKnownComponentsCount);
     assertThat(actualUnknownCount).isEqualTo(expectedUnknownComponentsCount);
@@ -1155,7 +1186,7 @@ public class DependencyResolverTest
     assertThat(directDependency.get("directDependency").asBoolean()).isTrue();
     assertThat(directDependency.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
 
-    JsonNode innerSourceData = directDependency.get(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+    JsonNode innerSourceData = directDependency.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
     if (innerSourceData != null) {
       JsonNode innerSource = directDependency.get("innerSource");
       boolean isInnerSource = false;
@@ -1166,7 +1197,8 @@ public class DependencyResolverTest
         }
         isInnerSource = innerSource.asBoolean();
       }
-      assertInnerSourceTree(directDependency.get(ComponentDAO.INNER_SOURCE_DATA_FIELD), appInnerSource, isInnerSource,
+      assertInnerSourceTree(directDependency.get(ComponentLoader.INNER_SOURCE_DATA_FIELD), appInnerSource,
+          isInnerSource,
           true);
     }
     assertIdentificationSourceAndAnalyzerFeatures(directDependency);
@@ -1251,10 +1283,10 @@ public class DependencyResolverTest
     assertThat(transitiveDependency.get("componentIdentifier")).isNotNull();
     assertThat(transitiveDependency.get("packageUrl")).isNotNull();
     assertThat(transitiveDependency.get("directDependency").asBoolean()).isFalse();
-    assertThat(transitiveDependency.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD)).isNotNull();
+    assertThat(transitiveDependency.get(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD)).isNotNull();
     assertThat(transitiveDependency.get("innerSource").asBoolean()).isFalse();
 
-    JsonNode innerSourceData = transitiveDependency.get(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+    JsonNode innerSourceData = transitiveDependency.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
     if (innerSourceData != null) {
       boolean isInnerSource = false;
       JsonNode innerSourceNodeParent = transitiveDependency.get("innerSource");
@@ -1276,7 +1308,7 @@ public class DependencyResolverTest
       ComponentIdentifier componentIdentifier =
           ComponentIdentifierAdapter.getComponentIdentifier(transitiveDependencies);
       String expectedComponentName = dependencyComponentPurls.get(componentIdentifier);
-      assertThat(transitiveDependencies.get(ComponentDAO.INNER_SOURCE_DATA_FIELD).get(0)
+      assertThat(transitiveDependencies.get(ComponentLoader.INNER_SOURCE_DATA_FIELD).get(0)
           .get("innerSourceComponentPurl").asText()).isEqualTo(expectedComponentName);
     }
   }
@@ -1337,7 +1369,7 @@ public class DependencyResolverTest
 
   private DependencyResolver newDependencyResolver() {
     return new DependencyResolver(null, null, null, null, app, telemetrySender, innerSourceComponentDAOSpy,
-        null);
+        null, null);
   }
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 
 public class RoleNotificationDTO
@@ -18,6 +17,6 @@ public class RoleNotificationDTO
   public RoleNotificationDTO(RoleNotification roleNotification) {
     super("role", roleNotification.getStageIds());
     roleId = roleNotification.getRoleId();
-    roleName = new RoleDAO().getById(roleId).getName();
+    roleName = roleNotification.getRoleName();
   }
 }

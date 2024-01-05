@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.model.MigrationTracker;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,7 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MigrationTrackerDAOTest
     extends AbstractDbDAOTest
 {
-  private final MigrationTrackerDAO dao = new MigrationTrackerDAO();
+  private MigrationTrackerDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createMigrationTrackerDAO();
+  }
 
   @Test
   public void testCRUD() {

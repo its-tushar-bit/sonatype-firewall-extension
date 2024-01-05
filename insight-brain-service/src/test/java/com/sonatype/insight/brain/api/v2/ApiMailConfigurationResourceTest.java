@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightMail;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiMailConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

@@ -48,6 +48,8 @@ import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollect
 import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
@@ -86,7 +88,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class InsightBrainServiceTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final TelemetryPurpose[] EXPECTED_TELEMETRY_PURPOSES = {
       TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
@@ -101,10 +103,17 @@ public class InsightBrainServiceTest
   @Rule
   public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
 
+  private OrganizationDAO organizationDAO;
+
+  private ApplicationDAO applicationDAO;
+
   private QuartzJobStoreTX quartzJobStoreTX;
 
   @Before
   public void before() throws JobPersistenceException {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
   }
@@ -115,12 +124,12 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testCreateSampleData_Enabled() throws Exception {
-    initServer(config -> config.setCreateSampleData(true));
+    startIqTestServer(config -> config.setCreateSampleData(true));
 
-    Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
+    Organization sampleOrg = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
+    Application sampleApp = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
 
     assertThat(sampleOrg).isNotNull();
     assertThat(sampleApp).isNotNull();
@@ -129,19 +138,19 @@ public class InsightBrainServiceTest
   @Test
   public void testCreateSampleData_Disabled() {
     // The creation of the sample data is disabled by default.
-    Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
+    Organization sampleOrg = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
     assertThat(sampleOrg).isNull();
-    Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
+    Application sampleApp = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
     assertThat(sampleApp).isNull();
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testRun_TelemetryIsCalled() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
 
     Date expectedMinCreateTime = new Date();
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+    startIqTestServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
     temporarilyEnableQuartzTelemetry();
@@ -248,10 +257,10 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testRun_TelemetryFail() throws Exception {
     final HttpServletResponse[] responses = new HttpServletResponse[1];
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+    startIqTestServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
       responses[0] = response;
       throw new RuntimeException();
     }).atUri(TelemetrySender.RESOURCE_PATH));
@@ -261,11 +270,11 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testRestEndpointTelemetry() throws Exception {
     Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
     Date expectedMinCreateTime = new Date();
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+    startIqTestServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
@@ -304,9 +313,9 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testConfigWithHttp_SuggestsUpdateConfig() {
-    assertThatThrownBy(() -> initServer(new Configurator()
+    assertThatThrownBy(() -> startIqTestServer(new Configurator()
     {
       @Override
       public void configure(final InsightConfig config) {
@@ -321,9 +330,9 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testConfigWithoutLogFormats_UsesOurDefaultRequestLogFormat() throws Exception {
-    initServer(new Configurator()
+    startIqTestServer(new Configurator()
     {
       @Override
       public void configure(final InsightConfig config) {
@@ -349,10 +358,10 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPrintVersion() throws Exception {
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
-    initServer(config -> {
+    startIqTestServer(config -> {
     });
 
     assertThat(logOutput).atInfoLevel()
@@ -360,32 +369,34 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testStartupWithoutLicense() throws Exception {
     getTestProductLicenseManager().uninstallLicense();
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
-    initServer(config -> {
+    startIqTestServer(config -> {
     });
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testDesiredSchemaVersionMet() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    DatabaseProvisionUtils databaseProvisionUtils =
+        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
     when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(false);
 
-    initServer(config -> {
+    startIqTestServer(config -> {
     });
 
     assertThat(logOutput).doesNotContain("Database migration is required.");
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testDesiredSchemaVersionUnmet() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    DatabaseProvisionUtils databaseProvisionUtils =
+        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
     when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(true);
@@ -393,7 +404,7 @@ public class InsightBrainServiceTest
     expectedExit.expectSystemExitWithStatus(1);
 
     try {
-      initServer(config -> {
+      startIqTestServer(config -> {
       });
     }
     catch (IllegalStateException e) {
@@ -406,16 +417,17 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testDesiredSchemaVersionNoSchema() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    DatabaseProvisionUtils databaseProvisionUtils =
+        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(false);
 
     expectedExit.expectSystemExitWithStatus(1);
 
     try {
-      initServer(config -> {
+      startIqTestServer(config -> {
       });
     }
     catch (IllegalStateException e) {
@@ -429,7 +441,9 @@ public class InsightBrainServiceTest
 
   @Test
   public void testStartupFailsIfSonatypeWorkIsInUse() {
-    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, databaseContainer);
+    TestCLMServer testCLMServerTwo =
+        new TestCLMServer(new DefaultInsightBrainServiceFactory(), false, null, null,
+            databaseContainerRule.getDatabaseContainer());
     try {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
           .withStackTraceContaining(
@@ -442,15 +456,15 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testReleasesLockOnFailedRun() throws Exception {
     Configurator configurator = config -> {
       DefaultServerFactory mockDefaultServerFactory = mock(DefaultServerFactory.class);
       when(mockDefaultServerFactory.getApplicationConnectors()).thenThrow(new RuntimeException());
       config.setServerFactory(mockDefaultServerFactory);
     };
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> initServer(configurator));
-    initServer(null);
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> startIqTestServer(configurator));
+    startIqTestServer(null);
   }
 
   @Test
@@ -477,9 +491,9 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testHttpsConnector_SNI() throws Exception {
-    initServer(new Configurator()
+    startIqTestServer(new Configurator()
     {
       @Override
       public void configure(final InsightConfig config) {
@@ -493,9 +507,9 @@ public class InsightBrainServiceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testFeatures() throws Exception {
-    initServer(new Configurator()
+    startIqTestServer(new Configurator()
     {
       @Override
       public void configure(final InsightConfig config) {

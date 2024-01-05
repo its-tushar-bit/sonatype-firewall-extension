@@ -11,6 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
@@ -21,21 +24,41 @@ import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyValidator;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class PolicyDAO
 {
-  private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+  private final PolicyInternalDAO policyInternalDAO;
 
-  private static OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  private static PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private final PolicyTagDAO policyTagDAO;
 
-  private static ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+  private final ApplicationTagDAO appTagDAO;
+
+  private final PolicyValidator policyValidator;
+
+  @Inject
+  public PolicyDAO(
+      final PolicyInternalDAO policyInternalDAO,
+      final OwnerDAO ownerDAO,
+      final PolicyTagDAO policyTagDAO,
+      final ApplicationTagDAO appTagDAO,
+      final PolicyValidator policyValidator)
+  {
+    this.policyInternalDAO = policyInternalDAO;
+    this.ownerDAO = ownerDAO;
+    this.policyTagDAO = policyTagDAO;
+    this.appTagDAO = appTagDAO;
+    this.policyValidator = policyValidator;
+  }
 
   public Policy getById(String id) {
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
@@ -99,7 +122,7 @@ public class PolicyDAO
   public void insert(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
 
-    ValidationResult validationResult = policy.validate(tx, ownerId);
+    ValidationResult validationResult = policyValidator.validate(tx, policy, ownerId);
     if (validationResult != null && !validationResult.isValid()) {
       throw new InvalidPolicyException(validationResult);
     }
@@ -147,7 +170,7 @@ public class PolicyDAO
     String ownerId = policy.getOwnerId();
 
     if (validate) {
-      ValidationResult validationResult = policy.validate(tx, ownerId);
+      ValidationResult validationResult = policyValidator.validate(tx, policy, ownerId);
       if (validationResult != null && !validationResult.isValid()) {
         throw new InvalidPolicyException(validationResult);
       }

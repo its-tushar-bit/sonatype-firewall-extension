@@ -16,6 +16,12 @@ public class ComponentCategoryValueType
 {
   public static final String ID = "ComponentCategoryValueType";
 
+  private final ComponentCategoryDAO componentCategoryDAO;
+
+  public ComponentCategoryValueType(final ComponentCategoryDAO componentCategoryDAO) {
+    this.componentCategoryDAO = componentCategoryDAO;
+  }
+
   @Override
   public String getId() {
     return ID;
@@ -33,6 +39,6 @@ public class ComponentCategoryValueType
 
   @Override
   public List<ComponentCategory> getAvailableValues() {
-    return new ComponentCategoryDAO().getAll();
+    return componentCategoryDAO.getAll();
   }
 }

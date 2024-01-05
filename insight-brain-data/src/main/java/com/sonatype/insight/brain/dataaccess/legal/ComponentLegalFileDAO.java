@@ -7,11 +7,16 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
@@ -22,9 +27,26 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class ComponentLegalFileDAO
     extends AbstractOperationalSqlDAO<ComponentLegalFile>
 {
+  private final OwnerDAO ownerDAO;
+
+  private final Provider<LegalFileOverrideDAO> legalFileOverrideDAOProvider;
+
+  @Inject
+  public ComponentLegalFileDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final Provider<LegalFileOverrideDAO> legalFileOverrideDAOProvider)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.legalFileOverrideDAOProvider = legalFileOverrideDAOProvider;
+  }
+
   public List<ComponentLegalFile> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
         " WHERE entity.ownerId=?1";
@@ -68,7 +90,6 @@ public class ComponentLegalFileDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType legalFileType)
   {
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       ComponentLegalFile componentLegalFile =
           getByOwnerIdAndComponentIdentifierAndType(tx, owner.getId(), componentIdentifier, legalFileType);
@@ -117,7 +138,7 @@ public class ComponentLegalFileDAO
   @Override
   public void delete(TransactionContext tx, ComponentLegalFile componentLegalFile) {
     // Cascade to legal file overrides
-    LegalFileOverrideDAO legalFileOverrideDAO = new LegalFileOverrideDAO();
+    LegalFileOverrideDAO legalFileOverrideDAO = legalFileOverrideDAOProvider.get();
     for (LegalFileOverride legalFileOverride : legalFileOverrideDAO
         .getByComponentLegalFileId(tx, componentLegalFile.getId())) {
       legalFileOverrideDAO.delete(tx, legalFileOverride);

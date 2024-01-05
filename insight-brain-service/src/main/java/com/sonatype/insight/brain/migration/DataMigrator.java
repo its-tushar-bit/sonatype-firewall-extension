@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 
 /**
  * Migrates operational data from an earlier schema/format to the latest version.
@@ -66,6 +66,8 @@ public class DataMigrator
 
   private final FirewallMetricsMigrator firewallMetricsMigrator;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public DataMigrator(
       PolicyJsonMigrator policyJsonMigrator,
@@ -90,7 +92,8 @@ public class DataMigrator
       PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator,
       RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator,
       SamlUserGroupMigrator samlUserGroupMigrator,
-      FirewallMetricsMigrator firewallMetricsMigrator)
+      FirewallMetricsMigrator firewallMetricsMigrator,
+      final ClusterLockManager clusterLockManager)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -115,13 +118,14 @@ public class DataMigrator
     this.repositoryComponentDisplayNameMigrator = repositoryComponentDisplayNameMigrator;
     this.samlUserGroupMigrator = samlUserGroupMigrator;
     this.firewallMetricsMigrator = firewallMetricsMigrator;
+    this.clusterLockManager = clusterLockManager;
   }
 
   /**
    * Runs the data migration steps (if any). Obviously, this is best invoked before the application starts.
    */
   public void migrate() throws IOException {
-    try (ClusterLock clusterLock = ClusterLock.createForDataMigration()) {
+    try (ClusterLock clusterLock = clusterLockManager.createForDataMigration()) {
       clusterLock.lock();
       runMigrators();
     }

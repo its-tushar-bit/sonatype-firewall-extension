@@ -11,12 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -36,9 +34,11 @@ public class InactiveRepositoryViolationCleanerTest
   @Inject
   private InactiveRepositoryViolationCleaner inactiveRepositoryViolationCleaner;
 
-  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Test
   public void testStart() throws Exception {
@@ -93,9 +93,10 @@ public class InactiveRepositoryViolationCleanerTest
 
   private RepositoryPolicyViolation newInactiveViolation(Repository repository) throws SQLException {
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(
-            "UPDATE repository_policy_violation SET active=false WHERE repository_policy_violation_id=?")) {
+    String databaseSchema = databaseContainerRule.getOperationalDataStore().getDatabaseSchema();
+    try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE " + databaseSchema +
+             ".repository_policy_violation SET active=false WHERE repository_policy_violation_id=?")) {
       connection.setAutoCommit(true);
       preparedStatement.setString(1, repositoryPolicyViolation.getId());
       int updated = preparedStatement.executeUpdate();
@@ -105,9 +106,11 @@ public class InactiveRepositoryViolationCleanerTest
   }
 
   private int getInactiveViolationCount(Repository repository) throws SQLException {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    String databaseSchema = databaseContainerRule.getOperationalDataStore().getDatabaseSchema();
+    try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
-            "SELECT COUNT(*) FROM repository_policy_violation WHERE repository_id=? AND active=false")) {
+            "SELECT COUNT(*) FROM " + databaseSchema +
+                ".repository_policy_violation WHERE repository_id=? AND active=false")) {
       preparedStatement.setString(1, repository.getId());
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
         resultSet.next();

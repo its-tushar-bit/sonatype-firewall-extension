@@ -35,9 +35,12 @@ public class SidebarResource
 
   private final SidebarService sidebarService;
 
+  private final IdUtils idUtils;
+
   @Inject
-  public SidebarResource(final SidebarService sidebarService) {
+  public SidebarResource(final SidebarService sidebarService, final IdUtils idUtils) {
     this.sidebarService = sidebarService;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -62,7 +65,7 @@ public class SidebarResource
   public OwnerDetailsDTO getOwnerDetails(@PathParam("ownerType") final OwnerType ownerType,
                                          @PathParam("ownerId") final String ownerId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return sidebarService.getOwnerDetails(ownerType, internalOwnerId);
   }
 
@@ -75,6 +78,6 @@ public class SidebarResource
   @Path(GET_GLOBAL_OWNER_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public OwnerDetailsDTO getGlobalOwnerDetails(@PathParam("ownerType") final OwnerType ownerType) {
-    return getOwnerDetails(ownerType, IdUtils.getInternalOwnerId(ownerType, null));
+    return getOwnerDetails(ownerType, idUtils.getInternalOwnerId(ownerType, null));
   }
 }

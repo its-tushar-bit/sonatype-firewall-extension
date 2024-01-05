@@ -19,12 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapConnectionDAOTest
     extends AbstractDbDAOTest
 {
-  private final LdapConnectionDAO dao = new LdapConnectionDAO();
+  private LdapConnectionDAO dao;
 
   private LdapServer ldapServer;
 
   @Before
-  public void createTestServer() {
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createLdapConnectionDAO();
     ldapServer = tempEntity.newLdapServer("testServer");
   }
 

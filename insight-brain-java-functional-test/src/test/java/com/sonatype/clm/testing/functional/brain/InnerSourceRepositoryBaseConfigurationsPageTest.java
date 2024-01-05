@@ -48,11 +48,11 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
   @Rule
   public WireMockRule nxrm3MockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+  private Organization rootOrg;
 
   private Organization org;
 
@@ -66,6 +66,11 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
 
   @Before
   public void before() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
+    rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
   }

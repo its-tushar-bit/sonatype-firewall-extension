@@ -7,18 +7,19 @@ package com.sonatype.insight.brain.api.experimental.sast;
 
 import java.util.List;
 import java.util.UUID;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.assertSastScan;
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTOWith2Findings;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +33,19 @@ public class ApiSastScanServiceTest
 
   @Inject
   private SastScanDAO sastScanDAO;
+
+  @Inject
+  private SastFindingDAO sastFindingDAO;
+
+  @Inject
+  private SastRemediationDAO sastRemediationDAO;
+
+  private SastTestUtil sastTestUtil;
+
+  @Before
+  public void before() {
+    sastTestUtil = new SastTestUtil(sastScanDAO, sastFindingDAO, sastRemediationDAO);
+  }
 
   @Test
   public void testCreateSastScan_Success() {
@@ -47,7 +61,7 @@ public class ApiSastScanServiceTest
         "myApp", sastScanRequestDTO);
 
     // Then assert the proper SastScan fields are populated
-    assertSastScan(applicationId, sastScanResponseDTO);
+    sastTestUtil.assertSastScan(applicationId, sastScanResponseDTO);
   }
 
   @Test
@@ -127,7 +141,7 @@ public class ApiSastScanServiceTest
         createdSastScanResult.sastScanId);
 
     // Then assert the proper SastScan fields are populated
-    assertSastScan(applicationId, getSastScanResult);
+    sastTestUtil.assertSastScan(applicationId, getSastScanResult);
   }
 
   @Test

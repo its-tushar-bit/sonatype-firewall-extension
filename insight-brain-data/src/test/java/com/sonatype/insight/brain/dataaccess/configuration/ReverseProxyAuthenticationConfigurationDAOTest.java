@@ -15,6 +15,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.drools.core.util.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.EMPTY_LOGOUT_URL_ERROR_MSG;
@@ -32,7 +33,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ReverseProxyAuthenticationConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final ReverseProxyAuthenticationConfigurationDAO dao = new ReverseProxyAuthenticationConfigurationDAO();
+  private ReverseProxyAuthenticationConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createReverseProxyAuthenticationConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

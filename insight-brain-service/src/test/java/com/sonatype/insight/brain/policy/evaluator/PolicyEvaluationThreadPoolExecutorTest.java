@@ -33,6 +33,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
       });
     }
     countDownLatch.await(5, TimeUnit.SECONDS);
+    threadPoolExecutor.shutdown();
   }
 
   @Test
@@ -43,6 +44,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
       threadPoolExecutor.submit(() -> sleep(5000));
     }
     assertThat(logOutput).atAnyLevel().doesNotContain("All policy evaluation threads are busy");
+    threadPoolExecutor.shutdown();
   }
 
   @Test
@@ -53,6 +55,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
     }
     assertThat(logOutput).atWarnLevel()
         .contains("All policy evaluation threads are busy and there are 1 tasks waiting in the queue.");
+    threadPoolExecutor.shutdown();
   }
 
   private void sleep(long millis) {

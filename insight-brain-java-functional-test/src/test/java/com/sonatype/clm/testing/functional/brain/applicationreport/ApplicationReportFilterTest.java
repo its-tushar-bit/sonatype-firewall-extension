@@ -67,7 +67,7 @@ public class ApplicationReportFilterTest
   public void start() throws IOException {
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     Organization org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);

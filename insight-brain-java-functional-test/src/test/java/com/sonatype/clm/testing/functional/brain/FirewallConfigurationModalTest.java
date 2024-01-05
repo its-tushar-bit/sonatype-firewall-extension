@@ -39,19 +39,21 @@ public class FirewallConfigurationModalTest
 {
   private final FirewallAutoUnquarantinePage firewallAutoUnquarantinePage = new FirewallAutoUnquarantinePage();
 
-  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
-      new AutoUnquarantinePolicyConditionTypeDAO();
-
   private final int supportedConditionTypesExcludingIntegrityRatingCount =
       (int) ConditionTypes.getAllWithAutoUnquarantineSupported()
           .stream()
           .filter(conditionType -> !conditionType.getId().equals(IntegrityRatingConditionType.ID))
           .count();
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  private PolicyMonitoringDAO policyMonitoringDAO;
+
+  private AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
   @Before
   public void before() {
+    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
+    autoUnquarantinePolicyConditionTypeDAO = lookup(AutoUnquarantinePolicyConditionTypeDAO.class);
+
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
     refreshOrOpen(FirewallPage.url());

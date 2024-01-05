@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -73,7 +74,7 @@ public class PullRequestCodeInsightsDetails
 
   private final LocationDiscoveryResult locationDiscoveryResult;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
 
   public PullRequestCodeInsightsDetails(
       final String repositoryUrl,
@@ -82,8 +83,11 @@ public class PullRequestCodeInsightsDetails
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final String baseUrl,
-      final LocationDiscoveryResult locationDiscoveryResult)
+      final LocationDiscoveryResult locationDiscoveryResult,
+      final PolicyDAO policyDAO,
+      final OrganizationDAO organizationDAO)
   {
+    super(organizationDAO);
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
     this.application = checkNotNull(application, "app is required and cannot be null");
     this.sourceControlComponentDetails =
@@ -91,6 +95,7 @@ public class PullRequestCodeInsightsDetails
     this.featureBranchEvaluation = checkNotNull(featureBranchEvaluation,
         "featureBranchEvaluation is required and cannot be null");
     this.policyViolationDiff = checkNotNull(policyViolationDiff, "policyViolationDiff is required and cannot be null");
+    this.policyDAO = policyDAO;
     checkNotNull(policyViolationDiff.getAppeared(), "new violations data is required, and cannot be null");
     this.baseUrl = checkNotNull(baseUrl, "baseUrl is required and cannot be null");
     this.locationDiscoveryResult = locationDiscoveryResult;

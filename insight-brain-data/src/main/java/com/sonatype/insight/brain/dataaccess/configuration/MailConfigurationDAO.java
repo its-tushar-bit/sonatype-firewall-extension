@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.mail.internet.InternetAddress;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -17,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @since 1.83
  */
+@Named
+@Singleton
 public class MailConfigurationDAO
     extends AbstractOperationalSqlWithFallbackDAO<MailConfiguration>
 {
@@ -24,6 +30,11 @@ public class MailConfigurationDAO
 
   public static final String QUERY = "SELECT entity FROM MailConfiguration entity" + //
       " WHERE entity.id=?1";
+
+  @Inject
+  public MailConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   /**
    * @return The mail server configuration or {@code null} if none.

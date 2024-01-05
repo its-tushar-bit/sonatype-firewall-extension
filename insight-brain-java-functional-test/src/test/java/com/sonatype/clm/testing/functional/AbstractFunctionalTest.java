@@ -22,12 +22,29 @@ import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
+import com.sonatype.insight.brain.db.DatabaseConfigProvider;
+import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -36,6 +53,7 @@ import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -46,6 +64,10 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
+import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -103,6 +125,10 @@ public abstract class AbstractFunctionalTest
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractFunctionalTest.class);
 
+  private static final int VIEWPORT_WIDTH = 1366;
+
+  private static final int VIEWPORT_HEIGHT = 1024;
+
   protected static final TestProductLicenseManager productLicenseManager;
 
   protected static final TestLicenseFingerprinter licenseFingerprinter;
@@ -115,35 +141,51 @@ public abstract class AbstractFunctionalTest
 
   protected static final ReverseProxyServer reverseProxyServer;
 
-  private static final int VIEWPORT_WIDTH = 1366;
+  protected static DatabaseContainer databaseContainer;
 
-  private static final int VIEWPORT_HEIGHT = 1024;
+  private static TestProductLicenseRule testProductLicenseRule;
 
-  private static String getBaseUrl(String contextPath) {
-    String url = reverseProxyServer.getUrl();
-    if (url.endsWith("/")) {
-      url = url.substring(0, url.length() - 1);
-    }
-    url += contextPath;
-    if (!url.endsWith("/")) {
-      url += '/';
-    }
-    return url;
-  }
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
+  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+
+  @Rule
+  public TestName testName = new TestName();
+
+  private PersistedUserSessionDAO persistedUserSessionDAO;
+
+  private ShiroSessionDAO shiroSessionDAO;
 
   static {
+    // Creating a Database Container and initializing the DB that will be used for the entire functional test suite.
+    // This MUST happen before the server start or before the TemporaryEntity before method is called
+    databaseContainer = createDatabaseContainer();
+    initDatabase();
+
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicenseRule = new TestProductLicenseRule(databaseContainer);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
+    // Reuse the configurator to allow reuse of MTIQ server
     String contextPath = System.getProperty("iq.contextPath", "/iq-test");
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(),
-        config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath));
+    Configurator configurator = config -> {
+      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+    };
+
+    testCLMServer = new TestCLMServer(new DefaultInsightBrainServiceFactory(),
+        false /* isProxyRequiredToReachHds */, getBrainModules(), configurator, databaseContainer);
     reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
 
     try {
+      // Insert license so it can be populated on server start-up - can't use a @Rule because this functional test is
+      // setup with a static database
+      testProductLicenseRule.insertLicenseIfNeeded();
+
       testCLMServer.start();
       reverseProxyServer.start();
 
@@ -157,21 +199,34 @@ public abstract class AbstractFunctionalTest
     }
   }
 
-  public static void setBaseUrl(String baseUrl) {
-    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
-    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
+  private static DatabaseContainer createDatabaseContainer() {
+    DataSourceProvider dataSourceProvider = new H2InMemoryTestDataSourceProvider();
+    DatabaseConfigProvider databaseConfigProvider = new H2InMemoryDatabaseConfigProvider();
+
+    OperationalDataStore operationalDataStore =
+        new DefaultOperationalDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
+    DataMartDataStore dataMartDataStore =
+        new DefaultDataMartDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.dm));
+    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
+
+    DatabaseProvisionUtils databaseProvisionUtils =
+        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
+            thirdPartyScansDataStore);
+    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
+        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore);
+    return databaseContainer;
   }
 
-  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
-    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
-        enableDefaultPasswordWarning);
-    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+  private static void initDatabase() {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig());
   }
 
   @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity()
+  public TemporaryEntity tempEntity = new TemporaryEntity(databaseContainer)
   {
     @Override
     public void after() {
@@ -194,14 +249,30 @@ public abstract class AbstractFunctionalTest
     // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
   }
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  private static String getBaseUrl(String contextPath) {
+    String url = reverseProxyServer.getUrl();
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
+    url += contextPath;
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    return url;
+  }
 
-  @Rule
-  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+  public static void setBaseUrl(String baseUrl) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
+  }
 
-  @Rule
-  public TestName testName = new TestName();
+  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        enableDefaultPasswordWarning);
+    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+  }
 
   private static void initMocks() {
     try {
@@ -269,6 +340,16 @@ public abstract class AbstractFunctionalTest
     testCLMServer.getCLMServer().setHdsUrl();
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
+
+    persistedUserSessionDAO = lookup(PersistedUserSessionDAO.class);
+    shiroSessionDAO = lookup(ShiroSessionDAO.class);
+
+    // Re-inject classes that have static dependencies
+    DAOFactory daoFactory = new TestDAOFactory(databaseContainer);
+    StaticInjectionTestHelper.inject(daoFactory);
+
+    // Set the default product license - can't use a @Rule because this functional test is setup with a static database
+    testProductLicenseRule.insertLicenseIfNeeded();
   }
 
   @After
@@ -336,6 +417,7 @@ public abstract class AbstractFunctionalTest
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(JiraService.class).toInstance(jiraService);
         bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
         bind(TaskScheduler.class).to(TestTaskScheduler.class);
@@ -380,7 +462,6 @@ public abstract class AbstractFunctionalTest
         UnsavedModal unsavedModal = new UnsavedModal();
         unsavedModal.shouldBe(visible);
         unsavedModal.continueButton().click();
-
       }
       catch (NoSuchElementException e) {
         // do nothing
@@ -583,7 +664,7 @@ public abstract class AbstractFunctionalTest
 
   protected static void executeJavaScript(String script) {
     WebDriver driver = WebDriverRunner.getWebDriver();
-    JavascriptExecutor js = (JavascriptExecutor)driver;
+    JavascriptExecutor js = (JavascriptExecutor) driver;
     js.executeScript(script);
   }
 
@@ -612,7 +693,7 @@ public abstract class AbstractFunctionalTest
 
   protected void installLicense() {
     try {
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+      lookup(CLMLicenseManager.class)
           .installLicense(new ByteArrayInputStream(new byte[1]));
     }
     catch (Exception e) {
@@ -621,7 +702,7 @@ public abstract class AbstractFunctionalTest
   }
 
   protected void uninstallLicense() {
-    testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).uninstallLicense();
+    lookup(CLMLicenseManager.class).uninstallLicense();
   }
 
   // Close all tabs/windows except the currently active one.
@@ -641,8 +722,11 @@ public abstract class AbstractFunctionalTest
   }
 
   protected void cleanupAllPersistedUserSessions() {
-    ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
-    new PersistedUserSessionDAO().getAll().stream().map(PersistedUserSession::getId)
+    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
         .forEach(shiroSessionDAO::deleteById);
+  }
+
+  protected <T> T lookup(Class<T> type) {
+    return testCLMServer.getCLMServer().getInstance(type);
   }
 }

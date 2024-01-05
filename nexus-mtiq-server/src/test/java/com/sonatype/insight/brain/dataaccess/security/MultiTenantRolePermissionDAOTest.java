@@ -5,20 +5,29 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRolePermissionDAOTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
-  private final RolePermissionDAO permDAO = new RolePermissionDAO();
+  private RolePermissionDAO permDAO;
+
+  private RoleDAO roleDAO;
+
+  @Before
+  public void before() {
+    permDAO = daoFactory.createRolePermissionDAO();
+    roleDAO = daoFactory.createRoleDAO();
+  }
 
   @Test
   public void testRolePermissionDao_doesNotLeakDataBetweenTenants() {
@@ -55,7 +64,7 @@ public class MultiTenantRolePermissionDAOTest
     role.setDescription(description);
     role.setGlobal(global);
 
-    new RoleDAO().insert(role);
+    roleDAO.insert(role);
 
     return role;
   }

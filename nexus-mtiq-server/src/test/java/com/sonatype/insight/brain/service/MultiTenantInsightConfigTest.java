@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +15,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantInsightConfigTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   static final String WORK_ROOT =
       "." + File.separator + "sonatype-work" + File.separator + "clm-server";
@@ -26,9 +26,7 @@ public class MultiTenantInsightConfigTest
   MultiTenantInsightConfig underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     underTest = new MultiTenantInsightConfig();
     underTest.setSonatypeWork(WORK_ROOT);
     underTest.setClusterDirectory(CLUSTER_ROOT);

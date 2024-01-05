@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +26,19 @@ public class ComponentLabelDAOTest
 {
   private final String hash = "ababababab";
 
+  private ComponentLabelDAO dao;
+
+  private LabelDAO labelDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createComponentLabelDAO();
+    labelDAO = daoFactory.createLabelDAO();
+  }
+
   private Label newLabel(String name, String ownerId) {
-    LabelDAO labelDAO = new LabelDAO();
     Label label = new Label();
     label.setLabel(name);
     label.setOwnerId(ownerId);
@@ -38,7 +50,6 @@ public class ComponentLabelDAOTest
   public void testCRUD() {
     Label label = newLabel("label", application.getOrganizationId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
 
@@ -60,7 +71,6 @@ public class ComponentLabelDAOTest
   public void testGetByOwnerIdAndHashAndLabelId() {
     Label label = newLabel("label", application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
     ComponentLabel entity = dao.getByOwnerIdAndHashAndLabelId(application.getId(), hash, label.getId());
@@ -72,7 +82,6 @@ public class ComponentLabelDAOTest
   public void testInsertDuplicate() {
     Label label = newLabel("label", application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
     assertThatThrownBy(() -> dao.insert(new ComponentLabel(application.getId(), label.getId(), hash)))
         .isInstanceOf(BadRequestException.class)
@@ -83,7 +92,6 @@ public class ComponentLabelDAOTest
   public void testInsertNonApplicable() {
     Label label = newLabel("label", application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getOrganizationId(), label.getId(), hash);
     assertThatThrownBy(() -> dao.insert(compLabel)).isInstanceOf(BadRequestException.class).hasMessage(
         "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
@@ -93,7 +101,6 @@ public class ComponentLabelDAOTest
   public void testUpdateDuplicate() {
     Label label = newLabel("label", application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash + "0");
     dao.insert(compLabel);
@@ -106,7 +113,6 @@ public class ComponentLabelDAOTest
   public void testUpdateNonApplicable() {
     Label label = newLabel("label", application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
     compLabel.setOwnerId(application.getOrganizationId());
@@ -116,7 +122,6 @@ public class ComponentLabelDAOTest
 
   @Test
   public void testOrganizationInheritance() {
-    final LabelDAO labelDAO = new LabelDAO();
     final Label orgLabel = new Label();
     orgLabel.setColor(Color.light_green);
     orgLabel.setLabel("org-label");
@@ -127,8 +132,6 @@ public class ComponentLabelDAOTest
     appLabel.setLabel("app-label");
     appLabel.setOwnerId(application.getId());
     labelDAO.insert(appLabel);
-
-    ComponentLabelDAO dao = new ComponentLabelDAO();
 
     // sanity check
     List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHashWithHierarchy(application.getId(), hash);
@@ -154,7 +157,6 @@ public class ComponentLabelDAOTest
     Label label1 = tempEntity.newLabel(organization.getId());
     Label label2 = tempEntity.newLabel(application.getId());
 
-    ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel1 = tempEntity.newComponentLabel(application.getId(), label1.getId(), hash);
     tempEntity.newComponentLabel(organization.getId(), label1.getId(), hash);
     tempEntity.newComponentLabel(application.getId(), label2.getId(), hash);

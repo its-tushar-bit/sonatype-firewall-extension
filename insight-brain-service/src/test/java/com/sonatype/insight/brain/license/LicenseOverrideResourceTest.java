@@ -32,6 +32,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +40,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicenseOverrideResourceTest
     extends AbstractResourceTest
 {
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  private OwnerDAO ownerDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private LicenseDAO licenseDAO;
+
+  @Before
+  public void setUp() {
+    licenseOverrideDAO = lookup(LicenseOverrideDAO.class);
+    ownerDAO = lookup(OwnerDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    licenseDAO = lookup(LicenseDAO.class);
+  }
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, String... paths) {
     return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).path(paths).parameter(ownerType, ownerId);
   }
@@ -131,7 +148,6 @@ public class LicenseOverrideResourceTest
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
 
     // Get
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverride.getId());
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
@@ -178,7 +194,6 @@ public class LicenseOverrideResourceTest
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
 
     // Get
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverride.getId());
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
@@ -233,7 +248,7 @@ public class LicenseOverrideResourceTest
       assertThat(licenseOverrideAudit.getComment()).isEqualTo(expected.getComment());
     }
     assertThat(licenseOverrideAudit.getOverriddenLicenses())
-        .extracting(licenseName -> new LicenseDAO().getByNameNotNull(licenseName).getId())
+        .extracting(licenseName -> licenseDAO.getByNameNotNull(licenseName).getId())
         .containsExactlyInAnyOrderElementsOf(expected.getLicenseIds());
   }
 
@@ -299,13 +314,13 @@ public class LicenseOverrideResourceTest
     // Create an organization, an application, and a repository
     String orgName = "testGetAppliedLicenseOverrides";
     Organization organization = tempEntity.newOrganization(orgName);
-    Owner rootOrganization = new OwnerDAO().getParentOwner(organization);
+    Owner rootOrganization = ownerDAO.getParentOwner(organization);
     String orgId = organization.getId();
     String appPublicId = "testGetAppliedLicenseOverrides";
     Application app = tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
     final Repository repository = tempEntity.newRepository();
     final String repoId = repository.getId();
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
 
     // Verify the applied license overrides for the application
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
@@ -508,7 +523,7 @@ public class LicenseOverrideResourceTest
     assertThat(response.getBodyText()).isEqualTo("Cannot find a license override with ID " + licenseOverride.getId()
         + " for " + ownerType + " ID " + ownerPublicId2);
     // Verify that the license override was not deleted
-    new LicenseOverrideDAO().getByIdNotNull(licenseOverride.getId());
+    licenseOverrideDAO.getByIdNotNull(licenseOverride.getId());
   }
 
   private void assertLicenseOverrideByOwner(Owner owner, boolean hasLicenseOverride, LicenseOverrideByOwner actual) {

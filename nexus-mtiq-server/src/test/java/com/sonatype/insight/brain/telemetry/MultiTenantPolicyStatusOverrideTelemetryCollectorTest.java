@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -18,7 +19,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private PolicyStatusOverrideTelemetryCollector telemetryCollector;
 
@@ -42,11 +42,12 @@ public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
   @Override
   public void setup() {
     super.setup();
-    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
-    policyDAO = new PolicyDAO();
-    policyWaiverDAO = new PolicyWaiverDAO();
-    organizationDAO = new OrganizationDAO();
-    applicationDAO = new ApplicationDAO();
+    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
+        daoFactory.createSecurityVulnerabilityOverrideDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    applicationDAO = daoFactory.createApplicationDAO();
     telemetryCollector = new PolicyStatusOverrideTelemetryCollector(securityVulnerabilityOverrideDAO, policyWaiverDAO);
   }
 

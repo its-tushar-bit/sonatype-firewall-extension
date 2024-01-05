@@ -17,7 +17,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -33,6 +32,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -87,20 +87,19 @@ public class RepositoryService
 
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
-  private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO;
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO;
 
-  private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private static final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
-      new ProprietaryComponentNamePatternDAO();
+  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private static final PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
 
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -108,15 +107,33 @@ public class RepositoryService
 
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      ProprietaryComponentNameDetector proprietaryComponentNameDetector)
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      RepositoryManagerDAO repositoryManagerDAO,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
+      PolicyDAO policyDAO,
+      OwnerDAO ownerDAO,
+      final ClusterLockManager clusterLockManager)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
+    this.policyDAO = policyDAO;
+    this.ownerDAO = ownerDAO;
+    this.clusterLockManager = clusterLockManager;
   }
 
   /**
@@ -223,7 +240,7 @@ public class RepositoryService
   void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     AuditData.get().continueAsync(reevalExecutor, new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator,
-        reevalExecutor, MAX_REPOSITORY_EVALUATION_REQUEST_SIZE));
+        reevalExecutor, MAX_REPOSITORY_EVALUATION_REQUEST_SIZE, repositoryComponentDAO, clusterLockManager));
   }
 
   private static Executor createReevaluationExecutor() {
@@ -398,7 +415,7 @@ public class RepositoryService
         .getActiveByRepositoryIdAndPathname(repositoryId, repositoryComponent.getPathname());
 
     List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
-        repositoryPolicyViolations.stream().map(RepositoryService::toRepositoryPolicyViolationDTO).collect(toList());
+        repositoryPolicyViolations.stream().map(this::toRepositoryPolicyViolationDTO).collect(toList());
 
     return repositoryPolicyViolationDTOs;
   }
@@ -419,10 +436,10 @@ public class RepositoryService
     AuditData.get().setComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier())
         .setComponentHash(repositoryPolicyViolation.getHash());
 
-    return RepositoryService.toRepositoryPolicyViolationDTO(repositoryPolicyViolation);
+    return toRepositoryPolicyViolationDTO(repositoryPolicyViolation);
   }
 
-  public static RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
+  public RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
       RepositoryPolicyViolation repositoryPolicyViolation)
   {
     List<PolicyThreats.PolicyConstraint> constraints =

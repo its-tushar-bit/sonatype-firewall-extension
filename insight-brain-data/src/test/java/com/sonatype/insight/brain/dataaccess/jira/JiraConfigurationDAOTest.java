@@ -15,6 +15,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.drools.core.util.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO.*;
@@ -24,7 +25,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class JiraConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final JiraConfigurationDAO dao = new JiraConfigurationDAO();
+  private JiraConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createJiraConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

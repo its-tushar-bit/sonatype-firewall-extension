@@ -26,12 +26,29 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.DatabaseConfigProvider;
+import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
@@ -44,6 +61,8 @@ import static org.mockito.Mockito.when;
 
 public class ReleaseGraphPerformance
 {
+  private final DatabaseContainer databaseContainer;
+
   private final ThreadPoolExecutor pool;
 
   private final List<UserCallable> callables;
@@ -57,10 +76,15 @@ public class ReleaseGraphPerformance
   private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private ReleaseGraphPerformance(int threads) {
+    databaseContainer = createDatabaseContainer();
+    initDatabase();
+
+    DAOFactory daoFactory = new TestDAOFactory(databaseContainer);
+
     callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
-        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, new ApplicationDAO())));
+        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, daoFactory.createApplicationDAO())));
     ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
     when(mockReleaseGraphCacheProvider.get()).thenReturn(cache);
     reportResource = new ReleaseGraphResource(new ReleaseGraphService(mockReleaseGraphCacheProvider));
@@ -69,7 +93,7 @@ public class ReleaseGraphPerformance
     testApplication = new Application();
     testApplication.setPublicId("ReleaseGraphPerformance_AppId");
     testApplication.setName("perf-test");
-    new ApplicationDAO().insert(testApplication);
+    daoFactory.createApplicationDAO().insert(testApplication);
   }
 
   ReleaseGraphPerformance(int reports, int users, InsightWork work) throws Exception {
@@ -86,14 +110,19 @@ public class ReleaseGraphPerformance
 
   /**
    * Simulates browser test which
-   * 
+   *
    * @param reports the number of reports
    * @param usersPerReport the number of users per report
    * @param connectionsPerUser the number of connections each user uses (FF uses 6)
    * @param work
    * @throws Exception
    */
-  ReleaseGraphPerformance(int reports, int usersPerReport, int connectionsPerUser, InsightWork work) throws Exception {
+  ReleaseGraphPerformance(
+      int reports,
+      int usersPerReport,
+      int connectionsPerUser,
+      InsightWork work) throws Exception
+  {
     this(connectionsPerUser * usersPerReport * reports);
 
     List<ComponentPopularity> components = getComponents();
@@ -142,6 +171,32 @@ public class ReleaseGraphPerformance
     }
   }
 
+  private DatabaseContainer createDatabaseContainer() {
+    DataSourceProvider dataSourceProvider = new H2InMemoryTestDataSourceProvider();
+    DatabaseConfigProvider databaseConfigProvider = new H2InMemoryDatabaseConfigProvider();
+
+    OperationalDataStore operationalDataStore =
+        new DefaultOperationalDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
+    DataMartDataStore dataMartDataStore =
+        new DefaultDataMartDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.dm));
+    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
+        databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
+
+    DatabaseProvisionUtils databaseProvisionUtils =
+        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore,
+            dataMartDataStore, thirdPartyScansDataStore);
+    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
+        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore);
+    return databaseContainer;
+  }
+
+  private void initDatabase() {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig());
+  }
+
   void clearCache() {
     cache.invalidateAll();
   }
@@ -170,7 +225,8 @@ public class ReleaseGraphPerformance
       int usersPerReport = Integer.parseInt(args[1]);
 
       // ReleaseGraphPerformance test = new ReleaseGraphPerformance( reports * usersPerReport, true, work );
-      ReleaseGraphPerformance test = new ReleaseGraphPerformance(reports, usersPerReport, work);
+      ReleaseGraphPerformance test =
+          new ReleaseGraphPerformance(reports, usersPerReport, work);
       long start = System.currentTimeMillis();
       System.out.println("Starting");
       List<Map<ComponentPopularity, Long>> results = test.begin();

@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.ide;
 
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ide.UserIdePolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class UserIdePolicyEvaluationDAO extends AbstractOperationalSqlDAO<UserIdePolicyEvaluation>
 {
+  @Inject
+  public UserIdePolicyEvaluationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public long getCountSince(Date sinceUtcDate) {
     String sQuery = "SELECT COUNT(entity) FROM UserIdePolicyEvaluation entity" +
         " WHERE entity.lastEvaluationTime >= ?1";

@@ -8,14 +8,13 @@ package com.sonatype.insight.brain.api.admin.service;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -34,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantProvisioningServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private InsightConfig insightConfig;
@@ -64,9 +63,7 @@ public class TenantProvisioningServiceTest
   private TenantProvisioningService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     tenantUtil = new TenantUtil();
     config = new MultiTenantInsightConfig();
     underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, tenantUtil,
@@ -84,8 +81,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(userDAO).getById("ADMIN");
       verify(userDAO, never()).delete(user);
     });
@@ -101,8 +97,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(userDAO).getById("ADMIN");
       verify(userDAO).delete(user);
     });
@@ -118,8 +113,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(systemConfigurationPropertyDAO).set("ADVANCED_SEARCH_ENABLED", "false");
     });
   }

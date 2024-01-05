@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -64,7 +65,12 @@ public class SystemNoticeTest
   private final com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =
       new com.sonatype.clm.testing.functional.elements.SystemNotice();
 
-  private final SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+  private SystemNoticeDAO systemNoticeDAO;
+
+  @Before
+  public void setUp() {
+    systemNoticeDAO = lookup(SystemNoticeDAO.class);
+  }
 
   @Test
   @Ignore

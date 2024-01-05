@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class SourceControlOrganizationImportEventDAO
     extends AbstractOperationalSqlDAO<SourceControlOrganizationImportEvent>
 {
+  @Inject
+  public SourceControlOrganizationImportEventDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public SourceControlOrganizationImportEvent getByOrganizationAndEventId(final String orgId, final String eventId) {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //

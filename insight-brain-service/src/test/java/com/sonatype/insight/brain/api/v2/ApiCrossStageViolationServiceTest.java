@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -48,9 +47,13 @@ public class ApiCrossStageViolationServiceTest
 
   private Policy policy;
 
-  private PolicyViolationDAO policyViolationDAO;
-
   private final ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
+
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
 
   @Inject
   private ApiCrossStageViolationService service;
@@ -63,7 +66,7 @@ public class ApiCrossStageViolationServiceTest
     app = tempEntity.newApplication(org.getId());
     app2 = tempEntity.newApplication(org.getId());
     policy = tempEntity.newPolicy(policyOwnerOrg.getId(), "p1", 7);
-    policyViolationDAO = new PolicyViolationDAO();
+
   }
 
   @Test
@@ -268,7 +271,7 @@ public class ApiCrossStageViolationServiceTest
     Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.policyOwner).isNotNull();

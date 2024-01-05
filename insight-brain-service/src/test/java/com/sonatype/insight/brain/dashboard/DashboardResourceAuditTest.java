@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
@@ -39,7 +40,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DashboardResourceAuditTest
     extends AbstractAuditTest
 {
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private DashboardFilterDAO dashboardFilterDAO;
+
+  @Before
+  public void before() {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+  }
 
   @Test
   public void testUpdateDashboardFilterForCurrentUser() throws Exception {

@@ -8,10 +8,7 @@ package com.sonatype.insight.brain.model.policy.notifications;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.21.0
@@ -47,16 +44,6 @@ public class JiraNotification
     super(stageIds);
     this.projectKey = projectKey;
     this.issueTypeId = issueTypeId;
-  }
-
-  @Override
-  protected void validate(final ValidationResult validationResult) {
-    if (StringUtils.isBlank(projectKey)) {
-      validationResult.addError("Invalid JIRA notification: A valid project key is required");
-    }
-    if (issueTypeId == null) {
-      validationResult.addError("Invalid JIRA notification: A valid issue type id is required");
-    }
   }
 
   @Override

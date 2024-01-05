@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class UserTokenAuthcTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Rule
   public TestLdapServer testLdapServer1 = new TestLdapServer();
@@ -58,6 +58,8 @@ public class UserTokenAuthcTest
 
   private UserToken userToken;
 
+  private UserTokenDAO userTokenDAO;
+
   public UserTokenAuthcTest(boolean setupLdap, boolean isLdapUser, boolean isInternalUser, boolean isSamlUser) {
     this.setupLdap = setupLdap;
     this.isLdapUser = isLdapUser;
@@ -81,6 +83,8 @@ public class UserTokenAuthcTest
 
   @Before
   public void init() throws Exception {
+    userTokenDAO = lookup(UserTokenDAO.class);
+
     if (setupLdap) {
       testLdapServer1.start();
       LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP1");
@@ -164,7 +168,7 @@ public class UserTokenAuthcTest
     Assume.assumeTrue(setupLdap && isLdapUser && !isInternalUser);
 
     // Change the username in the user token to simulate a token for a user that doesn't exist in LDAP anymore.
-    new UserTokenDAO().delete(userToken);
+    userTokenDAO.delete(userToken);
     userToken = tempEntity.newUserToken("UserDoesNotExist", userToken.getUserCode(), userToken.getPassCode(),
         userToken.getRealmId());
 
@@ -173,7 +177,7 @@ public class UserTokenAuthcTest
         request.path(UserSessionResource.RESOURCE_PATH).auth(userToken.getUserCode(), userTokenPassword).get();
     assertResponseStatus(401, response);
     assertThat(response.getSessionCookie()).isNull();
-    assertThat(new UserTokenDAO().getById(userToken.getId())).isNull();
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
   }
 
   @Test

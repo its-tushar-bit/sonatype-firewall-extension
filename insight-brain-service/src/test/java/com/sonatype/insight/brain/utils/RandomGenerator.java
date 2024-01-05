@@ -11,7 +11,7 @@ import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.currentTimeMillis;

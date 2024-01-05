@@ -9,10 +9,10 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantRepositoryConfigurationCollectorTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private static final String USER_AGENT = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
 
@@ -45,10 +45,9 @@ public class MultiTenantRepositoryConfigurationCollectorTest
   @Override
   public void setup() {
     super.setup();
-    repositoryManagerDAO = new RepositoryManagerDAO();
-    repositoryDAO = new RepositoryDAO();
-    telemetryCollector =
-        new RepositoryConfigurationCollector(productLicense, repositoryDAO, repositoryManagerDAO);
+    repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+    repositoryDAO = daoFactory.createRepositoryDAO();
+    telemetryCollector = new RepositoryConfigurationCollector(productLicense, repositoryDAO, repositoryManagerDAO);
   }
 
   @Test

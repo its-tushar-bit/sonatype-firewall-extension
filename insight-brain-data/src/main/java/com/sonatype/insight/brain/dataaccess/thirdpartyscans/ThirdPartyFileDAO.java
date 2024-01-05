@@ -6,14 +6,35 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ThirdPartyFileDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyFile>
 {
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  private final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  @Inject
+  public ThirdPartyFileDAO(
+      final ThirdPartyScansDataStore thirdPartyScansDataStore,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final ThirdPartyScanDAO thirdPartyScanDAO)
+  {
+    super(thirdPartyScansDataStore);
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
+  }
+
   public List<ThirdPartyFile> getAll() {
     return getList("SELECT entity FROM ThirdPartyFile entity");
   }
@@ -39,10 +60,10 @@ public class ThirdPartyFileDAO
   @Override
   public void delete(TransactionContext tx, ThirdPartyFile thirdPartyFile) {
     // cascade delete file coordinates
-    new ThirdPartyFileCoordinateDAO().deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
+    thirdPartyFileCoordinateDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
 
     // cascade delete scanned files
-    new ThirdPartyScanDAO().deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
+    thirdPartyScanDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
 
     // lastly delete this entity
     super.delete(tx, thirdPartyFile);

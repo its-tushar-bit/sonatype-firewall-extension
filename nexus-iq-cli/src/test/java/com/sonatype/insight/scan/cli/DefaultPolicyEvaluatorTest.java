@@ -63,6 +63,7 @@ import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -79,6 +80,25 @@ public abstract class DefaultPolicyEvaluatorTest
 {
   @Rule
   public final AccessibleEnvironmentVariables environmentVariables = new AccessibleEnvironmentVariables();
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private LabelDAO labelDAO;
+
+  private ComponentLabelDAO componentLabelDAO;
+
+  @Before
+  public void before() {
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    labelDAO = lookup(LabelDAO.class);
+    componentLabelDAO = lookup(ComponentLabelDAO.class);
+  }
 
   @Test
   public void testRun_ServerDown() throws Exception {
@@ -487,7 +507,7 @@ public abstract class DefaultPolicyEvaluatorTest
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE)).isNotNull();
+    assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE)).isNotNull();
   }
 
   @Test
@@ -500,7 +520,7 @@ public abstract class DefaultPolicyEvaluatorTest
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD)).isNotNull();
+    assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD)).isNotNull();
   }
 
   @Test
@@ -571,7 +591,7 @@ public abstract class DefaultPolicyEvaluatorTest
   public void testRun_JsonExportWithPolicyViolationsAndNotifications() throws Exception {
     // Creating some notifications for the policies
     Role role = tempEntity.newRole(true, Permission.WRITE, Permission.EVALUATE_COMPONENT);
-    Notification roleNotification = new RoleNotification(role.getId(), Stage.ID_BUILD);
+    Notification roleNotification = new RoleNotification(role.getId(), role.getName(), Stage.ID_BUILD);
     Webhook webhook = tempEntity.newWebhook(Stream.of(WebhookEventType.POLICY_ALERT)
         .collect(Collectors.toCollection(HashSet::new)));
     Notification webhookNotification = new WebhookNotification(webhook.getId(), Stage.ID_BUILD);
@@ -664,8 +684,6 @@ public abstract class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_AutoAppCreationEnabled() throws Exception {
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -676,17 +694,14 @@ public abstract class DefaultPolicyEvaluatorTest
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
         .doPolicyEvaluationRun();
 
-    ApplicationDAO appDAO = new ApplicationDAO();
-    Application app = appDAO.getByPublicId("non-existent-app-public-id");
+    Application app = applicationDAO.getByPublicId("non-existent-app-public-id");
     assertThat(app).isNotNull();
-    appDAO.delete(app);
+    applicationDAO.delete(app);
   }
 
   @Test
   public void testRun_AutoAppCreationEnabled_orgIdProvided() throws Exception {
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId("non-existent-org-id");
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -698,19 +713,16 @@ public abstract class DefaultPolicyEvaluatorTest
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
         .doPolicyEvaluationRun();
 
-    ApplicationDAO appDAO = new ApplicationDAO();
-    Application app = appDAO.getByPublicId("non-existent-app-public-id");
+    Application app = applicationDAO.getByPublicId("non-existent-app-public-id");
     assertThat(app).isNotNull();
     assertThat(app.getOrganizationId()).isEqualTo(org.getId());
-    appDAO.delete(app);
+    applicationDAO.delete(app);
   }
 
   @Test
   public void testRun_AutoAppCreationEnabled_orgIdProvided_appExistsInDifferentOrg() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("app-in-org", org.getId());
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId("non-existent-org-id");
     automaticApplicationsConfigurationDAO.setEnabled(true);
     Organization org2 = tempEntity.newOrganization();
@@ -724,8 +736,7 @@ public abstract class DefaultPolicyEvaluatorTest
         .expectErrorLog("The application ID app-in-org is invalid for organization ID " + org2.getId() + ".")
         .doPolicyEvaluationRun();
 
-    ApplicationDAO appDAO = new ApplicationDAO();
-    appDAO.delete(app);
+    applicationDAO.delete(app);
   }
 
   @Test
@@ -900,9 +911,8 @@ public abstract class DefaultPolicyEvaluatorTest
 
     withTestRunner(params).doPolicyEvaluationRun();
 
-    Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
+    Label label = labelDAO.getByLabelWithHierarchy("Security-Reachable", app.getId());
     if (label != null) {
-      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
       try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
         assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
             .isEmpty();
@@ -937,17 +947,15 @@ public abstract class DefaultPolicyEvaluatorTest
     );
 
     // This creates labels at root org level. We need to remove them after the test.
-    LabelDAO labelDAO = new LabelDAO();
     Set<String> oldLabelIds = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).stream().map(Label::getId)
         .collect(Collectors.toSet());
     try {
       withTestRunner(params).doPolicyEvaluationRun();
 
-      Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
+      Label label = labelDAO.getByLabelWithHierarchy("Security-Reachable", app.getId());
       assertThat(label).isNotNull();
 
       if (label != null) {
-        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
         try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
           assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
               .isNotEmpty();
@@ -955,7 +963,7 @@ public abstract class DefaultPolicyEvaluatorTest
       }
     }
     finally {
-      List<Label> labels = new LabelDAO().getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      List<Label> labels = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
       labels.stream().filter(label -> !oldLabelIds.contains(label.getId())).forEach(labelDAO::delete);
     }
   }

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyR
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SidebarResourceTest
     extends AbstractResourceTest
 {
+  private OrganizationDAO organizationDAO;
+
+  @Before
+  public void setUp() {
+    organizationDAO = lookup(OrganizationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(SidebarResource.RESOURCE_PATH);
@@ -36,7 +44,7 @@ public class SidebarResourceTest
 
   @Test
   public void testGetOwnerList() throws Exception {
-    Organization rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     Organization orgOne = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(orgOne.getId());
     Application appTwo = tempEntity.newApplication(orgOne.getId());

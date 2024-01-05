@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -66,13 +65,16 @@ public class LabelService
 
   private PermissionService permissionService;
 
+  private final IdUtils idUtils;
+
   @Inject
   public LabelService(final PermissionService permissionService,
                       final LabelDAO labelDAO,
                       final OwnerDAO ownerDAO,
                       final PolicyDAO policyDAO,
                       final ApplicationDAO applicationDAO,
-                      final ManagementEventService managementEventService)
+                      final ManagementEventService managementEventService,
+                      final IdUtils idUtils)
   {
     this.permissionService = permissionService;
     this.labelDAO = labelDAO;
@@ -80,6 +82,7 @@ public class LabelService
     this.policyDAO = policyDAO;
     this.applicationDAO = applicationDAO;
     this.managementEventService = managementEventService;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -91,7 +94,7 @@ public class LabelService
       String ownerId,
       boolean inherit)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return getLabelsWithAuthzCheck(ownerType, ownerId, inherit);
   }
 
@@ -121,7 +124,7 @@ public class LabelService
    */
   public ApplicableLabels getApplicableLabels(OwnerType ownerType, String ownerId) {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return getApplicableLabelsWithAuthzCheck(ownerType, ownerId);
   }
 
@@ -152,7 +155,7 @@ public class LabelService
    * Enumerates the contexts (org/app) in which the given label could be applied.
    */
   public ApplicableContext getApplicableContexts(OwnerType ownerType, String ownerId, String labelId) {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return getApplicableContextsWithAuthzCheck(ownerType, ownerId, labelId);
   }
 
@@ -200,7 +203,7 @@ public class LabelService
   }
 
   public ApiLabelDTO addLabel(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return addLabelWithAuthzCheck(ownerType, ownerId, apiLabelDTO);
   }
 
@@ -224,7 +227,7 @@ public class LabelService
   }
 
   public ApiLabelDTO updateLabel(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return updateLabelWithAuthzCheck(ownerType, ownerId, apiLabelDTO);
   }
 
@@ -252,7 +255,7 @@ public class LabelService
   }
 
   public void deleteLabel(OwnerType ownerType, String ownerId, String labelId) {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     deleteLabelWithAuthzCheck(ownerType, internalOwnerId ,labelId);
   }
 

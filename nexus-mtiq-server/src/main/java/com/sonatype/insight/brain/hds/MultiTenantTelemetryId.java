@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
@@ -20,8 +21,11 @@ public class MultiTenantTelemetryId
   private final TenantReference<String> tenantTelemetryId = new TenantReference<>();
 
   @Inject
-  public MultiTenantTelemetryId(InsightConfig insightConfig) {
-    super(insightConfig);
+  public MultiTenantTelemetryId(
+      InsightConfig insightConfig,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  {
+    super(insightConfig, systemConfigurationPropertyDAO);
   }
 
   @Override

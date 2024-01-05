@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingAggregationDTOV2;
@@ -22,7 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingFlattenedDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditUtils;
+import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -69,15 +68,21 @@ public class ApiMetricsReportingServiceV2
 
   private final PolicyViolationAggregationService policyViolationAggregationService;
 
+  private final AuditService auditService;
+
   @Inject
   public ApiMetricsReportingServiceV2(
-      ApplicationService applicationService,
-      PolicyViolationAggregationService policyViolationAggregationService)
+      final ApplicationService applicationService,
+      final PolicyViolationAggregationService policyViolationAggregationService,
+      final PolicyViolationAggregationDAO policyViolationAggregationDAO,
+      final OrganizationDAO organizationDAO,
+      final AuditService auditService)
   {
-    policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
-    organizationDAO = new OrganizationDAO();
+    this.policyViolationAggregationDAO = policyViolationAggregationDAO;
+    this.organizationDAO = organizationDAO;
     this.applicationService = applicationService;
     this.policyViolationAggregationService = policyViolationAggregationService;
+    this.auditService = auditService;
   }
 
   public void validate(ApiMetricsReportingQueryDTOV2 queryDTO) {
@@ -140,9 +145,10 @@ public class ApiMetricsReportingServiceV2
     AuditData.get()
         .setData("beginDate", startDate.toString())
         .setData("endDate", endDate.orElse(LocalDate.now()).toString())
-        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(queryDTO.organizationIds))
+        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(queryDTO.organizationIds))
         .setData("selectedApplications",
-            AuditUtils.getSelectedApplicationsById(queryDTO.applicationIds, queryDTO.organizationIds, applicationsById))
+            auditService.getSelectedApplicationsById(queryDTO.applicationIds, queryDTO.organizationIds,
+                applicationsById))
         .setData("inspectedApplicationCount", applicationsById.size());
   }
 

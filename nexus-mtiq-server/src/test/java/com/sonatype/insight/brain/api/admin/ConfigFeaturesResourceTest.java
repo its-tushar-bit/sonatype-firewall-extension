@@ -16,10 +16,13 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
@@ -29,13 +32,15 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigFeaturesResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
-  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   protected HttpRequest restRequest(String path) {
     return super.adminRequest().path("api/").path(path);
   }
+
+  private TemporaryEntity privateGlobalTemporaryEntity;
 
   /**
    * SystemConfigurationPropertyFeature that are enabled by default in MTIQ should be added to this list
@@ -70,6 +75,24 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId()
       }
   )).toArray(String[]::new);
+
+  @Before
+  public void before() {
+    systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+
+    // This test mucks with the system properties in the global schema. Use TemporaryEntity to clean it up (see #after)
+    testAsGlobal(g -> {
+      privateGlobalTemporaryEntity = new TemporaryEntity(databaseContainerRule);
+      privateGlobalTemporaryEntity.before();
+    });
+  }
+
+  @After
+  public void after() {
+    testAsGlobal(g -> {
+      privateGlobalTemporaryEntity.after();
+    });
+  }
 
   @Test
   public void testFeatures_asGlobal() throws Exception {
@@ -114,10 +137,10 @@ public class ConfigFeaturesResourceTest
   @Test
   public void testDeleteFeature_asGlobal_alsoDisablesTenantFeatures() throws Exception {
     testAsGlobal(global -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
@@ -126,10 +149,10 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsGlobal(global -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
@@ -146,7 +169,7 @@ public class ConfigFeaturesResourceTest
   @Test
   public void testDeleteFeature_asTenant() throws Exception {
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
@@ -154,7 +177,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
@@ -185,10 +208,10 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsGlobal(global -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
@@ -197,10 +220,10 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsGlobal(global -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
@@ -222,7 +245,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
@@ -231,7 +254,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
@@ -260,7 +283,7 @@ public class ConfigFeaturesResourceTest
   @Test
   public void testEnableFeature_saasLifecycleScmEnabled_asTenant() throws Exception {
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
     });
 
     HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
@@ -269,7 +292,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
@@ -287,7 +310,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
@@ -296,7 +319,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
-      assertThat(configurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
+      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
     });
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class InnerSourceComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private final InnerSourceComponentDAO dao = new InnerSourceComponentDAO();
+  private InnerSourceComponentDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createInnerSourceComponentDAO();
+  }
 
   private static final Comparator<InnerSourceComponent> INNER_SOURCE_COMPONENT_COMPARATOR =
       Comparator.comparing(InnerSourceComponent::getApplicationId)

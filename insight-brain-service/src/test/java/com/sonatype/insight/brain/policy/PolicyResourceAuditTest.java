@@ -59,6 +59,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyResourceAuditTest
     extends AbstractPolicyImportAuditTest
 {
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private TagDAO tagDAO;
+
+  private PolicyDAO policyDAO;
+
+  private LabelDAO labelDAO;
+
   private Organization organization;
 
   private Organization rootOrganization;
@@ -67,8 +77,14 @@ public class PolicyResourceAuditTest
 
   @Before
   public void before() {
+    licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    tagDAO = lookup(TagDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    labelDAO = lookup(LabelDAO.class);
+
     organization = tempEntity.newOrganization();
-    rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -128,7 +144,7 @@ public class PolicyResourceAuditTest
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP, 0)).isEmpty();
-    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(ltg.getId())).isNotNull();
   }
 
   @Test
@@ -217,7 +233,7 @@ public class PolicyResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyImportData(auditDTO, 1, 1, 0, 0);
-    assertThat(new PolicyWaiverDAO().getById(policyWaiver.getId())).isNotNull();
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNotNull();
     assertThat(awaitLogEntries(AuditEvent.DELETE_WAIVER, 0)).isEmpty();
   }
 
@@ -294,7 +310,7 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertOrganizationData(auditDTO, organization);
-    assertThat(new TagDAO().getByOrganizationId(organization.getId())).isEmpty();
+    assertThat(tagDAO.getByOrganizationId(organization.getId())).isEmpty();
     assertThat(awaitLogEntries(AuditEvent.IMPORT_APPLICATION_CATEGORY, 0)).isEmpty();
   }
 
@@ -539,7 +555,7 @@ public class PolicyResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     Map<String, String> actionsOverride = new LinkedHashMap<>();
     actionsOverride.put("stage-release", "fail");
@@ -558,7 +574,7 @@ public class PolicyResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyNotificationsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     Notifications notificationsOverride = new Notifications();
     notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
@@ -575,7 +591,7 @@ public class PolicyResourceAuditTest
     //Root Organization is the owner
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     policyResourceRequest(organization).path(policy.getId(), "overrides")
         .body(new PolicyOverridesDTO(new LinkedHashMap<>())).put();
@@ -590,7 +606,7 @@ public class PolicyResourceAuditTest
     //Root Organization is the owner
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyNotificationsOverrideAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     policyResourceRequest(organization).path(policy.getId(), "overrides")
         .body(new PolicyOverridesDTO(new Notifications())).put();
@@ -741,7 +757,7 @@ public class PolicyResourceAuditTest
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
     assertThat(awaitLogEntries(AuditEvent.DELETE_POLICY, 0)).isEmpty();
-    assertThat(new PolicyDAO().getById(policy.getId())).isNotNull();
+    assertThat(policyDAO.getById(policy.getId())).isNotNull();
   }
 
   @Test
@@ -796,7 +812,7 @@ public class PolicyResourceAuditTest
     List<ApplicationCategoryAuditDTO> auditedTags =
         ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
             .map(p -> JSON.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
-    TagDAO tagDAO = new TagDAO();
+    TagDAO tagDAO = this.tagDAO;
 
     assertThat(auditedTags).hasSameSizeAs(tags);
     for (int i = 0; i < tags.size(); i++) {
@@ -810,7 +826,7 @@ public class PolicyResourceAuditTest
       final Policy policy,
       final String inheritanceScope)
   {
-    PolicyDAO policyDAO = new PolicyDAO();
+    PolicyDAO policyDAO = this.policyDAO;
     assertThat(policyDAO.getById((String) auditDTO.data.get("policyId"))).isNotNull();
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "inheritanceScope", inheritanceScope);
@@ -858,7 +874,7 @@ public class PolicyResourceAuditTest
       assertCustomData(auditDTO, "licenseThreatGroupId", ltg.getId());
     }
     else {
-      assertThat(new LicenseThreatGroupDAO().getById((String) auditDTO.data.get("licenseThreatGroupId"))).isNotNull();
+      assertThat(licenseThreatGroupDAO.getById((String) auditDTO.data.get("licenseThreatGroupId"))).isNotNull();
     }
     assertCustomData(auditDTO, "licenseThreatGroupName", ltg.getName());
     if (licenseNames == null) {
@@ -885,7 +901,6 @@ public class PolicyResourceAuditTest
   }
 
   private void assertLabelData(final AuditDTO auditDTO, final Label label) {
-    LabelDAO labelDAO = new LabelDAO();
     String labelId = (String) auditDTO.data.get("labelId");
     assertThat(labelDAO.getById(labelId)).isNotNull();
     assertCustomData(auditDTO, "labelName", label.getLabel());
@@ -894,7 +909,7 @@ public class PolicyResourceAuditTest
   }
 
   private void assertTagData(AuditDTO auditDTO, Tag tag) {
-    Tag savedTag = new TagDAO().getById((String) auditDTO.data.get("applicationCategoryId"));
+    Tag savedTag = tagDAO.getById((String) auditDTO.data.get("applicationCategoryId"));
     assertThat(savedTag).isNotNull();
     assertThat(savedTag.getName()).isEqualTo(tag.getName());
     assertThat(savedTag.getDescription()).isEqualTo(tag.getDescription());

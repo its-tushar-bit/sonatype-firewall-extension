@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -18,7 +19,14 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 public class SourceControlPullRequestResultDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlPullRequestResultDAO dao = new SourceControlPullRequestResultDAO();
+  private SourceControlPullRequestResultDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSourceControlPullRequestResultDAO();
+  }
 
   @Test
   public void testCRUD() {

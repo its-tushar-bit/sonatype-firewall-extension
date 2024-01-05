@@ -49,6 +49,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
@@ -69,7 +70,12 @@ public class DashboardResourceTest
     csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private DashboardFilterDAO dashboardFilterDAO;
+
+  @Before
+  public void before() {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

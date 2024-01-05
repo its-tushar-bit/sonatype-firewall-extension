@@ -109,6 +109,14 @@ public class ApiPolicyWaiverService
 
   private final CurrentUser currentUser;
 
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final IdUtils idUtils;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
@@ -119,7 +127,11 @@ public class ApiPolicyWaiverService
       PolicyEvaluationDAO policyEvaluationDAO,
       ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2,
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      OrganizationDAO organizationDAO,
+      final IdUtils idUtils)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -130,6 +142,10 @@ public class ApiPolicyWaiverService
     this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
     this.currentUser = currentUser;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.organizationDAO = organizationDAO;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -143,7 +159,7 @@ public class ApiPolicyWaiverService
       final OwnerType ownerType,
       final String comment)
   {
-    PolicyViolation policyViolation = new PolicyViolationDAO().getById(policyViolationId);
+    PolicyViolation policyViolation = policyViolationDAO.getById(policyViolationId);
 
     if (policyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
@@ -157,7 +173,7 @@ public class ApiPolicyWaiverService
         break;
       case ORGANIZATION:
         ownerId = applicationDAO.getByIdNotNull(policyViolation.getApplicationId()).getOrganizationId();
-        AuditData.get().setData("organizationId", ownerId).setOrganization(new OrganizationDAO().getById(ownerId));
+        AuditData.get().setData("organizationId", ownerId).setOrganization(organizationDAO.getById(ownerId));
         break;
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
@@ -175,16 +191,16 @@ public class ApiPolicyWaiverService
       final String policyViolationId,
       final ApiWaiverOptionsDTO waiverOptionsDTO)
   {
-    AbstractPolicyViolation abstractPolicyViolation = new PolicyViolationDAO().getById(policyViolationId);
+    AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getById(policyViolationId);
     if (abstractPolicyViolation == null) {
-      abstractPolicyViolation = new RepositoryPolicyViolationDAO().getById(policyViolationId);
+      abstractPolicyViolation = repositoryPolicyViolationDAO.getById(policyViolationId);
     }
 
     if (abstractPolicyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
     }
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
       throw new BadRequestException("Invalid owner id: " + ownerId);
@@ -233,7 +249,7 @@ public class ApiPolicyWaiverService
   }
 
   public List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId) {
-    return getPolicyWaiversWithAuthzCheck(IdUtils.getOwnerNotNull(ownerType, ownerId));
+    return getPolicyWaiversWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId));
   }
 
   @Authorize(permission = Permission.READ)
@@ -266,7 +282,7 @@ public class ApiPolicyWaiverService
     if (componentIdentifier == null && packageUrl == null && hash == null) {
       throw new BadRequestException("componentIdentifier or packageUrl or hash must be specified.");
     }
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     checkOwnerReadAuthz(owner);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
     if (policyEvaluation == null) {
@@ -351,7 +367,7 @@ public class ApiPolicyWaiverService
   }
 
   public void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     deletePolicyWaiverWithAuthzCheck(ownerType, internalOwnerId, policyWaiverId);
   }
 
@@ -410,9 +426,9 @@ public class ApiPolicyWaiverService
    */
   public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(final String violationId) {
     // The violationId may references an application policy violation or a repository policy violation
-    AbstractPolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
+    AbstractPolicyViolation policyViolation = policyViolationDAO.getById(violationId);
     if (policyViolation == null) {
-      policyViolation = new RepositoryPolicyViolationDAO().getById(violationId);
+      policyViolation = repositoryPolicyViolationDAO.getById(violationId);
       if (policyViolation == null) {
         throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
       }
@@ -452,7 +468,7 @@ public class ApiPolicyWaiverService
       ApiWaiverOptionsDTO apiWaiverOptionsDTO)
   {
     ApiWaiverOptionsDTO waiverDTO = apiWaiverOptionsDTO != null ? apiWaiverOptionsDTO : new ApiWaiverOptionsDTO();
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     Pair<Component, List<Pair<PolicyViolation, Component>>> pair = apiPolicyViolationServiceV2
         .getTransitivePolicyViolationsForLastEvaluation(owner.getId(), scanId, componentIdentifier, packageUrl, hash);
 
@@ -480,7 +496,7 @@ public class ApiPolicyWaiverService
       String hash,
       ApiWaiverOptionsDTO apiWaiverOptionsDTO)
   {
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     String stageIdLowercase = stageId.toLowerCase(Locale.ROOT);
     if (!Stage.isValidStageTypeId(stageIdLowercase)) {
       throw new InvalidStageException(stageId);
@@ -600,7 +616,7 @@ public class ApiPolicyWaiverService
   }
 
   public ApiPolicyWaiverDTO getPolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
-    return getPolicyWaiverWithAuthzCheck(IdUtils.getOwnerNotNull(ownerType, ownerId), policyWaiverId);
+    return getPolicyWaiverWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId), policyWaiverId);
   }
 
   @Authorize(permission = Permission.READ)

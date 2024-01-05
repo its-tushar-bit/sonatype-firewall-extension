@@ -57,6 +57,12 @@ public class PullRequestDetailsBase
   @VisibleForTesting
   static Clock clock = Clock.systemDefaultZone();
 
+  private final OrganizationDAO organizationDAO;
+
+  public PullRequestDetailsBase(final OrganizationDAO organizationDAO) {
+    this.organizationDAO = organizationDAO;
+  }
+
   /**
    * Gets the constraint details for the given list of constraints
    *
@@ -263,6 +269,6 @@ public class PullRequestDetailsBase
   }
 
   protected Object getOrganizationName(final Application app) {
-    return new OrganizationDAO().getByIdNotNull(app.getOrganizationId()).getName();
+    return organizationDAO.getByIdNotNull(app.getOrganizationId()).getName();
   }
 }

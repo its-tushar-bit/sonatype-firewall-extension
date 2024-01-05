@@ -13,6 +13,7 @@ import java.util.Objects;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -44,6 +45,8 @@ class SidebarService
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final MembershipMappingService membershipMappingService;
 
   private final OrganizationService organizationService;
@@ -58,6 +61,7 @@ class SidebarService
       final PolicyDAO policyDAO,
       final LabelDAO labelDAO,
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final OrganizationDAO organizationDAO,
       final MembershipMappingService membershipMappingService,
       final OrganizationService organizationService,
       final ApplicationService applicationService,
@@ -67,6 +71,7 @@ class SidebarService
     this.policyDAO = policyDAO;
     this.labelDAO = labelDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.organizationDAO = organizationDAO;
     this.membershipMappingService = membershipMappingService;
     this.organizationService = organizationService;
     this.applicationService = applicationService;
@@ -119,7 +124,7 @@ class SidebarService
       final List<RepositoryManager> repositoryManagers,
       final List<Repository> repositories)
   {
-    return new OwnerHierarchy(orgs, apps, repositoryManagers, repositories);
+    return new OwnerHierarchy(orgs, apps, repositoryManagers, repositories, organizationDAO);
   }
 
   private void calculateChildrenSize(OwnerHierarchy hierarchy, OwnerHierarchyOrganizationDTO organization) {

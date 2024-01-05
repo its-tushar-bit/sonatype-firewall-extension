@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.AbstractDataTest;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -17,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 public class VerifiableLoggingTestBase
+    extends AbstractDataTest
 {
   private ListAppender<ILoggingEvent> listAppender;
 

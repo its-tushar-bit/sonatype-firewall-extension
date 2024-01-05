@@ -36,14 +36,19 @@ public class PolicyAlertNotifier
 
   private final PolicyAlertScmNotifier policyAlertScmNotifier;
 
+  private final PolicyNotificationUtil policyNotificationUtil;
+
   @Inject
-  public PolicyAlertNotifier(final PolicyAlertEmailer policyAlertEmailer,
-                             final JiraPolicyAlertNotifier jiraPolicyAlertNotifier,
-                             final PolicyAlertScmNotifier policyAlertScmNotifier)
+  public PolicyAlertNotifier(
+      final PolicyAlertEmailer policyAlertEmailer,
+      final JiraPolicyAlertNotifier jiraPolicyAlertNotifier,
+      final PolicyAlertScmNotifier policyAlertScmNotifier,
+      final PolicyNotificationUtil policyNotificationUtil)
   {
     this.policyAlertEmailer = policyAlertEmailer;
     this.jiraPolicyAlertNotifier = jiraPolicyAlertNotifier;
     this.policyAlertScmNotifier = policyAlertScmNotifier;
+    this.policyNotificationUtil = policyNotificationUtil;
   }
 
   /**
@@ -54,7 +59,7 @@ public class PolicyAlertNotifier
                                 final ScanPolicyEvaluatorResults results)
   {
     if (!results.notifiableViolations.isEmpty()) {
-      List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+      List<PolicyNotification> policyNotifications = policyNotificationUtil
           .createPolicyNotifications(app, results.notifiableViolations, results.evaluation.getStageTypeId(),
               results.evaluation.isForMonitoring());
 

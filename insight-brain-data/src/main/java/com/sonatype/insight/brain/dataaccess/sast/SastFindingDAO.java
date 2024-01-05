@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.sast;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
@@ -16,9 +20,20 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import static java.lang.String.format;
 
+@Named
+@Singleton
 public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
 {
-  private final SastRemediationDAO sastRemediationDAO = new SastRemediationDAO();
+  private final SastRemediationDAO sastRemediationDAO;
+
+  @Inject
+  public SastFindingDAO(
+      final OperationalDataStore operationalDataStore,
+      final SastRemediationDAO sastRemediationDAO)
+  {
+    super(operationalDataStore);
+    this.sastRemediationDAO = sastRemediationDAO;
+  }
 
   @Override
   public void insert(final TransactionContext tx, final SastFinding entity) {

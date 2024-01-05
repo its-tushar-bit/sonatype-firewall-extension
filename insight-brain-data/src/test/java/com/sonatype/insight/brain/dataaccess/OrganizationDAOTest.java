@@ -18,6 +18,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.PostgresClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -32,8 +36,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -63,10 +66,10 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -80,7 +83,77 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
-  private final OrganizationDAO dao = new OrganizationDAO();
+  private LabelDAO labelDAO;
+
+  private ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private TagDAO tagDAO;
+
+  private PolicyDAO policyDAO;
+
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private RoleDAO roleDAO;
+
+  private MembershipMappingDAO membershipMappingDAO;
+
+  private PolicyMonitoringDAO policyMonitoringDAO;
+
+  private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  private SourceControlDAO sourceControlDAO;
+
+  private SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO;
+
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private RepositoryConnectionDAO repositoryConnectionDAO;
+
+  private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
+
+  private VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO;
+
+  private VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO;
+
+  private VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO;
+
+  private OrganizationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    labelDAO = daoFactory.createLabelDAO();
+    proprietaryConfigDAO = daoFactory.createProprietaryConfigDAO();
+    tagDAO = daoFactory.createTagDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    roleDAO = daoFactory.createRoleDAO();
+    membershipMappingDAO = daoFactory.createMembershipMappingDAO();
+    policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
+    dataRetentionPolicyDAO = daoFactory.createDataRetentionPolicyDAO();
+    sourceControlDAO = daoFactory.createSourceControlDAO();
+    sourceControlOrganizationImportEventDAO = daoFactory.createSourceControlOrganizationImportEventDAO();
+    automaticApplicationsConfigurationDAO = daoFactory.createAutomaticApplicationsConfigurationDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    repositoryConnectionDAO = daoFactory.createRepositoryConnectionDAO();
+    vulnerabilityCustomRemediationDAO = daoFactory.createVulnerabilityCustomRemediationDAO();
+    vulnerabilityCustomCweDAO = daoFactory.createVulnerabilityCustomCweDAO();
+    vulnerabilityCustomCvssVectorDAO = daoFactory.createVulnerabilityCustomCvssVectorDAO();
+    vulnerabilityCustomCvssSeverityDAO = daoFactory.createVulnerabilityCustomCvssSeverityDAO();
+    dao = daoFactory.createOrganizationDAO();
+  }
 
   @Override
   protected Organization createNameable(String a) {
@@ -91,12 +164,12 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   protected AbstractOperationalSqlDAO<Organization> getDao() {
     return dao;
   }
-  
+
   @Override
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH_APP_ORG;
   }
-  
+
   @Override
   protected Organization getEntityByName(String name) {
     return dao.getByName(name);
@@ -294,8 +367,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testDelete_CascadeToLabels() {
-    final LabelDAO labelDAO = new LabelDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
@@ -320,13 +391,11 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     tempEntity.newProprietaryConfig(organization.getId());
 
     dao.delete(organization);
-    assertThat(new ProprietaryConfigDAO().getByOwnerId(organization.getId())).isNull();
+    assertThat(proprietaryConfigDAO.getByOwnerId(organization.getId())).isNull();
   }
 
   @Test
   public void testDelete_CascadeToTags() {
-    TagDAO tagDAO = new TagDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
@@ -347,7 +416,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Organization organization = tempEntity.newOrganization("organization");
 
     tempEntity.newPolicy(organization);
-    PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
     assertThat(policies).hasSize(1);
 
@@ -369,10 +437,10 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
     policyWithOverrides.addPolicyNotificationsOverride(organization.getId(), policyNotificationsOverride);
     policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
-    new PolicyDAO().update(policyWithOverrides);
+    policyDAO.update(policyWithOverrides);
 
     dao.delete(organization);
-    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
+    Policy policy = policyDAO.getById(policyWithOverrides.getId());
     assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
     assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
   }
@@ -384,7 +452,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     LicenseOverride licenseOverride = new LicenseOverride(organizationId, ComponentIdentifier.createMavenCoordinates(
         "groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverrideDAO.insert(licenseOverride);
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(organizationId);
     assertThat(licenseOverrides).hasSize(1);
@@ -402,7 +469,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     dao.delete(organization);
 
-    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId())).isNull();
+    assertThat(securityVulnerabilityOverrideDAO.getById(securityVulnerabilityOverride.getId())).isNull();
   }
 
   @Test
@@ -412,7 +479,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
         "My comment");
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
     assertThat(policyWaivers).hasSize(1);
@@ -426,8 +492,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testDelete_CascadeToMembershipMappings() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToMembershipMappings");
 
-    String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    String roleId = roleDAO.getApplicationRoles().get(0).getId();
     membershipMappingDAO.setMembershipMappingsForContextAndRole(organization.getId(), roleId,
         Collections.singletonList(new MembershipMapping("admin", MemberType.USER)));
 
@@ -440,7 +505,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testDelete_CascadeToPolicyMonitoring() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyMonitoring");
 
-    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(organization.getId(), Stage.ID_RELEASE);
     policyMonitoringDAO.insert(policyMonitoring);
     assertThat(policyMonitoringDAO.getByOwnerId(organization.getId())).isNotNull();
@@ -454,7 +518,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testDelete_CascadeToDataRetentionPolicies() {
     Organization organization = tempEntity.newOrganization();
 
-    DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(organization.getId(), "contextId", false, null, null));
 
     dao.delete(organization);
@@ -471,7 +534,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     dao.delete(organization);
 
-    assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
+    assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
   }
 
   @Test
@@ -480,14 +543,11 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "scm-url", -1, 0);
 
     dao.delete(org);
-    assertThat(new SourceControlOrganizationImportEventDAO().getByOrganizationId(org.getId())).isEmpty();
+    assertThat(sourceControlOrganizationImportEventDAO.getByOrganizationId(org.getId())).isEmpty();
   }
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
@@ -502,9 +562,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     automaticApplicationsConfigurationDAO.setEnabled(false);
@@ -517,9 +574,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
@@ -536,9 +590,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
@@ -551,25 +602,25 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testCRUD_RecordSearchIndexChange() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     Organization org = tempEntity.newOrganization();
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(org.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     dao.update(org);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(org.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     dao.delete(org);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(org.getId());
@@ -579,39 +630,38 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testDelete_CascadeToLocks_H2() {
     // Lock for audit json file store
     Organization organization = tempEntity.newOrganization();
-    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(organization.getId())) {
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(organization.getId())) {
       clusterLock.lock();
     }
-    assertThat(ClusterLock.LOCKS_BY_ID
-        .get(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNotNull();
+
+    assertThat(clusterLockManager).isInstanceOf(H2ClusterLockManager.class);
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isTrue();
 
     dao.delete(organization);
 
-    assertThat(ClusterLock.LOCKS_BY_ID
-        .get(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNull();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isFalse();
   }
 
   @Test
+  @PostgresTest
   public void testDelete_CascadeToLocks_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      LockDAO lockDAO = new LockDAO();
-      Organization organization = tempEntity.newOrganization();
+    Organization organization = tempEntity.newOrganization();
 
-      // Lock for audit json file store
-      try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(organization.getId())) {
-        clusterLock.lock();
-      }
-      assertThat(lockDAO.getById(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNotNull();
-
-      dao.delete(organization);
-
-      assertThat(lockDAO.getById(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNull();
+    // Lock for audit json file store
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(organization.getId())) {
+      clusterLock.lock();
     }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+
+    assertThat(clusterLockManager).isInstanceOf(PostgresClusterLockManager.class);
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isTrue();
+
+    dao.delete(organization);
+
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForAuditJsonFileStore(organization.getId()))).isFalse();
   }
 
   @Test
@@ -621,7 +671,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     dao.delete(organization);
 
-    RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
     assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
   }
 
@@ -645,14 +694,13 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         tempEntity.newTag(organization.getId()), "rem2",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO = new VulnerabilityCustomRemediationDAO();
     List<VulnerabilityCustomRemediation> vulnerabilityCustomRemediationList =
         vulnerabilityCustomRemediationDAO.getByOwnerId(organization.getId());
     assertThat(vulnerabilityCustomRemediationList).extracting(VulnerabilityCustomRemediation::getRefId)
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(organization);
     vulnerabilityCustomRemediationList =
-        new VulnerabilityCustomRemediationDAO().getByOwnerId(organization.getId());
+        vulnerabilityCustomRemediationDAO.getByOwnerId(organization.getId());
     assertThat(vulnerabilityCustomRemediationList).isEmpty();
   }
 
@@ -666,7 +714,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         tempEntity.newTag(organization.getId()), "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
     List<VulnerabilityCustomCwe> vulnerabilityCustomCweList = vulnerabilityCustomCweDAO
         .getByOwnerId(organization.getId());
     assertThat(vulnerabilityCustomCweList).extracting(VulnerabilityCustomCwe::getRefId)
@@ -686,7 +733,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         tempEntity.newTag(organization.getId()), "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO = new VulnerabilityCustomCvssVectorDAO();
     List<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectorList =
         vulnerabilityCustomCvssVectorDAO.getByOwnerId(organization.getId());
     assertThat(vulnerabilityCustomCvssVectorList).extracting(VulnerabilityCustomCvssVector::getRefId)
@@ -705,7 +751,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         tempEntity.newTag(organization.getId()), "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO = new VulnerabilityCustomCvssSeverityDAO();
     List<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverityList =
         vulnerabilityCustomCvssSeverityDAO.getByOwnerId(organization.getId());
     assertThat(vulnerabilityCustomCvssSeverityList).extracting(VulnerabilityCustomCvssSeverity::getRefId)

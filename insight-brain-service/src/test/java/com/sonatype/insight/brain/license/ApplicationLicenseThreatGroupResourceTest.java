@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +23,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
 {
+  private ApplicationDAO applicationDAO;
+
+  @Before
+  @Override
+  public void setUp() {
+    super.setUp();
+    applicationDAO = lookup(ApplicationDAO.class);
+  }
+
   @Test
   public void testCRUD() throws Exception {
     String appPublicId = "LicenseThreatGroupResourceTest_AppId";
@@ -48,7 +58,7 @@ public class ApplicationLicenseThreatGroupResourceTest
     tempEntity.newLicenseThreatGroup(org.getId(), "LTG-2", 5, "GPL-2.0", "GPL-3.0");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
     app.setOrganizationId(org.getId());
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     tempEntity.newLicenseThreatGroup(app.getId(), "LTG-0", 5, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(app.getId(), "LTG-1", 5, "EPL-1.0");
 

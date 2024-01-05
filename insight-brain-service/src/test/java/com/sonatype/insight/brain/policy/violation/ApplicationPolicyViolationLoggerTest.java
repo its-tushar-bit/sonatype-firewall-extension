@@ -60,7 +60,7 @@ public class ApplicationPolicyViolationLoggerTest
   public void testLog() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -86,7 +86,8 @@ public class ApplicationPolicyViolationLoggerTest
       TenantTestHelper.testAsNewTenant(testName, tenant -> {
         when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
         ApplicationPolicyViolationLogger policyViolationLogger =
-            new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+            new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization,
+                currentUser);
         PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
         PolicyViolation policyViolationOne = createPolicyViolation();
         policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -113,7 +114,7 @@ public class ApplicationPolicyViolationLoggerTest
   public void testLog_NoComponentIdentifier() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
@@ -128,7 +129,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization, currentUser);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -148,7 +149,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(false, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(false, policyEvaluation.getTime(), application, organization, currentUser);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATE, createPolicyViolation());
 
     policyViolationLogger.log();
@@ -160,7 +161,7 @@ public class ApplicationPolicyViolationLoggerTest
   public void testLog_NoStagePolicyActionForCreateEventWithLegacyViolation() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setLegacyViolationTime(new Date());
@@ -176,7 +177,7 @@ public class ApplicationPolicyViolationLoggerTest
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setWaiveTime(new Date());
@@ -193,7 +194,7 @@ public class ApplicationPolicyViolationLoggerTest
     Date fixTime = new Date();
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, fixTime, application, currentUser);
+        new ApplicationPolicyViolationLogger(true, fixTime, application, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setFixTime(fixTime);

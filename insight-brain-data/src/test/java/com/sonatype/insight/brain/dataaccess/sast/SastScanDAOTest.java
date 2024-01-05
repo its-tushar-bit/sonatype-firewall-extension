@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,11 +21,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SastScanDAOTest
     extends AbstractDbDAOTest
 {
-  private final SastScanDAO sastScanDAO = new SastScanDAO();
+  private SastScanDAO sastScanDAO;
 
-  private final SastFindingDAO sastFindingDAO = new SastFindingDAO();
+  private SastFindingDAO sastFindingDAO;
 
-  private final SastRemediationDAO sastRemediationDAO = new SastRemediationDAO();
+  private SastRemediationDAO sastRemediationDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    sastScanDAO = daoFactory.createSastScanDAO();
+    sastFindingDAO = daoFactory.createSastFindingDAO();
+    sastRemediationDAO = daoFactory.createSastRemediationDAO();
+  }
 
   @Test
   public void testCRUD() {

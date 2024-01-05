@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingAggregationDTOV2;
@@ -51,6 +50,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ApiMetricsReportingServiceV2Test
     extends AbstractComponentTest
 {
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   @Inject
   private ApiMetricsReportingServiceV2 service;
 
@@ -130,7 +135,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_FullData_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         Collections.emptySet(), Collections.emptySet());
@@ -144,7 +149,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_FullData_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         Collections.emptySet(), Collections.emptySet());
@@ -158,7 +163,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_UpperBound_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", "2017-11",
         Collections.emptySet(), Collections.emptySet());
@@ -172,7 +177,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_UpperBound_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", "2017-W49",
         Collections.emptySet(), Collections.emptySet());
@@ -187,7 +192,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     createOtherOrgWithViolations();
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         Collections.emptySet(), Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID));
@@ -202,7 +207,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     createOtherOrgWithViolations();
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         Collections.emptySet(), Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID));
@@ -217,7 +222,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     Set<String> applicationIds = Collections.singleton(PolicyViolationAggregationDataHelper.APPLICATION_IDS[0]);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         applicationIds, Collections.emptySet());
@@ -232,7 +237,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     Set<String> applicationIds = Collections.singleton(PolicyViolationAggregationDataHelper.APPLICATION_IDS[0]);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         applicationIds, Collections.emptySet());
@@ -246,7 +251,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_NullAppsOrgs_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         null, null);
@@ -260,7 +265,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetMetrics_NullAppsOrgs_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         null, null);
@@ -288,7 +293,7 @@ public class ApiMetricsReportingServiceV2Test
         null, null);
 
     violation1.setFixTime(eval2.getTime());
-    new PolicyViolationDAO().update(violation1);
+    policyViolationDAO.update(violation1);
 
     List<ApiMetricsReportingDTOV2> results = service.getMetrics(queryDTO);
     assertThat(results).hasSize(1);
@@ -361,7 +366,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_FullData_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         Collections.emptySet(), Collections.emptySet());
@@ -375,7 +380,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_FullData_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         Collections.emptySet(), Collections.emptySet());
@@ -389,7 +394,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_UpperBound_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", "2017-11",
         Collections.emptySet(), Collections.emptySet());
@@ -403,7 +408,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_UpperBound_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", "2017-W49",
         Collections.emptySet(), Collections.emptySet());
@@ -418,7 +423,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     createOtherOrgWithViolations();
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         Collections.emptySet(), Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID));
@@ -433,7 +438,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     createOtherOrgWithViolations();
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         Collections.emptySet(), Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID));
@@ -448,7 +453,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     Set<String> applicationIds = Collections.singleton(PolicyViolationAggregationDataHelper.APPLICATION_IDS[0]);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         applicationIds, Collections.emptySet());
@@ -463,7 +468,7 @@ public class ApiMetricsReportingServiceV2Test
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     Set<String> applicationIds = Collections.singleton(PolicyViolationAggregationDataHelper.APPLICATION_IDS[0]);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         applicationIds, Collections.emptySet());
@@ -477,7 +482,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_NullAppsOrgs_Monthly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
         null, null);
@@ -491,7 +496,7 @@ public class ApiMetricsReportingServiceV2Test
   public void testGetFlattenedMetrics_NullAppsOrgs_Weekly() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    Organization organization = new OrganizationDAO().getById(PolicyViolationAggregationDataHelper.ORG_ID);
+    Organization organization = organizationDAO.getById(PolicyViolationAggregationDataHelper.ORG_ID);
 
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
         null, null);
@@ -519,7 +524,7 @@ public class ApiMetricsReportingServiceV2Test
         null, null);
 
     violation1.setFixTime(eval2.getTime());
-    new PolicyViolationDAO().update(violation1);
+    policyViolationDAO.update(violation1);
 
     List<ApiMetricsReportingFlattenedDTOV2> results = service.getFlattenedMetrics(queryDTO);
     assertThat(results).hasSize(2);
@@ -590,7 +595,7 @@ public class ApiMetricsReportingServiceV2Test
 
     violation.setFixTime(eval2.getTime());
 
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
   }
 
   private void assertMonthlyData(

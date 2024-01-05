@@ -9,15 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
@@ -48,7 +45,6 @@ import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -303,28 +299,16 @@ public class TestMultiTenantInsightBrainService
 
     super.run(config, env);
 
-    // Moved after super run for DB initialization
-    if (testHdsUrl != null) {
-      new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, testHdsUrl);
-    }
-
-    if (testProxyServerConfiguration != null) {
-      new ProxyServerConfigurationDAO().set(testProxyServerConfiguration);
-    }
-    else {
-      new ProxyServerConfigurationDAO().delete();
-    }
-
     disableForTesting();
 
     getInstance(MultiTenantApplicationLifecycle.class).boot();
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer() {
+  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
     // If no DatabaseContainer was pre-configured then create the default one
     if (databaseContainer == null) {
-      databaseContainer = super.createDatabaseContainer();
+      databaseContainer = super.createDatabaseContainer(insightConfig);
     }
     return databaseContainer;
   }
@@ -379,8 +363,6 @@ public class TestMultiTenantInsightBrainService
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
     }
-
-    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, null);
   }
 
   @Override

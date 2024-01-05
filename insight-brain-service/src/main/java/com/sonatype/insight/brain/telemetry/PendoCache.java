@@ -11,13 +11,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.ClusterLock.LockType;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -54,15 +54,18 @@ public class PendoCache
 
   private final InsightWork insightWork;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
-  public PendoCache(HdsClient hdsClient, InsightWork insightWork) {
+  public PendoCache(HdsClient hdsClient, InsightWork insightWork, final ClusterLockManager clusterLockManager) {
     this.hdsClient = hdsClient;
     this.insightWork = insightWork;
+    this.clusterLockManager = clusterLockManager;
   }
 
   // Visible for testing
   byte[] loadFile(String filename) throws IOException {
-    try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForFilename(filename)) {
       clusterLock.lock(LockType.SHARED);
       return doLoadFile(filename);
     }
@@ -135,7 +138,7 @@ public class PendoCache
   void deleteFileIfExists(String filename) {
     File file = new File(insightWork.getCacheDir(), filename);
     if (file.exists()) {
-      try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
+      try (ClusterLock clusterLock = clusterLockManager.createForFilename(filename)) {
         clusterLock.lock();
         doDeleteFile(file);
       }

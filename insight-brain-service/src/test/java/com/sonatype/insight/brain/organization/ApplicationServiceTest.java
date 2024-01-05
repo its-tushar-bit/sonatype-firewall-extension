@@ -74,6 +74,12 @@ public class ApplicationServiceTest
   private Application app2;
 
   @Inject
+  private MembershipMappingDAO membershipMappingDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private AsyncEventBus eventBus;
 
   @Inject
@@ -197,7 +203,7 @@ public class ApplicationServiceTest
     Organization org = tempEntity.newOrganization();
     Application app = new Application("appPublicId", "appName", org.getId());
     app = applicationService.addApplication(app);
-    List<MembershipMapping> mappings = new MembershipMappingDAO().getByContextIdAndRoleId(app.getId(),
+    List<MembershipMapping> mappings = membershipMappingDAO.getByContextIdAndRoleId(app.getId(),
         Role.OWNER_ROLE_ID);
     assertThat(mappings).hasSize(1);
     assertThat(mappings.get(0).getMemberName()).isEqualTo(USERNAME);
@@ -310,7 +316,7 @@ public class ApplicationServiceTest
     Files.createDirectories(insightWork.getSourceControlDir(applicationId).toPath());
 
     applicationService.deleteApplicationByPublicId(app1.getPublicId());
-    assertThat(new ApplicationDAO().getById(applicationId)).isNull();
+    assertThat(applicationDAO.getById(applicationId)).isNull();
 
     assertThat(insightWork.getScanDir(applicationId)).doesNotExist();
     assertThat(insightWork.getAuditDir(applicationId)).doesNotExist();

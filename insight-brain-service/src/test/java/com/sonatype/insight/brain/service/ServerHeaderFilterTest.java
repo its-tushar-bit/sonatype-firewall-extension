@@ -5,13 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServerHeaderFilterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testServerHeaderPresent() throws Exception {

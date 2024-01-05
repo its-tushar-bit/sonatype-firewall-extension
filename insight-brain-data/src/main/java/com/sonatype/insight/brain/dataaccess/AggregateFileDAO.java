@@ -6,16 +6,27 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.104
  */
+@Named
+@Singleton
 public class AggregateFileDAO
     extends AbstractOperationalSqlDAO<AggregateFile>
 {
+  @Inject
+  public AggregateFileDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void update(TransactionContext tx, AggregateFile entity) {
     throw new UnsupportedOperationException("AggregateFile does not support update operations");

@@ -43,6 +43,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
-  private static final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  @Before
+  public void setUp() {
+    policyDAO = lookup(PolicyDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+  }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId);
@@ -465,7 +474,7 @@ public class PolicyResourceTest
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
 
-    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    Policy policyOnDB = policyDAO.getById(policy.getId());
     assertThat(policyOnDB.getPolicyActionsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
@@ -523,7 +532,7 @@ public class PolicyResourceTest
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
 
-    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    Policy policyOnDB = policyDAO.getById(policy.getId());
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
@@ -578,7 +587,7 @@ public class PolicyResourceTest
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
 
-    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    Policy policyOnDB = policyDAO.getById(policy.getId());
     assertThat(policyOnDB.getPolicyActionsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
@@ -632,7 +641,7 @@ public class PolicyResourceTest
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
 
-    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    Policy policyOnDB = policyDAO.getById(policy.getId());
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
@@ -708,7 +717,7 @@ public class PolicyResourceTest
     String orgName = "testGetApplicablePoliciesOrg";
     Organization org = tempEntity.newOrganization(orgName);
     String orgId = org.getId();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     String parentOrgId = parentOrg.getId();
     String parentOrgName = parentOrg.getName();
     String appName = "testGetApplicablePoliciesApp";
@@ -858,7 +867,7 @@ public class PolicyResourceTest
 
   @Test
   public void testGetApplicablePolicies_RepositoryContainer() throws Exception {
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     // Verify the applicable policies for the repository container
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
@@ -909,7 +918,7 @@ public class PolicyResourceTest
   public void testGetApplicablePolicies_RepositoryManager() throws Exception {
     // Create a repository manager
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     // Verify the applicable policies for the repository manager
     HttpResponse response = restRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).path("applicable").get();
@@ -981,7 +990,7 @@ public class PolicyResourceTest
   public void testGetApplicablePolicies_Repository() throws Exception {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo = tempEntity.newRepository(repoManager, "test");
-    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     // Verify the applicable policies for the repository
     HttpResponse response = restRequest(OwnerType.REPOSITORY, repo.getId()).path("applicable").get();
@@ -1082,7 +1091,7 @@ public class PolicyResourceTest
   public void testGetApplicablePolicies_FilteredByTag() throws Exception {
     // Create an organization and an application
     Organization org = tempEntity.newOrganization();
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
     Application app = tempEntity.newApplication(org.getId());
 
     Tag tag1 = tempEntity.newTag(org.getId());
@@ -1153,7 +1162,7 @@ public class PolicyResourceTest
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a policy with ID " + policy.getId() + " for application ID " + app2.getPublicId());
     // Verify that the policy was not deleted
-    assertThat(new PolicyDAO().getById(policy.getId())).isNotNull();
+    assertThat(policyDAO.getById(policy.getId())).isNotNull();
   }
 
   @Test
@@ -1169,7 +1178,7 @@ public class PolicyResourceTest
     assertThat(policyExportResult.policies).hasSize(1);
     assertThat(policyExportResult.policies.get(0).getName()).isEqualTo(policy.getName());
 
-    new OrganizationDAO().delete(fromOrg);
+    organizationDAO.delete(fromOrg);
 
     // Import
     Organization toOrg = tempEntity.newOrganization();
@@ -1222,7 +1231,7 @@ public class PolicyResourceTest
   @Test
   public void testCreatePolicy_PolicyNotificationsOverrideAllowed() throws Exception {
     testCreatePolicy_PolicyNotificationsOverrideAllowed(
-        new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID));
+        organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID));
     testCreatePolicy_PolicyNotificationsOverrideAllowed(tempEntity.newOrganization());
     testCreatePolicy_PolicyNotificationsOverrideAllowed(tempEntity.newApplicationWithParent());
   }

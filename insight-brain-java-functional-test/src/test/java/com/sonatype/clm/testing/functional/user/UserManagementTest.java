@@ -49,10 +49,11 @@ public class UserManagementTest
 {
   private static final String TEST_USERNAME = "addusertest";
 
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
 
   @Before
   public void initialLogin() {
+    userDAO = lookup(UserDAO.class);
     refreshOrOpen(UserManagementPage.url());
     loginAsAdmin();
   }

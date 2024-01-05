@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -15,6 +16,10 @@ public abstract class AbstractOperationalSqlWithFallbackDAO<T extends HasStringI
     extends AbstractOperationalSqlDAO<T>
 {
   private final TenantUtil tenantUtil = new TenantUtil();
+
+  protected AbstractOperationalSqlWithFallbackDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   @Override
   protected T get(

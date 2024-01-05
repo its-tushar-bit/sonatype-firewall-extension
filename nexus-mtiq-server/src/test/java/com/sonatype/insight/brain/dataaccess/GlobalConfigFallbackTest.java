@@ -6,19 +6,23 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GlobalConfigFallbackTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
-  private final SystemConfigurationPropertyDAO underTest = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO underTest;
+
+  @Before
+  public void before() {
+    underTest = daoFactory.createSystemConfigurationPropertyDAO();
+  }
 
   @Test
   public void testConfigFallbackToGlobal_whenTenantValueNotSet() {
@@ -26,7 +30,7 @@ public class GlobalConfigFallbackTest
     String globalConfigValue = "global-value";
     String tenantConfigValue = "tenant-value";
 
-    testAs(GLOBAL_TENANT, t -> underTest.insert(new SystemConfigurationProperty(configKey, globalConfigValue)));
+    testAsGlobalTenant(t -> underTest.insert(new SystemConfigurationProperty(configKey, globalConfigValue)));
 
     testAsNewTenant(t1 -> {
       String value = underTest.get(configKey);

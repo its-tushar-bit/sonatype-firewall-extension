@@ -5,17 +5,23 @@
  */
 package com.sonatype.insight.brain.db.dao;
 
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantMetadataDAOTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
-  private TenantMetadataDAO underTest = new TenantMetadataDAO();
+  private TenantMetadataDAO underTest;
+
+  @Before
+  public void before() {
+    underTest = new TenantMetadataDAO(databaseRule.getOperationalDataStore());
+  }
 
   @Test
   public void tenant_canWriteUniqueMetadata() {

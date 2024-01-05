@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -81,14 +80,6 @@ public class Notifications
 
   public void add(Notification notification) {
     notification.addToNotifications(this);
-  }
-
-  public ValidationResult validate() {
-    ValidationResult validationResult = new ValidationResult();
-    for (Notification notification : getAllNotifications()) {
-      validationResult.merge(notification.validate());
-    }
-    return validationResult;
   }
 
   public Notifications getApplicable(String stageId, boolean continuousMonitoring) {

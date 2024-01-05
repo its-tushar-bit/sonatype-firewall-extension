@@ -45,7 +45,12 @@ public class ComponentCategoryUpdater
   private final TaskScheduler taskScheduler;
 
   @Inject
-  public ComponentCategoryUpdater(HdsClient client, TaskScheduler taskScheduler) {
+  public ComponentCategoryUpdater(
+      HdsClient client,
+      TaskScheduler taskScheduler,
+      ComponentCategoryDAO componentCategoryDAO)
+  {
+    super(componentCategoryDAO);
     this.client = client;
     this.taskScheduler = taskScheduler;
   }
@@ -59,7 +64,6 @@ public class ComponentCategoryUpdater
       ComponentCategoryList componentCategoryList =
           client.get(ComponentCategoryList.class, HDS_COMPONENT_CATEGORY_PATH, null /* params */);
 
-      ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
       try (TransactionContext tx = componentCategoryDAO.createTransactionContext()) {
         tx.begin();
         for (ComponentCategory componentCategory : componentCategoryList.getComponentCategories()) {

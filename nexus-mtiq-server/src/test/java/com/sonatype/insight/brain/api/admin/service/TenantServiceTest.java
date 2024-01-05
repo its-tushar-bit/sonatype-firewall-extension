@@ -10,10 +10,9 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,10 +28,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
-  OperationalDataStore operationalDataStore;
+  OperationalDataStore mockOperationalDataStore;
 
   @Mock
   DataSource dataSource;
@@ -40,13 +39,10 @@ public class TenantServiceTest
   private TenantService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-    underTest = new TenantService(new TenantUtil());
+    underTest = new TenantService(new TenantUtil(), mockOperationalDataStore);
 
-    when(operationalDataStore.getDataSource()).thenReturn(dataSource);
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
+    when(mockOperationalDataStore.getDataSource()).thenReturn(dataSource);
   }
 
   @Test

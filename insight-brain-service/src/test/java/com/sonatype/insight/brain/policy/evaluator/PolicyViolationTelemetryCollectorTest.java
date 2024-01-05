@@ -10,10 +10,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -62,6 +64,9 @@ public class PolicyViolationTelemetryCollectorTest
 
   private static final ComponentIdentifier lodashv5 = ComponentIdentifier.createNpmCoordinates("lodash", "5.1.0");
 
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
   @Test
   public void testAddTelemetryForFixedViolation_FixedByUpgrade() {
     // setup : create a fixed policy violation
@@ -79,7 +84,8 @@ public class PolicyViolationTelemetryCollectorTest
     component.setDirectDependency(isDirectDependency);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv4);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -114,7 +120,8 @@ public class PolicyViolationTelemetryCollectorTest
     component.setDirectDependency(isDirectDependency);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv5);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -143,7 +150,8 @@ public class PolicyViolationTelemetryCollectorTest
     final Date openTime = new Date(evalTime.getTime() - expectedTTR);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv5);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -174,7 +182,8 @@ public class PolicyViolationTelemetryCollectorTest
     component.setDirectDependency(isDirectDependency);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv5);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -212,7 +221,8 @@ public class PolicyViolationTelemetryCollectorTest
     components.add(component2);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv4);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -244,7 +254,8 @@ public class PolicyViolationTelemetryCollectorTest
     component.setDirectDependency(isDirectDependency);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, urllib3);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -283,7 +294,8 @@ public class PolicyViolationTelemetryCollectorTest
     policyWaiver.setCreateTime(new Date());
     policyViolation.setOpenTime(openTime);
     policyViolation.setPolicyWaiverId(policyWaiver.getId());
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -311,7 +323,8 @@ public class PolicyViolationTelemetryCollectorTest
     PolicyWaiver policyWaiver =
         tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyViolation.getApplicationId());
     policyViolation.setPolicyWaiverId(policyWaiver.getId());
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(false);
+    PolicyViolationTelemetryCollector telemetryCollector =
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, false);
 
     // when
     telemetryCollector.addTelemetryForWaivedViolation(policyViolation, component);
@@ -346,7 +359,8 @@ public class PolicyViolationTelemetryCollectorTest
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3);
     policyViolation.setLegacyViolationTime(new Date());
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
@@ -375,7 +389,8 @@ public class PolicyViolationTelemetryCollectorTest
     final Date openTime = new Date(evalTime.getTime() - expectedTTR);
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3);
     policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
+        isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     final TelemetryPurpose telemetryPurpose = TelemetryPurpose.CONDITION_TYPE_VIOLATION;

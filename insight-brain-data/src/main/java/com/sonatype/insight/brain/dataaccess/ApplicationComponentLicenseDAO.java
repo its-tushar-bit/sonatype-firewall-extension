@@ -12,10 +12,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,10 +30,27 @@ import org.apache.commons.collections.CollectionUtils;
 /**
  * @since 1.104
  */
+@Named
+@Singleton
 public class ApplicationComponentLicenseDAO
     extends AbstractOperationalSqlDAO<ApplicationComponentLicense>
 {
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
+
+  private final LicenseOverrideDAO licenseOverrideDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public ApplicationComponentLicenseDAO(
+      final OperationalDataStore operationalDataStore,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final OwnerDAO ownerDAO)
+  {
+    super(operationalDataStore);
+    this.licenseOverrideDAO = licenseOverrideDAO;
+    this.ownerDAO = ownerDAO;
+  }
 
   @Override
   public void update(TransactionContext tx, ApplicationComponentLicense entity) {
@@ -74,17 +94,17 @@ public class ApplicationComponentLicenseDAO
       String sQuery = "SELECT ac.application_id, ac.hash, ac.component_id_format," + //
           "  ac.component_id_coordinates_json," + //
           "  STRING_AGG(DISTINCT COALESCE(li.license_id, acl.effective_license_id), CHR(10)) licenses" +
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
-          "   INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application a" + //
+          " FROM " + getDatabaseSchema() + ".application_component ac" + //
+          "   INNER JOIN " + getDatabaseSchema() + ".application a" + //
           "     ON a.application_id = ac.application_id" + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
+          "              FROM " + getDatabaseSchema() + ".license_override lo, " + //
+          "              " + getDatabaseSchema() + ".license_override_license lol" + //
           "              WHERE lol.license_override_id = lo.license_override_id) li" + //
           "     ON li.owner_id = ?1" + //
           "     AND li.component_id_format = ac.component_id_format" + //
           "     AND li.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
+          "   LEFT JOIN " + getDatabaseSchema() + ".application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
           (!requiresManualFilter
@@ -130,8 +150,8 @@ public class ApplicationComponentLicenseDAO
 
       String sQuery = "SELECT ac.hash, ac.component_id_format, ac.component_id_coordinates_json," + //
           "  STRING_AGG(DISTINCT acl.effective_license_id, CHR(10)) licenses" +
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
-          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
+          " FROM " + getDatabaseSchema() + ".application_component ac" + //
+          "   LEFT JOIN " + getDatabaseSchema() + ".application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.application_id = ?1" + //
           " AND ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
@@ -153,10 +173,9 @@ public class ApplicationComponentLicenseDAO
       Map<ComponentIdentifier, List<ApplicationComponentLicensesDTO>> componentByComponentIdentifier = componentLicenses
           .stream().collect(Collectors.groupingBy(ApplicationComponentLicensesDTO::getComponentIdentifier));
 
-      LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
       Set<ComponentIdentifier> componentsWithOverrides = new HashSet<>();
 
-      new OwnerDAO().walkHierarchy(tx, applicationId).forEach(owner -> {
+      ownerDAO.walkHierarchy(tx, applicationId).forEach(owner -> {
         for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerId(tx, owner.getId())) {
           List<ApplicationComponentLicensesDTO> componentsWithLicenseOverride =
               componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());

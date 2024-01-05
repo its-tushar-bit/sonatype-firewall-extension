@@ -60,7 +60,8 @@ public class DashboardFilterServiceTest
   private static final String FILTER_WITHOUT_POLICY_VIOLATION_STATES =
       "/DashboardFilterServiceTest/DashboardFilterWithoutPolicyViolationStatesProperty.json";
 
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  @Inject
+  private DashboardFilterDAO dashboardFilterDAO;
   
   @Inject
   private DashboardFilterService dashboardFilterService;

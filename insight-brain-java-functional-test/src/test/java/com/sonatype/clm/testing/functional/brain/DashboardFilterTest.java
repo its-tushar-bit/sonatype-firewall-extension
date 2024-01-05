@@ -98,9 +98,9 @@ public class DashboardFilterTest
   private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
       "Version1");
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final OrganizationDAO orgDAO = new OrganizationDAO();
+  private OrganizationDAO orgDAO;
 
   private Organization rootOrg;
 
@@ -122,6 +122,8 @@ public class DashboardFilterTest
 
   private Policy policy;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.urlToViolations());
@@ -129,6 +131,10 @@ public class DashboardFilterTest
   }
 
   private void setupData() {
+    orgDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+
     rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     repository1 = tempEntity.newRepository("Repository 1");
     repository2 = tempEntity.newRepository("Repository 2");
@@ -240,7 +246,7 @@ public class DashboardFilterTest
   }
 
   public void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+    dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   /**
@@ -544,7 +550,7 @@ public class DashboardFilterTest
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
     // assert stored filter
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = dashboardFilterDAO
         .getByUsernameAndRealmId("admin", InternalRealm.ID);
 
     assertThat(filter.get(0).getFilter().replace("\r\n", "\n"))
@@ -870,7 +876,7 @@ public class DashboardFilterTest
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
     manage.selectedFilterDirtyAsterisk().shouldBe(visible);
 
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO
         .getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
     assertThat(filters.get(0).getName()).isEqualTo("");
@@ -985,7 +991,7 @@ public class DashboardFilterTest
     manage.dropdownMenu().options().shouldHaveSize(2);
     manage.dropdownMenu().option(1).shouldHave(text("Do not delete"));
 
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilterDAO dashboardFilterDAO = this.dashboardFilterDAO;
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
         dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
@@ -1021,7 +1027,7 @@ public class DashboardFilterTest
     manage.dropdownMenu().defaultFilterOption().shouldBe(SELECTED_SAVED_FILTER_OPTION);
 
     // verify that applied filter is no longer based on the deleted one
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilterDAO dashboardFilterDAO = this.dashboardFilterDAO;
     DashboardFilter filter = dashboardFilterDAO.getByUsernameAndRealmIdAndName("admin", InternalRealm.ID, "");
     assertThat(filter.getBasedOnFilterName()).isNull();
   }
@@ -1078,7 +1084,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
     String filterName = "Saved Filter";
     saveFilter(filterName, null, false, false);
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilterDAO dashboardFilterDAO = this.dashboardFilterDAO;
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
         dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
 
@@ -1118,7 +1124,7 @@ public class DashboardFilterTest
     results.applications().shouldHaveSize(3);
     eyesWatcher.eyesCheck();
 
-    appDAO.delete(thirdApp);
+    applicationDAO.delete(thirdApp);
     refreshOrOpen(DashboardPage.urlToApplications());
     results.applications().shouldHaveSize(2);
   }

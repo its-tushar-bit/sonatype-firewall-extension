@@ -42,15 +42,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AllObligationsTest
     extends AbstractFunctionalTest
 {
+  private final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+
   private Application app;
 
   private Organization rootOrganization;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private final ComponentObligationDAO componentObligationDAO = new ComponentObligationDAO();
-
-  private final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+  private ComponentObligationDAO componentObligationDAO;
 
   @BeforeClass
   public static void boot() {
@@ -61,6 +61,9 @@ public class AllObligationsTest
   @Before
   public void init() throws IOException {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
+    organizationDAO = lookup(OrganizationDAO.class);
+    componentObligationDAO = lookup(ComponentObligationDAO.class);
 
     app = tempEntity.newApplicationWithParent(AllObligationsTest.class.getSimpleName(), "app", "org");
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);

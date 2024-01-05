@@ -71,6 +71,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiLicenseLegalResourceTest
     extends AbstractResourceTest
 {
+  private ComponentLegalFileDAO componentLegalFileDAO;
+
+  private ComponentObligationDAO componentObligationDAO;
+
+  private ComponentObligationAttributionDAO componentObligationAttributionDAO;
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH);
@@ -78,6 +84,9 @@ public class ApiLicenseLegalResourceTest
 
   @Before
   public void setup() throws Exception {
+    componentLegalFileDAO = lookup(ComponentLegalFileDAO.class);
+    componentObligationDAO = lookup(ComponentObligationDAO.class);
+    componentObligationAttributionDAO = lookup(ComponentObligationAttributionDAO.class);
     setFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
   }
 
@@ -297,7 +306,7 @@ public class ApiLicenseLegalResourceTest
     assertThat(responseDto.getLastUpdatedAt()).isAfterOrEqualTo(now);
     assertThat(responseDto.getLastUpdatedByUsername()).isEqualTo(User.ADMIN_USERNAME);
     assertThat(responseDto.getId()).isNotNull();
-    assertThat(new ComponentLegalFileDAO().getById(responseDto.getId())).isNotNull();
+    assertThat(componentLegalFileDAO.getById(responseDto.getId())).isNotNull();
   }
 
   @Test
@@ -318,7 +327,7 @@ public class ApiLicenseLegalResourceTest
     ComponentObligationAttributionDTO responseDto = response.getBody(ComponentObligationAttributionDTO.class);
     assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(bodyDto);
     assertThat(responseDto.getId()).isNotNull();
-    assertThat(new ComponentObligationAttributionDAO().getById(responseDto.getId())).isNotNull();
+    assertThat(componentObligationAttributionDAO.getById(responseDto.getId())).isNotNull();
   }
 
   @Test
@@ -334,7 +343,7 @@ public class ApiLicenseLegalResourceTest
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(new ComponentObligationAttributionDAO().getById(componentObligationAttribution.getId())).isNull();
+    assertThat(componentObligationAttributionDAO.getById(componentObligationAttribution.getId())).isNull();
   }
 
   @Test
@@ -390,7 +399,7 @@ public class ApiLicenseLegalResourceTest
     ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
     assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(bodyDto);
     assertThat(responseDto.getId()).isNotNull();
-    assertThat(new ComponentObligationDAO().getById(responseDto.getId())).isNotNull();
+    assertThat(componentObligationDAO.getById(responseDto.getId())).isNotNull();
   }
 
   @Test
@@ -406,7 +415,7 @@ public class ApiLicenseLegalResourceTest
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(new ComponentObligationDAO().getById(componentObligation.getId())).isNull();
+    assertThat(componentObligationDAO.getById(componentObligation.getId())).isNull();
   }
 
   @Test
@@ -426,8 +435,8 @@ public class ApiLicenseLegalResourceTest
         .delete();
 
     assertResponseStatus(204, response);
-    assertThat(new ComponentObligationDAO().getById(componentObligation1.getId())).isNull();
-    assertThat(new ComponentObligationDAO().getById(componentObligation2.getId())).isNull();
+    assertThat(componentObligationDAO.getById(componentObligation1.getId())).isNull();
+    assertThat(componentObligationDAO.getById(componentObligation2.getId())).isNull();
   }
 
   @Test

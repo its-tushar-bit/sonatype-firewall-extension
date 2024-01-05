@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.DefaultApiSamlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantSamlConfigurationResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   @Override
   protected HttpRequest restRequest() {
@@ -59,8 +59,8 @@ public class MultiTenantSamlConfigurationResourceTest
 
   @Test
   public void test_getMetadata() throws Exception {
-    tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name", "last-name",
-        "e-mail", "user-name", "teams", null, null);
+    tenantTemporaryEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name",
+        "last-name", "e-mail", "user-name", "teams", null, null);
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 

@@ -10,9 +10,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -26,31 +27,44 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 import com.google.common.collect.Sets;
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthorizationCheckerTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  private AuthorizationChecker checker;
 
-  private final AuthorizationChecker checker = new AuthorizationChecker();
+  private MembershipMappingDAO membershipMappingDAO;
 
-  private final MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
+  private RoleDAO roleDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RolePermissionDAO rolePermissionDAO;
+
+  @Before
+  public void setUp() {
+    membershipMappingDAO = daoFactory.createMembershipMappingDAO();
+    roleDAO = daoFactory.createRoleDAO();
+    rolePermissionDAO = daoFactory.createRolePermissionDAO();
+
+    ContextResolver contextResolver =
+        new ContextResolver(daoFactory.createApplicationDAO(), daoFactory.createOrganizationDAO(),
+            daoFactory.createRepositoryManagerDAO(), daoFactory.createRepositoryDAO(), daoFactory.createOwnerDAO());
+
+    checker = new AuthorizationChecker(contextResolver, rolePermissionDAO, membershipMappingDAO);
+  }
 
   private MembershipMapping newMembershipMapping(User user, String contextId, String roleId) {
     MembershipMapping membership = new MembershipMapping(contextId, roleId, user.getUsername(), MemberType.USER);
-    membershipDAO.insert(membership);
+    membershipMappingDAO.insert(membership);
     return membership;
   }
 
   private MembershipMapping newGroupMapping(String groupname, String contextId, String roleId) {
     MembershipMapping membership = new MembershipMapping(contextId, roleId, groupname, MemberType.GROUP);
-    membershipDAO.insert(membership);
+    membershipMappingDAO.insert(membership);
     return membership;
   }
 

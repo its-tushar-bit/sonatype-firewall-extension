@@ -19,7 +19,8 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -30,15 +31,27 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyAlertUtilTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  private PolicyDAO policyDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
+  private PolicyAlertUtil policyAlertUtil;
+
+  @Before
+  public void setUp() {
+    OwnerDAO ownerDAO = daoFactory.createOwnerDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO);
+  }
 
   @Test
   public void testCreatePolicyAlerts_DeletedPolicy() {
@@ -46,8 +59,8 @@ public class PolicyAlertUtilTest
     Policy policyDoesNotExist = tempEntity.newPolicy();
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policyDoesNotExist);
-    new PolicyDAO().delete(policyDoesNotExist);
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+    policyDAO.delete(policyDoesNotExist);
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
@@ -73,7 +86,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact1);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
@@ -109,7 +122,7 @@ public class PolicyAlertUtilTest
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEval, policy, componentIdentifier, hash,
         reason2);
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(2);
@@ -136,7 +149,7 @@ public class PolicyAlertUtilTest
     Application app = tempEntity.newApplicationWithParent("app-id");
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
     ConditionFact conditionFact0 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -146,7 +159,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact0);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
@@ -160,7 +173,7 @@ public class PolicyAlertUtilTest
     Application app = tempEntity.newApplicationWithParent("app-id");
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
     ConditionFact conditionFact0 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -170,7 +183,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact0);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), false);
 
     assertThat(alerts).hasSize(1);
@@ -190,7 +203,7 @@ public class PolicyAlertUtilTest
     component.addPathname("a.jar");
     component.addPathname("path/b.jar");
 
-    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+    List<PolicyAlert> policyAlerts = policyAlertUtil.createPolicyAlerts(
         Collections.singletonList(component),
         Collections.singletonList(policyViolation),
         stageTypeId,
@@ -223,7 +236,7 @@ public class PolicyAlertUtilTest
     component.addPathname("a.jar");
     component.addPathname("path/b.jar");
 
-    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+    List<PolicyAlert> policyAlerts = policyAlertUtil.createPolicyAlerts(
         Collections.singletonList(component),
         Collections.singletonList(policyViolation),
         stageTypeId,
@@ -252,7 +265,7 @@ public class PolicyAlertUtilTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     policyViolation.setHash(null);
-    new PolicyViolationDAO().update(policyViolation);
+    policyViolationDAO.update(policyViolation);
     Component component1 = new Component();
     component1.setComponentIdentifier(policyViolation.getComponentIdentifier());
     component1.addPathname("a.jar");
@@ -262,7 +275,7 @@ public class PolicyAlertUtilTest
     component2.addPathname("path/b.jar");
     component2.addPathname("other/path/c.jar");
 
-    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+    List<PolicyAlert> policyAlerts = policyAlertUtil.createPolicyAlerts(
         Arrays.asList(component1, component2),
         Collections.singletonList(policyViolation),
         stageTypeId,
@@ -294,13 +307,13 @@ public class PolicyAlertUtilTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     policyViolation.setHash(null);
-    new PolicyViolationDAO().update(policyViolation);
+    policyViolationDAO.update(policyViolation);
     Component component = new Component();
     component.setComponentIdentifier(policyViolation.getComponentIdentifier().createAlternativeVersion("v2"));
     component.addPathname("a.jar");
     component.addPathname("path/b.jar");
 
-    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+    List<PolicyAlert> policyAlerts = policyAlertUtil.createPolicyAlerts(
         Collections.singletonList(component),
         Collections.singletonList(policyViolation),
         stageTypeId,

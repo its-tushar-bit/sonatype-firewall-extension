@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -146,16 +145,26 @@ public abstract class AbstractRepositoryServiceTest
   @Inject
   protected TestProductLicense testProductLicense;
 
-  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
-      new ProprietaryComponentNamePatternDAO();
+  @Inject
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -191,6 +200,8 @@ public abstract class AbstractRepositoryServiceTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
@@ -207,6 +218,8 @@ public abstract class AbstractRepositoryServiceTest
 
   @Before
   public void before() {
+    policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
+
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(
@@ -218,7 +231,7 @@ public abstract class AbstractRepositoryServiceTest
     mailConfiguration.setHostname("127.0.0.1");
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
   }
 
   @After
@@ -1180,7 +1193,7 @@ public abstract class AbstractRepositoryServiceTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Remove the mail server configuration to trigger an error when notifications are sent.
-    new MailConfigurationDAO().delete();
+    mailConfigurationDAO.delete();
 
     // Call the service
     getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
@@ -1940,7 +1953,7 @@ public abstract class AbstractRepositoryServiceTest
   private Policy createQuarantiningPolicy(Repository repository) {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     return policy;
   }
 
@@ -1996,7 +2009,7 @@ public abstract class AbstractRepositoryServiceTest
 
     getRepositoryService().removeComponent(repository, repositoryComponent.getPathname());
 
-    policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
+    policyViolation = repositoryPolicyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolation).isNull();
 
     verify(repositoryComponentTelemetryCreator)
@@ -2022,7 +2035,7 @@ public abstract class AbstractRepositoryServiceTest
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 2);
-    PolicyViolationLogDTOAssert
+    policyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
             after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2),
             currentUser.getUsernameOrSystem());
@@ -2042,7 +2055,7 @@ public abstract class AbstractRepositoryServiceTest
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 1);
-    PolicyViolationLogDTOAssert
+    policyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR, repository,
             before, after);
   }
@@ -2545,7 +2558,7 @@ public abstract class AbstractRepositoryServiceTest
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -2605,7 +2618,7 @@ public abstract class AbstractRepositoryServiceTest
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -2669,7 +2682,7 @@ public abstract class AbstractRepositoryServiceTest
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -2720,7 +2733,7 @@ public abstract class AbstractRepositoryServiceTest
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -2786,7 +2799,7 @@ public abstract class AbstractRepositoryServiceTest
     policy.addConstraint(constraint);
     tempEntity.newPolicy(policy);
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
 
@@ -3227,7 +3240,7 @@ public abstract class AbstractRepositoryServiceTest
 
     getRepositoryService().removeRepository(repositoryManager.getInstanceId(), repository.getPublicId());
 
-    Repository repositoryFound = new RepositoryDAO().getById(repository.getId());
+    Repository repositoryFound = repositoryDAO.getById(repository.getId());
     assertThat(repositoryFound).isNull();
   }
 
@@ -3280,7 +3293,7 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testRemoveRepository_RepositoryDoesNotExist() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManager.getId(), "NotExistingId");
 
     assertThat(repository).isNull();

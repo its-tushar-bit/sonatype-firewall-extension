@@ -46,7 +46,7 @@ public class WebhookService
 {
   private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
 
-  private final WebhookDAO webhookDao = new WebhookDAO();
+  private final WebhookDAO webhookDao;
 
   private final Configuration configuration;
 
@@ -61,11 +61,13 @@ public class WebhookService
       final Configuration configuration,
       final PlexusCipher plexusCipher,
       final ProductLicense productLicense,
+      final WebhookDAO webhookDao,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.configuration = configuration;
     this.plexusCipher = plexusCipher;
     this.productLicense = productLicense;
+    this.webhookDao = webhookDao;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 

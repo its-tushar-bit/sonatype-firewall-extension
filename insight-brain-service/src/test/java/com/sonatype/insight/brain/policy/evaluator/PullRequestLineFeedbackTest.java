@@ -11,11 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -64,6 +66,9 @@ public class PullRequestLineFeedbackTest
 
   private Map<String, PullRequestLineFeedback> testCases;
 
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   @Before
   public void before() {
     setBaseUrl("http://localhost:1122");
@@ -71,23 +76,23 @@ public class PullRequestLineFeedbackTest
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID,
-            FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING, false))
+            FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING, false, organizationDAO))
         .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO))
         .put(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION,
             new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component", iqBaseUrl,
                 new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3),
                 SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-                EMPTY_OPTIONAL_STRING, false))
+                EMPTY_OPTIONAL_STRING, false, organizationDAO))
         .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", iqBaseUrl,
             null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, EMPTY_OPTIONAL_STRING,
-                false))
+                false, organizationDAO))
         .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO))
         .put(SINGLE_WITH_SUGGESTION_AZCLOUD, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             "http://dev.azure.com/foo/bar/_git/baz",
             new RemediationVersionDTO(
@@ -97,11 +102,11 @@ public class PullRequestLineFeedbackTest
             APPLICATION_PUBLIC_ID,
             FEATURE_BRANCH_SCAN_ID,
             EMPTY_OPTIONAL_STRING,
-                false))
+                false, organizationDAO))
         .put(SINGLE_WITH_SUGGESTION_AZONPREM, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
-            EMPTY_OPTIONAL_STRING, false))
+            EMPTY_OPTIONAL_STRING, false, organizationDAO))
         .build();
   }
 
@@ -223,7 +228,7 @@ public class PullRequestLineFeedbackTest
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
                 null,
-                    false))
+                    false, organizationDAO))
         .withMessageContaining("violations is required and cannot be null");
   }
 
@@ -232,7 +237,7 @@ public class PullRequestLineFeedbackTest
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
             lookup(BaseUrl.class).getConfigured(), null, null,
-            APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false)
+            APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false, organizationDAO)
             .renderTemplateAndGetContents(GITHUB))
         .withMessageContaining("violations cannot be empty");
   }
@@ -243,7 +248,7 @@ public class PullRequestLineFeedbackTest
         .isThrownBy(
             () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(BaseUrl.class).getConfigured(),
                 null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null,
-                    false))
+                    false, organizationDAO))
         .withMessageContaining("displayName is required and cannot be null");
   }
 

@@ -42,7 +42,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 
   @Before
   public void init() {
-    rootOrg = new OrganizationDAO().getById(ROOT_ORGANIZATION_ID);
+    rootOrg = lookup(OrganizationDAO.class).getById(ROOT_ORGANIZATION_ID);
     refreshOrOpen(OwnerSummaryPage.url(rootOrg));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(rootOrg.getName()));
   }

@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.filter;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -22,10 +26,17 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 1.11.0
  */
+@Named
+@Singleton
 public class DashboardFilterDAO
     extends AbstractOperationalSqlDAO<DashboardFilter>
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardFilterDAO.class);
+
+  @Inject
+  public DashboardFilterDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public List<DashboardFilter> getByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
     username = User.normalizeUsername(username);

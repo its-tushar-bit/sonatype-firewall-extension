@@ -15,14 +15,14 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserResource;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantUserResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   @Override
   protected HttpRequest restRequest() {
@@ -93,7 +93,7 @@ public class MultiTenantUserResourceTest
 
   @Test
   public void test_findMembersForNonGlobalRoles() throws Exception {
-    Organization org = tempEntity.newOrganization();
+    Organization org = tenantTemporaryEntity.newOrganization();
     HttpResponse response = findRequest(OwnerType.ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
   }

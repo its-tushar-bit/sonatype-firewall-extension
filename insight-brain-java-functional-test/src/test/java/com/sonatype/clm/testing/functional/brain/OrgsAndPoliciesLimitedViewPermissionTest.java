@@ -42,9 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrgsAndPoliciesLimitedViewPermissionTest
     extends AbstractFunctionalTest
 {
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   private List<Organization> organizations;
 
@@ -54,6 +54,9 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
   @Before
   public void init() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     developerUser = tempEntity.newUser();
     refreshOrOpen(OwnerSummaryPageWithLimitedVisibility.baseUrl());
   }

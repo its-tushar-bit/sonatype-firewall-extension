@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,8 +51,7 @@ public class ApiUserTestSupport
     assertThat(outputUserDTO.email).isEqualTo(inputUserDTO.email);
   }
 
-  public static void assertMatchingUser(ApiUserDTO inputUserDTO) {
-    User user = new UserDAO().getByUsernameNotNull(inputUserDTO.username);
+  public static void assertMatchingUser(ApiUserDTO inputUserDTO, User user) {
     assertThat(inputUserDTO.firstName).isEqualTo(user.getFirstName());
     assertThat(inputUserDTO.lastName).isEqualTo(user.getLastName());
     assertThat(inputUserDTO.email).isEqualTo(user.getEmail());

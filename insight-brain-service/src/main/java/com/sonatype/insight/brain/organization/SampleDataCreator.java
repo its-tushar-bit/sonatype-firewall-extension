@@ -32,15 +32,22 @@ public class SampleDataCreator
 
   private final AuditRecorder auditRecorder;
 
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
   @Inject
-  public SampleDataCreator(final AuditRecorder auditRecorder) {
+  public SampleDataCreator(
+      final AuditRecorder auditRecorder,
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO)
+  {
     this.auditRecorder = auditRecorder;
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   public void createSampleData() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
       Organization sampleOrganization = new Organization(SAMPLE_ORGANIZATION_NAME);

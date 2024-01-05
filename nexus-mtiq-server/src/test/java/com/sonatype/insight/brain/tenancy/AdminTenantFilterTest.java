@@ -10,6 +10,8 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+
 import org.apache.http.entity.ContentType;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdminTenantFilterTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   private static final String TENANT_NAME = "tenant1";
 
@@ -47,10 +49,7 @@ public class AdminTenantFilterTest
   private AdminTenantFilter underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
     underTest = new AdminTenantFilter(tenantManager, new TenantUtil());
 
     when(request.getRequestURI()).thenReturn("/api/admin/other");

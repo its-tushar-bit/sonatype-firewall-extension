@@ -134,6 +134,12 @@ public class FirewallComponentDetailsPageTest
 
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  private PolicyDAO policyDAO;
+
   private Repository repository;
 
   private RepositoryManager repositoryManager;
@@ -182,6 +188,10 @@ public class FirewallComponentDetailsPageTest
 
   @Before
   public void before() {
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
 
     repositoryManager = tempEntity.newRepositoryManager();
@@ -200,7 +210,6 @@ public class FirewallComponentDetailsPageTest
       ComponentIdentifier componentIdentifier,
       String licenseCondition)
   {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
     componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());
@@ -858,7 +867,6 @@ public class FirewallComponentDetailsPageTest
     policyViolationsTableSetup(repositoryComponent);
     policyViolationsTableSetup(selectedRepositoryComponent);
 
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     repositoryComponentDAO.update(repositoryComponent);
     repositoryComponentDAO.update(selectedRepositoryComponent);
 
@@ -1024,9 +1032,9 @@ public class FirewallComponentDetailsPageTest
   private void testUnknownComponentOverviewTile() {
     firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
     firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Unknown"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text(""));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text(""));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text(""));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(exactText(""));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(exactText(""));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(exactText(""));
     firewallComponentDetailsPage.getViewCoordinatesButton().shouldNotBe(visible);
   }
 
@@ -2069,7 +2077,7 @@ public class FirewallComponentDetailsPageTest
     hdsResponse.components.add(toComponentEvaluationData(componentDetails));
     testCLMServer.getHdsServer().respondWith(hdsResponse).atUri("/rest/component/details/firewall");
 
-    new PolicyDAO().delete(securityLowPolicy);
+    policyDAO.delete(securityLowPolicy);
 
     firewallComponentDetailsPage.reevaluateButton().click();
 

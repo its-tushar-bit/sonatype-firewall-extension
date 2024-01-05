@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -15,16 +15,21 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationAdapterTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  private PolicyDAO policyDAO;
+
+  @Before
+  public void setUp() {
+    policyDAO = daoFactory.createPolicyDAO();
+  }
 
   @Test
   public void testCreatePolicyViolationDTO() {
@@ -48,7 +53,7 @@ public class PolicyViolationAdapterTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
 
     PolicyViolationDTO dto = PolicyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
 

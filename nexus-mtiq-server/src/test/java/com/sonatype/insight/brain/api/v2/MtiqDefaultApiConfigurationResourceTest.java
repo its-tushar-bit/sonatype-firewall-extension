@@ -13,17 +13,15 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqDefaultApiConfigurationResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.CONFIG_RESOURCE_PATH_V2);
@@ -31,6 +29,7 @@ public class MtiqDefaultApiConfigurationResourceTest
 
   @Test
   public void test_getConfiguration() throws Exception {
+    final SystemConfigurationPropertyDAO dao = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
     String expectedBaseUrl = "http://baseUrl/";
     String expectedMessage = "This message is set.";
     dao.set(SystemConfigurationProperty.BASE_URL, expectedBaseUrl);

@@ -45,7 +45,8 @@ public class ApiDataRetentionPolicyServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
-  private final DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
+  @Inject
+  private DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
   @Test
   public void testGetDataRetentionPolicies_AppReports() {

@@ -25,7 +25,6 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.ADHOC;
@@ -43,6 +43,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryResourceTest
     extends AbstractRepositoryResourceTest
 {
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Before
+  @Override
+  public void setUp() {
+    super.setUp();
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(RepositoryResource.RESOURCE_PATH);
@@ -117,7 +126,6 @@ public class RepositoryResourceTest
   public void testRemoveProprietaryComponentNames() throws Exception {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, "npm");
-    ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO = new ProprietaryComponentNamePatternDAO();
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(repo.getId(), "npm"));
 
     HttpResponse response =
@@ -152,7 +160,6 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
 
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();

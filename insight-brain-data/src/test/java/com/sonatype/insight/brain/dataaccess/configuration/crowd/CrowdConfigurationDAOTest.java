@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.drools.core.util.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class CrowdConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final CrowdConfigurationDAO dao = new CrowdConfigurationDAO();
+  private CrowdConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createCrowdConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

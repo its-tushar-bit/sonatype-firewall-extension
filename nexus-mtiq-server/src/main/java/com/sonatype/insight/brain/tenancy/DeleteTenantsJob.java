@@ -20,8 +20,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
@@ -80,6 +80,8 @@ public class DeleteTenantsJob
 
   private final TenantValidator tenantValidator;
 
+  private final OperationalDataStore operationalDataStore;
+
   @Inject
   public DeleteTenantsJob(
       MultiTenantTaskScheduler taskScheduler,
@@ -90,7 +92,8 @@ public class DeleteTenantsJob
       MultiTenantAuth0ManagementService auth0ManagementService,
       TenantMetadataDAO tenantMetadataDAO,
       TenantManager tenantManager,
-      TenantValidator tenantValidator)
+      TenantValidator tenantValidator,
+      OperationalDataStore operationalDataStore)
   {
     this.taskScheduler = taskScheduler;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
@@ -101,6 +104,7 @@ public class DeleteTenantsJob
     this.tenantMetadataDAO = tenantMetadataDAO;
     this.tenantManager = tenantManager;
     this.tenantValidator = tenantValidator;
+    this.operationalDataStore = operationalDataStore;
   }
 
   @Override
@@ -235,7 +239,7 @@ public class DeleteTenantsJob
   boolean deleteDatabaseSchema(DeletedTenant deletedTenant) {
     boolean success = false;
 
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          Statement statement = connection.createStatement()) {
       connection.setAutoCommit(true);
 

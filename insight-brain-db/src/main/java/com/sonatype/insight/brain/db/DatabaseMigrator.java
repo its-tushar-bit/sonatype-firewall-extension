@@ -5,36 +5,21 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.IntConsumer;
-import java.util.zip.Deflater;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.db.DatabaseEngine;
-import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import com.google.common.annotations.VisibleForTesting;
 
+/**
+ * Migrate the entire IQ database (all four data stores)
+ */
 public class DatabaseMigrator
 {
   public static final String SCHEMA_MIGRATION_ENABLED = "SCHEMA_MIGRATION_ENABLED";
@@ -42,227 +27,71 @@ public class DatabaseMigrator
   // Visible for testing
   public static final String NXIQ_SCHEMA_MIGRATION = "NXIQ_DATABASE_MIGRATION";
 
-  private static final Logger log = LoggerFactory.getLogger(DatabaseMigrator.class);
-
   private static final AtomicBoolean forceEnableMigration = new AtomicBoolean();
 
-  private final DataSourceFactory dataSourceFactory;
+  private final DataStoreProvider dataStoreProvider;
 
-  public DatabaseMigrator() {
-    this.dataSourceFactory = new DataSourceFactory();
+  public DatabaseMigrator(final DataStoreProvider dataStoreProvider) {
+    this.dataStoreProvider = dataStoreProvider;
   }
 
-  public DatabaseMigrator(final DataSourceFactory dataSourceFactory) {
-    this.dataSourceFactory = dataSourceFactory;
-  }
-
-  public void migrate(
-      DatabaseConfig databaseConfig,
-      String dataStoreId,
-      String databaseSchema,
-      DataSource dataSource)
+  @VisibleForTesting
+  public DatabaseMigrator(
+      final OperationalDataStore operationalDataStore,
+      final AggregationDataStore aggregationDataStore,
+      final DataMartDataStore dataMartDataStore,
+      final ThirdPartyScansDataStore thirdPartyScansDataStore)
   {
-    migrate(databaseConfig, databaseSchema, dataStoreId, dataSource, null /* upgradeGuard */);
+    this.dataStoreProvider = new DataStoreProvider()
+    {
+      @Override
+      public OperationalDataStore getOperationalDataStore() {
+        return operationalDataStore;
+      }
+
+      @Override
+      public AggregationDataStore getAggregationDataStore() {
+        return aggregationDataStore;
+      }
+
+      @Override
+      public DataMartDataStore getDataMartDataStore() {
+        return dataMartDataStore;
+      }
+
+      @Override
+      public ThirdPartyScansDataStore getThirdPartyScansDataStore() {
+        return thirdPartyScansDataStore;
+      }
+    };
   }
 
-  public void migrate(
-      DatabaseConfig databaseConfig,
-      String dataStoreId,
-      String databaseSchema,
-      DataSource dataSource,
-      IntConsumer upgradeGuard)
-  {
-    if (databaseConfig == null) {
-      // In memory database, nothing to migrate.
+  public void migrate(final Boolean migrateToNewViolationModel) {
+    if (!isMigrationEnabled(dataStoreProvider.getOperationalDataStore())) {
       return;
     }
 
-    if (!isMigrationEnabled()) {
-      return;
-    }
-
-    try {
-      int desiredVersion = getDesiredVersion(dataStoreId);
-
-      if (isNewDatabase(dataSource, DatabaseUtil.getDatabaseEngine(dataSource), dataStoreId, databaseSchema)) {
-        // This is a new database, nothing to migrate here.
-        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, desiredVersion);
-        return;
-      }
-
-      File databaseVersionFile = null;
-
-      // The database exists and it may require migration.
-      int currentVersion;
-      if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema);
-      }
-      else {
-        File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
-        databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
-        if (databaseVersionFile.exists()) {
-          String sCurrentVersion = FileUtils.readFileToString(databaseVersionFile, StandardCharsets.UTF_8).trim();
-          currentVersion = Integer.parseInt(sCurrentVersion);
-        }
-        else {
-          throw new IllegalStateException(
-              "Missing the database schema version either in the database itself or in the database version file " +
-                  databaseVersionFile + ".");
-        }
-      }
-
-      log.info("Current version of database schema {}/{}: {}", dataStoreId, databaseSchema, currentVersion);
-      if (currentVersion > desiredVersion) {
-        throw new IllegalStateException(
-            "Database schema " + databaseSchema + " was created by a newer product version. "
-                + "Please upgrade your IQ Server or restore a database backup taken by your current version.");
-      }
-
-      if (currentVersion == desiredVersion) {
-        return;
-      }
-
-      if (upgradeGuard != null) {
-        upgradeGuard.accept(currentVersion);
-      }
-
-      log.info("Migrating database schema {} from version {} to version: {}", databaseSchema, currentVersion,
-          desiredVersion);
-
-      File backupDir = null;
-      DatabaseEngine databaseEngine = DatabaseUtil.getDatabaseEngine(dataSource);
-      if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
-        File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
-        File databaseDir = databasePath.getParentFile();
-        backupDir = new File(databaseDir, "backup");
-        if (backupDir.exists()) {
-          throw new IllegalStateException(
-              "Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath() + "' already exists"
-                  + ", indicating that a previous migration failed. Please contact support for further assistance.");
-        }
-        log.info("Creating backup of database schema {} in {}", databaseSchema, backupDir);
-        backup(databaseDir, databasePath.getName(), backupDir);
-      }
-
-      String setSchemaSql = databaseEngine.buildSetSchemaSql(databaseSchema);
-      for (int i = currentVersion + 1; i <= desiredVersion; i++) {
-        String scriptName = getIncrementalFileName(dataStoreId, "sql", i);
-        runScript(dataSource, setSchemaSql, scriptName);
-        String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", i);
-        runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
-        if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
-        }
-        else {
-          FileUtils.writeStringToFile(databaseVersionFile, String.valueOf(i), StandardCharsets.UTF_8);
-        }
-      }
-
-      FileCleaner fileCleaner = new FileCleaner();
-      if (databaseVersionFile != null) {
-        fileCleaner.delete(databaseVersionFile);
-      }
-      if (backupDir != null) {
-        log.info("Deleting backup of database {} from {}", databaseSchema, backupDir);
-        fileCleaner.delete(backupDir);
-      }
-    }
-    catch (IOException | SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private boolean isNewDatabase(
-      DataSource dataSource,
-      DatabaseEngine databaseEngine,
-      String dataStoreId,
-      String databaseSchema)
-  {
-    // populateDbSchema returns true if the db is new and populated
-    // TODO: CLM-23241 tracks improving that method to have a clearer intent
-    return dataSourceFactory.populateDbSchema(dataSource, databaseEngine, dataStoreId,
-        databaseSchema);
-  }
-
-  // Visible for testing
-  public int getDesiredVersion(String dataStoreId) {
-    return DatabaseMigrator.determineDesiredVersion(dataStoreId);
-  }
-
-  private static String getIncrementalFileName(String dataStoreId, String extension, int scriptIndex) {
-    return "/db/" + dataStoreId + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
-  }
-
-  // Public visibility for tests only.
-  public static int determineDesiredVersion(String dataStoreId) {
-    boolean foundScripts = false;
-    for (int version = 1; version < 10000; version++) {
-      Resource incrementalScript =
-          loadIncrementalScriptResource(getIncrementalFileName(dataStoreId, "sql", version));
-      if (incrementalScript.exists()) {
-        foundScripts = true;
-      }
-      else if (foundScripts) {
-        return version - 1;
-      }
-    }
-    // There are no incremental scripts.
-    return 1;
-  }
-
-  void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource) {
-    try (InputStream is = getClass().getResourceAsStream(postIncrementalMigratorFileName)) {
-      if (is != null) {
-        Class<?> c = Class.forName(IOUtils.toString(is, StandardCharsets.UTF_8).trim());
-        PostIncrementalMigrator migrator = c.asSubclass(PostIncrementalMigrator.class).newInstance();
-        migrator.migrate(dataSource);
-      }
-    }
-    catch (Exception e) {
-      throw new RuntimeException(
-          "Failed to execute the " + PostIncrementalMigrator.class.getSimpleName() + " referenced in " +
-              postIncrementalMigratorFileName + ".", e);
-    }
-  }
-
-  public void runScript(DataSource dataSource, String setSchemaSql, String scriptName) throws SQLException {
-    ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-    resourceDatabasePopulator.addScript(loadIncrementalScriptResource(scriptName));
-    try (Connection conn = dataSource.getConnection()) {
-      try (Statement statement = conn.createStatement()) {
-        statement.execute(setSchemaSql);
-      }
-      resourceDatabasePopulator.populate(conn);
-    }
-  }
-
-  // Package visibility for tests only.
-  void backup(File databaseDir, String databaseName, File backupDir) throws IOException {
-    File[] targets = databaseDir.listFiles(file -> file.isFile() && file.getName().startsWith(databaseName)
-        && !file.getName().equals(databaseName + ".lock.db"));
-
-    if (targets.length > 0) {
-      Files.createDirectories(backupDir.toPath());
-      File dbBackupZip = new File(backupDir, databaseName + ".zip");
-      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(dbBackupZip))) {
-        zipOut.setLevel(Deflater.BEST_SPEED);
-        for (File file : targets) {
-          zipOut.putNextEntry(new ZipEntry(file.getName()));
-          Files.copy(file.toPath(), zipOut);
-        }
-      }
-    }
-  }
-
-  private static Resource loadIncrementalScriptResource(String scriptName) {
-    return new DefaultResourceLoader().getResource(scriptName);
+    new DataStoreMigrator(dataStoreProvider.getOperationalDataStore()).migrate(migrateToNewViolationModel);
+    new DataStoreMigrator(dataStoreProvider.getAggregationDataStore()).migrate(migrateToNewViolationModel);
+    new DataStoreMigrator(dataStoreProvider.getDataMartDataStore()).migrate(migrateToNewViolationModel);
+    new DataStoreMigrator(dataStoreProvider.getThirdPartyScansDataStore()).migrate(migrateToNewViolationModel);
   }
 
   public static void setForceEnableMigration(boolean forceEnableMigration) {
     DatabaseMigrator.forceEnableMigration.set(forceEnableMigration);
   }
 
-  public static boolean isMigrationEnabled() {
+  /**
+   * Is the migration system enabled or disabled. Options include
+   * <ul>
+   *   <li>{@link DatabaseMigrator#setForceEnableMigration(boolean)} was called to forcefully override it</li>
+   *   <li>The {@link DatabaseMigrator#NXIQ_SCHEMA_MIGRATION} environment variable was set</li>
+   *   <li>The {@link DatabaseMigrator#NXIQ_SCHEMA_MIGRATION} system configuration property was set in the database</li>
+   * </ul>
+   *
+   * @param operationalDataStore The {@link OperationalDataStore} used to access the database system config property
+   */
+  public static boolean isMigrationEnabled(final OperationalDataStore operationalDataStore) {
     if (forceEnableMigration.get()) {
       return true;
     }
@@ -270,9 +99,11 @@ public class DatabaseMigrator
     if (migrationEnabled != null) {
       return migrationEnabled;
     }
-    DataSource odsDataSource = OperationalDataStoreProvider.getDataSourceWithoutInit();
-    if (odsDataSource != null && DatabaseUtil.systemConfigurationPropertyTableExists(odsDataSource)) {
-      migrationEnabled = parseBoolean(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(odsDataSource));
+    DataSource odsDataSource = operationalDataStore.getDataSource();
+    String databaseSchema = operationalDataStore.getDatabaseSchema();
+    if (odsDataSource != null && DatabaseUtil.systemConfigurationPropertyTableExists(odsDataSource, databaseSchema)) {
+      migrationEnabled =
+          parseBoolean(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(odsDataSource, databaseSchema));
     }
     if (migrationEnabled != null) {
       return migrationEnabled;

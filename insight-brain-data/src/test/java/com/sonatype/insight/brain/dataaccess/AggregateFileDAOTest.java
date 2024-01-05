@@ -25,8 +25,10 @@ public class AggregateFileDAOTest
   private AggregateFileDAO dao;
 
   @Before
-  public void before() {
-    dao = new AggregateFileDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createAggregateFileDAO();
   }
 
   @Test

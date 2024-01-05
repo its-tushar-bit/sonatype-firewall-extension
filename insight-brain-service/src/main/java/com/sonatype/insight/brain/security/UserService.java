@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -62,6 +61,8 @@ public class UserService
 
   private final UserDAO userDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public UserService(
       InternalRealm clmRealm,
@@ -69,6 +70,7 @@ public class UserService
       SessionDAO sessionDAO,
       UserDAO userDAO,
       SamlUserDAO samlUserDAO,
+      ApplicationDAO applicationDAO,
       UserDirectory userDirectory,
       Configuration configuration,
       CurrentUser currentUser,
@@ -78,6 +80,7 @@ public class UserService
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
     this.userDAO = userDAO;
+    this.applicationDAO = applicationDAO;
     this.userDirectory = userDirectory;
     this.configuration = configuration;
   }
@@ -283,7 +286,6 @@ public class UserService
   // Remove the contact from the applications that have it
   private void removeApplicationContact(final User user) {
     final String userName = user.getUsername();
-    ApplicationDAO applicationDAO = new ApplicationDAO();
     final List<Application> applicationList = applicationDAO.getByContactInternalName(userName);
     for (final Application application : applicationList) {
       application.setContactInternalName(null);

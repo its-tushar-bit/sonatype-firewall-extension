@@ -61,6 +61,12 @@ public class ApiArtifactoryConnectionServiceTest
   private ArtifactoryConnectionDAO dao;
 
   @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private PasswordHandler passwordHandler;
 
   @Mock
@@ -71,10 +77,6 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Mock
   private ArtifactoryClient client;
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Override
   public void configure(final Binder binder) {
@@ -131,7 +133,7 @@ public class ApiArtifactoryConnectionServiceTest
 
   private void assertArtifactoryConnectionDTO(ArtifactoryConnection expected, ApiArtifactoryConnectionDTO actual) {
     assertThat(actual.artifactoryConnectionId).isEqualTo(expected.getId());
-    assertThat(actual.ownerType).isEqualTo(new OwnerDAO().getById(expected.getOwnerId()).getType());
+    assertThat(actual.ownerType).isEqualTo(ownerDAO.getById(expected.getOwnerId()).getType());
     assertThat(actual.ownerId).isEqualTo(expected.getOwnerId());
     assertThat(actual.isAnonymous).isEqualTo(expected.getUsername() == null);
     assertThat(actual.baseUrl).isEqualTo(expected.getBaseUrl());
@@ -940,7 +942,7 @@ public class ApiArtifactoryConnectionServiceTest
 
     artifactoryConnectionService.updateOwnerArtifactoryConnectionStatus(OwnerType.APPLICATION, app.getId(), dto);
 
-    Application application = new ApplicationDAO().getByIdNotNull(app.getId());
+    Application application = applicationDAO.getByIdNotNull(app.getId());
     assertThat(application.isArtifactoryConnectionEnabled()).isEqualTo(expectedEnabled);
   }
 

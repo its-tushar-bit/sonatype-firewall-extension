@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiFirewallResourceAuditTest
     extends AbstractAuditTest
 {
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Before
+  public void setUp() {
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+  }
+
   @Test
   public void testSetFirewallAutoUnquarantineConfig() throws Exception {
     //setup: add new dto to list
@@ -98,7 +106,7 @@ public class ApiFirewallResourceAuditTest
 
     assertResponseStatus(200, response);
     apiRepositoryManagerDTO = response.getBody(ApiRepositoryManagerDTO.class);
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(apiRepositoryManagerDTO.id);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_REPOSITORY_MANAGER, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
   }

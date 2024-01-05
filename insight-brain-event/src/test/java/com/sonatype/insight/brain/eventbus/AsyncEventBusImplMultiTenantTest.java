@@ -21,7 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantName;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,9 +52,9 @@ public class AsyncEventBusImplMultiTenantTest
   @Test
   public void testPost_TenantsOnlyProcessOwnEvents() throws Exception {
     int eventsPerTenant = 2000;
-    String tenant1Name = createTenantName(testName);
+    String tenant1Name = createTenantNameFromTest(testName);
     eventsByTenantSlug.put(tenant1Name, new CopyOnWriteArrayList<>());
-    String tenant2Name = createTenantName(testName);
+    String tenant2Name = createTenantNameFromTest(testName);
     eventsByTenantSlug.put(tenant2Name, new CopyOnWriteArrayList<>());
     countDownLatch = new CountDownLatch(eventsPerTenant * 2);
 

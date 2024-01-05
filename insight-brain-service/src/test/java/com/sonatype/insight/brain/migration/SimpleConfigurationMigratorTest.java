@@ -88,6 +88,7 @@ public class SimpleConfigurationMigratorTest
   @Before
   @After
   public void clear() {
+    reset(mockConfigurationService);
     migrationTrackerDAO.deleteById(SimpleConfigurationMigrator.MIGRATION_ID);
   }
 

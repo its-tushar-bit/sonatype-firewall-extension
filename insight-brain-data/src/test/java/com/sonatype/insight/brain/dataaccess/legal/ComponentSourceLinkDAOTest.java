@@ -24,11 +24,16 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ComponentSourceLinkDAOTest
     extends AbstractDbDAOTest
 {
+  private SourceLinkOverrideDAO sourceLinkOverrideDAO;
+
   private ComponentSourceLinkDAO dao;
 
   @Before
-  public void before() {
-    dao = new ComponentSourceLinkDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    sourceLinkOverrideDAO = daoFactory.createSourceLinkOverrideDAO();
+    dao = daoFactory.createComponentSourceLinkDAO();
   }
 
   @Test
@@ -143,7 +148,6 @@ public class ComponentSourceLinkDAOTest
 
     dao.delete(componentSourceLink);
 
-    SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
     assertThat(dao.getById(componentSourceLink.getId())).isNull();
     assertThat(sourceLinkOverrideDAO.getById(sourceLinkOverride1.getId())).isNull();
     assertThat(sourceLinkOverrideDAO.getById(sourceLinkOverride2.getId())).isNull();

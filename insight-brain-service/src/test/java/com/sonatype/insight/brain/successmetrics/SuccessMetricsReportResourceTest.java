@@ -32,6 +32,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.collect.Ordering;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +41,13 @@ import static org.assertj.core.api.Assertions.offset;
 public class SuccessMetricsReportResourceTest
     extends AbstractResourceTest
 {
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Before
+  public void setUp() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(SuccessMetricsReportResource.RESOURCE_PATH);
@@ -114,10 +122,10 @@ public class SuccessMetricsReportResourceTest
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyEvaluation(appId1, BuildStageType.ID, "scan3", date2);
     violation1.setFixTime(date2);
-    new PolicyViolationDAO().update(violation1);
+    policyViolationDAO.update(violation1);
     tempEntity.newPolicyEvaluation(appId2, BuildStageType.ID, "scan4", date3);
     violation2.setFixTime(date3);
-    new PolicyViolationDAO().update(violation2);
+    policyViolationDAO.update(violation2);
 
     SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(appId1));
 

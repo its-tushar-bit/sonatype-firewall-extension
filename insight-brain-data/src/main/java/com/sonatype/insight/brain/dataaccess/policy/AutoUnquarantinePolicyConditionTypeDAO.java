@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
@@ -17,9 +21,16 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.107
  */
+@Named
+@Singleton
 public class AutoUnquarantinePolicyConditionTypeDAO
     extends AbstractOperationalSqlDAO<AutoUnquarantinePolicyConditionType>
 {
+  @Inject
+  public AutoUnquarantinePolicyConditionTypeDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public List<AutoUnquarantinePolicyConditionType> getAll() {
     String sQuery = "SELECT entity FROM AutoUnquarantinePolicyConditionType entity" + //

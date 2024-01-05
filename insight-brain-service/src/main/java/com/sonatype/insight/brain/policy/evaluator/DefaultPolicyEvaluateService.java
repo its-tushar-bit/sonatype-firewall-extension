@@ -65,7 +65,7 @@ public class DefaultPolicyEvaluateService
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO;
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
@@ -92,6 +92,7 @@ public class DefaultPolicyEvaluateService
       ProductLicense productLicense,
       StageTypeService stageTypeService,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
+      ApplicationDAO applicationDAO,
       InsightWork insightWork)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -101,6 +102,7 @@ public class DefaultPolicyEvaluateService
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
+    this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
 
     executor = new PolicyEvaluationThreadPoolExecutor();
@@ -309,7 +311,7 @@ public class DefaultPolicyEvaluateService
   {
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
         persistedPolicyEvaluationPollingResultDAO
-            .getByApplicationIdAndStatusId(new ApplicationDAO().getByPublicId(applicationPublicId).getId(), statusId);
+            .getByApplicationIdAndStatusId(applicationDAO.getByPublicId(applicationPublicId).getId(), statusId);
     if (persistedPolicyEvaluationPollingResult == null) {
       throw new NotFoundException(String
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,

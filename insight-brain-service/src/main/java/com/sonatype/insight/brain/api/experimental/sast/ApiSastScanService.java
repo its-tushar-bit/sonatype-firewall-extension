@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.experimental.sast;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -55,15 +54,19 @@ class ApiSastScanService
 
   private final SastRemediationDAO sastRemediationDAO;
 
+  private final IdUtils idUtils;
+
   @Inject
   public ApiSastScanService(
       final SastScanDAO sastScanDAO,
       final SastFindingDAO sastFindingDAO,
-      final SastRemediationDAO sastRemediationDAO)
+      final SastRemediationDAO sastRemediationDAO,
+      final IdUtils idUtils)
   {
     this.sastScanDAO = sastScanDAO;
     this.sastFindingDAO = sastFindingDAO;
     this.sastRemediationDAO = sastRemediationDAO;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -81,7 +84,7 @@ class ApiSastScanService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final SastScanRequestDTO sastScanRequestDTO)
   {
-    final String applicationId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
+    final String applicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
     try (final TransactionContext tx = sastScanDAO.createTransactionContext()) {
       tx.begin();
       final SastScan sastScan = persistSastScan(tx, applicationId);
@@ -96,7 +99,7 @@ class ApiSastScanService
   }
 
   private void validateSastScanAssociatedWithApplication(final String applicationPublicId, final SastScan sastScan) {
-    final String requestedApplicationId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
+    final String requestedApplicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
     if (!requestedApplicationId.equals(sastScan.getApplicationId())) {
       throw new NotFoundException("Could not find SastScan");
     }

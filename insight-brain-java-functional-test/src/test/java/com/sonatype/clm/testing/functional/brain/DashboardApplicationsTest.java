@@ -69,6 +69,8 @@ public class DashboardApplicationsTest
 
   private Policy policy;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   private static Dimension originalSize;
 
   @BeforeClass
@@ -80,6 +82,8 @@ public class DashboardApplicationsTest
 
   @Before
   public void init() {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
     policy = tempEntity.newPolicy(org);
@@ -536,7 +540,7 @@ public class DashboardApplicationsTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+    dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   private void changePage(int page) {

@@ -7,9 +7,7 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -23,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -288,26 +285,13 @@ public class TestProductLicenseManager
       if (!valid) {
         throw new LicensingException("Not licensed");
       }
-      insertLicenseIfNeeded();
       return key;
     }
 
     @Override
     public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException {
       readLicenseFile(licenseFile);
-      insertLicenseIfNeeded();
       return createKey();
-    }
-
-    private void insertLicenseIfNeeded() {
-      ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
-      if (productLicenseDAO.get() == null) {
-        com.sonatype.insight.brain.model.configuration.ProductLicense productLicense =
-            new com.sonatype.insight.brain.model.configuration.ProductLicense();
-        productLicense
-            .setLicenseKey(Base64.getEncoder().encodeToString("LICENSE_KEY".getBytes(StandardCharsets.UTF_8)));
-        productLicenseDAO.insert(productLicense);
-      }
     }
 
     @Override

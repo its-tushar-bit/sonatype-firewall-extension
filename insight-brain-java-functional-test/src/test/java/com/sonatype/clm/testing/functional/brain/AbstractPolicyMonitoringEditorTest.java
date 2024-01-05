@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,12 +41,17 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private final OrganizationDAO orgDao = new OrganizationDAO();
+  private OrganizationDAO orgDao;
 
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    orgDao = lookup(OrganizationDAO.class);
   }
 
   protected void init(Owner currentOwner) {

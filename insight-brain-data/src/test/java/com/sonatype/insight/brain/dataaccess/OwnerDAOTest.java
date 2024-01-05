@@ -26,6 +26,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +34,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OwnerDAOTest
     extends AbstractDbDAOTest
 {
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  private VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private OwnerDAO ownerDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    ownerDAO = daoFactory.createOwnerDAO();
+    applicationDAO = daoFactory.createApplicationDAO();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    vulnerabilityGroupDAO = daoFactory.createVulnerabilityGroupDAO();
+    vulnerabilityGroupVulnerabilityDAO = daoFactory.createVulnerabilityGroupVulnerabilityDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+  }
 
   @Test
   public void testWalkHierarchy_Application() {
@@ -121,7 +147,7 @@ public class OwnerDAOTest
 
   @Test
   public void testWalkHierarchy_RepositoryManager() {
-    RepositoryManager repoManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(repoManager)) {
       ownersIds.add(owner.getId());
@@ -169,7 +195,7 @@ public class OwnerDAOTest
 
   @Test
   public void testGetChildOwners_RepositoryManager() {
-    RepositoryManager repoManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     List<Owner> childOwners = ownerDAO.getChildOwners(repoManager);
     assertThat(childOwners).extracting(Owner::getId).containsExactly(repository.getId());
   }
@@ -181,7 +207,7 @@ public class OwnerDAOTest
 
   @Test
   public void testCascadeDelete_PolicyWaivers() {
-    try (TransactionContext tx = new ApplicationDAO().createTransactionContext()) {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       DateTime now = DateTime.now();
       Owner owner = ownerDAO.getById(organization.getId());
       Application app = tempEntity.newApplication(organization.getId());
@@ -191,35 +217,35 @@ public class OwnerDAOTest
           now.plusHours(1).toDate());
       tempEntity.newWaiver("expired", appPolicy.getId(), owner.getId(), null, "comment", now.toDate(),
           now.minusHours(1).toDate());
-      List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(tx, owner.getId());
+      List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
       assertThat(policyWaivers).hasSize(3);
       tx.begin();
       ownerDAO.cascadeDelete(tx, owner);
       tx.commit();
-      policyWaivers = new PolicyWaiverDAO().getByOwnerId(tx, owner.getId());
+      policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
       assertThat(policyWaivers).isEmpty();
     }
   }
 
   @Test
   public void testCascadeDelete_VulnerabilityGroups() {
-    try (TransactionContext tx = new ApplicationDAO().createTransactionContext()) {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       Owner owner = ownerDAO.getById(organization.getId());
       VulnerabilityGroup vulnGroup = tempEntity.newVulnerabilityGroup("TestGroup", owner.getId());
       tempEntity.newVulnerabilityGroupVulnerability(vulnGroup.getId(), "CVE-1234");
       VulnerabilityGroup vulnGroup2 = tempEntity.newVulnerabilityGroup("TestGroup2", owner.getId());
       tempEntity.newVulnerabilityGroupVulnerability(vulnGroup2.getId(), "CVE-456");
-      List<VulnerabilityGroup> vulnerabilityGroupList = new VulnerabilityGroupDAO().getByOwnerId(owner.getId());
+      List<VulnerabilityGroup> vulnerabilityGroupList = vulnerabilityGroupDAO.getByOwnerId(owner.getId());
       assertThat(vulnerabilityGroupList).hasSize(2);
       tx.begin();
       ownerDAO.cascadeDelete(tx, owner);
       tx.commit();
-      vulnerabilityGroupList = new VulnerabilityGroupDAO().getByOwnerId(owner.getId());
+      vulnerabilityGroupList = vulnerabilityGroupDAO.getByOwnerId(owner.getId());
       assertThat(vulnerabilityGroupList).isEmpty();
       List<VulnerabilityGroupVulnerability> vulnerabilityList =
-          new VulnerabilityGroupVulnerabilityDAO().getByGroupId(vulnGroup.getId());
+          vulnerabilityGroupVulnerabilityDAO.getByGroupId(vulnGroup.getId());
       assertThat(vulnerabilityList).isEmpty();
-      vulnerabilityList = new VulnerabilityGroupVulnerabilityDAO().getByGroupId(vulnGroup2.getId());
+      vulnerabilityList = vulnerabilityGroupVulnerabilityDAO.getByGroupId(vulnGroup2.getId());
       assertThat(vulnerabilityList).isEmpty();
     }
   }
@@ -243,20 +269,20 @@ public class OwnerDAOTest
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
     Application app = tempEntity.newApplicationWithParent(testList.get(0));
 
-    new ApplicationDAO().delete(app);
-    new ApplicationDAO().delete(application);
-    new OrganizationDAO().delete(organization);
-    new OrganizationDAO().delete(testList.get(0));
-    new OrganizationDAO().delete(testList.get(1));
-    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    applicationDAO.delete(app);
+    applicationDAO.delete(application);
+    organizationDAO.delete(organization);
+    organizationDAO.delete(testList.get(0));
+    organizationDAO.delete(testList.get(1));
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).isEmpty();
   }
 
   @Test
   public void testGetDescendantOrSelfApplicationIds_RootOrganization_OnlyOrganizationDescendants() {
-    new ApplicationDAO().delete(application);
-    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    applicationDAO.delete(application);
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newOrganization();
 
     assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).isEmpty();
@@ -275,7 +301,7 @@ public class OwnerDAOTest
 
   @Test
   public void testGetDescendantOrSelfApplicationIds_RootOrganization() {
-    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization1 = tempEntity.newOrganization();
     Application application1 = tempEntity.newApplication(organization1.getId());
     Application application2 = tempEntity.newApplication(organization1.getId());

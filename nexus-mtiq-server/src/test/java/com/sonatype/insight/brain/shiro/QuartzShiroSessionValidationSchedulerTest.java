@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.shiro;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QuartzShiroSessionValidationSchedulerTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   TaskScheduler taskScheduler;
@@ -39,10 +39,7 @@ public class QuartzShiroSessionValidationSchedulerTest
   QuartzShiroSessionValidationScheduler underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
     this.underTest = new QuartzShiroSessionValidationScheduler(taskScheduler, sessionManager);
   }
 

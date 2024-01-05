@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
 
@@ -17,12 +16,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField.SortableField;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
@@ -34,14 +31,23 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ProprietaryComponentNamePatternDAOTest
     extends AbstractDbDAOTest
 {
-  private final ProprietaryComponentNamePatternDAO dao = new ProprietaryComponentNamePatternDAO();
+  private RepositoryDAO repositoryDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private ProprietaryComponentNamePatternDAO dao;
 
   private RepositoryManager repoManager;
 
   private Repository repo;
 
   @Before
-  public void init() {
+  @Override
+  public void setup() {
+    super.setup();
+    repositoryDAO = daoFactory.createRepositoryDAO();
+    repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+    dao = daoFactory.createProprietaryComponentNamePatternDAO();
     repoManager = tempEntity.newRepositoryManager();
     repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
   }
@@ -540,44 +546,37 @@ public class ProprietaryComponentNamePatternDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetByFilter_FiltersAndSorting_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("testInstanceId1");
+    Repository repo1 = tempEntity.newRepository(repositoryManager1, "testMavenRepo1", RepositoryType.hosted, "maven");
+    ProprietaryComponentNamePattern pattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "");
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("testInstanceId2");
+    Repository repo2 = tempEntity.newRepository(repositoryManager2, "testMavenRepo2", RepositoryType.hosted, "maven");
+    ProprietaryComponentNamePattern pattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern1", "");
+    RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager("testInstanceId3");
+    Repository repo3 = tempEntity.newRepository(repositoryManager3, "testMavenRepo3", RepositoryType.hosted, "maven");
+    tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern3", "");
 
-      RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("testInstanceId1");
-      Repository repo1 = tempEntity.newRepository(repositoryManager1, "testMavenRepo1", RepositoryType.hosted, "maven");
-      ProprietaryComponentNamePattern pattern1 =
-          tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "");
-      RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("testInstanceId2");
-      Repository repo2 = tempEntity.newRepository(repositoryManager2, "testMavenRepo2", RepositoryType.hosted, "maven");
-      ProprietaryComponentNamePattern pattern2 =
-          tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern1", "");
-      RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager("testInstanceId3");
-      Repository repo3 = tempEntity.newRepository(repositoryManager3, "testMavenRepo3", RepositoryType.hosted, "maven");
-      tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern3", "");
+    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+    filter.page = 1;
+    filter.pageSize = 3;
 
-      ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
-      filter.page = 1;
-      filter.pageSize = 3;
+    // Filter on namespace and sort on repo manager instance ID DESC
+    filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        "testNamespacePattern1"));
+    filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        false /* asc */, 1 /* sortPriority */));
 
-      // Filter on namespace and sort on repo manager instance ID DESC
-      filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
-          ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-          "testNamespacePattern1"));
-      filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-          ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
-          false /* asc */, 1 /* sortPriority */));
-
-      Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
-      List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
-      assertThat(result).hasSize(2);
-      assertPattern(result.get(0), pattern2);
-      assertPattern(result.get(1), pattern1);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
+    assertThat(result).hasSize(2);
+    assertPattern(result.get(0), pattern2);
+    assertPattern(result.get(1), pattern1);
   }
 
   @Test
@@ -626,9 +625,9 @@ public class ProprietaryComponentNamePatternDAOTest
   }
 
   private void assertPattern(ProprietaryComponentNamePatternDTO actual, ProprietaryComponentNamePattern expected) {
-    Repository expectedRepository = new RepositoryDAO().getById(expected.getRepositoryId());
+    Repository expectedRepository = repositoryDAO.getById(expected.getRepositoryId());
     RepositoryManager expectedRepositoryManager =
-        new RepositoryManagerDAO().getById(expectedRepository.getRepositoryManagerId());
+        repositoryManagerDAO.getById(expectedRepository.getRepositoryManagerId());
 
     assertThat(actual.namespacePattern).isEqualTo(expected.getNamespacePattern());
     assertThat(actual.namePattern).isEqualTo(expected.getNamePattern());

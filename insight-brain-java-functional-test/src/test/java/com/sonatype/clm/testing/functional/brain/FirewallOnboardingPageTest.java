@@ -45,6 +45,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -66,10 +67,20 @@ public class FirewallOnboardingPageTest
 {
   private final FirewallOnboardingPage page = new FirewallOnboardingPage();
 
+  private PolicyDAO policyDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
   @BeforeClass
   public static void before() {
     refreshOrOpen(FirewallOnboardingPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
   }
 
   @Test
@@ -1112,8 +1123,6 @@ public class FirewallOnboardingPageTest
     page.launchFirewallButton().click();
     page.closeButton().click();
 
-    PolicyDAO policyDAO = new PolicyDAO();
-
     Policy policy = policyDAO.getById(securityMaliciousPolicy.getId());
     assertThat(policy.getActions().get(StageTypes.PROXY.getId())).isEqualTo(Action.ID_FAIL);
 
@@ -1261,7 +1270,7 @@ public class FirewallOnboardingPageTest
         "Nexus/3.60.0-01 (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
     repoManager.setProductName("Nexus");
     repoManager.setProductVersion("3.60.0-01");
-    new RepositoryManagerDAO().update(repoManager);
+    repositoryManagerDAO.update(repoManager);
     return repoManager;
   }
 }

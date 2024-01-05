@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
@@ -27,9 +31,22 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.105
  */
+@Named
+@Singleton
 public class ComponentObligationDAO
     extends AbstractOperationalSqlDAO<ComponentObligation>
 {
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public ComponentObligationDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+  }
+
   public List<ComponentObligation> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentObligation entity" + //
         " WHERE entity.ownerId=?1";
@@ -122,7 +139,6 @@ public class ComponentObligationDAO
   {
     List<ComponentObligation> results = new ArrayList<>();
     Set<String> missingObligations = new HashSet<>(obligationNames);
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       List<ComponentObligation> componentObligations =
           getByOwnerIdAndComponentIdentifierAndObligationNames(tx, owner.getId(), componentIdentifier,
@@ -143,7 +159,6 @@ public class ComponentObligationDAO
       ComponentIdentifier componentIdentifier)
   {
     Map<String, ComponentObligation> nameToObligationMap = new HashMap<>();
-    OwnerDAO ownerDAO = new OwnerDAO();
 
     try (TransactionContext tx = createTransactionContext()) {
       for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
@@ -176,7 +191,7 @@ public class ComponentObligationDAO
     Map<ComponentIdentifier, Set<String>> componentObligationsAddressed = new HashMap<>();
 
     try (TransactionContext tx = createTransactionContext()) {
-      for (Owner owner : new OwnerDAO().walkHierarchy(ownerId)) {
+      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
         getByOwnerId(tx, owner.getId()).forEach(componentObligation -> {
           Set<String> obligationNames = componentObligationsFound
               .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());

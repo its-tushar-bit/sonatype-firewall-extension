@@ -7,23 +7,24 @@ package com.sonatype.insight.brain.utils;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.dataaccess.LockDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.db.DatabaseConfig;
+
+import com.google.common.annotations.VisibleForTesting;
 
 public class DatabaseProvisionUtils
+    implements DataStoreProvider
 {
   private final OperationalDataStore operationalDataStore;
 
@@ -32,6 +33,8 @@ public class DatabaseProvisionUtils
   private final DataMartDataStore dataMartDataStore;
 
   private final ThirdPartyScansDataStore thirdPartyScansDataStore;
+
+  private final ClusterLockManager clusterLockManager;
 
   public DatabaseProvisionUtils(
       final OperationalDataStore operationalDataStore,
@@ -43,29 +46,46 @@ public class DatabaseProvisionUtils
     this.aggregationDataStore = aggregationDataStore;
     this.dataMartDataStore = dataMartDataStore;
     this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+
+    this.clusterLockManager = getClusterLockManagerProvider(operationalDataStore);
   }
 
-  public void initializeDatabases(InsightConfig insightConfig, DatabaseConfigProvider databaseConfigProvider) {
-    initializeDatabasesWithoutMigration(databaseConfigProvider);
+  @VisibleForTesting
+  public DatabaseProvisionUtils(
+      final OperationalDataStore operationalDataStore,
+      final AggregationDataStore aggregationDataStore,
+      final DataMartDataStore dataMartDataStore,
+      final ThirdPartyScansDataStore thirdPartyScansDataStore,
+      final ClusterLockManager clusterLockManager)
+  {
+    this.operationalDataStore = operationalDataStore;
+    this.aggregationDataStore = aggregationDataStore;
+    this.dataMartDataStore = dataMartDataStore;
+    this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+    this.clusterLockManager = clusterLockManager;
+  }
+
+  /**
+   * {@link DatabaseProvisionUtils} is a "pre-Guice" class (aka before dependency injection) however the
+   * ClusterLockManager is required for schema migration (also pre-Guice) and it has an additional dependency of
+   * LockDAO. So for this class we need to manually instantiate both.
+   */
+  private ClusterLockManager getClusterLockManagerProvider(final OperationalDataStore operationalDataStore) {
+    ClusterLockManagerProvider clusterLockManagerProvider =
+        new ClusterLockManagerProvider(operationalDataStore, new LockDAO(operationalDataStore));
+    return clusterLockManagerProvider.get();
+  }
+
+  public void initializeDatabasesWithMigration(InsightConfig insightConfig) {
+    initializeDatabasesWithoutMigration();
     migrateDatabasesIfNeeded(insightConfig);
   }
 
-  public void initializeDatabasesWithoutMigration(InsightConfig insightConfig) {
-    initializeDatabasesWithoutMigration(new DatabaseConfigProvider(insightConfig));
-  }
-
-  public void initializeDatabasesWithoutMigration(DatabaseConfigProvider databaseConfigProvider) {
-    DatabaseConfig odsDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
-    operationalDataStore.initWithoutMigration(odsDatabaseConfig);
-
-    DatabaseConfig dmDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.dm);
-    dataMartDataStore.initWithoutMigration(dmDatabaseConfig);
-
-    DatabaseConfig tpsDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans);
-    thirdPartyScansDataStore.initWithoutMigration(tpsDatabaseConfig);
-
-    DatabaseConfig aggregationDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation);
-    aggregationDataStore.initWithoutMigration(aggregationDatabaseConfig);
+  public void initializeDatabasesWithoutMigration() {
+    operationalDataStore.initialize();
+    dataMartDataStore.initialize();
+    thirdPartyScansDataStore.initialize();
+    aggregationDataStore.initialize();
   }
 
   public void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
@@ -80,12 +100,12 @@ public class DatabaseProvisionUtils
     // -1 indicates a new database which needs to be "migrated" to have its schema version inserted
     if (schemaVersionTableExists &&
         (schemaVersion == -1 || schemaVersion >= OperationalDataStore.LOCK_TABLE_DATABASE_VERSION)) {
-      try (ClusterLock clusterLock = ClusterLock.createForSchemaMigration()) {
+      try (ClusterLock clusterLock = clusterLockManager.createForSchemaMigration()) {
         clusterLock.lock();
         if (isMigrationEnabledOrHasNewDataSource && isMigrationNeeded()) {
-          ClusterLock.createForSchemaMigrationInProgress();
+          clusterLockManager.createForSchemaMigrationInProgress();
           doMigrateDatabases(insightConfig);
-          ClusterLock.deleteForSchemaMigrationInProgress();
+          clusterLockManager.deleteForSchemaMigrationInProgress();
         }
       }
     }
@@ -106,7 +126,7 @@ public class DatabaseProvisionUtils
   }
 
   private boolean isMigrationEnabledOrHasNewDataSource() {
-    return DatabaseMigrator.isMigrationEnabled() || DataSourceFactory.hasNewDataSource();
+    return DatabaseMigrator.isMigrationEnabled(operationalDataStore) || hasNewDataSource();
   }
 
   public boolean isMigrationNeeded() {
@@ -120,12 +140,19 @@ public class DatabaseProvisionUtils
         aggregationDataStore.getDatabaseSchema());
   }
 
+  public boolean hasNewDataSource() {
+    return operationalDataStore.isDataStoreNew() ||
+        aggregationDataStore.isDataStoreNew() ||
+        dataMartDataStore.isDataStoreNew() ||
+        thirdPartyScansDataStore.isDataStoreNew();
+  }
+
   private boolean isMigrationNeeded(DataSource dataSource, String dataStoreId, String databaseSchemaName) {
     if (!DatabaseUtil.schemaExists(dataSource, databaseSchemaName)) {
       return true;
     }
     int currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName);
-    int desiredVersion = DatabaseMigrator.determineDesiredVersion(dataStoreId);
+    int desiredVersion = DataStoreMigrator.determineDesiredVersion(dataStoreId);
     return currentVersion < desiredVersion;
   }
 
@@ -133,9 +160,26 @@ public class DatabaseProvisionUtils
   public void doMigrateDatabases(InsightConfig insightConfig) {
     // NOTE: The ODS can refuse upgrade if the existing schema is too old. So upgrade it first to avoid
     // upgrading the other databases if the ODS fails and a previous server version must be run first instead.
-    operationalDataStore.migrate(insightConfig.isConsentToUpgradeToVersion_1_45());
-    DatamartProvider.migrate();
-    ThirdPartyScansProvider.migrate();
-    AggregationDataStoreProvider.migrate();
+    (new DatabaseMigrator(this)).migrate(insightConfig.isConsentToUpgradeToVersion_1_45());
+  }
+
+  @Override
+  public OperationalDataStore getOperationalDataStore() {
+    return operationalDataStore;
+  }
+
+  @Override
+  public AggregationDataStore getAggregationDataStore() {
+    return aggregationDataStore;
+  }
+
+  @Override
+  public DataMartDataStore getDataMartDataStore() {
+    return dataMartDataStore;
+  }
+
+  @Override
+  public ThirdPartyScansDataStore getThirdPartyScansDataStore() {
+    return thirdPartyScansDataStore;
   }
 }

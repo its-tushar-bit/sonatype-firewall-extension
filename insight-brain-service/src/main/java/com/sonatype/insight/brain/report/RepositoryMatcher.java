@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -189,6 +188,8 @@ public class RepositoryMatcher
 
   private final InsightMail insightMail;
 
+  private final ProprietaryConfigService proprietaryConfigService;
+
   @Inject
   public RepositoryMatcher(
       final ArtifactoryConnectionDAO artifactoryConnectionDao,
@@ -198,7 +199,8 @@ public class RepositoryMatcher
       final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2,
       final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache,
       final Configuration configuration,
-      final InsightMail insightMail)
+      final InsightMail insightMail,
+      final ProprietaryConfigService proprietaryConfigService)
   {
     this.artifactoryConnectionDao = artifactoryConnectionDao;
     this.artifactoryClientFactory = artifactoryClientFactory;
@@ -208,6 +210,7 @@ public class RepositoryMatcher
     this.repositoryIdentifiedComponentCache = repositoryIdentifiedComponentCache;
     this.configuration = configuration;
     this.insightMail = insightMail;
+    this.proprietaryConfigService = proprietaryConfigService;
   }
 
   public Set<ComponentIdentifier> match(
@@ -269,7 +272,7 @@ public class RepositoryMatcher
   }
 
   // Visible for testing
-  static Set<ComponentIdentifier> updateJsonFiles(
+  Set<ComponentIdentifier> updateJsonFiles(
       Application application,
       ObjectNode bomJson,
       ObjectNode dataJson,
@@ -283,7 +286,7 @@ public class RepositoryMatcher
       return Collections.emptySet();
     }
     Set<ComponentIdentifier> result = new HashSet<>();
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
     AtomicInteger unknown = new AtomicInteger();
     AtomicInteger similar = new AtomicInteger();
     for (Entry<ComponentIdentifier, ComponentEvaluationData> entry : evaluationByIdentifier.entrySet()) {

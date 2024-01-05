@@ -17,12 +17,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -36,10 +39,21 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
+@Named
+@Singleton
 public class PolicyWaiverDAO
     extends AbstractOperationalSqlDAO<PolicyWaiver>
 {
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public PolicyWaiverDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+  }
 
   public List<PolicyWaiver> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -276,7 +290,7 @@ public class PolicyWaiverDAO
   @SuppressWarnings("unchecked")
   public Map<LocalDate, Long> getCountByOwnerIdAndDate(String ownerId, Date date) {
     String sQuery = "SELECT CAST(pw.create_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_waiver pw" + //
+        " FROM " + getDatabaseSchema() + ".policy_waiver pw" + //
         " WHERE pw.owner_id = ?1" + //
         " AND pw.create_time >= ?2" + //
         " GROUP BY CAST(pw.create_time AS DATE)";

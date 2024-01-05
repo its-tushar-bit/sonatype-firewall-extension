@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,6 +20,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class SourceControlDefaultBranchCommitHistoryDAO
     extends AbstractOperationalSqlDAO<SourceControlDefaultBranchCommitHistory>
 {
@@ -28,6 +34,11 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   public static final String WHERE_ENTITY_APPLICATION_ID_1 = "WHERE entity.applicationId=?1 ";
 
   public static final String ORDER_BY_ENTITY_COMMIT_TIME_DESC = "ORDER BY entity.commitTime DESC";
+
+  @Inject
+  public SourceControlDefaultBranchCommitHistoryDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public List<SourceControlDefaultBranchCommitHistory> getByApplicationIdSortedByDateDesc(String applicationId) {
     return getList(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +

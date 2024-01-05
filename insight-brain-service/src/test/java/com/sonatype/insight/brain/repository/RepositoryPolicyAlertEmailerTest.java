@@ -63,6 +63,9 @@ public class RepositoryPolicyAlertEmailerTest
   @Inject
   private BaseUrl baseUrl;
 
+  @Inject
+  private UserDAO userDAO;
+
   @Mock
   private InsightMail mail;
 
@@ -101,7 +104,6 @@ public class RepositoryPolicyAlertEmailerTest
     sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
 
     user.setEmail("newaddress@sonatype.com");
-    UserDAO userDAO = new UserDAO();
     userDAO.update(user);
 
     sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
@@ -180,7 +182,7 @@ public class RepositoryPolicyAlertEmailerTest
     constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:foobar"));
     policy.addConstraint(constraint);
     policy.getNotifications().add(new UserNotification("email@sonatype.com", ProxyStageType.ID));
-    policy.getNotifications().add(new RoleNotification(role.getId(), ProxyStageType.ID));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), ProxyStageType.ID));
     policy = tempEntity.newPolicy(policy);
 
     return policy;

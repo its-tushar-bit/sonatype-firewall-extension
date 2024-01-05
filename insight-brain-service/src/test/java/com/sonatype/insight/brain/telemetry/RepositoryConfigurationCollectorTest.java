@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -37,6 +36,12 @@ public class RepositoryConfigurationCollectorTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
   private RepositoryManager repositoryManager;
 
   private Repository repository;
@@ -49,7 +54,7 @@ public class RepositoryConfigurationCollectorTest
     repository = tempEntity.newRepository(repositoryManager, "test-public-id", false, true);
 
     repository.setFormat("npm");
-    new RepositoryDAO().update(repository);
+    repositoryDAO.update(repository);
   }
 
   @Test
@@ -106,7 +111,7 @@ public class RepositoryConfigurationCollectorTest
         "amd64; 11.0.13; Jfrog Artifactory 7.37.15)";
 
     repositoryManager.setUserAgent(userAgentFirewall);
-    new RepositoryManagerDAO().update(repositoryManager);
+    repositoryManagerDAO.update(repositoryManager);
 
     SonatypeUserAgentUtil.UserAgent userAgent = new UserAgent();
     userAgent.product = "Firewall_For_Jfrog_Artifactory";

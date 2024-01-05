@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,11 +45,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractAccessEditorTest
     extends AbstractFunctionalTest
 {
-  private static final List<Role> APPLICATION_ROLES = new RoleDAO().getApplicationRoles();
+  private List<Role> applicationRoles;
 
-  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+  protected MembershipMappingDAO membershipMappingDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  protected RoleDAO roleDAO;
+
+  protected LdapUserMappingDAO ldapUserMappingDAO;
 
   protected Owner currentOwner;
 
@@ -58,16 +61,24 @@ public abstract class AbstractAccessEditorTest
     loginAsAdmin();
   }
 
+  @Before
+  public void setUp() {
+    membershipMappingDAO = lookup(MembershipMappingDAO.class);
+    roleDAO = lookup(RoleDAO.class);
+    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
+    applicationRoles = roleDAO.getApplicationRoles();
+  }
+
   protected void init(Owner owner) {
     this.currentOwner = owner;
 
     User u1 = tempEntity.newUser();
     User u2 = tempEntity.newUser();
-    Role role = APPLICATION_ROLES.get(0);
+    Role role = applicationRoles.get(0);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
 
-    role = APPLICATION_ROLES.get(2);
+    role = applicationRoles.get(2);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
 
     refreshOrOpen(OwnerSummaryPage.url(owner));
@@ -110,7 +121,7 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
 
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1, accessEditorPage);
+    assertAddRoleInitialStateIsCorrect(applicationRoles.size() - 1, accessEditorPage);
 
     NxFormSelect roleDropdown = addMembersForm.roleSelect();
     roleDropdown.shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
@@ -148,7 +159,7 @@ public abstract class AbstractAccessEditorTest
 
     OwnerDetailSidebar.accessGroup().items().shouldHaveSize(4);
     OwnerDetailSidebar.accessGroup().item(3).shouldHave(text(roleName));
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2, accessEditorPage);
+    assertAddRoleInitialStateIsCorrect(applicationRoles.size() - 2, accessEditorPage);
     assertThatRoleNotAvailableInDropdown(roleName, addMembersForm);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     assertThat(membershipMappings).hasSize(4);
@@ -156,7 +167,7 @@ public abstract class AbstractAccessEditorTest
 
   @Test
   public void testEdit() {
-    Role role = APPLICATION_ROLES.get(0);
+    Role role = applicationRoles.get(0);
     goFromSummaryToEditRole(role);
 
     OwnerDetailSidebar.accessGroup().item(1).shouldBe(CLM.SELECTED);
@@ -190,7 +201,7 @@ public abstract class AbstractAccessEditorTest
 
   @Test
   public void testRemoveBySavingWithNoPickedUsers() {
-    Role role = APPLICATION_ROLES.get(2);
+    Role role = applicationRoles.get(2);
     refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
@@ -210,13 +221,13 @@ public abstract class AbstractAccessEditorTest
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
     OwnerDetailSidebar.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
+    assertAddRoleInitialStateIsCorrect(applicationRoles.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
   @Test
   public void testRemove() {
-    Role role = APPLICATION_ROLES.get(2);
+    Role role = applicationRoles.get(2);
     refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
@@ -236,7 +247,7 @@ public abstract class AbstractAccessEditorTest
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
     OwnerDetailSidebar.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
+    assertAddRoleInitialStateIsCorrect(applicationRoles.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
@@ -249,7 +260,7 @@ public abstract class AbstractAccessEditorTest
     LdapUserMapping ldapUserMapping1 = tempEntity.newLdapUserMapping(ldapServerId1);
     ldapUserMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping1.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(ldapUserMapping1);
+    ldapUserMappingDAO.update(ldapUserMapping1);
 
     String ldapServerId2 = tempEntity.newLdapServer("LDAP_2").getId();
     tempEntity.newLdapConnection(ldapServerId2);
@@ -257,7 +268,7 @@ public abstract class AbstractAccessEditorTest
     LdapUserMapping ldapUserMapping2 = tempEntity.newLdapUserMapping(ldapServerId2);
     ldapUserMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping2.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(ldapUserMapping2);
+    ldapUserMappingDAO.update(ldapUserMapping2);
 
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
@@ -271,7 +282,7 @@ public abstract class AbstractAccessEditorTest
 
     // enable group search for one
     ldapUserMapping1.setDynamicGroupSearchEnabled(true);
-    new LdapUserMappingDAO().update(ldapUserMapping1);
+    ldapUserMappingDAO.update(ldapUserMapping1);
     refresh();
 
     addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
@@ -279,7 +290,7 @@ public abstract class AbstractAccessEditorTest
 
     // ... and then the other one, too
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);
-    new LdapUserMappingDAO().update(ldapUserMapping2);
+    ldapUserMappingDAO.update(ldapUserMapping2);
     refresh();
 
     addMembersForm.disabledGroupSearchWarning().shouldNot(exist);

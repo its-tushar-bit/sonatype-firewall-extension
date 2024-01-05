@@ -54,7 +54,11 @@ public class SourceControlDAOTest
 
   private static final int INTERVAL_IN_HOURS = 24;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
+  private SourceControlDAO sourceControlDAO;
 
   private Application app;
 
@@ -63,6 +67,10 @@ public class SourceControlDAOTest
   @Override
   @Before
   public void setup() {
+    policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
+    sourceControlDAO = daoFactory.createSourceControlDAO();
+    sourceControlPullRequestDAO = daoFactory.createSourceControlPullRequestDAO();
+
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
   }
@@ -1017,12 +1025,12 @@ public class SourceControlDAOTest
     // Then delete should not cascade to pull requests (because there are two source control records with the same
     // repository URL).
     sourceControlDAO.delete(sourceControl);
-    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+    assertThat(sourceControlPullRequestDAO.getAll()).hasSize(1);
 
     // Then delete should cascade to pull requests (because there is only one source control record left with that
     // repository URL).
     sourceControlDAO.delete(sourceControl1);
-    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(0);
+    assertThat(sourceControlPullRequestDAO.getAll()).hasSize(0);
   }
 
   @Test
@@ -1078,13 +1086,13 @@ public class SourceControlDAOTest
     // repository URL).
     sourceControl.setRepositoryUrl(VALID_URL + "Updated");
     sourceControlDAO.update(sourceControl);
-    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+    assertThat(sourceControlPullRequestDAO.getAll()).hasSize(1);
 
     // Then update should delete pull requests (because there is only one source control record left with that
     // repository URL).
     sourceControl1.setRepositoryUrl(VALID_URL + "Updated1");
     sourceControlDAO.update(sourceControl1);
-    assertThat(new SourceControlPullRequestDAO().getAll()).isEmpty();
+    assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -1099,7 +1107,7 @@ public class SourceControlDAOTest
     // Then update should not delete pull requests
     sourceControl.setToken(sourceControl.getToken() + "Updated");
     sourceControlDAO.update(sourceControl);
-    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+    assertThat(sourceControlPullRequestDAO.getAll()).hasSize(1);
   }
 
   @Test
@@ -1384,7 +1392,7 @@ public class SourceControlDAOTest
       }
     }
     finally {
-      new PolicyEvaluationDAO().delete(policyEvaluation);
+      policyEvaluationDAO.delete(policyEvaluation);
     }
   }
 

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -77,15 +76,27 @@ public class PolicyMonitor
 
   private final ThirdPartyScanService thirdPartyScanService;
 
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
   public PolicyMonitor(
-      InsightWork work,
-      ScanUploader uploader,
-      ScanPolicyEvaluator scanPolicyEvaluator,
-      PolicyAlertNotifier policyAlertNotifier,
-      ProductLicense productLicense,
-      AuditRecorder auditRecorder,
-      ThirdPartyScanService thirdPartyScanService)
+      final InsightWork work,
+      final ScanUploader uploader,
+      final ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyAlertNotifier policyAlertNotifier,
+      final ProductLicense productLicense,
+      final AuditRecorder auditRecorder,
+      final ThirdPartyScanService thirdPartyScanService,
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final OwnerDAO ownerDAO,
+      final ApplicationDAO applicationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.work = work;
     this.uploader = uploader;
@@ -94,6 +105,10 @@ public class PolicyMonitor
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
     this.thirdPartyScanService = thirdPartyScanService;
+    this.policyMonitoringDAO = policyMonitoringDAO;
+    this.ownerDAO = ownerDAO;
+    this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationMonitorForkJoinPool = initThreadPool();
   }
 
@@ -114,7 +129,7 @@ public class PolicyMonitor
 
     long start = System.currentTimeMillis();
 
-    List<PolicyMonitoring> policyMonitorings = new PolicyMonitoringDAO().getAll();
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getAll();
     if (policyMonitorings.isEmpty()) {
       log.info("Policy monitoring was not configured for any applications, organizations, or repositories.");
       return;
@@ -137,8 +152,7 @@ public class PolicyMonitor
     }
     log.debug("Licensed for Application Policy Monitoring.");
 
-    OwnerDAO ownerDAO = new OwnerDAO();
-    List<Application> apps = new ApplicationDAO().getAll();
+    List<Application> apps = applicationDAO.getAll();
     log.info("Starting policy monitoring of applications");
     long start = System.currentTimeMillis();
 
@@ -188,7 +202,7 @@ public class PolicyMonitor
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluation lastPrimaryPolicyEvaluation = new PolicyEvaluationDAO()
+    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO
         .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
     if (lastPrimaryPolicyEvaluation == null) {
       AuditData.get().setEvent(null);
@@ -245,7 +259,7 @@ public class PolicyMonitor
       catch (Exception e) {
         // Each policy evaluation deletes the scan file for the previous evaluation, which may cause this exception.
         // If there is a newer scan file, try again.
-        PolicyEvaluation newLastPrimaryPolicyEvaluation = new PolicyEvaluationDAO()
+        PolicyEvaluation newLastPrimaryPolicyEvaluation = policyEvaluationDAO
             .getLastPrimaryByApplicationIdAndStageId(app.getId(), lastPrimaryPolicyEvaluation.getStageTypeId());
         if (lastScanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
           // There's no newer scan file.

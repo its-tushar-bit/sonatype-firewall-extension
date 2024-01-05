@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
@@ -41,19 +42,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * number of entities in the database tables after the import.
  */
 public class ReferencePolicyImportIntegrationTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
-  private final LabelDAO labelDAO = new LabelDAO();
+  private LabelDAO labelDAO;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  private final TagDAO tagDAO = new TagDAO();
+  private TagDAO tagDAO;
 
-  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private PolicyTagDAO policyTagDAO;
 
   private final URL referencePolicyUrl = getClass()
       .getResource("/reference-policies-v" + ReferencePolicyFetcher.REFERENCE_POLICY_VERSION + ".json");
@@ -61,6 +62,14 @@ public class ReferencePolicyImportIntegrationTest
   @Before
   @After
   public void cleanup() {
+    // Using DAOFactory instead of lookup as we have tests using @ManualIqServerInit annotation
+    policyDAO = daoFactory.createPolicyDAO();
+    labelDAO = daoFactory.createLabelDAO();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    tagDAO = daoFactory.createTagDAO();
+    policyTagDAO = daoFactory.createPolicyTagDAO();
+
     Collection<Policy> policies = policyDAO.getAll();
     Collection<Label> labels = labelDAO.getAll();
     Collection<LicenseThreatGroup> ltgs = licenseThreatGroupDAO.getAll();
@@ -91,7 +100,7 @@ public class ReferencePolicyImportIntegrationTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testImportCurrentReferencePolicies() throws Exception {
     // Sanity checks
     assertThat(policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
@@ -106,7 +115,7 @@ public class ReferencePolicyImportIntegrationTest
     hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 
     try {
-      initServer(configurator);
+      startIqTestServer(configurator);
 
       PolicyExportResult importData = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
       int policyCount = importData.policies.size();

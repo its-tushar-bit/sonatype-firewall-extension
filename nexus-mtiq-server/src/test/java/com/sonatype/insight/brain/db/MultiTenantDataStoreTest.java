@@ -9,36 +9,35 @@ import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantDataStoreTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   @Test
   public void testSameDataSource() {
-    assertThat(multiTenantDatabaseTestRule.operationalDataStore.getDataSource())
-        .isSameAs(multiTenantDatabaseTestRule.aggregationDataStore.getDataSource())
-        .isSameAs(multiTenantDatabaseTestRule.dataMartDataStore.getDataSource())
-        .isSameAs(multiTenantDatabaseTestRule.thirdPartyScansDataStore.getDataSource());
+    assertThat(databaseRule.getOperationalDataStore().getDataSource())
+        .isSameAs(databaseRule.getAggregationDataStore().getDataSource())
+        .isSameAs(databaseRule.getDataMartDataStore().getDataSource())
+        .isSameAs(databaseRule.getThirdPartyScansDataStore().getDataSource());
   }
 
   @Test
   public void testOdsSpecialProperties() {
-    assertThat(multiTenantDatabaseTestRule.operationalDataStore.isDatabaseInMemory()).isFalse();
-    assertThat(multiTenantDatabaseTestRule.operationalDataStore.isDatabaseEmbedded()).isFalse();
+    assertThat(databaseRule.getOperationalDataStore().isDatabaseInMemory()).isFalse();
+    assertThat(databaseRule.getOperationalDataStore().isDatabaseEmbedded()).isFalse();
   }
 
   @Test
   public void testGlobalSchema() {
     testAsGlobalTenant(g -> {
-      assertThat(multiTenantDatabaseTestRule.operationalDataStore.getDatabaseSchema()).isEqualTo("global");
-      assertThat(multiTenantDatabaseTestRule.aggregationDataStore.getDatabaseSchema()).isEqualTo("global");
-      assertThat(multiTenantDatabaseTestRule.dataMartDataStore.getDatabaseSchema()).isEqualTo("global");
-      assertThat(multiTenantDatabaseTestRule.thirdPartyScansDataStore.getDatabaseSchema()).isEqualTo("global");
+      assertThat(databaseRule.getOperationalDataStore().getDatabaseSchema()).isEqualTo("global");
+      assertThat(databaseRule.getAggregationDataStore().getDatabaseSchema()).isEqualTo("global");
+      assertThat(databaseRule.getDataMartDataStore().getDatabaseSchema()).isEqualTo("global");
+      assertThat(databaseRule.getThirdPartyScansDataStore().getDatabaseSchema()).isEqualTo("global");
     });
   }
 
@@ -46,20 +45,20 @@ public class MultiTenantDataStoreTest
   public void testTenantSchema() {
 
     testAsNewTenant(t -> {
-      assertThat(multiTenantDatabaseTestRule.operationalDataStore.getDatabaseSchema()).isEqualTo(t.databaseSchema);
-      assertThat(multiTenantDatabaseTestRule.aggregationDataStore.getDatabaseSchema()).isEqualTo(t.databaseSchema);
-      assertThat(multiTenantDatabaseTestRule.thirdPartyScansDataStore.getDatabaseSchema()).isEqualTo(t.databaseSchema);
+      assertThat(databaseRule.getOperationalDataStore().getDatabaseSchema()).isEqualTo(t.databaseSchema);
+      assertThat(databaseRule.getAggregationDataStore().getDatabaseSchema()).isEqualTo(t.databaseSchema);
+      assertThat(databaseRule.getThirdPartyScansDataStore().getDatabaseSchema()).isEqualTo(t.databaseSchema);
 
       // datamart is ALWAYS global
-      assertThat(multiTenantDatabaseTestRule.dataMartDataStore.getDatabaseSchema()).isEqualTo("global");
+      assertThat(databaseRule.getDataMartDataStore().getDatabaseSchema()).isEqualTo("global");
     });
   }
 
   @Test
   public void testDataSourceID() {
-    assertThat(multiTenantDatabaseTestRule.operationalDataStore.getID()).isEqualTo(OperationalDataStore.ID);
-    assertThat(multiTenantDatabaseTestRule.aggregationDataStore.getID()).isEqualTo(AggregationDataStore.ID);
-    assertThat(multiTenantDatabaseTestRule.dataMartDataStore.getID()).isEqualTo(DataMartDataStore.ID);
-    assertThat(multiTenantDatabaseTestRule.thirdPartyScansDataStore.getID()).isEqualTo(ThirdPartyScansDataStore.ID);
+    assertThat(databaseRule.getOperationalDataStore().getID()).isEqualTo(OperationalDataStore.ID);
+    assertThat(databaseRule.getAggregationDataStore().getID()).isEqualTo(AggregationDataStore.ID);
+    assertThat(databaseRule.getDataMartDataStore().getID()).isEqualTo(DataMartDataStore.ID);
+    assertThat(databaseRule.getThirdPartyScansDataStore().getID()).isEqualTo(ThirdPartyScansDataStore.ID);
   }
 }

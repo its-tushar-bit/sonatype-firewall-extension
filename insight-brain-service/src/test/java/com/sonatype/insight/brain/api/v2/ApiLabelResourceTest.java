@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
@@ -36,6 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiLabelResourceTest
     extends AbstractResourceTest
 {
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  @Before
+  public void setUp() {
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+  }
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(ownerType, ownerId);
   }
@@ -225,7 +236,7 @@ public class ApiLabelResourceTest
     String orgId = org.getId();
     String appPublicId = "testGetApplicableLabelsApp";
     Application app = tempEntity.newApplication(appPublicId, appPublicId, org.getId());
-    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
 
     final Repository repository = tempEntity.newRepository();
     final String repoId = repository.getId();
@@ -252,7 +263,7 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
 
     // Verify the applicable labels for the repository manager
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     response = restRequest(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
@@ -393,7 +404,7 @@ public class ApiLabelResourceTest
     HttpRequest request = restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath("applicable/context/{labelId}");
 
     final Repository repository = tempEntity.newRepository();
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
 
     HttpResponse response = request.parameter(appLabel.getId()).get();
     assertResponseStatus(200, response);

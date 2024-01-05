@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.db.datastore;
 
 import java.util.function.IntConsumer;
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
 /**
@@ -21,47 +19,22 @@ public abstract class AbstractDataStore
 {
   protected DataSource dataSource;
 
-  protected DatabaseConfig databaseConfig;
+  protected final DatabaseConfig databaseConfig;
 
-  protected final DataSourceFactory dataSourceFactory;
+  protected final DataSourceProvider dataSourceProvider;
 
-  private final DatabaseMigrator databaseMigrator;
+  protected boolean isDataStoreNew;
 
-  public AbstractDataStore(final DataSourceFactory dataSourceFactory, final DatabaseMigrator databaseMigrator) {
-    this.dataSourceFactory = dataSourceFactory;
-    this.databaseMigrator = databaseMigrator;
-  }
-
-  @Override
-  public void initWithMigration(final DatabaseConfig databaseConfig, final Boolean migrateToNewViolationModel) {
-    init(databaseConfig, true /* migrateDatabase */, migrateToNewViolationModel);
-  }
-
-  @Override
-  public void initWithoutMigration(DatabaseConfig databaseConfig) {
-    init(databaseConfig, false /* migrateDatabase */, false);
-  }
-
-  /**
-   * Perform the initialization of the data store. This includes creating all supporting objects (e.g.
-   * {@link DataSource}, {@link EntityManagerFactory}), population of new databases, and migration on existing
-   * databases.
-   */
-  protected abstract void init(
-      final DatabaseConfig databaseConfig,
-      final boolean migrateDatabase,
-      final Boolean migrateToNewViolationModel);
-
-  @Override
-  public void migrate(final Boolean migrateToNewViolationModel) {
-    databaseMigrator.migrate(databaseConfig, getID(), getDatabaseSchema(), dataSource,
-        getUpgradeGuard(migrateToNewViolationModel));
+  public AbstractDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
+    this.dataSourceProvider = dataSourceProvider;
+    this.databaseConfig = databaseConfig;
   }
 
   /**
    * The new violation model in IQ 114 requires the database to be at version 85 first.
    */
-  protected IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
+  @Override
+  public IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
     // as of writing only ODS has an upgrade guard
     return null;
   }
@@ -73,16 +46,7 @@ public abstract class AbstractDataStore
 
   @Override
   public DataSource getDataSource() {
-    if (!isInitialized()) {
-      initWithMigration(null /* databaseConfig */, false);
-    }
     return dataSource;
-  }
-
-  @Override
-  public void clear_ForTestsOnly() {
-    dataSource = null;
-    databaseConfig = null;
   }
 
   /**
@@ -90,4 +54,14 @@ public abstract class AbstractDataStore
    * lazily (for tests only) which will imply a null {@link DatabaseConfig}.
    */
   protected abstract boolean isInitialized();
+
+  @Override
+  public DataSourceProvider getDataSourceProvider() {
+    return dataSourceProvider;
+  }
+
+  @Override
+  public boolean isDataStoreNew() {
+    return isDataStoreNew;
+  }
 }

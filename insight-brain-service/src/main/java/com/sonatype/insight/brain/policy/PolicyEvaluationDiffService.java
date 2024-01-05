@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -45,9 +45,12 @@ public class PolicyEvaluationDiffService
 
   private final InsightWork work;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
   @Inject
-  public PolicyEvaluationDiffService(final InsightWork work) {
+  public PolicyEvaluationDiffService(final InsightWork work, final ComponentLoaderFactory componentLoaderFactory) {
     this.work = work;
+    this.componentLoaderFactory = componentLoaderFactory;
   }
 
   /**
@@ -159,9 +162,9 @@ public class PolicyEvaluationDiffService
 
   private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(File reportFile) throws IOException {
     ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    ComponentDAO componentDAO = new ComponentDAO(null);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);
     Set<ComponentIdentifierAndHashComparable> result = new TreeSet<>(ComponentIdentifierAndHashComparator.COMPARATOR);
-    result.addAll(componentDAO.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,
+    result.addAll(componentLoader.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,
         null /* dependency data */));
     return result;
   }

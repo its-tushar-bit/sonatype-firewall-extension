@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class PersistedPolicyEvaluationPollingResultDAO
     extends AbstractOperationalSqlDAO<PersistedPolicyEvaluationPollingResult>
 {
+  @Inject
+  public PersistedPolicyEvaluationPollingResultDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public PersistedPolicyEvaluationPollingResult getByApplicationIdAndStatusId(String applicationId, String statusId) {
     String sQuery = "SELECT entity FROM PersistedPolicyEvaluationPollingResult entity" + //
         " WHERE entity.applicationId=?1" + //

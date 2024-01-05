@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiReverseProxyAuthenticationConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final ReverseProxyAuthenticationConfigurationDAO dao = new ReverseProxyAuthenticationConfigurationDAO();
+  private ReverseProxyAuthenticationConfigurationDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(ReverseProxyAuthenticationConfigurationDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

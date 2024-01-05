@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTenantManagedInitializerTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   TenantUtil tenantUtil;

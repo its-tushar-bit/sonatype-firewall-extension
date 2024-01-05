@@ -38,7 +38,7 @@ import com.sonatype.clm.testing.functional.pages.WaiveTransitiveViolationsPopove
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -96,7 +96,7 @@ public class TransitiveViolationsTest
 
   @Before
   public void before() throws Exception {
-    rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization = lookup(OrganizationDAO.class).getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",
         "56770d0ec3da47b0aa8eab53d874efdb", organization.getId());
@@ -123,7 +123,8 @@ public class TransitiveViolationsTest
     File reportFile = testCLMServer.getCLMServer().getInstance(InsightWork.class)
         .getReportFile(application.getId(), policyEvaluation.getScanId());
     ReportEntry reportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    components = new ComponentDAO(application).getAll(null, null, reportEntry.buf, null);
+    components = lookup(ComponentLoaderFactory.class).createComponentLoader(application)
+        .getAll(null, null, reportEntry.buf, null);
     component = components.stream().filter(c -> c.getHash().equals("hash1")).findFirst().orElse(null);
   }
 
@@ -325,7 +326,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(7).shouldHave(text("Custom"));
-    waiveTransitiveViolationsPopover.comments().shouldHave(Condition.text(""));
+    waiveTransitiveViolationsPopover.comments().shouldHave(Condition.exactText(""));
     eyesWatcher.eyesCheck();
   }
 
@@ -419,7 +420,7 @@ public class TransitiveViolationsTest
   {
     waiveTransitiveViolationsPopover.saveButton().click();
     waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(application.getId());
+    List<PolicyWaiver> policyWaivers = lookup(PolicyWaiverDAO.class).getByOwnerId(application.getId());
     for (PolicyViolation policyViolation : policyViolations) {
       PolicyWaiver policyWaiver = findPolicyWaiver(policyWaivers, policyViolation);
       assertThat(policyWaiver.getExpiryTime()).isEqualTo(expectedExpiryTime);

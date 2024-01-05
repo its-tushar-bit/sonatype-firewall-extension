@@ -94,6 +94,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -120,7 +121,11 @@ public abstract class AbstractPolicyEditorTest
 
   private Owner currentOwner;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
+
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private RoleDAO roleDAO;
 
   private JiraProject jiraProject;
 
@@ -128,6 +133,13 @@ public abstract class AbstractPolicyEditorTest
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    policyDAO = lookup(PolicyDAO.class);
+    licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
+    roleDAO = lookup(RoleDAO.class);
   }
 
   private static void assertCondition(
@@ -214,7 +226,7 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
-        new LicenseThreatGroupDAO().getByName("Liberal").get(0).getId());
+        licenseThreatGroupDAO.getByName("Liberal").get(0).getId());
     assertCondition(constraint.getConditions().get(8),
             LicenseThreatGroupLevelConditionType.ID, ">=", "5");
     assertCondition(constraint.getConditions().get(9),
@@ -511,7 +523,8 @@ public abstract class AbstractPolicyEditorTest
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy.getNotifications().add(
         new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
-    policy.getNotifications().add(new RoleNotification(new RoleDAO().getByName("Developer").getId(), Stage.ID_BUILD));
+    String roleName = "Developer";
+    policy.getNotifications().add(new RoleNotification(roleDAO.getByName(roleName).getId(), roleName, Stage.ID_BUILD));
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 
@@ -655,7 +668,7 @@ public abstract class AbstractPolicyEditorTest
     Condition ltgCondition = constraints.get(0).getConditions().get(1);
     assertThat(ltgCondition.getConditionTypeId()).isEqualTo(LicenseThreatGroupConditionType.ID);
     assertThat(ltgCondition.getValue())
-        .isEqualTo(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId());
+        .isEqualTo(licenseThreatGroupDAO.getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId());
     assertThat(ltgCondition.getOperator()).isEqualTo("is not");
 
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();

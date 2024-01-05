@@ -58,6 +58,8 @@ public class DataRetentionEditorTest
 
   private static final Map<String, RetentionEditor> EDITORS = new HashMap<>();
 
+  private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
   static {
     CONTEXT_IDS.forEach(contextId -> EDITORS.put(contextId, new ApplicationReportRetentionEditor(contextId)));
     EDITORS.put(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, new SuccessMetricsRetentionEditor());
@@ -75,29 +77,28 @@ public class DataRetentionEditorTest
 
   @Before
   public void before() {
+    dataRetentionPolicyDAO = lookup(DataRetentionPolicyDAO.class);
     organization = tempEntity.newOrganization("Retention Test Org");
     rootOrgDataRetentionPolicies =
-        new DataRetentionPolicyDAO().getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values();
+        dataRetentionPolicyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values();
   }
 
   @After
   public void after() {
-    DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
-
     // Delete any DataRetentionPolicy created by the tests for the root org.
     Set<String> rootOrgDataRetentionPolicyIds =
         rootOrgDataRetentionPolicies.stream().map(DataRetentionPolicy::getId).collect(toSet());
-    dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().stream()
+    dataRetentionPolicyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().stream()
         .filter(dataRetentionPolicy -> !rootOrgDataRetentionPolicyIds.contains(dataRetentionPolicy.getId()))
-        .forEach(dao::delete);
+        .forEach(dataRetentionPolicyDAO::delete);
 
     // Restore any standard root org DataRetentionPolicy changed by the tests.
     for (DataRetentionPolicy rootOrgDataRetentionPolicy : rootOrgDataRetentionPolicies) {
-      if (dao.getById(rootOrgDataRetentionPolicy.getId()) == null) {
-        dao.insert(rootOrgDataRetentionPolicy);
+      if (dataRetentionPolicyDAO.getById(rootOrgDataRetentionPolicy.getId()) == null) {
+        dataRetentionPolicyDAO.insert(rootOrgDataRetentionPolicy);
       }
       else {
-        dao.update(rootOrgDataRetentionPolicy);
+        dataRetentionPolicyDAO.update(rootOrgDataRetentionPolicy);
       }
     }
   }

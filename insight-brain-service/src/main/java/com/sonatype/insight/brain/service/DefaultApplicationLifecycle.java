@@ -14,8 +14,11 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.AbstractComponentCategoryUpdater;
-import com.sonatype.insight.brain.hds.ComponentCategoryUpdater;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.hds.ComponentCategoryUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -51,6 +54,12 @@ public class DefaultApplicationLifecycle
 
   private final TaskScheduler taskScheduler;
 
+  private final ComponentCategoryDAO componentCategoryDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  private final MultiLicenseDAO multiLicenseDAO;
+
   @Inject
   public DefaultApplicationLifecycle(
       InsightConfig configuration,
@@ -61,7 +70,10 @@ public class DefaultApplicationLifecycle
       VersionService versionService,
       AuditRecorder auditRecorder,
       ComponentCategoryUpdater componentCategoryUpdater,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      ComponentCategoryDAO componentCategoryDAO,
+      LicenseDAO licenseDAO,
+      MultiLicenseDAO multiLicenseDAO)
   {
     this.configuration = configuration;
     this.licenseManager = licenseManager;
@@ -72,6 +84,9 @@ public class DefaultApplicationLifecycle
     this.auditRecorder = auditRecorder;
     this.componentCategoryUpdater = componentCategoryUpdater;
     this.taskScheduler = taskScheduler;
+    this.componentCategoryDAO = componentCategoryDAO;
+    this.licenseDAO = licenseDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
   }
 
   @Override
@@ -94,7 +109,7 @@ public class DefaultApplicationLifecycle
       @Override
       public void run() {
         try {
-          LicenseDataUpdater.update();
+          LicenseDataUpdater.update(licenseDAO, multiLicenseDAO);
         }
         catch (Exception e) {
           log.info("Failed to retrieve license data from Sonatype HDS", log.isDebugEnabled() ? e : null);
@@ -108,7 +123,7 @@ public class DefaultApplicationLifecycle
       @Override
       public void run() {
         try {
-          AbstractComponentCategoryUpdater.update();
+          AbstractComponentCategoryUpdater.update(componentCategoryDAO);
         }
         catch (Exception e) {
           log.info("Failed to retrieve component categories from Sonatype HDS", log.isDebugEnabled() ? e : null);

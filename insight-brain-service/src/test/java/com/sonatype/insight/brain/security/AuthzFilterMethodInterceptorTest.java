@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -19,7 +19,6 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AuthzFilterMethodInterceptorTest
+    extends AbstractDataTest
 {
   private MethodInvocation invoc;
 
@@ -37,9 +37,6 @@ public class AuthzFilterMethodInterceptorTest
   private Subject subject;
 
   private AuthzFilterMethodInterceptor interceptor;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public Collection<Application> stubOrgs() {

@@ -40,6 +40,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class EditOriginalSourcesTest
     extends AbstractFunctionalTest
 {
+  private ComponentObligationDAO componentObligationDAO;
+
   private Application app;
 
   private ComponentIdentifier componentId;
@@ -53,6 +55,8 @@ public class EditOriginalSourcesTest
   @Before
   public void before() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
+    componentObligationDAO = lookup(ComponentObligationDAO.class);
   }
 
   private void init(String hash, ComponentIdentifier componentIdentifier, String testFileSuffix) {
@@ -303,7 +307,7 @@ public class EditOriginalSourcesTest
   private void doModifyObligationStatus() {
     ComponentLegalOverviewPage.editOriginalSourcesButton().scrollTo().shouldBe(Condition.visible).click();
 
-    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+    assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(
         Organization.ROOT_ORGANIZATION_ID, componentId,
         "Required Disclosure of Original Source Code with Distribution")).isNull();
 
@@ -329,7 +333,7 @@ public class EditOriginalSourcesTest
     modal.should(Condition.disappear);
 
     // The status in the DB should change
-    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+    assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(
         Organization.ROOT_ORGANIZATION_ID, componentId, "Required Disclosure of Original Source Code with Distribution")
         .getStatus()).isEqualTo(ObligationStatus.FLAGGED);
   }

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +27,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SourceControlPullRequestCommentDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+  private SourceControlPullRequestCommentDAO pullRequestCommentDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    pullRequestCommentDAO = daoFactory.createSourceControlPullRequestCommentDAO();
+  }
 
   @Test
   public void testGetCommentForPullRequest_commentDoesNotExist() {

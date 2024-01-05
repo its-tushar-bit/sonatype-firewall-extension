@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -22,8 +21,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.ClusterLock.LockType;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -51,14 +51,17 @@ public class PdfGeneratorService
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public PdfGeneratorService(
-      ApplicationDAO applicationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO,
-      BaseUrl baseUrl,
-      VersionService versionService,
-      ReportService reportService,
-      ApiReportDataServiceV2 apiReportDataServiceV2)
+      final ApplicationDAO applicationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final BaseUrl baseUrl,
+      final VersionService versionService,
+      final ReportService reportService,
+      final ApiReportDataServiceV2 apiReportDataServiceV2,
+      final ClusterLockManager clusterLockManager)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -66,6 +69,7 @@ public class PdfGeneratorService
     this.versionService = versionService;
     this.reportService = reportService;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @Authorize(permission = Permission.READ)
@@ -100,20 +104,20 @@ public class PdfGeneratorService
     pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId);
     pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true);
     augmentEmptyLicensesAsNotProvided(pdfData.rawData);
-    try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(app, scanId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
       clusterLock.lock(LockType.SHARED);
       if (isGenerated(pdfFile)) {
         return pdfFile;
       }
     }
     // The pdf file has not been generated so try to generate it
-    try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(app, scanId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
       clusterLock.lock();
       generate(pdfFile, pdfData);
     }
     return pdfFile;
   }
-  
+
   // Visible for testing
   boolean isGenerated(File file) {
     return file.exists() && file.length() > 0;

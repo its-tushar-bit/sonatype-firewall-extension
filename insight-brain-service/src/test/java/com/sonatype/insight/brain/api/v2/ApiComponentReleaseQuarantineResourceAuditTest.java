@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.awaitility.core.ConditionTimeoutException;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiComponentReleaseQuarantineResourceAuditTest
@@ -41,13 +41,19 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
   public static final PackageUrlIdentifier PACKAGE_URL_IDENTIFIER =
       new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
 
-  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-
   private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
 
   private static final String REPO_PUBLIC_ID = "repoPublicId";
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Before
+  public void setUp() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    repositoryPolicyViolationDAO = lookup(RepositoryPolicyViolationDAO.class);
+  }
 
   @Test
   public void testReleaseQuarantineWithoutReEval() throws Exception {

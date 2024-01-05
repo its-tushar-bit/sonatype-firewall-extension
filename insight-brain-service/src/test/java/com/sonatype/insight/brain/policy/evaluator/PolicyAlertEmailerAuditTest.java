@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -50,6 +49,9 @@ public class PolicyAlertEmailerAuditTest
   private static final String SCAN_ID = "scanId";
 
   private static final String STAGE_ID = BuildStageType.ID;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Inject
   private PolicyAlertEmailer policyAlertEmailer;
@@ -103,7 +105,7 @@ public class PolicyAlertEmailerAuditTest
     Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new UserNotification(EMAILS.get(0), policyEvaluation.getStageTypeId()));
     policy.getNotifications().add(new UserNotification(EMAILS.get(1), policyEvaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     List<PolicyNotification> policyNotifications = new ArrayList<>();
     policyNotifications.add(createPolicyNotification(policy, "hash1"));
     policyNotifications.add(createPolicyNotification(policy, "hash2"));

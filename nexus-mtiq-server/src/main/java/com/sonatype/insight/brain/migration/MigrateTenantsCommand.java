@@ -7,21 +7,11 @@ package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseContainerSupport;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
-import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
-import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
-import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantMigrator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
@@ -57,17 +47,10 @@ public class MigrateTenantsCommand
   {
     log.info("Starting DB migrations for the Global Schema and all tenants");
 
-    // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
-    DatabaseContainer databaseContainer = createDatabaseContainer();
-
-    // The MTIQ has additional control over the 'locks' DataSource object. The configuration for this comes from a
-    // custom property defined in MultiTenantInsightConfig which we then need to set into the factory.
-    MultiTenantDataSourceFactory dataSourceFactory =
-        (MultiTenantDataSourceFactory) databaseContainer.getDataSourceFactory();
-    dataSourceFactory.setInsightConfig(insightConfig);
+    DatabaseContainer databaseContainer = createDatabaseContainer(insightConfig);
 
     MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection =
-        new MultiTenantGlobalSchemaProtection(OperationalDataStoreProvider.getInstance());
+        new MultiTenantGlobalSchemaProtection(databaseContainer.getOperationalDataStore());
 
     TenantMigrator tenantMigrator =
         new TenantMigrator(databaseContainer.getDatabaseProvisionUtils(), insightConfig,
@@ -81,24 +64,7 @@ public class MigrateTenantsCommand
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer() {
-    MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
-
-    DatabaseMigrator databaseMigrator = new DatabaseMigrator(multiTenantDataSourceFactory);
-
-    OperationalDataStore operationalDataStore =
-        new MultiTenantOperationalDataStore(multiTenantDataSourceFactory, databaseMigrator);
-    AggregationDataStore aggregationDataStore =
-        new MultiTenantAggregationDataStore(multiTenantDataSourceFactory, databaseMigrator);
-    DataMartDataStore dataMartDataStore =
-        new MultiTenantDataMartDataStore(multiTenantDataSourceFactory, databaseMigrator);
-    ThirdPartyScansDataStore thirdPartyScansDataStore =
-        new MultiTenantThirdPartyScansDataStore(multiTenantDataSourceFactory, databaseMigrator);
-
-    DatabaseProvisionUtils databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-            thirdPartyScansDataStore);
-
-    return new DatabaseContainer(multiTenantDataSourceFactory, databaseProvisionUtils);
+  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+    return new MultiTenantDatabaseContainer((MultiTenantInsightConfig) insightConfig);
   }
 }

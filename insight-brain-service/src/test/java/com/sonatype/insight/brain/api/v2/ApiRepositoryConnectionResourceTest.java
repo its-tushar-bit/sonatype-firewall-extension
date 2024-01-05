@@ -47,7 +47,11 @@ public class ApiRepositoryConnectionResourceTest
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private final RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
+  private RepositoryConnectionDAO dao;
+
+  private OrganizationDAO organizationDAO;
+
+  private ApplicationDAO applicationDAO;
 
   private PasswordHandler pwHandler;
 
@@ -57,13 +61,17 @@ public class ApiRepositoryConnectionResourceTest
 
   @Before
   public void before() {
-    pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    dao = lookup(RepositoryConnectionDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
+    pwHandler = lookup(PasswordHandler.class);
     app = tempEntity.newApplicationWithParent();
     app.setRepositoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     org = tempEntity.newOrganization();
     org.setRepositoryConnectionEnabled(true);
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
   }
 
   @Override
@@ -257,7 +265,7 @@ public class ApiRepositoryConnectionResourceTest
     Application application = tempEntity.newApplication(organization.getId());
     organization.setAllowRepositoryConnectionOverride(false);
     organization.setRepositoryConnectionEnabled(true);
-    new OrganizationDAO().update(organization);
+    organizationDAO.update(organization);
     RepositoryConnection orgRepositoryConnection =
         tempEntity.newRepositoryConnection(organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 

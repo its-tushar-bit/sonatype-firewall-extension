@@ -6,17 +6,28 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.13
  */
+@Named
+@Singleton
 public class LicenseOverrideLicenseInternalDAO
     extends AbstractOperationalSqlDAO<LicenseOverrideLicenseInternal>
 {
+  @Inject
+  public LicenseOverrideLicenseInternalDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public List<LicenseOverrideLicenseInternal> getByLicenseOverrideId(String licenseOverrideId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByLicenseOverrideId(tx, licenseOverrideId);

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
@@ -19,85 +20,137 @@ public class ConditionTypes
 
   // The instances below support the Drools code produced by AbstractConditionType.generateDroolsCode()
 
-  public static final AgeInDaysConditionType AgeInDaysConditionType = new AgeInDaysConditionType();
+  public static AgeInDaysConditionType AgeInDaysConditionType;
 
-  public static final CoordinatesConditionType CoordinatesConditionType = new CoordinatesConditionType();
+  public static CoordinatesConditionType CoordinatesConditionType;
 
-  public static final ComponentFormatConditionType ComponentFormatConditionType = new ComponentFormatConditionType();
+  public static ComponentFormatConditionType ComponentFormatConditionType;
 
-  public static final PackageUrlConditionType PackageUrlConditionType = new PackageUrlConditionType();
+  public static PackageUrlConditionType PackageUrlConditionType;
 
-  public static final LabelConditionType LabelConditionType = new LabelConditionType();
+  public static LabelConditionType LabelConditionType;
 
-  public static final LicenseConditionType LicenseConditionType = new LicenseConditionType();
+  public static LicenseConditionType LicenseConditionType;
 
-  public static final LicenseStatusConditionType LicenseStatusConditionType = new LicenseStatusConditionType();
+  public static LicenseStatusConditionType LicenseStatusConditionType;
 
-  public static final LicenseThreatGroupConditionType LicenseThreatGroupConditionType =
-      new LicenseThreatGroupConditionType();
+  public static LicenseThreatGroupConditionType LicenseThreatGroupConditionType;
 
-  public static final LicenseThreatGroupLevelConditionType LicenseThreatGroupLevelConditionType =
-      new LicenseThreatGroupLevelConditionType();
+  public static LicenseThreatGroupLevelConditionType LicenseThreatGroupLevelConditionType;
 
-  public static final RelativePopularityConditionType RelativePopularityConditionType =
-      new RelativePopularityConditionType();
+  public static RelativePopularityConditionType RelativePopularityConditionType;
 
-  public static final MatchStateConditionType MatchStateConditionType = new MatchStateConditionType();
+  public static MatchStateConditionType MatchStateConditionType;
 
   @SuppressWarnings("deprecation")
-  public static final DeprecatedSecurityVulnerabilityConditionType DeprecatedSecurityVulnerabilityConditionType =
-      new DeprecatedSecurityVulnerabilityConditionType();
+  public static DeprecatedSecurityVulnerabilityConditionType DeprecatedSecurityVulnerabilityConditionType;
 
-  public static final SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType =
-      new SecurityVulnerabilitySeverityConditionType();
+  public static SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType;
 
-  public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType =
-      new SecurityVulnerabilityStatusConditionType();
+  public static SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType;
 
-  public static final SecurityVulnerabilitySourceConditionType SecurityVulnerabilitySourceConditionType =
-      new SecurityVulnerabilitySourceConditionType();
+  public static SecurityVulnerabilitySourceConditionType SecurityVulnerabilitySourceConditionType;
 
-  public static final SecurityVulnerabilityResearchConditionType SecurityVulnerabilityResearchConditionType =
-      new SecurityVulnerabilityResearchConditionType();
+  public static SecurityVulnerabilityResearchConditionType SecurityVulnerabilityResearchConditionType;
 
-  public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
+  public static ProprietaryConditionType ProprietaryConditionType;
 
-  public static final ProprietaryNameConflictConditionType ProprietaryNameConflictConditionType =
-      new ProprietaryNameConflictConditionType();
+  public static ProprietaryNameConflictConditionType ProprietaryNameConflictConditionType;
 
-  public static final IdentificationSourceConditionType IdentificationSourceConditionType =
-      new IdentificationSourceConditionType();
+  public static IdentificationSourceConditionType IdentificationSourceConditionType;
 
-  public static final ComponentCategoryConditionType ComponentCategoryConditionType =
-      new ComponentCategoryConditionType();
+  public static ComponentCategoryConditionType ComponentCategoryConditionType;
 
-  public static final HygieneRatingConditionType HygieneRatingConditionType = new HygieneRatingConditionType();
+  public static HygieneRatingConditionType HygieneRatingConditionType;
 
-  public static final IntegrityRatingConditionType IntegrityRatingConditionType = new IntegrityRatingConditionType();
+  public static IntegrityRatingConditionType IntegrityRatingConditionType;
 
-  public static final DataSourceConditionType DataSourceConditionType = new DataSourceConditionType();
+  public static DataSourceConditionType DataSourceConditionType;
 
-  public static final DependencyTypeConditionType DependencyTypeConditionType = new DependencyTypeConditionType();
+  public static DependencyTypeConditionType DependencyTypeConditionType;
 
-  public static final SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType =
-      new SecurityVulnerabilityCategoryConditionType();
+  public static SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType;
 
-  public static final SecurityVulnerabilityCweConditionType SecurityVulnerabilityCweConditionType =
-      new SecurityVulnerabilityCweConditionType();
+  public static SecurityVulnerabilityCweConditionType SecurityVulnerabilityCweConditionType;
 
-  public static final SecurityVulnerabilityCustomRemediationConditionType //
-      SecurityVulnerabilityCustomRemediationConditionType = new SecurityVulnerabilityCustomRemediationConditionType();
+  public static SecurityVulnerabilityCustomRemediationConditionType SecurityVulnerabilityCustomRemediationConditionType;
 
-  public static final IacControlConditionType IacControlConditionType = new IacControlConditionType();
+  public static IacControlConditionType IacControlConditionType;
 
-  public static final VulnerabilityGroupConditionType VulnerabilityGroupConditionType =
-      new VulnerabilityGroupConditionType();
+  public static VulnerabilityGroupConditionType VulnerabilityGroupConditionType;
 
-  public static final SecurityVulnerabilityCustomCVSSVectorStringConditionType
-      SecurityVulnerabilityCustomCVSSVectorStringConditionType =
-      new SecurityVulnerabilityCustomCVSSVectorStringConditionType();
+  public static SecurityVulnerabilityCustomCVSSVectorStringConditionType
+      SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 
-  static {
+  @Inject
+  public static void injectConditionTypes(
+      final AgeInDaysConditionType ageInDaysConditionType,
+      final CoordinatesConditionType coordinatesConditionType,
+      final ComponentFormatConditionType componentFormatConditionType,
+      final PackageUrlConditionType packageUrlConditionType,
+      final LabelConditionType labelConditionType,
+      final LicenseConditionType licenseConditionType,
+      final LicenseStatusConditionType licenseStatusConditionType,
+      final LicenseThreatGroupConditionType licenseThreatGroupConditionType,
+      final LicenseThreatGroupLevelConditionType licenseThreatGroupLevelConditionType,
+      final RelativePopularityConditionType relativePopularityConditionType,
+      final MatchStateConditionType matchStateConditionType,
+      final DeprecatedSecurityVulnerabilityConditionType deprecatedSecurityVulnerabilityConditionType,
+      final SecurityVulnerabilitySeverityConditionType securityVulnerabilitySeverityConditionType,
+      final SecurityVulnerabilityStatusConditionType securityVulnerabilityStatusConditionType,
+      final SecurityVulnerabilitySourceConditionType securityVulnerabilitySourceConditionType,
+      final SecurityVulnerabilityResearchConditionType securityVulnerabilityResearchConditionType,
+      final ProprietaryConditionType proprietaryConditionType,
+      final ProprietaryNameConflictConditionType proprietaryNameConflictConditionType,
+      final IdentificationSourceConditionType identificationSourceConditionType,
+      final ComponentCategoryConditionType componentCategoryConditionType,
+      final HygieneRatingConditionType hygieneRatingConditionType,
+      final IntegrityRatingConditionType integrityRatingConditionType,
+      final DataSourceConditionType dataSourceConditionType,
+      final DependencyTypeConditionType dependencyTypeConditionType,
+      final SecurityVulnerabilityCategoryConditionType securityVulnerabilityCategoryConditionType,
+      final SecurityVulnerabilityCweConditionType securityVulnerabilityCweConditionType,
+      final SecurityVulnerabilityCustomRemediationConditionType securityVulnerabilityCustomRemediationConditionType,
+      final IacControlConditionType iacControlConditionType,
+      final VulnerabilityGroupConditionType vulnerabilityGroupConditionType,
+      final SecurityVulnerabilityCustomCVSSVectorStringConditionType
+          securityVulnerabilityCustomCVSSVectorStringConditionType)
+  {
+    ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
+    ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
+    ConditionTypes.ComponentFormatConditionType = componentFormatConditionType;
+    ConditionTypes.PackageUrlConditionType = packageUrlConditionType;
+    ConditionTypes.LabelConditionType = labelConditionType;
+    ConditionTypes.LicenseConditionType = licenseConditionType;
+    ConditionTypes.LicenseStatusConditionType = licenseStatusConditionType;
+    ConditionTypes.LicenseThreatGroupConditionType = licenseThreatGroupConditionType;
+    ConditionTypes.LicenseThreatGroupLevelConditionType = licenseThreatGroupLevelConditionType;
+    ConditionTypes.RelativePopularityConditionType = relativePopularityConditionType;
+    ConditionTypes.MatchStateConditionType = matchStateConditionType;
+    ConditionTypes.DeprecatedSecurityVulnerabilityConditionType = deprecatedSecurityVulnerabilityConditionType;
+    ConditionTypes.SecurityVulnerabilitySeverityConditionType = securityVulnerabilitySeverityConditionType;
+    ConditionTypes.SecurityVulnerabilityStatusConditionType = securityVulnerabilityStatusConditionType;
+    ConditionTypes.SecurityVulnerabilitySourceConditionType = securityVulnerabilitySourceConditionType;
+    ConditionTypes.SecurityVulnerabilityResearchConditionType = securityVulnerabilityResearchConditionType;
+    ConditionTypes.ProprietaryConditionType = proprietaryConditionType;
+    ConditionTypes.ProprietaryNameConflictConditionType = proprietaryNameConflictConditionType;
+    ConditionTypes.IdentificationSourceConditionType = identificationSourceConditionType;
+    ConditionTypes.ComponentCategoryConditionType = componentCategoryConditionType;
+    ConditionTypes.HygieneRatingConditionType = hygieneRatingConditionType;
+    ConditionTypes.IntegrityRatingConditionType = integrityRatingConditionType;
+    ConditionTypes.DataSourceConditionType = dataSourceConditionType;
+    ConditionTypes.DependencyTypeConditionType = dependencyTypeConditionType;
+    ConditionTypes.SecurityVulnerabilityCategoryConditionType = securityVulnerabilityCategoryConditionType;
+    ConditionTypes.SecurityVulnerabilityCweConditionType = securityVulnerabilityCweConditionType;
+    ConditionTypes.SecurityVulnerabilityCustomRemediationConditionType =
+        securityVulnerabilityCustomRemediationConditionType;
+    ConditionTypes.IacControlConditionType = iacControlConditionType;
+    ConditionTypes.VulnerabilityGroupConditionType = vulnerabilityGroupConditionType;
+    ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType =
+        securityVulnerabilityCustomCVSSVectorStringConditionType;
+
+    allConditionTypes.clear();
+
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
     add(ComponentCategoryConditionType);

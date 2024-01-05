@@ -8,11 +8,16 @@ package com.sonatype.insight.brain.scheduler;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 public class MultiTenantQuartzConnectionProvider
     extends QuartzConnectionProvider
 {
+  public MultiTenantQuartzConnectionProvider(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public Connection getConnection() throws SQLException {
     return TenantThreadLocal.runAsGlobal(() -> {

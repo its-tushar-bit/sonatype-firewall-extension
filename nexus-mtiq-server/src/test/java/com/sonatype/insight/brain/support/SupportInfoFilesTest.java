@@ -54,7 +54,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -78,7 +78,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SupportInfoFilesTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private VersionService versionService;
@@ -104,9 +104,7 @@ public class SupportInfoFilesTest
   private SupportInfoFiles supportInfoFiles;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     supportInfoFiles =
         new SupportInfoFiles(versionService, dbData, samlUserDao, configurationInfo, systemInfo,
             sourceControlConfigurationInfo, supportInfoUtil);

@@ -36,15 +36,28 @@ public class LicenseThreatGroupValueType
 
   private final String ownerId;
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  public LicenseThreatGroupValueType(String ownerId) {
-    this(null, ownerId);
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  public LicenseThreatGroupValueType(
+      String ownerId,
+      final OwnerDAO ownerDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO)
+  {
+    this(null, ownerId, ownerDAO, licenseThreatGroupDAO);
   }
 
-  public LicenseThreatGroupValueType(TransactionContext tx, String ownerId) {
+  public LicenseThreatGroupValueType(
+      TransactionContext tx,
+      String ownerId,
+      final OwnerDAO ownerDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO)
+  {
     this.tx = tx;
     this.ownerId = ownerId;
+    this.ownerDAO = ownerDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
   }
 
   @Override
@@ -65,7 +78,6 @@ public class LicenseThreatGroupValueType
   @Override
   public List<LicenseThreatGroup> getAvailableValues() {
     List<LicenseThreatGroup> result = new ArrayList<>();
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     if (tx != null) {
       for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
         result.addAll(licenseThreatGroupDAO.getByOwnerId(tx, owner.getId()));

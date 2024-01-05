@@ -219,6 +219,8 @@ public class ApiLicenseLegalService
 
   private final ForkJoinPool attributionReportForkJoinPool;
 
+  private final IdUtils idUtils;
+
   private static final Set<String> SONATYPE_SPECIAL_LICENSES = new HashSet<>(Arrays.asList(
       UNSPECIFIED_ID,
       UNKNOWN_ID,
@@ -261,7 +263,8 @@ public class ApiLicenseLegalService
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       InnerSourceComponentDAO innerSourceComponentDAO,
       LegalDashboardsService legalDashboardService,
-      ComponentLegalService componentLegalService)
+      ComponentLegalService componentLegalService,
+      final IdUtils idUtils)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -275,6 +278,7 @@ public class ApiLicenseLegalService
     this.componentCopyrightDAO = componentCopyrightDAO;
     this.componentLegalFileDAO = componentLegalFileDAO;
     this.componentInfoService = componentInfoService;
+    this.idUtils = idUtils;
     this.componentInfoService.setToolName("ci");
     this.apiLicenseDataAdapter = apiLicenseDataAdapter;
     this.productLicense = productLicense;
@@ -788,7 +792,7 @@ public class ApiLicenseLegalService
   {
     checkLicense();
 
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl, hash);
     // We get the component by coordinates from HDS
     // A passed in aggregate component synthetic hash (i.e. hash of its coordinates)
@@ -894,7 +898,7 @@ public class ApiLicenseLegalService
   }
 
   /**
-   * Given a set of {@link licenseMetadataDTOS}s and the ownerId, return map of LicenseId to LicenseMetadataDTO.
+   * Given a set of {@link LicenseMetadataDTO}s and the ownerId, return map of LicenseId to LicenseMetadataDTO.
    *
    * @param licenseMetadataDTOS set of {@link LicenseMetadataDTO}
    * @param ownerId ownerId
@@ -969,7 +973,7 @@ public class ApiLicenseLegalService
     LicenseThreatGroup result =
         tx != null ? licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(tx, ownerId, licenseIds)
             : licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(ownerId, licenseIds);
-    return result == null ? null : new ApiLicenseDataAdapter().convert(result);
+    return result == null ? null : new ApiLicenseDataAdapter(multiLicenseDAO).convert(result);
   }
 
   /**
@@ -1585,7 +1589,7 @@ public class ApiLicenseLegalService
         licenseThreatGroupDAO.getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx,
             Organization.ROOT_ORGANIZATION_ID, singleLicensesInComponent);
 
-    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
+    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter(multiLicenseDAO);
 
     dto.licenses.forEach(licenseDto -> {
       Set<String> singleLicenseIds = multiLicenseIdToSingleLicenseIds.get(licenseDto.licenseId);

@@ -11,20 +11,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,17 +30,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ApplicationAdapterTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private static final String USER_DIRECTORY_ERROR = "User directory query result error.";
 
   private static final String TEST_MESSAGE = "Test Exception Message";
 
   @Inject
-  private UserDirectory userDirectory;
+  private ApplicationAdapter applicationAdapter;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   // Application variables
   private final String applicationId = "AppId";
@@ -83,7 +81,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
+    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -99,7 +97,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
+    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -111,7 +109,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContact);
 
-    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
+    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -128,7 +126,8 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(mockUserDirectory).convert(application);
+    ApplicationDTO actualApplicationDTO =
+        new ApplicationAdapter(mockUserDirectory, organizationDAO).convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -140,7 +139,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application, false);
+    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application, false);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -162,7 +161,7 @@ public class ApplicationAdapterTest
       expectedApplicationDTOs.add(expectedApplicationDTO);
     }
 
-    List<ApplicationDTO> actualApplicationDTOs = ApplicationAdapter.getInstance(userDirectory).convert(applications);
+    List<ApplicationDTO> actualApplicationDTOs = applicationAdapter.convert(applications);
     assertApplicationDTOs(actualApplicationDTOs, expectedApplicationDTOs);
   }
 
@@ -192,7 +191,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -221,7 +220,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -255,7 +254,7 @@ public class ApplicationAdapterTest
     when(mockUserDirectory.getUsersByName(memberNames)).thenReturn(result);
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(mockUserDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -278,7 +277,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -305,7 +304,7 @@ public class ApplicationAdapterTest
     createMember(contactInternalName, userFirstName, userLastName, userEmail);
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -342,7 +341,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
-        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
+        applicationAdapter.createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }

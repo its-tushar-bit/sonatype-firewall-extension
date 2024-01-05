@@ -47,6 +47,12 @@ public class ApplicationSummaryServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  @Inject
   private ApplicationSummaryService service;
 
   @Inject
@@ -54,9 +60,6 @@ public class ApplicationSummaryServiceTest
 
   @Inject
   private AsyncEventBus eventBus;
-
-  @Inject
-  private ApplicationDAO applicationDAO;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -96,8 +99,6 @@ public class ApplicationSummaryServiceTest
   public void testVerifyOrCreateApplication_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled() {
     String appPublicId = "NoSuchAppPublicID";
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
     boolean result = service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
@@ -116,8 +117,6 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -125,7 +124,7 @@ public class ApplicationSummaryServiceTest
         "test_client_user_agent");
     assertThat(result).isTrue();
 
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
@@ -134,8 +133,6 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -144,7 +141,7 @@ public class ApplicationSummaryServiceTest
         "test_client_user_agent");
     assertThat(result).isTrue();
 
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(org2.getId());
   }
 
@@ -153,8 +150,6 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -169,8 +164,6 @@ public class ApplicationSummaryServiceTest
     Application app1 = tempEntity.newApplication("app1-in-org1", org1.getId());
 
     // AutomaticApplications enabled with org1 as default org
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org1.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -194,8 +187,6 @@ public class ApplicationSummaryServiceTest
   @Test
   public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationDisabled() {
     // If auto app creation is disabled, then no telemetry data should be sent.
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
     String appPublicId = "NoSuchAppPublicID";
@@ -215,8 +206,6 @@ public class ApplicationSummaryServiceTest
         eq("test_client_user_agent"));
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -239,7 +228,7 @@ public class ApplicationSummaryServiceTest
     clearInvocations(telemetrySenderMock);
 
     // The app exists and it has evaluations. We don't expect any telemetry data.
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
     service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     verifyNoInteractions(telemetrySenderMock);
@@ -250,8 +239,6 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
@@ -260,14 +247,14 @@ public class ApplicationSummaryServiceTest
     assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(
         () -> service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
             "test_client_user_agent"));
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
+    assertThat(applicationDAO.getByPublicId(appPublicId)).isNull();
 
     testProductLicense.setMaxApplications(1);
 
     boolean result = service
         .verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     assertThat(result).isTrue();
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
@@ -355,8 +342,6 @@ public class ApplicationSummaryServiceTest
     eventBus.register(handler);
 
     final Organization org = tempEntity.newOrganization();
-    final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
     service.verifyOrCreateApplication("appPublicId", org.getId(), Goal.EVALUATE_APPLICATION,

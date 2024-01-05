@@ -33,7 +33,7 @@ public class ComponentLabelResourceTest
 {
   private final String componentHash = "bababababa";
 
-  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private ComponentLabelDAO componentLabelDAO;
 
   private Organization org;
 
@@ -55,8 +55,10 @@ public class ComponentLabelResourceTest
 
   @Before
   public void init() {
+    componentLabelDAO = lookup(ComponentLabelDAO.class);
+
     org = tempEntity.newOrganization();
-    rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     app = tempEntity.newApplication("Test", "test-app", org.getId());
     repository = tempEntity.newRepository();
     appLabel = tempEntity.newLabel(app.getId(), "app");

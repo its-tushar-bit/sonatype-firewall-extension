@@ -7,17 +7,28 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.9
  */
+@Named
+@Singleton
 public class PolicyTagDAO
     extends AbstractOperationalSqlDAO<PolicyTag>
 {
+  @Inject
+  public PolicyTagDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void update(TransactionContext tx, PolicyTag entity) {
     throw new UnsupportedOperationException("The PolicyTag table does not support update operations");

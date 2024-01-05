@@ -41,7 +41,7 @@ public class MoveOrganizationTest
   private static final String POLICY_MONITORING_MISSING_MSG = "The new parent organization does not use continuous"
       + " policy monitoring.";
 
-  private final OrganizationDAO orgDAO = new OrganizationDAO();
+  private OrganizationDAO orgDAO;
 
   private Organization parentOrg1;
 
@@ -57,6 +57,8 @@ public class MoveOrganizationTest
 
   @Before
   public void init() {
+    orgDAO = lookup(OrganizationDAO.class);
+
     parentOrg1 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION1);
     parentOrg2 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION2);
     childOrg = tempEntity.newOrganization(YE_OLE_CHILD_ORGANIZATION2, parentOrg1);

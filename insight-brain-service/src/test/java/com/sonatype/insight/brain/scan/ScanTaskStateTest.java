@@ -11,8 +11,8 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
  * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps.
  */
 public class ScanTaskStateTest
+    extends AbstractDataTest
 {
   Scanner scanner = mock(Scanner.class);
 
@@ -62,13 +63,15 @@ public class ScanTaskStateTest
 
   private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
-  ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-      proprietaryConfigService, thirdPartyScanService, new PersistedScanTicketDAO());
+  ScanTask task;
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
   @Before
   public void init() throws Exception {
+    task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
+        proprietaryConfigService, thirdPartyScanService, daoFactory.createPersistedScanTicketDAO());
+
     File binFile = new File("any");
     Application application = new Application("any", "MyApp", null);
     application.setId("appId");

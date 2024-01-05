@@ -13,35 +13,39 @@ import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantCacheResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
 
   protected HttpRequest restRequest(String path) {
     return super.adminRequest().path("api/").path(path);
   }
 
+  @Before
+  public void before() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    roleDAO = lookup(RoleDAO.class);
+  }
+
   @Test
   public void shouldSend200_whenStatisticsRequested() throws Exception {
-    String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
-
-    HttpResponse response = requestTenantStatistics(tenantSlug).get();
+    HttpResponse response = requestTenantStatistics(getTestTenant().tenantSlug).get();
     assertThat(response.getStatusCode()).isEqualTo(200);
   }
 

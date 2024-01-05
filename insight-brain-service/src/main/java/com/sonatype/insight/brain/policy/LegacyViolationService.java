@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -54,6 +54,8 @@ public class LegacyViolationService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public LegacyViolationService(
       ApplicationDAO applicationDAO,
@@ -61,7 +63,8 @@ public class LegacyViolationService
       PolicyDAO policyDAO,
       PolicyViolationDAO policyViolationDAO,
       ProductLicense productLicense,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      ClusterLockManager clusterLockManager)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -69,6 +72,7 @@ public class LegacyViolationService
     this.policyViolationDAO = policyViolationDAO;
     this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.clusterLockManager = clusterLockManager;
   }
 
   private void validateLegacyViolationIsLicensed() {
@@ -89,8 +93,8 @@ public class LegacyViolationService
     Date now = new Date();
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
-        TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
+         TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> legacyViolations =
@@ -127,8 +131,8 @@ public class LegacyViolationService
     Date now = new Date();
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
-        TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
+         TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());

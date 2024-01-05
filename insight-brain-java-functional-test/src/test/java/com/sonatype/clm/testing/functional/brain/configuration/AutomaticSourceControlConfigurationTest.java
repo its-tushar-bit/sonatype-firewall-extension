@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -21,17 +22,24 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
-import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class AutomaticSourceControlConfigurationTest
     extends AbstractFunctionalTest
 {
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(AutomaticSourceControlConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
   }
 
   @Test
@@ -106,9 +114,6 @@ public class AutomaticSourceControlConfigurationTest
   }
 
   private void verifyConfiguration(boolean enabled) {
-    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
-        new AutomaticSourceControlConfigurationDAO();
-
     assertThat(automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()).isEqualTo(enabled);
   }
 }

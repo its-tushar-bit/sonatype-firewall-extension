@@ -43,11 +43,13 @@ public class RootOrganizationPolicyEditorTest
 {
   private Organization rootOrganization;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
   @Before
   public void init() {
-    rootOrganization = new OrganizationDAO().getById(ROOT_ORGANIZATION_ID);
+    policyDAO = lookup(PolicyDAO.class);
+
+    rootOrganization = lookup(OrganizationDAO.class).getById(ROOT_ORGANIZATION_ID);
     refreshOrOpen(OwnerSummaryPage.url(rootOrganization));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(rootOrganization.getName()));
   }

@@ -72,7 +72,7 @@ public class SuccessMetricsReportListTest
 
   @After
   public void cleanup() {
-    SuccessMetricsReportDAO dao = new SuccessMetricsReportDAO();
+    SuccessMetricsReportDAO dao = lookup(SuccessMetricsReportDAO.class);
     for (SuccessMetricsReport successMetricsReport : dao.getByUsername("admin")) {
       dao.delete(successMetricsReport);
     }

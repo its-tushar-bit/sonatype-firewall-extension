@@ -6,14 +6,35 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ThirdPartyFileCoordinateDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyFileCoordinate>
 {
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Inject
+  public ThirdPartyFileCoordinateDAO(
+      final ThirdPartyScansDataStore thirdPartyScansDataStore,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO)
+  {
+    super(thirdPartyScansDataStore);
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+  }
+
   @Override
   public ThirdPartyFileCoordinate getById(String id) {
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
@@ -72,12 +93,11 @@ public class ThirdPartyFileCoordinateDAO
   @Override
   public void delete(TransactionContext tx, ThirdPartyFileCoordinate fileCoordinate) {
     // cascade delete coordinate security records
-    new ThirdPartyCoordinateSecurityDAO().deleteByFileCoordinateId(tx, fileCoordinate.getId());
+    thirdPartyCoordinateSecurityDAO.deleteByFileCoordinateId(tx, fileCoordinate.getId());
 
     // cascade delete coordinate license records
-    new ThirdPartyCoordinateLicenseDAO().deleteByFileCoordinateId(tx, fileCoordinate.getId());
+    thirdPartyCoordinateLicenseDAO.deleteByFileCoordinateId(tx, fileCoordinate.getId());
 
-    // lastly delete this entity
     super.delete(tx, fileCoordinate);
   }
 }

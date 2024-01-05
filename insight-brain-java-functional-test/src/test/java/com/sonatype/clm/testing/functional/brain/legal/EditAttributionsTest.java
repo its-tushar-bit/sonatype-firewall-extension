@@ -62,7 +62,7 @@ public class EditAttributionsTest
 
   @Before
   public void init() throws IOException {
-    rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     owners = Arrays.asList(app, org, rootOrg);
@@ -86,7 +86,7 @@ public class EditAttributionsTest
     testCLMServer.getHdsServer()
         .respondWith("[]")
         .atUri("/rest/legal/source-link");
-    componentObligationAttributionDAO = new ComponentObligationAttributionDAO();
+    componentObligationAttributionDAO = lookup(ComponentObligationAttributionDAO.class);
   }
 
   @Test

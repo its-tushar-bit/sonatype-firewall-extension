@@ -51,9 +51,9 @@ public class OrgsAndPoliciesSidebarTest
 {
   private Map<Integer, List<Organization>> organizations;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -63,6 +63,9 @@ public class OrgsAndPoliciesSidebarTest
 
   @Before
   public void init() {
+    organizationDAO = lookup(OrganizationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     organizations = tempEntity.newRelatedOrganizationsAsMap(null, 2, 3, 3, new NameSupplierDictionary());
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
   }

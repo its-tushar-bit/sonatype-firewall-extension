@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -41,13 +41,13 @@ public abstract class AbstractHdsClientTest
   @Inject
   private ApiConfigurationService configurationService;
 
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   protected static final String USER_AGENT_SUFFIX = "test suffix";
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private Server server;
 
@@ -86,7 +86,7 @@ public abstract class AbstractHdsClientTest
     setUserAgentSuffix(USER_AGENT_SUFFIX);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(1234);
-    telemetryId = new TelemetryId(config);
+    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO);
     initClient();
   }
 

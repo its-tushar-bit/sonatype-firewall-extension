@@ -21,12 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlOrganizationImportEventDAOTest
     extends AbstractDbDAOTest
 {
-  private static final SourceControlOrganizationImportEventDAO dao = new SourceControlOrganizationImportEventDAO();
+  private SourceControlOrganizationImportEventDAO dao;
 
   private Organization org;
 
   @Before
-  public void before() {
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSourceControlOrganizationImportEventDAO();
     org = tempEntity.newOrganization();
   }
 

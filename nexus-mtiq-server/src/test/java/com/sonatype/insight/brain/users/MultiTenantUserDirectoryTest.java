@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.users;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.UserDirectory;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +15,7 @@ import org.junit.Test;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class MultiTenantUserDirectoryTest
-    extends AbstractMultiTenantBrainServiceTest
+    extends AbstractMultiTenantBaseIntegrationResourceTest
 {
   UserDirectory userDirectory;
 
@@ -40,7 +40,7 @@ public class MultiTenantUserDirectoryTest
 
   @Test
   public void testIsGroupSearchDisabled_sonatypeIdp() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
+    tenantTemporaryEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
 
     assertThat(userDirectory.isGroupSearchDisabled()).isFalse();

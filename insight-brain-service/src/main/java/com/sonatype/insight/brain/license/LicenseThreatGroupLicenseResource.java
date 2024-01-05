@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.util.List;
 import java.util.Set;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -42,11 +42,22 @@ public class LicenseThreatGroupLicenseResource
   public static final String RESOURCE_PATH = 
       "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
-  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final LicenseDAO licenseDAO = new LicenseDAO();
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public LicenseThreatGroupLicenseResource(
+      final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final LicenseDAO licenseDAO)
+  {
+    this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.licenseDAO = licenseDAO;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

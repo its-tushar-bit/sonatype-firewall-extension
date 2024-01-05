@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -20,17 +20,24 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextResolverTest
+    extends AbstractDataTest
 {
-  private final ContextResolver resolver = new ContextResolver();
+  private OrganizationDAO organizationDAO;
 
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  private ContextResolver resolver;
+
+  @Before
+  public void before() {
+    organizationDAO = daoFactory.createOrganizationDAO();
+    resolver = new ContextResolver(daoFactory.createApplicationDAO(), organizationDAO,
+        daoFactory.createRepositoryManagerDAO(), daoFactory.createRepositoryDAO(), daoFactory.createOwnerDAO());
+  }
 
   @Test
   public void testResolveContextIds_GlobalContext() {
@@ -267,7 +274,7 @@ public class ContextResolverTest
   @Test
   public void testResolveContextIds_Owner_RootOrganization() {
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
-    Owner owner = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Owner owner = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     parameters.put(AuthzContext.Key.OWNER, owner);
     assertThat(resolver.resolveContextIds(parameters)).containsExactly(Organization.ROOT_ORGANIZATION_ID,
         MembershipMapping.GLOBAL_CONTEXT_ID);

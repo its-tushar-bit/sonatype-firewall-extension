@@ -5,12 +5,8 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,15 +28,6 @@ public class PolicyAuditDTO
     if (policy != null) {
       policyName = policy.getName();
     }
-  }
-
-  public static List<PolicyAuditDTO> transcribe(final Set<String> policyIds) {
-    List<PolicyAuditDTO> policyAuditDTOs = new ArrayList<>();
-    PolicyDAO policyDAO = new PolicyDAO();
-    for (String policyId : policyIds) {
-      policyAuditDTOs.add(new PolicyAuditDTO(policyId, policyDAO.getById(policyId)));
-    }
-    return policyAuditDTOs;
   }
 
   @Override

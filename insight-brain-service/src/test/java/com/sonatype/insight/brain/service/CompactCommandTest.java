@@ -5,61 +5,46 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CompactCommandTest
+    extends AbstractDatabaseTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(CompactCommand.class);
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Before
-  public void before() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
-
-  @After
-  public void after() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
-
   @Test
+  @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "CompactCommandTest")
   public void testRun_Compact_H2Database() throws Exception {
-    final Path databasePath = setupDatabaseFile();
-    final long originalSize = Files.size(databasePath);
+    Path databaseFile = Paths.get(getDatabasePath().getAbsolutePath(), "ods.h2.db");
+    final long originalSize = Files.size(databaseFile);
     final InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(databasePath.getParent().getParent().toString());
+    insightConfig.setSonatypeWork(databaseFile.getParent().getParent().toString());
 
     new CompactCommand().run(null, null, insightConfig);
 
-    final long newSize = Files.size(databasePath);
+    final long newSize = Files.size(databaseFile);
     assertThat(newSize).isLessThan(originalSize);
     final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
         .setScale(2, RoundingMode.HALF_EVEN);
-    assertThat(logOutput).atInfoLevel().contains("Compacting " + databasePath.toAbsolutePath())
+    assertThat(logOutput).atInfoLevel().contains("Compacting " + databaseFile.toAbsolutePath())
         .contains("This might take a while, please be patient.")
-        .contains("Successfully compacted " + databasePath.toAbsolutePath() + " from " + originalSize
+        .contains("Successfully compacted " + databaseFile.toAbsolutePath() + " from " + originalSize
             + " bytes to " + newSize + " bytes " + "(reduced by " + percentChange + "%) in");
   }
 
@@ -70,12 +55,5 @@ public class CompactCommandTest
 
     assertThatThrownBy(() -> new CompactCommand().run(null, null, insightConfig)).isInstanceOf(
         BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");
-  }
-
-  private Path setupDatabaseFile() throws Exception {
-    final File databaseFolder = temporaryFolder.newFolder("data");
-    FileUtils.copyFileToDirectory(Paths.get("src", "test", "resources", "CompactCommandTest", "ods.h2.db").toFile(),
-        databaseFolder);
-    return Paths.get(databaseFolder.getPath(), "ods.h2.db");
   }
 }

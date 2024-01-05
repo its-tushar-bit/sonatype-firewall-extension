@@ -29,6 +29,7 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>

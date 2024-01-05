@@ -11,7 +11,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
@@ -40,8 +39,6 @@ public class TenantProvisioningService
   private final InsightConfig insightConfig;
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
-
-  private final MultiTenantDatabaseConfigProvider databaseConfigProvider;
 
   private final TenantUtil tenantUtil;
 
@@ -78,8 +75,6 @@ public class TenantProvisioningService
     this.userDAO = userDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.config = config;
-
-    databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
 
   /**
@@ -99,7 +94,7 @@ public class TenantProvisioningService
       throw new ConflictException("Tenant already exists");
     }
 
-    databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
+    databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
     log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();

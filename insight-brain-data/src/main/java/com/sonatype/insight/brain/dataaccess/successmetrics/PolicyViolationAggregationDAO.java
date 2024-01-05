@@ -11,8 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
@@ -32,10 +36,17 @@ import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
 /**
  * @since 1.31
  */
+@Named
+@Singleton
 public class PolicyViolationAggregationDAO
     extends AbstractAggregationSqlDAO<PolicyViolationAggregation>
 {
   public static final int NUM_PERIODS = 12;
+
+  @Inject
+  public PolicyViolationAggregationDAO(final AggregationDataStore aggregationDataStore) {
+    super(aggregationDataStore);
+  }
 
   @Override
   public PolicyViolationAggregation getById(String id) {

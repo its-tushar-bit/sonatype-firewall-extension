@@ -13,15 +13,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Inject;
@@ -64,6 +62,12 @@ public class QuartzJobStoreTXTest
   @Inject
   private InsightConfig insightConfig;
 
+  @Inject
+  private OperationalDataStore operationalDataStore;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
+
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
   @Override
@@ -92,19 +96,13 @@ public class QuartzJobStoreTXTest
   }
 
   @Test
+  @PostgresTest
   public void testInitialize_Postgres() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgresServer = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgresServer.getDatabaseConfig(), false);
-      quartzJobStoreTX.initialize();
+    quartzJobStoreTX.initialize();
 
-      assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzPostgreSQLDelegate.class.getName());
-      assertThat(quartzJobStoreTX.isClustered()).isTrue();
-      assertJobStoreTX(quartzJobStoreTX);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzPostgreSQLDelegate.class.getName());
+    assertThat(quartzJobStoreTX.isClustered()).isTrue();
+    assertJobStoreTX(quartzJobStoreTX);
   }
 
   private void assertJobStoreTX(JobStoreTX jobStoreTX) {
@@ -141,7 +139,7 @@ public class QuartzJobStoreTXTest
       insightConfig.setClusterDirectory(
           Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
       doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-      ClusterLock.createForSchemaMigrationInProgress();
+      clusterLockManager.createForSchemaMigrationInProgress();
 
       quartzJobStoreTXSpy.doCheckin();
 
@@ -150,7 +148,7 @@ public class QuartzJobStoreTXTest
           QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
     }
     finally {
-      ClusterLock.deleteForSchemaMigrationInProgress();
+      clusterLockManager.deleteForSchemaMigrationInProgress();
     }
   }
 
@@ -365,7 +363,7 @@ public class QuartzJobStoreTXTest
     quartzJobStoreTXSpy.storeTrigger(staleTriggerForOther, true);
 
     List<OperableTrigger> operableTriggers = quartzJobStoreTXSpy.acquireNextTrigger(
-        OperationalDataStoreProvider.getDataSource().getConnection(), Long.MAX_VALUE, 3, 0);
+        operationalDataStore.getDataSource().getConnection(), Long.MAX_VALUE, 3, 0);
 
     assertThat(operableTriggers).hasSize(2);
     OperableTrigger actualTriggerForMe = operableTriggers.stream()
@@ -381,10 +379,10 @@ public class QuartzJobStoreTXTest
   }
 
   private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
-    String sQuery = "INSERT INTO QRTZ_SCHEDULER_STATE" + //
+    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, instanceId);
@@ -395,8 +393,8 @@ public class QuartzJobStoreTXTest
   }
 
   private void deleteAllSchedulerStateRecords() throws Exception {
-    String sQuery = "DELETE FROM QRTZ_SCHEDULER_STATE";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();
     }

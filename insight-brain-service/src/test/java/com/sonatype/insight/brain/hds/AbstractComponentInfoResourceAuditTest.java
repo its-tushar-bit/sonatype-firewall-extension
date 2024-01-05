@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -34,8 +35,11 @@ public abstract class AbstractComponentInfoResourceAuditTest
 
   protected Application application;
 
+  protected MultiLicenseDAO multiLicenseDAO;
+
   @Before
-  public void createApplication() {
+  public void before() {
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
     application = tempEntity.newApplicationWithParent();
   }
 
@@ -53,7 +57,7 @@ public abstract class AbstractComponentInfoResourceAuditTest
   }
 
   protected void setupHdsResponseForComponent(final HttpRequest httpRequest) {
-    ComponentDetails hdsComponentDetails = newComponentDetails(COMPONENT_IDENTIFIER);
+    ComponentDetails hdsComponentDetails = newComponentDetails(COMPONENT_IDENTIFIER, multiLicenseDAO);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(httpRequest.getUrl()));

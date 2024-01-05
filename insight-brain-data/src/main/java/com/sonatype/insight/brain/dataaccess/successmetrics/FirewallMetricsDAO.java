@@ -10,12 +10,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.LockModeType;
 import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
@@ -26,9 +30,16 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @since 1.169
  */
+@Named
+@Singleton
 public class FirewallMetricsDAO
     extends AbstractAggregationSqlDAO<FirewallMetrics>
 {
+  @Inject
+  public FirewallMetricsDAO(AggregationDataStore aggregationDataStore) {
+    super(aggregationDataStore);
+  }
+
   @Override
   public FirewallMetrics getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM FirewallMetrics entity" + //

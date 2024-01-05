@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggre
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.OpenViolationCountsWeek;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ViolationCountPeriod;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.EnumIntegerTable;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
@@ -58,7 +59,14 @@ public class PolicyViolationAggregationDAOTest
 {
   private static final double TOLERANCE = 0.00001;
 
-  private final PolicyViolationAggregationDAO dao = new PolicyViolationAggregationDAO();
+  private PolicyViolationAggregationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createPolicyViolationAggregationDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -173,7 +181,7 @@ public class PolicyViolationAggregationDAOTest
     String applicationId = "test-app-id";
     Date weekStartDate = new Date();
     Date monthStartDate = new Date(weekStartDate.getTime() - 1000L);
-  
+
     // add data for both time periods
     String aggregationMonthId = tempEntity.newPolicyViolationAggregation(applicationId, monthStartDate, MONTH).getId();
     String aggregationWeekId = tempEntity.newPolicyViolationAggregation(applicationId, weekStartDate, WEEK).getId();
@@ -184,7 +192,7 @@ public class PolicyViolationAggregationDAOTest
     assertThat(retrievedAggregation.getId()).isEqualTo(aggregationMonthId);
     assertThat(retrievedAggregation.getTimePeriod()).isEqualTo(MONTH);
     assertThat(retrievedAggregation.getTimePeriodStart()).isEqualTo(monthStartDate);
-    
+
     retrievedAggregation = dao.getMostRecentByApplicationIdAndTimePeriod(applicationId, WEEK);
 
     assertThat(retrievedAggregation.getId()).isEqualTo(aggregationWeekId);
@@ -320,7 +328,7 @@ public class PolicyViolationAggregationDAOTest
             asList(0, 0, 0, 0), //
             asList(0, 0, 0, 0), //
             0);
-    
+
     // Add some week data
     tempEntity
         .newPolicyViolationAggregation(testApp1.getId(), plusTimePeriod(aggregationStart, WEEK, 1), WEEK, //
@@ -876,21 +884,25 @@ public class PolicyViolationAggregationDAOTest
   }
 
   /**
-   *  Helper method to assert that a series of aggregations match the expected parameters
-   *  @param aggregationIter the Iterator to draw the aggregations from
-   *  @param applicationId the application id to expect on all checked aggregations
-   *  @param timePeriod the TimePeriod to expect on all checked aggregations
-   *  @param startingDate the timePeriodStart to expect on the first aggregation.  Successive aggregations are expected
-   *  to have dates chronologically increasing from this one at `timePeriod` intervals
-   *  @param expectedAggregationsCount The number of aggregations to pull from the iterator and check
-   *  @param expectTimePeriodEnd Whether to expect the last checked aggregation to have a non-null timePeriodEnd value
+   * Helper method to assert that a series of aggregations match the expected parameters
+   *
+   * @param aggregationIter           the Iterator to draw the aggregations from
+   * @param applicationId             the application id to expect on all checked aggregations
+   * @param timePeriod                the TimePeriod to expect on all checked aggregations
+   * @param startingDate              the timePeriodStart to expect on the first aggregation.  Successive aggregations
+   *                                  are expected to have dates chronologically increasing from this one at
+   *                                  `timePeriod` intervals
+   * @param expectedAggregationsCount The number of aggregations to pull from the iterator and check
+   * @param expectTimePeriodEnd       Whether to expect the last checked aggregation to have a non-null timePeriodEnd
+   *                                  value
    */
-  private void assertAggregations(Iterator<PolicyViolationAggregation> aggregationIter,
-                                  String applicationId,
-                                  TimePeriod timePeriod,
-                                  LocalDate startingDate,
-                                  int expectedAggregationsCount,
-                                  boolean expectTimePeriodEnd)
+  private void assertAggregations(
+      Iterator<PolicyViolationAggregation> aggregationIter,
+      String applicationId,
+      TimePeriod timePeriod,
+      LocalDate startingDate,
+      int expectedAggregationsCount,
+      boolean expectTimePeriodEnd)
   {
     for (int i = 0; i < expectedAggregationsCount; i++) {
       PolicyViolationAggregation aggregation = aggregationIter.next();
@@ -905,7 +917,6 @@ public class PolicyViolationAggregationDAOTest
         assertThat(aggregation.getTimePeriodEnd()).isNull();
       }
     }
-
   }
 
   private Map<PolicyThreatCategory, Integer> categoryCounts(int security, int license, int quality, int other) {
@@ -917,8 +928,9 @@ public class PolicyViolationAggregationDAOTest
     return result;
   }
 
-  private void assertViolationCountHistory(List<ViolationCountPeriod> expectedList,
-                                           List<ViolationCountPeriod> actualList)
+  private void assertViolationCountHistory(
+      List<ViolationCountPeriod> expectedList,
+      List<ViolationCountPeriod> actualList)
   {
     assertThat(actualList).hasSameSizeAs(expectedList);
     for (int i = 0; i < expectedList.size(); i++) {
@@ -930,8 +942,9 @@ public class PolicyViolationAggregationDAOTest
     }
   }
 
-  private void assertOpenViolationCountsWeekHistory(List<OpenViolationCountsWeek> expectedList,
-                                                    List<OpenViolationCountsWeek> actualList)
+  private void assertOpenViolationCountsWeekHistory(
+      List<OpenViolationCountsWeek> expectedList,
+      List<OpenViolationCountsWeek> actualList)
   {
     assertThat(actualList).hasSameSizeAs(expectedList);
     for (int i = 0; i < expectedList.size(); i++) {
@@ -943,11 +956,12 @@ public class PolicyViolationAggregationDAOTest
     }
   }
 
-  private void assertAverages(AverageThreatCategoryMonth actual,
-                              double low,
-                              double moderate,
-                              double severe,
-                              double critical)
+  private void assertAverages(
+      AverageThreatCategoryMonth actual,
+      double low,
+      double moderate,
+      double severe,
+      double critical)
   {
     assertThat(actual.averageDiscoveredLowThreat).isCloseTo(low, offset(TOLERANCE));
     assertThat(actual.averageDiscoveredModerateThreat).isCloseTo(moderate, offset(TOLERANCE));

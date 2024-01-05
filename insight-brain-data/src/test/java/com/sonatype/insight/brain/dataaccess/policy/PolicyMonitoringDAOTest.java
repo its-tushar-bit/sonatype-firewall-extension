@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,10 +19,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyMonitoringDAOTest
     extends AbstractDbDAOTest
 {
+  private PolicyMonitoringDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createPolicyMonitoringDAO();
+  }
+
   @Test
   public void testCRUD() {
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-
     String ownerId = application.getId();
     String stageTypeId = Stage.ID_RELEASE;
 
@@ -59,8 +67,6 @@ public class PolicyMonitoringDAOTest
 
   @Test
   public void testAddDuplicate() {
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-
     String ownerId = application.getId();
     PolicyMonitoring policyMonitoring1 = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.insert(policyMonitoring1);
@@ -72,8 +78,6 @@ public class PolicyMonitoringDAOTest
 
   @Test
   public void testSet_Insert() {
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-
     String ownerId = application.getId();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.set(policyMonitoring);
@@ -86,8 +90,6 @@ public class PolicyMonitoringDAOTest
 
   @Test
   public void testSet_Update() {
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-
     String ownerId = application.getId();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.insert(policyMonitoring);

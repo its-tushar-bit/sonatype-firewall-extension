@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.stream.Collectors.toList;
@@ -33,13 +34,21 @@ public class MembershipMappingDAOTest
 {
   private final String contextId = "some-app";
 
-  private final MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
+  private MembershipMappingDAO membershipDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
 
   private static final Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR =
       Comparator.comparing(MembershipMapping::getContextId).thenComparing(MembershipMapping::getRoleId)
           .thenComparing(MembershipMapping::getMemberName).thenComparing(MembershipMapping::getMemberType);
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    membershipDAO = daoFactory.createMembershipMappingDAO();
+    roleDAO = daoFactory.createRoleDAO();
+  }
 
   @After
   public void cleanup() {

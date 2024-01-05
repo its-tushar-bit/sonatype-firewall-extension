@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AbstractDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -29,30 +30,23 @@ public abstract class AbstractMultiTenantDataStore
   private final Map<Tenant, Boolean> isInitializedMap = new ConcurrentHashMap<>();
 
   public AbstractMultiTenantDataStore(
-      final DataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
+      final MultiTenantPostgresDataSourceProvider dataSourceProvider,
+      final DatabaseConfig databaseConfig)
   {
-    super(dataSourceFactory, databaseMigrator);
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override
-  protected void init(
-      final DatabaseConfig databaseConfig,
-      final boolean migrateDatabase,
-      final Boolean migrateToNewViolationModel)
-  {
+  public void initialize() {
     if (isInitialized()) {
       return;
     }
 
-    log.info("Initializing the {} data store.", getID());
+    log.info("Initializing the '{}' data store for tenant schema '{}'.", getID(), getDatabaseSchema());
     long start = System.currentTimeMillis();
 
-    this.databaseConfig = databaseConfig;
-    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
-    if (migrateDatabase) {
-      migrate(migrateToNewViolationModel);
-    }
+    dataSource = dataSourceProvider.getDataSource(databaseConfig, getID());
+
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     props.put("openjpa.jdbc.Schema", getDatabaseSchema());
@@ -62,7 +56,8 @@ public abstract class AbstractMultiTenantDataStore
         Persistence.createEntityManagerFactory(getFactoryName(), props));
     isInitializedMap.put(TenantThreadLocal.getTenant(), true);
 
-    log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
+    log.info("Initialized the '{}' data store for tenant schema '{}' in {} ms.", getID(), getDatabaseSchema(),
+        System.currentTimeMillis() - start);
   }
 
   /**

@@ -43,6 +43,9 @@ public class ApiArtifactoryConnectionServiceAuthzTest
   @Inject
   private ArtifactoryConnectionDAO dao;
 
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   @Mock
   private ArtifactoryClientFactory mockFactory;
 
@@ -63,7 +66,7 @@ public class ApiArtifactoryConnectionServiceAuthzTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     app.setArtifactoryConnectionEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.junit.Test;
@@ -13,23 +16,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ThirdPartyScanResultHandlerFactoryTest
+    extends AbstractComponentTest
 {
+  @Inject
+  private ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
+
   @Test
   public void testGetHandler_ClairScanner() {
-    ThirdPartyScanResultHandler handler = ThirdPartyResultHandlerFactory.newHandler(ItemContentType.CLAIR_SCANNER);
+    ThirdPartyScanResultHandler handler = thirdPartyResultHandlerFactory.newHandler(ItemContentType.CLAIR_SCANNER);
     assertThat(handler).isInstanceOf(ClairScannerResultHandler.class);
   }
 
   @Test
   public void testGetHandler_Sbom() {
-    ThirdPartyScanResultHandler handler = ThirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM);
+    ThirdPartyScanResultHandler handler = thirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM);
     assertThat(handler).isInstanceOf(SbomResultHandler.class);
   }
 
   @Test
   public void testGetHandler_UnsupportedType() {
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> ThirdPartyResultHandlerFactory.newHandler(ItemContentType.GO_MODULE))
+        .isThrownBy(() -> thirdPartyResultHandlerFactory.newHandler(ItemContentType.GO_MODULE))
         .withMessage("unsupported third party content type GO_MODULE");
   }
 }

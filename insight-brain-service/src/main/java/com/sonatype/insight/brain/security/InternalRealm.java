@@ -37,8 +37,11 @@ public class InternalRealm
 
   public static final String ID = User.INTERNAL_REALM_ID;
 
+  private final UserDAO userDAO;
+
   @Inject
-  public InternalRealm(PasswordService passwordService) {
+  public InternalRealm(PasswordService passwordService, UserDAO userDAO) {
+    this.userDAO = userDAO;
     setName("CLMRealm");
 
     // Create and set a password matcher. It will be used by shiro to match hashed passwords.
@@ -56,7 +59,7 @@ public class InternalRealm
       throw new AuthenticationException("The username is required");
     }
 
-    User user = new UserDAO().getByUsername(username);
+    User user = userDAO.getByUsername(username);
     if (user != null) {
       // Shiro will verify the password.
       // For internal users, the passsed in username is case insensitive,

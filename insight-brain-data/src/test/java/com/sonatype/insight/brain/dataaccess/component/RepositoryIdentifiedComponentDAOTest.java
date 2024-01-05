@@ -17,6 +17,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,11 +28,18 @@ import static org.mockito.Mockito.when;
 public class RepositoryIdentifiedComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryIdentifiedComponentDAO dao = new RepositoryIdentifiedComponentDAO();
-
   private static final RecursiveComparisonConfiguration REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG =
       RecursiveComparisonConfiguration.builder().withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
           .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS).build();
+
+  private RepositoryIdentifiedComponentDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryIdentifiedComponentDAO();
+  }
 
   @Test
   public void testCRUD() {

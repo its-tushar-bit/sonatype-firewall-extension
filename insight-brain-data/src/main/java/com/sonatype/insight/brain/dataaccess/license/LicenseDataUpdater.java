@@ -14,6 +14,15 @@ public abstract class LicenseDataUpdater
 
   private static LicenseDataUpdater updater;
 
+  protected LicenseDAO licenseDAO;
+
+  protected MultiLicenseDAO multiLicenseDAO;
+
+  public LicenseDataUpdater(LicenseDAO licenseDAO, MultiLicenseDAO multiLicenseDAO) {
+    this.licenseDAO = licenseDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
+  }
+
   public static LicenseDataUpdater getUpdater() {
     return updater;
   }
@@ -22,19 +31,20 @@ public abstract class LicenseDataUpdater
     LicenseDataUpdater.updater = updater;
   }
 
-  public static synchronized void update() {
+  public static synchronized void update(LicenseDAO licenseDAO, MultiLicenseDAO multiLicenseDAO) {
     if (updater == null) {
       log.warn("Cannot update license data because there is no license updater.");
       return;
     }
 
     updater.doUpdate();
-    loadLicenses();
+    licenseDAO.load();
+    multiLicenseDAO.load();
   }
 
-  public static synchronized void loadLicenses() {
-    new LicenseDAO().load();
-    new MultiLicenseDAO().load();
+  public synchronized void loadLicenses() {
+    licenseDAO.load();
+    multiLicenseDAO.load();
   }
 
   public abstract void doUpdate();

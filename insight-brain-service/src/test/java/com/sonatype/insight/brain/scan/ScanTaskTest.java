@@ -11,8 +11,8 @@ import java.util.ArrayList;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -50,6 +50,7 @@ import static org.mockito.Mockito.when;
  * Also see {@link ScanTaskStateTest} and {@link ScanStateToTicketTranslatorTest}.
  */
 public class ScanTaskTest
+    extends AbstractDataTest
 {
   private final Scanner scanner = mock(Scanner.class);
 
@@ -67,9 +68,7 @@ public class ScanTaskTest
 
   private final ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
-  private final ScanTask task =
-      new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-           thirdPartyScanService, new PersistedScanTicketDAO());
+  private ScanTask task;
 
   private final Application app = newApp("public-app-id");
 
@@ -92,6 +91,9 @@ public class ScanTaskTest
 
   @Before
   public void init() throws Exception {
+    task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
+        thirdPartyScanService, daoFactory.createPersistedScanTicketDAO());
+
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
     bundleFilename = "test-app.zip";

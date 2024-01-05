@@ -28,6 +28,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SastTestUtil
 {
+  private final SastScanDAO sastScanDAO;
+
+  private final SastFindingDAO sastFindingDAO;
+
+  private final SastRemediationDAO sastRemediationDAO;
+
+  public SastTestUtil(
+      final SastScanDAO sastScanDAO,
+      final SastFindingDAO sastFindingDAO,
+      final SastRemediationDAO sastRemediationDAO)
+  {
+    this.sastScanDAO = sastScanDAO;
+    this.sastFindingDAO = sastFindingDAO;
+    this.sastRemediationDAO = sastRemediationDAO;
+  }
+
   static SastScanRequestDTO buildTestSastScanRequestDTOWith2Findings() {
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
     sastScanRequestDTO.findings.get(0).severity = "LOW";
@@ -66,7 +82,7 @@ class SastTestUtil
   /**
    * Asserts the sastScanResponseDTO and database contain the expected data
    */
-  static void assertSastScan(final String expectedApplicationId, final SastScanResponseDTO sastScanResponseDTO) {
+  void assertSastScan(final String expectedApplicationId, final SastScanResponseDTO sastScanResponseDTO) {
     assertSastScanDTO(sastScanResponseDTO);
 
     final String expectedSastScanId = sastScanResponseDTO.sastScanId;
@@ -85,20 +101,18 @@ class SastTestUtil
   /**
    * Asserts the database contains the expected data for a sast scan
    */
-  private static void assertSastScanEntity(
+  private void assertSastScanEntity(
       final String expectedApplicationId,
       final String expectedSastScanId,
       final Date expectedCreatedAt,
       final String expectedSastFindingId,
       final String expectedSastRemediationId)
   {
-    final SastScanDAO sastScanDAO = new SastScanDAO();
     final SastScan sastScan = sastScanDAO.getByIdNotNull(expectedSastScanId);
     assertThat(sastScan.getApplicationId()).isEqualTo(expectedApplicationId);
     assertThat(sastScan.getId()).isEqualTo(expectedSastScanId);
     assertThat(sastScan.getCreatedAt()).isEqualTo(expectedCreatedAt);
 
-    final SastFindingDAO sastFindingDAO = new SastFindingDAO();
     final List<SastFinding> sastFindings = sastFindingDAO.getBySastScanIdOrderBySeverityDesc(expectedSastScanId);
     assertThat(sastFindings).hasSize(1);
     final SastFinding sastFinding = sastFindings.get(0);
@@ -112,7 +126,6 @@ class SastTestUtil
     assertThat(sastFinding.getDescription()).isEqualTo("myDescription");
     assertThat(sastFinding.getLineNumber()).isEqualTo(1970);
 
-    final SastRemediationDAO sastRemediationDAO = new SastRemediationDAO();
     final List<SastRemediation> sastRemediations = sastRemediationDAO.getBySastFindingId(expectedSastFindingId);
     assertThat(sastRemediations).hasSize(1);
     final SastRemediation sastRemediation = sastRemediations.get(0);

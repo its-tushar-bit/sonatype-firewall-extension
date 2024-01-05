@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
@@ -32,6 +31,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +41,18 @@ public abstract class AbstractRepositoryResourceTest
 {
   private static final String REPO_PUBLIC_ID = "publicId";
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  protected RepositoryDAO repositoryDAO;
+
+  protected ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  protected RepositoryManagerDAO repositoryManagerDAO;
+
+  @Before
+  public void setUp() {
+    repositoryDAO = lookup(RepositoryDAO.class);
+    proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+  }
 
   protected abstract String getUserAgent();
 
@@ -105,7 +116,7 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(repositoryDTO.repositoryId).isNotBlank();
 
     repository = repositoryDAO.getById(repository.getId());
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(repository).isNotNull();
     assertThat(repository.isAuditEnabled()).isTrue();
@@ -124,7 +135,7 @@ public abstract class AbstractRepositoryResourceTest
             .post();
     assertResponseStatus(200, response);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
@@ -139,7 +150,7 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(repository).isNotNull();
     assertThat(repository.isQuarantineEnabled()).isTrue();
@@ -158,7 +169,7 @@ public abstract class AbstractRepositoryResourceTest
         .post();
     assertResponseStatus(204, response);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
@@ -184,7 +195,7 @@ public abstract class AbstractRepositoryResourceTest
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = response
         .getBody(RepositoryPolicyEvaluationSummary.class);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(foundRepositoryManager.getUserAgent()).isNull();
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
@@ -215,7 +226,7 @@ public abstract class AbstractRepositoryResourceTest
 
     assertResponseStatus(200, response);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
@@ -256,7 +267,7 @@ public abstract class AbstractRepositoryResourceTest
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .post();
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertResponseStatus(204, response);
     assertThat(foundRepositoryManager.getUserAgent()).isNull();
@@ -275,7 +286,7 @@ public abstract class AbstractRepositoryResourceTest
         .header(HttpHeaders.USER_AGENT, userAgent)
         .post();
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertResponseStatus(204, response);
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
@@ -289,7 +300,7 @@ public abstract class AbstractRepositoryResourceTest
     HttpResponse response = componentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertResponseStatus(204, response);
     assertThat(foundRepositoryManager.getUserAgent()).isNull();
@@ -305,7 +316,7 @@ public abstract class AbstractRepositoryResourceTest
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath")
         .header(HttpHeaders.USER_AGENT, userAgent).delete();
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertResponseStatus(204, response);
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
@@ -325,7 +336,7 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(result.pathnames).containsExactly(pathname);
     assertThat(foundRepositoryManager.getUserAgent()).isNull();
@@ -347,7 +358,7 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
 
-    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
     assertThat(result.pathnames).containsExactly(pathname);
     assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
@@ -364,7 +375,7 @@ public abstract class AbstractRepositoryResourceTest
         .body(proprietaryComponentNames).post();
     assertResponseStatus(204, response);
 
-    List<ProprietaryComponentNamePattern> patterns = new ProprietaryComponentNamePatternDAO().getByFormat("npm");
+    List<ProprietaryComponentNamePattern> patterns = proprietaryComponentNamePatternDAO.getByFormat("npm");
     assertThat(patterns).allSatisfy(pattern -> {
       assertThat(pattern.getFormat()).isEqualTo("npm");
       assertThat(pattern.getNamespacePattern()).isNull();
@@ -417,10 +428,10 @@ public abstract class AbstractRepositoryResourceTest
         .header(HttpHeaders.USER_AGENT, clientUserAgent).body(configureRepositoriesRequest).post();
     assertResponseStatus(204, response);
 
-    repositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
     assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
 
-    repositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
     assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
     assertThat(repositoryManager.getProductVersion())
         .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
@@ -448,7 +459,7 @@ public abstract class AbstractRepositoryResourceTest
 
     assertResponseStatus(204, response);
 
-    Repository foundRepository = new RepositoryDAO().getById(repository.getId());
+    Repository foundRepository = repositoryDAO.getById(repository.getId());
     assertThat(foundRepository).isNull();
   }
 
@@ -473,7 +484,7 @@ public abstract class AbstractRepositoryResourceTest
 
     assertResponseStatus(200, response);
 
-    repositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
     assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
 
     List<RepositoryDTO> repositoryDTOS = response.getBodyList(RepositoryDTO.class);

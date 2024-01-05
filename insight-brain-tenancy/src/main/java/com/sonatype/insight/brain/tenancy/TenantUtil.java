@@ -5,14 +5,9 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
-
-import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 
 import com.google.common.net.InetAddresses;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -189,15 +184,6 @@ public class TenantUtil
     return mtiqBatchMode;
   }
 
-  public List<String> getAllTenantsNames() {
-    List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
-
-    return schemas.stream()
-        .filter(schema -> schema.startsWith("t_"))
-        .map(this::getTenantNameFromSchema)
-        .collect(Collectors.toList());
-  }
-
   /**
    * Admin API requests should use the global tenant.  Additionally, assume that calls to a IP-address hostname
    * are to admin APIs (probably /healthcheck)
@@ -206,21 +192,7 @@ public class TenantUtil
     return isAdminApiRequest(request) || InetAddresses.isInetAddress(request.getServerName());
   }
 
-  List<String> getAllTenants() {
-    List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
-
-    return schemas.stream()
-        .filter(schema -> schema.startsWith("t_"))
-        .map(this::createTenantFromSchema)
-        .map(t -> t.tenantSlug)
-        .collect(Collectors.toList());
-  }
-
-  private Tenant createTenantFromSchema(String schema) {
-    return new Tenant(getTenantNameFromSchema(schema));
-  }
-
-  private String getTenantNameFromSchema(String schema) {
+  public String getTenantNameFromSchema(String schema) {
     return schema.replaceFirst("t_", "").replace('_', '-');
   }
 

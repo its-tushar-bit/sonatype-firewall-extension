@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.HashSet;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -36,6 +37,9 @@ public class MailConfigurationDAOMultiTenantTest
   @Mock
   Query query;
 
+  @Mock
+  OperationalDataStore operationalDataStore;
+
   MockMailConfigurationDAO underTest;
 
   MailConfiguration mailConfiguration;
@@ -47,7 +51,7 @@ public class MailConfigurationDAOMultiTenantTest
   public void setup() {
     super.setup();
 
-    this.underTest = new MockMailConfigurationDAO();
+    this.underTest = new MockMailConfigurationDAO(operationalDataStore);
 
     this.mailConfiguration = new MailConfiguration();
     mailConfiguration.setId("tenant");
@@ -119,7 +123,17 @@ public class MailConfigurationDAOMultiTenantTest
   private class MockMailConfigurationDAO
       extends MailConfigurationDAO
   {
+    MockMailConfigurationDAO(OperationalDataStore operationalDataStore) {
+      super(operationalDataStore);
+    }
+
     private final HashSet<Tenant> usedTenants = new HashSet<>();
+
+    // This method is overridden to prevent having to mock all the transaction internals
+    @Override
+    public TransactionContext createTransactionContext() {
+      return mock(TransactionContext.class);
+    }
 
     // This method is overridden to prevent having to mock all the transaction internals
     @Override

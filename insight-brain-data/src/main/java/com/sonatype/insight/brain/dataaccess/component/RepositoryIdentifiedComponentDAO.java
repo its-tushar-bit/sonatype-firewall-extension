@@ -7,16 +7,27 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.time.Duration;
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+@Named
+@Singleton
 public class RepositoryIdentifiedComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryIdentifiedComponent>
 {
+  @Inject
+  public RepositoryIdentifiedComponentDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public RepositoryIdentifiedComponent getById(TransactionContext tx, String id) {
     return getByHash(tx, id);

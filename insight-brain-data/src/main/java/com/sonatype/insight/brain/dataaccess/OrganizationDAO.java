@@ -8,17 +8,24 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -37,10 +44,68 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class OrganizationDAO
     extends AbstractOperationalSqlDAO<Organization>
 {
   private static final Logger log = LoggerFactory.getLogger(OrganizationDAO.class);
+
+  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider;
+
+  private final Provider<LabelDAO> labelDAOProvider;
+
+  private final Provider<PolicyDAO> policyDAOProvider;
+
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final Provider<OwnerDAO> ownerDAOProvider;
+
+  private final Provider<TagDAO> tagDAOProvider;
+
+  private final Provider<SourceControlDAO> sourceControlDAOProvider;
+
+  private final RepositoryConnectionDAO repositoryConnectionDAO;
+
+  private final SourceControlOrganizationImportEventDAO scmEventDAO;
+
+  private final ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private final ClusterLockManager clusterLockManager;
+
+  @Inject
+  public OrganizationDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
+      final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
+      final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider,
+      final Provider<LabelDAO> labelDAOProvider,
+      final Provider<PolicyDAO> policyDAOProvider,
+      final MembershipMappingDAO membershipMappingDAO,
+      final Provider<OwnerDAO> ownerDAOProvider,
+      final Provider<TagDAO> tagDAO,
+      final Provider<SourceControlDAO> sourceControlDAOProvider,
+      final RepositoryConnectionDAO repositoryConnectionDAO,
+      final SourceControlOrganizationImportEventDAO scmEventDAO,
+      final ProprietaryConfigDAO proprietaryConfigDAO,
+      final ClusterLockManager clusterLockManager)
+  {
+    super(operationalDataStore, searchIndexManager);
+    this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
+    this.licenseThreatGroupDAOProvider = licenseThreatGroupDAOProvider;
+    this.labelDAOProvider = labelDAOProvider;
+    this.policyDAOProvider = policyDAOProvider;
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.ownerDAOProvider = ownerDAOProvider;
+    this.tagDAOProvider = tagDAO;
+    this.sourceControlDAOProvider = sourceControlDAOProvider;
+    this.repositoryConnectionDAO = repositoryConnectionDAO;
+    this.scmEventDAO = scmEventDAO;
+    this.proprietaryConfigDAO = proprietaryConfigDAO;
+    this.clusterLockManager = clusterLockManager;
+  }
 
   private Organization getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
@@ -126,8 +191,6 @@ public class OrganizationDAO
       throw new BadRequestException("Cannot delete the root organization: " + organization.getName());
     }
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     if (organization.getId().equals(automaticApplicationsConfigurationDAO.getOrganizationId(tx))) {
       if (automaticApplicationsConfigurationDAO.isEnabled(tx)) {
         // Do not allow the deletion of the parent organization for automatic application creation if enabled
@@ -141,61 +204,57 @@ public class OrganizationDAO
     }
 
     // Cascade to license threat groups
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    LicenseThreatGroupDAO licenseThreatGroupDAO = licenseThreatGroupDAOProvider.get();
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, organization.getId());
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
     }
 
     // Cascade to labels
-    LabelDAO labelDAO = new LabelDAO();
+    LabelDAO labelDAO = labelDAOProvider.get();
     List<Label> labels = labelDAO.getByOwnerId(tx, organization.getId());
     for (Label label : labels) {
       labelDAO.delete(tx, label);
     }
 
     // Cascade to policies
-    new PolicyDAO().deleteByOwnerId(tx, organization.getId());
+    policyDAOProvider.get().deleteByOwnerId(tx, organization.getId());
 
     // Cascade to membership mappings
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, organization.getId())) {
       membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to owned entities
-    new OwnerDAO().cascadeDelete(tx, organization);
+    ownerDAOProvider.get().cascadeDelete(tx, organization);
 
     // Cascade to tags
-    TagDAO tagDAO = new TagDAO();
+    TagDAO tagDAO = this.tagDAOProvider.get();
     List<Tag> tags = tagDAO.getByOrganizationId(tx, organization.getId());
     for (Tag tag : tags) {
       tagDAO.delete(tx, tag);
     }
 
     // Cascade to proprietary config
-    ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, organization.getId());
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
 
     // Cascade to SourceControl config
-    new SourceControlDAO().deleteByOwnerId(tx, organization.getId());
+    sourceControlDAOProvider.get().deleteByOwnerId(tx, organization.getId());
 
     // Cascade to locks
-    ClusterLock.deleteForAuditJsonFileStore(tx, organization.getId());
+    clusterLockManager.deleteForAuditJsonFileStore(tx, organization.getId());
 
     // Cascade to repository connections
-    RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
     for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, organization.getId())) {
       repositoryConnectionDAO.delete(tx, repositoryConnection);
     }
 
     //Cascade to source control on-boarding events
-    SourceControlOrganizationImportEventDAO scmEventDao = new SourceControlOrganizationImportEventDAO();
-    for (SourceControlOrganizationImportEvent importEvent : scmEventDao.getByOrganizationId(tx, organization.getId())) {
-      scmEventDao.delete(tx, importEvent);
+    for (SourceControlOrganizationImportEvent importEvent : scmEventDAO.getByOrganizationId(tx, organization.getId())) {
+      scmEventDAO.delete(tx, importEvent);
     }
 
     super.delete(tx, organization);

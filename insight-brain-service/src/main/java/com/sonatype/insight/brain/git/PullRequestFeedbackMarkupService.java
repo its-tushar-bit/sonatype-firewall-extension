@@ -9,13 +9,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactory;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackMDRenderer;
 import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
@@ -39,6 +39,8 @@ public class PullRequestFeedbackMarkupService
 {
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final BaseUrl iqBaseUrl;
 
   private final ComponentFeedbackContextFactory contextFactory;
@@ -46,10 +48,12 @@ public class PullRequestFeedbackMarkupService
   @Inject
   public PullRequestFeedbackMarkupService(
       final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
       final BaseUrl iqBaseUrl,
       final ComponentFeedbackContextFactory componentFeedbackContextFactory)
   {
     this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.iqBaseUrl = iqBaseUrl;
     this.contextFactory = componentFeedbackContextFactory;
   }
@@ -73,7 +77,7 @@ public class PullRequestFeedbackMarkupService
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-            application, iqBaseUrl.getConfigured(), scmImprovementsEnabled);
+            application, iqBaseUrl.getConfigured(), scmImprovementsEnabled, organizationDAO);
 
     Optional<String> optionalString = details.renderTemplateAndGetContents();
     telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();
@@ -125,7 +129,8 @@ public class PullRequestFeedbackMarkupService
                       applicationPublicId,
                       featureBranchScanId,
                       codeSuggestion,
-                      scmImprovementsEnabled);
+                      scmImprovementsEnabled,
+                      organizationDAO);
       return details.renderTemplateAndGetContents(provider);
     }
   }

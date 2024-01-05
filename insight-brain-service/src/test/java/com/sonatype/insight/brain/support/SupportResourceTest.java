@@ -77,7 +77,7 @@ public class SupportResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testCreateSupportZip_noLimit() throws Exception {
     initServerWithServerLog();
     setSupportReadLimitBytes(5);
@@ -90,7 +90,7 @@ public class SupportResourceTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testCreateSupportZip_withLimits() throws Exception {
     initServerWithServerLog();
     setSupportReadLimitBytes(5);
@@ -104,7 +104,7 @@ public class SupportResourceTest
 
   private void initServerWithServerLog() throws Exception {
     File serverLog = tempDir.newFile("clm-server.log");
-    initServer(config -> {
+    startIqTestServer(config -> {
       DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
       FileAppenderFactory<ILoggingEvent> serverFileAppenderFactory = new FileAppenderFactory<>();
       serverFileAppenderFactory.setArchive(false);

@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
 import java.util.Objects;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -20,10 +24,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class RepositoryManagerDAO
     extends AbstractOperationalSqlDAO<RepositoryManager>
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryManagerDAO.class);
+
+  private final RepositoryDAO repositoryDAO;
+
+  @Inject
+  public RepositoryManagerDAO(
+      final OperationalDataStore operationalDataStore,
+      final RepositoryDAO repositoryDAO)
+  {
+    super(operationalDataStore);
+    this.repositoryDAO = repositoryDAO;
+  }
 
   public RepositoryManager getByInstanceId(String instanceId) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -118,7 +135,6 @@ public class RepositoryManagerDAO
     long start = System.currentTimeMillis();
 
     // Cascade to repositories
-    RepositoryDAO repositoryDAO = new RepositoryDAO();
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(tx, repositoryManager.getId());
     for (Repository repository : repositories) {
       repositoryDAO.delete(tx, repository);
@@ -140,7 +156,7 @@ public class RepositoryManagerDAO
         " WHERE entity.configured = false";
     return getList(sQuery);
   }
-  
+
   public RepositoryManager getByName(String name) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByName(tx, name);

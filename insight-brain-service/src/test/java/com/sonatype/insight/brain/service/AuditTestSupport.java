@@ -313,7 +313,7 @@ public interface AuditTestSupport
     String auditedPolicyId = (String) auditDTO.data.get("policyId");
     assertThat(auditedPolicyId).isNotNull();
     if (!policyDeleted) {
-      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+      assertThat(getPolicyDAO().getById(auditedPolicyId)).isNotNull();
     }
     else {
       assertThat(auditedPolicyId).isEqualTo(policy.getId());
@@ -334,4 +334,6 @@ public interface AuditTestSupport
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
     assertCustomData(auditDTO, "repositoryManagerName", repositoryManager.getName());
   }
+
+  PolicyDAO getPolicyDAO();
 }

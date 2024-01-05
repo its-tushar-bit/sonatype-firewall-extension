@@ -8,8 +8,12 @@ package com.sonatype.insight.brain.dataaccess.innersource;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -17,9 +21,16 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 /**
  * @since 1.98
  */
+@Named
+@Singleton
 public class InnerSourceComponentDAO
     extends AbstractOperationalSqlDAO<InnerSourceComponent>
 {
+  @Inject
+  public InnerSourceComponentDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public static final String SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT =
       "SELECT entity FROM InnerSourceComponent entity";
 

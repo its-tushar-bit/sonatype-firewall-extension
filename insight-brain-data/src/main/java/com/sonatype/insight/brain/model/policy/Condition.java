@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class Condition
 {
@@ -19,7 +17,7 @@ public class Condition
 
   /**
    * The condition index in the policy constraint.
-   * 
+   *
    * @since 1.50
    */
   private int conditionIndex;
@@ -52,18 +50,6 @@ public class Condition
 
   public void setValue(final String value) {
     this.value = value;
-  }
-
-  public ValidationResult validate(TransactionContext tx, String ownerId) {
-    try {
-      ConditionType conditionType = ConditionTypes.getById(conditionTypeId);
-      conditionType.validateCondition(tx, this, ownerId);
-    }
-    catch (InvalidConditionException | IllegalArgumentException e) {
-      return new ValidationResult(e);
-    }
-
-    return ValidationResult.noErrors();
   }
 
   public String toMessageString() {

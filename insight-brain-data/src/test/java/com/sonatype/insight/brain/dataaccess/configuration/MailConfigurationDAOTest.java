@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class MailConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final MailConfigurationDAO dao = new MailConfigurationDAO();
+  private MailConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createMailConfigurationDAO();
+  }
 
   @After
   public void exit() {

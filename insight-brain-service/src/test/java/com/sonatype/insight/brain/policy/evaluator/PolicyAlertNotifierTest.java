@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
 import java.util.Collections;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -39,6 +38,9 @@ public class PolicyAlertNotifierTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(PolicyAlertNotifier.class);
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Inject
   private PolicyAlertNotifier notifier;
@@ -145,7 +147,7 @@ public class PolicyAlertNotifierTest
     policy.getNotifications().add(new UserNotification(emailAddress1, eval.getStageTypeId()));
     policy.getNotifications().add(new UserNotification(emailAddress2, eval.getStageTypeId()));
     policy.getNotifications().add(new UserNotification(emailAddress3, Stage.ID_RELEASE));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     return tempEntity.newPolicyViolation(eval, policy);
   }
 }

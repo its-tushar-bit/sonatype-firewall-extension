@@ -11,6 +11,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
 
@@ -20,13 +23,17 @@ import org.quartz.spi.JobFactory;
 public class TestTaskScheduler
     extends TaskScheduler
 {
+  private final OperationalDataStore operationalDataStore;
+
   @Inject
   public TestTaskScheduler(
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
-      QuartzTriggerListener quartzTriggerListener)
+      QuartzTriggerListener quartzTriggerListener,
+      OperationalDataStore operationalDataStore)
   {
     super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener);
+    this.operationalDataStore = operationalDataStore;
   }
 
   private static String getUniqueSchedulerName() {
@@ -39,7 +46,12 @@ public class TestTaskScheduler
     Scheduler scheduler = getScheduler();
     if (scheduler != null) {
       try {
-        scheduler.clear();
+        // sometimes the test db is shut down before Jetty/IQ calls the shutdown
+        // so do a quick check to see if there is anything to clear
+        if (DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
+            operationalDataStore.getDatabaseSchema())) {
+          scheduler.clear();
+        }
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -51,6 +63,18 @@ public class TestTaskScheduler
       catch (Exception e) {
         e.printStackTrace();
       }
+    }
+  }
+
+  @Override
+  public void clear() throws Exception {
+    super.clear();
+
+    // Ensuring the default Never-Past Calendar is added back after is cleared. This will leave the TaskScheduler on
+    // the same state it was when the test started
+    Scheduler scheduler = getScheduler(schedulerName);
+    if (!scheduler.getCalendarNames().contains(NeverPastCalendar.CALENDAR_NAME)) {
+      scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
     }
   }
 

@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,19 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTelemetryIdTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   InsightConfig config;
 
+  @Mock
+  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   MultiTenantTelemetryId underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
-    this.underTest = new TestMultiTenantTelemetryId(config);
+    this.underTest = new TestMultiTenantTelemetryId(config, systemConfigurationPropertyDAO);
   }
 
   @Test
@@ -54,8 +55,11 @@ public class MultiTenantTelemetryIdTest
   private static class TestMultiTenantTelemetryId
       extends MultiTenantTelemetryId
   {
-    public TestMultiTenantTelemetryId(InsightConfig insightConfig) {
-      super(insightConfig);
+    public TestMultiTenantTelemetryId(
+        InsightConfig insightConfig,
+        SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+    {
+      super(insightConfig, systemConfigurationPropertyDAO);
     }
 
     @Override

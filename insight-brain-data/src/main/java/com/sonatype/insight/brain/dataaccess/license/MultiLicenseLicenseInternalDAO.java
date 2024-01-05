@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class MultiLicenseLicenseInternalDAO
     extends AbstractDatamartSqlDAO<MultiLicenseLicenseInternal>
 {
+  @Inject
+  public MultiLicenseLicenseInternalDAO(final DataMartDataStore dataMartDataStore) {
+    super(dataMartDataStore);
+  }
+
   public List<MultiLicenseLicenseInternal> getByMultiLicenseId(TransactionContext tx, String multiLicenseId) {
     String sQuery = "SELECT entity FROM MultiLicenseLicenseInternal entity" + //
         " WHERE entity.multiLicenseId=?1";

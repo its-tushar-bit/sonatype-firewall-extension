@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.repository;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -49,6 +48,8 @@ public class RepositoryComponentDeleteService
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final RepositoryDAO repositoryDAO;
+
   @Inject
   public RepositoryComponentDeleteService(
       FirewallIgnorePatternService firewallIgnorePatternService,
@@ -56,7 +57,8 @@ public class RepositoryComponentDeleteService
       RepositoryComponentDAO repositoryComponentDAO,
       PolicyWaiverDAO policyWaiverDAO,
       ComponentLabelDAO componentLabelDAO,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      RepositoryDAO repositoryDAO)
   {
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
@@ -64,6 +66,7 @@ public class RepositoryComponentDeleteService
     this.policyWaiverDAO = policyWaiverDAO;
     this.componentLabelDAO = componentLabelDAO;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.repositoryDAO = repositoryDAO;
   }
 
   public void deleteUnknownIgnoredComponents(Repository repository) {
@@ -111,7 +114,7 @@ public class RepositoryComponentDeleteService
       log.info("Deleted repository component {} (hash: {}).", componentPath, componentHash);
 
       if (!repositoryPolicyViolations.isEmpty()) {
-        Repository repository = new RepositoryDAO().getById(component.getRepositoryId());
+        Repository repository = repositoryDAO.getById(component.getRepositoryId());
         repositoryComponentTelemetryCreator
             .sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
                 repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);

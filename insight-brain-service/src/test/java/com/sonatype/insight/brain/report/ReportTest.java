@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,15 +39,28 @@ import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVE
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-  
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   private Set<Integer> depths(Integer... depths) {
     return Sets.newHashSet(depths);
+  }
+
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private LicenseDAO licenseDAO;
+
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  @Before
+  public void setUp() {
+    ReportTestHelper.inject(daoFactory);
+
+    licenseDAO = daoFactory.createLicenseDAO();
+    multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+    licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
   }
 
   @Test
@@ -91,7 +105,6 @@ public class ReportTest
 
   @Test
   public void testHasAnyLicenseOverrides() {
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     String applicationId = tempEntity.newApplicationWithParent().getId();
 
     boolean hasAnyLicenseOverrides = Report.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
@@ -149,7 +162,6 @@ public class ReportTest
   @Test
   public void testHideObservedLicenses_ObservedLicenseEnabled_NonMaven() throws Exception {
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
-    LicenseDAO licenseDAO = new LicenseDAO();
     License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
@@ -167,7 +179,6 @@ public class ReportTest
   @Test
   public void testHideObservedLicenses_ObservedLicenseDisabled_NonMaven() throws Exception {
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
-    LicenseDAO licenseDAO = new LicenseDAO();
     License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
@@ -185,7 +196,6 @@ public class ReportTest
   @Test
   public void testHideObservedLicenses_ObservedLicenseDisabled_Maven() throws Exception {
     JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
-    LicenseDAO licenseDAO = new LicenseDAO();
     License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier
@@ -251,7 +261,6 @@ public class ReportTest
 
     File licenseThreatsFile = Report.getCacheFile(reportFile, "licensethreats.json");
 
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ContainerNode<?> licenseThreats = JsonUtils.parse(Files.readAllBytes(licenseThreatsFile.toPath()));
     int countNotZero = 0;
     @SuppressWarnings("unchecked")

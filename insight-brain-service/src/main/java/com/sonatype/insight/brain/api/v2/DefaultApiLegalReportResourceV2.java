@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -113,6 +112,8 @@ public class DefaultApiLegalReportResourceV2
 
   private final ApplicationAttributionReportBuilder applicationAttributionReportBuilder;
 
+  private final IdUtils idUtils;
+
   @Context
   private HttpServletRequest httpRequest;
 
@@ -120,11 +121,13 @@ public class DefaultApiLegalReportResourceV2
   public DefaultApiLegalReportResourceV2(
       final ApiLicenseLegalService apiLicenseLegalService,
       final AttributionReportService attributionReportService,
-      final ApplicationAttributionReportBuilder applicationAttributionReportBuilder)
+      final ApplicationAttributionReportBuilder applicationAttributionReportBuilder,
+      final IdUtils idUtils)
   {
     this.apiLicenseLegalServiceV2 = apiLicenseLegalService;
     this.attributionReportService = attributionReportService;
     this.applicationAttributionReportBuilder = applicationAttributionReportBuilder;
+    this.idUtils = idUtils;
   }
 
   @Override
@@ -135,7 +138,7 @@ public class DefaultApiLegalReportResourceV2
       @PathParam("applicationId") String applicationId)
   {
     return apiLicenseLegalServiceV2
-        .getLicenseLegalApplicationReport(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId));
+        .getLicenseLegalApplicationReport(idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId));
   }
 
   @Override
@@ -146,7 +149,7 @@ public class DefaultApiLegalReportResourceV2
       @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
   {
     return apiLicenseLegalServiceV2.getLicenseLegalApplicationReport(
-        IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false,
+        idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false,
         false);
   }
 
@@ -157,7 +160,7 @@ public class DefaultApiLegalReportResourceV2
   public String getLicenseLegalApplicationHTMLReport(
       @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
   {
-    final Owner app = IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId);
+    final Owner app = idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId);
     final LegalCustomReportParameters reportParameters =
         LegalCustomReportParameters.builder().buildWithDefaults(app.getPublicId());
 
@@ -189,7 +192,7 @@ public class DefaultApiLegalReportResourceV2
 
     return applicationAttributionReportBuilder
         .generateCustomLegalApplicationAttributionReport(
-            IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId),
+            idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId),
             stageId,
             reportParametersBuilder.build());
   }
@@ -309,7 +312,7 @@ public class DefaultApiLegalReportResourceV2
     }
 
     return applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(
-        IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId),
+        idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId),
         stageId,
         LegalCustomReportParameters.builder().fromAttributionReportTemplateDTO(templateDTO)
             .withNoticeFiles(noticeFiles)
@@ -366,13 +369,13 @@ public class DefaultApiLegalReportResourceV2
     if (applications.isEmpty() || stages.isEmpty()) {
       return Collections.emptySet();
     }
-    
+
     Set<String> applicationPublicIds = applications.stream()
         .map(FormDataBodyPart::getValue)
         .map(app -> app.split(","))
         .flatMap(Arrays::stream)
         .collect(Collectors.toSet());
-    
+
     Set<String> stageIds = stages.stream()
         .map(FormDataBodyPart::getValue)
         .map(app -> app.split(","))
@@ -381,7 +384,7 @@ public class DefaultApiLegalReportResourceV2
 
     return resourceDTOFromSet(applicationPublicIds, stageIds);
   }
-  
+
   private Set<AttributionReportApplicationDTO> resourceDTOFromSet(
       Set<String> applicationPublicIds,
       Set<String> stageIds)

@@ -26,9 +26,11 @@ public class PullRequestCommentingConfigMigratorTest
   @Inject
   private PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator;
 
-  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private SourceControlDAO sourceControlDAO;
 
   @Test
   public void testMigrate_noRootOrgSourceControl() {

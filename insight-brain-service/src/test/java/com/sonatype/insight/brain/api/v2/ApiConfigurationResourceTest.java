@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

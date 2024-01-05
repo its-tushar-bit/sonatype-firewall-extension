@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -73,6 +72,12 @@ public class JiraPolicyAlertNotifierTest
   @Inject
   private UserDirectory userDirectory;
 
+  @Inject
+  private PolicyNotificationUtil policyNotificationUtil;
+
+  @Inject
+  private PolicyDAO policyDAO;
+
   @Mock
   private JiraClient jiraClient;
 
@@ -105,11 +110,11 @@ public class JiraPolicyAlertNotifierTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
             evaluation.isForMonitoring());
 
@@ -142,13 +147,13 @@ public class JiraPolicyAlertNotifierTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     ComponentIdentifier identifier = ComponentIdentifier.createAnameCoordinates("jquery", "", "3.0.0");
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy, identifier, "abcd"));
     List<PolicyNotification> policyNotifications =
-        PolicyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+        policyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
             evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
@@ -175,11 +180,11 @@ public class JiraPolicyAlertNotifierTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
             evaluation.isForMonitoring());
 
@@ -202,14 +207,14 @@ public class JiraPolicyAlertNotifierTest
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
-    policy.getNotifications().add(new RoleNotification(role.getId(), stage.getStageTypeId()));
+    policy.getNotifications().add(new RoleNotification(role.getId(), role.getName(), stage.getStageTypeId()));
     policy.getNotifications().add(new UserNotification("email@sonatype.com", stage.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
     List<PolicyNotification> policyNotifications =
-        PolicyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+        policyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
             evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
@@ -258,11 +263,11 @@ public class JiraPolicyAlertNotifierTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);
     policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+    List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
             evaluation.isForMonitoring());
 

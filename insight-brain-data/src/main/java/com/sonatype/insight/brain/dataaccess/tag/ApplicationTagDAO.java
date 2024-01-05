@@ -6,17 +6,28 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.9
  */
+@Named
+@Singleton
 public class ApplicationTagDAO
     extends AbstractOperationalSqlDAO<ApplicationTag>
 {
+  @Inject
+  public ApplicationTagDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public List<ApplicationTag> getByApplicationId(String appId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, appId);

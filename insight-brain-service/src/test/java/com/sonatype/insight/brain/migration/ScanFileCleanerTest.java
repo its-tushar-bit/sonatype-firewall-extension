@@ -11,7 +11,6 @@ import java.nio.file.attribute.FileTime;
 import java.security.Permission;
 import java.time.LocalTime;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -48,6 +47,9 @@ public class ScanFileCleanerTest
 
   private static final long ONE_HOUR = DateTimeConstants.MILLIS_PER_HOUR;
 
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
+
   @Rule
   public LogOutput logOutput = new LogOutput(ScanFileCleaner.class);
 
@@ -62,7 +64,7 @@ public class ScanFileCleanerTest
 
   @Before
   public void before() {
-    new MigrationTrackerDAO().deleteById(ScanFileCleaner.MARKER_ID);
+    migrationTrackerDAO.deleteById(ScanFileCleaner.MARKER_ID);
   }
 
   @After
@@ -98,7 +100,7 @@ public class ScanFileCleanerTest
 
   @Test
   public void testStartServer_MarkerInDb() throws Exception {
-    new MigrationTrackerDAO().insertTracker(ScanFileCleaner.MARKER_ID);
+    migrationTrackerDAO.insertTracker(ScanFileCleaner.MARKER_ID);
     assertMarkerExists();
 
     scanFileCleaner.start();
@@ -273,11 +275,11 @@ public class ScanFileCleanerTest
   }
 
   private void assertMarkerExists() {
-    assertThat(new MigrationTrackerDAO().isTrackerPresent(ScanFileCleaner.MARKER_ID)).isTrue();
+    assertThat(migrationTrackerDAO.isTrackerPresent(ScanFileCleaner.MARKER_ID)).isTrue();
   }
 
   private void assertMarkerDoesNotExist() {
     assertThat(scanFileCleaner.getObsoleteMarkerFile()).doesNotExist();
-    assertThat(new MigrationTrackerDAO().isTrackerPresent(ScanFileCleaner.MARKER_ID)).isFalse();
+    assertThat(migrationTrackerDAO.isTrackerPresent(ScanFileCleaner.MARKER_ID)).isFalse();
   }
 }

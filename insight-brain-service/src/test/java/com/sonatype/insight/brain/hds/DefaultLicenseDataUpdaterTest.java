@@ -18,30 +18,36 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DefaultLicenseDataUpdaterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final License license1 = new License("license1", "l1Short", "l1Long");
 
   private static final License license2 = new License("license2", "l2Short", "l2Long");
 
-  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  private MultiLicenseDAO multiLicenseDAO;
 
-  private final LicenseDAO licenseDAO = new LicenseDAO();
+  private LicenseDAO licenseDAO;
+
+  @Before
+  public void setUp() {
+    licenseDAO = lookup(LicenseDAO.class);
+    multiLicenseDAO = lookup(MultiLicenseDAO.class);
+  }
 
   @Test
   public void testLicense() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id";
-    LicenseDAO licenseDAO = new LicenseDAO();
     assertThat(licenseDAO.getById(newId)).isNull();
 
     License newLicense = new License();
@@ -58,7 +64,6 @@ public class DefaultLicenseDataUpdaterTest
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id1";
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     assertThat(multiLicenseDAO.getById(newId)).isNull();
 
     MultiLicense newMultiLicense = new MultiLicense();
@@ -81,7 +86,6 @@ public class DefaultLicenseDataUpdaterTest
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id2";
     String newName = "New short name2";
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     assertThat(multiLicenseDAO.getByName(newName)).isNull();
 
     MultiLicense newMultiLicense = new MultiLicense();
@@ -104,7 +108,6 @@ public class DefaultLicenseDataUpdaterTest
 
     try {
       String newId = "New license id";
-      MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
       assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> multiLicenseDAO.getById(newId))
           .withMessageStartingWith("Could not retrieve license data from Sonatype HDS:");
     }
@@ -161,7 +164,7 @@ public class DefaultLicenseDataUpdaterTest
 
     licenseData.multiLicenseMappings.get(existingMultiLicense.getId()).add(license2.getId());
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
-    LicenseDataUpdater.update();
+    LicenseDataUpdater.update(licenseDAO, multiLicenseDAO);
     storedMultiLicense = multiLicenseDAO.getById(existingMultiLicense.getId());
     assertThat(storedMultiLicense).isEqualTo(existingMultiLicense);
     assertThat(multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(existingMultiLicense.getId()))

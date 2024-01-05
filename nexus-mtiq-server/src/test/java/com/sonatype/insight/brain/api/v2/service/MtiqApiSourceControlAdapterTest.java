@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -15,7 +15,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqApiSourceControlAdapterTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Test
   public void convertFromDTO() {

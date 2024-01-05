@@ -50,19 +50,6 @@ public class DataSourceFactory
     return newDataSources.containsValue(true);
   }
 
-  public static void clear_ForTestsOnly() {
-    synchronized (newDataSources) {
-      newDataSources.clear();
-    }
-    synchronized (dataSources) {
-      dataSources.clear();
-      DatamartProvider.clear_ForTestsOnly();
-      OperationalDataStoreProvider.clear_ForTestsOnly();
-      AggregationDataStoreProvider.clear_ForTestsOnly();
-      ThirdPartyScansProvider.clear_ForTestsOnly();
-    }
-  }
-
   private void logDatabaseSettings(DataSource dataSource, DatabaseEngine databaseEngine) {
     try (Connection connection = dataSource.getConnection()) {
       log.debug("Database settings:");

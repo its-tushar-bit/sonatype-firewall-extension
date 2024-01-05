@@ -33,6 +33,9 @@ public class UserServiceAuthzTest
   @Inject
   private UserService userService;
 
+  @Inject
+  private UserDAO userDAO;
+
   @Mock
   private SessionDAO sessionDAOMock;
 
@@ -144,7 +147,7 @@ public class UserServiceAuthzTest
     grantConfigureSystemPermission();
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     user = userService.addUser(user);
-    new UserDAO().delete(user);
+    userDAO.delete(user);
   }
 
   @Test(expected = UnauthorizedException.class)

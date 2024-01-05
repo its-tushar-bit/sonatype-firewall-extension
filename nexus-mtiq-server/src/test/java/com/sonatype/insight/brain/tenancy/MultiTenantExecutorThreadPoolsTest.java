@@ -9,6 +9,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +30,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantExecutorThreadPoolsTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   private static final long VERIFICATION_TIMEOUT = 500L;
 
@@ -48,10 +50,7 @@ public class MultiTenantExecutorThreadPoolsTest
   Tenant tenant;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
     underTest = new MultiTenantExecutorThreadPools();
     pool = underTest.namedForkJoinPool(1, name.getMethodName());
     tenant = new Tenant("tenant-name");

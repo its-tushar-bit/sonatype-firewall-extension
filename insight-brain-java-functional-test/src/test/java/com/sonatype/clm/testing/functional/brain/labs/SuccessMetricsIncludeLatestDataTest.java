@@ -11,8 +11,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -52,7 +52,7 @@ public class SuccessMetricsIncludeLatestDataTest
 
   @After
   public void after() {
-    SuccessMetricsReportDAO dao = new SuccessMetricsReportDAO();
+    SuccessMetricsReportDAO dao = lookup(SuccessMetricsReportDAO.class);
     for (SuccessMetricsReport successMetricsReport : dao.getByUsername("admin")) {
       dao.delete(successMetricsReport);
     }

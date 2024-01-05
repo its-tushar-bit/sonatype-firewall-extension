@@ -24,9 +24,9 @@ import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantConfigurationTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   ProxyServerConfigurationDAO proxyServerConfigurationDAO;
@@ -89,11 +89,8 @@ public class MultiTenantConfigurationTest
 
   private Configuration underTest;
 
-  @Override
   @Before
   public void setup() {
-    super.setup();
-
     when(configurationService.getConfigurationNoAuthz(any(Set.class))).thenAnswer(
         i -> ImmutableMap.of(SystemConfigurationProperty.HDS_URL, TenantThreadLocal.getTenant().tenantSlug));
 

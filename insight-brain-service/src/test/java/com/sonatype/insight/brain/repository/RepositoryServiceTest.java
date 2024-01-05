@@ -107,16 +107,20 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Inject
   private ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
-  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
-  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
-      new ProprietaryComponentNamePatternDAO();
+  @Inject
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -130,6 +134,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
@@ -141,6 +147,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Before
   public void before() {
+    policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
+
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Collections.singletonList("a"));
@@ -711,7 +719,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 1);
-    PolicyViolationLogDTOAssert
+    policyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR, repository,
             before, after);
   }

@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.mail.Message;
 import javax.ws.rs.core.HttpHeaders;
 
@@ -86,10 +85,23 @@ import static org.mockito.ArgumentMatchers.any;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private PolicyDAO policyDAO;
+
+  private ApplicationDAO applicationDAO;
+
   private Application app;
 
   @Before
   public void before() {
+    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+
     app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
   }
 
@@ -161,7 +173,7 @@ public class ReportResourceTest
 
     //This will trigger two legacy violations upon evaluation.
     app.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
         ComponentIdentifier.FORMAT_MAVEN + ":tomcat:tomcat-util:5.5.23");
@@ -298,7 +310,7 @@ public class ReportResourceTest
 
     //This will trigger two legacy violations upon evaluation.
     app.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
         ComponentIdentifier.FORMAT_MAVEN + ":tomcat:tomcat-util:5.5.23");
@@ -454,7 +466,7 @@ public class ReportResourceTest
     mailConfiguration.setHostname("127.0.0.1");
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
   }
 
   @Test
@@ -465,7 +477,6 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report");
     createScanFile(app.getId(), scanId);
 
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
         .getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNull();
@@ -502,7 +513,7 @@ public class ReportResourceTest
 
     // ReEvaluate
     policy.setThreatLevel(policy.getThreatLevel() - 1);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 
 import com.codeborne.selenide.Configuration;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -37,12 +38,17 @@ public class AdvancedSearchConfigurationPageTest
 {
   private final AdvancedSearchConfigurationPage page = new AdvancedSearchConfigurationPage();
 
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
 
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
   }
 
   @Test

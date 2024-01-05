@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
+import java.util.function.IntConsumer;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
 /**
@@ -82,27 +83,11 @@ public interface DataStore
   String getID();
 
   /**
-   * Initialize the data store and perform database migrations. Initialization covers the creation of the necessary
-   * objects for the data store (e.g. {@link DataSource} and {@link EntityManagerFactory} and also the population of new
-   * and empty databases.
-   *
-   * @param databaseConfig             configuration for the database
-   * @param migrateToNewViolationModel IQ version 114 introduced a new violation model that required special handling.
-   *                                   This flag indicates if that migration should be performed.
+   * Perform the initialization of the data store. This includes creating all supporting objects (e.g.
+   * {@link DataSource}, {@link EntityManagerFactory}), population of new databases, and migration on existing
+   * databases.
    */
-  void initWithMigration(DatabaseConfig databaseConfig, Boolean migrateToNewViolationModel);
-
-  /**
-   * Same as {@link #initWithMigration} except does not perform migration.
-   */
-  void initWithoutMigration(DatabaseConfig databaseConfig);
-
-  /**
-   * Perform database migrations
-   *
-   * @param migrateToNewViolationModel See description in {@link #initWithMigration}
-   */
-  void migrate(Boolean migrateToNewViolationModel);
+  void initialize();
 
   /**
    * @return the {@link DataSource} for this data store
@@ -124,12 +109,14 @@ public interface DataStore
    */
   EntityManagerFactory getJPAEntityManagerFactory();
 
+  IntConsumer getUpgradeGuard(Boolean migrateToNewViolationModel);
+
+  // Should disappear with LegacyDataSourceProvider
+  @Deprecated
+  DataSourceProvider getDataSourceProvider();
+
   /**
-   * Legacy method to clear data used in tests. With the advent of MTIQ the data store classes were moved from a static
-   * model to a class based model. With the static model there needed to be a back door to reset the data source. This
-   * change happened (will happen) incrementally and so this method will remain until the original *DataStoreProvider
-   * classes can be removed. Specifically, classes like {@link OperationalDataStoreProvider} retain a single static
-   * instance of {@link DefaultOperationalDataStore} and still require a way to reset that single instance.
+   * Is this a brand new data store (i.e. never been populated nor migrated)
    */
-  void clear_ForTestsOnly();
+  boolean isDataStoreNew();
 }

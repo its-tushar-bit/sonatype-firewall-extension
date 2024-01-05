@@ -17,27 +17,33 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -45,7 +51,6 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -88,14 +93,14 @@ public class AbstractComponentTest
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  @Inject
+  public SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Rule
   public MockCleaner mockCleaner = new MockCleaner();
 
   @Rule
   public DatamartUpdaterState datamartUpdaterState = new DatamartUpdaterState();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -105,8 +110,6 @@ public class AbstractComponentTest
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-
-  private static final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
 
   protected static final String USERNAME = "testuser";
 
@@ -136,7 +139,7 @@ public class AbstractComponentTest
   }
 
   public String getBaseUrl() {
-    return new SystemConfigurationPropertyDAO().get(SystemConfigurationProperty.BASE_URL);
+    return systemConfigurationPropertyDAO.get(SystemConfigurationProperty.BASE_URL);
   }
 
   public void setBaseUrl(String baseUrl) {
@@ -168,6 +171,7 @@ public class AbstractComponentTest
   }
 
   private void releaseScmPerpetualLock() {
+    PerpetualLockDAO perpetualLockDAO = lookup(PerpetualLockDAO.class);
     String perpetualLockId = SourceControlInstanceManager.SOURCE_CONTROL_ACCESS_LOCK;
     PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
     if (perpetualLock != null) {
@@ -242,6 +246,13 @@ public class AbstractComponentTest
     binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
     binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
     binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
+
+    binder.requestStaticInjection(ConditionTypes.class);
+    binder.requestStaticInjection(ConditionValueTypes.class);
+    binder.requestStaticInjection(ConfigurationUtils.class);
+    binder.requestStaticInjection(Report.class);
+    binder.requestStaticInjection(ComponentDetailsLoader.class);
+    binder.requestStaticInjection(ApiConfigFeaturesService.class);
 
     super.configure(binder);
   }

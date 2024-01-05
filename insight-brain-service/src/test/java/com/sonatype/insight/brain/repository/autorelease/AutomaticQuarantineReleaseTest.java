@@ -39,7 +39,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
@@ -48,13 +48,19 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutomaticQuarantineReleaseTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
+
   private AutomaticQuarantineRelease automaticQuarantineRelease;
 
   @Before
   public void setup() {
-    automaticQuarantineRelease = getTestCLMServer().getCLMServer().getInstance(AutomaticQuarantineRelease.class);
+    repositoryPolicyViolationDAO = lookup(RepositoryPolicyViolationDAO.class);
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    automaticQuarantineRelease = lookup(AutomaticQuarantineRelease.class);
   }
 
   @Test
@@ -74,15 +80,15 @@ public class AutomaticQuarantineReleaseTest
 
     mockFirewallResponse(getFirewallHdsResponse(component, component.getHash(), new IntegrityRating(2, "Pending")));
     automaticQuarantineRelease.run();
-    Date secondCompEvalTime = new RepositoryComponentDAO().getById(component.getId()).getLastEvaluationTime();
+    Date secondCompEvalTime = repositoryComponentDAO.getById(component.getId()).getLastEvaluationTime();
     assertThat(assertThat(secondCompEvalTime).isAfter(firstCompEvalTime));
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
 
     mockFirewallResponse(getFirewallHdsResponse(component, component.getHash(), new IntegrityRating(4, "Laggard")));
     automaticQuarantineRelease.run();
-    assertThat(assertThat(new RepositoryComponentDAO().getById(component.getId()).getLastEvaluationTime()).isAfter(
+    assertThat(assertThat(repositoryComponentDAO.getById(component.getId()).getLastEvaluationTime()).isAfter(
         secondCompEvalTime));
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
   }
 
   @Test
@@ -108,9 +114,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -132,9 +138,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -160,9 +166,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(component.getRepositoryId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
   }
 
   @Test
@@ -188,9 +194,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(component.getRepositoryId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
   }
 
   @Test
@@ -211,9 +217,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -237,9 +243,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -263,8 +269,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
@@ -290,9 +296,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -322,8 +328,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -348,8 +354,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -371,9 +377,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   private ComponentEvaluationDataList getFirewallHdsResponse(

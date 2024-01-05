@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO.TEN_YEARS_IN_SECONDS;
@@ -26,7 +27,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SamlConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final SamlConfigurationDAO dao = new SamlConfigurationDAO();
+  private SamlConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSamlConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

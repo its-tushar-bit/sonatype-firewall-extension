@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -53,7 +52,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class RepositoryServiceTest
     extends AbstractRepositoryServiceTest
 {
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
   @Inject
   private RepositoryService repositoryService;
@@ -85,7 +91,7 @@ public class RepositoryServiceTest
     repositoryService.removeExtraComponents("testRepoManagerInstanceId", "testRepoPublicId1",
         repositoryComponentPathnames);
 
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    RepositoryComponentDAO repositoryComponentDAO = this.repositoryComponentDAO;
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
@@ -133,12 +139,12 @@ public class RepositoryServiceTest
     assertThat(componentFact.getPathnames()).containsExactly("somepath/foobar");
 
     // test that the component is not persisted
-    List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repo.getId());
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repo.getId());
     assertThat(repositoryComponents).isEmpty();
 
     // test that the policy violation is not persisted
     List<RepositoryPolicyViolation> policyViolations =
-        new RepositoryPolicyViolationDAO().getByRepositoryId(repo.getId());
+        repositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
     assertThat(policyViolations).isEmpty();
   }
 

@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -37,21 +38,31 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.After;
+import org.junit.Before;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyImportAuditTest
     extends AbstractAuditTest
 {
+  protected PolicyDAO policyDAO;
+
+  protected RoleDAO roleDAO;
+
+  @Before
+  public void setUp() {
+    roleDAO = lookup(RoleDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+  }
+
   @After
   public void after() {
-    PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.getAll().forEach(policyDAO::delete);
-    LabelDAO labelDAO = new LabelDAO();
+    LabelDAO labelDAO = lookup(LabelDAO.class);
     labelDAO.getAll().forEach(labelDAO::delete);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    LicenseThreatGroupDAO licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
     licenseThreatGroupDAO.getAll().forEach(licenseThreatGroupDAO::delete);
-    TagDAO tagDAO = new TagDAO();
+    TagDAO tagDAO = lookup(TagDAO.class);
     tagDAO.getAll().forEach(tagDAO::delete);
   }
 
@@ -79,9 +90,10 @@ public abstract class AbstractPolicyImportAuditTest
             condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7")))));
     policy.setAction(Stage.ID_BUILD, WarnActionType.ID);
     policy.setAction(Stage.ID_RELEASE, FailActionType.ID);
+    Role role = roleDAO.getById(Role.DEVELOPER_ROLE_ID);
     policy.setNotifications(new Notifications(
         new UserNotification("name@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE),
-        new RoleNotification(Role.DEVELOPER_ROLE_ID, Stage.ID_BUILD),
+        new RoleNotification(role.getId(), role.getName(), Stage.ID_BUILD),
         new JiraNotification("p1", 123L, Stage.ID_DEVELOP)
     ));
     return policy;
@@ -134,7 +146,7 @@ public abstract class AbstractPolicyImportAuditTest
     assertThat(auditedPolicyId).isNotNull();
     assertThat(auditedOverridingOwnerId).isNotNull().isEqualTo(overridingOwnerId);
     assertThat(auditedPolicyId).isEqualTo(policy.getId());
-    assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+    assertThat(policyDAO.getById(auditedPolicyId)).isNotNull();
     if (actionsOverrideAdded) {
       assertThat(auditDTO.data.get("actionsOverride")).isNotNull();
     }

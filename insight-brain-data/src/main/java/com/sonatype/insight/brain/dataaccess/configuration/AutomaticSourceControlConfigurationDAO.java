@@ -5,12 +5,23 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class AutomaticSourceControlConfigurationDAO
 {
-  private final SystemConfigurationPropertyDAO configPropertyDAO = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO configPropertyDAO;
+
+  @Inject
+  public AutomaticSourceControlConfigurationDAO(final SystemConfigurationPropertyDAO configPropertyDAO) {
+    this.configPropertyDAO = configPropertyDAO;
+  }
 
   public boolean isSourceControlConfigurationEnabled() {
     try (TransactionContext tx = configPropertyDAO.createTransactionContext()) {

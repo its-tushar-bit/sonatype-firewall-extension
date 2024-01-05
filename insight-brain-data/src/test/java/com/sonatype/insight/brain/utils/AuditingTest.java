@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
@@ -19,7 +19,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AuditingTest
+public class AuditingTest extends AbstractDbDAOTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -28,8 +28,7 @@ public class AuditingTest
 
   @Before
   public void setUp() {
-    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"), "ownerId");
-    OperationalDataStoreProvider.init(null, false);
+    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"), "ownerId", clusterLockManager);
   }
 
   @Test

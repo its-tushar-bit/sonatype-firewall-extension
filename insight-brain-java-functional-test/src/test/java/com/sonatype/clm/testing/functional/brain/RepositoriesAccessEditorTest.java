@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
-import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -32,7 +31,6 @@ public class RepositoriesAccessEditorTest
 
   @After
   public void cleanup() {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping mapping : membershipMappingDAO.getByContextId(RepositoryContainer.REPOSITORY_CONTAINER_ID)) {
       membershipMappingDAO.delete(mapping);
     }

@@ -9,15 +9,36 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class LicenseThreatGroupLicenseDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroupLicense>
 {
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public LicenseThreatGroupLicenseDAO(
+      final OperationalDataStore operationalDataStore,
+      final LicenseDAO licenseDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO)
+  {
+    super(operationalDataStore);
+    this.licenseDAO = licenseDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+  }
+
   private LicenseThreatGroupLicense getByGroupIdAndLicenseId(TransactionContext tx,
                                                              String ownerId,
                                                              String licenseThreatGroupId)
@@ -55,7 +76,7 @@ public class LicenseThreatGroupLicenseDAO
 
   @Override
   public void insert(TransactionContext tx, LicenseThreatGroupLicense entity) {
-    new LicenseDAO().getByIdNotNull(entity.getLicenseId());
+    licenseDAO.getByIdNotNull(entity.getLicenseId());
 
     LicenseThreatGroupLicense other = getByGroupIdAndLicenseId(tx, entity.getLicenseThreatGroupId(),
         entity.getLicenseId());
@@ -69,10 +90,8 @@ public class LicenseThreatGroupLicenseDAO
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
 
-      LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getByIdNotNull(tx, licenseThreatGroupId);
+      LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull(tx, licenseThreatGroupId);
       String ownerId = licenseThreatGroup.getOwnerId();
-
-      LicenseDAO licenseDAO = new LicenseDAO();
 
       List<LicenseThreatGroupLicense> oldLicenses = new ArrayList<>();
       oldLicenses.addAll(getByLicenseThreatGroupId(tx, licenseThreatGroupId));

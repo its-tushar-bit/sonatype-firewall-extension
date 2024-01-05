@@ -30,7 +30,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 
 public class ComponentDetailsOverviewTabDependencyTreeTest
@@ -48,7 +51,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   public void start() throws IOException {
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     org = tempEntity.newOrganization("Test Organization");
     policyImportExport.importOrganization(org, referencePolicies);

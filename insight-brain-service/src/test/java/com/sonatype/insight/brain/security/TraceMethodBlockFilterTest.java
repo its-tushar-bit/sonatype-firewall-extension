@@ -6,15 +6,15 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.version.VersionResource;
 
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
 public class TraceMethodBlockFilterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testTraceMethodBlocked() throws Exception {

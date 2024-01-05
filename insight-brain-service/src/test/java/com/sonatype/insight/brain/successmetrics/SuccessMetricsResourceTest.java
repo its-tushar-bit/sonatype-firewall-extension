@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SuccessMetricsResourceTest
     extends AbstractResourceTest
 {
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(SuccessMetricsResource.RESOURCE_PATH);
@@ -37,7 +45,6 @@ public class SuccessMetricsResourceTest
     assertResponseStatus(200, response);
     configuration = response.getBody(SuccessMetricsConfigurationDTO.class);
     assertThat(configuration.enabled).isFalse();
-    assertThat(new SystemConfigurationPropertyDAO().getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue())
-        .isEqualTo("false");
+    assertThat(dao.getByName(SuccessMetricsService.PROPERTY_ENABLED).getValue()).isEqualTo("false");
   }
 }

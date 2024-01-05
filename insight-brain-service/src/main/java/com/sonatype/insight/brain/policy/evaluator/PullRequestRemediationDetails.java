@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -83,8 +84,10 @@ public class PullRequestRemediationDetails
       final String pullRequestBranchName,
       final Application app,
       final String scanId,
-      final String stage) throws IOException
+      final String stage,
+      final OrganizationDAO organizationDAO) throws IOException
   {
+    super(organizationDAO);
     if (policyThreatsMDEmbeddedHtmlTemplate == null) {
       throw new IOException(
           "Unable to construct PullRequestRemediationDetails: rich Markdown template is unavailable");
@@ -115,9 +118,11 @@ public class PullRequestRemediationDetails
       final String stage,
       final String iqBaseUrl,
       final SourceControlProvider provider,
-      final String scmBaseUrl) throws IOException
+      final String scmBaseUrl,
+      final OrganizationDAO organizationDAO) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage);
+    this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
+        organizationDAO);
     this.contents = constructContents(notifications, iqBaseUrl, provider, scmBaseUrl);
   }
 
@@ -128,9 +133,10 @@ public class PullRequestRemediationDetails
       final Application app,
       final String scanId,
       final String stage,
-      final String contents) throws IOException
+      final String contents,
+      final OrganizationDAO organizationDAO) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage);
+    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO);
     this.contents = contents;
   }
 

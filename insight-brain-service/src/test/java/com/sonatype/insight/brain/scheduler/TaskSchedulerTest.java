@@ -19,10 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -70,6 +69,9 @@ public class TaskSchedulerTest
   @Inject
   private NonConcurrentTestJob nonConcurrentTestJob;
 
+  @Inject
+  private OperationalDataStore operationalDataStore;
+
   @Override
   public void configure(Binder binder) {
     // add some AOP to the mix to more closely reflect the normal runtime setup
@@ -92,6 +94,7 @@ public class TaskSchedulerTest
   }
 
   @Test
+  @H2DiskTest
   public void testCreateScheduler_Instantiation() throws Exception {
     Scheduler scheduler = taskScheduler.createScheduler();
     // We can check the class and that properties are passed along but can't check all properties as most are hidden
@@ -511,10 +514,10 @@ public class TaskSchedulerTest
   }
 
   private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
-    String sQuery = "INSERT INTO QRTZ_SCHEDULER_STATE" + //
+    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, instanceId);
@@ -525,8 +528,8 @@ public class TaskSchedulerTest
   }
 
   private void deleteAllSchedulerStateRecords() throws Exception {
-    String sQuery = "DELETE FROM QRTZ_SCHEDULER_STATE";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();
     }

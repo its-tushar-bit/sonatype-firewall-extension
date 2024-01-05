@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -64,8 +65,6 @@ public class ComponentPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentPolicyEvaluator.class);
 
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
-
   // Tenant safe because each key contains multiple UUIDs in specific orders unique to each tenant, see CLM-27348
   private static final LoadingCache<String, Object> droolsCodeKiaBase = CacheBuilder.newBuilder()
       .concurrencyLevel(20)
@@ -95,12 +94,29 @@ public class ComponentPolicyEvaluator
     }
   };
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final PolicyDAO policyDAO;
+
+  @Inject
+  public ComponentPolicyEvaluator(
+      final PolicyWaiverDAO policyWaiverDAO,
+      final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO)
+  {
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
+  }
+
   public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components) {
     return evaluate(ownerId, stage, components, false /* forMonitoring */).getActiveAlerts();
   }
 
   public PolicyResults evaluate(String ownerId, Stage stage, List<Component> components, boolean forMonitoring) {
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
     return evaluate(ownerId, stage, policies, components, forMonitoring);
   }
 
@@ -133,7 +149,7 @@ public class ComponentPolicyEvaluator
     return policyResults;
   }
 
-  static PolicyResults toPolicyResults(
+  PolicyResults toPolicyResults(
       String ownerId,
       final List<Policy> policies,
       final List<PolicyFact> policyFacts,
@@ -148,7 +164,7 @@ public class ComponentPolicyEvaluator
     Owner owner = ownerDAO.getById(ownerId);
     List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveApplicableByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveApplicableByOwnerId(ownerId);
     for (PolicyFact policyFact : policyFacts) {
       Policy policy = policiesById.get(policyFact.getPolicyId());
 

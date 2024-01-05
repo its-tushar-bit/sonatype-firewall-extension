@@ -8,16 +8,14 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,7 +23,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MemberAttributeResolverTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Inject
   private UserDirectory userDirectory;
@@ -40,9 +38,6 @@ public class MemberAttributeResolverTest
 
   @Rule
   public TestLdapServer embeddedLdapServer2 = new TestLdapServer();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Before
   public void init() {

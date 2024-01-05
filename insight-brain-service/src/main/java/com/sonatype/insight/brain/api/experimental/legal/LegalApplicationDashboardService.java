@@ -298,7 +298,7 @@ public class LegalApplicationDashboardService
       Map<String, String> licenseNamesByLicenseId)
   {
     Set<ApiLicenseDTOV2> licenses = new TreeSet<>(Comparator.comparing(dto -> dto.licenseName));
-    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
+    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter(multiLicenseDAO);
 
     for (Entry<String, Set<String>> e : multiLicenseIdToSingleLicenseIds.entrySet()) {
 

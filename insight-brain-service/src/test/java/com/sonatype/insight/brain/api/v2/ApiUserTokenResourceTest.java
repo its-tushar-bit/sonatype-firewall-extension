@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,16 +37,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiUserTokenResourceTest
     extends AbstractResourceTest
 {
-  @Rule
-  public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
-
-  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
-
   private final Date december01 = new GregorianCalendar(2019, Calendar.DECEMBER, 1).getTime();
 
   private final Date december15 = new GregorianCalendar(2019, Calendar.DECEMBER, 15).getTime();
 
   private final Date december31 = new GregorianCalendar(2019, Calendar.DECEMBER, 31).getTime();
+
+  @Rule
+  public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
+
+  private UserTokenDAO userTokenDAO;
+
+  @Before
+  public void setup() {
+    userTokenDAO = lookup(UserTokenDAO.class);
+  }
 
   @Test
   public void testCreateUserToken() throws Exception {

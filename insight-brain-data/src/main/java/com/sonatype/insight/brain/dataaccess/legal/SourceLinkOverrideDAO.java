@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Collections;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
@@ -20,9 +24,26 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.133
  */
+@Named
+@Singleton
 public class SourceLinkOverrideDAO
     extends AbstractOperationalSqlDAO<SourceLinkOverride>
 {
+  private final ComponentSourceLinkDAO componentSourceLinkDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public SourceLinkOverrideDAO(
+      final OperationalDataStore operationalDataStore,
+      final OwnerDAO ownerDAO,
+      final ComponentSourceLinkDAO componentSourceLinkDAO)
+  {
+    super(operationalDataStore);
+    this.ownerDAO = ownerDAO;
+    this.componentSourceLinkDAO = componentSourceLinkDAO;
+  }
+
   public List<SourceLinkOverride> getByComponentSourceLinkId(TransactionContext tx, String componentSourceLinkId) {
     String sQuery = "SELECT entity FROM SourceLinkOverride entity" + //
         " WHERE entity.componentSourceLinkId=?1";
@@ -40,7 +61,6 @@ public class SourceLinkOverrideDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    ComponentSourceLinkDAO componentSourceLinkDAO = new ComponentSourceLinkDAO();
     ComponentSourceLink componentSourceLink =
         componentSourceLinkDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
     if (componentSourceLink == null) {
@@ -54,7 +74,6 @@ public class SourceLinkOverrideDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       List<SourceLinkOverride> sourceLinkOverrides =
           getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);

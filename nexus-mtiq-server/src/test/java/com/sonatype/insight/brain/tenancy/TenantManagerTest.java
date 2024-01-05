@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantManagerTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   static final String TENANT_NAME = "tenant";
 
@@ -48,9 +48,6 @@ public class TenantManagerTest
   AllTenantsJob allTenantsJob;
 
   @Mock
-  InsightConfig config;
-
-  @Mock
   TenantLifecycle lifecycle;
 
   @Mock
@@ -58,6 +55,9 @@ public class TenantManagerTest
 
   @Mock
   TenantValidator tenantValidator;
+
+  @Mock
+  TenantService tenantService;
 
   @Mock
   DeletedTenantDAO deletedTenantDAO;
@@ -72,12 +72,11 @@ public class TenantManagerTest
   @Override
   public void setup() {
     super.setup();
-
     tenantManagedBeans = new ArrayList<>();
     tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
-        tenantValidator, deletedTenantDAO, new TenantUtil());
+    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisionUtils,
+        tenantValidator, deletedTenantDAO, tenantService);
 
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
 
@@ -155,8 +154,8 @@ public class TenantManagerTest
   public void shouldNotRegister_allTenantsJobs() {
     tenantManagedBeans.add(allTenantsJob);
 
-    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
-        tenantValidator, deletedTenantDAO, new TenantUtil());
+    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisionUtils,
+        tenantValidator, deletedTenantDAO, tenantService);
 
     testAsNewTenant(t -> {
       when(tenantValidator.validateTenantExists(t)).thenReturn(true);
@@ -187,11 +186,14 @@ public class TenantManagerTest
 
     testAsNewTenant(t -> {
       when(tenantValidator.validateTenantExists(t)).thenReturn(true);
-      underTest.deregisterTenant(tenant.tenantSlug);
-
       underTest.setTenant(t);
 
-      assertThat(underTest.getRegisteredTenants()).containsExactlyInAnyOrder(t.tenantSlug);
+      // Verify the tenant was registered
+      assertThat(underTest.getRegisteredTenants()).containsExactlyInAnyOrder(tenant.tenantSlug, t.tenantSlug);
+
+      underTest.deregisterTenant(t.tenantSlug);
+
+      assertThat(underTest.getRegisteredTenants()).containsExactlyInAnyOrder(tenant.tenantSlug);
     });
   }
 
@@ -292,7 +294,7 @@ public class TenantManagerTest
   public void shouldNotRegisterAllTenantsOnBootIfConfigIsFalse() {
     try (MockedStatic<SystemConfigurationPropertyFeature> mockConfig = mockStatic(
         SystemConfigurationPropertyFeature.class)) {
-      mockConfig.when(SAAS_PRE_REGISTER_ALL_TENANTS::isEnabled).thenReturn(false);
+      mockConfig.when(() -> SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).thenReturn(false);
 
       TenantManager spyUnderTest = spy(underTest);
 
@@ -379,12 +381,12 @@ public class TenantManagerTest
     doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);
       return null;
-    }).when(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
+    }).when(databaseProvisionUtils).initializeDatabasesWithoutMigration();
 
     underTest.performDatabaseRegistrationAndRunAs(tenant.tenantSlug, supplier);
 
     verify(supplier, times(1)).get();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
+    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration();
   }
 
   @Test
@@ -411,7 +413,7 @@ public class TenantManagerTest
         .hasMessage(TENANT_PARAMETER_CANNOT_BE_NULL);
   }
 
-  private void setTenantAndAssertRegistration() throws Exception {
+  private void setTenantAndAssertRegistration() {
     doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);
       return null;
@@ -421,7 +423,7 @@ public class TenantManagerTest
 
     verify(job).register();
     verify(lifecycle).bootTenant();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
+    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration();
   }
 
   private static class MockTenantManaged

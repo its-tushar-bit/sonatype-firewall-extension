@@ -48,10 +48,13 @@ public class FirewallReleaseIntegrityLicenseListener
 
   private final ProductLicense productLicense;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
-      new AutoUnquarantinePolicyConditionTypeDAO();
+  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
+
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  private final OwnerDAO ownerDAO;
 
   private final AuditRecorder auditRecorder;
 
@@ -60,9 +63,17 @@ public class FirewallReleaseIntegrityLicenseListener
   @Inject
   public FirewallReleaseIntegrityLicenseListener(
       final ProductLicense productLicense,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final OwnerDAO ownerDAO,
       final AuditRecorder auditRecorder)
   {
     this.productLicense = productLicense;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
+    this.policyMonitoringDAO = policyMonitoringDAO;
+    this.ownerDAO = ownerDAO;
     this.auditRecorder = auditRecorder;
   }
 
@@ -73,7 +84,6 @@ public class FirewallReleaseIntegrityLicenseListener
       return;
     }
 
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       tx.begin();
       SystemConfigurationProperty existingLicenseProperty = systemConfigurationPropertyDAO
@@ -108,7 +118,6 @@ public class FirewallReleaseIntegrityLicenseListener
   }
 
   private void enablePolicyMonitoringForAllRepositories(TransactionContext tx) {
-    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     if (policyMonitoringDAO.getByOwnerId(tx, REPOSITORY_CONTAINER_ID) == null) {
       log.info("Enabling policy monitoring for all repositories");
       PolicyMonitoring policyMonitoring = new PolicyMonitoring();
@@ -116,7 +125,7 @@ public class FirewallReleaseIntegrityLicenseListener
       policyMonitoring.setStageTypeId(StageTypes.PROXY.getId());
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)) {
         policyMonitoringDAO.insert(tx, policyMonitoring);
-        AuditData.get().setOwner(new OwnerDAO().getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
+        AuditData.get().setOwner(ownerDAO.getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
       }
     }
   }

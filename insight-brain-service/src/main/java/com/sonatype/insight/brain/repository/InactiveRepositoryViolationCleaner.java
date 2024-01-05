@@ -13,14 +13,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 
@@ -47,12 +46,22 @@ public class InactiveRepositoryViolationCleaner
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final OperationalDataStore operationalDataStore;
+
+  private final ClusterLockManager clusterLockManager;
+
   // Visible for tests
   Thread workerThread;
 
   @Inject
-  public InactiveRepositoryViolationCleaner(MigrationTrackerDAO migrationTrackerDAO) {
+  public InactiveRepositoryViolationCleaner(
+      final MigrationTrackerDAO migrationTrackerDAO,
+      final OperationalDataStore operationalDataStore,
+      final ClusterLockManager clusterLockManager)
+  {
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.operationalDataStore = operationalDataStore;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @Override
@@ -85,7 +94,7 @@ public class InactiveRepositoryViolationCleaner
     public void run() {
       log.info("Starting deletion of inactive repository policy violations.");
 
-      try (ClusterLock clusterLock = ClusterLock.createForInactiveRepositoryViolationCleaner()) {
+      try (ClusterLock clusterLock = clusterLockManager.createForInactiveRepositoryViolationCleaner()) {
         if (clusterLock.tryLock()) {
           log.info("Starting deletion of inactive repository policy violations.");
           doDeleteInactiveRepositoryPolicyViolations();
@@ -131,9 +140,9 @@ public class InactiveRepositoryViolationCleaner
     }
 
     private List<String> getInactivePolicyViolationIds() throws SQLException {
-      String query = "SELECT repository_policy_violation_id FROM " + OperationalDataStore.ID
+      String query = "SELECT repository_policy_violation_id FROM " + operationalDataStore.ID
           + ".repository_policy_violation" + " WHERE active = false FETCH FIRST " + BATCH_SIZE + " ROWS ONLY";
-      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+      try (Connection connection = operationalDataStore.getDataSource().getConnection();
           PreparedStatement preparedStatement = connection.prepareStatement(query);
           ResultSet result = preparedStatement.executeQuery()) {
         List<String> inactivePolicyViolationIds = new ArrayList<>();
@@ -147,9 +156,9 @@ public class InactiveRepositoryViolationCleaner
     private int deleteInactivePolicyViolations(List<String> inactivePolicyViolationIds) throws SQLException {
       String in = inactivePolicyViolationIds.stream().map(violationId -> "'" + violationId + "'")
           .collect(Collectors.joining(","));
-      String query = "DELETE FROM " + OperationalDataStore.ID
+      String query = "DELETE FROM " + operationalDataStore.ID
           + ".repository_policy_violation WHERE repository_policy_violation_id IN (" + in + ")";
-      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+      try (Connection connection = operationalDataStore.getDataSource().getConnection();
           Statement statement = connection.createStatement()) {
         connection.setAutoCommit(true);
         return statement.executeUpdate(query);

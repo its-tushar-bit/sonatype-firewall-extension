@@ -43,13 +43,13 @@ public class InnerSourceRepositoryConfigurationModalTest
 
   public static final String NXRM_VERSION_HEADER_MOCK_VALUE = "Nexus/3.37.3-02 (PRO)";
 
-  private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
+  private RepositoryConnectionDAO repositoryConnectionDAO;
 
   private PasswordHandler passwordHandler;
 
   private Organization org;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -59,7 +59,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
   @Before
   public void before() {
-    passwordHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+    repositoryConnectionDAO = lookup(RepositoryConnectionDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    passwordHandler = lookup(PasswordHandler.class);
 
     org = tempEntity.newOrganization();
     org.setRepositoryConnectionEnabled(true);

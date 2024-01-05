@@ -21,8 +21,10 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 
 public class ComponentInfoResourceTestUtils
 {
-  public static ComponentDetails newComponentDetails(ComponentIdentifier componentIdentifier) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  public static ComponentDetails newComponentDetails(
+      ComponentIdentifier componentIdentifier,
+      MultiLicenseDAO multiLicenseDAO)
+  {
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
     componentDetails.setHash("somehash");
     componentDetails.setMatchState(MatchState.EXACT.getId());

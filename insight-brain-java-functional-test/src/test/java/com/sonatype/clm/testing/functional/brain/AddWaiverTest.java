@@ -65,7 +65,7 @@ public class AddWaiverTest
 
   @Before
   public void before() {
-    policyWaiverDAO = new PolicyWaiverDAO();
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 

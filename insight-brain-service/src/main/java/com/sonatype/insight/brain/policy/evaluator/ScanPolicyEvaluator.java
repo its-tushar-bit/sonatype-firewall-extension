@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -37,14 +36,16 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
@@ -124,13 +125,19 @@ public class ScanPolicyEvaluator
 
   private final ReportService reportService;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO;
 
-  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private final PolicyViolationDAO policyViolationDAO;
 
-  private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+  private final AggregateFileDAO aggregateFileDAO;
 
-  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+
+  private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
@@ -152,10 +159,23 @@ public class ScanPolicyEvaluator
 
   private final Configuration configuration;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
+  private final ClusterLockManager clusterLockManager;
+
+  private final PolicyAlertUtil policyAlertUtil;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
       final ReportService reportService,
+      final PolicyDAO policyDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final AggregateFileDAO aggregateFileDAO,
+      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
       final LegacyViolationService legacyViolationService,
@@ -165,10 +185,20 @@ public class ScanPolicyEvaluator
       final ProductLicense productLicense,
       final SourceControlUtils sourceControlUtils,
       final CurrentUser currentUser,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ComponentLoaderFactory componentLoaderFactory,
+      final ClusterLockManager clusterLockManager,
+      final PolicyAlertUtil policyAlertUtil)
   {
     this.work = insightWork;
     this.reportService = reportService;
+    this.policyDAO = policyDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.aggregateFileDAO = aggregateFileDAO;
+    this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
+    this.applicationComponentDAO = applicationComponentDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.legacyViolationService = legacyViolationService;
@@ -179,6 +209,9 @@ public class ScanPolicyEvaluator
     this.sourceControlUtils = sourceControlUtils;
     this.currentUser = currentUser;
     this.configuration = configuration;
+    this.componentLoaderFactory = componentLoaderFactory;
+    this.clusterLockManager = clusterLockManager;
+    this.policyAlertUtil = policyAlertUtil;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -244,7 +277,7 @@ public class ScanPolicyEvaluator
     AuditData.get().setStageId(stage.getStageTypeId());
     final File reportFile;
     final List<Component> components;
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyEvaluation(application, scanId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
       reportFile = reportService.fetchReport(application, scanId);
 
@@ -259,7 +292,7 @@ public class ScanPolicyEvaluator
       }
 
       // Load data about components
-      components = new ComponentDAO(application).getAll(licenseReportEntry.buf,
+      components = componentLoaderFactory.createComponentLoader(application).getAll(licenseReportEntry.buf,
           securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
 
@@ -268,11 +301,11 @@ public class ScanPolicyEvaluator
 
     // Evaluate the policies
     String appId = application.getId();
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(appId);
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
     PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, sourceControlUtils.isScmEnabled(appId));
 
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
@@ -301,7 +334,7 @@ public class ScanPolicyEvaluator
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
     }
-    return PolicyAlertUtil.createPolicyAlerts(components, violations, stageTypeId, applicationId, forMonitoring,
+    return policyAlertUtil.createPolicyAlerts(components, violations, stageTypeId, applicationId, forMonitoring,
         enableActions);
   }
 
@@ -369,8 +402,7 @@ public class ScanPolicyEvaluator
   {
     String appId = app.getId();
     long start = System.currentTimeMillis();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
          TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
@@ -646,7 +678,7 @@ public class ScanPolicyEvaluator
 
   private boolean isFirstEvaluation(TransactionContext tx, Application app) {
     // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
-    return new PolicyEvaluationDAO().getCountByApplicationId(tx, app.getId()) == 1;
+    return policyEvaluationDAO.getCountByApplicationId(tx, app.getId()) == 1;
   }
 
   private String getFilename(ComponentFact componentFact) {
@@ -699,8 +731,6 @@ public class ScanPolicyEvaluator
       Date time,
       List<Component> components)
   {
-    ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
-
     // Delete all app->component associations for the specified stage
     List<ApplicationComponent> oldApplicationComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(tx,
         appId, stage.getStageTypeId());

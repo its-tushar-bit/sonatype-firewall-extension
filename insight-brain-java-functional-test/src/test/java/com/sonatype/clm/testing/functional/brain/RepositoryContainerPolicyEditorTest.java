@@ -65,9 +65,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryContainerPolicyEditorTest
     extends AbstractFunctionalTest
 {
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
   private final RepositoryContainer repositoryContainer = RepositoryContainer.SINGLETON;
+
+  private RoleDAO roleDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private PolicyDAO policyDAO;
 
   @BeforeClass
   public static void startup() {
@@ -77,6 +81,10 @@ public class RepositoryContainerPolicyEditorTest
 
   @Before
   public void init() {
+    roleDAO = lookup(RoleDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+
     refreshOrOpen(RepositoriesSummaryPage.url());
   }
 
@@ -110,7 +118,7 @@ public class RepositoryContainerPolicyEditorTest
     eyesWatcher.eyesCheck("Repository Managers New Policy");
 
     PolicyEditorPage.savePolicy();
-    Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
+    Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
     try {
       PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
       assertThat(newPolicy).isNotNull();
@@ -171,7 +179,7 @@ public class RepositoryContainerPolicyEditorTest
     ageCondition.value().age().shouldBe(empty).val("3");
     PolicyEditorPage.savePolicy();
 
-    Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
+    Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
     try {
       PolicyEditorPage.alert().shouldHave(text("There were validation errors"));
     }
@@ -242,7 +250,7 @@ public class RepositoryContainerPolicyEditorTest
     PolicyEditorPage.savePolicy();
 
     Policy updatedPolicy =
-        new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "Updated Policy");
+        policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "Updated Policy");
     assertThat(updatedPolicy).isNotNull();
     assertThat(updatedPolicy.getActions().size()).isEqualTo(1);
     assertThat(updatedPolicy.getActions().get(Stage.ID_PROXY)).isEqualTo("fail");
@@ -299,7 +307,7 @@ public class RepositoryContainerPolicyEditorTest
     NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
 
     PolicyEditorPage.savePolicy();
-    Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
+    Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
 
     try {
       PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
@@ -353,13 +361,14 @@ public class RepositoryContainerPolicyEditorTest
     addNotification.role().listItems().findBy(text("Policy Administrator")).shouldNot(exist);
 
     PolicyEditorPage.savePolicy();
-    Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
+    Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
     try {
       PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
       assertThat(newPolicy).isNotNull();
       assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
 
-      RoleNotification roleNotification = new RoleNotification(new RoleDAO().getByName("Policy Administrator").getId());
+      String roleName = "Policy Administrator";
+      RoleNotification roleNotification = new RoleNotification(roleDAO.getByName(roleName).getId(), roleName);
       testRoleNotification(newPolicy.getNotifications().getRoleNotifications().get(0), roleNotification.getRoleId());
     }
     finally {
@@ -414,7 +423,7 @@ public class RepositoryContainerPolicyEditorTest
 
   @Test
   public void testInheritedPolicies_DisableUpdates() {
-    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+    Owner parentOwner = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
     Policy policy = tempEntity.newPolicy(parentOwner.getId(), "Policy 1 " + parentOwner.getName(), 10,
         Action.ID_FAIL, Stage.ID_BUILD, null);
     policy.setNotifications(new Notifications(new UserNotification("email1@domain", Stage.ID_PROXY)));

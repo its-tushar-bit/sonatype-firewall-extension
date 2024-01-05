@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ThirdPartyCoordinateLicenseDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyCoordinateLicense>
 {
+  @Inject
+  public ThirdPartyCoordinateLicenseDAO(final ThirdPartyScansDataStore thirdPartyScansDataStore) {
+    super(thirdPartyScansDataStore);
+  }
+
   @Override
   public ThirdPartyCoordinateLicense getById(String id) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //

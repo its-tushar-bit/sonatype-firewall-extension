@@ -8,9 +8,12 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
@@ -19,13 +22,14 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicense;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,21 +38,28 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  private static LicenseDataUpdater savedLicenseDataUpdater;
+  @Inject
+  private LicenseDAO licenseDAO;
 
-  @BeforeClass
-  public static void beforeClass() {
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private LicenseDataUpdater savedLicenseDataUpdater;
+
+  @Before
+  public void before() {
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
-    LicenseDataUpdater.setUpdater(new LicenseDataUpdater()
-    {
-      @Override
-      public void doUpdate() {
-      }
-    });
+    LicenseDataUpdater.setUpdater(
+        new LicenseDataUpdater(licenseDAO, multiLicenseDAO)
+        {
+          @Override
+          public void doUpdate() {
+          }
+        });
   }
 
-  @AfterClass
-  public static void afterClass() {
+  @After
+  public void after() {
     LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
   }
 
@@ -334,7 +345,8 @@ public class LicenseConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLicenseId() {
     Condition condition = new Condition(LicenseConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> new LicenseConditionType().validateCondition(null, condition, null /* applicationId */))
+    assertThatThrownBy(
+        () -> ConditionTypes.LicenseConditionType.validateCondition(null, condition, null /* applicationId */))
         .isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Invalid license id: abc");
   }

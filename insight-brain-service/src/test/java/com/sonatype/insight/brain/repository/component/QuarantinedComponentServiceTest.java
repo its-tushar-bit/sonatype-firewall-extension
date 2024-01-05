@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -74,6 +73,9 @@ import static org.mockito.Mockito.when;
 public class QuarantinedComponentServiceTest
     extends AbstractComponentTest
 {
+  @Inject
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
   @Inject
   private QuarantinedComponentService quarantinedComponentService;
 
@@ -156,7 +158,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, date, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -189,7 +191,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, null, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -222,7 +224,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, date, date);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -253,7 +255,7 @@ public class QuarantinedComponentServiceTest
         setupTestData(null /* componentIdentifier */, date, date, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
+        new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =

@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
@@ -113,7 +112,23 @@ public class PolicyEvaluateServiceTest
   @Inject
   private UserDirectory userDirectory;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private ApplicationComponentDAO appComponentDAO;
+
+  @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   private Application app;
 
@@ -148,7 +163,7 @@ public class PolicyEvaluateServiceTest
     mailConfiguration.setHostname("127.0.0.1");
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
   }
 
   private void assertPolicyEvaluation(
@@ -168,7 +183,7 @@ public class PolicyEvaluateServiceTest
       boolean isReevaluation,
       boolean isForObsoleteScan)
   {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO
         .getLastByApplicationIdAndScanId(applicationId, scanId);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
     assertThat(policyEvaluation.isReevaluation()).isEqualTo(isReevaluation);
@@ -206,7 +221,6 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     // evaluate policy
@@ -308,7 +322,6 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(0);
 
     // One legacy violation
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation policyViolation = policyViolationDAO
         .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
     policyViolation.setLegacyViolationTime(new Date());
@@ -352,7 +365,7 @@ public class PolicyEvaluateServiceTest
     }
 
     app.setContactInternalName(User.ADMIN_USERNAME);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
 
     PolicyAlertEmailer emailer = lookup(PolicyAlertEmailer.class);
 
@@ -474,7 +487,6 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -557,7 +569,6 @@ public class PolicyEvaluateServiceTest
 
     final String scanId = "scanId1";
 
-    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -804,7 +815,6 @@ public class PolicyEvaluateServiceTest
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
     assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, false /* isReevaluation */);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
@@ -888,7 +898,6 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     File scanFile = ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -912,7 +921,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 
     List<PolicyViolation> policyViolations =
-        new PolicyViolationDAO().getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
+        policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
     assertThat(policyViolations).hasSize(36);
     for (PolicyViolation policyViolation : policyViolations) {
       assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());

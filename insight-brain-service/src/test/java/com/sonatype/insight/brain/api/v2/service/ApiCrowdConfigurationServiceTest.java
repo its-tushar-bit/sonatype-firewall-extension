@@ -53,7 +53,7 @@ public class ApiCrowdConfigurationServiceTest
 
   @Override
   public void configure(Binder binder) {
-    spyDAO = spy(new CrowdConfigurationDAO());
+    spyDAO = spy(daoFactory.createCrowdConfigurationDAO());
     binder.bind(CrowdConfigurationDAO.class).toInstance(spyDAO);
     super.configure(binder);
   }

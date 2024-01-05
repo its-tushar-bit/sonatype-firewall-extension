@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -81,6 +82,9 @@ public class BitbucketCodeInsightsServiceTest
   private ApplicationDAO applicationDAO;
 
   @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
 
   @Inject
@@ -121,7 +125,7 @@ public class BitbucketCodeInsightsServiceTest
     setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =
-        new BitbucketCodeInsightsService(applicationDAO, baseUrl);
+        new BitbucketCodeInsightsService(applicationDAO, baseUrl, policyDAO, organizationDAO);
 
     createReportFile(application.getId(), FROM_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/from-report", tempDir), insightWork);

@@ -52,6 +52,8 @@ public class DashboardComponentsTest
 
   private PolicyEvaluation policyEvaluation;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.url());
@@ -66,6 +68,8 @@ public class DashboardComponentsTest
 
   @Before
   public void init() {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+
     app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName());
     policy = tempEntity.newPolicy(app.getParentOwnerId());
     policyEvaluation = tempEntity
@@ -479,6 +483,6 @@ public class DashboardComponentsTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+    dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 }

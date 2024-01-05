@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -54,6 +53,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ComponentRiskServiceTest
     extends AbstractComponentTest
 {
+  @Inject
+  private PolicyViolationDAO violationDAO;
+
   @Inject
   private ComponentRiskService componentRiskService;
 
@@ -112,7 +114,6 @@ public class ComponentRiskServiceTest
   }
 
   private void fixViolations(PolicyEvaluation evaluation) {
-    PolicyViolationDAO violationDAO = new PolicyViolationDAO();
     for (PolicyViolation fixedViolation : violationDAO
         .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
       fixedViolation.setFixTime(evaluation.getTime());
@@ -595,7 +596,7 @@ public class ComponentRiskServiceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyViolationDAO policyViolationDAO = violationDAO;
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null,
@@ -641,7 +642,7 @@ public class ComponentRiskServiceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyViolationDAO policyViolationDAO = violationDAO;
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,

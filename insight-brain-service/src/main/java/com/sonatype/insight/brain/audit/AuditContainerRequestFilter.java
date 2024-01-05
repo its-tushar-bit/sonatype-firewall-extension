@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.reflect.Method;
-
 import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -38,23 +38,46 @@ import com.google.common.annotations.VisibleForTesting;
 class AuditContainerRequestFilter
     implements ContainerRequestFilter
 {
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Context
   private ResourceInfo resInfo;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  private RepositoryDAO repositoryDAO = new RepositoryDAO();
-
-  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
-
   @VisibleForTesting
-  public AuditContainerRequestFilter() {}
-
-  @VisibleForTesting
-  public AuditContainerRequestFilter(ResourceInfo resInfo) {
+  public AuditContainerRequestFilter(
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO,
+      final ResourceInfo resInfo)
+  {
+    this(
+        applicationDAO,
+        organizationDAO,
+        repositoryDAO,
+        repositoryManagerDAO
+    );
     this.resInfo = resInfo;
+  }
+
+  @VisibleForTesting
+  @Inject
+  public AuditContainerRequestFilter(
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
+  {
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   @Override

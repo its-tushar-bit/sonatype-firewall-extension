@@ -8,12 +8,7 @@ package com.sonatype.insight.brain.model.policy.notifications;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
-import com.sonatype.insight.brain.model.security.Role;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.21
@@ -23,13 +18,16 @@ public class RoleNotification
 {
   private String roleId;
 
+  private String roleName;
+
   public RoleNotification() {
     // primarily supports deserialization
   }
 
-  public RoleNotification(String roleId, String... stageIds) {
+  public RoleNotification(String roleId, String roleName, String... stageIds) {
     super(stageIds);
     setRoleId(roleId);
+    setRoleName(roleName);
   }
 
   public String getRoleId() {
@@ -40,17 +38,12 @@ public class RoleNotification
     this.roleId = roleId;
   }
 
-  @Override
-  protected void validate(ValidationResult validationResult) {
-    if (StringUtils.isBlank(roleId)) {
-      validationResult.addError("Invalid notification: A valid role ID is required");
-    }
-    else {
-      Role role = new RoleDAO().getById(roleId);
-      if (role == null) {
-        validationResult.addError("Invalid notification: '" + roleId + "' is not a valid role");
-      }
-    }
+  public String getRoleName() {
+    return roleName;
+  }
+
+  public void setRoleName(String roleName) {
+    this.roleName = roleName;
   }
 
   @Override

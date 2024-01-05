@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -68,9 +67,12 @@ public class ApiConfigFeaturesService
 
   public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final TenantUtil tenantUtil;
+  @Inject
+  public static void injectDependencies(final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
+    ApiConfigFeaturesService.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+  }
 
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
       new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
@@ -259,7 +261,6 @@ public class ApiConfigFeaturesService
     }
 
     public boolean isEnabled() {
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
       SystemConfigurationProperty systemConfigurationProperty = systemConfigurationPropertyDAO.getByName(propertyName);
       return isEnabled(systemConfigurationProperty, enabledWhenAbsent);
     }
@@ -272,26 +273,22 @@ public class ApiConfigFeaturesService
     }
 
     public void setEnabled(boolean enabled) {
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
-
       if (isEnabled() == enabled) {
         return;
       }
       if (enabled) {
-        ApiConfigFeaturesService.enableFeature(systemConfigurationPropertyDAO, tenantUtil, this);
+        ApiConfigFeaturesService.enableFeature(tenantUtil, this);
       }
       else {
-        ApiConfigFeaturesService.disableFeature(systemConfigurationPropertyDAO, tenantUtil, this);
+        ApiConfigFeaturesService.disableFeature(tenantUtil, this);
       }
     }
   }
 
+  private final TenantUtil tenantUtil;
+
   @Inject
-  public ApiConfigFeaturesService(
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      TenantUtil tenantUtil)
-  {
-    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+  public ApiConfigFeaturesService(final TenantUtil tenantUtil) {
     this.tenantUtil = tenantUtil;
   }
 
@@ -327,12 +324,11 @@ public class ApiConfigFeaturesService
     String propertyName = getPropertyNameForFeature(feature);
     throwErrorWhenSingleTenantAndPropertyNotSupported(tenantUtil, propertyName);
 
-    enableFeature(systemConfigurationPropertyDAO, tenantUtil, getSystemConfigurationPropertyFeature(feature));
+    enableFeature(tenantUtil, getSystemConfigurationPropertyFeature(feature));
     log.debug("Enabled feature '{}'", feature);
   }
 
   private static void enableFeature(
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantUtil tenantUtil,
       SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
   {
@@ -364,12 +360,11 @@ public class ApiConfigFeaturesService
   public void disableFeatureNoAuthz(String feature) {
     throwErrorIfFeatureNoLongerSupported(feature);
 
-    disableFeature(systemConfigurationPropertyDAO, tenantUtil, getSystemConfigurationPropertyFeature(feature));
+    disableFeature(tenantUtil, getSystemConfigurationPropertyFeature(feature));
     log.debug("Disabled feature '{}'", feature);
   }
 
   private static void disableFeature(
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantUtil tenantUtil,
       SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
   {

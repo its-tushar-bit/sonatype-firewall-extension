@@ -16,7 +16,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -116,6 +115,8 @@ public class ComponentLegalService
 
   private final CurrentUser currentUser;
 
+  private final IdUtils idUtils;
+
   @Inject
   public ComponentLegalService(
       final CopyrightOverrideDAO copyrightOverrideDAO,
@@ -128,7 +129,8 @@ public class ComponentLegalService
       final ComponentObligationAttributionDAO componentObligationAttributionDAO,
       final OwnerDAO ownerDAO,
       final ProductLicense productLicense,
-      final CurrentUser currentUser)
+      final CurrentUser currentUser,
+      final IdUtils idUtils)
   {
     this.copyrightOverrideDAO = copyrightOverrideDAO;
     this.componentCopyrightDAO = componentCopyrightDAO;
@@ -141,6 +143,7 @@ public class ComponentLegalService
     this.ownerDAO = ownerDAO;
     this.productLicense = productLicense;
     this.currentUser = currentUser;
+    this.idUtils = idUtils;
   }
 
   /**
@@ -162,7 +165,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentCopyrightDTO(componentCopyrightDTO);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright = new ComponentCopyright(
         componentCopyrightDTO.getComponentIdentifier().toComponentIdentifier(),
         owner.getId(),
@@ -230,7 +233,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     componentIdentifier.validate();
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright =
         componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), componentIdentifier);
     if (componentCopyright == null) {
@@ -267,7 +270,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentLegalFileDTO(componentLegalFileDTO);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentLegalFile componentLegalFile = new ComponentLegalFile(
         componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(),
         owner.getId(),
@@ -322,7 +325,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     List<LegalFileOverride> legalFileOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), componentIdentifier, legalFileType)
         .stream().sorted(LegalReportBuilder::sortLegalFileOverrides).collect(Collectors.toList());
@@ -358,7 +361,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     componentObligationDTOs.forEach(this::validateComponentObligationDTO);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     List<ApiLicenseLegalObligationDTO> result = new ArrayList<>();
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       tx.begin();
@@ -413,7 +416,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     return componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         owner.getId(),
         componentIdentifier,
@@ -470,7 +473,7 @@ public class ComponentLegalService
     validateComponentObligationAttributionDTO(componentObligationAttributionDTO);
     ComponentIdentifier componentIdentifier =
         componentObligationAttributionDTO.getComponentIdentifier().toComponentIdentifier();
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     auditComponentObligationAttribution(owner, componentIdentifier,
         componentObligationAttributionDTO.getObligationName(), componentObligationAttributionDTO.getContent());
     ComponentObligationAttribution componentObligationAttribution = new ComponentObligationAttribution(
@@ -516,7 +519,7 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     return componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         owner.getId(),
         componentIdentifier,

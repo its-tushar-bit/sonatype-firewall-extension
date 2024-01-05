@@ -8,8 +8,12 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -18,9 +22,16 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.75
  */
+@Named
+@Singleton
 public class UserTokenDAO
     extends AbstractOperationalSqlDAO<UserToken>
 {
+  @Inject
+  public UserTokenDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void insert(TransactionContext tx, UserToken userToken) {
     if (userToken.getCreateTime() == null) {

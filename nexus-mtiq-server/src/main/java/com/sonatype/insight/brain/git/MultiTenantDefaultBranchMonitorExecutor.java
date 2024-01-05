@@ -13,12 +13,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -43,25 +42,25 @@ public class MultiTenantDefaultBranchMonitorExecutor
 
   private final TaskScheduler taskScheduler;
 
-  private final TenantProvider tenantProvider;
+  private final TenantService tenantService;
 
   @Inject
   public MultiTenantDefaultBranchMonitorExecutor(
       TaskScheduler taskScheduler,
       SourceControlDAO sourceControlDAO,
       SourceControlEventPublisher sourceControlEventPublisher,
-      TenantProvider tenantProvider)
+      TenantService tenantService)
   {
     super(sourceControlDAO, sourceControlEventPublisher);
     this.taskScheduler = taskScheduler;
-    this.tenantProvider = tenantProvider;
+    this.tenantService = tenantService;
   }
 
   @Override
   public void schedule(InsightJob job) {
-    List<String> allTenantsNames = tenantProvider.getAllTenantsNames();
+    List<String> allTenantsNames = tenantService.getAllTenantsNames();
 
-    String tenantSlug = tenantProvider.getTenantSlug();
+    String tenantSlug = tenantService.getTenantSlug();
     if (!allTenantsNames.contains(tenantSlug)) {
       log.error("{} is not a valid tenant", tenantSlug);
       return;
@@ -91,16 +90,5 @@ public class MultiTenantDefaultBranchMonitorExecutor
   public void performScan(InsightJob job) {
     updateDefaultBranchScans(INTERVAL_IN_MINUTES);
     schedule(job);
-  }
-
-  public static class TenantProvider
-  {
-    public List<String> getAllTenantsNames() {
-      return new TenantUtil().getAllTenantsNames();
-    }
-
-    public String getTenantSlug() {
-      return TenantThreadLocal.getTenant().tenantSlug;
-    }
   }
 }

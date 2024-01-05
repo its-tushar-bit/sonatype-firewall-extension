@@ -26,14 +26,20 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SuccessMetricsReportResourceAuditTest
     extends AbstractAuditTest
 {
-  private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
+  private SuccessMetricsReportDAO successMetricsReportDAO;
 
   private static final String METRICS_NAME = "metricsName";
+
+  @Before
+  public void setUp() {
+    successMetricsReportDAO = lookup(SuccessMetricsReportDAO.class);
+  }
 
   @After
   public void cleanup() {

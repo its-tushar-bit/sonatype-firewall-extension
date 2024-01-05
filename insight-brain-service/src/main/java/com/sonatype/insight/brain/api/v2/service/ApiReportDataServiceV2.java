@@ -14,7 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -35,8 +34,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -90,7 +90,9 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
-  private ThirdPartyComponentDAO thirdPartyComponentDAO;
+  private final ComponentLoaderFactory componentLoaderFactory;
+
+  private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
   @Inject
   public ApiReportDataServiceV2(
@@ -98,12 +100,14 @@ public class ApiReportDataServiceV2
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
+      ComponentLoaderFactory componentLoaderFactory,
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.componentLoaderFactory = componentLoaderFactory;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
@@ -269,7 +273,7 @@ public class ApiReportDataServiceV2
           component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
-          component.displayName = JsonUtils.getTypeToString(componentJson.path(ComponentDAO.DISPLAY_NAME_FIELD),
+          component.displayName = JsonUtils.getTypeToString(componentJson.path(ComponentLoader.DISPLAY_NAME_FIELD),
               ComponentDisplayName.class);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           if (isDependencyDataInRestApiSupported()) {
@@ -279,9 +283,9 @@ public class ApiReportDataServiceV2
               component.dependencyData.directDependency = directDependency;
               component.dependencyData.innerSource = getBooleanValue(componentJson, "innerSource");
               component.dependencyData.parentComponentPurls =
-                  JsonUtils.getStringSetFromArray(componentJson.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD));
+                  JsonUtils.getStringSetFromArray(componentJson.path(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD));
               component.dependencyData.innerSourceData = JsonUtils
-                  .getObjectSetFromArray(componentJson.path(ComponentDAO.INNER_SOURCE_DATA_FIELD),
+                  .getObjectSetFromArray(componentJson.path(ComponentLoader.INNER_SOURCE_DATA_FIELD),
                       InnerSourceData.class);
             }
           }
@@ -404,8 +408,9 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components = new ComponentDAO(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
-        securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
+    List<Component> components =
+        componentLoaderFactory.createComponentLoader(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
+            securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
     Map<String, ThirdPartyReportComponentDTO> tpComponentsByHash = thirdPartyComponentDAO.getData(reportFile);
 

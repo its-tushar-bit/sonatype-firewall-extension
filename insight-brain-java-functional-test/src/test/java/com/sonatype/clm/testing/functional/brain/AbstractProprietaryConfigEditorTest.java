@@ -23,23 +23,22 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
+import com.codeborne.selenide.ElementsCollection;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.codeborne.selenide.ElementsCollection;
-
 import static com.codeborne.selenide.CollectionCondition.texts;
-
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.attribute;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.PACKAGE;
 import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.REGEX;
-import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_VALUE_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.BEGINNING_OR_ENDING_PERIOD_MESSAGE;
+import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_VALUE_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,12 +48,20 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private OwnerDAO ownerDAO;
 
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    proprietaryConfigDAO = lookup(ProprietaryConfigDAO.class);
+    ownerDAO = lookup(OwnerDAO.class);
   }
 
   protected void init(Owner currentOwner) {
@@ -173,7 +180,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   private void assertInheritanceSection() {
     List<Owner> parentOwners = new ArrayList<>();
-    for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
+    for (Owner owner : ownerDAO.walkHierarchy(currentOwner.getParentOwnerId())) {
       parentOwners.add(owner);
     }
 

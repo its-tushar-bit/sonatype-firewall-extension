@@ -21,18 +21,24 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 @Singleton
 public class SourceControlService
 {
-  private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO =
-      new SourceControlPullRequestCommentDAO();
+  private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
 
-  private final SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
+  private final SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private final SourceControlDAO sourceControlDAO;
 
   private final SourceControlUtils sourceControlUtils;
 
   @Inject
-  public SourceControlService(final SourceControlUtils sourceControlUtils) {
+  public SourceControlService(
+      final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO,
+      final SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO,
+      final SourceControlDAO sourceControlDAO,
+      final SourceControlUtils sourceControlUtils)
+  {
+    this.sourceControlPullRequestCommentDAO = sourceControlPullRequestCommentDAO;
+    this.commitHistoryDAO = commitHistoryDAO;
+    this.sourceControlDAO = sourceControlDAO;
     this.sourceControlUtils = sourceControlUtils;
   }
 

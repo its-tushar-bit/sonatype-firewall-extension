@@ -55,6 +55,8 @@ public class PullRequestPolicyEvaluationResolver
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public PullRequestPolicyEvaluationResolver(
       GitCommitHistoryService gitCommitHistoryService,
@@ -64,7 +66,8 @@ public class PullRequestPolicyEvaluationResolver
       PullRequestEligibilityValidator pullRequestEligibilityValidator,
       PullRequestInfoClient pullRequestInfoClient,
       SourceControlScanService sourceControlScanService,
-      SourceControlUtils sourceControlUtils)
+      SourceControlUtils sourceControlUtils,
+      ApplicationDAO applicationDAO)
   {
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -74,6 +77,7 @@ public class PullRequestPolicyEvaluationResolver
     this.pullRequestInfoClient = pullRequestInfoClient;
     this.sourceControlScanService = sourceControlScanService;
     this.sourceControlUtils = sourceControlUtils;
+    this.applicationDAO = applicationDAO;
   }
 
   /**
@@ -93,7 +97,7 @@ public class PullRequestPolicyEvaluationResolver
   {
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationsResults = new ArrayList<>();
 
-    Application application = new ApplicationDAO().getByIdNotNull(applicationId);
+    Application application = applicationDAO.getByIdNotNull(applicationId);
 
     PolicyEvaluation possibleFeatureBranchPolicyEvaluation = policyEvaluationDAO.getById(policyEvaluationId);
     // we don't process pull requests for internally triggered policy evaluations - we let polling take care of that
@@ -170,7 +174,7 @@ public class PullRequestPolicyEvaluationResolver
   {
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = null;
 
-    Application application = new ApplicationDAO().getByIdNotNull(applicationId);
+    Application application = applicationDAO.getByIdNotNull(applicationId);
 
     try {
       PolicyEvaluation targetPolicyEvaluation = null;

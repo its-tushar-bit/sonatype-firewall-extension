@@ -605,7 +605,7 @@ public class PolicyViolationMigrator
   }
 
   @Override
-  public void migrate(DataSource dataSource) throws Exception {
+  public void migrate(final DataSource dataSource, final String databaseSchema) throws Exception {
     long start = System.currentTimeMillis();
     Collection<Application> applications = getApplications(dataSource);
     log.info("Migrating policy violation data for {} applications", applications.size());

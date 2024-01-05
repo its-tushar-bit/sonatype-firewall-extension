@@ -60,6 +60,7 @@ import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -69,6 +70,13 @@ import static org.awaitility.Awaitility.await;
 public class IdeResourceTest
     extends AbstractResourceTest
 {
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  @Before
+  public void setUp() {
+    hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(IdeResource.RESOURCE_PATH);
@@ -616,7 +624,7 @@ public class IdeResourceTest
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash,
         ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     hashComponentIdentifier.setCreateTime(createTime);
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     HttpRequest request = simpleScanRequest(applicationPublicId, hash).query("proprietary", false);
     MatchedComponent hdsResponse = new MatchedComponent();
@@ -1000,7 +1008,7 @@ public class IdeResourceTest
 
   private Map<ByteArrayDataSource, Integer> getHdsTelemetryDataCollection() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
+    startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) ->
             responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"),
                 response.getStatus()))

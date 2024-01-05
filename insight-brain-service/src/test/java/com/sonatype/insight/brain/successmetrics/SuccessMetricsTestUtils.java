@@ -27,6 +27,12 @@ public class SuccessMetricsTestUtils
   // one hour in milliseconds
   public static final long ONE_HOUR = MILLISECONDS.convert(1, HOURS);
 
+  private final PolicyViolationDAO policyViolationDAO;
+
+  public SuccessMetricsTestUtils(final PolicyViolationDAO policyViolationDAO) {
+    this.policyViolationDAO = policyViolationDAO;
+  }
+
   public static class FakeDateRule
       extends ExternalResource
   {
@@ -62,7 +68,7 @@ public class SuccessMetricsTestUtils
    * Create a PolicyViolation that is resolved one hour after its creation.  It is created on the second day of
    * the previous month
    */
-  public static void createPolicyViolation(Application application, LocalDate today, TemporaryEntity tempEntity) {
+  public void createPolicyViolation(Application application, LocalDate today, TemporaryEntity tempEntity) {
     Date eval1Date = today.withDayOfMonth(2).minusMonths(1).toDateTimeAtStartOfDay().toDate();
     Date eval2Date = new Date(eval1Date.getTime() + ONE_HOUR);
 
@@ -74,6 +80,6 @@ public class SuccessMetricsTestUtils
     // violation appears in eval1 but is resolved in eval2
     PolicyViolation violation = tempEntity.newPolicyViolation(eval1, policy);
     violation.setFixTime(eval2Date);
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
   }
 }

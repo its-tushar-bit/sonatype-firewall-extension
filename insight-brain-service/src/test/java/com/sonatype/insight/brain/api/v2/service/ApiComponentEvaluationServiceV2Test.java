@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -53,10 +53,13 @@ public class ApiComponentEvaluationServiceV2Test
   @Inject
   private ApiComponentEvaluationServiceV2 apiComponentEvaluationService;
 
+  @Inject
+  private PolicyDAO policyDAO;
+
   @Mock
   private HdsClient client;
 
-  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper;
 
   private Organization org;
 
@@ -70,6 +73,8 @@ public class ApiComponentEvaluationServiceV2Test
 
   @Before
   public void setupApplication() {
+    componentEvaluationV2Helper = new ComponentEvaluationV2Helper(policyDAO);
+
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
 

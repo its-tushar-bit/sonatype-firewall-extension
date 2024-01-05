@@ -10,8 +10,8 @@ import java.net.URL;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
@@ -38,12 +38,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.empty;
 
 public class ApplicationReportRawDataTest
     extends AbstractFunctionalTest
@@ -55,6 +55,8 @@ public class ApplicationReportRawDataTest
   private final ApplicationReportPage applicationReportPage = new ApplicationReportPage();
 
   private final ApplicationReportRawDataPage rawDataPage = new ApplicationReportRawDataPage();
+
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   private Application app;
 
@@ -68,9 +70,11 @@ public class ApplicationReportRawDataTest
 
   @Before
   public void starts() throws IOException {
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = new PolicyImportExport();
+    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
 
     Organization org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);
@@ -84,7 +88,7 @@ public class ApplicationReportRawDataTest
 
   @Test
   public void testHeader() {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")

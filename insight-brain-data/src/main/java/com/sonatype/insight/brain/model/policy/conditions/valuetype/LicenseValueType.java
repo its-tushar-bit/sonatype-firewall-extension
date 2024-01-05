@@ -16,8 +16,10 @@ public class LicenseValueType
 {
   public static final String ID = "LicenseValueType";
 
-  public static License getLicenseById(String licenseId) {
-    return new LicenseDAO().getById(licenseId);
+  private final LicenseDAO licenseDAO;
+
+  public LicenseValueType(final LicenseDAO licenseDAO) {
+    this.licenseDAO = licenseDAO;
   }
 
   @Override
@@ -37,6 +39,6 @@ public class LicenseValueType
 
   @Override
   public List<License> getAvailableValues() {
-    return new LicenseDAO().getAll();
+    return licenseDAO.getAll();
   }
 }

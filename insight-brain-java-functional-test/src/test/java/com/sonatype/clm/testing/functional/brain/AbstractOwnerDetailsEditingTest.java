@@ -31,11 +31,11 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
@@ -46,7 +46,11 @@ import static com.codeborne.selenide.Selenide.back;
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
 {
-  private static final List<Role> ROLES = new RoleDAO().getApplicationRoles();
+  private List<Role> applicationRoles;
+
+  private RoleDAO roleDAO;
+
+  private MembershipMappingDAO membershipMappingDAO;
 
   private Owner currentOwner;
 
@@ -62,6 +66,13 @@ public abstract class AbstractOwnerDetailsEditingTest
   public static void boot() {
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    roleDAO = lookup(RoleDAO.class);
+    membershipMappingDAO = lookup(MembershipMappingDAO.class);
+    applicationRoles = roleDAO.getApplicationRoles();
   }
 
   public void init(Owner currentOwner) {
@@ -80,7 +91,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       category = tempEntity.newTag(currentOwner.getId());
     }
 
-    tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(0).getId(), "admin");
+    tempEntity.newMembershipMapping(currentOwner.getId(), applicationRoles.get(0).getId(), "admin");
 
     refreshOrOpen(OwnerDetailsEditingPage.url(currentOwner));
   }
@@ -114,9 +125,9 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @After
   public void cleanup() {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO
-        .delete(membershipMappingDAO.getByContextIdAndRoleId(currentOwner.getId(), ROLES.get(0).getId()).get(0));
+        .delete(
+            membershipMappingDAO.getByContextIdAndRoleId(currentOwner.getId(), applicationRoles.get(0).getId()).get(0));
   }
 
   private void testRouting_ApplicationCategories(OwnerDetailSidebarGroup detailGroup) {
@@ -291,9 +302,9 @@ public abstract class AbstractOwnerDetailsEditingTest
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
 
     back();
-    detailGroup.item(1).shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
+    detailGroup.item(1).shouldBe(visible).shouldHave(text(applicationRoles.get(0).getName())).click();
     detailGroup.item(1).shouldBe(CLM.SELECTED);
-    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, ROLES.get(0).getId()));
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, applicationRoles.get(0).getId()));
 
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
@@ -304,8 +315,8 @@ public abstract class AbstractOwnerDetailsEditingTest
       breadcrumb.current().shouldHave(text("Application Access"));
     }
 
-    for (int i = 1; i < ROLES.size(); i++) {
-      tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");
+    for (int i = 1; i < applicationRoles.size(); i++) {
+      tempEntity.newMembershipMapping(currentOwner.getId(), applicationRoles.get(i).getId(), "admin");
     }
     refresh();
     detailGroup.item(0).shouldBe(visible).shouldBe(CLM.DISABLED);

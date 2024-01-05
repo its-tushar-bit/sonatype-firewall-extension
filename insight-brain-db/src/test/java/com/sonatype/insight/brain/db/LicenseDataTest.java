@@ -16,9 +16,10 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseDataTest
+    extends AbstractDatabaseTest
 {
   private void assertEmptyQuery(String sql) throws Exception {
-    try (Connection connection = DatamartProvider.getDataSource().getConnection()) {
+    try (Connection connection = databaseRule.getDataMartDataStore().getDataSource().getConnection()) {
       try (Statement statement = connection.createStatement()) {
         try (ResultSet results = statement.executeQuery(sql)) {
           Collection<String> ids = new TreeSet<>();
@@ -33,25 +34,26 @@ public class LicenseDataTest
 
   @Test
   public void testEveryMultiLicenseReferencesAtLeastOneLicense() throws Exception {
-    assertEmptyQuery("SELECT multi_license_id FROM multi_license"
-        + " WHERE multi_license_id NOT IN (SELECT multi_license_id FROM multi_license_license)");
+    assertEmptyQuery("SELECT multi_license_id FROM insight_brain_dm.multi_license WHERE multi_license_id NOT IN " +
+        "(SELECT multi_license_id FROM insight_brain_dm.multi_license_license)");
   }
 
   @Test
   public void testEveryLicenseIsReferencedByAtLeastOneMultiLicense() throws Exception {
-    assertEmptyQuery(
-        "SELECT license_id FROM license WHERE license_id NOT IN (SELECT license_id FROM multi_license_license)");
+    assertEmptyQuery("SELECT license_id FROM insight_brain_dm.license WHERE license_id NOT IN " +
+        "(SELECT license_id FROM insight_brain_dm.multi_license_license)");
   }
 
   @Test
   public void testEveryLicenseCorrespondsToOneMultiLicense() throws Exception {
-    assertEmptyQuery(
-        "SELECT license_id FROM license WHERE license_id NOT IN (SELECT multi_license_id FROM multi_license)");
+    assertEmptyQuery("SELECT license_id FROM insight_brain_dm.license WHERE license_id NOT IN " +
+        "(SELECT multi_license_id FROM insight_brain_dm.multi_license)");
   }
 
   @Test
   public void testLicenseAndCorrespondingMultiLicenseHaveSameNames() throws Exception {
-    assertEmptyQuery("SELECT l.license_id FROM license l, multi_license ml WHERE l.license_id=ml.multi_license_id"
-        + " AND (l.shortDisplayName!=ml.shortDisplayName OR l.longDisplayName!=ml.longDisplayName)");
+    assertEmptyQuery("SELECT l.license_id FROM insight_brain_dm.license l, insight_brain_dm.multi_license ml " +
+        "WHERE l.license_id=ml.multi_license_id " +
+        "AND (l.shortDisplayName!=ml.shortDisplayName OR l.longDisplayName!=ml.longDisplayName)");
   }
 }

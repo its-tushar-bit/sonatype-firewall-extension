@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.policy.PolicyMonitoringResource.ApplicablePoli
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.PolicyMonitoringByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyMonitoringResourceTest
     extends AbstractResourceTest
 {
+  private PolicyMonitoringDAO policyMonitoringDAO;
+
+  private OwnerDAO ownerDAO;
+
+  @Before
+  public void setUp() {
+    ownerDAO = lookup(OwnerDAO.class);
+    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
+  }
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyMonitoringResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
@@ -104,7 +115,7 @@ public class PolicyMonitoringResourceTest
   @Test
   public void testGetApplicable() throws Exception {
     Organization organization = tempEntity.newOrganization("testGetApplicablePolicyMonitoringOrgId");
-    Owner organizationParent = new OwnerDAO().getParentOwner(organization);
+    Owner organizationParent = ownerDAO.getParentOwner(organization);
     Application application = tempEntity.newApplication("testGetApplicablePolicyMonitoringAppId",
         "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
@@ -235,7 +246,7 @@ public class PolicyMonitoringResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage id=proxy");
-    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+    assertThat(policyMonitoringDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -248,7 +259,7 @@ public class PolicyMonitoringResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage id=release");
-    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+    assertThat(policyMonitoringDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -261,7 +272,7 @@ public class PolicyMonitoringResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage id=proxy");
-    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+    assertThat(policyMonitoringDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -273,10 +284,10 @@ public class PolicyMonitoringResourceTest
           restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
 
       assertResponseStatus(200, response);
-      assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
+      assertThat(policyMonitoringDAO.getAll()).hasSize(1);
     }
     finally {
-      new PolicyMonitoringDAO().delete(response.getBody(PolicyMonitoring.class));
+      policyMonitoringDAO.delete(response.getBody(PolicyMonitoring.class));
     }
   }
 
@@ -289,10 +300,10 @@ public class PolicyMonitoringResourceTest
           restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
 
       assertResponseStatus(200, response);
-      assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
+      assertThat(policyMonitoringDAO.getAll()).hasSize(1);
     }
     finally {
-      new PolicyMonitoringDAO().delete(response.getBody(PolicyMonitoring.class));
+      policyMonitoringDAO.delete(response.getBody(PolicyMonitoring.class));
     }
   }
 
@@ -306,7 +317,7 @@ public class PolicyMonitoringResourceTest
         restRequest(OwnerType.REPOSITORY, repository.getId()).body(policyMonitoring).put();
 
     assertResponseStatus(200, response);
-    assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
+    assertThat(policyMonitoringDAO.getAll()).hasSize(1);
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {

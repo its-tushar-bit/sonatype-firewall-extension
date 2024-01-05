@@ -26,6 +26,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -47,8 +50,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
@@ -92,31 +94,34 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVec
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ApplicationDAOTest extends NameableDAOTest<Application>
+public class ApplicationDAOTest
+    extends NameableDAOTest<Application>
 {
   /**
    * Prohibited application public ID whitespace characters.
    */
   public static final char[] PUBLIC_ID_WHITESPACE_CHARS = {'\t', '\n', '\u000B', '\f', '\r'};
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    applicationDAO = daoFactory.createApplicationDAO();
+  }
 
   @Override
   protected Application createNameable(String a) {
@@ -553,7 +558,6 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     String appPublicId = "testPublicIdIsCaseInsensitive";
 
     Application app = new Application(appPublicId, "test", organization.getId());
-    ApplicationDAO applicationDAO = new ApplicationDAO();
     applicationDAO.insert(app);
     String applicationId = app.getId();
 
@@ -597,151 +601,6 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
   }
 
   @Test
-  public void testDelete_CascadesToLabels() {
-    LabelDAO labelDAO = new LabelDAO();
-    Label label = new Label(application.getId(), "testDelete_CascadesToLabels", Color.dark_blue);
-    labelDAO.insert(label);
-
-    applicationDAO.delete(application);
-    assertThat(labelDAO.getByOwnerId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToProprietaryConfig() {
-    tempEntity.newProprietaryConfig(application.getId());
-
-    applicationDAO.delete(application);
-    assertThat(new ProprietaryConfigDAO().getByOwnerId(application.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicyWaivers() {
-    Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
-        "My comment");
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    policyWaiverDAO.insert(policyWaiver);
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
-    assertThat(policyWaivers).hasSize(1);
-
-    applicationDAO.delete(application);
-    policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
-    assertThat(policyWaivers).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicyEvaluations() {
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "testDelete_CascadesToPolicyEvaluations");
-
-    applicationDAO.delete(application);
-    policyEvaluation = new PolicyEvaluationDAO().getById(policyEvaluation.getId());
-    assertThat(policyEvaluation).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicyViolations() {
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "testDelete_CascadesToPolicyEvaluations");
-    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application));
-
-    applicationDAO.delete(application);
-
-    assertThat(new PolicyViolationDAO().getByApplicationId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicies() {
-    tempEntity.newPolicy(application);
-    PolicyDAO policyDAO = new PolicyDAO();
-    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
-    assertThat(policies).hasSize(1);
-
-    applicationDAO.delete(application);
-    policies = policyDAO.getByOwnerId(application.getId());
-    assertThat(policies).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicyOverrides() {
-    Map<String, String> policyActionsOverrides = new HashMap<>();
-    policyActionsOverrides.put("build", "warn");
-    Policy policyWithOverrides = tempEntity.newPolicy(application.getOrganizationId());
-    policyWithOverrides.addPolicyActionsOverride(application.getId(), policyActionsOverrides);
-    policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
-    Notifications policyNotificationsOverride = new Notifications();
-    policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
-    policyWithOverrides.addPolicyNotificationsOverride(application.getId(), policyNotificationsOverride);
-    policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
-    new PolicyDAO().update(policyWithOverrides);
-
-    applicationDAO.delete(application);
-    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
-    assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
-    assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
-  }
-
-  @Test
-  public void testDelete_CascadesToLicenseOverrides() {
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"),
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    licenseOverrideDAO.insert(licenseOverride);
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
-    assertThat(licenseOverrides).hasSize(1);
-
-    applicationDAO.delete(application);
-    licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
-    assertThat(licenseOverrides).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
-    SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        application.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
-
-    applicationDAO.delete(application);
-
-    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToMembershipMappings() {
-    String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    membershipMappingDAO.setMembershipMappingsForContextAndRole(application.getId(), roleId,
-        Collections.singletonList(new MembershipMapping("admin", MemberType.USER)));
-
-    applicationDAO.delete(application);
-
-    assertThat(membershipMappingDAO.getByContextId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToApplicationTags() {
-    Tag tag = tempEntity.newTag(organization.getId());
-
-    ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
-    ApplicationTag appTag = new ApplicationTag(application.getId(), tag.getId());
-    appTagDAO.insert(appTag);
-
-    applicationDAO.delete(application);
-
-    assertThat(appTagDAO.getByApplicationId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadesToApplicationComponents() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
-        BuildStageType.ID, "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-
-    applicationDAO.delete(application);
-
-    assertThat(new ApplicationComponentDAO().getById(applicationComponent.getId())).isNull();
-  }
-
-  @Test
   @Override
   public void testInsert_ValidateNameLength() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
@@ -754,177 +613,10 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
   }
 
   @Test
-  public void testDelete_CascadesToPolicyMonitoring() {
-    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
-    policyMonitoringDAO.insert(policyMonitoring);
-    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNotNull();
-
+  public void testDelete() {
     applicationDAO.delete(application);
 
-    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToPolicyViolationAggregations() {
-    PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
-    PolicyViolationAggregation aggregation = tempEntity.newPolicyViolationAggregation(application.getId(), new Date());
-
-    applicationDAO.delete(application);
-
-    assertThat(policyViolationAggregationDAO.getById(aggregation.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToSourceControl() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    SourceControl sourceControl = tempEntity.newSourceControl(
-        application.getId(), "http://valid.sonatype.com/repository/project",
-        "token", null);
-
-    applicationDAO.delete(application);
-
-    assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToSourceControlEvent() {
-    // given a source control event
-    PolicyEvaluation sourcePolicyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
-
-    SourceControlEvent sourceControlEvent =
-        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation);
-
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
-    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
-    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
-
-    // when we delete the application
-    applicationDAO.delete(application);
-
-    // then the source control event is deleted
-    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
-    assertThat(sourceControlEventByIAfterDelete).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToSourceControlDefaultBranchCommitHistory() {
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "testScanId");
-    SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory =
-        tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(),
-            policyEvaluation.getId());
-
-    applicationDAO.delete(application);
-
-    SourceControlDefaultBranchCommitHistoryDAO dao = new SourceControlDefaultBranchCommitHistoryDAO();
-    assertThat(dao.getById(defaultBranchCommitHistory.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToLocks_H2() {
-    Application otherApplication = tempEntity.newApplicationWithParent();
-    // Lock for policy violations
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(application)) {
-      clusterLock.lock();
-    }
-    assertThat(
-        ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyViolations(application)))
-        .isNotNull();
-
-    // Lock for policy violation aggregations
-    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(application.getId())) {
-      clusterLock.lock();
-    }
-    assertThat(ClusterLock.LOCKS_BY_ID
-        .get(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId()))).isNotNull();
-
-    // Locks for application reports
-    String scanId1 = "scanId1";
-    String scanId2 = "scanId2";
-    String scanId3 = "scanId3";
-    ClusterLock.createForPolicyEvaluation(application, scanId1);
-    ClusterLock.createForPolicyEvaluation(application, scanId2);
-    ClusterLock.createForPolicyEvaluation(otherApplication, scanId3);
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
-        .isNotNull();
-
-    // Lock for audit json file store
-    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(application.getId())) {
-      clusterLock.lock();
-    }
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForAuditJsonFileStore(application.getId())))
-        .isNotNull();
-
-    applicationDAO.delete(application);
-
-    assertThat(
-        ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyViolations(application)))
-        .isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID
-        .get(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId()))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
-        .isNotNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToLocks_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      LockDAO dao = new LockDAO();
-      ApplicationDAO applicationDAO = new ApplicationDAO();
-      Application application = tempEntity.newApplicationWithParent();
-      Application otherApplication = tempEntity.newApplicationWithParent();
-
-      // Lock for policy violations
-      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(application)) {
-        clusterLock.lock();
-      }
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolations(application))).isNotNull();
-
-      // Lock for policy violation aggregations
-      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(application.getId())) {
-        clusterLock.lock();
-      }
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId())))
-          .isNotNull();
-
-      // Locks for application reports
-      String scanId1 = "scanId1";
-      String scanId2 = "scanId2";
-      String scanId3 = "scanId3";
-      ClusterLock.createForPolicyEvaluation(application, scanId1);
-      ClusterLock.createForPolicyEvaluation(application, scanId2);
-      ClusterLock.createForPolicyEvaluation(otherApplication, scanId3);
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
-      // Lock for audit json file store
-      try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(application.getId())) {
-        clusterLock.lock();
-      }
-      assertThat(dao.getById(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNotNull();
-
-      applicationDAO.delete(application);
-
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolations(application))).isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId())))
-          .isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThat(applicationDAO.getByPublicId(application.getPublicId())).isNull();
   }
 
   @Test
@@ -949,40 +641,6 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     }
   }
 
-  private void validateApplication(Application actualApp, Application expectedApp) {
-    assertThat(actualApp.getName()).isEqualTo(expectedApp.getName());
-    assertThat(actualApp.getContactInternalName()).isEqualTo(expectedApp.getContactInternalName());
-    assertThat(actualApp.getOrganizationId()).isEqualTo(expectedApp.getOrganizationId());
-    assertThat(actualApp.getPublicId()).isEqualTo(expectedApp.getPublicId());
-  }
-
-  private void assertApplications(List<Application> actual, List<Application> expected) {
-    actual.sort(new ApplicationComparator());
-    expected.sort(new ApplicationComparator());
-
-    for (int i = 0; i < actual.size(); i++) {
-      Application actualApplication = actual.get(i);
-      Application expectedApplication = expected.get(i);
-      assertThat(actualApplication.getId()).isEqualTo(expectedApplication.getId());
-      assertThat(actualApplication.getName()).isEqualTo(expectedApplication.getName());
-      assertThat(actualApplication.getOrganizationId()).isEqualTo(expectedApplication.getOrganizationId());
-      assertThat(actualApplication.getPublicId()).isEqualTo(expectedApplication.getPublicId());
-      assertThat(actualApplication.getPublicIdLowercase()).isEqualTo(expectedApplication.getPublicIdLowercase());
-      assertThat(actualApplication.getContactInternalName()).isEqualTo(expectedApplication.getContactInternalName());
-      assertThat(actualApplication.getNameLowercaseNoWhitespace())
-          .isEqualTo(expectedApplication.getNameLowercaseNoWhitespace());
-    }
-  }
-
-  static class ApplicationComparator
-      implements Comparator<Application>
-  {
-    @Override
-    public int compare(final Application o1, final Application o2) {
-      return o1.getId().compareTo(o2.getId());
-    }
-  }
-
   @Test
   public void testUpdate_ApplicationWithInvalidPublicId() {
     // Applications can have invalid public IDs if they were created before the public ID validation was introduced. It
@@ -999,9 +657,10 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
 
   @Test
   public void testCRUD_RecordSearchIndexChange() {
-    new SystemConfigurationPropertyDAO()
-        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
-    SearchIndexChangeDAO searchIndexChangeDAO = new SearchIndexChangeDAO();
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    SearchIndexChangeDAO searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
     Organization org = tempEntity.newOrganization();
     searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
 
@@ -1025,157 +684,6 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
-  }
-
-  @Test
-  public void testDelete_CascadesToInnerSource() {
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", application);
-
-    applicationDAO.delete(application);
-
-    InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
-    assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToRepositoryConnections() {
-    Application application = tempEntity.newApplicationWithParent();
-    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(application.getId());
-
-    applicationDAO.delete(application);
-
-    RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
-    assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadesToSourceControlPullRequestResults() {
-    SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO = new SourceControlPullRequestResultDAO();
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newSourceControlPullRequestResult(application.getId(), "json1");
-    tempEntity.newSourceControlPullRequestResult(application.getId(), "json2");
-    SourceControlPullRequestResult entity =
-        tempEntity.newSourceControlPullRequestResult(tempEntity.newApplicationWithParent().getId(), "json3");
-
-    applicationDAO.delete(application);
-
-    assertThat(sourceControlPullRequestResultDAO.getAll())
-        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
-        .containsExactly(entity);
-  }
-
-  @Test
-  public void testDelete_CascadeToVulnerabilityCustomRemediation() {
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector1", 6.05F);
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
-        tempEntity.newTag(organization.getId()), "rem2",
-        "testCWE", "testCvssVector2", 6.05F);
-
-    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO = new VulnerabilityCustomRemediationDAO();
-    List<VulnerabilityCustomRemediation> vulnerabilityCustomRemediationList =
-        vulnerabilityCustomRemediationDAO.getByOwnerId(application.getId());
-    assertThat(vulnerabilityCustomRemediationList).extracting(VulnerabilityCustomRemediation::getRefId)
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    applicationDAO.delete(application);
-    vulnerabilityCustomRemediationList =
-        new VulnerabilityCustomRemediationDAO().getByOwnerId(application.getId());
-    assertThat(vulnerabilityCustomRemediationList).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadeToSastScan() {
-    final Application application = tempEntity.newApplicationWithParent();
-    final SastScanDAO sastScanDAO = new SastScanDAO();
-    final SastScan sastScan = tempEntity.newSastScan(application.getId());
-    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
-
-    applicationDAO.delete(application);
-
-    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadeToSastFinding() {
-    final Application application = tempEntity.newApplicationWithParent();
-    final SastScanDAO sastScanDAO = new SastScanDAO();
-    final SastScan sastScan = tempEntity.newSastScan(application.getId());
-    final SastFindingDAO sastFindingDAO = new SastFindingDAO();
-    final SastFinding sastFinding = new SastFinding();
-    sastFinding.setSastScanId(sastScan.getId());
-    sastFinding.setCwe("CWE");
-    sastFinding.setConfidence(SastFindingConfidence.MEDIUM);
-    sastFinding.setSeverity(SastFindingSeverity.HIGH);
-    sastFinding.setDescription("someDescription");
-    sastFinding.setCoordinate("{\"namespace\":\"namespace\",\"name\":\"CWE\",\"methodName\":\"method\"}");
-    sastFinding.setLineNumber(null);
-    sastFinding.setRuleName("someRuleName");
-    tempEntity.newSastFinding(sastFinding);
-    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNotNull();
-    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
-
-    applicationDAO.delete(application);
-    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
-    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadeToVulnerabilityCustomCwe() {
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector1", 6.05F);
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector2", 6.05F);
-
-    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
-    List<VulnerabilityCustomCwe> vulnerabilityCustomCweList = vulnerabilityCustomCweDAO
-        .getByOwnerId(application.getId());
-    assertThat(vulnerabilityCustomCweList).extracting(VulnerabilityCustomCwe::getRefId)
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    applicationDAO.delete(application);
-    assertThat(vulnerabilityCustomCweDAO.getByOwnerId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadeToCVSSVector() {
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector1", 6.05F);
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector2", 6.05F);
-
-    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO = new VulnerabilityCustomCvssVectorDAO();
-    List<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectorList =
-        vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId());
-    assertThat(vulnerabilityCustomCvssVectorList).extracting(VulnerabilityCustomCvssVector::getRefId)
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    applicationDAO.delete(application);
-    assertThat(vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId())).isEmpty();
-  }
-
-  @Test
-  public void testDelete_CascadeToCVSSSeverity() {
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector1", 6.05F);
-    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
-        tempEntity.newTag(organization.getId()), "rem1",
-        "testCWE", "testCvssVector2", 6.05F);
-
-    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO = new VulnerabilityCustomCvssSeverityDAO();
-    List<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverityList =
-        vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId());
-    assertThat(vulnerabilityCustomCvssSeverityList).extracting(VulnerabilityCustomCvssSeverity::getRefId)
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    applicationDAO.delete(application);
-    assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId())).isEmpty();
   }
 
   @Test
@@ -1251,6 +759,488 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     assertThat(appsWithoutCI).isEmpty();
   }
 
+  // Cascade Delete Tests
+
+  @Test
+  public void testDelete_CascadesToLabels() {
+    LabelDAO labelDAO = daoFactory.createLabelDAO();
+    Label label = new Label(application.getId(), "testDelete_CascadesToLabels", Color.dark_blue);
+    labelDAO.insert(label);
+
+    applicationDAO.delete(application);
+    assertThat(labelDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToProprietaryConfig() {
+    tempEntity.newProprietaryConfig(application.getId());
+
+    applicationDAO.delete(application);
+    ProprietaryConfigDAO proprietaryConfigDAO = daoFactory.createProprietaryConfigDAO();
+    assertThat(proprietaryConfigDAO.getByOwnerId(application.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyWaivers() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
+        "My comment");
+    PolicyWaiverDAO policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+    policyWaiverDAO.insert(policyWaiver);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    assertThat(policyWaivers).hasSize(1);
+
+    applicationDAO.delete(application);
+    policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    assertThat(policyWaivers).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyEvaluations() {
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "testDelete_CascadesToPolicyEvaluations");
+
+    applicationDAO.delete(application);
+    PolicyEvaluationDAO policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
+    policyEvaluation = policyEvaluationDAO.getById(policyEvaluation.getId());
+    assertThat(policyEvaluation).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyViolations() {
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "testDelete_CascadesToPolicyEvaluations");
+    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application));
+
+    applicationDAO.delete(application);
+
+    PolicyViolationDAO policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    assertThat(policyViolationDAO.getByApplicationId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicies() {
+    tempEntity.newPolicy(application);
+    PolicyDAO policyDAO = daoFactory.createPolicyDAO();
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
+    assertThat(policies).hasSize(1);
+
+    applicationDAO.delete(application);
+    policies = policyDAO.getByOwnerId(application.getId());
+    assertThat(policies).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyOverrides() {
+    Map<String, String> policyActionsOverrides = new HashMap<>();
+    policyActionsOverrides.put("build", "warn");
+    Policy policyWithOverrides = tempEntity.newPolicy(application.getOrganizationId());
+    policyWithOverrides.addPolicyActionsOverride(application.getId(), policyActionsOverrides);
+    policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    Notifications policyNotificationsOverride = new Notifications();
+    policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
+    policyWithOverrides.addPolicyNotificationsOverride(application.getId(), policyNotificationsOverride);
+    policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
+    PolicyDAO policyDAO = daoFactory.createPolicyDAO();
+    policyDAO.update(policyWithOverrides);
+
+    applicationDAO.delete(application);
+
+    Policy policy = policyDAO.getById(policyWithOverrides.getId());
+    assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
+    assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
+  }
+
+  @Test
+  public void testDelete_CascadesToLicenseOverrides() {
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"),
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverrideDAO licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    licenseOverrideDAO.insert(licenseOverride);
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
+    assertThat(licenseOverrides).hasSize(1);
+
+    applicationDAO.delete(application);
+    licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
+    assertThat(licenseOverrides).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
+    SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
+        application.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+
+    applicationDAO.delete(application);
+
+    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
+        daoFactory.createSecurityVulnerabilityOverrideDAO();
+    assertThat(securityVulnerabilityOverrideDAO.getById(securityVulnerabilityOverride.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToMembershipMappings() {
+    RoleDAO roleDAO = daoFactory.createRoleDAO();
+    String roleId = roleDAO.getApplicationRoles().get(0).getId();
+    MembershipMappingDAO membershipMappingDAO = daoFactory.createMembershipMappingDAO();
+    membershipMappingDAO.setMembershipMappingsForContextAndRole(application.getId(), roleId,
+        Collections.singletonList(new MembershipMapping("admin", MemberType.USER)));
+
+    applicationDAO.delete(application);
+
+    assertThat(membershipMappingDAO.getByContextId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToApplicationTags() {
+    Tag tag = tempEntity.newTag(organization.getId());
+
+    ApplicationTagDAO appTagDAO = daoFactory.createApplicationTagDAO();
+    ApplicationTag appTag = new ApplicationTag(application.getId(), tag.getId());
+    appTagDAO.insert(appTag);
+
+    applicationDAO.delete(application);
+
+    assertThat(appTagDAO.getByApplicationId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToApplicationComponents() {
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+
+    applicationDAO.delete(application);
+
+    ApplicationComponentDAO applicationComponentDAO = daoFactory.createApplicationComponentDAO();
+    assertThat(applicationComponentDAO.getById(applicationComponent.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyMonitoring() {
+    PolicyMonitoringDAO policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
+    policyMonitoringDAO.insert(policyMonitoring);
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyViolationAggregations() {
+    PolicyViolationAggregationDAO policyViolationAggregationDAO = daoFactory.createPolicyViolationAggregationDAO();
+    PolicyViolationAggregation aggregation = tempEntity.newPolicyViolationAggregation(application.getId(), new Date());
+
+    applicationDAO.delete(application);
+
+    assertThat(policyViolationAggregationDAO.getById(aggregation.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControl() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(), "http://valid.sonatype.com/repository/project",
+        "token", null);
+
+    applicationDAO.delete(application);
+
+    SourceControlDAO sourceControlDAO = daoFactory.createSourceControlDAO();
+    assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlEvent() {
+    // given a source control event
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+
+    SourceControlEvent sourceControlEvent =
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation);
+
+    SourceControlEventDAO sourceControlEventDAO = daoFactory.createSourceControlEventDAO();
+    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
+
+    // when we delete the application
+    applicationDAO.delete(application);
+
+    // then the source control event is deleted
+    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIAfterDelete).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlDefaultBranchCommitHistory() {
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "testScanId");
+    SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(),
+            policyEvaluation.getId());
+
+    applicationDAO.delete(application);
+
+    SourceControlDefaultBranchCommitHistoryDAO dao = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
+    assertThat(dao.getById(defaultBranchCommitHistory.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToLocks_H2() {
+    Application otherApplication = tempEntity.newApplicationWithParent();
+    // Lock for policy violations
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(application)) {
+      clusterLock.lock();
+    }
+
+    assertThat(clusterLockManager).isInstanceOf(H2ClusterLockManager.class);
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyViolations(application))).isTrue();
+
+    // Lock for policy violation aggregations
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(application.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId()))).isTrue();
+
+    // Locks for application reports
+    String scanId1 = "scanId1";
+    String scanId2 = "scanId2";
+    String scanId3 = "scanId3";
+    clusterLockManager.createForPolicyEvaluation(application, scanId1);
+    clusterLockManager.createForPolicyEvaluation(application, scanId2);
+    clusterLockManager.createForPolicyEvaluation(otherApplication, scanId3);
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isTrue();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isTrue();
+
+    // Lock for audit json file store
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(application.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isTrue();
+
+    applicationDAO.delete(application);
+
+    assertThat(clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyViolations(application))).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId()))).isFalse();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isFalse();
+    assertThat(
+        clusterLockManager.lockExists(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isFalse();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isTrue();
+    assertThat(clusterLockManager.lockExists(
+        ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isFalse();
+  }
+
+  @Test
+  @PostgresTest
+  public void testDelete_CascadesToLocks_Postgres() {
+    LockDAO dao = daoFactory.createLockDAO();
+    Application application = tempEntity.newApplicationWithParent();
+    Application otherApplication = tempEntity.newApplicationWithParent();
+
+    // Lock for policy violations
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(application)) {
+      clusterLock.lock();
+    }
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolations(application))).isNotNull();
+
+    // Lock for policy violation aggregations
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(application.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId())))
+        .isNotNull();
+
+    // Locks for application reports
+    String scanId1 = "scanId1";
+    String scanId2 = "scanId2";
+    String scanId3 = "scanId3";
+    clusterLockManager.createForPolicyEvaluation(application, scanId1);
+    clusterLockManager.createForPolicyEvaluation(application, scanId2);
+    clusterLockManager.createForPolicyEvaluation(otherApplication, scanId3);
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
+    // Lock for audit json file store
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(application.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(dao.getById(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolations(application))).isNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyViolationAggregations(application.getId())))
+        .isNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
+    assertThat(dao.getById(ClusterLockManager.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToInnerSource() {
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", application);
+
+    applicationDAO.delete(application);
+
+    InnerSourceComponentDAO innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
+    assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToRepositoryConnections() {
+    Application application = tempEntity.newApplicationWithParent();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(application.getId());
+
+    applicationDAO.delete(application);
+
+    RepositoryConnectionDAO repositoryConnectionDAO = daoFactory.createRepositoryConnectionDAO();
+    assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlPullRequestResults() {
+    SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
+        daoFactory.createSourceControlPullRequestResultDAO();
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "json1");
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "json2");
+    SourceControlPullRequestResult entity =
+        tempEntity.newSourceControlPullRequestResult(tempEntity.newApplicationWithParent().getId(), "json3");
+
+    applicationDAO.delete(application);
+
+    assertThat(sourceControlPullRequestResultDAO.getAll())
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactly(entity);
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomRemediation() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem2",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
+        daoFactory.createVulnerabilityCustomRemediationDAO();
+    List<VulnerabilityCustomRemediation> vulnerabilityCustomRemediationList =
+        vulnerabilityCustomRemediationDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomRemediationList).extracting(VulnerabilityCustomRemediation::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    vulnerabilityCustomRemediationList = vulnerabilityCustomRemediationDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomRemediationList).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToSastScan() {
+    final Application application = tempEntity.newApplicationWithParent();
+    final SastScanDAO sastScanDAO = daoFactory.createSastScanDAO();
+    final SastScan sastScan = tempEntity.newSastScan(application.getId());
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadeToSastFinding() {
+    final Application application = tempEntity.newApplicationWithParent();
+    final SastScanDAO sastScanDAO = daoFactory.createSastScanDAO();
+    final SastScan sastScan = tempEntity.newSastScan(application.getId());
+    final SastFindingDAO sastFindingDAO = daoFactory.createSastFindingDAO();
+    final SastFinding sastFinding = new SastFinding();
+    sastFinding.setSastScanId(sastScan.getId());
+    sastFinding.setCwe("CWE");
+    sastFinding.setConfidence(SastFindingConfidence.MEDIUM);
+    sastFinding.setSeverity(SastFindingSeverity.HIGH);
+    sastFinding.setDescription("someDescription");
+    sastFinding.setCoordinate("{\"namespace\":\"namespace\",\"name\":\"CWE\",\"methodName\":\"method\"}");
+    sastFinding.setLineNumber(null);
+    sastFinding.setRuleName("someRuleName");
+    tempEntity.newSastFinding(sastFinding);
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNotNull();
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    applicationDAO.delete(application);
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomCwe() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = daoFactory.createVulnerabilityCustomCweDAO();
+    List<VulnerabilityCustomCwe> vulnerabilityCustomCweList = vulnerabilityCustomCweDAO
+        .getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCweList).extracting(VulnerabilityCustomCwe::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCweDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSVector() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO =
+        daoFactory.createVulnerabilityCustomCvssVectorDAO();
+    List<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectorList =
+        vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCvssVectorList).extracting(VulnerabilityCustomCvssVector::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSSeverity() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
+        daoFactory.createVulnerabilityCustomCvssSeverityDAO();
+    List<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverityList =
+        vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCvssSeverityList).extracting(VulnerabilityCustomCvssSeverity::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
   @Test
   public void testGetByOrganizationIds() {
     assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(tempEntity.newOrganization().getId()))).isEmpty();
@@ -1274,5 +1264,39 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
     assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(org1.getId(), org2.getId())))
         .extracting(Application::getId)
         .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app21.getId(), app22.getId());
+  }
+
+  private void validateApplication(Application actualApp, Application expectedApp) {
+    assertThat(actualApp.getName()).isEqualTo(expectedApp.getName());
+    assertThat(actualApp.getContactInternalName()).isEqualTo(expectedApp.getContactInternalName());
+    assertThat(actualApp.getOrganizationId()).isEqualTo(expectedApp.getOrganizationId());
+    assertThat(actualApp.getPublicId()).isEqualTo(expectedApp.getPublicId());
+  }
+
+  private void assertApplications(List<Application> actual, List<Application> expected) {
+    actual.sort(new ApplicationComparator());
+    expected.sort(new ApplicationComparator());
+
+    for (int i = 0; i < actual.size(); i++) {
+      Application actualApplication = actual.get(i);
+      Application expectedApplication = expected.get(i);
+      assertThat(actualApplication.getId()).isEqualTo(expectedApplication.getId());
+      assertThat(actualApplication.getName()).isEqualTo(expectedApplication.getName());
+      assertThat(actualApplication.getOrganizationId()).isEqualTo(expectedApplication.getOrganizationId());
+      assertThat(actualApplication.getPublicId()).isEqualTo(expectedApplication.getPublicId());
+      assertThat(actualApplication.getPublicIdLowercase()).isEqualTo(expectedApplication.getPublicIdLowercase());
+      assertThat(actualApplication.getContactInternalName()).isEqualTo(expectedApplication.getContactInternalName());
+      assertThat(actualApplication.getNameLowercaseNoWhitespace())
+          .isEqualTo(expectedApplication.getNameLowercaseNoWhitespace());
+    }
+  }
+
+  static class ApplicationComparator
+      implements Comparator<Application>
+  {
+    @Override
+    public int compare(final Application o1, final Application o2) {
+      return o1.getId().compareTo(o2.getId());
+    }
   }
 }

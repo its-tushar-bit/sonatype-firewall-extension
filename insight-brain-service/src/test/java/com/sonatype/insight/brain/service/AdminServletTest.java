@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AdminServletTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test(timeout = 60_000)
   public void testCpuProfiling_NoEndlessBusyLoopOnNegativeFrequency_CLM_16983() throws Exception {

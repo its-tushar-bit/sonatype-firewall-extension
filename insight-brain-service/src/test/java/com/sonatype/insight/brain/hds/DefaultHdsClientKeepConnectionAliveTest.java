@@ -110,7 +110,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, "1");
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
-    telemetryId = new TelemetryId(config);
+    telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");

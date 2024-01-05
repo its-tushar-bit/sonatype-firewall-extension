@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.InvalidProprietaryConfigRegexExcept
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ProprietaryConfigDAOTest
     extends AbstractDbDAOTest
 {
-  private final ProprietaryConfigDAO dao = new ProprietaryConfigDAO();
+  private ProprietaryConfigDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createProprietaryConfigDAO();
+  }
 
   @Test
   public void testCRUD() {

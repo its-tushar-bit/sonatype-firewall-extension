@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationResourceTest
     extends AbstractResourceTest
 {
+  private ApplicationDAO applicationDAO;
+
+  @Before
+  public void setUp() {
+    applicationDAO = lookup(ApplicationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(ApplicationResource.RESOURCE_PATH);
@@ -43,7 +50,6 @@ public class ApplicationResourceTest
   @Test
   public void testValidate() throws Exception {
     final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
-    ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     assertThat(application).isNull();
 
@@ -79,7 +85,6 @@ public class ApplicationResourceTest
 
     ApplicationDTO applicationResult = response.getBody(ApplicationDTO.class);
 
-    ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     assertThat(applicationResult.getId()).isEqualTo(application.getId());
@@ -231,7 +236,7 @@ public class ApplicationResourceTest
 
     Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
     application.setContactInternalName("admin");
-    new ApplicationDAO().update(application);
+    applicationDAO.update(application);
 
     // Create policy
     tempEntity.newPolicy(application);

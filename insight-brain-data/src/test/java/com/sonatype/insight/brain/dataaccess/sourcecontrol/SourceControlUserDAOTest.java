@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUser;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUserActivity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,10 +30,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlUserDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlUserDAO sourceControlUserDAO = new SourceControlUserDAO();
+  private SourceControlUserDAO sourceControlUserDAO;
 
-  private final SourceControlUserActivityDAO
-      sourceControlUserActivityDAO = new SourceControlUserActivityDAO();
+  private SourceControlUserActivityDAO sourceControlUserActivityDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    sourceControlUserActivityDAO = daoFactory.crateSourceControlUserActivityDAO();
+    sourceControlUserDAO = daoFactory.createSourceControlUserDAO();
+  }
 
   @Test
   public void testGetByApplicationId() {

@@ -50,12 +50,15 @@ public class LdapUserMappingDAOTest
 
   private final String userMemberOfGroupAttribute = "userMemberOfGroupAttribute";
 
-  private final LdapUserMappingDAO dao = new LdapUserMappingDAO();
+  private LdapUserMappingDAO dao;
 
   private LdapServer ldapServer;
 
   @Before
-  public void createTestServer() {
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createLdapUserMappingDAO();
     ldapServer = tempEntity.newLdapServer("testServer");
   }
 

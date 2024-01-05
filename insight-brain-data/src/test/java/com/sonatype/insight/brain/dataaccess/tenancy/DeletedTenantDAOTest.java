@@ -13,6 +13,7 @@ import java.util.UUID;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -21,12 +22,20 @@ import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class DeletedTenantDAOTest extends AbstractDbDAOTest
+public class DeletedTenantDAOTest
+    extends AbstractDbDAOTest
 {
   @Rule
   public TestName name = new TestName();
 
-  DeletedTenantDAO underTest = new DeletedTenantDAO();
+  private DeletedTenantDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createDeletedTenantDAO();
+  }
 
   @Test
   public void testCRUD() {
@@ -34,17 +43,17 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
     DeletedTenant deletedTenant = tempEntity.newDeletedTenant("t_" + name.getMethodName());
 
     // Update
-    deletedTenant = underTest.getById(deletedTenant.getId());
+    deletedTenant = dao.getById(deletedTenant.getId());
 
     Date newTime = new Date();
     deletedTenant.setCreated(newTime);
-    underTest.update(deletedTenant);
-    deletedTenant = underTest.getById(deletedTenant.getId());
+    dao.update(deletedTenant);
+    deletedTenant = dao.getById(deletedTenant.getId());
     assertThat(deletedTenant.getCreated()).isEqualTo(newTime);
 
     // Delete
-    underTest.delete(deletedTenant);
-    deletedTenant = underTest.getById(deletedTenant.getId());
+    dao.delete(deletedTenant);
+    deletedTenant = dao.getById(deletedTenant.getId());
     assertThat(deletedTenant).isNull();
   }
 
@@ -55,7 +64,7 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
 
     DeletedTenant deletedTenant = tempEntity.newDeletedTenant(tenantSlug, createdDate);
 
-    deletedTenant = underTest.getById(deletedTenant.getId());
+    deletedTenant = dao.getById(deletedTenant.getId());
 
     assertThat(deletedTenant.getId()).isEqualTo(tenantSlug);
     assertThat(deletedTenant.getCreated()).isEqualTo(createdDate);
@@ -70,7 +79,7 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
     );
     tenantIds.forEach(tempEntity::newDeletedTenant);
 
-    List<DeletedTenant> tenants = underTest.getAllTenantDeletions();
+    List<DeletedTenant> tenants = dao.getAllTenantDeletions();
 
     assertThat(tenants).hasSize(3);
     assertThat(tenants).extracting(DeletedTenant::getId).containsExactlyInAnyOrder(tenantIds.toArray(new String[0]));
@@ -86,7 +95,7 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
     tenantIds.forEach(tempEntity::newDeletedTenant);
     tempEntity.newDeletedTenantWithDeleteCompleted("t_4_" + name.getMethodName());
 
-    List<DeletedTenant> tenants = underTest.getAllTenantDeletions();
+    List<DeletedTenant> tenants = dao.getAllTenantDeletions();
 
     assertThat(tenants).hasSize(3);
     assertThat(tenants).extracting(DeletedTenant::getId).containsExactlyInAnyOrder(tenantIds.toArray(new String[0]));
@@ -95,13 +104,13 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
   @Test
   public void testGetTenantsOlderThanRetentionTime() {
     tempEntity.newDeletedTenant("t_" + name.getMethodName());
-    List<DeletedTenant> tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+    List<DeletedTenant> tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
     assertThat(tenants).isEmpty();
 
     String olderTenantName = "t_" + name.getMethodName() + "_older";
     Date fiveHoursAgo = new Date(System.currentTimeMillis() - (5 * 60 * 60 * 1000));
     tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
-    tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+    tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
 
     assertThat(tenants).hasSize(1);
     assertThat(tenants.get(0).getId()).isEqualTo(olderTenantName);
@@ -110,14 +119,14 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
   @Test
   public void testGetTenantsOlderThanRetentionTime_filterDeletedTenants() {
     tempEntity.newDeletedTenant("t_" + name.getMethodName());
-    List<DeletedTenant> tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+    List<DeletedTenant> tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
     assertThat(tenants).isEmpty();
 
     String olderTenantName = "t_1_" + name.getMethodName();
     Date fiveHoursAgo = new Date(System.currentTimeMillis() - (5 * 60 * 60 * 1000));
     tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
     tempEntity.newDeletedTenantWithDeleteCompleted("t_2_" + name.getMethodName(), fiveHoursAgo);
-    tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+    tenants = dao.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
 
     assertThat(tenants).hasSize(1);
     assertThat(tenants.get(0).getId()).isEqualTo(olderTenantName);
@@ -129,8 +138,8 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
 
     tempEntity.newDeletedTenant(tenantSlug);
 
-    assertThat(underTest.isScheduledForDeletion(tenantSlug)).isTrue();
-    assertThat(underTest.isScheduledForDeletion(UUID.randomUUID().toString())).isFalse();
+    assertThat(dao.isScheduledForDeletion(tenantSlug)).isTrue();
+    assertThat(dao.isScheduledForDeletion(UUID.randomUUID().toString())).isFalse();
   }
 
   @Test
@@ -139,13 +148,13 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
 
     tempEntity.newDeletedTenantWithDeleteCompleted(tenantSlug);
 
-    assertThat(underTest.isScheduledForDeletion(tenantSlug)).isFalse();
+    assertThat(dao.isScheduledForDeletion(tenantSlug)).isFalse();
   }
 
   @Test
   public void testAttemptingToDeleteGlobalTenantThrowsException() {
     assertThatThrownBy(
-        () -> underTest.insert(new DeletedTenant(GLOBAL_TENANT.tenantSlug)))
+        () -> dao.insert(new DeletedTenant(GLOBAL_TENANT.tenantSlug)))
         .isExactlyInstanceOf(IllegalArgumentException.class)
         .hasMessage("Scheduling the global tenant for deletion is not allowed");
   }

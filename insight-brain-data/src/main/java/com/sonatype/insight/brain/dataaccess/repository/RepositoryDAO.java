@@ -7,12 +7,17 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -22,10 +27,43 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class RepositoryDAO
     extends AbstractOperationalSqlDAO<Repository>
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryDAO.class);
+
+  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final Provider<OwnerDAO> ownerDAOProvider;
+
+  private final RepositoryMigrationDAO repositoryMigrationDAO;
+
+  private final ClusterLockManager clusterLockManager;
+
+  @Inject
+  public RepositoryDAO(
+      final OperationalDataStore operationalDataStore,
+      final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final Provider<OwnerDAO> ownerDAOProvider,
+      final RepositoryMigrationDAO repositoryMigrationDAO,
+      final ClusterLockManager clusterLockManager)
+  {
+    super(operationalDataStore);
+    this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.ownerDAOProvider = ownerDAOProvider;
+    this.repositoryMigrationDAO = repositoryMigrationDAO;
+    this.clusterLockManager = clusterLockManager;
+  }
 
   public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
     return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId
@@ -155,7 +193,7 @@ public class RepositoryDAO
     else {
       // This is a hosted repository
       if (!repository.isNamespaceConfusionProtectionEnabled()) {
-        new ProprietaryComponentNamePatternDAO().deleteByRepository(tx, repository.getId());
+        proprietaryComponentNamePatternDAO.deleteByRepository(tx, repository.getId());
       }
     }
 
@@ -183,9 +221,9 @@ public class RepositoryDAO
   private void onDisableAudit(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isAuditEnabled()) {
-      new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
+      repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
-      new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+      repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
     }
   }
 
@@ -195,7 +233,6 @@ public class RepositoryDAO
   private void onDisableQuarantine(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isQuarantineEnabled()) {
-      RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
       Date unquarantineTime = new Date();
       List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
           repository.getId());
@@ -225,7 +262,7 @@ public class RepositoryDAO
     long start = System.currentTimeMillis();
 
     // Cascade to owned entities
-    new OwnerDAO().cascadeDelete(tx, repository);
+    ownerDAOProvider.get().cascadeDelete(tx, repository);
 
     // For H2, we do not enroll the policy violation and component deletions in the transaction on purpose.
     // This improves performance and keeps db operations (including commits) reasonably short, which means other
@@ -234,23 +271,22 @@ public class RepositoryDAO
     switch (repository.getRepositoryType()) {
       case proxy:
         // Cascade to repository policy violations
-        new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
+        repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to repository components
-        new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+        repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to repository reevaluation locks
-        ClusterLock.deleteForRepositoryReevaluation(tx, repository);
+        clusterLockManager.deleteForRepositoryReevaluation(tx, repository);
 
         // Cascade to repository migration (if any)
         if (includeRepositoryMigration) {
-          RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
           repositoryMigrationDAO.delete(tx, repositoryMigrationDAO.getByRepositoryId(tx, repository.getId()));
         }
         break;
       case hosted:
         // Cascade to proprietary component name patterns
-        new ProprietaryComponentNamePatternDAO().deleteByRepository(repository.getId());
+        proprietaryComponentNamePatternDAO.deleteByRepository(repository.getId());
         break;
       default:
         throw new IllegalStateException("Unknown repository type: " + repository.getRepositoryType());

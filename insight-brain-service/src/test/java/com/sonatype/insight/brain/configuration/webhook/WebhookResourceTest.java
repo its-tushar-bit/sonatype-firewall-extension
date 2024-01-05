@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.configuration.webhook.WebhookResource.WEBHOOK_EVENT_TYPES_PATH;
@@ -37,11 +38,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebhookResourceTest
     extends AbstractResourceTest
 {
-  private final WebhookDAO webhookDao = new WebhookDAO();
+  private WebhookDAO webhookDao;
 
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(WebhookResource.RESOURCE_PATH);
+  }
+
+  @Before
+  public void setUp() {
+    webhookDao = lookup(WebhookDAO.class);
   }
 
   @Test

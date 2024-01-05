@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,20 +24,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ThirdPartyFileCoordinateDAOTest
     extends AbstractDbDAOTest
 {
-  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private ThirdPartyFileCoordinate fileCoordinate;
 
-  @Override
-  @Before
-  public void setup() {
-    fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
-  }
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
-  @After
-  public void cleanup() {
-    ThirdPartyFileDAO scannedFileDAO = new ThirdPartyFileDAO();
-    scannedFileDAO.getAll().forEach(scannedFileDAO::delete);
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
+    thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
+    fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
   }
 
   @Test
@@ -129,9 +130,8 @@ public class ThirdPartyFileCoordinateDAOTest
 
     assertThat(thirdPartyFileCoordinateDAO.getById(coord1.getId())).isNull();
     assertThat(thirdPartyFileCoordinateDAO.getById(coord2.getId())).isNull();
-    final ThirdPartyCoordinateSecurityDAO securityDAO = new ThirdPartyCoordinateSecurityDAO();
-    assertThat(securityDAO.getById(sec1.getId())).isNull();
-    assertThat(securityDAO.getById(sec2.getId())).isNull();
+    assertThat(thirdPartyCoordinateSecurityDAO.getById(sec1.getId())).isNull();
+    assertThat(thirdPartyCoordinateSecurityDAO.getById(sec2.getId())).isNull();
   }
 
   @Test
@@ -148,10 +148,8 @@ public class ThirdPartyFileCoordinateDAOTest
     thirdPartyFileCoordinateDAO.delete(coordinate);
 
     assertThat(thirdPartyFileCoordinateDAO.getById(coordinate.getId())).isNull();
-    final ThirdPartyCoordinateSecurityDAO securityDAO = new ThirdPartyCoordinateSecurityDAO();
-    assertThat(securityDAO.getById(sec.getId())).isNull();
-    final ThirdPartyCoordinateLicenseDAO licenseDAO = new ThirdPartyCoordinateLicenseDAO();
-    assertThat(licenseDAO.getById(lic.getId())).isNull();
+    assertThat(thirdPartyCoordinateSecurityDAO.getById(sec.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(lic.getId())).isNull();
   }
 
   @Test

@@ -45,7 +45,20 @@ public class DatabaseUtilTest
   public void testGetDatabaseEngine_ByConfig_Unknown() {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("not a real driver");
-    assertThatExceptionOfType(DatabaseException.class)
-        .isThrownBy(() -> DatabaseUtil.getDatabaseEngine(databaseConfig));
+    assertThatExceptionOfType(DatabaseException.class).isThrownBy(() -> DatabaseUtil.getDatabaseEngine(databaseConfig));
+  }
+
+  @Test
+  public void testIsDatabaseEmbedded_H2() {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName("org.h2.Driver");
+    assertThat(DatabaseUtil.isDatabaseEmbedded(databaseConfig)).isTrue();
+  }
+
+  @Test
+  public void testIsDatabaseEmbedded_Postgres() {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName("org.postgresql.Driver");
+    assertThat(DatabaseUtil.isDatabaseEmbedded(databaseConfig)).isFalse();
   }
 }

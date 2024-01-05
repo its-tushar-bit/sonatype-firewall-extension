@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.support.SupportInfoFiles;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantSupportInfoServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   private TenantUtil tenantUtil;
@@ -47,7 +47,6 @@ public class TenantSupportInfoServiceTest
   private TenantSupportInfoService underTest;
 
   @Before
-  @Override
   public void setup() {
     underTest = new TenantSupportInfoService(tenantUtil, tenantValidator,
         supportInfoFiles, supportInfoUtil);

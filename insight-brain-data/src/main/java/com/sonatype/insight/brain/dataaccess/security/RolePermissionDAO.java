@@ -13,21 +13,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class RolePermissionDAO
     extends AbstractOperationalSqlDAO<RolePermission>
 {
@@ -36,8 +41,16 @@ public class RolePermissionDAO
   private static final TenantReference<Map<Permission, Set<String>>> roleIdsByPermission
       = new TenantReference<>(ConcurrentHashMap::new);
 
-  private static Runnable clearRolePermissionCacheForAllOtherNodes =
+  private static final Runnable DEFAULT_CLEAR_ROLE_PERMISSION_CACHE_FOR_ALL_OTHER_NODES =
       () -> log.warn("Clear role permission cache for all other nodes not set.");
+
+  private static Runnable clearRolePermissionCacheForAllOtherNodes =
+      DEFAULT_CLEAR_ROLE_PERMISSION_CACHE_FOR_ALL_OTHER_NODES;
+
+  @Inject
+  public RolePermissionDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public static Runnable getClearRolePermissionCacheForAllOtherNodes() {
     return clearRolePermissionCacheForAllOtherNodes;
@@ -47,17 +60,22 @@ public class RolePermissionDAO
     RolePermissionDAO.clearRolePermissionCacheForAllOtherNodes = clearRolePermissionCacheForAllOtherNodes;
   }
 
+  @VisibleForTesting
+  public static void resetClearRolePermissionCacheForAllOtherNodes() {
+    setClearRolePermissionCacheForAllOtherNodes(DEFAULT_CLEAR_ROLE_PERMISSION_CACHE_FOR_ALL_OTHER_NODES);
+  }
+
   public static void clearRolePermissionCache() {
     roleIdsByPermission.remove();
   }
 
-  List<RolePermission> getByRoleId(String roleId) {
+  public List<RolePermission> getByRoleId(String roleId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRoleId(tx, roleId);
     }
   }
 
-  List<RolePermission> getByRoleId(TransactionContext tx, String roleId) {
+  public List<RolePermission> getByRoleId(TransactionContext tx, String roleId) {
     String sQuery = "SELECT entity FROM RolePermission entity WHERE entity.roleId=?1";
     return getList(tx, sQuery, roleId);
   }
@@ -79,40 +97,6 @@ public class RolePermissionDAO
     super.delete(tx, entity);
     clearRolePermissionCache();
     clearRolePermissionCacheForAllOtherNodes.run();
-  }
-
-  public void setPermissionsForRole(String roleId, Set<Permission> permissions) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      setPermissionsForRole(tx, roleId, permissions);
-      tx.commit();
-    }
-  }
-
-  public void setPermissionsForRole(TransactionContext tx, String roleId, Set<Permission> permissions) {
-    Role role = new RoleDAO().getByIdNotNull(tx, roleId);
-    if (role.isBuiltIn()) {
-      throw new BadRequestException("Cannot change permissions for built-in role '" + role.getName() + "'");
-    }
-
-    Set<Permission> alreadySet = EnumSet.noneOf(Permission.class);
-    for (RolePermission assoc : getByRoleId(tx, roleId)) {
-      if (permissions.contains(assoc.getPermission())) {
-        alreadySet.add(assoc.getPermission());
-      }
-      else {
-        delete(tx, assoc);
-      }
-    }
-    for (Permission permission : permissions) {
-      if (!permission.isAllowedInCustomRoles()) {
-        throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '" + role.getName()
-            + "'");
-      }
-      if (!alreadySet.contains(permission)) {
-        insert(tx, new RolePermission(roleId, permission));
-      }
-    }
   }
 
   /**

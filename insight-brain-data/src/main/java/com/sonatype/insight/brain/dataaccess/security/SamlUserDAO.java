@@ -9,11 +9,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -24,9 +28,38 @@ import org.apache.commons.collections.CollectionUtils;
 /**
  * @since 1.133
  */
+@Named
+@Singleton
 public class SamlUserDAO
     extends AbstractOperationalSqlDAO<SamlUser>
 {
+  private final UserTokenDAO userTokenDAO;
+
+  private final DashboardFilterDAO dashboardFilterDAO;
+
+  private final UserFilterDAO userFilterDAO;
+
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  private final SamlUserGroupDAO samlUserGroupDAO;
+
+  @Inject
+  public SamlUserDAO(
+      final OperationalDataStore operationalDataStore,
+      final UserTokenDAO userTokenDAO,
+      final DashboardFilterDAO dashboardFilterDAO,
+      final UserFilterDAO userFilterDAO,
+      final UserViewedProductNotificationDAO userViewedProductNotificationDAO,
+      final SamlUserGroupDAO samlUserGroupDAO)
+  {
+    super(operationalDataStore);
+    this.userTokenDAO = userTokenDAO;
+    this.dashboardFilterDAO = dashboardFilterDAO;
+    this.userFilterDAO = userFilterDAO;
+    this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
+    this.samlUserGroupDAO = samlUserGroupDAO;
+  }
+
   public List<SamlUser> getByIds(Set<String> ids) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByIds(tx, ids);
@@ -104,26 +137,21 @@ public class SamlUserDAO
   @Override
   public void delete(TransactionContext tx, SamlUser entity) {
     // Cascade to user token
-    UserTokenDAO userTokenDAO = new UserTokenDAO();
     UserToken userToken = userTokenDAO.getByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
     if (userToken != null) {
       userTokenDAO.delete(tx, userToken);
     }
 
     // Cascade to dashboard filters
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     dashboardFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
 
     // Cascade to user filters
-    UserFilterDAO userFilterDAO = new UserFilterDAO();
     userFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
 
     // Cascade to user viewed product notifications
-    UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
     userViewedProductNotificationDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
 
     // Cascade to saml user group mappings
-    SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
     samlUserGroupDAO.deleteBySamlUserId(tx, entity.getId());
 
     super.delete(tx, entity);

@@ -31,10 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlUserActivityDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlUserActivityDAO
-      sourceControlUserActivityDAO = new SourceControlUserActivityDAO();
+  private SourceControlUserActivityDAO sourceControlUserActivityDAO;
 
-  private final SourceControlUserDAO sourceControlUserDAO = new SourceControlUserDAO();
+  private SourceControlUserDAO sourceControlUserDAO;
 
   private SourceControlUser mrBond;
 
@@ -44,6 +43,9 @@ public class SourceControlUserActivityDAOTest
   @Override
   public void setup() {
     super.setup();
+    sourceControlUserActivityDAO = daoFactory.crateSourceControlUserActivityDAO();
+    sourceControlUserDAO = daoFactory.createSourceControlUserDAO();
+
     mrBond = new SourceControlUser(application.getId(), "mrBond@email.com");
     sourceControlUserDAO.insert(mrBond);
     mrJames = new SourceControlUser(application.getId(), "mrJames@email.com");

@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -182,9 +181,9 @@ public class ProprietaryConfigServiceTest
   @Test
   public void testCreateIsProprietary_NoProprietaryConfig() {
     Application application = tempEntity.newApplicationWithParent();
-    assertThat(new ProprietaryConfigDAO().getByOwnerId(application.getId())).isNull();
+    assertThat(proprietaryConfigDAO.getByOwnerId(application.getId())).isNull();
 
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
 
     assertThat(isProprietary).rejects("any");
   }
@@ -194,7 +193,7 @@ public class ProprietaryConfigServiceTest
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Collections.emptyList());
 
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
 
     assertThat(isProprietary).rejects("any");
   }
@@ -204,7 +203,7 @@ public class ProprietaryConfigServiceTest
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newProprietaryConfig(application.getId(), Arrays.asList("a1", "b1.b2"), Collections.emptyList());
 
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
 
     assertThat(isProprietary).accepts("a1");
     assertThat(isProprietary).rejects("a2");
@@ -220,7 +219,7 @@ public class ProprietaryConfigServiceTest
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Arrays.asList("a1.*", ".*b1", "c1"));
 
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
 
     assertThat(isProprietary).accepts("a1");
     assertThat(isProprietary).accepts("a1.a2");
@@ -246,7 +245,7 @@ public class ProprietaryConfigServiceTest
     tempEntity.newProprietaryConfig(application.getId(), Collections.singletonList("a1"),
         Collections.singletonList("b1"));
 
-    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
 
     assertThat(isProprietary).accepts("a1");
     assertThat(isProprietary).accepts("a1.a2");

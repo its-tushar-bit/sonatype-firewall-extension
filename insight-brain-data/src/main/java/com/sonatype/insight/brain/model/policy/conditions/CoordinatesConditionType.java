@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -25,6 +27,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 
+@Singleton
+@Named
 public class CoordinatesConditionType
     extends AbstractComponentConditionType<String>
 {

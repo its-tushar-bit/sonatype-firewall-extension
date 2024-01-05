@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.license;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -49,25 +48,29 @@ public class LicenseThreatGroupService
 
   private final ManagementEventService managementEventService;
 
+  private final IdUtils idUtils;
+
   @Inject
   public LicenseThreatGroupService(final LicenseThreatGroupDAO licenseThreatGroupDAO,
                                    final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
                                    final PolicyDAO policyDAO,
                                    final OwnerDAO ownerDAO,
-                                   final ManagementEventService managementEventService)
+                                   final ManagementEventService managementEventService,
+                                   final IdUtils idUtils)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
     this.managementEventService = managementEventService;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.READ)
   public List<LicenseThreatGroup> getLicenseThreatGroups(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                          @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     return licenseThreatGroupDAO.getByOwnerId(ownerId);
   }
@@ -77,7 +80,7 @@ public class LicenseThreatGroupService
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
@@ -118,7 +121,7 @@ public class LicenseThreatGroupService
                                                      @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                                      final LicenseThreatGroup licenseThreatGroup)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (!internalOwnerId.equals(licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroup.getId()).getOwnerId())) {
       throw new NotFoundException(
@@ -139,7 +142,7 @@ public class LicenseThreatGroupService
                                        @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                        final String licenseThreatGroupId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroupId);
     if (!internalOwnerId.equals(licenseThreatGroup.getOwnerId())) {

@@ -11,8 +11,12 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.UUID;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import sun.security.tools.keytool.CertAndKeyGen;
@@ -21,12 +25,19 @@ import sun.security.x509.X500Name;
 /**
  * @since 1.72
  */
+@Named
+@Singleton
 @SuppressWarnings("restriction")
-class SamlConfigurationInternalDAO
+public class SamlConfigurationInternalDAO
     extends AbstractOperationalSqlDAO<SamlConfigurationInternal>
 {
   // Visible for tests
   public static final long TEN_YEARS_IN_SECONDS = Duration.ofDays(10 * 365).getSeconds();
+
+  @Inject
+  public SamlConfigurationInternalDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   /**
    * Returns the one and only SAML configuration or null if SAML is not configured.

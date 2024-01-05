@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.mail.internet.InternetAddress;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -15,6 +19,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class SourceControlConfigurationDAO
     extends AbstractOperationalSqlDAO<SourceControlConfiguration>
 {
@@ -76,6 +82,11 @@ public class SourceControlConfigurationDAO
       "The pull request monitoring interval seconds must be at least 0.";
 
   public static final String NOT_FOUND_ERROR_MSG = "Source control not configured.";
+
+  @Inject
+  public SourceControlConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public SourceControlConfiguration get() {
     return getById(SINGLETON_ENTITY_ID);

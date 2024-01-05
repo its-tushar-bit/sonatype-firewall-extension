@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +26,6 @@ import static org.assertj.core.api.Assertions.tuple;
 public class UserTokenDAOTest
     extends AbstractDbDAOTest
 {
-  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
-
   private final Date december30 = new GregorianCalendar(2019, Calendar.DECEMBER, 30).getTime();
 
   private final Date december29 = new GregorianCalendar(2019, Calendar.DECEMBER, 29).getTime();
@@ -34,6 +33,15 @@ public class UserTokenDAOTest
   private final Date december28 = new GregorianCalendar(2019, Calendar.DECEMBER, 28).getTime();
 
   private final Date december27 = new GregorianCalendar(2019, Calendar.DECEMBER, 27).getTime();
+
+  private UserTokenDAO userTokenDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    userTokenDAO = daoFactory.createUserTokenDAO();
+  }
 
   @Test
   public void testCrud() {

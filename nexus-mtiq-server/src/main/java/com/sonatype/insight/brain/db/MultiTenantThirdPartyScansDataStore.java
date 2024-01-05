@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.db;
 
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.db.DatabaseConfig;
 
 public class MultiTenantThirdPartyScansDataStore
     extends AbstractMultiTenantDataStore
     implements ThirdPartyScansDataStore
 {
   public MultiTenantThirdPartyScansDataStore(
-      final MultiTenantDataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
+      final MultiTenantPostgresDataSourceProvider dataSourceProvider,
+      final DatabaseConfig databaseConfig)
   {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    ThirdPartyScansProvider.setInstance(this);
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override

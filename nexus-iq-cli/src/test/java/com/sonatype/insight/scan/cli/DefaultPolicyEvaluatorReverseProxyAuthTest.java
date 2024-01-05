@@ -57,8 +57,8 @@ public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
   }
 
   @Override
-  protected void initServer() throws Exception {
-    initServer(config -> config.setImportRefrencePoliciesFromHDS(false));
+  protected void startIqTestServer() throws Exception {
+    startIqTestServer(config -> config.setImportRefrencePoliciesFromHDS(false));
     tempEntity.newReverseProxyAuthenticationConfiguration(rutEnabled,
           ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
     getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)

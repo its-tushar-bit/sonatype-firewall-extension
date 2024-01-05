@@ -9,7 +9,16 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
+import com.sonatype.clm.testing.functional.pages.ApiPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -34,10 +43,12 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 public class SidebarNavigationTest
         extends AbstractFunctionalTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
 
   @Before
   public void before() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
@@ -139,7 +150,7 @@ public class SidebarNavigationTest
 
   @Test
   public void testNavigation_ToAdvancedSearch() {
-    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refresh();
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible).click();
     waitUntilUrl(AdvancedSearchPage.url());

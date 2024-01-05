@@ -32,6 +32,9 @@ public class ApplicationSummaryServiceAuthzTest
   private ApplicationSummaryService service;
 
   @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
   @Override
@@ -300,13 +303,13 @@ public class ApplicationSummaryServiceAuthzTest
     automaticApplicationsConfigurationDAO.setEnabled(false);
     assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent")).isFalse();
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
+    assertThat(applicationDAO.getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent")).isFalse();
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
+    assertThat(applicationDAO.getByPublicId(appPublicId)).isNull();
   }
 
   @Test
@@ -323,12 +326,12 @@ public class ApplicationSummaryServiceAuthzTest
     automaticApplicationsConfigurationDAO.setEnabled(false);
     assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent")).isFalse();
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
+    assertThat(applicationDAO.getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
         "test_client_user_agent")).isTrue();
-    assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNotNull();
+    assertThat(applicationDAO.getByPublicId(appPublicId)).isNotNull();
   }
 }

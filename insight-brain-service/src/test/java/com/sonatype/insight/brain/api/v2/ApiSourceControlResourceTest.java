@@ -33,12 +33,15 @@ public class ApiSourceControlResourceTest
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  private AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO;
+
   private Application app;
 
   private Organization org;
 
   @Before
   public void setup() {
+    sourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
@@ -235,7 +238,6 @@ public class ApiSourceControlResourceTest
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
 
-    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     HttpResponse response = restRequest()
@@ -271,7 +273,6 @@ public class ApiSourceControlResourceTest
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
 
-    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
 
     HttpResponse response = restRequest()
@@ -297,7 +298,6 @@ public class ApiSourceControlResourceTest
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
 
-    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     HttpResponse response = restRequest()
@@ -315,7 +315,6 @@ public class ApiSourceControlResourceTest
         .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)
         .delete();
-    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
     sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     HttpResponse response = restRequest()

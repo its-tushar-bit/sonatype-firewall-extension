@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -16,9 +20,16 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.8
  */
+@Named
+@Singleton
 public class PolicyMonitoringDAO
     extends AbstractOperationalSqlDAO<PolicyMonitoring>
 {
+  @Inject
+  public PolicyMonitoringDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public List<PolicyMonitoring> getAll() {
     String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //

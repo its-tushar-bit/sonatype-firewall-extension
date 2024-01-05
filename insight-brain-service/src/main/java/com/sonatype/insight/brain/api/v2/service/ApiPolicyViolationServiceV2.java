@@ -7,11 +7,21 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -31,10 +41,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -95,9 +106,15 @@ public class ApiPolicyViolationServiceV2
 
   private final OwnerDAO ownerDAO;
 
+  private final PolicyDAO policyDAO;
+
   private final ReportService reportService;
 
   private final StageTypeService stageTypeService;
+
+  private final ComponentLoaderFactory componentLoaderFactory;
+
+  private final IdUtils idUtils;
 
   @Inject
   public ApiPolicyViolationServiceV2(
@@ -107,8 +124,11 @@ public class ApiPolicyViolationServiceV2
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyViolationDAO policyViolationDAO,
       final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO,
       final ReportService reportService,
-      final StageTypeService stageTypeService)
+      final StageTypeService stageTypeService,
+      final ComponentLoaderFactory componentLoaderFactory,
+      final IdUtils idUtils)
   {
     this.applicationService = applicationService;
     this.applicationAdapter = applicationAdapter;
@@ -116,8 +136,11 @@ public class ApiPolicyViolationServiceV2
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
     this.reportService = reportService;
     this.stageTypeService = stageTypeService;
+    this.componentLoaderFactory = componentLoaderFactory;
+    this.idUtils = idUtils;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
@@ -155,7 +178,7 @@ public class ApiPolicyViolationServiceV2
     // Returns all apps the user has READ permission for.
     List<Application> applications = applicationService.getApplications();
 
-    AuditData.get().setData("selectedPolicies", PolicyAuditDTO.transcribe(policyIds))
+    AuditData.get().setData("selectedPolicies", transcribeToPolicyAuditDTO(policyIds))
         .setData("inspectedApplicationCount", applications.size());
 
     Map<String, Application> applicationsById =
@@ -203,6 +226,14 @@ public class ApiPolicyViolationServiceV2
         applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 
     return apiApplicationViolationListDTOV2;
+  }
+
+  private List<PolicyAuditDTO> transcribeToPolicyAuditDTO(final Set<String> policyIds) {
+    List<PolicyAuditDTO> policyAuditDTOs = new ArrayList<>();
+    for (String policyId : policyIds) {
+      policyAuditDTOs.add(new PolicyAuditDTO(policyId, policyDAO.getById(policyId)));
+    }
+    return policyAuditDTOs;
   }
 
   private void sortPolicyViolations(Map<String, List<PolicyViolation>> policyViolationsByAppId) {
@@ -289,7 +320,7 @@ public class ApiPolicyViolationServiceV2
     if (!OwnerType.APPLICATION.equals(ownerType)) {
       throw new BadRequestException("scanId can only be specified for an application.");
     }
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
     if (policyEvaluation == null) {
       throw new NotFoundException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
@@ -308,7 +339,7 @@ public class ApiPolicyViolationServiceV2
       final String packageUrl,
       final String hash)
   {
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     String stageIdLowercase = stageId.toLowerCase(Locale.ROOT);
     if (!Stage.isValidStageTypeId(stageIdLowercase)) {
       throw new InvalidStageException(stageId);
@@ -454,7 +485,8 @@ public class ApiPolicyViolationServiceV2
       File reportFile = reportService.getReport(applicationId, scanId);
       ReportEntry reportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
       if (reportEntry != null) {
-        return new ComponentDAO(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
+        return componentLoaderFactory.createComponentLoader(
+                idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
       log.debug("{} not found for application id {} and scan id {}.", Report.BOM_JSON_FILENAME, applicationId,

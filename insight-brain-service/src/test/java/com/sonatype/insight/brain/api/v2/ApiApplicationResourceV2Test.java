@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiApplicationResourceV2Test
     extends AbstractResourceTest
 {
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO;
 
   private ApiApplicationAdapter apiApplicationAdapter;
 
@@ -64,6 +64,7 @@ public class ApiApplicationResourceV2Test
 
   @Before
   public void setUp() {
+    applicationDAO = lookup(ApplicationDAO.class);
     apiApplicationAdapter = getCLMServer().getInstance(ApiApplicationAdapter.class);
 
     organization = tempEntity.newOrganization("test-org");
@@ -374,7 +375,7 @@ public class ApiApplicationResourceV2Test
     assertResponseStatus(200, response);
     List<String> warnings = response.getBody(ApiMoveApplicationResponseDTOV2.class).warnings;
     assertThat(warnings).isEmpty();
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(org.getId());
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(org.getId());
   }
 
   @Test
@@ -390,7 +391,7 @@ public class ApiApplicationResourceV2Test
     ApiMoveApplicationResponseDTOV2 issues = response.getBody(ApiMoveApplicationResponseDTOV2.class);
     assertThat(issues.errors)
         .containsExactly(String.format(ApplicationMoveService.POLICY_MISSING_MSG, "Missing Policy", org2.getName()));
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
   }
 
   @Test

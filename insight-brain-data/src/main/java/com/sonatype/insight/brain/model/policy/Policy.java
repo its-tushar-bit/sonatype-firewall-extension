@@ -8,32 +8,21 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.InvalidNameException;
-import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Policy
 {
-  private static final Logger log = LoggerFactory.getLogger(Policy.class);
-
   private String id;
 
   private String name;
@@ -204,73 +193,6 @@ public class Policy
 
   private boolean isActionsOverrideApplicable(final List<String> ownerIds) {
     return policyActionsOverrideAllowed && ownerIds != null;
-  }
-
-  public ValidationResult validate(TransactionContext tx, String ownerId) {
-    log.debug("Validating {}", this);
-
-    ValidationResult result = new ValidationResult();
-    try {
-      NameHelper.validate("The policy name", name);
-    }
-    catch (InvalidNameException e) {
-      result.addError(e.getMessage());
-    }
-    if (constraints == null || constraints.isEmpty()) {
-      result.addError("Policy '" + name + "' has no constraints");
-    }
-    else {
-      ValidationResult constraintResult = new ValidationResult();
-      Set<String> constraintNames = new LinkedHashSet<>();
-      for (Constraint constraint : constraints) {
-        String constraintName = constraint.getName();
-        if (constraintName != null && !constraintName.trim().isEmpty()) {
-          if (constraintNames.contains(constraintName)) {
-            constraintResult.addError("Duplicate constraint name '" + constraintName + "'");
-          }
-          else {
-            constraintNames.add(constraintName);
-          }
-        }
-        constraintResult.merge(constraint.validate(tx, ownerId));
-      }
-      if (!constraintResult.isValid()) {
-        result.addError("Policy '" + name + "' has invalid constraints:");
-        result.merge(constraintResult);
-      }
-    }
-
-    ValidationResult actionResult = new ValidationResult();
-    for (String stageId : actions.keySet()) {
-      if (StageTypes.getById(stageId) == null) {
-        actionResult.addError("Invalid stage: '" + stageId + "'");
-      }
-
-      String actionId = actions.get(stageId);
-      if (!Action.ID_FAIL.equals(actionId) && !Action.ID_WARN.equals(actionId)) {
-        actionResult.addError("Invalid action for stage '" + stageId + "': '" + actionId + "'");
-      }
-    }
-    if (!actionResult.isValid()) {
-      result.addError("Policy '" + name + "' has invalid actions:");
-      result.merge(actionResult);
-    }
-
-    ValidationResult notificationsResult = notifications.validate();
-    if (!notificationsResult.isValid()) {
-      result.addError("Policy '" + name + "' has invalid notifications:");
-      result.merge(notificationsResult);
-    }
-
-    if (getThreatLevel() < 0 || getThreatLevel() > 10) {
-      result.addError("Policy '" + name + "' has threat level outside of valid range 0-10: " + getThreatLevel());
-    }
-
-    if (!result.isValid()) {
-      log.debug("Validation result: {}", result.toMessageString());
-    }
-
-    return result;
   }
 
   @Override

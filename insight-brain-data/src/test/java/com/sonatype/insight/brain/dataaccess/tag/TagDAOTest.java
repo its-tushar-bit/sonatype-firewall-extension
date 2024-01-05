@@ -16,13 +16,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.*;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -35,9 +38,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -51,7 +52,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 public class TagDAOTest extends NameableDAOTest<Tag>
 {
-  private final TagDAO dao = new TagDAO();
+  private  VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO;
+
+  private VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO;
+
+  private VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO;
+
+  private PolicyTagDAO policyTagDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private TagDAO dao;
+
+  private ApplicationTagDAO appTagDAO;
 
   @Override
   protected Tag createNameable(String a) {
@@ -64,7 +81,18 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   }
 
   @Before
-  public void before() {
+  @Override
+  public void setup() {
+    super.setup();
+    vulnerabilityCustomRemediationTagDAO = daoFactory.createVulnerabilityCustomRemediationTagDAO();
+    vulnerabilityCustomCweTagDAO = daoFactory.createVulnerabilityCustomCweTagDAO();
+    vulnerabilityCustomCvssVectorTagDAO = daoFactory.createVulnerabilityCustomCvssVectorTagDAO();
+    policyTagDAO = daoFactory.createPolicyTagDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    dao = daoFactory.createTagDAO();
+    appTagDAO = daoFactory.createApplicationTagDAO();
     organization = tempEntity.newOrganization("TagDAOTest");
   }
 
@@ -72,7 +100,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected Tag getEntityByName(String name) {
     return dao.getByName(name).get(0);
@@ -117,8 +145,6 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
-        new VulnerabilityCustomRemediationTagDAO();
     assertThat(vulnerabilityCustomRemediationTagDAO.getByTagId(tag1.getId())).isNotEmpty();
     dao.delete(tag1);
     dao.delete(tag2);
@@ -134,9 +160,6 @@ public class TagDAOTest extends NameableDAOTest<Tag>
         "testCWE", "testCvssVector1", 6.05F);
     tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
         "testCWE", "testCvssVector2", 6.05F);
-
-    VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO =
-        new VulnerabilityCustomCweTagDAO();
 
     assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isNotEmpty();
     dao.delete(tag1);
@@ -155,8 +178,6 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO =
-        new VulnerabilityCustomCweTagDAO();
     assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isNotEmpty();
     dao.delete(tag1);
     dao.delete(tag2);
@@ -173,8 +194,6 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
         "testCWE", "testCvssVector2", 6.05F);
 
-    VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO =
-        new VulnerabilityCustomCvssVectorTagDAO();
     assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag1.getId())).isNotEmpty();
     dao.delete(tag1);
     dao.delete(tag2);
@@ -315,7 +334,6 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     Application app = tempEntity.newApplication(organization.getId());
     Tag tag = tempEntity.newTag(organization.getId());
 
-    ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
     ApplicationTag appTag = new ApplicationTag(app.getId(), tag.getId());
     appTagDAO.insert(appTag);
 
@@ -333,7 +351,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     assertThatThrownBy(() -> dao.delete(tag)).isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot delete the application category because it is associated with policies.");
 
-    assertThat(new PolicyTagDAO().getByTagId(tag.getId())).hasSize(1);
+    assertThat(policyTagDAO.getByTagId(tag.getId())).hasSize(1);
   }
 
   private void assertTag(String orgId, String name, String description, Color color, Tag actual) {
@@ -371,7 +389,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     String tagName = "some name";
     tempEntity.newTag(organization.getParentOrganizationId(), tagName);
 
-    Organization expectedOrg = new OrganizationDAO().getById(organization.getParentOrganizationId());
+    Organization expectedOrg = organizationDAO.getById(organization.getParentOrganizationId());
 
     // Add another tag with a case-/whitespace-equivalent name at child org level
     assertInsertTagWithDuplicateName(organization.getId(), tagName, expectedOrg);
@@ -391,7 +409,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     String tagName = "some name";
     tempEntity.newTag(organization.getParentOrganizationId(), tagName);
 
-    Organization expectedOrg = new OrganizationDAO().getById(organization.getParentOrganizationId());
+    Organization expectedOrg = organizationDAO.getById(organization.getParentOrganizationId());
 
     // Add another tag with a case-/whitespace-equivalent name at child org level
     assertUpdateTagWithDuplicateName(organization.getId(), tagName, expectedOrg);
@@ -403,19 +421,12 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   }
 
   @Test
+  @PostgresTest
   public void testGetByApplicationIds_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testGetByApplicationIds(false);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    testGetByApplicationIds(false);
   }
 
   private void testGetByApplicationIds(boolean isDatabaseEmbedded) {
-    TagDAO dao = new TagDAO();
     assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
     organization = tempEntity.newOrganization();
     Tag tag1 = tempEntity.newTag(organization.getId());
@@ -454,49 +465,56 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   }
 
   @Test
+  @PostgresTest
   public void testGetTagsUsedByApplications_MoreThanShortMaxValueOnPostgres() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
-      OperationalDataStoreProvider.init(databaseConfig, false);
-      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
-        String sql = "INSERT INTO organization (organization_id, "
-            + "parent_organization_id, name, name_lowercase_no_whitespace) "
-            + "VALUES ('org1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1');";
-        try (Statement statement = connection.createStatement()) {
-          statement.executeUpdate(sql);
-        }
+    OperationalDataStore operationalDataStore = databaseRule.getOperationalDataStore();
 
-        connection.setAutoCommit(false);
-        sql = "INSERT INTO application (application_id, public_id, public_id_lowercase, name, "
-            + "name_lowercase_no_whitespace, organization_id) "
-            + "VALUES (?, ?, ?, ?, ?, 'org1');";
-        List<String> appIds = new ArrayList<>(Short.MAX_VALUE + 1);
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-          for (int i = 0; i <= Short.MAX_VALUE; i++) {
-            String app = "app-" + (i + 1);
-            appIds.add(app);
-            statement.setString(1, app);
-            statement.setString(2, app);
-            statement.setString(3, app);
-            statement.setString(4, app);
-            statement.setString(5, app);
-            statement.addBatch();
+    String orgSql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() +
+        ".organization (organization_id, parent_organization_id, name, name_lowercase_no_whitespace) "
+        + "VALUES ('org1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1');";
 
-            if ((i + 1) % 100 == 0) {
-              statement.executeBatch();
-              connection.commit();
-            }
-          }
-          statement.executeBatch();
-          connection.commit();
-        }
-        connection.setAutoCommit(true);
-        assertThat(dao.getByApplicationIds(appIds)).isEmpty();
+    String sql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() +
+        ".application (application_id, public_id, public_id_lowercase, name, "
+        + "name_lowercase_no_whitespace, organization_id) "
+        + "VALUES (?, ?, ?, ?, ?, 'org1');";
+
+    String deleteSql = "TRUNCATE " + operationalDataStore.getDatabaseSchema() +
+        ".application CASCADE";
+
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+
+      try (Statement statement = connection.createStatement()) {
+        statement.executeUpdate(orgSql);
       }
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
+
+      connection.setAutoCommit(false);
+      List<String> appIds = new ArrayList<>(Short.MAX_VALUE + 1);
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        for (int i = 0; i <= Short.MAX_VALUE; i++) {
+          String app = "app-" + (i + 1);
+          appIds.add(app);
+          statement.setString(1, app);
+          statement.setString(2, app);
+          statement.setString(3, app);
+          statement.setString(4, app);
+          statement.setString(5, app);
+          statement.addBatch();
+
+          if ((i + 1) % 100 == 0) {
+            statement.executeBatch();
+            connection.commit();
+          }
+        }
+        statement.executeBatch();
+        connection.commit();
+      }
+      connection.setAutoCommit(true);
+
+      assertThat(dao.getByApplicationIds(appIds)).isEmpty();
+
+      try (Statement statement = connection.createStatement()) {
+        statement.executeUpdate(deleteSql);
+      }
     }
   }
 
@@ -512,25 +530,25 @@ public class TagDAOTest extends NameableDAOTest<Tag>
 
   @Test
   public void testCRUD_RecordSearchIndexChange() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     dao.update(tag);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     dao.delete(tag);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
@@ -539,7 +557,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = new Tag(orgId, tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH), "description");
-    assertThatThrownBy(() -> new TagDAO().insert(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
+    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
         "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
   }
 
@@ -547,7 +565,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = tempEntity.newTag(orgId, "another name");
     tag.setName(tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    assertThatThrownBy(() -> new TagDAO().update(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
+    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
         "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
   }
 }

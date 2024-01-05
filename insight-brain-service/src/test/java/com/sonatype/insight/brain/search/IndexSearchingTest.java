@@ -78,6 +78,24 @@ public class IndexSearchingTest
   private SearchService searchService;
 
   @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Inject
+  private LabelDAO labelDAO;
+
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private TagDAO tagDAO;
+
+  @Inject
   private InsightWork insightWork;
 
   @Mock
@@ -99,7 +117,7 @@ public class IndexSearchingTest
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
     Role role = tempEntity.newRole(true, Permission.READ);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
   }
 
@@ -240,7 +258,7 @@ public class IndexSearchingTest
     assertThat(result.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
     assertThat(result.componentName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(result.policyEvaluationStage).isEqualTo(StageTypes.getById(evaluation.getStageTypeId()).getName());
-    assertApplicationData(result, new ApplicationDAO().getById(evaluation.getApplicationId()));
+    assertApplicationData(result, applicationDAO.getById(evaluation.getApplicationId()));
   }
 
   @Test
@@ -778,7 +796,7 @@ public class IndexSearchingTest
     String oldAppPublicId = app.getPublicId();
     app.setName("NewAppName");
     app.setPublicId("NewAppPublicId");
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.APPLICATION_NAME, app.getName());
@@ -789,7 +807,7 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, oldAppPublicId)).isEmpty();
 
     // Delete application
-    new ApplicationDAO().delete(app);
+    applicationDAO.delete(app);
     indexChanges();
     assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_NAME, app.getName())).isEmpty();
@@ -822,7 +840,7 @@ public class IndexSearchingTest
     // Update organization
     String oldOrgName = org.getName();
     org.setName("NewOrgName");
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
@@ -832,8 +850,8 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.ORGANIZATION_NAME, oldOrgName)).isEmpty();
 
     // Delete organization
-    new ApplicationDAO().delete(app);
-    new OrganizationDAO().delete(org);
+    applicationDAO.delete(app);
+    organizationDAO.delete(org);
     indexChanges();
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId())).isEmpty();
     assertThat(search(FieldIdentifier.ORGANIZATION_NAME, org.getName())).isEmpty();
@@ -857,7 +875,7 @@ public class IndexSearchingTest
         ItemType.APPLICATION.name(), ItemType.SECURITY_VULNERABILITY.name());
 
     org.setName("NewOrgName");
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
     indexChanges();
 
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
@@ -898,7 +916,7 @@ public class IndexSearchingTest
     assertThat(searchResults).hasSize(4);
 
     barOrg.setName("bar-new-name");
-    new OrganizationDAO().update(barOrg);
+    organizationDAO.update(barOrg);
     indexChanges();
 
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
@@ -930,7 +948,7 @@ public class IndexSearchingTest
     label.setLabel("NewLabelName");
     label.setDescription("NewLabelDescription");
     label.setColor(Color.dark_green);
-    new LabelDAO().update(label);
+    labelDAO.update(label);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel());
@@ -942,7 +960,7 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, oldLabelDescription)).isEmpty();
 
     // Delete label
-    new LabelDAO().delete(label);
+    labelDAO.delete(label);
     indexChanges();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId())).isEmpty();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel())).isEmpty();
@@ -965,7 +983,7 @@ public class IndexSearchingTest
 
     // Update policy
     policy.setName("NewPolicyName");
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.POLICY_NAME, policy.getName());
@@ -975,7 +993,7 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.POLICY_NAME, policyName)).isEmpty();
 
     // Delete policy
-    new PolicyDAO().delete(policy);
+    policyDAO.delete(policy);
     indexChanges();
     assertThat(search(FieldIdentifier.POLICY_ID, policy.getId())).isEmpty();
     assertThat(search(FieldIdentifier.POLICY_NAME, policy.getName())).isEmpty();
@@ -1002,7 +1020,7 @@ public class IndexSearchingTest
     tag.setName("NewTagName");
     tag.setDescription("NewTagDescription");
     tag.setColor(Color.dark_green);
-    new TagDAO().update(tag);
+    tagDAO.update(tag);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName());
@@ -1014,7 +1032,7 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, oldTagDescription)).isEmpty();
 
     // Delete application category
-    new TagDAO().delete(tag);
+    tagDAO.delete(tag);
     indexChanges();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName())).isEmpty();

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.test.LogOutput;
 
@@ -41,5 +42,10 @@ public abstract class AbstractAuditTest
 
   protected Consumer<HttpRequest> unauthorizedUser() {
     return httpRequest -> httpRequest.auth(unauthorizedUser);
+  }
+
+  @Override
+  public PolicyDAO getPolicyDAO() {
+    return lookup(PolicyDAO.class);
   }
 }

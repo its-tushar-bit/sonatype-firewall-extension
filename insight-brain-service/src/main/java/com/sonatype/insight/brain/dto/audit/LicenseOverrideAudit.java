@@ -29,12 +29,11 @@ public class LicenseOverrideAudit
 
   private String comment;
 
-  private LicenseDAO licenseDAO = new LicenseDAO();
+  public LicenseOverrideAudit(){
 
-  public LicenseOverrideAudit() {
   }
 
-  public LicenseOverrideAudit(LicenseOverride licenseOverride) {
+  public LicenseOverrideAudit(LicenseOverride licenseOverride, LicenseDAO licenseDAO) {
     setComponentIdentifier(licenseOverride.getComponentIdentifier());
     status = licenseOverride.getStatus().getName();
     if (!licenseOverride.getLicenseIds().isEmpty()) {

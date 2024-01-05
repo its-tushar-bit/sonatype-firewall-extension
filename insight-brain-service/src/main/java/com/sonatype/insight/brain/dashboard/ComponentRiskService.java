@@ -12,12 +12,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditUtils;
+import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -50,14 +49,19 @@ public class ComponentRiskService
 
   private final DashboardUtils dashboardUtils;
 
+  private final AuditService auditService;
+
   @Inject
-  public ComponentRiskService(ApplicationService applicationService,
-                              PolicyViolationLoader policyViolationLoader,
-                              DashboardUtils dashboardUtils)
+  public ComponentRiskService(
+      final ApplicationService applicationService,
+      final PolicyViolationLoader policyViolationLoader,
+      final DashboardUtils dashboardUtils,
+      final AuditService auditService)
   {
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
+    this.auditService = auditService;
   }
 
   /**
@@ -132,10 +136,10 @@ public class ComponentRiskService
         applicationIds, tagIds);
 
     AuditData.get() //
-        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds)) //
         .setData("selectedApplications",
-            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
-        .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
+            auditService.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
+        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", applications.size());
 
     log.debug("Loaded {} applications", applications.size());

@@ -20,16 +20,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.assertj.core.api.Assertions.assertThat;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapServerListTest
     extends AbstractFunctionalTest
 {
+  private LdapServerDAO ldapServerDAO;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(LdapServerListPage.url());
@@ -38,12 +40,12 @@ public class LdapServerListTest
 
   @Before
   public void before() {
+    ldapServerDAO = lookup(LdapServerDAO.class);
     refreshOrOpen(LdapServerListPage.url());
   }
 
   @After
   public void end() {
-    LdapServerDAO ldapServerDAO = new LdapServerDAO();
     for (LdapServer ldapServer : ldapServerDAO.getAll()) {
       ldapServerDAO.delete(ldapServer);
     }
@@ -115,7 +117,7 @@ public class LdapServerListTest
     ldapServerListPage.listElements().shouldHave(texts("Third Server",
         "Fourth Server", "First Server", "Second Server"));
 
-    List<LdapServer> actualLdapServers = new LdapServerDAO().getAll();
+    List<LdapServer> actualLdapServers = ldapServerDAO.getAll();
     String[] ldapServerNames = new String[]{"Third Server", "Fourth Server",
         "First Server", "Second Server"};
     for (int i = 0; i < ldapServerNames.length; i++) {

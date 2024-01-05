@@ -13,7 +13,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -45,18 +44,20 @@ public class SamlUserGroupHelperTest
   @Inject
   private SamlUserDAO samlUserDAO;
 
-  private final SamlUserDAO spySamlUserDAO = spy(new SamlUserDAO());
-
   @Inject
   private SamlGroupDAO samlGroupDAO;
-
-  private final SamlGroupDAO spySamlGroupDAO = spy(new SamlGroupDAO());
 
   @Inject
   private SamlUserGroupDAO samlUserGroupDAO;
 
+  private SamlUserDAO spySamlUserDAO;
+
+  private SamlGroupDAO spySamlGroupDAO;
+
   @Override
   public void configure(Binder binder) {
+    spySamlUserDAO = spy(daoFactory.createSamlUserDAO());
+    spySamlGroupDAO = spy(daoFactory.createSamlGroupDAO());
     binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
     binder.bind(SamlGroupDAO.class).toInstance(spySamlGroupDAO);
     super.configure(binder);

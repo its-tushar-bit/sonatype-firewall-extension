@@ -38,6 +38,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationLogDTOAssert
 {
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
+  public PolicyViolationLogDTOAssert(final RepositoryManagerDAO repositoryManagerDAO) {
+    this.repositoryManagerDAO = repositoryManagerDAO;
+  }
+
   public static List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(
       LogOutput logOutput,
       PolicyViolationLogEvent policyViolationLogEvent,
@@ -123,7 +129,7 @@ public class PolicyViolationLogDTOAssert
     assertApplicationData(policyViolationLogDTO, application);
   }
 
-  public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
+  public void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
                                                          Date before,
@@ -167,7 +173,7 @@ public class PolicyViolationLogDTOAssert
         evaluationTime, evaluationTime, policyViolation, userName);
   }
 
-  public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
+  public void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
                                                          Date before,
@@ -190,7 +196,7 @@ public class PolicyViolationLogDTOAssert
     assertUserData(policyViolationLogDTO, userName);
   }
 
-  public static void assertRepositoryPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
+  public void assertRepositoryPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
                                                          PolicyViolationLogEvent policyViolationLogEvent,
                                                          Repository repository,
                                                          Date before,
@@ -318,11 +324,10 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.applicationName).isEqualTo(application.getName());
   }
 
-  private static void assertRepositoryData(PolicyViolationLogDTO policyViolationLogDTO, Repository repository) {
+  private void assertRepositoryData(PolicyViolationLogDTO policyViolationLogDTO, Repository repository) {
     assertThat(policyViolationLogDTO.repositoryId).isEqualTo(repository.getId());
     assertThat(policyViolationLogDTO.repositoryPublicId).isEqualTo(repository.getPublicId());
     assertThat(policyViolationLogDTO.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
-    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
     assertThat(policyViolationLogDTO.repositoryManagerInstanceId).isEqualTo(
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
   }

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,6 +34,13 @@ public class ConditionValueTypeResource
 
   private static final Logger log = LoggerFactory.getLogger(ConditionValueTypeResource.class);
 
+  private final IdUtils idUtils;
+
+  @Inject
+  public ConditionValueTypeResource(final IdUtils idUtils) {
+    this.idUtils = idUtils;
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -42,7 +49,7 @@ public class ConditionValueTypeResource
   {
     log.debug("Received request to get all {} condition value types for policyOwnerId ID {}", ownerType, ownerId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return (Collection) ConditionValueTypes.getAll(internalOwnerId);
   }
 }

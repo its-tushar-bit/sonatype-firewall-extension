@@ -14,17 +14,21 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.scan.model.ItemContentType;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,14 +37,35 @@ public class ContainerResultsHandlerTest
     extends AbstractComponentTest
 {
   @Inject
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  @Inject
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Inject
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
+
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private ContainerResultHandler containerResultHandler;
+
   private String loadResource(String name) throws Exception {
     URL resource = getClass().getResource("/ContainerResultsHandlerTest/" + name);
     return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+  }
+
+  @Before
+  public void before() {
+    containerResultHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO);
   }
 
   @Test
@@ -51,7 +76,6 @@ public class ContainerResultsHandlerTest
         new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    ContainerResultHandler containerResultHandler = new ContainerResultHandler();
     String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     String expectedXml = loadResource("alpine-3.6-expected-bom.xml");
@@ -72,7 +96,6 @@ public class ContainerResultsHandlerTest
         new ThirdPartyScanContent("container:webgoat", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    ContainerResultHandler containerResultHandler = new ContainerResultHandler();
     containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
     List<ThirdPartyCoordinateSecurity> coordinateSecurityList = thirdPartyCoordinateSecurityDAO.getAll();
@@ -87,7 +110,6 @@ public class ContainerResultsHandlerTest
         new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    ContainerResultHandler containerResultHandler = new ContainerResultHandler();
     String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 
@@ -153,7 +175,6 @@ public class ContainerResultsHandlerTest
         new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    ContainerResultHandler containerResultHandler = new ContainerResultHandler();
     String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 

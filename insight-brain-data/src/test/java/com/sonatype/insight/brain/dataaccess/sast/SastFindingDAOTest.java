@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,17 +25,25 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SastFindingDAOTest
     extends AbstractDbDAOTest
 {
-  private final SastScanDAO sastScanDAO = new SastScanDAO();
+  private SastScanDAO sastScanDAO;
 
-  private final SastFindingDAO sastFindingDAO = new SastFindingDAO();
+  private SastFindingDAO sastFindingDAO;
 
-  private final SastRemediationDAO sastRemediationDAO = new SastRemediationDAO();
+  private SastRemediationDAO sastRemediationDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    sastScanDAO = daoFactory.createSastScanDAO();
+    sastFindingDAO = daoFactory.createSastFindingDAO();
+    sastRemediationDAO = daoFactory.createSastRemediationDAO();
+  }
 
   @Test
   public void testInsert_invalidSeverityValue() {
-    final SastScanDAO scanDao = new SastScanDAO();
     final SastScan sastScan = new SastScan(application.getId());
-    scanDao.insert(sastScan);
+    sastScanDAO.insert(sastScan);
     IntStream.of(-1, SastFindingSeverity.values().length)
         .boxed()
         .map(severity -> {
@@ -59,9 +68,8 @@ public class SastFindingDAOTest
 
   @Test
   public void testInsert_invalidConfidenceValue() {
-    final SastScanDAO scanDao = new SastScanDAO();
     final SastScan sastScan = new SastScan(application.getId());
-    scanDao.insert(sastScan);
+    sastScanDAO.insert(sastScan);
     IntStream.of(-1, SastFindingConfidence.values().length)
         .boxed()
         .map(confidence -> {
@@ -130,7 +138,7 @@ public class SastFindingDAOTest
 
     //Cascade delete via DeleteBysastScanId
     sastFindingDAO.deleteBySastScanId(sastScan.getId());
-    assertThat(new SastRemediationDAO().getById(sastRemediation.getId())).isNull();
+    assertThat(sastRemediationDAO.getById(sastRemediation.getId())).isNull();
     assertThat(sastFindingDAO.getById(result.getId())).isNull();
   }
 

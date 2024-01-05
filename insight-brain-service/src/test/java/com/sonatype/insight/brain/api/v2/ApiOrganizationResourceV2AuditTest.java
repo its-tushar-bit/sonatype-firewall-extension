@@ -20,6 +20,8 @@ import org.junit.Test;
 public class ApiOrganizationResourceV2AuditTest
     extends AbstractMembershipMappingAuditTest
 {
+  private OrganizationDAO organizationDAO;
+
   private Organization parentOrg;
 
   private Organization childOrg;
@@ -28,6 +30,8 @@ public class ApiOrganizationResourceV2AuditTest
 
   @Before
   public void before() {
+    organizationDAO = lookup(OrganizationDAO.class);
+
     parentOrg = tempEntity.newOrganization();
     childOrg = tempEntity.newOrganization(parentOrg);
     targetOrg = tempEntity.newOrganization();
@@ -37,7 +41,7 @@ public class ApiOrganizationResourceV2AuditTest
   public void testAddOrganization() throws Exception {
     ApiOrganizationDTO organizationDto = new ApiOrganizationDTO(null, "new-organization");
     organizationApiRequest().body(organizationDto).post();
-    Organization organization = new OrganizationDAO().getByName(organizationDto.name);
+    Organization organization = organizationDAO.getByName(organizationDto.name);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ORGANIZATION, null);
     assertOrganizationData(auditDTO, organization);

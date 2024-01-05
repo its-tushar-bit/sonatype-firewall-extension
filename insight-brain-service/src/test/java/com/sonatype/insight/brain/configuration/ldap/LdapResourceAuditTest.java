@@ -30,10 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapResourceAuditTest
     extends AbstractAuditTest
 {
+  private LdapServerDAO ldapServerDAO;
+
   private LdapServer ldapServer;
 
   @Before
   public void before() {
+    ldapServerDAO = lookup(LdapServerDAO.class);
     ldapServer = tempEntity.newLdapServer(tempEntity.uuid());
   }
 
@@ -240,7 +243,7 @@ public class LdapResourceAuditTest
   }
 
   private void cleanUp(final LdapServer ldapServer) {
-    new LdapServerDAO().delete(ldapServer); //to avoid conflicts with other tests relies on order
+    ldapServerDAO.delete(ldapServer); //to avoid conflicts with other tests relies on order
   }
 
   private LdapConnection createLdapConnection(LdapAuthenticationMethod ldapAuthenticationMethod) {

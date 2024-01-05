@@ -25,11 +25,15 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
 {
   private String baseUrl = "";
 
+  private SystemConfigurationPropertyDAO dao;
+
   @Before
   public void before() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+
     refreshOrOpen(BaseUrlConfigurationPage.url());
     loginAsAdmin();
-    baseUrl = new SystemConfigurationPropertyDAO().get(SystemConfigurationProperty.BASE_URL);
+    baseUrl = dao.get(SystemConfigurationProperty.BASE_URL);
   }
 
   @After

@@ -43,7 +43,9 @@ public class EditLicensesTest
 
   private Repository repository;
 
-  private final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
 
   @BeforeClass
   public static void boot() {
@@ -53,6 +55,9 @@ public class EditLicensesTest
 
   @Before
   public void before() {
+    licenseOverrideDAO = lookup(LicenseOverrideDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
@@ -146,7 +151,7 @@ public class EditLicensesTest
     assertThat(editLicensesPopover.popoverTitle().getText()).isEqualTo("Edit Licenses");
     assertThat(editLicensesPopover.status().getText()).isEqualTo("Open");
     assertThat(editLicensesPopover.comment().getText()).isEmpty();
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     firstScope.shouldHave(text("Repository - " + repository.getName()));
     secondScope.shouldHave(text("Repository Manager - " + repositoryManager.getName()));
     thirdScope.shouldHave(text("Repository Managers"));

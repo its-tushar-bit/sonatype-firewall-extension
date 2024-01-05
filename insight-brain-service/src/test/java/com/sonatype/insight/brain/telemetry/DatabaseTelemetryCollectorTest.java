@@ -6,17 +6,11 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.Map;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DatabaseConfig;
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -29,9 +23,6 @@ public class DatabaseTelemetryCollectorTest
 {
   @Inject
   private DatabaseTelemetryCollector telemetryCollector;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Test
   public void testCollectData_TelemetryPurpose() {
@@ -47,48 +38,22 @@ public class DatabaseTelemetryCollectorTest
   }
 
   @Test
+  @H2DiskTest
   public void testCollectData_OdsSizeBytes_EmbeddedDatabaseInFile() {
-    insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods),
-          false);
-      Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
-      assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("h2");
-      String odsSizeBytes = (String) attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
-      assertThat(odsSizeBytes).isNotNull();
-      assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
-  }
-
-  @Test
-  public void testCollectData_OdsSizeBytes_ExternalDatabase() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      DatabaseConfig databaseConfig = new DatabaseConfig();
-      databaseConfig.setType("postgresql");
-      insightConfig.setDatabase(databaseConfig);
-      // Create a postgres ODS database
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-
-      Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
-      assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("postgresql");
-      String odsSizeBytes = (String) attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
-      assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
-  }
-
-  @Test
-  public void testCollectData_DbEngine_DatabaseConfigNull() {
-    insightConfig.setDatabase(null);
     Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
     assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("h2");
+    String odsSizeBytes = (String) attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
+    assertThat(odsSizeBytes).isNotNull();
+    assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
+  }
+
+  @Test
+  @PostgresTest
+  public void testCollectData_OdsSizeBytes_ExternalDatabase() {
+    Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
+    assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("postgresql");
+    String odsSizeBytes = (String) attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES);
+    assertThat(Long.valueOf(odsSizeBytes)).isGreaterThan(0);
   }
 
   @Test

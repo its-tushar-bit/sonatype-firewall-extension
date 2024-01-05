@@ -12,22 +12,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Spy;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FIXED_BY_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
@@ -40,18 +39,27 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ge
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClairScannerResultsHandlerTest
-    extends AbstractComponentTest
+    extends AbstractDataTest
 {
-  @Spy
-  private ClairScannerResultHandler clairHandler;
+  private static final Gson GSON = new Gson();
 
-  @Inject
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
-  @Spy
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
-  private static final Gson GSON = new Gson();
+  private ClairScannerResultHandler clairHandler;
+
+  @Before
+  public void setUp() {
+    thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
+    thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+
+    clairHandler =
+        new ClairScannerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO);
+  }
 
   @Test
   public void testHandleAndFilterContents_truncate() {

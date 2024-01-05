@@ -26,11 +26,16 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ComponentLegalFileDAOTest
     extends AbstractDbDAOTest
 {
+  private LegalFileOverrideDAO legalFileOverrideDAO;
+
   private ComponentLegalFileDAO dao;
 
   @Before
-  public void before() {
-    dao = new ComponentLegalFileDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    legalFileOverrideDAO = daoFactory.createLegalFileOverrideDAO();
+    dao = daoFactory.createComponentLegalFileDAO();
   }
 
   @Test
@@ -248,7 +253,6 @@ public class ComponentLegalFileDAOTest
 
     dao.delete(componentLegalFile);
 
-    LegalFileOverrideDAO legalFileOverrideDAO = new LegalFileOverrideDAO();
     assertThat(dao.getById(componentLegalFile.getId())).isNull();
     assertThat(legalFileOverrideDAO.getById(legalFileOverride1.getId())).isNull();
     assertThat(legalFileOverrideDAO.getById(legalFileOverride2.getId())).isNull();

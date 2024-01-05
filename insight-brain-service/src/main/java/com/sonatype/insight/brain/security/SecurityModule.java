@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
 import java.util.Collections;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -51,9 +50,7 @@ public class SecurityModule
     bind(Managed.class).toInstance(new Destroyer());
     expose(Managed.class);
     TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType =
-        new TypeLiteral<Collection<SessionListener>>()
-      {
-      };
+        new TypeLiteral<Collection<SessionListener>>() { };
     bind(sessionListenerCollectionType).toProvider(SessionListenerProvider.class);
     bindWebSecurityManager(bind(WebSecurityManager.class));
     expose(WebSecurityManager.class);
@@ -71,7 +68,7 @@ public class SecurityModule
     binder().requestInjection(new ComponentConfigurator());
   }
 
-  private void configureFilterChains(FilterChainManager manager) {
+  private void configureFilterChains(FilterChainManager manager, boolean isAnonymousAccessEnabled) {
     configureFilterChainsForIntegrations(manager);
 
     String anonFilters = "anon, clientIPAddressFilter, secureCookies, sessionExpirationCookie";
@@ -101,7 +98,7 @@ public class SecurityModule
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
             "authcBasic[permissive]");
-    if (new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()) {
+    if (isAnonymousAccessEnabled) {
       manager.createChain("/rest/repositories/quarantinedComponent/**", //
           anonFilters + ", noSessionCreation, " + //
               "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " + //
@@ -187,7 +184,7 @@ public class SecurityModule
     bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
     bind(DefaultWebSessionManager.class).in(Singleton.class);
     expose(DefaultWebSessionManager.class);
-    bind(SessionDAO.class).to(ShiroSessionDAO.class).in(Singleton.class);
+    bind(SessionDAO.class).to(ShiroSessionDAO.class);
     expose(SessionDAO.class);
   }
 
@@ -240,7 +237,8 @@ public class SecurityModule
         SessionExpirationCookieFilter sessionExpirationCookieFilter,
         MissingAuthenticationFilter missingAuthenticationFilter,
         SamlFilter samlFilter,
-        InvalidRequestFilter invalidRequestFilter)
+        InvalidRequestFilter invalidRequestFilter,
+        QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
       filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
@@ -253,7 +251,7 @@ public class SecurityModule
       filterChainManager.addFilter("sonatypeInvalidRequest", invalidRequestFilter);
       filterChainManager.setGlobalFilters(Collections.singletonList("sonatypeInvalidRequest"));
 
-      configureFilterChains(filterChainManager);
+      configureFilterChains(filterChainManager, quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
     }
   }
 

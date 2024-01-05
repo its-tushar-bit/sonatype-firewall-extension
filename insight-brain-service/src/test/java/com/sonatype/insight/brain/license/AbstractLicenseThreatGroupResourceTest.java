@@ -21,12 +21,22 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
 {
-  protected final OrganizationDAO orgDAO = new OrganizationDAO();
+  protected OrganizationDAO orgDAO;
+
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Before
+  public void setUp() {
+    orgDAO = lookup(OrganizationDAO.class);
+    licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
+  }
 
   protected HttpRequest restRequest(String ownerId) {
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);
@@ -41,7 +51,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
         + getOwnerType() + " ID " + owner2.getPublicId());
 
     // Verify that the group was not deleted
-    assertThat(new LicenseThreatGroupDAO().getById(group.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(group.getId())).isNotNull();
   }
 
   protected void testDelete_InUseByPolicy(Owner owner) throws Exception {
@@ -72,7 +82,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     }
 
     assertThat(response.getBodyText()).isEqualTo(error);
-    assertThat(new LicenseThreatGroupDAO().getById(ltg.getId())).isNotNull();
+    assertThat(licenseThreatGroupDAO.getById(ltg.getId())).isNotNull();
   }
 
   protected void assertLicenseThreatGroup(String ownerId, String name, int threatLevel, LicenseThreatGroup actual) {

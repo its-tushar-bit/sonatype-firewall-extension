@@ -12,14 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Base64;
-
 import javax.inject.Inject;
 import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
@@ -53,10 +52,14 @@ public class ApiSamlConfigurationServiceTest
   @Inject
   private ApiSamlConfigurationService apiSamlConfigurationService;
 
-  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+  @Inject
+  private SamlConfigurationDAO samlConfigurationDAO;
 
   @Inject
   private SamlDeploymentManager samlDeploymentManager;
+
+  @Inject
+  private OperationalDataStore operationalDataStore;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -463,9 +466,9 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testDelete_InvalidConfiguration() throws Exception {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
          Statement statement = connection.createStatement()) {
-      statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
+      statement.execute("INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".saml_configuration " +
           "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
     }
     assertThatThrownBy(samlConfigurationDAO::get).hasMessageContaining("Could not load SAML keystore");

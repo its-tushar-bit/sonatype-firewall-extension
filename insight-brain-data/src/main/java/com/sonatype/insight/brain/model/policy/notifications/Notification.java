@@ -10,8 +10,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 /**
  * @since 1.21
@@ -40,19 +38,6 @@ public abstract class Notification
   public void setStageIds(Set<String> stageIds) {
     this.stageIds = stageIds != null ? stageIds : new TreeSet<>();
   }
-
-  public ValidationResult validate() {
-    ValidationResult validationResult = new ValidationResult();
-    for (String stageId : stageIds) {
-      if (!CONTINUOUS_MONITORING.equals(stageId) && StageTypes.getById(stageId) == null) {
-        validationResult.addError("Invalid stage type id: '" + stageId + "'");
-      }
-    }
-    validate(validationResult);
-    return validationResult;
-  }
-
-  protected abstract void validate(ValidationResult validationResult);
 
   public abstract Action toAction();
 

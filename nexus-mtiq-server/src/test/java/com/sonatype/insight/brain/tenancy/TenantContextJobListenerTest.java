@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -27,7 +29,7 @@ import org.quartz.JobKey;
 
 import static com.sonatype.insight.brain.tenancy.AllTenantsJob.TENANT_LIST;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantName;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -37,10 +39,13 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantContextJobListenerTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   @Mock
   TenantManager tenantManager;
+
+  @Mock
+  TenantService tenantService;
 
   @Mock
   JobExecutionContext context;
@@ -63,17 +68,14 @@ public class TenantContextJobListenerTest
   TenantContextJobListener underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
     when(context.getJobDetail()).thenReturn(detail);
     when(detail.getJobDataMap()).thenReturn(jobDataMap);
     when(context.getJobInstance()).thenReturn(job);
     when(tenantUtil.isAllTenantsJob(any())).thenReturn(false);
     when(deletedTenantDAO.getAllTenantDeletions()).thenReturn(Collections.emptyList());
 
-    underTest = new TenantContextJobListener(tenantManager, tenantUtil, deletedTenantDAO);
+    underTest = new TenantContextJobListener(tenantManager, tenantService, tenantUtil, deletedTenantDAO);
   }
 
   @Test
@@ -97,7 +99,7 @@ public class TenantContextJobListenerTest
 
   @Test
   public void shouldInvalidateTenant_afterJobExecution() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, new TenantUtil(), deletedTenantDAO);
+    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     testAs(new Tenant("tenant"), tenant -> {
       underTest.jobWasExecuted(context, null);
@@ -109,7 +111,7 @@ public class TenantContextJobListenerTest
 
   @Test
   public void shouldInvalidateTenant_onJobVeto() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, new TenantUtil(), deletedTenantDAO);
+    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     testAs(new Tenant("tenant"), tenant -> {
       underTest.jobExecutionVetoed(context);
@@ -127,7 +129,7 @@ public class TenantContextJobListenerTest
    */
   @Test
   public void shouldInvalidateTenant_beforeSettingUpJobExecution() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, new TenantUtil(), deletedTenantDAO);
+    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
     when(detail.getJobClass()).thenAnswer(i -> job.getClass());
 
     String tenantForJob = "tenant-for-job";
@@ -152,7 +154,7 @@ public class TenantContextJobListenerTest
    */
   @Test
   public void shouldInvalidateTenant_whenExceptionThrown() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, new TenantUtil(), deletedTenantDAO);
+    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     Tenant jobTenant = TenantTestHelper.createTenant(testName);
 
@@ -180,14 +182,15 @@ public class TenantContextJobListenerTest
     try {
       TenantThreadLocal.tenantUtil = tenantUtil;
 
-      ImmutableList<String> tenantNames = ImmutableList.of(createTenantName(testName), createTenantName(testName));
-      List<DeletedTenant> deletedTenants = ImmutableList.of(new DeletedTenant(createTenantName(testName)));
+      ImmutableList<String> tenantNames =
+          ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
+      List<DeletedTenant> deletedTenants = ImmutableList.of(new DeletedTenant(createTenantNameFromTest(testName)));
 
       when(tenantUtil.isMtiqBatchMode()).thenReturn(true);
       when(tenantUtil.isMultiTenant()).thenReturn(true);
       when(tenantUtil.isAllTenantsJob(any())).thenReturn(true);
       when(deletedTenantDAO.getAllTenantDeletions()).thenReturn(deletedTenants);
-      when(tenantUtil.getAllTenants()).thenReturn(Stream.concat(
+      when(tenantService.getAllTenantsNames()).thenReturn(Stream.concat(
           tenantNames.stream(),
           deletedTenants.stream().map(DeletedTenant::getId)
       ).collect(Collectors.toList()));

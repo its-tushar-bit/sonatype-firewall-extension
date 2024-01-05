@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.git;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,18 +17,23 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SourceControlInstanceManagerTest
+    extends BrainInjectedTest
 {
+  @Inject
+  private PerpetualLockDAO perpetualLockDAO;
+
   // test subject 1
-  final SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager()
-      .setInstanceLockCacheExpirationForTesting(1);
+  SourceControlInstanceManager instanceManager1;
 
   // test subject 2
-  final SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager()
-      .setInstanceLockCacheExpirationForTesting(1);
+  SourceControlInstanceManager instanceManager2;
 
   @Before
   public void before() {
-    OperationalDataStoreProvider.init(null, false);
+    instanceManager1 = new SourceControlInstanceManager(perpetualLockDAO)
+        .setInstanceLockCacheExpirationForTesting(1);
+    instanceManager2 = new SourceControlInstanceManager(perpetualLockDAO)
+        .setInstanceLockCacheExpirationForTesting(1);
   }
 
   @After

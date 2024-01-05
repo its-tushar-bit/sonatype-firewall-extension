@@ -43,10 +43,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
-
+import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -84,11 +83,13 @@ public class FirewallPageTest
 
   private final DashboardPage dashboardPage = new DashboardPage();
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
-  private final FirewallMetricsDAO firewallMetricsDAO = new FirewallMetricsDAO();
+  private FirewallMetricsDAO firewallMetricsDAO;
 
-  private static final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -98,6 +99,11 @@ public class FirewallPageTest
 
   @Before
   public void before() {
+    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
+    firewallMetricsDAO = lookup(FirewallMetricsDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+
     setFeatures(
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.RELEASE_INTEGRITY,
@@ -164,8 +170,8 @@ public class FirewallPageTest
     page.firewallStatus().shouldBe(visible);
     page.firewallStatus().statusFullyProtected().shouldNotBe(visible);
     page.firewallStatus().statusPartiallyProtected()
-      .shouldBe(Condition.text("0 of 1 repositories protected"))
-      .shouldBe(visible);
+        .shouldBe(Condition.text("0 of 1 repositories protected"))
+        .shouldBe(visible);
     page.firewallStatus().componentsMonitored().shouldBe(Condition.text("4 Components Monitored")).shouldBe(visible);
 
     eyesWatcher.eyesCheck("Firewall Status - Partially Protected");
@@ -194,8 +200,8 @@ public class FirewallPageTest
     page.firewallStatus().shouldBe(visible);
     page.firewallStatus().statusPartiallyProtected().shouldNotBe(visible);
     page.firewallStatus().statusFullyProtected()
-      .shouldBe(Condition.text("1 of 1 repositories protected"))
-      .shouldBe(visible);
+        .shouldBe(Condition.text("1 of 1 repositories protected"))
+        .shouldBe(visible);
     page.firewallStatus().componentsMonitored().shouldBe(Condition.text("2 Components Monitored")).shouldBe(visible);
 
     eyesWatcher.eyesCheck("Firewall Status - Fully Protected");
@@ -247,7 +253,7 @@ public class FirewallPageTest
         tempEntity.newRepositoryComponent(
             repository.getId(),
             MatchState.EXACT,
-        "b:a:1",
+            "b:a:1",
             "b:a:1",
             ComponentIdentifier.createMavenCoordinates("b", "a", "1"),
             testDate,
@@ -266,7 +272,7 @@ public class FirewallPageTest
         tempEntity.newRepositoryComponent(
             repository.getId(),
             MatchState.EXACT,
-        "c:a:1",
+            "c:a:1",
             "c:a:1",
             ComponentIdentifier.createMavenCoordinates("c", "a", "1"),
             testDate,
@@ -285,7 +291,7 @@ public class FirewallPageTest
         tempEntity.newRepositoryComponent(
             repository.getId(),
             MatchState.EXACT,
-        "d:a:1",
+            "d:a:1",
             "d:a:1",
             ComponentIdentifier.createMavenCoordinates("d", "a", "1"),
             testDate,
@@ -387,7 +393,7 @@ public class FirewallPageTest
   public void testFirewallQuarantineTable_Filtering() {
     setupData();
 
-    Long time = new RepositoryComponentDAO().getAllQuarantinedComponent().stream()
+    Long time = repositoryComponentDAO.getAllQuarantinedComponent().stream()
         .map(RepositoryComponent::getQuarantineTime)
         .map(Date::getTime)
         .max(Comparator.naturalOrder())
@@ -407,7 +413,7 @@ public class FirewallPageTest
     tempEntity.newRepositoryPolicyViolation(
         repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),
         false, FailActionType.ID, anotherPolicy.getId(), anotherPolicy.getName(),
-            repositoryComponent.getComponentIdentifier()
+        repositoryComponent.getComponentIdentifier()
     );
 
     refreshOrOpen(FirewallPage.url());
@@ -461,7 +467,7 @@ public class FirewallPageTest
   @Test
   public void testFirewallQuarantineTable_ComponentNameSearch() {
     setupData();
-    Long time = new RepositoryComponentDAO().getAllQuarantinedComponent().stream()
+    Long time = repositoryComponentDAO.getAllQuarantinedComponent().stream()
         .map(RepositoryComponent::getQuarantineTime)
         .map(Date::getTime)
         .max(Comparator.naturalOrder())
@@ -543,5 +549,3 @@ public class FirewallPageTest
     return policy;
   }
 }
-
-

@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.tenancy;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -18,10 +22,17 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
+@Named
+@Singleton
 public class DeletedTenantDAO
     extends AbstractOperationalSqlDAO<DeletedTenant>
 {
   private static final Logger log = LoggerFactory.getLogger(DeletedTenantDAO.class);
+
+  @Inject
+  public DeletedTenantDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   @Override
   public TransactionContext createTransactionContext() {

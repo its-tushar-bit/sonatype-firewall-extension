@@ -104,21 +104,36 @@ public class SbomResultHandler
 
   private static final String VULNERABILITY_KEY = "vulnerabilities";
 
-  protected final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+  protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
-  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
-  protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO =
-      new ThirdPartyCoordinateSecurityDAO();
+  protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
-  protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
+  protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
-  protected final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  protected final MultiLicenseDAO multiLicenseDAO;
 
-  protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO =
-      new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
+  protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
-  protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil();
+  protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil;
+
+  public SbomResultHandler(
+      final ThirdPartyFileDAO thirdPartyFileDAO,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final MultiLicenseDAO multiLicenseDAO,
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO)
+  {
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
+    this.thirdPartyVexDAO = thirdPartyVexDAO;
+    spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
+  }
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(

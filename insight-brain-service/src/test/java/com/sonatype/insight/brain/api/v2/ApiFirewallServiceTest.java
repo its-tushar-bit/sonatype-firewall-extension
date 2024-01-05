@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -122,6 +121,12 @@ public class ApiFirewallServiceTest
   
   @Inject
   private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
 
   @Mock
   private RepositoryService repositoryServiceMock;
@@ -785,13 +790,13 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetQuarantinedComponentViewAnonymousAccess() {
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isTrue();
 
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(false);
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isFalse();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isFalse();
 
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
-    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+    assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isTrue();
   }
 
   @Test
@@ -1519,7 +1524,7 @@ public class ApiFirewallServiceTest
 
     apiFirewallService.deleteRepositoryManager(repositoryManager.getId());
 
-    assertThat(new RepositoryManagerDAO().getById(repositoryManager.getId())).isNull();
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
   }
 
   @Test
@@ -1540,7 +1545,7 @@ public class ApiFirewallServiceTest
     assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo("testProductVersion");
 
     // Assert the repository manager data in the db
-    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(apiRepositoryManagerDTO.id);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
     assertThat(repositoryManager.getInstanceId()).isEqualTo("testInstanceId");
     assertThat(repositoryManager.getName()).isEqualTo("testName");
     assertThat(repositoryManager.getProductName()).isEqualTo("testProductName");

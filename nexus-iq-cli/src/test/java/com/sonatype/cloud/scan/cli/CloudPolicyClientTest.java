@@ -12,8 +12,8 @@ import java.nio.file.Files;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.scan.model.ClientScanResult;
 
 import org.apache.openjpa.persistence.RollbackException;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class CloudPolicyClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final String TEST_APPLICATION_ID = "the-app-id";
 

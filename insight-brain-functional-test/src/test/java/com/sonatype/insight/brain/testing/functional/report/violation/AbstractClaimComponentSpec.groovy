@@ -64,7 +64,7 @@ extends BaseSpec {
 
   @Override
   def cleanupSpec() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO()
+    HashComponentIdentifierDAO dao = lookup(HashComponentIdentifierDAO.class)
     HashComponentIdentifier hci = dao.getByComponentIdentifier(CID)
     if (hci) {
       dao.delete(hci)

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
-
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -30,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyViolationWaiverResourceTest
     extends AbstractResourceTest
 {
+  private PolicyWaiverDAO policyWaiverDAO;
+
   private Organization org;
 
   private Application app;
@@ -40,6 +41,8 @@ public class ApiPolicyViolationWaiverResourceTest
 
   @Before
   public void setUpPolicyViolation() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     policy = tempEntity.newPolicy(org);
@@ -69,7 +72,7 @@ public class ApiPolicyViolationWaiverResourceTest
   }
 
   private void assertPolicyWaiver(String ownerId, String comment) {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver.getId()).isNotNull();

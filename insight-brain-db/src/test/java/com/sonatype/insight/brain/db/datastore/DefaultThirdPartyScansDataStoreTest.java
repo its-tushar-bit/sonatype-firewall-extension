@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import java.io.File;
-
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 
 import org.junit.Test;
@@ -19,19 +16,20 @@ public class DefaultThirdPartyScansDataStoreTest
     extends AbstractDataStoreTest
 {
   @Override
-  protected DataStore createTestDataStore() {
-    return new DefaultThirdPartyScansDataStore(new DataSourceFactory(), new DatabaseMigrator());
+  protected DataStore getTestDataStore() {
+    return databaseRule.getThirdPartyScansDataStore();
   }
 
   @Test
+  @H2DiskTest(
+      suppressMigrations = true,
+      copyExistingDatabase = "DefaultThirdPartyScansDataStoreTest/Migrate"
+  )
   public void testInit_Migrate() throws Exception {
-    File databaseDir = tempDir.newFolder();
-    copyDatabase(databaseDir, getClass().getSimpleName() + "/Migrate");
+    migrateDatabase();
 
-    initDatabase(getDatabaseConfig(databaseDir, "third_party_scans"));
-
-    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(dataStore.getID());
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
-        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
+    int desiredDbVersion = DataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(getTestDataStore().getDataSource(), getTestDataStore().getID(),
+        getTestDataStore().getDatabaseSchema())).isEqualTo(desiredDbVersion);
   }
 }

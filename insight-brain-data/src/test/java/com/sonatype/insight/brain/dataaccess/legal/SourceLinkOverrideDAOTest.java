@@ -26,8 +26,10 @@ public class SourceLinkOverrideDAOTest
   private SourceLinkOverrideDAO dao;
 
   @Before
-  public void before() {
-    dao = new SourceLinkOverrideDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSourceLinkOverrideDAO();
   }
 
   @Test

@@ -9,19 +9,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.AbstractDataTest;
 
 import com.google.common.collect.Sets;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AggregateFileTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Test
   public void testCreate() {
     String applicationComponentId = tempEntity.uuid();

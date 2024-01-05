@@ -33,6 +33,12 @@ public class ApplicationManagementServiceTest
   private static final int RESULTS_PER_PAGE = 50;
 
   @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private ApplicationManagementService applicationManagementService;
 
   private Application app1;
@@ -230,9 +236,9 @@ public class ApplicationManagementServiceTest
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
-    orgs.addAll(new OrganizationDAO().getAll().stream()
+    orgs.addAll(organizationDAO.getAll().stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
-    apps.addAll(new ApplicationDAO().getAll());
+    apps.addAll(applicationDAO.getAll());
     int currentSize = apps.size();
     for (int result = 0; result < RESULTS_PER_PAGE + 1 - currentSize; result++) {
       String orgSuffix = getAlphabeticalSequenceElement(result);

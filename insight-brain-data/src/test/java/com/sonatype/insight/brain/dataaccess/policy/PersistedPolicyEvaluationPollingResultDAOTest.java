@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PersistedPolicyEvaluationPollingResultDAOTest
     extends AbstractDbDAOTest
 {
-  private final PersistedPolicyEvaluationPollingResultDAO dao = new PersistedPolicyEvaluationPollingResultDAO();
+  private PersistedPolicyEvaluationPollingResultDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createPersistedPolicyEvaluationPollingResultDAO();
+  }
 
   @Test
   public void testCRUD() {

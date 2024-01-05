@@ -33,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiOrganizationResourceV2Test
     extends AbstractResourceTest
 {
+  private OrganizationDAO organizationDAO;
+
   private Organization organization;
 
   @Rule
@@ -40,6 +42,7 @@ public class ApiOrganizationResourceV2Test
 
   @Before
   public void setUp() {
+    organizationDAO = lookup(OrganizationDAO.class);
     organization = tempEntity.newOrganization("test-org");
   }
 
@@ -117,8 +120,6 @@ public class ApiOrganizationResourceV2Test
 
   @Test
   public void testAddOrganization() throws Exception {
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-
     ApiOrganizationDTO requestBody = new ApiOrganizationDTO(null, "test-create-organization");
 
     HttpRequest request = restRequest().body(requestBody);

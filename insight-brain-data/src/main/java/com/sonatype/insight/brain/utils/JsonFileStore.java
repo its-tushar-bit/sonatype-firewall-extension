@@ -14,7 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -30,14 +31,17 @@ public final class JsonFileStore
 
   private final String ownerId;
 
-  public JsonFileStore(final File folder, String ownerId) {
+  private final ClusterLockManager clusterLockManager;
+
+  public JsonFileStore(final File folder, final String ownerId, final ClusterLockManager clusterLockManager) {
     this.folder = folder;
     this.ownerId = ownerId;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @Override
   public void commit(final String path, final ContainerNode<?> data) throws IOException {
-    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(ownerId)) {
       clusterLock.lock();
       final File file = new File(folder, path);
 
@@ -56,7 +60,7 @@ public final class JsonFileStore
 
   @Override
   public ContainerNode<?> restore(String path) throws IOException {
-    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(ownerId)) {
       clusterLock.lock();
       final File file = new File(folder, path);
 
@@ -89,7 +93,7 @@ public final class JsonFileStore
 
   @Override
   public ContainerNode<?> history(final ContainerNode<?> key, final String... paths) throws IOException {
-    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(ownerId)) {
       clusterLock.lock();
       Iterable<String> filenames = Arrays.asList(paths);
       if (paths.length == 0 || paths[0].length() == 0) {

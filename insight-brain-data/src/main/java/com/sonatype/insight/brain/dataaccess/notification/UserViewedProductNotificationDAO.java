@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.notification;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -18,9 +22,16 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @since 1.14.0
  */
+@Named
+@Singleton
 public class UserViewedProductNotificationDAO
     extends AbstractOperationalSqlDAO<UserViewedProductNotification>
 {
+  @Inject
+  public UserViewedProductNotificationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public UserViewedProductNotification getByUsernameAndRealmIdAndNotificationId(
       String username,
       String realmId,

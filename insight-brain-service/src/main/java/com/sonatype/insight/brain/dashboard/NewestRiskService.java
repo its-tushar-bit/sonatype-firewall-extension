@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,7 +26,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditUtils;
+import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -66,16 +65,20 @@ public class NewestRiskService
 
   private final DashboardUtils dashboardUtils;
 
+  private final AuditService auditService;
+
   @Inject
   public NewestRiskService(ApplicationService applicationService,
                            OrganizationDAO organizationDAO,
                            PolicyViolationLoader policyViolationLoader,
-                           DashboardUtils dashboardUtils)
+                           DashboardUtils dashboardUtils,
+                           final AuditService auditService)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
+    this.auditService = auditService;
   }
 
   /**
@@ -103,10 +106,10 @@ public class NewestRiskService
     List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
 
     AuditData.get() //
-        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds)) //
         .setData("selectedApplications",
-            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
-        .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
+            auditService.getSelectedApplicationsById(applicationIds, organizationIds, applications)) //
+        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", applications.size());
 
     Collection<ApplicationView> appViews = getPolicyViolations(applications, stageIds, policyThreatCategoryFilter,

@@ -83,14 +83,17 @@ public class RepositoriesSummaryViewTest
 {
   private static final int HIERARCHY_SIZE = 2;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
-
-  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
-
-  private static final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
-      new ProprietaryComponentNamePatternDAO();
-
   private static Dimension originalSize;
+
+  private RoleDAO roleDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private RepositoryDAO repositoryDAO;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
   @BeforeClass
   public static void startup() {
@@ -101,6 +104,12 @@ public class RepositoriesSummaryViewTest
 
   @Before
   public void init() {
+    roleDAO = lookup(RoleDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
+    repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);
+
     refreshOrOpen(RepositoriesSummaryPage.url());
   }
 
@@ -321,7 +330,6 @@ public class RepositoriesSummaryViewTest
     Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
     Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
     User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
-    RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
     tempEntity
         .newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID, writeRole.getId(), testUser.getUsername());
@@ -1078,7 +1086,7 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testPolicyTile_InheritedPolicies() {
-    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+    Owner parentOwner = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
 
     List<Policy> inheritedPolicies = new ArrayList<>();
 
@@ -1175,7 +1183,7 @@ public class RepositoriesSummaryViewTest
     RepositoryManager repositoryManager = tempEntity
         .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
 
-    Owner rootOrgOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+    Owner rootOrgOwner = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
 
     List<Policy> localToRepositoryManagerPolicies = new ArrayList<>();
     localToRepositoryManagerPolicies.add(tempEntity.newPolicy(repositoryManager.getId(),

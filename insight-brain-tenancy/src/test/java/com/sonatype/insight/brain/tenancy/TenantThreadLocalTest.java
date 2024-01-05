@@ -23,7 +23,7 @@ import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantName;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -246,7 +246,7 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
     when(tenantUtilMock.isMultiTenant()).thenReturn(true);
 
-    List<String> tenants = ImmutableList.of(createTenantName(testName), createTenantName(testName));
+    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
 
     List<Tenant> runAs = new ArrayList<>();
     TenantThreadLocal.runForAllTenantsOnBatch(tenants, testName.getMethodName(), runAs::add);
@@ -264,7 +264,7 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
     when(tenantUtilMock.isMultiTenant()).thenReturn(false);
 
-    List<String> tenants = ImmutableList.of(createTenantName(testName), createTenantName(testName));
+    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
 
     List<Tenant> runAs = new ArrayList<>();
     TenantThreadLocal.runForAllTenantsOnBatch(tenants, testName.getMethodName(), runAs::add);
@@ -280,7 +280,7 @@ public class TenantThreadLocalTest
     when(tenantUtilMock.isMtiqBatchMode()).thenReturn(false);
     when(tenantUtilMock.isMultiTenant()).thenReturn(true);
 
-    List<String> tenants = ImmutableList.of(createTenantName(testName), createTenantName(testName));
+    List<String> tenants = ImmutableList.of(createTenantNameFromTest(testName), createTenantNameFromTest(testName));
 
     List<Tenant> runAs = new ArrayList<>();
     TenantThreadLocal.runForAllTenantsOnBoot(tenants, testName.getMethodName(), runAs::add);

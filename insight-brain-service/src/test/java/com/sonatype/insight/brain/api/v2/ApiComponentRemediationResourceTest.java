@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -59,7 +60,7 @@ public class ApiComponentRemediationResourceTest
   private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v3", "", "jar");
 
-  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper;
 
   private Application app;
 
@@ -67,6 +68,9 @@ public class ApiComponentRemediationResourceTest
 
   @Before
   public void before() throws Exception {
+    PolicyDAO policyDAO = lookup(PolicyDAO.class);
+    componentEvaluationV2Helper = new ComponentEvaluationV2Helper(policyDAO);
+
     org = tempEntity.newOrganization("Org");
     app = tempEntity.newApplication(org.getId());
     setFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);

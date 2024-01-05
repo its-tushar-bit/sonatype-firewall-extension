@@ -151,7 +151,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -329,244 +330,231 @@ public class TemporaryEntity
 
   public static final String WEBHOOK_SECRET_KEY_ENCRYPTED = "yt81KDLODoAH7i0U4G5lEr53mhus9kOCjB3dMtcDVFY=";
 
-  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private ApplicationDAO appDAO;
 
-  private final OrganizationDAO orgDAO = new OrganizationDAO();
+  private OrganizationDAO orgDAO;
 
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
 
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private SamlUserDAO samlUserDAO;
 
-  private final SamlGroupDAO samlGroupDAO = new SamlGroupDAO();
+  private SamlGroupDAO samlGroupDAO;
 
-  private final SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
+  private SamlUserGroupDAO samlUserGroupDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO(true);
+  private RoleDAO roleDAO;
 
-  private final RolePermissionDAO rolePermDAO = new RolePermissionDAO();
+  private RolePermissionDAO rolePermDAO;
 
-  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+  private MembershipMappingDAO membershipMappingDAO;
 
-  private final LabelDAO labelDAO = new LabelDAO();
+  private LabelDAO labelDAO;
 
-  private final TagDAO tagDAO = new TagDAO();
+  private TagDAO tagDAO;
 
-  private final ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+  private ApplicationComponentDAO appComponentDAO;
 
-  private final ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+  private ApplicationTagDAO appTagDAO;
 
-  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private PolicyTagDAO policyTagDAO;
 
-  private final PolicyDAO policyDAO = new PolicyDAO();
+  private PolicyDAO policyDAO;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO =
-      new SourceControlPullRequestCommentDAO();
+  private SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
 
-  private final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
+  private PolicyViolationDAO policyViolationDAO;
 
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private ComponentLabelDAO componentLabelDAO;
 
-  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private LicenseOverrideDAO licenseOverrideDAO;
 
-  private final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+  private PolicyWaiverDAO waiverDAO;
 
-  private final PolicyWaiverDAO waiverDAO = new PolicyWaiverDAO();
+  private LdapServerDAO ldapServerDAO;
 
-  private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
+  private LdapConnectionDAO ldapConnectionDAO;
 
-  private final LdapConnectionDAO ldapConnectionDAO = new LdapConnectionDAO();
+  private LdapUserMappingDAO ldapUserMappingDAO;
 
-  private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
-  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+  private DashboardFilterDAO dashboardFilterDAO;
 
-  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private UserFilterDAO userFilterDAO;
 
-  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
-  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
-      new UserViewedProductNotificationDAO();
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  private RepositoryManagerDAO repositoryManagerDAO;
 
-  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private RepositoryDAO repositoryDAO;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private RepositoryComponentDAO repositoryComponentDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
 
-  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
-      new SecurityVulnerabilityOverrideDAO();
+  private VulnerabilityGroupDAO vulnerabilityGroupDAO;
 
-  private final VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
+  private VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
 
-  private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
-      new VulnerabilityGroupVulnerabilityDAO();
+  private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
 
-  private final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
-      new VulnerabilityCustomRemediationDAO();
+  private VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO;
 
-  private final VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
-      new VulnerabilityCustomRemediationTagDAO();
+  private VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO;
 
-  private final VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+  private VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO;
 
-  private final VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO = new VulnerabilityCustomCweTagDAO();
+  private VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO;
 
-  private final VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO =
-      new VulnerabilityCustomCvssVectorDAO();
+  private VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO;
 
-  private final VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO =
-      new VulnerabilityCustomCvssVectorTagDAO();
+  private VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO;
 
-  private final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
-      new VulnerabilityCustomCvssSeverityDAO();
+  private VulnerabilityCustomCvssSeverityTagDAO vulnerabilityCustomCvssSeverityTagDAO;
 
-  private final VulnerabilityCustomCvssSeverityTagDAO vulnerabilityCustomCvssSeverityTagDAO =
-      new VulnerabilityCustomCvssSeverityTagDAO();
+  private ProprietaryConfigDAO proprietaryConfigDAO;
 
-  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
-      new ProprietaryComponentNamePatternDAO();
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
-  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private WebhookDAO webhookDAO;
 
-  private final WebhookDAO webhookDAO = new WebhookDAO();
+  private PolicyViolationAggregationDAO policyViolationAggregationDAO;
 
-  private final PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
+  private SuccessMetricsReportDAO successMetricsReportDAO;
 
-  private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
+  private SuccessMetricsReportDataDAO successMetricsReportDataDAO;
 
-  private final SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final FirewallMetricsDAO firewallMetricsDAO = new FirewallMetricsDAO();
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private FirewallMetricsDAO firewallMetricsDAO;
 
-  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-      new AutomaticApplicationsConfigurationDAO();
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
-      new AutomaticSourceControlConfigurationDAO();
+  private SourceControlDAO sourceControlDAO;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private SourceControlEventDAO sourceControlEventDAO;
 
-  private final SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
+  private SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
-  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+  private SamlConfigurationDAO samlConfigurationDAO;
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+  private UserTokenDAO userTokenDAO;
 
-  private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO = new ThirdPartyVulnerabilityDAO();
+  private MailConfigurationDAO mailConfigurationDAO;
 
-  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
+  private SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
 
-  private final MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+  private SourceControlUserDAO sourceControlUserDAO;
 
-  private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
+  private SourceControlUserActivityDAO sourceControlUserActivityDAO;
 
-  private final SourceControlUserDAO sourceControlUserDAO = new SourceControlUserDAO();
+  private ProductLicenseDAO productLicenseDAO;
 
-  private final SourceControlUserActivityDAO sourceControlUserActivityDAO = new SourceControlUserActivityDAO();
+  private FirewallIgnorePatternsDAO firewallIgnorePatternsDAO;
 
-  private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
+  private SearchIndexChangeDAO searchIndexChangeDAO;
 
-  private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO = new FirewallIgnorePatternsDAO();
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
-  private final SearchIndexChangeDAO searchIndexChangeDAO = new SearchIndexChangeDAO();
+  private PersistedUserSessionDAO persistedUserSessionDAO;
 
-  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
-      new PersistedPolicyEvaluationPollingResultDAO();
+  private ShiroSessionDAO shiroSessionDAO;
 
-  private final PersistedUserSessionDAO persistedUserSessionDAO = new PersistedUserSessionDAO();
+  private InnerSourceComponentDAO innerSourceComponentDAO;
 
-  private final ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
+  private PersistedScanTicketDAO persistedScanTicketDAO;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+  private RepositoryMigrationDAO repositoryMigrationDAO;
 
-  private final PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
+  private AggregateFileDAO aggregateFileDAO;
 
-  private final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
 
-  private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+  private ComponentCopyrightDAO componentCopyrightDAO;
 
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+  private CopyrightOverrideDAO copyrightOverrideDAO;
 
-  private final ComponentCopyrightDAO componentCopyrightDAO = new ComponentCopyrightDAO();
+  private ComponentLegalFileDAO componentLegalFileDAO;
 
-  private final CopyrightOverrideDAO copyrightOverrideDAO = new CopyrightOverrideDAO();
+  private LegalFileOverrideDAO legalFileOverrideDAO;
 
-  private final ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
+  private ComponentObligationDAO componentObligationDAO;
 
-  private final LegalFileOverrideDAO legalFileOverrideDAO = new LegalFileOverrideDAO();
+  private ComponentObligationAttributionDAO componentObligationAttributionDAO;
 
-  private final ComponentObligationDAO componentObligationDAO = new ComponentObligationDAO();
+  private AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
-  private final ComponentObligationAttributionDAO componentObligationAttributionDAO =
-      new ComponentObligationAttributionDAO();
+  private AttributionReportTemplateDAO attributionReportTemplateDAO;
 
-  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
-      new AutoUnquarantinePolicyConditionTypeDAO();
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
-  private final AttributionReportTemplateDAO attributionReportTemplateDAO = new AttributionReportTemplateDAO();
+  private RepositoryConnectionDAO repositoryConnectionDAO;
 
-  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+  private ComponentSourceLinkDAO componentSourceLinkDAO;
 
-  private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
+  private SourceLinkOverrideDAO sourceLinkOverrideDAO;
 
-  private final ComponentSourceLinkDAO componentSourceLinkDAO = new ComponentSourceLinkDAO();
+  private CrowdConfigurationDAO crowdConfigurationDAO;
 
-  private final SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
+  private ArtifactoryConnectionDAO artifactoryConnectionDAO;
 
-  private final CrowdConfigurationDAO crowdConfigurationDAO = new CrowdConfigurationDAO();
+  private RepositoryClientConfigurationDAO repositoryClientConfigurationDAO;
 
-  private final ArtifactoryConnectionDAO artifactoryConnectionDAO = new ArtifactoryConnectionDAO();
+  private RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
 
-  private final RepositoryClientConfigurationDAO repositoryClientConfigurationDAO =
-      new RepositoryClientConfigurationDAO();
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
-  private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO =
-      new RepositoryIdentifiedComponentDAO();
+  private JiraConfigurationDAO jiraConfigurationDAO;
 
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO =
-      new ReverseProxyAuthenticationConfigurationDAO();
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
-  private final JiraConfigurationDAO jiraConfigurationDAO = new JiraConfigurationDAO();
+  private SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO = new SourceControlConfigurationDAO();
+  private DeletedTenantDAO deletedTenantDAO;
 
-  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
-      new SourceControlPullRequestResultDAO();
+  private SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO;
 
-  private final DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+  private UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
 
-  private final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO =
-      new SourceControlOrganizationImportEventDAO();
+  private LockDAO lockDAO;
 
-  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
+  private PerpetualLockDAO perpetualLockDAO;
 
-  private final LockDAO lockDAO = new LockDAO();
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
-  private final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
-  private final ApplicationCountHistoryDAO applicationCountHistoryDAO = new ApplicationCountHistoryDAO();
+  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
-  private final SastScanDAO sastScanDAO = new SastScanDAO();
+  private ThirdPartyScanDAO thirdPartyScanDAO;
 
-  private final SastFindingDAO sastFindingDAO = new SastFindingDAO();
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
+  private ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  private ApplicationCountHistoryDAO applicationCountHistoryDAO;
+
+  private SastScanDAO sastScanDAO;
+
+  private  SastFindingDAO sastFindingDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -580,11 +568,22 @@ public class TemporaryEntity
 
   private static List<User> initialUsers;
 
-  private boolean forInMemoryDatabase;
+  private DataStoreProvider dataStoreProvider;
+
+  private DAOFactory daoFactory;
+
+  private OperationalDataStore operationalDataStore;
+
+  public TemporaryEntity(final DataStoreProvider dataStoreProvider) {
+    this.dataStoreProvider = dataStoreProvider;
+  }
 
   @Override
   public void before() {
-    forInMemoryDatabase = OperationalDataStoreProvider.isDatabaseInMemory();
+    this.operationalDataStore = dataStoreProvider.getOperationalDataStore();
+    this.daoFactory = new TestDAOFactory(this.dataStoreProvider);
+
+    initializeDAOs();
 
     saveInitialMembershipMappingsIfNeeded();
     saveInitialMigrationTrackersIfNeeded();
@@ -796,6 +795,7 @@ public class TemporaryEntity
       samlConfigurationDAO.delete();
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
       delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
+      delete(thirdPartyCoordinateSecurityDAO.getAll(), thirdPartyCoordinateSecurityDAO);
       delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
@@ -844,11 +844,6 @@ public class TemporaryEntity
       applicationCountHistoryDAO.getAll().stream()
           .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
           .forEach(applicationCountHistoryDAO::delete);
-      if (forInMemoryDatabase != OperationalDataStoreProvider.isDatabaseInMemory()) {
-        throw new RuntimeException(
-            "TemporaryEntity incorrectly used. Created for inMemoryDatabase=" + forInMemoryDatabase
-                + " and used for inMemoryDatabase=" + OperationalDataStoreProvider.isDatabaseInMemory());
-      }
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -923,7 +918,7 @@ public class TemporaryEntity
     }
   }
 
-  public String uuid() {
+  public static String uuid() {
     return UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -949,11 +944,11 @@ public class TemporaryEntity
 
   public DashboardFilter newDashboardFilterLegacy(String username, String filterName, String filter) {
     String id = uuid();
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement("INSERT INTO dashboard_filter " + //
-             "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " +
-             //
-             "VALUES (?1, ?2, ?3, ?4, ?5, ?6)")) {
+    String sql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".dashboard_filter " + //
+        "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " + //
+        "VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
+         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -2015,7 +2010,7 @@ public class TemporaryEntity
     SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory = new SourceControlDefaultBranchCommitHistory(
         applicationId, commitHash, commitTime, policyEvaluationId
     );
-    defaultBranchCommitHistoryDAO.insert(defaultBranchCommitHistory);
+    sourceControlDefaultBranchCommitHistoryDAO.insert(defaultBranchCommitHistory);
     return defaultBranchCommitHistory;
   }
 
@@ -2484,7 +2479,6 @@ public class TemporaryEntity
         .setScmUsername("user")
         .setInitiator("webhook");
 
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.insert(sourceControlEvent);
     return sourceControlEvent;
   }
@@ -2494,16 +2488,18 @@ public class TemporaryEntity
         .setApplicationId(application.getId())
         .setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
 
-    new SourceControlEventDAO().insert(sourceControlEvent);
+    sourceControlEventDAO.insert(sourceControlEvent);
     return sourceControlEvent;
   }
 
   public UserViewedProductNotification newUserViewedProductNotificationLegacy(String username, String notificationId) {
     String id = uuid();
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement("INSERT INTO user_viewed_product_notification " + //
-             "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
-             "VALUES (?1, ?2, ?3, ?4)")) {
+    String sql = "INSERT INTO " + operationalDataStore.getDatabaseSchema() +
+        ".user_viewed_product_notification " + //
+        "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
+        "VALUES (?1, ?2, ?3, ?4)";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
+         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -2610,11 +2606,11 @@ public class TemporaryEntity
   }
 
   public Repository newRepository(
-          RepositoryManager repositoryManager,
-          String publicId,
-          RepositoryType repositoryType,
-          String format,
-          boolean quarantineOrNamespaceConfusionProtectionEnabled)
+      RepositoryManager repositoryManager,
+      String publicId,
+      RepositoryType repositoryType,
+      String format,
+      boolean quarantineOrNamespaceConfusionProtectionEnabled)
   {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setRepositoryType(repositoryType);
@@ -3651,7 +3647,7 @@ public class TemporaryEntity
 
   public ThirdPartyScan newThirdPartyScan(ThirdPartyFile thirdPartyFile) {
     ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), uuid(), new Date());
-    new ThirdPartyScanDAO().insert(scan);
+    thirdPartyScanDAO.insert(scan);
     return scan;
   }
 
@@ -3662,14 +3658,14 @@ public class TemporaryEntity
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId) {
     ThirdPartyScan scan = new ThirdPartyScan(newThirdPartyFile().getId(), scanRequestId, new Date());
     scan.setScanId(scanId);
-    new ThirdPartyScanDAO().insert(scan);
+    thirdPartyScanDAO.insert(scan);
     return scan;
   }
 
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId, ThirdPartyFile thirdPartyFile) {
     ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
     scan.setScanId(scanId);
-    new ThirdPartyScanDAO().insert(scan);
+    thirdPartyScanDAO.insert(scan);
     return scan;
   }
 
@@ -3695,7 +3691,7 @@ public class TemporaryEntity
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     fileCoordinate.setPackageUrl(packageUrl);
-    new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }
 
@@ -3715,7 +3711,7 @@ public class TemporaryEntity
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setCpe(cpe);
     fileCoordinate.setSwid(swid);
-    new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }
 
@@ -3760,7 +3756,7 @@ public class TemporaryEntity
     coordinateSecurity.setRatingMethod(ratingMethod);
     coordinateSecurity.setRecommendations(recommendations);
     coordinateSecurity.setAdvisories(advisories);
-    new ThirdPartyCoordinateSecurityDAO().insert(coordinateSecurity);
+    thirdPartyCoordinateSecurityDAO.insert(coordinateSecurity);
     return coordinateSecurity;
   }
 
@@ -3781,7 +3777,7 @@ public class TemporaryEntity
   {
     ThirdPartyCoordinateLicense coordinateLicense =
         new ThirdPartyCoordinateLicense(fileCoordinate.getId(), licenseId, name, url);
-    new ThirdPartyCoordinateLicenseDAO().insert(coordinateLicense);
+    thirdPartyCoordinateLicenseDAO.insert(coordinateLicense);
     return coordinateLicense;
   }
 
@@ -3795,9 +3791,9 @@ public class TemporaryEntity
   {
     ThirdPartyVulnerabilityExploitabilityExchange vexData =
         new ThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity.getId(), refId, state,
-        justification, response, detail);
+            justification, response, detail);
 
-    new ThirdPartyVulnerabilityExploitabilityExchangeDAO().insert(vexData);
+    thirdPartyVulnerabilityExploitabilityExchangeDAO.insert(vexData);
 
     return vexData;
   }
@@ -4518,5 +4514,138 @@ public class TemporaryEntity
     return IntStream.range(0, numberOfApplications)
         .mapToObj(i -> newApplication(organization.getId()))
         .collect(toList());
+  }
+
+  private void initializeDAOs() {
+    initializeOperationalDataStoreDAOs();
+    initializeDataMartDataStoreDAOs();
+    initializeAggregationDataStoreDAOs();
+    initializeThirdPartyScansDataStoreDAOs();
+  }
+
+  private void initializeOperationalDataStoreDAOs() {
+    migrationTrackerDAO = daoFactory.createMigrationTrackerDAO();
+    appDAO = daoFactory.createApplicationDAO();
+    orgDAO = daoFactory.createOrganizationDAO();
+    userDAO = daoFactory.createUserDAO();
+    samlUserDAO = daoFactory.createSamlUserDAO();
+    samlGroupDAO = daoFactory.createSamlGroupDAO();
+    samlUserGroupDAO = daoFactory.createSamlUserGroupDAO();
+    roleDAO = daoFactory.createRoleDAO();
+    rolePermDAO = daoFactory.createRolePermissionDAO();
+    membershipMappingDAO = daoFactory.createMembershipMappingDAO();
+    labelDAO = daoFactory.createLabelDAO();
+    tagDAO = daoFactory.createTagDAO();
+    appComponentDAO = daoFactory.createApplicationComponentDAO();
+    appTagDAO = daoFactory.createApplicationTagDAO();
+    policyTagDAO = daoFactory.createPolicyTagDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
+    sourceControlPullRequestCommentDAO = daoFactory.createSourceControlPullRequestCommentDAO();
+    policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    componentLabelDAO = daoFactory.createComponentLabelDAO();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    waiverDAO = daoFactory.createPolicyWaiverDAO();
+    ldapServerDAO = daoFactory.createLdapServerDAO();
+    ldapConnectionDAO = daoFactory.createLdapConnectionDAO();
+    ldapUserMappingDAO = daoFactory.createLdapUserMappingDAO();
+    hashComponentIdentifierDAO = daoFactory.createHashComponentIdentifierDAO();
+    dashboardFilterDAO = daoFactory.createDashboardFilterDAO();
+    userFilterDAO = daoFactory.createUserFilterDAO();
+    userViewedProductNotificationDAO = daoFactory.createUserViewedProductNotificationDAO();
+    policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
+    repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+    repositoryDAO = daoFactory.createRepositoryDAO();
+    repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
+    vulnerabilityGroupDAO = daoFactory.createVulnerabilityGroupDAO();
+    vulnerabilityGroupVulnerabilityDAO = daoFactory.createVulnerabilityGroupVulnerabilityDAO();
+    vulnerabilityCustomRemediationDAO = daoFactory.createVulnerabilityCustomRemediationDAO();
+    vulnerabilityCustomRemediationTagDAO = daoFactory.createVulnerabilityCustomRemediationTagDAO();
+    vulnerabilityCustomCweDAO = daoFactory.createVulnerabilityCustomCweDAO();
+    vulnerabilityCustomCweTagDAO = daoFactory.createVulnerabilityCustomCweTagDAO();
+    vulnerabilityCustomCvssVectorDAO = daoFactory.createVulnerabilityCustomCvssVectorDAO();
+    vulnerabilityCustomCvssVectorTagDAO = daoFactory.createVulnerabilityCustomCvssVectorTagDAO();
+    vulnerabilityCustomCvssSeverityDAO = daoFactory.createVulnerabilityCustomCvssSeverityDAO();
+    vulnerabilityCustomCvssSeverityTagDAO = daoFactory.createVulnerabilityCustomCvssSeverityTagDAO();
+    proprietaryConfigDAO = daoFactory.createProprietaryConfigDAO();
+    proprietaryComponentNamePatternDAO = daoFactory.createProprietaryComponentNamePatternDAO();
+    proxyServerConfigurationDAO = daoFactory.createProxyServerConfigurationDAO();
+    webhookDAO = daoFactory.createWebhookDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    automaticApplicationsConfigurationDAO = daoFactory.createAutomaticApplicationsConfigurationDAO();
+    automaticSourceControlConfigurationDAO = daoFactory.createAutomaticSourceControlConfigurationDAO();
+    sourceControlDAO = daoFactory.createSourceControlDAO();
+    sourceControlEventDAO = daoFactory.createSourceControlEventDAO();
+    sourceControlPullRequestDAO = daoFactory.createSourceControlPullRequestDAO();
+    sourceControlUserDAO = daoFactory.createSourceControlUserDAO();
+    sourceControlUserActivityDAO = daoFactory.crateSourceControlUserActivityDAO();
+    samlConfigurationDAO = daoFactory.createSamlConfigurationDAO();
+    userTokenDAO = daoFactory.createUserTokenDAO();
+    mailConfigurationDAO = daoFactory.createMailConfigurationDAO();
+    sourceControlDefaultBranchCommitHistoryDAO = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
+    productLicenseDAO = daoFactory.createProductLicenseDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    persistedPolicyEvaluationPollingResultDAO = daoFactory.createPersistedPolicyEvaluationPollingResultDAO();
+    persistedUserSessionDAO = daoFactory.createPersistedUserSessionDAO();
+    shiroSessionDAO = daoFactory.createShiroSessionDAO();
+    innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
+    persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
+    repositoryMigrationDAO = daoFactory.createRepositoryMigrationDAO();
+    aggregateFileDAO = daoFactory.createAggregateFileDAO();
+    applicationComponentLicenseDAO = daoFactory.createApplicationComponentLicenseDAO();
+    componentCopyrightDAO = daoFactory.createComponentCopyrightDAO();
+    copyrightOverrideDAO = daoFactory.createCopyrightOverrideDAO();
+    componentLegalFileDAO = daoFactory.createComponentLegalFileDAO();
+    legalFileOverrideDAO = daoFactory.createLegalFileOverrideDAO();
+    componentObligationDAO = daoFactory.createComponentObligationDAO();
+    componentObligationAttributionDAO = daoFactory.createComponentObligationAttributionDAO();
+    autoUnquarantinePolicyConditionTypeDAO = daoFactory.createAutoUnquarantinePolicyConditionTypeDAO();
+    attributionReportTemplateDAO = daoFactory.createAttributionReportTemplateDAO();
+    quarantinedComponentAccessDAO = daoFactory.createQuarantinedComponentAccessDAO();
+    repositoryConnectionDAO = daoFactory.createRepositoryConnectionDAO();
+    componentSourceLinkDAO = daoFactory.createComponentSourceLinkDAO();
+    sourceLinkOverrideDAO = daoFactory.createSourceLinkOverrideDAO();
+    crowdConfigurationDAO = daoFactory.createCrowdConfigurationDAO();
+    artifactoryConnectionDAO = daoFactory.createArtifactoryConnectionDAO();
+    repositoryClientConfigurationDAO = daoFactory.createRepositoryClientConfigurationDAO();
+    repositoryIdentifiedComponentDAO = daoFactory.createRepositoryIdentifiedComponentDAO();
+    reverseProxyAuthenticationConfigurationDAO = daoFactory.createReverseProxyAuthenticationConfigurationDAO();
+    jiraConfigurationDAO = daoFactory.createJiraConfigurationDAO();
+    sourceControlConfigurationDAO = daoFactory.createSourceControlConfigurationDAO();
+    sourceControlPullRequestResultDAO = daoFactory.createSourceControlPullRequestResultDAO();
+    deletedTenantDAO = daoFactory.createDeletedTenantDAO();
+    sourceControlOrganizationImportEventDAO = daoFactory.createSourceControlOrganizationImportEventDAO();
+    userIdePolicyEvaluationDAO = daoFactory.createUserIdePolicyEvaluationDAO();
+    lockDAO = daoFactory.createLockDAO();
+    perpetualLockDAO = daoFactory.createPerpetualLockDAO();
+    applicationCountHistoryDAO = daoFactory.createApplicationCountHistoryDAO();
+    sastScanDAO = daoFactory.createSastScanDAO();
+    sastFindingDAO = daoFactory.createSastFindingDAO();
+  }
+
+  private void initializeDataMartDataStoreDAOs() {
+    firewallIgnorePatternsDAO = daoFactory.createFirewallIgnorePatternsDAO();
+  }
+
+  private void initializeAggregationDataStoreDAOs() {
+    policyViolationAggregationDAO = daoFactory.createPolicyViolationAggregationDAO();
+    successMetricsReportDataDAO = daoFactory.createSuccessMetricsReportDataDAO();
+    successMetricsReportDAO = daoFactory.createSuccessMetricsReportDAO();
+    firewallMetricsDAO = daoFactory.createFirewallMetricsDAO();
+  }
+
+  private void initializeThirdPartyScansDataStoreDAOs() {
+    thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
+    thirdPartyScanDAO = daoFactory.createThirdPartyScanDAO();
+    thirdPartyVulnerabilityDAO = daoFactory.createThirdPartyVulnerabilityDAO();
+    thirdPartyVulnerabilityExploitabilityExchangeDAO =
+        daoFactory.createThirdPartyVulnerabilityExploitabilityExchangeDAO();
+    thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
+    thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
   }
 }

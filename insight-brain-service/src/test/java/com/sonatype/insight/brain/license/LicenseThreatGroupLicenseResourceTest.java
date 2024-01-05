@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
+  private LicenseThreatGroupDAO groupDAO;
+
+  @Before
+  public void setUp() {
+    groupDAO = lookup(LicenseThreatGroupDAO.class);
+  }
+
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, String licenseThreatGroupId) {
     return super.restRequest().path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
         .parameter(ownerType, ownerId, licenseThreatGroupId);
@@ -32,7 +40,6 @@ public class LicenseThreatGroupLicenseResourceTest
 
   private void testSetGet(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create an application and a group
-    LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();
     group.setOwnerId(ownerId);
     group.setName("My group");

@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -34,8 +36,36 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   private String entityName;
 
-  public AbstractOperationalSqlDAO() {
+  private final OperationalDataStore operationalDataStore;
+
+  private final SearchIndexManager searchIndexManager;
+
+  /**
+   * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
+   * <ul>
+   *   <li>{@link #newSearchIndexChange(HasStringId)}</li>
+   *   <li>{@link #newSearchIndexChangeForInsert(HasStringId)}</li>
+   *   <li>{@link #newSearchIndexChangeForUpdate(HasStringId)}</li>
+   *   <li>{@link #newSearchIndexChangeForDelete(HasStringId)}</li>
+   * </ul>
+   */
+  protected AbstractOperationalSqlDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager)
+  {
+    this.operationalDataStore = operationalDataStore;
+    this.searchIndexManager = searchIndexManager;
     entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
+  }
+
+  /**
+   * Constructor for DAOs that will <B>NOT</B> require the search index. The {@link #searchIndexManager} will be set to
+   * a {@link EmptySearchIndexManager} instance. If the <T> entity for this DAO needs to be searchable then use the
+   * {@link #AbstractOperationalSqlDAO(OperationalDataStore, SearchIndexManager)} constructor.
+   */
+  protected AbstractOperationalSqlDAO(OperationalDataStore operationalDataStore) {
+    // Note: singleton pattern used to reduce churn in tests
+    this(operationalDataStore, EmptySearchIndexManager.getInstance());
   }
 
   private ParameterizedType getParameterizedSuperClass() {
@@ -43,17 +73,22 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     if (!(genericSuperclass instanceof ParameterizedType)) {
       genericSuperclass = getClass().getSuperclass().getGenericSuperclass();
     }
-    
+
     return (ParameterizedType) genericSuperclass;
   }
-  
+
   @Override
   public TransactionContext createTransactionContext() {
-    return new TransactionContext(OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());
+    return new TransactionContext(operationalDataStore.getJPAEntityManagerFactory().createEntityManager());
   }
 
   public boolean isDatabaseEmbedded() {
-    return OperationalDataStoreProvider.isDatabaseEmbedded();
+    return operationalDataStore.isDatabaseEmbedded();
+  }
+
+  protected boolean isDatabasePostgresql() {
+    return !operationalDataStore.isDatabaseInMemory() && org.postgresql.Driver.class.getName()
+        .equals(operationalDataStore.getDatabaseConfig().getDriverClassName());
   }
 
   public int getInOperatorThreshold() {
@@ -64,7 +99,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   public void insert(TransactionContext tx, T entity) {
     super.insert(tx, entity);
 
-    if (detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
+    if (detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
       Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
       testEntityLeaksDetectionData.put(entity.getId(),
           new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
@@ -83,7 +118,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   public void delete(TransactionContext tx, T entity) {
     super.delete(tx, entity);
 
-    if (entity != null && detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
+    if (entity != null && detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
       testEntityLeaksDetectionData.remove(entity.getId());
     }
 
@@ -101,10 +136,8 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return query;
   }
 
-  protected void insertSearchIndexChange(TransactionContext tx, SearchIndexChange searchIndexChange) {
-    if (searchIndexChange != null) {
-      new SearchIndexChangeDAO().insert(tx, searchIndexChange);
-    }
+  private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
+    searchIndexManager.insert(tx, searchIndexChange);
   }
 
   protected SearchIndexChange newSearchIndexChangeForInsert(T entity) {
@@ -180,6 +213,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   public String getEntityName() {
     return entityName;
+  }
+
+  protected String getDatabaseSchema() {
+    return operationalDataStore.getDatabaseSchema();
   }
 
   public static class TestEntityLeakDetectionData

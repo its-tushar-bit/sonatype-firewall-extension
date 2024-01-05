@@ -10,6 +10,8 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
+
 import org.apache.http.entity.ContentType;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantUrlFilterTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   private static final String TENANT_NAME = "tenant";
 
@@ -52,10 +54,7 @@ public class TenantUrlFilterTest
   TenantUrlFilter underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
-
     underTest = new TenantUrlFilter(tenantManager, new TenantUtil());
     when(request.getServerName()).thenReturn(SERVER_NAME);
     when(tenantManager.getTenant()).thenReturn(new Tenant(TENANT_NAME));

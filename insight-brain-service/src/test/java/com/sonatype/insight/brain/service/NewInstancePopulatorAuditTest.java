@@ -15,13 +15,22 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class NewInstancePopulatorAuditTest
     extends AbstractPolicyImportAuditTest
 {
+  @Before
+  @Override
+  public void setUp() {
+    // Using DAOFactory instead of lookup as we have several tests using @ManualIqServerInit annotation
+    roleDAO = daoFactory.createRoleDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+  }
+
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
@@ -29,7 +38,7 @@ public class NewInstancePopulatorAuditTest
     policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
     policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
     hdsRespondWith(policyExportResult).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-    initServer();
+    startIqTestServer();
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
@@ -41,10 +50,10 @@ public class NewInstancePopulatorAuditTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testPopulateIfNewInstance_BadGateway() throws Exception {
     hdsRespondWith("Internal Server Error").andStatus(500).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-    initServer();
+    startIqTestServer();
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
@@ -54,7 +63,7 @@ public class NewInstancePopulatorAuditTest
   }
 
   @Override
-  protected void initServer() throws Exception {
-    initServer(config -> config.setImportRefrencePoliciesFromHDS(true));
+  protected void startIqTestServer() throws Exception {
+    startIqTestServer(config -> config.setImportRefrencePoliciesFromHDS(true));
   }
 }

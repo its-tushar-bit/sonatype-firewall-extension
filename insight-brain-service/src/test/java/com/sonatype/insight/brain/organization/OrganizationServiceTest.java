@@ -16,6 +16,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -74,6 +75,15 @@ public class OrganizationServiceTest
   @Inject
   private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
   @Mock
   private CurrentUser currentUser;
 
@@ -113,16 +123,13 @@ public class OrganizationServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> organizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID))
         .withMessageContaining("root organization cannot be deleted");
-    assertThat(new OrganizationDAO().getById(childOrg.getId())).isNotNull();
+    assertThat(organizationDAO.getById(childOrg.getId())).isNotNull();
     assertThat(iconFile).isFile();
     assertThat(iconDir).isDirectory();
   }
 
   @Test
   public void testDeleteOrganization_AutomaticApplicationsParentOrgCannotBeDeleted_OrgWithNoChildrenToDelete() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     Organization organization = tempEntity.newOrganization("organization");
     String organizationId = organization.getId();
     automaticApplicationsConfigurationDAO.setEnabled(true);
@@ -133,14 +140,11 @@ public class OrganizationServiceTest
         .withMessageContaining(
         "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
       );
-    assertThat(new OrganizationDAO().getById(organizationId)).isNotNull();
+    assertThat(organizationDAO.getById(organizationId)).isNotNull();
   }
 
   @Test
   public void testDeleteOrganization_AutomaticApplicationsParentOrgCannotBeDeleted_OrgWithChildrenToDelete() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
-
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     Organization organization = testList.get(4);
     String organizationId = organization.getId();
@@ -156,7 +160,6 @@ public class OrganizationServiceTest
             organization.getName() + "."
       );
 
-    OrganizationDAO organizationDAO = new OrganizationDAO();
     for (Organization currentOrg : testList.subList(0, 4)) {
       assertThat(organizationDAO.getById(currentOrg.getId())).isNull();
     }
@@ -169,7 +172,8 @@ public class OrganizationServiceTest
   @Test
   public void testGetAll() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
+        new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
+            null);
 
     List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
@@ -178,7 +182,8 @@ public class OrganizationServiceTest
   @Test
   public void testGetOrganization() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
+        new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
+            null);
 
     Organization testOrg = tempEntity.newOrganization();
 
@@ -191,7 +196,8 @@ public class OrganizationServiceTest
   @Test
   public void testGetOrganization_idDoesNotExist() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
+        new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
+            null);
 
     Organization resultOrg = organizationService.getOrganization("NOT_REAL_ID");
     assertThat(resultOrg).isNull();
@@ -274,7 +280,6 @@ public class OrganizationServiceTest
     deleteOrgEvents = handler.getAllEvents();
     assertThat(deleteOrgEvents).hasSameSizeAs(deletedOrgs);
 
-    OrganizationDAO organizationDAO = new OrganizationDAO();
     for (Organization currentOrg : deletedOrgs) {
       Optional<OwnerEvent> currentEventOptional = deleteOrgEvents.stream()
           .filter(event -> event.ownerId.equals(currentOrg.getId()))

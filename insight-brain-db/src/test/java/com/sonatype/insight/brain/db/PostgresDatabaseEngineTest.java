@@ -6,27 +6,25 @@
 package com.sonatype.insight.brain.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.SortedMap;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PostgresDatabaseEngineTest
+    extends AbstractDatabaseTest
 {
   @Test
+  @PostgresTest
   public void testGetDatabaseSettings() throws Exception {
-    try (PostgresServer postgres = new PostgresServer()) {
-      SortedMap<String, String> databaseSettings;
-      try (Connection connection =
-          DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
-        databaseSettings = PostgresDatabaseEngine.INSTANCE.getDatabaseSettings(connection);
-      }
-      assertThat(databaseSettings).containsEntry("server_encoding", "UTF8");
+    SortedMap<String, String> databaseSettings;
+    try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection()) {
+      databaseSettings = PostgresDatabaseEngine.INSTANCE.getDatabaseSettings(connection);
     }
+    assertThat(databaseSettings).containsEntry("server_encoding", "UTF8");
   }
 }

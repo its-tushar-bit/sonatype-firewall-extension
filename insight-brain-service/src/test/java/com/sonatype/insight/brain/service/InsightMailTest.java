@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -29,6 +28,9 @@ public class InsightMailTest
     extends AbstractComponentTest
 {
   @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Inject
   private InsightMail insightMail;
 
   @Test
@@ -41,7 +43,7 @@ public class InsightMailTest
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("testfrom@sonatype.com");
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
 
     assertThat(insightMail.getServer()).isEqualTo("testHostname:5555");
   }
@@ -108,7 +110,7 @@ public class InsightMailTest
   }
 
   private void testSendHtml_MailConfigured(MailConfiguration mailConfiguration) throws Exception {
-    new MailConfigurationDAO().set(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
 
     String toEmailAddress = "testuser@example.com";
     Mailbox.clearAll();

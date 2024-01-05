@@ -14,6 +14,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -34,11 +37,21 @@ import com.sonatype.insight.brain.utils.ComponentFactUtil;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+@Named
+@Singleton
 public class PolicyAlertUtil
 {
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
 
-  public static List<PolicyAlert> createPolicyAlerts(
+  private final PolicyDAO policyDAO;
+
+  @Inject
+  public PolicyAlertUtil(final OwnerDAO ownerDAO, final PolicyDAO policyDAO) {
+    this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
+  }
+
+  public List<PolicyAlert> createPolicyAlerts(
       List<PolicyViolation> policyViolations,
       String stageTypeId,
       String applicationId,
@@ -49,7 +62,7 @@ public class PolicyAlertUtil
         enableActions);
   }
 
-  public static List<PolicyAlert> createPolicyAlerts(
+  public List<PolicyAlert> createPolicyAlerts(
       List<Component> components,
       List<PolicyViolation> policyViolations,
       String stageTypeId,
@@ -60,7 +73,7 @@ public class PolicyAlertUtil
     Owner owner = ownerDAO.getById(applicationId);
     List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     Map<String, Policy> policiesById =
-        new PolicyDAO().getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
+        policyDAO.getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
             .collect(toMap(Policy::getId, Function.identity()));
     List<PolicyAlert> result = new ArrayList<>();
     for (PolicyViolation policyViolation : policyViolations) {

@@ -9,7 +9,7 @@ logging:
       - type: console
     "org.apache.directory": ERROR
     "org.apache.http.headers": DEBUG
-    "org.eclipse.jetty.server.HttpChannel": DEBUG
+    "org.eclipse.jetty.server.HttpChannel": INFO
     "com.sonatype.insight.brain.concurrent.PerpetualLockManager": TRACE
   appenders:
     - type: console

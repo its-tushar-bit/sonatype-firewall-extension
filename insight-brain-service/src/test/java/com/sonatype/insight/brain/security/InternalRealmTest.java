@@ -6,20 +6,18 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Iterator;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,11 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 1.7
  */
 public class InternalRealmTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Inject
   private InternalRealm realm;
 

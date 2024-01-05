@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.license.License;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,9 +19,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicenseDAOTest
     extends AbstractDbDAOTest
 {
+  private LicenseDAO dao;
+
+  private MultiLicenseDAO multiLicenseDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createLicenseDAO();
+    multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+  }
+
   @Test
   public void testGetAll() {
-    LicenseDAO dao = new LicenseDAO();
     List<License> licenses = dao.getAll();
     assertThat(licenses).isNotEmpty()
         .isSortedAccordingTo(Comparator.comparing(License::getShortDisplayName, String.CASE_INSENSITIVE_ORDER));
@@ -28,8 +40,10 @@ public class LicenseDAOTest
 
   @Test
   public void testLicenseDataRefresh() {
+    // Ensuring licenses cache is updated
+    dao.load();
+
     String newId = "new license id";
-    LicenseDAO dao = new LicenseDAO();
     assertThat(dao.getById(newId)).isNull();
     int count = dao.getAll().size();
 
@@ -40,7 +54,7 @@ public class LicenseDAOTest
     dao.insert(newLicense);
     assertThat(dao.getById(newId)).isNull();
 
-    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
+    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater(dao, multiLicenseDAO));
 
     assertThat(dao.getById(newId)).isNotNull();
     assertThat(dao.getAll()).hasSize(count + 1);

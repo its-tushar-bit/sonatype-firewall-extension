@@ -12,9 +12,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
@@ -30,10 +34,17 @@ import static java.util.stream.Collectors.toList;
 /**
  * @since 1.11
  */
+@Named
+@Singleton
 public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
 {
   static final int DELETE_BATCH_SIZE = 100;
+
+  @Inject
+  public PolicyViolationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //

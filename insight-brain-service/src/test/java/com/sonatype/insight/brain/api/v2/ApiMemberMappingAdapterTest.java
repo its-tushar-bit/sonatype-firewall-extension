@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
@@ -35,13 +36,16 @@ public class ApiMemberMappingAdapterTest
 
   private final MemberType memberType = MemberType.USER;
 
+  @Inject
+  private ApiMemberMappingAdapter apiMemberMappingAdapter;
+
   @Test
   public void testConvertToDTOForApplication() {
     final OwnerType ownerType = OwnerType.APPLICATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
     final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO =
-        ApiMemberMappingAdapter.convert(mappings, ownerType);
+        apiMemberMappingAdapter.convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }
@@ -52,7 +56,7 @@ public class ApiMemberMappingAdapterTest
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
     final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO =
-        ApiMemberMappingAdapter.convert(mappings, ownerType);
+        apiMemberMappingAdapter.convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }

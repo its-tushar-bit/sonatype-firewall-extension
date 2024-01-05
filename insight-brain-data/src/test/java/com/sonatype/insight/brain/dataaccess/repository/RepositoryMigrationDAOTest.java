@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryMigrationDAOTest
     extends AbstractDbDAOTest
 {
-  private final RepositoryMigrationDAO dao = new RepositoryMigrationDAO();
+  private RepositoryMigrationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createRepositoryMigrationDAO();
+  }
 
   @Test
   public void testCRUD() {

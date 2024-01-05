@@ -11,14 +11,13 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Collection;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserActivityDAO;
@@ -33,19 +32,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.service.SourceControlUserActivityService.truncateDayAndTime;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static com.sonatype.insight.brain.api.v2.service.SourceControlUserActivityService.truncateDayAndTime;
 
 public class SourceControlUserActivityServiceTest
     extends AbstractComponentTest
 {
-  private final SourceControlUserActivityDAO
-      sourceControlUserActivityDAO = new SourceControlUserActivityDAO();
+  @Inject
+  private SourceControlUserActivityDAO sourceControlUserActivityDAO;
 
-  private final SourceControlUserDAO sourceControlUserDAO = new SourceControlUserDAO();
+  @Inject
+  private SourceControlUserDAO sourceControlUserDAO;
 
   @Inject
   private SourceControlUserActivityService sourceControlUserActivityService;

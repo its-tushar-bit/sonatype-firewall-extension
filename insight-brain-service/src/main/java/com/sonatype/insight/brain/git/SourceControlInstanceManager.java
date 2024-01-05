@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.UUID;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -40,7 +42,7 @@ public class SourceControlInstanceManager
   private int instanceLockReservationTimeSeconds =
       PullRequestPollingScheduler.PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS + 5;
 
-  private final PerpetualLockManager perpetualLockManager = new PerpetualLockManager();
+  private final PerpetualLockManager perpetualLockManager;
 
   private Boolean hasInstanceLock;
 
@@ -53,7 +55,9 @@ public class SourceControlInstanceManager
   // non-static for testing purposes
   private final String sourceControlInstanceId;
 
-  public SourceControlInstanceManager() {
+  @Inject
+  public SourceControlInstanceManager(final PerpetualLockDAO perpetualLockDAO) {
+    perpetualLockManager = new PerpetualLockManager(perpetualLockDAO);
     sourceControlInstanceId = UUID.randomUUID().toString();
     log.info("Created SourceControlInstanceManager with instance ID {}", sourceControlInstanceId);
   }

@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -22,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class IacControlConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -32,6 +37,13 @@ public class IacControlConditionType
   static {
     supportedOperators.add("is");
     supportedOperators.add("is not");
+  }
+
+  private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  @Inject
+  public IacControlConditionType(final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO) {
+    this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
   }
 
   @Override
@@ -73,7 +85,7 @@ public class IacControlConditionType
 
     for (SecurityVulnerability securityVulnerability : component.getSecurityVulnerabilities()) {
       ThirdPartyVulnerability thirdPartyVulnerability
-          = new ThirdPartyVulnerabilityDAO().getByRefId(securityVulnerability.getRefId());
+          = thirdPartyVulnerabilityDAO.getByRefId(securityVulnerability.getRefId());
       if (thirdPartyVulnerability == null) {
         continue;
       }

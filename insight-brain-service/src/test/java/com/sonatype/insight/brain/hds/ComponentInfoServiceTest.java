@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -144,6 +143,12 @@ public class ComponentInfoServiceTest
   private static final String TOOL_NAME = "ci";
 
   @Inject
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
+
+  @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
   private ComponentInfoService componentInfoService;
 
   @Inject
@@ -173,6 +178,9 @@ public class ComponentInfoServiceTest
 
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private IdUtils idUtils;
 
   @Override
   public void configure(Binder binder) {
@@ -279,7 +287,7 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testgetMultiLicensesNoAuth_NoComponentIdentifier() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> 
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
     componentInfoService.getMultiLicensesNoAuth(null, null, null /* componentIdentifier */, httpRequestMock, null, null)
     ).withMessage("componentIdentifier is required");
   }
@@ -303,7 +311,7 @@ public class ComponentInfoServiceTest
   }
 
   private void testgetMultiLicensesNoAuth_BadOwnerId(OwnerType ownerType, String expectedErrMsgPrefix) {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> 
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
     componentInfoService.getMultiLicensesNoAuth(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
         null)
     ).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
@@ -424,7 +432,7 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
 
-    final String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    final String privateOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Verify component with licenses
     tempEntity.newLicenseThreatGroup(
@@ -463,7 +471,7 @@ public class ComponentInfoServiceTest
     assertThat(licenses.hiddenObservedLicenses).isFalse();
     assertThat(licenses.supportAlpObservedLicenses).isFalse();
 
-    String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String privateOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Verify component with licenses
     tempEntity.newLicenseThreatGroup(
@@ -514,7 +522,7 @@ public class ComponentInfoServiceTest
   }
 
   private void testGetLicenses_withOverride(final OwnerType ownerType, final String ownerId) throws Exception {
-    final String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    final String privateOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Verify component with licenses
     // Note: For now, only an Org or App (not a Repository) can contain a LTG
@@ -538,7 +546,7 @@ public class ComponentInfoServiceTest
   }
 
   private void testgetMultiLicensesNoAuth_withOverride(OwnerType ownerType, String ownerId) throws Exception {
-    String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String privateOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Verify component with licenses
     // Note: For now, only an Org or App (not a Repository) can contain a LTG
@@ -1133,7 +1141,7 @@ public class ComponentInfoServiceTest
     securityPolicy2.addConstraint(securityConstrain2);
     securityPolicy2.setOwnerId(application.getId());
     tempEntity.newPolicy(securityPolicy2);
-    
+
     Constraint qualityConstrain1 = new Constraint("QC1", "QualityConstraint 1", LogicalOperator.AND);
     Condition qualityCondition1 = new Condition(RelativePopularityConditionType.ID, "<=", "10");
     qualityConstrain1.addCondition(qualityCondition1);
@@ -1212,7 +1220,7 @@ public class ComponentInfoServiceTest
     assertThat(policyMaxThreatLevel.get("license")).isEqualTo(3);
     assertThat(policyMaxThreatLevel.get("quality")).isEqualTo(6);
   }
-  
+
   @Test
   public void testGetComponentDetails_policyMaxThreatLevel_oneElement() throws Exception {
     String hash = "01234567890123456789";
@@ -1322,7 +1330,7 @@ public class ComponentInfoServiceTest
     policy.addConstraint(constraint);
     tempEntity.newPolicy(policy);
 
-    new ProprietaryComponentNamePatternDAO()
+    proprietaryComponentNamePatternDAO
         .insert(new ProprietaryComponentNamePattern(repository.getId(), MAVEN_A1_COORDINATES.getFormat())
             .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID)));
 
@@ -1594,7 +1602,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
-    
+
     Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
     assertThat(policyMaxThreatLevel).isNotNull();
     assertThat(policyMaxThreatLevel).hasSize(1);
@@ -1615,11 +1623,10 @@ public class ComponentInfoServiceTest
     verify(componentInfoServiceMock, times(1)).getPoliciesById(application);
   }
 
-  private static Set<License> toLicenseSet(String... licenseIds) {
+  private Set<License> toLicenseSet(String... licenseIds) {
     Set<License> result = new LinkedHashSet<>();
-    MultiLicenseDAO dao = new MultiLicenseDAO();
     for (String licenseId : licenseIds) {
-      MultiLicense multiLicense = dao.getByIdNotNull(licenseId);
+      MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull(licenseId);
       result.add(new License(multiLicense.getId(), multiLicense.getShortDisplayName()));
     }
     return result;

@@ -95,6 +95,18 @@ public class ApiPolicyWaiverServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
   private ApiPolicyWaiverService apiPolicyWaiverService;
 
   private Policy policy;
@@ -108,8 +120,6 @@ public class ApiPolicyWaiverServiceTest
   private Application app;
 
   private Organization org;
-
-  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
   @Inject
   private PolicyDAO policyDAO;
@@ -329,7 +339,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime));
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     assertPolicyWaiver(policyWaivers.get(0), app.getId(), "waiver comment", "testuser", "Test User", null,
         policyViolation.getConstraintFactsJson(), expiryTime,
@@ -350,7 +360,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null));
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver.getAssociatedPackageUrl()).isNotBlank();
@@ -372,7 +382,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null));
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver.getAssociatedPackageUrl()).isNull();
@@ -399,7 +409,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation2.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null));
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(2);
     assertThat(policyWaivers.get(0).getAssociatedPackageUrl())
         .isNotEqualTo(policyWaivers.get(1).getAssociatedPackageUrl());
@@ -799,7 +809,7 @@ public class ApiPolicyWaiverServiceTest
     String packageUrlAllVersions2 = PackageUrlIdentifier.toPackageUrl(identifierAllVersions2);
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
-    new PolicyViolationDAO().update(violation);
+    policyViolationDAO.update(violation);
 
     String policyId = policy.getId();
     String policy2Id = policy2.getId();
@@ -872,7 +882,7 @@ public class ApiPolicyWaiverServiceTest
     RepositoryPolicyViolation violation =
         tempEntity.newRepositoryPolicyViolation(repository, policy, "testPathname", identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
-    new RepositoryPolicyViolationDAO().update(violation);
+    repositoryPolicyViolationDAO.update(violation);
 
     String policyId = policy.getId();
     String policy2Id = policy2.getId();
@@ -1212,7 +1222,7 @@ public class ApiPolicyWaiverServiceTest
       ComponentMatcherStrategyForWaiver matcherStrategy,
       String componentPurl)
   {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
     assertPolicyWaiver(policyWaivers.get(0), ownerId, comment, creatorId, creatorName, hash, constraintFactsJson, null,
         matcherStrategy, componentPurl);
@@ -1373,7 +1383,7 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetPolicyWaivers_ByComponentHashes_EmptyComponentHashes() {
-    Organization rootOrg = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     List<PolicyWaiver> expectedWaivers = createPolicyWaivers(null, rootOrg, org, app);
@@ -1391,7 +1401,7 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetPolicyWaivers_ByComponentHashes() {
-    Organization rootOrg = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     List<PolicyWaiver> waiversNullHash = createPolicyWaivers(null, rootOrg, org, app);

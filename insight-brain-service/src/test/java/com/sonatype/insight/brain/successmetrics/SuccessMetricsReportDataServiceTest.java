@@ -22,6 +22,7 @@ import javax.persistence.RollbackException;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper;
@@ -90,6 +91,9 @@ public class SuccessMetricsReportDataServiceTest
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   private void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
     for (PolicyViolation fixedViolation : policyViolationDAO
@@ -2327,7 +2331,7 @@ public class SuccessMetricsReportDataServiceTest
     SuccessMetricsReportDataService service = new SuccessMetricsReportDataService(lookup(ApplicationService.class),
         lookup(ApplicationComponentDAO.class), lookup(StageTypeService.class),
         lookup(PolicyViolationAggregationService.class), lookup(SuccessMetricsReportService.class), mockDAO,
-        lookup(PolicyViolationAggregationDAO.class));
+        lookup(PolicyViolationAggregationDAO.class), policyViolationDAO, policyEvaluationDAO);
 
     assertThat(service.getChartData(reportId).monthCount).isEqualTo(82);
   }

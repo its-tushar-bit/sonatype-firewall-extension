@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -59,6 +58,8 @@ public class UserDirectory
   private static final char SQL_QUERY_WILDCARD = '%';
   
   private static final String IGNORING_MEMBER_MESSAGE = "Ignoring {} {} from {}, as they were already found in {}.";
+
+  private final LdapServerDAO ldapServerDAO;
 
   /**
    * @since 1.11.0
@@ -108,11 +109,13 @@ public class UserDirectory
   @Inject
   public UserDirectory(
       UserDAO userDao,
+      LdapServerDAO ldapServerDAO,
       SamlUserGroupHelper samlUserGroupHelper,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
     this.userDao = userDao;
+    this.ldapServerDAO = ldapServerDAO;
     this.samlUserGroupHelper = samlUserGroupHelper;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
@@ -143,7 +146,7 @@ public class UserDirectory
     if (!groupNames.isEmpty()) {
       boolean groupSearchHasBeenDisabled = false;
 
-      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+      for (LdapServer ldapServer : ldapServerDAO.getAll()) {
         String ldapName = ldapServer.getName();
         if (ldapService.isGroupSearchEnabled(ldapServer)) {
           try {
@@ -243,7 +246,7 @@ public class UserDirectory
 
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
-    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
       if (ldapService.isLdapEnabled(ldapServer) && !sortedUserNames.isEmpty()) {
         try {
           String ldapName = ldapServer.getName();
@@ -321,7 +324,7 @@ public class UserDirectory
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
     try {
-      List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+      List<LdapServer> ldapServers = ldapServerDAO.getAll();
       CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
       // searching for users
       addLDAPUsersByQuery(users, ldapServers, query, namingExceptions, otherExceptions);
@@ -541,7 +544,7 @@ public class UserDirectory
 
   public boolean isLdapUser(final User user) throws NamingException {
     String[] userNames = { user.getUsername() };
-    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
       if (ldapService.isLdapEnabled(ldapServer) && !ldapService.getUsersByName(ldapServer, userNames).isEmpty()) {
         return true;
       }

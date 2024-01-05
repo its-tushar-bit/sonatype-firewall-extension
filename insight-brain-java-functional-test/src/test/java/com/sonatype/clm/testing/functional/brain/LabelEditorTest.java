@@ -29,8 +29,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.insight.brain.model.Color.light_green;
 import static com.sonatype.insight.brain.model.Color.dark_red;
+import static com.sonatype.insight.brain.model.Color.light_green;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelEditorTest
@@ -38,7 +38,7 @@ public class LabelEditorTest
 {
   private static final String LABEL_NAME = "a label";
 
-  private final LabelDAO labelDAO = new LabelDAO();
+  private LabelDAO labelDAO;
 
   private Application app;
 
@@ -50,6 +50,8 @@ public class LabelEditorTest
 
   @Before
   public void init() {
+    labelDAO = lookup(LabelDAO.class);
+
     app = tempEntity.newApplicationWithParent("test_app", "LabelEditorTest app");
     refreshOrOpen(OwnerSummaryPage.url(app));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(app.getName()));

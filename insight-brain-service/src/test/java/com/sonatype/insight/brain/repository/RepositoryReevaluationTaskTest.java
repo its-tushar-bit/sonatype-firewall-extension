@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -23,6 +22,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -80,6 +80,9 @@ public class RepositoryReevaluationTaskTest
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
   private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
@@ -96,6 +99,9 @@ public class RepositoryReevaluationTaskTest
 
   @Inject
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
 
   @Inject
   private ApiFirewallMetricsService firewallMetricsService;
@@ -159,10 +165,10 @@ public class RepositoryReevaluationTaskTest
 
     task = new RepositoryReevaluationTask(repository,
         new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
-            auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
+            policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
-            repositoryComponentTelemetryCreator, mockEventBus, firewallMetricsService),
-        executorService, 10);
+            repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService),
+        executorService, 10, repositoryComponentDAO, clusterLockManager);
     createHdsResponse();
   }
 
@@ -267,7 +273,7 @@ public class RepositoryReevaluationTaskTest
     constraintOrg.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:com"));
     policy.setConstraints(Collections.singletonList(constraintOrg));
 
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     return policy;
   }
 }

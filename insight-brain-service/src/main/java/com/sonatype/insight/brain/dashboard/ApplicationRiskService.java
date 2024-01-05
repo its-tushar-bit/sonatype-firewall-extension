@@ -21,7 +21,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditUtils;
+import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
@@ -65,18 +65,23 @@ public class ApplicationRiskService
 
   private final DashboardUtils dashboardUtils;
 
+  private final AuditService auditService;
+
   @Inject
-  public ApplicationRiskService(ApplicationService applicationService,
-                                OrganizationDAO organizationDAO,
-                                ApplicationDAO applicationDAO,
-                                PolicyViolationLoader policyViolationLoader,
-                                DashboardUtils dashboardUtils)
+  public ApplicationRiskService(
+      final ApplicationService applicationService,
+      final OrganizationDAO organizationDAO,
+      final ApplicationDAO applicationDAO,
+      final PolicyViolationLoader policyViolationLoader,
+      final DashboardUtils dashboardUtils,
+      final AuditService auditService)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
+    this.auditService = auditService;
   }
 
   /**
@@ -221,10 +226,10 @@ public class ApplicationRiskService
     log.debug("Loaded {} applications", appsToSearch.size());
 
     AuditData.get() //
-        .setData("selectedOrganizations", AuditUtils.getSelectedOrganizationsById(organizationIds)) //
+        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds)) //
         .setData("selectedApplications",
-            AuditUtils.getSelectedApplicationsById(applicationIds, organizationIds, appsToSearch)) //
-        .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
+            auditService.getSelectedApplicationsById(applicationIds, organizationIds, appsToSearch)) //
+        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", appsToSearch.size());
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = getRiskForProvidedApps(

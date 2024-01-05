@@ -11,11 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -28,6 +34,8 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
@@ -35,9 +43,29 @@ public class LabelDAO
 
   public static final int MAX_DESC_SIZE = 255;
 
-  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+  private final OrganizationDAO orgDAO;
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO;
+
+  private final Provider<ComponentLabelDAO> componentLabelDAOProvider;
+
+  private final ApplicationDAO appDAO;
+
+  @Inject
+  public LabelDAO(
+      final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
+      final OrganizationDAO orgDAO,
+      final OwnerDAO ownerDAO,
+      final Provider<ComponentLabelDAO> componentLabelDAOProvider,
+      final ApplicationDAO appDAO)
+  {
+    super(operationalDataStore, searchIndexManager);
+    this.orgDAO = orgDAO;
+    this.ownerDAO = ownerDAO;
+    this.componentLabelDAOProvider = componentLabelDAOProvider;
+    this.appDAO = appDAO;
+  }
 
   public List<Label> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -70,7 +98,7 @@ public class LabelDAO
    * Gets the labels applied to a component in a given context (org/app), inheritance is not considered. Note that the
    * supplied ownerId denotes the owner/scope of the component label, not the owner of the label definition (an
    * org-level label can be used for app-level component labels).
-   * 
+   *
    * @since 1.6
    */
   public List<Label> getByOwnerIdAndHash(String ownerId, String hash) {
@@ -102,7 +130,7 @@ public class LabelDAO
 
   @Override
   public void delete(TransactionContext tx, Label label) {
-    ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+    ComponentLabelDAO componentLabelDAO = componentLabelDAOProvider.get();
     List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(tx, label.getId());
     for (ComponentLabel componentLabel : componentLabels) {
       componentLabelDAO.delete(tx, componentLabel);
@@ -141,8 +169,6 @@ public class LabelDAO
   }
 
   private void validateLabelUnique(TransactionContext tx, Label label, boolean update) throws InvalidLabelException {
-    final ApplicationDAO appDAO = new ApplicationDAO();
-
     // first, check the same label does not exist in for the same owner
     // this is enforced by db unique key, but checking in java gives nicer error message
     Label otherLabel = getByOwnerIdAndLabel(tx, label.getOwnerId(), label.getLabelLowercase());

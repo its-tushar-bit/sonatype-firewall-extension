@@ -55,15 +55,16 @@ public class TelemetryId
 
   private final InsightConfig insightConfig;
 
-  private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO dao;
 
   private final String id;
 
   private final String clusterId;
 
   @Inject
-  public TelemetryId(InsightConfig insightConfig) {
+  public TelemetryId(InsightConfig insightConfig, final SystemConfigurationPropertyDAO dao) {
     this.insightConfig = insightConfig;
+    this.dao = dao;
     id = generateId();
     clusterId = calculateClusterId(insightConfig.getDatabase());
   }

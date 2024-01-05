@@ -87,6 +87,9 @@ public class ApiCycloneDxServiceV2Test
   private static final String UUID_REGEX = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 
   @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
   private ApiCycloneDxServiceV2 service;
 
   @Inject
@@ -599,7 +602,7 @@ public class ApiCycloneDxServiceV2Test
     PolicyEvaluation policyEvaluation = null;
     if (version.getVersion() >= 1.2) {
       policyEvaluation =
-          new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(), scanId);
+          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
     }
     Metadata metadata = bom.getMetadata();
     if (policyEvaluation == null) {

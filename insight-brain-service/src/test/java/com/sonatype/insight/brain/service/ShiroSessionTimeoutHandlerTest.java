@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 public class ShiroSessionTimeoutHandlerTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
 

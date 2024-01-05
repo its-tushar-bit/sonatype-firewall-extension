@@ -6,14 +6,20 @@
 package com.sonatype.insight.brain.dataaccess.configuration.crowd;
 
 import java.nio.CharBuffer;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class CrowdConfigurationDAO
     extends AbstractOperationalSqlDAO<CrowdConfiguration>
 {
@@ -24,6 +30,11 @@ public class CrowdConfigurationDAO
   public static final int MAX_APPLICATION_NAME_SIZE = 255;
 
   public static final int MAX_APPLICATION_PASSWORD_SIZE = 255;
+
+  @Inject
+  public CrowdConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public CrowdConfiguration get() {
     return getById(SINGLETON_ENTITY_ID);

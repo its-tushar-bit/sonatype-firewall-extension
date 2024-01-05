@@ -26,8 +26,10 @@ public class CopyrightOverrideDAOTest
   private CopyrightOverrideDAO dao;
 
   @Before
-  public void before() {
-    dao = new CopyrightOverrideDAO();
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createCopyrightOverrideDAO();
   }
 
   @Test

@@ -8,9 +8,13 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -26,17 +30,41 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class RoleDAO
     extends AbstractOperationalSqlDAO<Role>
 {
   private final boolean testing;
 
-  public RoleDAO() {
-    this(false);
+  private final RolePermissionDAO rolePermissionDAO;
+
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final PolicyDAO policyDAO;
+
+  @Inject
+  public RoleDAO(
+      final OperationalDataStore operationalDataStore,
+      final RolePermissionDAO rolePermissionDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final PolicyDAO policyDAO)
+  {
+    this(false, operationalDataStore, rolePermissionDAO, membershipMappingDAO, policyDAO);
   }
 
-  public RoleDAO(boolean testing) {
+  public RoleDAO(
+      final boolean testing,
+      final OperationalDataStore operationalDataStore,
+      final RolePermissionDAO rolePermissionDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final PolicyDAO policyDAO)
+  {
+    super(operationalDataStore);
     this.testing = testing;
+    this.rolePermissionDAO = rolePermissionDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.policyDAO = policyDAO;
   }
 
   @Override
@@ -90,19 +118,16 @@ public class RoleDAO
     }
 
     // Cascade to permissions
-    RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(tx, entity.getId())) {
       rolePermissionDAO.delete(tx, rolePermission);
     }
 
     // Cascade to membership mappings
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByRoleId(tx, entity.getId())) {
       membershipMappingDAO.delete(membershipMapping);
     }
 
     // Cascade to policy notify actions
-    PolicyDAO policyDAO = new PolicyDAO();
     for (Policy policy : policyDAO.getAll(tx)) {
       boolean policyWasChanged = removeRoleNotificationsIfNeeded(entity, policy.getNotifications());
       Map<String, Notifications> notificationsOverrides = policy.getPolicyNotificationsOverrides();

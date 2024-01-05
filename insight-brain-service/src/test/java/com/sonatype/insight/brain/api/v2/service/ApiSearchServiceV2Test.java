@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -69,7 +68,7 @@ public class ApiSearchServiceV2Test
     assertThat(result.results.get(0).dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
-    assertThat(result.results.get(0).dependencyData).hasFieldOrProperty(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+    assertThat(result.results.get(0).dependencyData).hasFieldOrProperty(ComponentLoader.INNER_SOURCE_DATA_FIELD);
     assertThat(result.results.get(0).dependencyData.innerSourceData).containsExactly(
         new InnerSourceData("insight-module-model", "7509f572645749eba3e19b826e111c8b",
             "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"));
@@ -82,7 +81,7 @@ public class ApiSearchServiceV2Test
     assertThat(result.results.get(0).dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
-    assertThat(JsonUtils.writeUnformatted(result)).doesNotContain(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+    assertThat(JsonUtils.writeUnformatted(result)).doesNotContain(ComponentLoader.INNER_SOURCE_DATA_FIELD);
   }
 
   @Test

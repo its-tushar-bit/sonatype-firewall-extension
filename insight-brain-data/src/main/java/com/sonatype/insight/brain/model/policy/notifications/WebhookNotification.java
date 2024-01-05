@@ -8,10 +8,7 @@ package com.sonatype.insight.brain.model.policy.notifications;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.64
@@ -36,13 +33,6 @@ public class WebhookNotification
 
   public void setWebhookId(String webhookId) {
     this.webhookId = webhookId;
-  }
-
-  @Override
-  protected void validate(ValidationResult validationResult) {
-    if (StringUtils.isBlank(webhookId)) {
-      validationResult.addError("Invalid Webhook notification: A valid webhook id is required");
-    }
   }
 
   @Override

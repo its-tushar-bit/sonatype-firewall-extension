@@ -7,20 +7,37 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class SourceControlPullRequestCommentDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequestComment>
 {
   private static final int DELETE_BATCH_SIZE = 100;
 
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlPullRequestComment entity ";
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
+  public SourceControlPullRequestCommentDAO(
+      final OperationalDataStore operationalDataStore,
+      final PolicyEvaluationDAO policyEvaluationDAO)
+  {
+    super(operationalDataStore);
+    this.policyEvaluationDAO = policyEvaluationDAO;
+  }
 
   /**
    * This method fetches the overall comment for the given application and pull request.
@@ -157,7 +174,6 @@ public class SourceControlPullRequestCommentDAO
   }
 
   private void validateOwnership(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation sourcePolicyEvaluation =
         policyEvaluationDAO.getByIdNotNull(tx, pullRequestComment.getSourcePolicyEvaluationId());
     if (!sourcePolicyEvaluation.getApplicationId().equals(pullRequestComment.getApplicationId())) {

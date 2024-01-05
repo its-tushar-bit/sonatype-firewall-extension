@@ -36,7 +36,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FirewallMetricsDAOTest
     extends AbstractDbDAOTest
 {
-  private final FirewallMetricsDAO dao = new FirewallMetricsDAO();
+  private FirewallMetricsDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createFirewallMetricsDAO();
+  }
 
   private final List<Date> testLastUpdateDates = new ArrayList<>();
 

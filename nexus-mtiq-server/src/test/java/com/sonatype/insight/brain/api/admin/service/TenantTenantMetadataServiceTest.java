@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.api.admin.service;
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantTenantMetadataServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   public static final String APP_ID = "appId";
 
@@ -49,9 +49,7 @@ public class TenantTenantMetadataServiceTest
   private TenantMetadataConfigurationService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     TenantUtil tenantUtil = new TenantUtil();
     underTest = new TenantMetadataConfigurationService(tenantUtil, tenantValidator, tenantMetadataDAO);
   }

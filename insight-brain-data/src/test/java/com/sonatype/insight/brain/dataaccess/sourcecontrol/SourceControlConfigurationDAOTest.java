@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalTime;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
 
@@ -18,6 +17,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.drools.core.util.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.MIN_DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS;
@@ -31,7 +31,14 @@ import static org.mockito.Mockito.verify;
 public class SourceControlConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlConfigurationDAO dao = new SourceControlConfigurationDAO();
+  private SourceControlConfigurationDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSourceControlConfigurationDAO();
+  }
 
   @Test
   public void testCRUD() {

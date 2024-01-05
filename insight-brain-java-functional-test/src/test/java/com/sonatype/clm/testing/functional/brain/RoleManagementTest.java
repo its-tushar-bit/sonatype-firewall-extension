@@ -6,11 +6,11 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.RoleEditorPage;
 import com.sonatype.clm.testing.functional.pages.RoleManagementPage;
-import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -24,12 +24,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.checked;
 
 public class RoleManagementTest
     extends AbstractFunctionalTest
@@ -43,8 +43,15 @@ public class RoleManagementTest
   private static final String[] BUILTIN_ROLES = new String[] { "System Administrator", "Policy Administrator", "Owner",
       "Developer", "Application Evaluator", "Component Evaluator" };
 
+  private RoleDAO roleDAO;
+
+  private RolePermissionDAO rolePermissionDAO;
+
   @Before
   public void initialLogin() {
+    roleDAO = lookup(RoleDAO.class);
+    rolePermissionDAO = lookup(RolePermissionDAO.class);
+
     refreshOrOpen(RoleManagementPage.url());
     loginAsAdmin();
   }
@@ -237,7 +244,7 @@ public class RoleManagementTest
     roleEditorPage.deleteRole().shouldHave(attribute("disabled"));
 
     // cleanup
-    new RoleDAO().delete(role);
+    roleDAO.delete(role);
   }
 
   @Test
@@ -282,9 +289,9 @@ public class RoleManagementTest
   }
 
   private boolean roleHasPermission(String roleName, String permission) {
-    Role role = new RoleDAO().getByName(roleName);
+    Role role = roleDAO.getByName(roleName);
     if (role != null) {
-      for (com.sonatype.insight.brain.model.security.Permission perm : new RolePermissionDAO()
+      for (com.sonatype.insight.brain.model.security.Permission perm : rolePermissionDAO
           .getPermissionsForRole(role.getId())) {
         if (perm.getDescription().equals(permission)) {
           return true;

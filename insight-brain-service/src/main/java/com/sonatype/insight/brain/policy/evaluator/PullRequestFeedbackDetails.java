@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -124,8 +125,10 @@ public class PullRequestFeedbackDetails
       final int pullRequestNumber,
       final Application app,
       final String iqBaseUrl,
-      final boolean scmImprovementsEnabled)
+      final boolean scmImprovementsEnabled,
+      final OrganizationDAO organizationDAO)
   {
+    super(organizationDAO);
     Preconditions
         .checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
     this.sourceControlComponentDetails = sourceControlComponentDetails;

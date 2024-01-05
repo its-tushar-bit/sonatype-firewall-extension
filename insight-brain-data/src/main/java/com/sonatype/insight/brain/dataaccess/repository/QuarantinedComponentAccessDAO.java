@@ -7,17 +7,34 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class QuarantinedComponentAccessDAO
     extends AbstractOperationalSqlDAO<QuarantinedComponentAccess>
 {
   private static final int DELETE_BATCH_SIZE = 100;
+
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Inject
+  public QuarantinedComponentAccessDAO(
+      final OperationalDataStore operationalDataStore,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  {
+    super(operationalDataStore);
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+  }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {
     String sQuery = "SELECT entity.id FROM QuarantinedComponentAccess entity" +
@@ -45,12 +62,12 @@ public class QuarantinedComponentAccessDAO
   }
 
   public void setAnonymousAccess(boolean enabled) {
-    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, String.valueOf(enabled)));
   }
 
   public boolean isAnonymousAccessEnabled() {
-    return Boolean.parseBoolean(new SystemConfigurationPropertyDAO()
+    return Boolean.parseBoolean(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS).getValue());
   }
 }

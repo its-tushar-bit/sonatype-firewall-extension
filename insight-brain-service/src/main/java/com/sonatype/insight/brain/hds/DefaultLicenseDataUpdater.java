@@ -35,7 +35,8 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultLicenseDataUpdater
-    extends LicenseDataUpdater implements InsightJob, GlobalTenantJob
+    extends LicenseDataUpdater
+    implements InsightJob, GlobalTenantJob
 {
   public static final String HDS_LICENSE_PATH = "rest/license";
 
@@ -50,13 +51,20 @@ public class DefaultLicenseDataUpdater
 
   private final TaskScheduler taskScheduler;
 
+  private final MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO;
+
   @Inject
   public DefaultLicenseDataUpdater(
       HdsClient client,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      LicenseDAO licenseDAO,
+      MultiLicenseDAO multiLicenseDAO,
+      MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO)
   {
+    super(licenseDAO, multiLicenseDAO);
     this.client = client;
     this.taskScheduler = taskScheduler;
+    this.multiLicenseLicenseInternalDAO = multiLicenseLicenseInternalDAO;
   }
 
   @Override
@@ -66,9 +74,6 @@ public class DefaultLicenseDataUpdater
     try {
       LicenseData licenseData = client.get(LicenseData.class, HDS_LICENSE_PATH, null /* params */);
 
-      LicenseDAO licenseDAO = new LicenseDAO();
-      MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-      MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
       try (TransactionContext tx = licenseDAO.createTransactionContext()) {
         tx.begin();
         for (License license : licenseData.licenses) {
@@ -140,7 +145,7 @@ public class DefaultLicenseDataUpdater
 
     public Map<String, Set<String>> multiLicenseMappings;
   }
-  
+
   @Override
   public String getJobName() {
     return TASK_NAME;

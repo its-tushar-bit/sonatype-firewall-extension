@@ -9,8 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -18,9 +22,16 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class MembershipMappingDAO
     extends AbstractOperationalSqlDAO<MembershipMapping>
 {
+  @Inject
+  public MembershipMappingDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   /**
    * Gets the membership mappings for a given context.
    */

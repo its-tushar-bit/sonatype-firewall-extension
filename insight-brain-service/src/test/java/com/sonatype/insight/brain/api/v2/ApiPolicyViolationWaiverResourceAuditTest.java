@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -31,6 +30,8 @@ import org.junit.Test;
 public class ApiPolicyViolationWaiverResourceAuditTest
     extends AbstractAuditTest
 {
+  private PolicyWaiverDAO policyWaiverDAO;
+
   private Organization org;
 
   private Application app;
@@ -41,6 +42,8 @@ public class ApiPolicyViolationWaiverResourceAuditTest
 
   @Before
   public void setUpPolicyViolation() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     policy = tempEntity.newPolicy();
@@ -86,7 +89,7 @@ public class ApiPolicyViolationWaiverResourceAuditTest
   }
 
   private void assertPolicyWaiverData(AuditDTO auditDTO) {
-    PolicyWaiver policyWaiver = new PolicyWaiverDAO().getByIdNotNull((String) auditDTO.data.get("policyWaiverId"));
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull((String) auditDTO.data.get("policyWaiverId"));
     assertCustomData(auditDTO, "policyId", policyWaiver.getPolicyId());
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyWaiverId", policyWaiver.getId());

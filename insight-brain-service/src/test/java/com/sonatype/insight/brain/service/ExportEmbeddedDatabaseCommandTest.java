@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -24,13 +26,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,11 +42,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ExportEmbeddedDatabaseCommandTest
+    extends AbstractDatabaseTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
+  @H2InMemoryTest(cleanDatabase = true)
   public void testRun_SupportsOnlyEmbeddedDatabase() {
     InsightConfig config = new InsightConfig();
     config.setDatabase(new DatabaseConfig());
@@ -54,19 +58,13 @@ public class ExportEmbeddedDatabaseCommandTest
   }
 
   private DefaultTestInsightBrainService newService() {
-    return new DefaultTestInsightBrainService().setWorkDir(tempDir.getRoot());
+    Path databaseFile = Paths.get(getDatabasePath().getAbsolutePath(), "ods.h2.db");
+    File workDir = databaseFile.getParent().getParent().toFile();
+    return new DefaultTestInsightBrainService().setWorkDir(workDir);
   }
 
-  private void createWithoutInitData(InsightConfig config) {
-    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-    OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-  }
-
-  private void initData(InsightConfig config) {
-    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-    OperationalDataStoreProvider.init(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods), true);
-
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+  private void initData(@SuppressWarnings("unused") InsightConfig config /* unused */) {
+    try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
          Statement statement = connection.createStatement()) {
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
           "VALUES ('\0a74878d8bfe44d2086ca8387e340692f', '{}', '', '');");
@@ -77,66 +75,59 @@ public class ExportEmbeddedDatabaseCommandTest
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true)
   public void testRun_MissingDatabase() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-      assertThatExceptionOfType(RuntimeException.class)
-          .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-              dumpFile.getPath())).withMessageContaining("Cannot find the embedded database");
-      assertThat(dumpFile).doesNotExist();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    // The test fixture automatically creates H2 db files. Manually delete them for this test
+    File file = new File(databaseRule.getDatabaseMetadata().get(H2DiskTest.DATABASE_PATH) + "/ods.h2.db");
+    file.delete();
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+            dumpFile.getPath())).withMessageContaining("Cannot find the embedded database");
+    assertThat(dumpFile).doesNotExist();
   }
 
   @Test
+  @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "ExportEmbeddedDatabaseCommandTest/EmptyDatabase")
   public void testRun_UninitializedDatabase() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      File dumpFile = new File(tempDir.getRoot(), "dump.sql");
-      DefaultTestInsightBrainService service = newService();
-      service.setConfigurator(this::createWithoutInitData);
+    File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    DefaultTestInsightBrainService service = newService();
 
-      assertThatExceptionOfType(RuntimeException.class)
-          .isThrownBy(() -> service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-              dumpFile.getPath())).withMessageContaining("The server needs to have been started normally once before" +
-              " in order to complete the required upgrade steps.");
-      assertThat(dumpFile).doesNotExist();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+            dumpFile.getPath())).withMessageContaining("The server needs to have been started normally once before" +
+            " in order to complete the required upgrade steps.");
+    assertThat(dumpFile).doesNotExist();
   }
 
   @Test
+  @H2DiskTest
   public void testRun_GzippedDump() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try {
-      File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
+    File outputDumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
 
-      DefaultTestInsightBrainService service = newService();
-      service.setConfigurator(this::initData);
+    DefaultTestInsightBrainService service = newService();
+    service.setConfigurator(this::initData);
 
-      service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", outputDumpFile.getPath());
 
-      assertThat(dumpFile).isFile();
+    assertThat(outputDumpFile).isFile();
 
-      try (InputStream is = new GZIPInputStream(Files.newInputStream(dumpFile.toPath()))) {
-        assertThat(is.read()).isPositive();
-      }
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
+    try (InputStream is = new GZIPInputStream(Files.newInputStream(outputDumpFile.toPath()))) {
+      assertThat(is.read()).isPositive();
     }
   }
 
   @Test
+  @H2DiskTest
   public void testRun_DumpImportableIntoPostgres() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
+    // This test is unique in that it uses both an H2 database and Postgres. We use @H2DiskTest with the database rule
+    // and manually instantiate a PostgresDatabaseFixture for the Postgres side. Annotations cannot be instantiated
+    // so the easiest to consume it from a dummy class.
+    PostgresTest postgresTest = DummyForAnnotation.class.getAnnotation(PostgresTest.class);
+    try (PostgresDatabaseFixture postgresDatabaseFixture = new PostgresDatabaseFixture(
+        "testRun_DumpImportableIntoPostgres", postgresTest)) {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
       DefaultTestInsightBrainService service = newService();
@@ -146,22 +137,25 @@ public class ExportEmbeddedDatabaseCommandTest
 
       assertThat(dumpFile).isFile();
 
-      postgres.loadSqlDump(dumpFile.toPath());
+      postgresDatabaseFixture.loadSqlDump(dumpFile.toPath());
 
       Map<String, Map<String, List<TableRow>>> expectedTablesBySchema = new HashMap<>();
-      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection()) {
         loadTableRows(expectedTablesBySchema, connection);
       }
-      try (Connection connection = AggregationDataStoreProvider.getDataSource().getConnection()) {
+      try (Connection connection = databaseRule.getAggregationDataStore().getDataSource().getConnection()) {
         loadTableRows(expectedTablesBySchema, connection);
       }
-      try (Connection connection = ThirdPartyScansProvider.getDataSource().getConnection()) {
+      try (Connection connection = databaseRule.getThirdPartyScansDataStore().getDataSource().getConnection()) {
         loadTableRows(expectedTablesBySchema, connection);
       }
 
       Map<String, Map<String, List<TableRow>>> actualTablesBySchema = new HashMap<>();
-      try (Connection connection =
-          DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
+      com.sonatype.insight.db.DatabaseConfig pgDatabaseConfig =
+          postgresDatabaseFixture.getDatabaseConfig(DatabaseName.ods.name());
+      try (Connection connection = DriverManager.getConnection(pgDatabaseConfig.getUrl(),
+          pgDatabaseConfig.getUsername(),
+          pgDatabaseConfig.getPassword())) {
         loadTableRows(actualTablesBySchema, connection);
       }
 
@@ -184,9 +178,12 @@ public class ExportEmbeddedDatabaseCommandTest
         }
       }
     }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+  }
+
+  @PostgresTest(suppressMigrations = true)
+  private static class DummyForAnnotation
+  {
+    // for usage in testRun_DumpImportableIntoPostgres
   }
 
   private static class TableRow
@@ -263,59 +260,5 @@ public class ExportEmbeddedDatabaseCommandTest
       }
     }
     return columnNames;
-  }
-
-  @Test
-  public void testTransformInsertValues_ColumnSeparator() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues(",1")).isEqualTo("\t1");
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues(",    1")).isEqualTo("\t1");
-  }
-
-  @Test
-  public void testTransformInsertValues_Null() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("NULL")).isEqualTo("\\N");
-  }
-
-  @Test
-  public void testTransformInsertValues_Number() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("1234567890")).isEqualTo("1234567890");
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("-1.234567890")).isEqualTo("-1.234567890");
-  }
-
-  @Test
-  public void testTransformInsertValues_Boolean() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("TRUE")).isEqualTo("TRUE");
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("FALSE")).isEqualTo("FALSE");
-  }
-
-  @Test
-  public void testTransformInsertValues_Timestamp() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("TIMESTAMP '2019-06-14 19:25:51.334'"))
-        .isEqualTo("2019-06-14 19:25:51.334");
-  }
-
-  @Test
-  public void testTransformInsertValues_String_Quoted() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("''")).isEqualTo("");
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("'abc \'\' \\N'")).isEqualTo("abc \' \\\\N");
-  }
-
-  @Test
-  public void testTransformInsertValues_String_Encoded() {
-    assertThat(ExportEmbeddedDatabaseCommand
-        .transformInsertValues("STRINGDECODE('abc \'\' \\n\\t\\\\ \\u20AC \\\\\\u20AC \\\\uASis')"))
-            .isEqualTo("abc \' \\n\\t\\\\ \u20AC \\\\\u20AC \\\\uASis");
-  }
-
-  @Test
-  public void testTransformInsertValues_Binary() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("X'0010abCDeF'")).isEqualTo("\\\\x0010abCDeF");
-  }
-
-  @Test
-  public void testTransformInsertValues_MultipleColumns() {
-    assertThat(ExportEmbeddedDatabaseCommand
-        .transformInsertValues("-1, NULL, TRUE, 2.0, 'abc', STRINGDECODE('xyz'), TIMESTAMP '2019-06-14 19:25:51.334'"))
-            .isEqualTo("-1\t\\N\tTRUE\t2.0\tabc\txyz\t2019-06-14 19:25:51.334");
   }
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -25,27 +26,47 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Evaluates authorization.
- * 
+ *
  * @since 1.7
  */
 public class AuthorizationChecker
 {
-  private final MembershipMappingDAO membershipDAO;
+  private MembershipMappingDAO membershipMappingDAO;
 
-  private final RolePermissionDAO rolePermissionDAO;
+  private RolePermissionDAO rolePermissionDAO;
 
   private final ContextResolver contextResolver;
 
-  public AuthorizationChecker() {
-    this(new ContextResolver());
+  @Inject
+  AuthorizationChecker(ContextResolver contextResolver) {
+    // additionally see javadoc on #injectDAOs
+    this.contextResolver = contextResolver;
   }
 
-  AuthorizationChecker(ContextResolver contextResolver) {
-    this.rolePermissionDAO = new RolePermissionDAO();
-    this.membershipDAO = new MembershipMappingDAO();
+  @VisibleForTesting
+  AuthorizationChecker(
+      final ContextResolver contextResolver,
+      final RolePermissionDAO rolePermissionDAO,
+      final MembershipMappingDAO membershipMappingDAO)
+  {
     this.contextResolver = contextResolver;
+    this.rolePermissionDAO = rolePermissionDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
+  }
+
+  /**
+   * Injected using Guice <a href="https://github.com/google/guice/wiki/Injections#method-injection">method
+   * injection</a> as this is a dependency of Shiro {@link org.apache.shiro.aop.MethodInterceptor} using AOP. See setup
+   * in {@link SecurityAopModule} using `requestInjection`.
+   */
+  @Inject
+  public void injectDAOs(final MembershipMappingDAO membershipMappingDAO, final RolePermissionDAO rolePermissionDAO) {
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.rolePermissionDAO = rolePermissionDAO;
   }
 
   /**
@@ -131,7 +152,7 @@ public class AuthorizationChecker
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> permitsByContextId = new HashMap<>(256);
 
-    Set<String> userContextIds = membershipDAO.getByRoleIds(roleIds).stream()
+    Set<String> userContextIds = membershipMappingDAO.getByRoleIds(roleIds).stream()
         .filter(membershipMapping -> membershipMapping.includes(user))
         .map(MembershipMapping::getContextId)
         .collect(Collectors.toSet());
@@ -187,7 +208,7 @@ public class AuthorizationChecker
   }
 
   private boolean isUserHavingAnyRoleInContext(UserPrincipal user, Set<String> roleIds, String contextId) {
-    Collection<MembershipMapping> memberships = membershipDAO.getByContextId(contextId);
+    Collection<MembershipMapping> memberships = membershipMappingDAO.getByContextId(contextId);
     for (MembershipMapping membership : memberships) {
       if (roleIds.contains(membership.getRoleId()) && membership.includes(user)) {
         return true;
@@ -197,7 +218,7 @@ public class AuthorizationChecker
   }
 
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds) {
-    Collection<MembershipMapping> memberships = membershipDAO.getByRoleIds(roleIds);
+    Collection<MembershipMapping> memberships = membershipMappingDAO.getByRoleIds(roleIds);
     for (MembershipMapping membership : memberships) {
       if (membership.includes(user)) {
         return true;

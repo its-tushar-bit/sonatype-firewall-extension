@@ -9,13 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
@@ -26,7 +26,6 @@ import com.sonatype.insight.scan.model.io.ScanReader;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ScannerTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();

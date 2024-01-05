@@ -44,6 +44,9 @@ public class ProxyServerConfigurationMigratorTest
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Inject
   private ProxyServerConfigurationMigrator proxyServerConfigurationMigrator;
 
   @Inject
@@ -67,15 +70,15 @@ public class ProxyServerConfigurationMigratorTest
     migrationTrackerDAO.deleteById(ProxyServerConfigurationMigrator.MIGRATION_ID);
     proxyServerConfigurationDAO.delete();
     SystemConfigurationProperty proxyExcludeHostsProperty =
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME);
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME);
     if (proxyExcludeHostsProperty != null) {
-      new SystemConfigurationPropertyDAO().delete(proxyExcludeHostsProperty);
+      systemConfigurationPropertyDAO.delete(proxyExcludeHostsProperty);
     }
   }
 
   @Test
   public void testMigrate_FirstRun_NoConfig() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .insert(new SystemConfigurationProperty(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME, ""));
     insightConfig.setProxyConfig(null);
 
@@ -84,7 +87,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(migrationTrackerDAO.isTrackerPresent(ProxyServerConfigurationMigrator.MIGRATION_ID)).isTrue();
     assertThat(proxyServerConfigurationDAO.get()).isNull();
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
     assertThat(logOutput).doesNotContain(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
     verifyNoInteractions(proxyServerConfigurationListener);
@@ -92,7 +95,7 @@ public class ProxyServerConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_InvalidConfig() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .insert(new SystemConfigurationProperty(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME, ""));
     ProxyConfig proxyConfig = new ProxyConfig();
     insightConfig.setProxyConfig(proxyConfig);
@@ -102,7 +105,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(migrationTrackerDAO.isTrackerPresent(ProxyServerConfigurationMigrator.MIGRATION_ID)).isTrue();
     assertThat(proxyServerConfigurationDAO.get()).isNull();
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.INVALID_CONFIG_MESSAGE);
     verifyNoInteractions(proxyServerConfigurationListener);
@@ -110,7 +113,7 @@ public class ProxyServerConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_CustomConfig() {
-    new SystemConfigurationPropertyDAO().insert(new SystemConfigurationProperty(
+    systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
         ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME, "host1, host2"));
     char[] password = "testpass".toCharArray();
     ProxyServerConfigurationMigrator.ProxyConfig fileConfig = new ProxyServerConfigurationMigrator.ProxyConfig();
@@ -132,7 +135,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(passwordHandler.decryptPassword(dbConfig.getPassword())).isEqualTo(password);
     assertThat(dbConfig.getExcludeHosts()).isEqualTo("host1, host2");
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
@@ -141,7 +144,7 @@ public class ProxyServerConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_CustomConfig_NoExcludeHosts() {
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .insert(new SystemConfigurationProperty(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME, ""));
     char[] password = "testpass".toCharArray();
     ProxyServerConfigurationMigrator.ProxyConfig fileConfig = new ProxyServerConfigurationMigrator.ProxyConfig();
@@ -163,7 +166,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(passwordHandler.decryptPassword(dbConfig.getPassword())).isEqualTo(password);
     assertThat(dbConfig.getExcludeHosts()).isNull();
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
@@ -172,7 +175,7 @@ public class ProxyServerConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_CustomConfig_NoPassword() {
-    new SystemConfigurationPropertyDAO().insert(new SystemConfigurationProperty(
+    systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
         ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME, "host1, host2"));
     ProxyServerConfigurationMigrator.ProxyConfig fileConfig = new ProxyServerConfigurationMigrator.ProxyConfig();
     fileConfig.setHostname("testhost");
@@ -191,7 +194,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(dbConfig.getPassword()).isNull();
     assertThat(dbConfig.getExcludeHosts()).isEqualTo("host1, host2");
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
+        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);

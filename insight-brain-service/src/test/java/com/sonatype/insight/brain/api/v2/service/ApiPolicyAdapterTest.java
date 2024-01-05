@@ -10,22 +10,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyAdapterTest
+    extends AbstractDataTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Test
   public void testConvert_SinglePolicy() {
     Organization organization = tempEntity.newOrganization();

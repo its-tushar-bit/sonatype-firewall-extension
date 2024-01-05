@@ -118,7 +118,7 @@ public class ApiOrganizationServiceTest
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).hasSize(2);
     assertOrganizationData(apiOrganizationListDTO.organizations.get(0),
-        new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID), Collections.emptyList());
+        organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID), Collections.emptyList());
     assertOrganizationData(apiOrganizationListDTO.organizations.get(1), organization, Collections.singletonList(tag));
   }
 

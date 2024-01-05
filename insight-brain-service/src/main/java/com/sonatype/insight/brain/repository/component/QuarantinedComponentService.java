@@ -69,6 +69,8 @@ public class QuarantinedComponentService
 
   private final TelemetrySender telemetrySender;
 
+  private final RepositoryService repositoryService;
+
   private static final String PATHNAME_SEPARATOR = "/";
 
   static final String QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH =
@@ -83,6 +85,8 @@ public class QuarantinedComponentService
   static final String QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED =
       "quarantined_component_report_anonymous_access_enabled";
 
+  private final IdUtils idUtils;
+
   @Inject
   public QuarantinedComponentService(
       final DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
@@ -91,7 +95,9 @@ public class QuarantinedComponentService
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final RepositoryService repositoryService,
+      final IdUtils idUtils)
   {
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.componentInfoService = componentInfoService;
@@ -100,6 +106,8 @@ public class QuarantinedComponentService
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
+    this.repositoryService = repositoryService;
+    this.idUtils = idUtils;
 
     componentInfoService.setToolName("ci");
   }
@@ -161,7 +169,7 @@ public class QuarantinedComponentService
 
     List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         policyViolations.stream().sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
-            .map(RepositoryService::toRepositoryPolicyViolationDTO).collect(Collectors.toList());
+            .map(repositoryService::toRepositoryPolicyViolationDTO).collect(Collectors.toList());
 
     return repositoryPolicyViolationDTOs;
   }
@@ -189,7 +197,7 @@ public class QuarantinedComponentService
 
     checkAccess(repositoryComponent);
 
-    final Owner owner = IdUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
+    final Owner owner = idUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
 
     ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
     String hash = repositoryComponent.getHash();

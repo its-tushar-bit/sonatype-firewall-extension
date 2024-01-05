@@ -184,14 +184,12 @@ public class ScanServiceTest
         assertThat(scanTicket3).isNotNull();
         assertThat(scanTicket3.ticketId).isNotNull();
 
-        PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
         await().atMost(5, TimeUnit.SECONDS)
             .until(() -> persistedScanTicketDAO.getById(scanTicket3.ticketId).getStateId().equals(State.DONE.name()));
       });
 
       // Check scans from tenant 1 are still blocked, unblock them, and check that they complete
       TenantTestHelper.testAs(tenant1.tenantSlug, t -> {
-        PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
         for (String t1TicketId : t1TicketIds) {
           assertThat(persistedScanTicketDAO.getById(t1TicketId)).isNotNull().extracting(PersistedScanTicket::getStateId)
               .isEqualTo(State.UPLOADING_SCAN.name());

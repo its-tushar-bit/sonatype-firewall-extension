@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -65,6 +64,30 @@ public class FirewallMigrationServiceTest
   private static final String TARGET_REPOSITORY_PUBLIC_ID = "repository";
 
   @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Inject
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  @Inject
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryMigrationDAO repositoryMigrationDAO;
+
+  @Inject
   private TestProductLicense testProductLicense;
 
   @Inject
@@ -79,7 +102,6 @@ public class FirewallMigrationServiceTest
 
   @After
   public void deleteAutoCreatedRepositoryManagers() {
-    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
     RepositoryManager manager = repositoryManagerDAO.getByInstanceId(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
     if (manager != null) {
       repositoryManagerDAO.delete(manager);
@@ -160,7 +182,7 @@ public class FirewallMigrationServiceTest
     RepositoryMigration repositoryMigration = new RepositoryMigration();
     repositoryMigration.setRepositoryId(repository.getId());
     repositoryMigration.setState(migrationState);
-    assertThat(new RepositoryMigrationDAO().tryInsert(repositoryMigration)).isTrue();
+    assertThat(repositoryMigrationDAO.tryInsert(repositoryMigration)).isTrue();
 
     testMigrateRepositoryHistory(repository, previousRunData, sourceRepository, data);
   }
@@ -179,24 +201,24 @@ public class FirewallMigrationServiceTest
             .isEqualTo(MigrationState.COMPLETED));
 
     // Assert source untouched
-    assertThat(new RepositoryComponentDAO().getByRepositoryId(sourceRepository.getId()))
+    assertThat(repositoryComponentDAO.getByRepositoryId(sourceRepository.getId()))
         .usingElementComparator(componentComparator).containsExactlyInAnyOrderElementsOf(sourceData.components);
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(sourceRepository.getId()))
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(sourceRepository.getId()))
         .usingElementComparator(violationComparator).containsExactlyInAnyOrderElementsOf(sourceData.violations);
-    assertThat(new LicenseOverrideDAO().getByOwnerId(sourceRepository.getId()))
+    assertThat(licenseOverrideDAO.getByOwnerId(sourceRepository.getId()))
         .usingElementComparator(licenseOverrideComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.licenseOverrides);
-    assertThat(new SecurityVulnerabilityOverrideDAO().getByOwnerId(sourceRepository.getId()))
+    assertThat(securityVulnerabilityOverrideDAO.getByOwnerId(sourceRepository.getId()))
         .usingElementComparator(vulnerabilityOverrideComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.vulnerabilityOverrides);
-    assertThat(new PolicyWaiverDAO().getByOwnerId(sourceRepository.getId())).usingElementComparator(waiverComparator)
+    assertThat(policyWaiverDAO.getByOwnerId(sourceRepository.getId())).usingElementComparator(waiverComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.policyWaivers);
 
     if (targetRepository != null) {
-      targetRepository = new RepositoryDAO().getById(targetRepository.getId());
+      targetRepository = repositoryDAO.getById(targetRepository.getId());
     }
     else {
-      targetRepository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(
+      targetRepository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
           TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
       // Assert the target repository is created automatically
       assertThat(targetRepository).isNotNull();
@@ -207,7 +229,7 @@ public class FirewallMigrationServiceTest
     assertThat(targetRepository.isQuarantineEnabled()).isEqualTo(sourceRepository.isQuarantineEnabled());
 
     // Assert Components are migrated
-    List<RepositoryComponent> migratedComponents = new RepositoryComponentDAO()
+    List<RepositoryComponent> migratedComponents = repositoryComponentDAO
         .getByRepositoryId(targetRepository.getId());
     assertThat(migratedComponents).usingElementComparator(componentComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.components);
@@ -217,7 +239,7 @@ public class FirewallMigrationServiceTest
           .doesNotContainAnyElementsOf(previousRunData.components);
     }
     // Assert Policy Violations are migrated
-    List<RepositoryPolicyViolation> migratedViolations = new RepositoryPolicyViolationDAO()
+    List<RepositoryPolicyViolation> migratedViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(targetRepository.getId());
     assertThat(migratedViolations).usingElementComparator(violationComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.violations);
@@ -227,7 +249,7 @@ public class FirewallMigrationServiceTest
           .doesNotContainAnyElementsOf(previousRunData.violations);
     }
     // Assert License Overrides are migrated
-    List<LicenseOverride> migratedLicenseOverrides = new LicenseOverrideDAO().getByOwnerId(targetRepository.getId());
+    List<LicenseOverride> migratedLicenseOverrides = licenseOverrideDAO.getByOwnerId(targetRepository.getId());
     assertThat(migratedLicenseOverrides).usingElementComparator(licenseOverrideComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.licenseOverrides);
     if (previousRunData != null) {
@@ -236,7 +258,7 @@ public class FirewallMigrationServiceTest
           .doesNotContainAnyElementsOf(previousRunData.licenseOverrides);
     }
     // Assert Security Vulnerability Overrides are migrated
-    List<SecurityVulnerabilityOverride> migratedVulnerabilityOverrides = new SecurityVulnerabilityOverrideDAO()
+    List<SecurityVulnerabilityOverride> migratedVulnerabilityOverrides = securityVulnerabilityOverrideDAO
         .getByOwnerId(targetRepository.getId());
     assertThat(migratedVulnerabilityOverrides).usingElementComparator(vulnerabilityOverrideComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.vulnerabilityOverrides);
@@ -246,7 +268,7 @@ public class FirewallMigrationServiceTest
           .doesNotContainAnyElementsOf(previousRunData.vulnerabilityOverrides);
     }
     // Assert Security Vulnerability Overrides are migrated
-    List<PolicyWaiver> migratedPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(targetRepository.getId());
+    List<PolicyWaiver> migratedPolicyWaivers = policyWaiverDAO.getByOwnerId(targetRepository.getId());
     assertThat(migratedPolicyWaivers).usingElementComparator(waiverComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.policyWaivers);
     if (previousRunData != null) {
@@ -301,7 +323,7 @@ public class FirewallMigrationServiceTest
     RepositoryMigration repositoryMigration = new RepositoryMigration();
     repositoryMigration.setRepositoryId(targetRepository.getId());
     repositoryMigration.setState(MigrationState.RUNNING);
-    assertThat(new RepositoryMigrationDAO().tryInsert(repositoryMigration)).isTrue();
+    assertThat(repositoryMigrationDAO.tryInsert(repositoryMigration)).isTrue();
 
     // The migration request is ignored and the migration continues.
     migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,

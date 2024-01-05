@@ -8,13 +8,24 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
 import java.util.Optional;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ApplicationCountHistoryDAO
     extends AbstractOperationalSqlDAO<ApplicationCountHistory>
 {
+  @Inject
+  public ApplicationCountHistoryDAO(final OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void update(TransactionContext tx, ApplicationCountHistory entity) {
     throw new UnsupportedOperationException("ApplicationCountHistory does not support update operations");

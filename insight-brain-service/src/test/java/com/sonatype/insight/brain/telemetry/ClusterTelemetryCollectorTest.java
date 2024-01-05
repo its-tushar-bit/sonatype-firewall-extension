@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -39,6 +39,9 @@ public class ClusterTelemetryCollectorTest
 
   @Inject
   private TaskScheduler taskScheduler;
+
+  @Inject
+  private OperationalDataStore operationalDataStore;
 
   @Override
   public void configure(Binder binder) {
@@ -87,10 +90,10 @@ public class ClusterTelemetryCollectorTest
   }
 
   private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
-    String sQuery = "INSERT INTO QRTZ_SCHEDULER_STATE" + //
+    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource()
+    try (Connection connection = operationalDataStore.getDataSource()
         .getConnection(); PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, instanceId);
@@ -101,8 +104,8 @@ public class ClusterTelemetryCollectorTest
   }
 
   private void deleteAllSchedulerStateRecords() throws Exception {
-    String sQuery = "DELETE FROM QRTZ_SCHEDULER_STATE";
-    try (Connection connection = OperationalDataStoreProvider.getDataSource()
+    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
+    try (Connection connection = operationalDataStore.getDataSource()
         .getConnection(); PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();
     }

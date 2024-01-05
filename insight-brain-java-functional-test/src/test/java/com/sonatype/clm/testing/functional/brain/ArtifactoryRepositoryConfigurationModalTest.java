@@ -49,13 +49,13 @@ public class ArtifactoryRepositoryConfigurationModalTest
   @Rule
   public WireMockRule artifactoryMockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private final ArtifactoryConnectionDAO artifactoryConnectionDAO = new ArtifactoryConnectionDAO();
-
   private PasswordHandler passwordHandler;
 
   private Organization org;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private ArtifactoryConnectionDAO artifactoryConnectionDAO;
+
+  private OrganizationDAO organizationDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -65,6 +65,9 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
   @Before
   public void before() {
+    artifactoryConnectionDAO = lookup(ArtifactoryConnectionDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
     passwordHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
 

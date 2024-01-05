@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,9 +23,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SamlGroupDAOTest
     extends AbstractDbDAOTest
 {
-  private final SamlGroupDAO samlGroupDAO = new SamlGroupDAO();
+  private SamlGroupDAO samlGroupDAO;
 
-  private final SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
+  private SamlUserGroupDAO samlUserGroupDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    samlGroupDAO = daoFactory.createSamlGroupDAO();
+    samlUserGroupDAO = daoFactory.createSamlUserGroupDAO();
+  }
 
   @Test
   public void testCRUD() {

@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import java.util.EnumSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
-import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,9 +21,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RolePermissionDAOTest
     extends AbstractDbDAOTest
 {
-  private final RolePermissionDAO permDAO = new RolePermissionDAO();
+  private RolePermissionDAO permDAO;
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    permDAO = daoFactory.createRolePermissionDAO();
+    roleDAO = daoFactory.createRoleDAO();
+  }
 
   @Test
   public void testSystemAdminRoleHasConfigureSystemPermissions() {
@@ -104,43 +111,5 @@ public class RolePermissionDAOTest
     RolePermission rolePerm = permDAO.getByRoleId(tempEntity.newRole(false, Permission.WRITE).getId()).get(0);
     rolePerm.setPermission(Permission.READ);
     assertThatThrownBy(() -> permDAO.update(rolePerm)).isInstanceOf(UnsupportedOperationException.class);
-  }
-
-  @Test
-  public void testSetPermissionsForRole_BuiltInRolesAreReadOnly() {
-    Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
-    assertThatThrownBy(
-        () -> permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
-    assertThat(permDAO.getPermissionsForRole(role.getId())).hasSize(2);
-  }
-
-  @Test
-  public void testSetPermissionsForRole_CustomRolesCannotGetCertainPermissions() {
-    Role role = tempEntity.newRole("Tester", false);
-    assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles()).isFalse();
-    assertThatThrownBy(
-        () -> permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage(
-        "Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '" + role.getName() + "'");
-    assertThat(permDAO.getPermissionsForRole(role.getId())).isEmpty();
-  }
-
-  @Test
-  public void testSetPermissionsForRole() {
-    Role role = tempEntity.newRole("Tester", false);
-    Set<Permission> permissions = EnumSet.of(Permission.WRITE, Permission.READ);
-    permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId())).isEqualTo(permissions);
-
-    permissions = EnumSet.of(Permission.WRITE, Permission.EVALUATE_APPLICATION);
-    permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId())).isEqualTo(permissions);
-
-    permissions.clear();
-    permDAO.setPermissionsForRole(role.getId(), permissions);
-    assertThat(permDAO.getPermissionsForRole(role.getId())).isEmpty();
   }
 }

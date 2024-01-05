@@ -12,19 +12,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class ComponentCategoryDAO
     extends AbstractDatamartSqlDAO<ComponentCategory>
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentCategoryDAO.class);
 
   private static volatile Map<String, ComponentCategory> componentCategoriesById = null;
+
+  @Inject
+  public ComponentCategoryDAO(final DataMartDataStore dataMartDataStore) {
+    super(dataMartDataStore);
+  }
 
   @Override
   public ComponentCategory getById(TransactionContext tx, String id) {
@@ -41,7 +52,7 @@ public class ComponentCategoryDAO
     ComponentCategory componentCategory = componentCategoriesById.get(id);
     if (componentCategory == null) {
       log.info("Cannot find a componentCategory with ID '{}'.  Refreshing componentCategory data.", id);
-      AbstractComponentCategoryUpdater.update();
+      AbstractComponentCategoryUpdater.update(this);
       componentCategory = componentCategoriesById.get(id);
     }
     return componentCategory;

@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -55,6 +54,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyWaiverResourceAuditTest
     extends AbstractAuditTest
 {
+  private PolicyWaiverDAO policyWaiverDAO;
+
   private Organization org;
 
   private Application app;
@@ -67,6 +68,8 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Before
   public void setUpPolicyViolation() {
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     policy = tempEntity.newPolicy();
@@ -385,7 +388,7 @@ public class ApiPolicyWaiverResourceAuditTest
         .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
         .post();
 
-    PolicyWaiver policyWaiver = new PolicyWaiverDAO().getByPolicyId(policy.getId()).get(0);
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByPolicyId(policy.getId()).get(0);
     AuditDTO waiverAuditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
     assertCustomData(waiverAuditDTO, "policyWaiverId", policyWaiver.getId());
     assertCustomData(waiverAuditDTO, "policyId", policy.getId());
@@ -429,7 +432,7 @@ public class ApiPolicyWaiverResourceAuditTest
         .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
         .post();
 
-    PolicyWaiver policyWaiver = new PolicyWaiverDAO().getByPolicyId(policy.getId()).get(0);
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByPolicyId(policy.getId()).get(0);
     AuditDTO waiverAuditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
     assertCustomData(waiverAuditDTO, "policyWaiverId", policyWaiver.getId());
     assertCustomData(waiverAuditDTO, "policyId", policy.getId());
@@ -522,7 +525,7 @@ public class ApiPolicyWaiverResourceAuditTest
 
   private void assertPolicyWaiverData(AuditDTO auditDTO) {
     String policyWaiverId = (String) auditDTO.data.get("policyWaiverId");
-    PolicyWaiver policyWaiver = new PolicyWaiverDAO().getByIdNotNull(policyWaiverId);
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(policyWaiverId);
     assertPolicyWaiverData(auditDTO, policyWaiver);
   }
 

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -115,7 +114,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     app3PolicyEvaluationBuild =
         tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "test scan app3 id (build)", date2);
 
-    policyWaiverDAO = new PolicyWaiverDAO();
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
   }
 
   @Test

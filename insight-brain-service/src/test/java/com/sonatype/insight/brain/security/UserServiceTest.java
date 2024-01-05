@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
@@ -59,6 +58,9 @@ public class UserServiceTest
   private SamlUserDAO samlUserDAO;
 
   @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private ApiConfigurationService configurationService;
 
   @Mock
@@ -77,8 +79,6 @@ public class UserServiceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
-  private final ApplicationDAO applicationDao = new ApplicationDAO();
-
   @Test
   public void testDeleteUserNoLdapRemovesContact() {
     // Create a user
@@ -94,7 +94,7 @@ public class UserServiceTest
     userService.deleteUser(user.getId());
 
     // Check to see if the contact has also been deleted
-    application = applicationDao.getById(application.getId());
+    application = applicationDAO.getById(application.getId());
     assertThat(application).isNotNull();
     assertThat(application.getContactInternalName()).isNull();
   }
@@ -127,7 +127,7 @@ public class UserServiceTest
     userService.deleteUser(user.getId());
 
     // Check to see if the application contact has also been deleted
-    application = applicationDao.getById(application.getId());
+    application = applicationDAO.getById(application.getId());
     assertThat(application).isNotNull();
     assertThat(application.getContactInternalName()).isNull();
   }
@@ -161,7 +161,7 @@ public class UserServiceTest
     userService.deleteUser(user.getId());
 
     // Check to see if the application contact has not been deleted
-    application = applicationDao.getById(application.getId());
+    application = applicationDAO.getById(application.getId());
     assertThat(application).isNotNull();
     assertThat(application.getContactInternalName()).isEqualTo(clmAndLdapUserName);
   }
@@ -418,7 +418,7 @@ public class UserServiceTest
   }
 
   private void testGetAllApiUserDTOs_User(String queryRealm, String expectedRealm) {
-    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
+    User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
     User user = tempEntity.newUser();
 
     ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(queryRealm);
@@ -503,7 +503,7 @@ public class UserServiceTest
 
     userService.addUser(inputUserDTO);
 
-    assertMatchingUser(inputUserDTO);
+    assertMatchingUser(inputUserDTO, userDAO.getByUsernameNotNull(inputUserDTO.username));
   }
 
   @Test
@@ -520,7 +520,7 @@ public class UserServiceTest
 
     assertOnlyPasswordNull(outputUserDTO);
     assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
-    assertMatchingUser(outputUserDTO);
+    assertMatchingUser(outputUserDTO, userDAO.getByUsernameNotNull(inputUserDTO.username));
   }
 
   @Test
@@ -540,7 +540,7 @@ public class UserServiceTest
 
     assertOnlyPasswordNull(outputUserDTO);
     assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
-    assertMatchingUser(outputUserDTO);
+    assertMatchingUser(outputUserDTO, userDAO.getByUsernameNotNull(user.getUsername()));
   }
 
   @Test
@@ -552,7 +552,7 @@ public class UserServiceTest
 
     assertOnlyPasswordNull(outputUserDTO);
     assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
-    assertMatchingUser(outputUserDTO);
+    assertMatchingUser(outputUserDTO, userDAO.getByUsernameNotNull(inputUserDTO.username));
   }
 
   @Test

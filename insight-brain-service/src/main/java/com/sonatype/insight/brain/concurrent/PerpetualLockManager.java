@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.concurrent;
 
 import java.util.Date;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 
@@ -15,7 +14,6 @@ import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +30,7 @@ public class PerpetualLockManager
 
   private final PerpetualLockDAO perpetualLockDAO;
 
-  public PerpetualLockManager() {
-    perpetualLockDAO = new PerpetualLockDAO();
-  }
-
-  @VisibleForTesting
-  PerpetualLockManager(PerpetualLockDAO perpetualLockDAO) {
+  public PerpetualLockManager(PerpetualLockDAO perpetualLockDAO) {
     this.perpetualLockDAO = perpetualLockDAO;
   }
 

@@ -12,25 +12,30 @@ import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class H2DatabaseBackupTest
     extends AbstractDatabaseTest
 {
-  @Test
-  public void testBackup() throws Exception {
-    File databaseDir = tempDir.newFolder("db");
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseBackupTest/testBackupOperationalDataStore"),
-        databaseDir);
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "ods");
+  @Test
+  @H2DiskTest(
+      suppressMigrations = true,
+      copyExistingDatabase = "H2DatabaseBackupTest/testBackupOperationalDataStore"
+  )
+  public void testBackup() throws Exception {
+    DatabaseConfig databaseConfig = getDatabaseConfig(getDatabasePath(), "ods");
 
     BasicDataSource dataSource = new BasicDataSource();
     dataSource.setDriverClassName(databaseConfig.getDriverClassName());
@@ -38,7 +43,7 @@ public class H2DatabaseBackupTest
     dataSource.setUsername(databaseConfig.getUsername());
     dataSource.setPassword(databaseConfig.getPassword());
 
-    File dbBackupDir = tempDir.newFolder("backup");
+    File dbBackupDir = tempFolder.newFolder("backup");
     new H2DatabaseBackup().backup(databaseConfig, dataSource, dbBackupDir);
 
     File dbBackupFile = new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);
@@ -46,7 +51,7 @@ public class H2DatabaseBackupTest
       ZipEntry zipEntryDb = dbBackupZipFile.getEntry("ods.h2.db");
       assertThat(zipEntryDb).as("The db file is missing from the db backup").isNotNull();
       assertThat(getZipEntryContent(dbBackupZipFile, zipEntryDb))
-          .isEqualTo(getFileContent(new File(databaseDir, "ods.h2.db")));
+          .isEqualTo(getFileContent(new File(getDatabasePath(), "ods.h2.db")));
     }
 
     File restoreIntructionsFile = new File(dbBackupDir, H2DatabaseBackup.RESTORE_FILENAME);

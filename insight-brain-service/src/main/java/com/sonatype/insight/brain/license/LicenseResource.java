@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -28,7 +28,12 @@ public class LicenseResource
 {
   public static final String RESOURCE_PATH = "rest/license";
 
-  private LicenseDAO licenseDAO = new LicenseDAO();
+  private final LicenseDAO licenseDAO;
+
+  @Inject
+  public LicenseResource(LicenseDAO licenseDAO) {
+    this.licenseDAO = licenseDAO;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

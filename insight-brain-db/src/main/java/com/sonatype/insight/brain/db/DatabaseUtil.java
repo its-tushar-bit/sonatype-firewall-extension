@@ -29,12 +29,12 @@ public class DatabaseUtil
     return tableExists(dataSource, databaseSchema, "schema_version");
   }
 
-  public static boolean quartzSchedulerStateTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStoreProvider.getDatabaseSchema(), "qrtz_scheduler_state");
+  public static boolean quartzSchedulerStateTableExists(final DataSource dataSource, final String databaseSchema) {
+    return tableExists(dataSource, databaseSchema, "qrtz_scheduler_state");
   }
 
-  public static boolean systemConfigurationPropertyTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStoreProvider.getDatabaseSchema(), "system_configuration_property");
+  public static boolean systemConfigurationPropertyTableExists(DataSource dataSource, final String databaseSchema) {
+    return tableExists(dataSource, databaseSchema, "system_configuration_property");
   }
 
   public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
@@ -163,11 +163,11 @@ public class DatabaseUtil
     }
   }
 
-  public static Long getLastCheckinTime(DataSource dataSource) {
+  public static Long getLastCheckinTime(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
          ResultSet resultSet = statement.executeQuery(
-             "SELECT MAX(last_checkin_time) FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+             "SELECT MAX(last_checkin_time) FROM " + databaseSchema +
                  ".QRTZ_SCHEDULER_STATE")) {
       if (resultSet.next()) {
         return resultSet.getLong(1);
@@ -179,11 +179,11 @@ public class DatabaseUtil
     return null;
   }
 
-  public static String getSchemaMigrationEnabledFromDatabase(DataSource dataSource) {
+  public static String getSchemaMigrationEnabledFromDatabase(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
          ResultSet resultSet = statement.executeQuery(
-             "SELECT value FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+             "SELECT value FROM " + databaseSchema +
                  ".system_configuration_property WHERE name = '" + DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
       if (resultSet.next()) {
         return resultSet.getString(1);
@@ -227,6 +227,12 @@ public class DatabaseUtil
     throw new DatabaseException("Could not determine DatabaseEngine from the DatabaseConfig");
   }
 
+  public static boolean isDatabaseEmbedded(final DatabaseConfig databaseConfig) {
+    DatabaseEngine databaseEngine = getDatabaseEngine(databaseConfig);
+
+    return H2DatabaseEngine.INSTANCE.equals(databaseEngine);
+  }
+
   public static Map<String, Integer> getDatabaseSchemaVersions(DataSource dataSource, String databaseSchema) {
     String sql = setSchema("SELECT * FROM %s.schema_version", databaseSchema);
     Map<String, Integer> schemaVersions = new HashMap<>();
@@ -265,5 +271,12 @@ public class DatabaseUtil
     }
 
     return schemas;
+  }
+
+  public static boolean isInMemoryDatabase(final DatabaseConfig databaseConfig) {
+    if (databaseConfig.getUrl().contains("jdbc:h2:mem")) {
+      return true;
+    }
+    return false;
   }
 }

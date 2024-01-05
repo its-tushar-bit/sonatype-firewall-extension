@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests authentication aspects of the public REST API in general.
  */
 public class PublicRestApiAuthcTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testSessionCookieSufficientWithoutCsrfTokenForSafeRequests() throws Exception {
@@ -136,7 +136,7 @@ public class PublicRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    initServer();
+    startIqTestServer();
     enableReverseProxyAuthentication();
     request = restRequest().header("REMOTE_USER", "admin").anon();
 

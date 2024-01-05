@@ -61,9 +61,10 @@ public class AssetsTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testNonEmptyContextPath() throws Exception {
-    initServer(config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext"));
+    startIqTestServer(
+        config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext"));
     assertThat(restRequest().getUrl()).contains("/testContext/");
 
     HttpResponse response = restRequest().path("index.html").get();

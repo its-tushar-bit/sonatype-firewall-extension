@@ -67,11 +67,13 @@ public class PolicyCentricReportWaiverTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private PolicyViolationDAO policyViolationDAO;
 
-  private Application app;
+  private PolicyWaiverDAO policyWaiverDAO;
 
   private TestReportEvaluator evaluator;
+
+  private Application app;
 
   @BeforeClass
   public static void startup() {
@@ -81,6 +83,9 @@ public class PolicyCentricReportWaiverTest
 
   @Before
   public void start() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     app = tempEntity.newApplicationWithParent(PolicyCentricReportWaiverTest.class.getSimpleName(), "Waiver Test App",
         "Waiver Test Org");
     evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/canned-reports/small-report", tempDir),
@@ -98,10 +103,10 @@ public class PolicyCentricReportWaiverTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.should(disappear);
 
-    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
     assertThat(policyViolations).hasSize(12);
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);

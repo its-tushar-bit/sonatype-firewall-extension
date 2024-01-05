@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -56,8 +55,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -75,7 +74,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyMonitorTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private PolicyMonitor policyMonitor;
 
@@ -85,18 +84,34 @@ public class PolicyMonitorTest
 
   private TestEventHandler<ApplicationEvaluationEvent> handler;
 
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
+  private OwnerDAO ownerDAO;
+
+  private static MailConfiguration testMailConfiguration = createTestMailConfiguration();
+
+  private static MailConfiguration createTestMailConfiguration() {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("127.0.0.1");
+    mailConfiguration.setPort(587);
+    mailConfiguration.setSystemEmail("NexusIQServer@localhost");
+    return mailConfiguration;
+  }
+
   @Before
   public void setup() {
     setBaseUrl("http://clm.sonatype.com/test");
     insightWork = getCLMServer().getInstance(InsightWork.class);
     policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
     asyncEventBus = getCLMServer().getInstance(AsyncEventBus.class);
+    policyEvaluationDAO = getCLMServer().getInstance(PolicyEvaluationDAO.class);
+    policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
+    ownerDAO = getCLMServer().getInstance(OwnerDAO.class);
 
-    MailConfiguration mailConfiguration = new MailConfiguration();
-    mailConfiguration.setHostname("127.0.0.1");
-    mailConfiguration.setPort(587);
-    mailConfiguration.setSystemEmail("NexusIQServer@localhost");
-    new MailConfigurationDAO().set(mailConfiguration);
+    MailConfigurationDAO mailConfigurationDAO = getCLMServer().getInstance(MailConfigurationDAO.class);
+    mailConfigurationDAO.set(testMailConfiguration);
   }
 
   @After
@@ -128,7 +143,6 @@ public class PolicyMonitorTest
     Collection<StageType> stageTypes = StageTypes.getAll();
 
     Map<StageType, Date> lastRun = new HashMap<>();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : stageTypes) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
       lastRun.put(stageType, eval == null ? null : eval.getTime());
@@ -172,7 +186,6 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     // There should be no new policy evaluations
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(
           policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
@@ -189,7 +202,6 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     // There should be no policy evaluations
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId())).isNull();
     }
@@ -242,7 +254,7 @@ public class PolicyMonitorTest
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
-    Owner parentOrg = new OwnerDAO().getParentOwner(org);
+    Owner parentOrg = ownerDAO.getParentOwner(org);
 
     Stage stage = new Stage(ReleaseStageType.ID);
 
@@ -295,10 +307,8 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsDeveloper, 1, 0);
     notificationsDeveloper.clear();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
@@ -543,7 +553,7 @@ public class PolicyMonitorTest
     }
 
     // Verify that the latest policy evaluation is for monitoring and it used the second scan file.
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation.isForMonitoring()).isTrue();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId3);

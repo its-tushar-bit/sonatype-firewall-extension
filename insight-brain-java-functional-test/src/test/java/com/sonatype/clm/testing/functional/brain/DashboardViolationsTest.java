@@ -121,6 +121,8 @@ public class DashboardViolationsTest
 
   private ApplicationComponent operateComponent;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.url());
@@ -135,6 +137,8 @@ public class DashboardViolationsTest
 
   @Before
   public void init() throws IOException {
+    dashboardFilterDAO = lookup(DashboardFilterDAO.class);
+
     app1 = tempEntity.newApplicationWithParent("app1", "DVT App1", "DVT Org1");
     app2 = tempEntity.newApplicationWithParent("app2", "DVT App2 With A Long Name Just To Force Overflow", "DVT Org2");
     licensePolicy = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy", 5);
@@ -931,7 +935,7 @@ public class DashboardViolationsTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+    dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   private void changePage(int page) {

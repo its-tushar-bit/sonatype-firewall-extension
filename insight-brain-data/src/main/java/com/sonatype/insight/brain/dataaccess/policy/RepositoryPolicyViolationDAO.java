@@ -17,13 +17,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -37,9 +40,16 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @since 1.17
  */
+@Named
+@Singleton
 public class RepositoryPolicyViolationDAO
     extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
 {
+  @Inject
+  public RepositoryPolicyViolationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);
@@ -227,9 +237,9 @@ public class RepositoryPolicyViolationDAO
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
           " component.quarantine_time END AS quarantine_time," + //
           " violation.waived" + //
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" + //
+          " FROM " + getDatabaseSchema() + ".repository_component component" + //
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") + //
-          " " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" + //
+          " " + getDatabaseSchema() + ".repository_policy_violation violation" + //
           " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" + //
           " WHERE component.repository_id = ?1";
 
@@ -287,9 +297,9 @@ public class RepositoryPolicyViolationDAO
           " MAX(CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
           " THEN component.quarantine_time END) AS quarantine_time," +
           " MAX(component.display_name) AS display_name" +
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" +
+          " FROM " + getDatabaseSchema() + ".repository_component component" +
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" +
+          " " + getDatabaseSchema() + ".repository_policy_violation violation" +
           " ON component.repository_id = violation.repository_id" +
           " AND component.pathname = violation.pathname" +
           " WHERE component.repository_id = ?1" +
@@ -328,7 +338,7 @@ public class RepositoryPolicyViolationDAO
           " component.match_state_id," +
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
           " THEN component.quarantine_time END AS quarantine_time" +
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" +
+          " FROM " + getDatabaseSchema() + ".repository_component component" +
           " INNER JOIN (" + select2 + ") AS t2" +
           " ON t2.pathname = component.pathname" +
           " AND component.repository_id = ?1";
@@ -399,7 +409,7 @@ public class RepositoryPolicyViolationDAO
   public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT threat_level, COUNT(*) AS number_of_policy_violations" + //
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" + //
+          " FROM " + getDatabaseSchema() + ".repository_policy_violation violation" + //
           " WHERE repository_id = ?1 AND active = true AND waived = false" + //
           " GROUP BY threat_level";
 

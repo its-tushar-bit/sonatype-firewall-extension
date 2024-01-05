@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.HttpHeaders;
 
@@ -32,6 +31,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +39,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrganizationResourceTest
     extends AbstractResourceTest
 {
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  @Before
+  public void setUp() {
+    automaticApplicationsConfigurationDAO = lookup(AutomaticApplicationsConfigurationDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(OrganizationResource.RESOURCE_PATH);
@@ -126,14 +139,13 @@ public class OrganizationResourceTest
     // now create related objects to test delete cascades
 
     // application
-    final ApplicationDAO applicationDAO = new ApplicationDAO();
     final Application application = new Application("testapp", "testapp", organization.getId());
     applicationDAO.insert(application);
 
     // Delete
     response = restRequest().path(organizationId).delete();
     assertResponseStatus(204, response);
-    assertThat(new OrganizationDAO().getById(organizationId)).isNull();
+    assertThat(organizationDAO.getById(organizationId)).isNull();
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
@@ -143,7 +155,6 @@ public class OrganizationResourceTest
   @Test
   public void testDeleteOrganization_NLevel() throws Exception {
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 8, 2);
-    final OrganizationDAO orgsDAO = new OrganizationDAO();
     HttpResponse response;
 
     // Delete
@@ -153,14 +164,12 @@ public class OrganizationResourceTest
     List<Organization> removedOrgs = testList.subList(0, testList.size() - 2);
     for (Organization org : removedOrgs) {
       String orgId = org.getId();
-      assertThat(orgsDAO.getById(orgId)).isNull();
+      assertThat(organizationDAO.getById(orgId)).isNull();
     }
   }
 
   @Test
   public void testDeleteOrganization_NLevel_partialDeletionExceptionMessage() throws Exception {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     HttpResponse response;
 
@@ -183,8 +192,6 @@ public class OrganizationResourceTest
 
   @Test
   public void testDeleteOrganization_NLevel_originalExceptionMessage() throws Exception {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
-        new AutomaticApplicationsConfigurationDAO();
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     HttpResponse response;
 

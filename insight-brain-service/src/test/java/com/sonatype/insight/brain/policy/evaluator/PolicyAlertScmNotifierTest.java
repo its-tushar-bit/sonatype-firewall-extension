@@ -11,12 +11,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
@@ -87,12 +89,15 @@ public class PolicyAlertScmNotifierTest
   @Rule
   public LogOutput logOutput = new LogOutput(PolicyAlertScmNotifier.class);
 
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   @Before
   public void setup() {
     scmNotifier =
         new PolicyAlertScmNotifier(remediationPullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
             new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
-            mockSourceControlEventPublisher);
+            mockSourceControlEventPublisher, organizationDAO);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }

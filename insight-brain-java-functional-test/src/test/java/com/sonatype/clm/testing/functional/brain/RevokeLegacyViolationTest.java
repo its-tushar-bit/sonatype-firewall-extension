@@ -39,7 +39,7 @@ public class RevokeLegacyViolationTest
 
   private Application application;
 
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private PolicyViolationDAO policyViolationDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -49,6 +49,8 @@ public class RevokeLegacyViolationTest
 
   @Before
   public void init() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -63,6 +62,9 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 public class ApiFirewallMetricsServiceTest
     extends AbstractComponentTest
 {
+  @Inject
+  private FirewallMetricsDAO firewallMetricsDAO;
+
   @Inject
   private ApiFirewallMetricsService firewallMetricsService;
 
@@ -143,9 +145,8 @@ public class ApiFirewallMetricsServiceTest
     firewallMetricsService.incrementFirewallMetrics(firewallMetrics1);
     firewallMetricsService.incrementFirewallMetrics(firewallMetrics2);
 
-    FirewallMetricsDAO firewallMetrics = new FirewallMetricsDAO();
-    FirewallMetrics firewallMetricsRes1 = firewallMetrics.getById(id1);
-    FirewallMetrics firewallMetricsRes2 = firewallMetrics.getById(id2);
+    FirewallMetrics firewallMetricsRes1 = firewallMetricsDAO.getById(id1);
+    FirewallMetrics firewallMetricsRes2 = firewallMetricsDAO.getById(id2);
 
     assertThat(firewallMetricsRes1.getMetricsName()).isEqualTo(FirewallMetricsName.WAIVED_COMPONENTS);
     assertThat(firewallMetricsRes2.getMetricsName()).isEqualTo(FirewallMetricsName.COMPONENTS_QUARANTINED);

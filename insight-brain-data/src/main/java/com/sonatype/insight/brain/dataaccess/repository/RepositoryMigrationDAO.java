@@ -5,16 +5,27 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class RepositoryMigrationDAO
     extends AbstractOperationalSqlDAO<RepositoryMigration>
 {
+  @Inject
+  public RepositoryMigrationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public RepositoryMigration getByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryId(tx, repositoryId);

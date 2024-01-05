@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,11 +37,29 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LabelDAOTest
     extends AbstractDbDAOTest
 {
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private ComponentLabelDAO componentLabelDAO;
+
+  private LabelDAO labelDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    labelDAO = daoFactory.createLabelDAO();
+    componentLabelDAO = daoFactory.createComponentLabelDAO();
+  }
+
   @Test
   public void testValidateLabelNameInvalidChars_Insert() {
-    LabelDAO dao = new LabelDAO();
     for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
-      assertThatThrownBy(() -> dao.insert(new Label(application.getId(), labelName, Color.light_green))).isInstanceOf(
+      assertThatThrownBy(
+          () -> labelDAO.insert(new Label(application.getId(), labelName, Color.light_green))).isInstanceOf(
           InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name",
           labelName.charAt(0));
     }
@@ -48,11 +67,10 @@ public class LabelDAOTest
 
   @Test
   public void testValidateLabelNameInvalidChars_Update() {
-    LabelDAO dao = new LabelDAO();
     Label label = tempEntity.newLabel(application.getId(), "label", Color.light_green);
     for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       label.setLabel(labelName);
-      assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidNameException.class)
           .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name",
               labelName.charAt(0));
     }
@@ -67,11 +85,10 @@ public class LabelDAOTest
 
   @Test
   public void testValidateLabelNameValidChars_Update() {
-    LabelDAO dao = new LabelDAO();
     Label label = tempEntity.newLabel(application.getId(), "label", Color.light_green);
     for (String labelName : NameHelperTest.VALID_NAMES) {
       label.setLabel(labelName);
-      dao.update(label);
+      labelDAO.update(label);
     }
   }
 
@@ -79,29 +96,27 @@ public class LabelDAOTest
   public void testOlderLabelUpdate() {
     Label oldLabel =
         tempEntity.newLabelWithInvalidLabelText(application.getId(), "*/clearly_not_valid", Color.dark_blue);
-    LabelDAO dao = new LabelDAO();
 
     // Update old label without changing label text.
     oldLabel.setColor(Color.light_green);
-    dao.update(oldLabel);
+    labelDAO.update(oldLabel);
     assertLabel(application.getId(), "*/clearly_not_valid", Color.light_green, null, oldLabel);
 
     // Attempt to update old label's label text using invalid characters.
     oldLabel.setLabel("*/a_new_invalid_name");
     Label labelToUpdate = oldLabel;
-    assertThatThrownBy(() -> dao.update(labelToUpdate)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.update(labelToUpdate)).isInstanceOf(InvalidNameException.class)
         .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '*');
 
     // Should be able to update an older label with a valid label.
     oldLabel.setLabel("_.- a valid label -._");
-    dao.update(oldLabel);
-    oldLabel = dao.getByIdNotNull(oldLabel.getId());
+    labelDAO.update(oldLabel);
+    oldLabel = labelDAO.getByIdNotNull(oldLabel.getId());
     assertLabel(application.getId(), "_.- a valid label -._", Color.light_green, null, oldLabel);
   }
 
   @Test
   public void testLabelWithSpaces() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel("My Label");
@@ -109,113 +124,108 @@ public class LabelDAOTest
     label.setColor(Color.dark_blue);
 
     // Create
-    dao.insert(label);
+    labelDAO.insert(label);
 
-    label = dao.getById(label.getId());
+    label = labelDAO.getById(label.getId());
     assertThat(label).isNotNull();
     assertLabel(application.getId(), "My Label", Color.dark_blue, "My label description.", label);
 
     // Update
     label.setLabel("My Updated Label");
-    dao.update(label);
-    label = dao.getById(label.getId());
+    labelDAO.update(label);
+    label = labelDAO.getById(label.getId());
     assertThat(label).isNotNull();
     assertLabel(application.getId(), "My Updated Label", Color.dark_blue, "My label description.", label);
   }
 
   @Test
   public void testLabelWithTabs() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel("My\tlabel");
 
     // Insert
-    assertThatThrownBy(() -> dao.insert(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '\t');
 
     // Update
     label.setLabel("MyLabel");
-    dao.insert(label);
+    labelDAO.insert(label);
     label.setLabel("My\tUpdatedLabel");
-    assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '\t');
   }
 
   @Test
   public void testLabelNull() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel(null);
 
     // Insert
-    assertThatThrownBy(() -> dao.insert(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name is required.");
 
     // Update
     label.setLabel("MyLabel");
-    dao.insert(label);
+    labelDAO.insert(label);
     label.setLabel(null);
-    assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name is required.");
   }
 
   @Test
   public void testLabelEmpty() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel(" ");
 
     // Insert
-    assertThatThrownBy(() -> dao.insert(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name is required.");
 
     // Update
     label.setLabel("MyLabel");
-    dao.insert(label);
+    labelDAO.insert(label);
     label.setLabel(" ");
-    assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name is required.");
   }
 
   @Test
   public void testLabelWithTooLongName() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel(StringUtils.repeat("X", LabelDAO.MAX_NAME_SIZE + 1));
 
     // Insert
-    assertThatThrownBy(() -> dao.insert(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name must be " + LabelDAO.MAX_NAME_SIZE + " characters or less.");
 
     // Update
     label.setLabel("MyLabel");
-    dao.insert(label);
+    labelDAO.insert(label);
     label.setLabel(StringUtils.repeat("X", LabelDAO.MAX_NAME_SIZE + 1));
-    assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Label name must be " + LabelDAO.MAX_NAME_SIZE + " characters or less.");
   }
 
   @Test
   public void testSetColorToNull() {
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel("MyLabel");
     label.setColor(null);
 
     // Insert
-    assertThatThrownBy(() -> dao.insert(label)).isInstanceOf(InvalidLabelException.class)
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidLabelException.class)
         .hasMessage("The label color must be assigned.");
 
     // Update
     label.setColor(Color.dark_blue);
-    dao.insert(label);
+    labelDAO.insert(label);
     label.setColor(null);
-    assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidLabelException.class)
+    assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidLabelException.class)
         .hasMessage("The label color must be assigned.");
   }
 
@@ -224,7 +234,6 @@ public class LabelDAOTest
     @SuppressWarnings("deprecation")
     Color[] legacyColors = new Color[]{Color.white, Color.grey, Color.black, Color.green, Color.red, Color.blue};
 
-    LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel("MyLabel");
@@ -232,57 +241,52 @@ public class LabelDAOTest
     // Insert
     for (Color color : legacyColors) {
       label.setColor(color);
-      assertThatThrownBy(() -> dao.insert(label)
+      assertThatThrownBy(() -> labelDAO.insert(label)
       ).isInstanceOf(InvalidLabelException.class).hasMessage("The label color " + color.toValue() + " is invalid.");
     }
 
     // Update
     label.setColor(Color.dark_blue);
-    dao.insert(label);
+    labelDAO.insert(label);
     for (Color color : legacyColors) {
       label.setColor(color);
-      assertThatThrownBy(() -> dao.update(label)).isInstanceOf(InvalidLabelException.class)
+      assertThatThrownBy(() -> labelDAO.update(label)).isInstanceOf(InvalidLabelException.class)
           .hasMessage("The label color " + color.toValue() + " is invalid.");
     }
   }
 
   @Test
   public void testCRUD() {
-    LabelDAO dao = new LabelDAO();
-
     // Create
     Label label = new Label();
     label.setOwnerId(application.getId());
     label.setLabel("MyLabel");
     label.setColor(Color.dark_blue);
     label.setDescription("My label   description.");
-    dao.insert(label);
+    labelDAO.insert(label);
     assertThat(label.getId()).isNotNull();
 
-    label = dao.getById(label.getId());
+    label = labelDAO.getById(label.getId());
     assertThat(label).isNotNull();
     assertLabel(application.getId(), "MyLabel", Color.dark_blue, "My label   description.", label);
 
     // Update
     label.setLabel("MyUpdatedLabel");
-    dao.update(label);
+    labelDAO.update(label);
 
-    label = dao.getById(label.getId());
+    label = labelDAO.getById(label.getId());
     assertThat(label).isNotNull();
     assertLabel(application.getId(), "MyUpdatedLabel", Color.dark_blue, "My label   description.", label);
 
     // Delete
-    dao.delete(label);
+    labelDAO.delete(label);
 
-    label = dao.getById(label.getId());
+    label = labelDAO.getById(label.getId());
     assertThat(label).isNull();
   }
 
   @Test
   public void testCascadeDelete() {
-    LabelDAO labelDAO = new LabelDAO();
-    ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-
     // Create
     Label label = new Label();
     label.setOwnerId(application.getId());
@@ -306,8 +310,6 @@ public class LabelDAOTest
 
   @Test
   public void testAddDuplicateLabel() {
-    LabelDAO labelDAO = new LabelDAO();
-
     // Add a label
     {
       Label label = new Label();
@@ -328,8 +330,6 @@ public class LabelDAOTest
 
   @Test
   public void testUpdateDuplicateLabel() {
-    LabelDAO labelDAO = new LabelDAO();
-
     // Add a label
     Label label1 = new Label();
     label1.setOwnerId(application.getId());
@@ -357,8 +357,6 @@ public class LabelDAOTest
 
   @Test
   public void testDuplicateLabelInApplication() {
-    LabelDAO labelDAO = new LabelDAO();
-
     Label label1 = new Label();
     label1.setOwnerId(application.getId());
     label1.setLabel("MyLabel");
@@ -391,8 +389,6 @@ public class LabelDAOTest
 
   @Test
   public void testDuplicateLabelInOrganization() {
-    LabelDAO labelDAO = new LabelDAO();
-
     Label label1 = new Label();
     label1.setOwnerId(organization.getId());
     label1.setLabel("MyLabel");
@@ -424,8 +420,6 @@ public class LabelDAOTest
 
   @Test
   public void testDuplicateLabelInApplicationAndOrganizationDownHierarchy() {
-    LabelDAO labelDAO = new LabelDAO();
-
     Label label1 = tempEntity.newLabel(application.getId(), "MyLabel");
 
     Organization org1 = tempEntity.newOrganization("org1");
@@ -445,8 +439,6 @@ public class LabelDAOTest
 
   @Test
   public void testDuplicateLabelInOrganizationUpHierarchy() {
-    LabelDAO labelDAO = new LabelDAO();
-
     tempEntity.newLabel(organization.getParentOrganizationId(), "MyLabel");
 
     Label label2 = new Label();
@@ -459,8 +451,6 @@ public class LabelDAOTest
 
   @Test
   public void testGetByOwnerId() {
-    LabelDAO labelDAO = new LabelDAO();
-
     tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
     Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
     Label label3 = tempEntity.newLabel(application.getId(), "app-label");
@@ -472,8 +462,6 @@ public class LabelDAOTest
 
   @Test
   public void testGetByOwnerIdWithHierarchy() {
-    LabelDAO labelDAO = new LabelDAO();
-
     Label label1 = tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
     Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
     Label label3 = tempEntity.newLabel(application.getId(), "app-label");
@@ -485,13 +473,12 @@ public class LabelDAOTest
 
   @Test
   public void testGetByIdNotNull() {
-    assertThatThrownBy(() -> new LabelDAO().getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> labelDAO.getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
         .hasMessage("Label with ID fake id does not exist.");
   }
 
   @Test
   public void testLongDescription() {
-    LabelDAO labelDAO = new LabelDAO();
     Label label = new Label(organization.getId(), "testLongDescriptionLabel", Color.dark_purple);
     label.setDescription(StringUtils.leftPad("", LabelDAO.MAX_DESC_SIZE + 1, "a"));
     assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidLabelException.class)
@@ -505,26 +492,25 @@ public class LabelDAOTest
 
   @Test
   public void testCRUD_RecordSearchIndexChange() {
-    LabelDAO labelDAO = new LabelDAO();
-    new SystemConfigurationPropertyDAO()
+    systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     labelDAO.update(label);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     labelDAO.delete(label);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
@@ -533,7 +519,6 @@ public class LabelDAOTest
   @Test
   public void testGetByOwnerIdAndLabel() {
     String labelText = "Org-Label";
-    LabelDAO labelDAO = new LabelDAO();
     tempEntity.newLabel(tempEntity.newOrganization().getId(), labelText);
     tempEntity.newLabel(organization.getId(), "Another-" + labelText);
 

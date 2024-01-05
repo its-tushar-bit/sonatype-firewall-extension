@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
  *
  * @since 1.8
  */
+@Named
 public class ApplicationAdapter
 {
   private final OrganizationDAO organizationDAO;
@@ -35,13 +38,10 @@ public class ApplicationAdapter
 
   private final ApplicationContactLoader applicationContactLoader;
 
-  private ApplicationAdapter(UserDirectory userDirectory) {
+  @Inject
+  public ApplicationAdapter(UserDirectory userDirectory, OrganizationDAO organizationDAO) {
     applicationContactLoader = ApplicationContactLoader.getInstance(userDirectory);
-    organizationDAO = new OrganizationDAO();
-  }
-
-  public static ApplicationAdapter getInstance(UserDirectory userDirectory) {
-    return new ApplicationAdapter(userDirectory);
+    this.organizationDAO = organizationDAO;
   }
 
   /**

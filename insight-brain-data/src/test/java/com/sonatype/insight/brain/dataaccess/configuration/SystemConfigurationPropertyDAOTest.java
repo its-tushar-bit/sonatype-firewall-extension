@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +19,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SystemConfigurationPropertyDAOTest
     extends AbstractDbDAOTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSystemConfigurationPropertyDAO();
+  }
 
   private static final String DUMMY_PROPERTY_NAME = "TEST-NAME";
 

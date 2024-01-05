@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.model.Application;
@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEvent;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -52,6 +53,15 @@ public class LicenseOverrideServiceTest
   private LicenseOverrideService service;
 
   @Inject
+  private OwnerDAO ownerDAO;
+
+  @Inject
+  private LicenseDAO licenseDAO;
+
+  @Inject
+  private LicenseOverrideDAO licenseOverrideDAO;
+
+  @Inject
   private InsightWork work;
 
   @Inject
@@ -62,6 +72,12 @@ public class LicenseOverrideServiceTest
 
   @Inject
   private LicenseOverrideEventService licenseOverrideEventService;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
+
+  @Inject
+  private IdUtils idUtils;
 
   private TestEventHandler<LicenseOverrideEvent> handler;
 
@@ -74,8 +90,8 @@ public class LicenseOverrideServiceTest
 
   @Before
   public void setup() {
-    service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(), new LicenseDAO(),
-        licenseOverrideEventService);
+    service = new LicenseOverrideService(work, ownerDAO, currentUser, licenseOverrideDAO, licenseDAO,
+        licenseOverrideEventService, clusterLockManager, idUtils);
   }
 
   private void testGetAppliedLicenseOverridesNoAuth_hierarchy(final Owner owner) {
@@ -86,7 +102,7 @@ public class LicenseOverrideServiceTest
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverridesNoAuth(owner.getType(), ownerId,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
-    List<String> ownerIds = new OwnerDAO().getOwnerIds(owner);
+    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     // For apps, the public id is used as owner id (for applied license overrides)
     ownerIds.set(0, ownerId);
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)

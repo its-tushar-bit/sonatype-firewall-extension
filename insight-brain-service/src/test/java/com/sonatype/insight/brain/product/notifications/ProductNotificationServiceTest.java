@@ -31,6 +31,9 @@ public class ProductNotificationServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  @Inject
   private ProductNotificationService notificationsService;
 
   @Mock
@@ -149,8 +152,8 @@ public class ProductNotificationServiceTest
         notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
     assertNotification(returnedValue, notifications.get(0), true);
 
-    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotificationLegacy.getId())).isNull();
-    assertThat(new UserViewedProductNotificationDAO().getByUsernameAndRealmIdAndNotificationId(USERNAME,
+    assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotificationLegacy.getId())).isNull();
+    assertThat(userViewedProductNotificationDAO.getByUsernameAndRealmIdAndNotificationId(USERNAME,
         InternalRealm.ID, notifications.get(0).getId())).isNotNull();
   }
 

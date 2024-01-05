@@ -20,6 +20,9 @@ public class LegacyViolationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
   private LegacyViolationService legacyViolationService;
 
   @Test
@@ -43,7 +46,7 @@ public class LegacyViolationServiceAuthzTest
   public void testGrantLegacyViolationStatus_Authorized() {
     grantWritePermission(app.getId());
     app.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
   }
 

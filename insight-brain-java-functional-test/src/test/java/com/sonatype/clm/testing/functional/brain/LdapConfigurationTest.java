@@ -18,8 +18,8 @@ import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage.CreateSer
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -42,19 +42,25 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapConfigurationTest
     extends AbstractFunctionalTest
 {
+  private static final PasswordHandler passwordHandler =
+      testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
 
   private LdapServer ldapServer;
 
-  private static final PasswordHandler passwordHandler =
-      testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+  private LdapConnectionDAO ldapConnectionDAO;
+
+  private LdapServerDAO ldapServerDAO;
+
+  private LdapUserMappingDAO ldapUserMappingDAO;
 
   @BeforeClass
   public static void startup() {
@@ -64,13 +70,16 @@ public class LdapConfigurationTest
 
   @Before
   public void before() {
+    ldapConnectionDAO = lookup(LdapConnectionDAO.class);
+    ldapServerDAO = lookup(LdapServerDAO.class);
+    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
+
     ldapServer = tempEntity.newLdapServer("Test Ldap Server");
     refresh();
   }
 
   @After
   public void end() {
-    LdapServerDAO ldapServerDAO = new LdapServerDAO();
     for (LdapServer ldapServer : ldapServerDAO.getAll()) {
       ldapServerDAO.delete(ldapServer);
     }
@@ -78,8 +87,6 @@ public class LdapConfigurationTest
 
   @Test
   public void testCreateLdapServer() throws Exception {
-    LdapServerDAO ldapServerDAO = new LdapServerDAO();
-
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
@@ -198,7 +205,7 @@ public class LdapConfigurationTest
 
     serverListPage.listElements().shouldHaveSize(0);
     serverListPage.emptyDescriptor().shouldBe(visible);
-    assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
+    assertThat(ldapServerDAO.getById(ldapServer.getId())).isNull();
   }
 
   @Test
@@ -367,7 +374,7 @@ public class LdapConfigurationTest
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
 
     // Ensure persisted Connection matches
-    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
+    LdapConnection persistedLdapConnection = ldapConnectionDAO.getByServerId(ldapServer.getId());
 
     assertThat(persistedLdapConnection).isNotNull();
     assertThat(persistedLdapConnection.getProtocol()).isEqualTo(LdapProtocol.LDAP);
@@ -454,7 +461,7 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
 
-    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
+    LdapUserMapping persistedLdapUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
 
     assertThat(persistedLdapUserMapping).isNotNull();
     assertThat(persistedLdapUserMapping.getUserBaseDN()).isEqualTo("just checking if persisted");
@@ -471,8 +478,8 @@ public class LdapConfigurationTest
   private void testLdapFormDataMatchesPersistedData() {
     refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
 
-    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
-    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
+    LdapConnection persistedConnection = ldapConnectionDAO.getByServerId(ldapServer.getId());
+    LdapUserMapping persistedUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
 
     // Test Connection
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();

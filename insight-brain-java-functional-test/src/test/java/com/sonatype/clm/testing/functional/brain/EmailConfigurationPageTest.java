@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.service.InsightMail;
 
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -50,7 +50,7 @@ import static org.openqa.selenium.Keys.BACK_SPACE;
 public class EmailConfigurationPageTest
     extends AbstractFunctionalTest
 {
-  private final MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+  private MailConfigurationDAO mailConfigurationDAO;
 
   private final EmailConfigurationPage emailConfigurationPage = new EmailConfigurationPage();
 
@@ -62,6 +62,11 @@ public class EmailConfigurationPageTest
   public static void beforeClass() {
     refreshOrOpen(EmailConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
   }
 
   @Test

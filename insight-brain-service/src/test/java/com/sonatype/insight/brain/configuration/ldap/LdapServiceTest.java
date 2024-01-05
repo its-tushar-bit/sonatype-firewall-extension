@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
@@ -17,7 +16,6 @@ import javax.naming.NamingException;
 import javax.naming.NotContextException;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -28,11 +26,11 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,14 +46,8 @@ import static org.assertj.core.api.Assertions.offset;
  * @since 1.7
  */
 public class LdapServiceTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
   public final TemporaryFolder tempDir = new TemporaryFolder();
 
   public final TestLdapServer testLdapServer1 = new TestLdapServer();
@@ -68,6 +60,18 @@ public class LdapServiceTest
 
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Inject
+  private LdapConnectionDAO ldapConnectionDAO;
+
+  @Inject
+  private LdapServerDAO ldapServerDAO;
+
+  @Inject
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
@@ -274,7 +278,7 @@ public class LdapServiceTest
     final LdapServer ldapServer1 = tempEntity.newLdapServer(ldapServerName);
     final LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
     ldapConnection1.setConnectionTimeout(1);
-    new LdapConnectionDAO().update(ldapConnection1);
+    ldapConnectionDAO.update(ldapConnection1);
     createUserMapping(ldapServer1);
     return ldapConnection1;
   }
@@ -780,8 +784,8 @@ public class LdapServiceTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("server1");
     LdapServer ldapServer2 = tempEntity.newLdapServer("server2");
     ldapService.updatePriority(Arrays.asList(ldapServer2.getId(), ldapServer1.getId()));
-    assertThat(new LdapServerDAO().getById(ldapServer2.getId()).getPriority()).isEqualTo(1);
-    assertThat(new LdapServerDAO().getById(ldapServer1.getId()).getPriority()).isEqualTo(2);
+    assertThat(ldapServerDAO.getById(ldapServer2.getId()).getPriority()).isEqualTo(1);
+    assertThat(ldapServerDAO.getById(ldapServer1.getId()).getPriority()).isEqualTo(2);
   }
 
   private void assertUserMapping(List<LdapUser> users, String suffix) {
@@ -951,7 +955,7 @@ public class LdapServiceTest
 
     LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
     ldapUserMapping.setUserPasswordAttribute("userPassword");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     LdapConnectionStatus ldapConnectionStatus =
         ldapService.testUserLogin(ldapServer.getId(), ldapUserMapping, "cryptuser", "brianf123".toCharArray());
@@ -1125,7 +1129,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("uid=${username}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "Gamma", "Theta" });
     assertThat(groups).hasSize(2);
@@ -1145,7 +1149,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("uid=${username}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "*ta" });
     assertThat(groups).isEmpty();
@@ -1160,7 +1164,7 @@ public class LdapServiceTest
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab", "abc", "bc" });
     assertThat(groups).hasSize(3);
@@ -1178,7 +1182,7 @@ public class LdapServiceTest
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab*" });
     assertThat(groups).isEmpty();
@@ -1363,7 +1367,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("${dn}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
@@ -1380,7 +1384,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member:" + LdapQuery.LDAP_MATCHING_RULE_IN_CHAIN + ":");
     ldapUserMapping.setGroupMemberFormat("${dn}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
@@ -1397,7 +1401,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("doesNotExist");
     ldapUserMapping.setGroupMemberFormat("${dn}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users).extracting(LdapUser::getUsername).isEmpty();
@@ -1414,7 +1418,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delta");
     assertThat(users).hasSize(2);
@@ -1431,7 +1435,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Lambda");
     assertThat(users).hasSize(2);
@@ -1448,7 +1452,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delt*");
     assertThat(users).isEmpty();
@@ -1463,7 +1467,7 @@ public class LdapServiceTest
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "a*");
     assertThat(users).isEmpty();
@@ -1475,14 +1479,14 @@ public class LdapServiceTest
     ldapUserMapping.setGroupObjectClass("groupOfNames");
     ldapUserMapping.setGroupMemberAttribute("member");
     ldapUserMapping.setGroupMemberFormat("uid=${username}");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   private void createDynamicGroupMapping(LdapServer ldapServer) {
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   @Test
@@ -1600,7 +1604,6 @@ public class LdapServiceTest
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.NONE);
 
-    LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
     ldapUserMappingDAO.update(ldapUserMapping);
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
@@ -1654,7 +1657,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupMappingType(groupMappingType);
     ldapUserMapping.setDynamicGroupSearchEnabled(false);
 
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
@@ -1664,7 +1667,7 @@ public class LdapServiceTest
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     ldapUserMapping.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
 
-    new LdapUserMappingDAO().update(ldapUserMapping);
+    ldapUserMappingDAO.update(ldapUserMapping);
   }
   
   private void startLdapServer(TestLdapServer testLdapServer, LdapConnection ldapConnection) throws Exception {
@@ -1743,7 +1746,7 @@ public class LdapServiceTest
     assertThat(ldapServer.getId()).isNotNull();
     assertThat(ldapServer.getName()).isEqualTo("test");
 
-    LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
+    LdapServer persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
     assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
   }
 
@@ -1754,7 +1757,7 @@ public class LdapServiceTest
     LdapServer updatedLdapServer = ldapService.updateLdapServer(ldapServer);
     assertThat(updatedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
 
-    LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
+    LdapServer persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
     assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
   }
 
@@ -1763,7 +1766,7 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
 
     ldapService.deleteLdapServer(ldapServer.getId());
-    assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
+    assertThat(ldapServerDAO.getById(ldapServer.getId())).isNull();
   }
 
   @Test
@@ -1780,7 +1783,7 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapConnection expectedLdapConnection = createLdapConnection(ldapServer);
     expectedLdapConnection.setSystemPassword("password".toCharArray());
-    new LdapConnectionDAO().update(expectedLdapConnection);
+    ldapConnectionDAO.update(expectedLdapConnection);
 
     LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
@@ -1810,7 +1813,7 @@ public class LdapServiceTest
     assertThat(addedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
     .isEqualTo(expectedLdapConnection);
 
-    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    LdapConnection persistedLdapConnection = ldapConnectionDAO.getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
@@ -1831,7 +1834,7 @@ public class LdapServiceTest
     assertThat(updatedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapConnection);
 
-    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    LdapConnection persistedLdapConnection = ldapConnectionDAO.getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
@@ -1948,7 +1951,7 @@ public class LdapServiceTest
     assertThat(addedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
 
-    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
+    LdapUserMapping persistedLdapUserMapping = ldapUserMappingDAO.getById(expectedLdapUserMapping.getId());
     assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
   }
@@ -1964,7 +1967,7 @@ public class LdapServiceTest
     assertThat(updatedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
 
-    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
+    LdapUserMapping persistedLdapUserMapping = ldapUserMappingDAO.getById(expectedLdapUserMapping.getId());
     assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedLdapUserMapping);
   }
@@ -1987,12 +1990,12 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
 
     ldapConnection.setReferralIgnored(false);
-    new LdapConnectionDAO().update(ldapConnection);
+    ldapConnectionDAO.update(ldapConnection);
     assertThatExceptionOfType(NotContextException.class)
         .isThrownBy(() -> ldapService.getUsersByName(ldapServer, new String[]{"nobody"}));
 
     ldapConnection.setReferralIgnored(true);
-    new LdapConnectionDAO().update(ldapConnection);
+    ldapConnectionDAO.update(ldapConnection);
     assertThat(ldapService.getUsersByName(ldapServer, new String[]{"nobody"})).isEmpty();
   }
 }

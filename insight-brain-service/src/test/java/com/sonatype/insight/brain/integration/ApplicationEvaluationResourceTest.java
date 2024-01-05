@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +36,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationEvaluationResourceTest
     extends AbstractResourceTest
 {
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  private PolicyDAO policyDAO;
+
+  @Before
+  public void setUp() {
+    policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
+    policyDAO = lookup(PolicyDAO.class);
+  }
+
   private HttpRequest evaluateWithPollingRequest(IntegrationType integrationType,
                                                  String applicationPublicId,
                                                  String stageId)
@@ -57,7 +68,7 @@ public class ApplicationEvaluationResourceTest
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     // Simulate that the report is available
     String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
@@ -98,7 +109,7 @@ public class ApplicationEvaluationResourceTest
       assertThat(policyAlert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
     }
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 

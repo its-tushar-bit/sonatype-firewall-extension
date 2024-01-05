@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -48,10 +49,11 @@ public class GitCommitHistoryServiceTest
 
   private GitCommitHistoryService gitCommitHistoryService;
 
-  private final SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
+  @Inject
+  private SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   private PolicyEvaluation policyEvaluation;
 

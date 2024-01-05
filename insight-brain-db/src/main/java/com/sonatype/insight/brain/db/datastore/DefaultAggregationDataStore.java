@@ -10,9 +10,8 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -31,21 +30,12 @@ public class DefaultAggregationDataStore
 
   private volatile boolean isInitialized = false;
 
-  public DefaultAggregationDataStore(
-      final DataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
-  {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    AggregationDataStoreProvider.setInstance(this);
+  public DefaultAggregationDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override
-  protected synchronized void init(
-      final DatabaseConfig databaseConfig,
-      final boolean migrateDatabase,
-      final Boolean migrateToNewViolationModel)
-  {
+  public synchronized void initialize() {
     if (isInitialized()) {
       return;
     }
@@ -53,11 +43,8 @@ public class DefaultAggregationDataStore
     log.info("Initializing the {} data store.", getID());
     long start = System.currentTimeMillis();
 
-    this.databaseConfig = databaseConfig;
-    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
-    if (migrateDatabase) {
-      migrate(migrateToNewViolationModel);
-    }
+    dataSource = dataSourceProvider.getDataSource(databaseConfig, getID());
+    isDataStoreNew = !DatabaseUtil.schemaExists(dataSource, getDatabaseSchema());
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainAggregation", props);
@@ -78,16 +65,6 @@ public class DefaultAggregationDataStore
 
   @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
-    if (!isInitialized()) {
-      initWithMigration(null /* databaseConfig */, false);
-    }
     return entityManagerFactory;
-  }
-
-  @Override
-  public void clear_ForTestsOnly() {
-    super.clear_ForTestsOnly();
-    entityManagerFactory = null;
-    isInitialized = false;
   }
 }

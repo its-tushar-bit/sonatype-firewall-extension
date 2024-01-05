@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -16,6 +20,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class ReverseProxyAuthenticationConfigurationDAO
     extends AbstractOperationalSqlDAO<ReverseProxyAuthenticationConfiguration>
 {
@@ -46,6 +52,11 @@ public class ReverseProxyAuthenticationConfigurationDAO
   static final String INVALID_LOGOUT_URL_ERROR_MSG = "The logout URL is invalid.";
   
   public static final String NOT_FOUND_ERROR_MSG = "Reverse proxy authentication not configured.";
+
+  @Inject
+  public ReverseProxyAuthenticationConfigurationDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public ReverseProxyAuthenticationConfiguration get() {
     return getById(SINGLETON_ENTITY_ID);

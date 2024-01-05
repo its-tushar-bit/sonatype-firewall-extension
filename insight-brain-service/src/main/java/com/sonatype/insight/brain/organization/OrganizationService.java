@@ -56,6 +56,8 @@ public class OrganizationService
 
   private final OrganizationDAO organizationDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ApplicationCleaner applicationCleaner;
 
   private final InsightWork work;
@@ -74,6 +76,7 @@ public class OrganizationService
       final ApplicationCleaner applicationCleaner,
       final FileCleaner fileCleaner,
       final OrganizationDAO organizationDAO,
+      final ApplicationDAO applicationDAO,
       final ManagementEventService managementEventService,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
@@ -82,6 +85,7 @@ public class OrganizationService
     this.applicationCleaner = applicationCleaner;
     this.fileCleaner = fileCleaner;
     this.organizationDAO = organizationDAO;
+    this.applicationDAO = applicationDAO;
     this.managementEventService = managementEventService;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
@@ -150,7 +154,7 @@ public class OrganizationService
     }
 
     List<Organization> childOrganizations = organizationDAO.getByParentOrganizationId(organization.getId());
-    List<Application> childApplications = new ApplicationDAO().getByOrganizationId(organization.getId());
+    List<Application> childApplications = applicationDAO.getByOrganizationId(organization.getId());
 
     try {
       // cascade to children orgs

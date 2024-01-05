@@ -101,6 +101,9 @@ public class ApplicationMoveServiceTest
   @Inject
   private MembershipMappingDAO membershipMappingDAO;
 
+  @Inject
+  private IdUtils idUtils;
+
   private Organization newOrg;
 
   private Organization oldOrg;
@@ -181,7 +184,7 @@ public class ApplicationMoveServiceTest
     Notifications notificationsOverride = new Notifications();
     notificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, overridingOwnerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, overridingOwnerId);
     policy.addPolicyActionsOverride(internalOwnerId, actionsOverrides);
     policy.addPolicyNotificationsOverride(internalOwnerId, notificationsOverride);
     policyDAO.update(policy);

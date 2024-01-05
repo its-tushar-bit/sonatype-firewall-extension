@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.prefs.Preferences;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
 
@@ -14,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ProductLicenseDAOTest
     extends AbstractDbDAOTest
 {
-  private final ProductLicenseDAO dao = new ProductLicenseDAO();
+  private ProductLicenseDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createProductLicenseDAO();
+  }
 
   @Test
   public void testCRUD() {

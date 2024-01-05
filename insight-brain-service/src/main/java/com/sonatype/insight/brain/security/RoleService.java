@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRoleAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
@@ -37,15 +35,12 @@ public class RoleService
 {
   private final RoleDAO roleDAO;
 
-  private final RolePermissionDAO rolePermissionDAO;
+  private final RolePermissionService rolePermissionService;
 
   @Inject
-  public RoleService(
-      final RoleDAO roleDAO,
-      final RolePermissionDAO rolePermissionDAO)
-  {
+  public RoleService(final RoleDAO roleDAO, final RolePermissionService rolePermissionService) {
     this.roleDAO = roleDAO;
-    this.rolePermissionDAO = rolePermissionDAO;
+    this.rolePermissionService = rolePermissionService;
   }
 
   /**
@@ -84,7 +79,7 @@ public class RoleService
     try (TransactionContext tx = roleDAO.createTransactionContext()) {
       tx.begin();
       roleDAO.insert(tx, role);
-      rolePermissionDAO.setPermissionsForRole(tx, role.getId(), rolePermissions);
+      rolePermissionService.setPermissionsForRole(tx, role.getId(), rolePermissions);
       tx.commit();
     }
     auditRole(role, rolePermissions);
@@ -99,7 +94,7 @@ public class RoleService
     try (TransactionContext tx = roleDAO.createTransactionContext()) {
       tx.begin();
       roleDAO.update(tx, role);
-      rolePermissionDAO.setPermissionsForRole(tx, roleDTO.id, rolePermissions);
+      rolePermissionService.setPermissionsForRole(tx, roleDTO.id, rolePermissions);
       tx.commit();
     }
     auditRole(role, rolePermissions);
@@ -109,7 +104,7 @@ public class RoleService
   @Authorize(permission = Permission.EDIT_ROLES)
   public void deleteRole(String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
-    auditRole(role, rolePermissionDAO.getPermissionsForRole(roleId));
+    auditRole(role, rolePermissionService.getPermissionsForRole(roleId));
     roleDAO.delete(role);
   }
 
@@ -160,7 +155,7 @@ public class RoleService
 
   private List<PermissionCategoryDTO> getPermissionsForRole(final RoleDTO roleDTO) {
     boolean customRole = !roleDTO.builtIn;
-    Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleDTO.id);
+    Set<Permission> permissionsForRole = rolePermissionService.getPermissionsForRole(roleDTO.id);
     return convertPermissionsToDTO(permissionsForRole, customRole);
   }
 

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -14,8 +13,9 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
@@ -45,22 +45,35 @@ class NewInstancePopulator
 
   private final AuditRecorder auditRecorder;
 
+  private final ClusterLockManager clusterLockManager;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final PolicyDAO policyDAO;
+
   @Inject
-  public NewInstancePopulator(final ReferencePolicyFetcher referencePolicyFetcher,
-                              final SampleDataCreator sampleDataCreator,
-                              final PolicyImportExport policyImportExport,
-                              final InsightConfig insightConfig,
-                              final AuditRecorder auditRecorder)
+  public NewInstancePopulator(
+      final ReferencePolicyFetcher referencePolicyFetcher,
+      final SampleDataCreator sampleDataCreator,
+      final PolicyImportExport policyImportExport,
+      final InsightConfig insightConfig,
+      final AuditRecorder auditRecorder,
+      final ClusterLockManager clusterLockManager,
+      final OrganizationDAO organizationDAO,
+      final PolicyDAO policyDAO)
   {
     this.referencePolicyFetcher = referencePolicyFetcher;
     this.sampleDataCreator = sampleDataCreator;
     this.policyImportExport = policyImportExport;
     this.insightConfig = insightConfig;
     this.auditRecorder = auditRecorder;
+    this.clusterLockManager = clusterLockManager;
+    this.organizationDAO = organizationDAO;
+    this.policyDAO = policyDAO;
   }
 
   void populateIfNewInstance() {
-    try (ClusterLock clusterLock = ClusterLock.createForNewInstancePopulation()) {
+    try (ClusterLock clusterLock = clusterLockManager.createForNewInstancePopulation()) {
       clusterLock.lock();
       doPopulateIfNewInstance();
     }
@@ -70,8 +83,6 @@ class NewInstancePopulator
   void doPopulateIfNewInstance() {
     long start = System.currentTimeMillis();
 
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-    PolicyDAO policyDAO = new PolicyDAO();
     List<Organization> orgs = organizationDAO.getAll();
     List<Policy> policies = policyDAO.getAll();
 

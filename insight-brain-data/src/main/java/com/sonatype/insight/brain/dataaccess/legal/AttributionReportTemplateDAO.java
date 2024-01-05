@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,9 +20,16 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.120
  */
+@Named
+@Singleton
 public class AttributionReportTemplateDAO
     extends AbstractOperationalSqlDAO<AttributionReportTemplate>
 {
+  @Inject
+  public AttributionReportTemplateDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   private void checkAttributionReportTemplateNameLength(AttributionReportTemplate attributionReportTemplate) {
     if (attributionReportTemplate.getTemplateName().length() > 250) {
       throw new InvalidNameException("Report template name is too long");

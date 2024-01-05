@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,27 +26,67 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 /**
  * Resolves authorization contexts from method parameters/results.
- * 
+ *
  * @since 1.7
  */
 class ContextResolver
 {
   private static final Iterable<String> GLOBAL_CONTEXT = Collections.singleton(MembershipMapping.GLOBAL_CONTEXT_ID);
 
-  private static final ApplicationDAO appDAO = new ApplicationDAO();
+  private ApplicationDAO appDAO;
 
-  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+  private OrganizationDAO orgDAO;
 
-  private static final RepositoryManagerDAO repoManagerDAO = new RepositoryManagerDAO();
+  private RepositoryManagerDAO repoManagerDAO;
 
-  private static final RepositoryDAO repoDAO = new RepositoryDAO();
+  private RepositoryDAO repoDAO;
 
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private OwnerDAO ownerDAO;
+
+  public ContextResolver() {
+    // no-arg constructor - see javadoc on #injectDAOs
+  }
+
+  /**
+   * Injected using Guice <a href="https://github.com/google/guice/wiki/Injections#method-injection">method
+   * injection</a> as this is a dependency of Shiro {@link org.apache.shiro.aop.MethodInterceptor} using AOP. See setup
+   * in {@link SecurityAopModule} using `requestInjection`.
+   */
+  @Inject
+  public void injectDAOs(
+      final ApplicationDAO appDAO,
+      final OrganizationDAO orgDAO,
+      final RepositoryManagerDAO repoManagerDAO,
+      final RepositoryDAO repoDAO,
+      final OwnerDAO ownerDAO)
+  {
+    this.appDAO = appDAO;
+    this.orgDAO = orgDAO;
+    this.repoManagerDAO = repoManagerDAO;
+    this.repoDAO = repoDAO;
+    this.ownerDAO = ownerDAO;
+  }
+
+  @VisibleForTesting
+  ContextResolver(
+      final ApplicationDAO appDAO,
+      final OrganizationDAO orgDAO,
+      final RepositoryManagerDAO repoManagerDAO,
+      final RepositoryDAO repoDAO,
+      final OwnerDAO ownerDAO)
+  {
+    this.appDAO = appDAO;
+    this.orgDAO = orgDAO;
+    this.repoManagerDAO = repoManagerDAO;
+    this.repoDAO = repoDAO;
+    this.ownerDAO = ownerDAO;
+  }
 
   private final ContextIdResolver<Application> resolverForInboundApplication = new ContextIdResolver<Application>()
   {

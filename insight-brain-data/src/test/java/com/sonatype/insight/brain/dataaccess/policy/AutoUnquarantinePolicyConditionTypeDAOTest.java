@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditi
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,12 +23,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class AutoUnquarantinePolicyConditionTypeDAOTest
     extends AbstractDbDAOTest
 {
+  private AutoUnquarantinePolicyConditionTypeDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createAutoUnquarantinePolicyConditionTypeDAO();
+  }
+
   @Test
   public void testInsert_validConditionType() {
     // SETUP
     final String id = new IntegrityRatingConditionType().getId();
     final AutoUnquarantinePolicyConditionType entity = new AutoUnquarantinePolicyConditionType(id);
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
     // EXECUTE
     dao.insert(entity);
@@ -40,7 +49,6 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
   public void testInsert_invalidConditionType() {
     // SETUP
     final AutoUnquarantinePolicyConditionType entity = new AutoUnquarantinePolicyConditionType("invalidId");
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
     // EXECUTE & Verify
     assertThatThrownBy(() -> dao.insert(entity)).isInstanceOf(IllegalArgumentException.class)
@@ -53,7 +61,6 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     final String id = new IntegrityRatingConditionType().getId();
     final AutoUnquarantinePolicyConditionType entity = new AutoUnquarantinePolicyConditionType(id);
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
     // EXECUTE & Verify
     assertThatThrownBy(() -> dao.insert(entity)).isInstanceOf(BadRequestException.class)
@@ -65,7 +72,6 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
     // SETUP
     final AutoUnquarantinePolicyConditionType entity =
         new AutoUnquarantinePolicyConditionType(AgeInDaysConditionType.ID);
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
     // EXECUTE & Verify
     assertThatThrownBy(() -> dao.insert(entity)).isInstanceOf(IllegalArgumentException.class)
@@ -77,8 +83,6 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
     // SETUP
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
-
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
     // EXECUTE
     final List<AutoUnquarantinePolicyConditionType> entities = dao.getAll();
@@ -92,9 +96,6 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
 
   @Test
   public void testGetAll_noRecords() {
-    // SETUP
-    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
-
     // EXECUTE
     final List<AutoUnquarantinePolicyConditionType> entities = dao.getAll();
 

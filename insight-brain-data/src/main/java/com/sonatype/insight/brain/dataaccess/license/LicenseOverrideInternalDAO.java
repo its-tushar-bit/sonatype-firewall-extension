@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
 import java.util.SortedMap;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -18,9 +22,16 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.13
  */
+@Named
+@Singleton
 public class LicenseOverrideInternalDAO
     extends AbstractOperationalSqlDAO<LicenseOverrideInternal>
 {
+  @Inject
+  public LicenseOverrideInternalDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(TransactionContext tx,
                                                                     String ownerId,
                                                                     ComponentIdentifier componentIdentifier)

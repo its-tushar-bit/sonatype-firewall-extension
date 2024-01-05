@@ -6,18 +6,28 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
-
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.LockModeType;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class PerpetualLockDAO
     extends AbstractOperationalSqlDAO<PerpetualLock>
 {
   private static final String RESERVE_QUERY =
       "UPDATE PerpetualLock entity SET entity.owner = ?2, entity.expirationTime = ?3 " +
       " WHERE entity.id = ?1 AND (entity.owner = ?2 OR entity.owner IS NULL OR entity.expirationTime < ?4)";
+
+  @Inject
+  public PerpetualLockDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   public PerpetualLock createPerpetualLock(String perpetualLockId, String owner, Date expiration) {
     PerpetualLock perpetualLock = new PerpetualLock(perpetualLockId)

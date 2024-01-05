@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
@@ -23,7 +24,12 @@ import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTO
 public class ApiUserResourceAuditTest
     extends AbstractAuditTest
 {
-  private final UserDAO userDAO = new UserDAO();
+  private UserDAO userDAO;
+
+  @Before
+  public void before() {
+    userDAO = lookup(UserDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

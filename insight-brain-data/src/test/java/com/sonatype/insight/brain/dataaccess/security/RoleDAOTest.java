@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,12 +38,28 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RoleDAOTest extends NameableDAOTest<Role>
 {
-  private final RoleDAO roleDAO = new RoleDAO();
+  private RoleDAO roleDAO;
+
+  private MembershipMappingDAO membershipMappingDAO;
+
+  private PolicyDAO policyDAO;
+
+  private RolePermissionDAO rolePermissionDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    roleDAO = daoFactory.createRoleDAO();
+    membershipMappingDAO = daoFactory.createMembershipMappingDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+    rolePermissionDAO = daoFactory.createRolePermissionDAO();
+  }
 
   private Role newRole(String name) {
     return tempEntity.newRole(name, name + " description", false /* global */);
   }
-  
+
   @Override
   protected Role createNameable(String a) {
     Role role = newRole(a);
@@ -58,7 +75,7 @@ public class RoleDAOTest extends NameableDAOTest<Role>
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected Role getEntityByName(String name) {
     return roleDAO.getByName(name);
@@ -79,7 +96,6 @@ public class RoleDAOTest extends NameableDAOTest<Role>
 
   @Test
   public void testDeleteCascadesToRolePermissions() {
-    RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     Role role = newRole("cascade");
     rolePermissionDAO.insert(new RolePermission(role.getId(), Permission.values()[0]));
     roleDAO.delete(role);
@@ -92,7 +108,7 @@ public class RoleDAOTest extends NameableDAOTest<Role>
     MembershipMapping membershipMapping = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         role.getId(), "username");
     roleDAO.delete(role);
-    assertThat(new MembershipMappingDAO().getById(membershipMapping.getId())).isNull();
+    assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
   }
 
   @Test
@@ -102,20 +118,21 @@ public class RoleDAOTest extends NameableDAOTest<Role>
     tempEntity.newPolicy(organization);
     Policy policyWithNotifyActions = tempEntity.newPolicy(organization);
     policyWithNotifyActions.getNotifications().add(
-        new RoleNotification(role.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+        new RoleNotification(role.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
     policyWithNotifyActions.getNotifications().add(
-        new RoleNotification(other.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+        new RoleNotification(other.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
     Map<String, Notifications> policyNotificationsOverrides = new LinkedHashMap<>();
     Notifications orgNotificationsOverride = new Notifications();
-    orgNotificationsOverride.add(new RoleNotification(role.getId(), ReleaseStageType.ID));
-    orgNotificationsOverride.add(new RoleNotification(other.getId(), ReleaseStageType.ID));
+    orgNotificationsOverride.add(new RoleNotification(role.getId(), role.getName(), ReleaseStageType.ID));
+    orgNotificationsOverride.add(new RoleNotification(other.getId(), role.getName(), ReleaseStageType.ID));
     policyNotificationsOverrides.put("org2", orgNotificationsOverride);
     Notifications appNotificationsOverride = new Notifications();
-    appNotificationsOverride.add(new RoleNotification(role.getId(), DevelopStageType.ID, StageReleaseStageType.ID));
-    appNotificationsOverride.add(new RoleNotification(other.getId(), DevelopStageType.ID, StageReleaseStageType.ID));
+    appNotificationsOverride.add(
+        new RoleNotification(role.getId(), role.getName(), DevelopStageType.ID, StageReleaseStageType.ID));
+    appNotificationsOverride.add(
+        new RoleNotification(other.getId(), role.getName(), DevelopStageType.ID, StageReleaseStageType.ID));
     policyNotificationsOverrides.put("app", appNotificationsOverride);
     policyWithNotifyActions.setPolicyNotificationsOverrides(policyNotificationsOverrides);
-    PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.update(policyWithNotifyActions);
 
     roleDAO.delete(role);
@@ -218,6 +235,10 @@ public class RoleDAOTest extends NameableDAOTest<Role>
 
   @Test
   public void testCustomRoleCannotBeGlobal_Insert() {
+    // Creating proper RoleDAO
+    RoleDAO roleDAO =
+        new RoleDAO(false, databaseRule.getOperationalDataStore(), rolePermissionDAO, membershipMappingDAO, policyDAO);
+
     Role role = new Role("Name", "Description");
     role.setGlobal(true);
     assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
@@ -226,8 +247,13 @@ public class RoleDAOTest extends NameableDAOTest<Role>
 
   @Test
   public void testCustomRoleCannotBeGlobal_Update() {
+    // Creating proper RoleDAO
+    RoleDAO roleDAO =
+        new RoleDAO(false, databaseRule.getOperationalDataStore(), rolePermissionDAO, membershipMappingDAO, policyDAO);
+
     Role role = newRole("Name");
     role.setGlobal(true);
+
     assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot change custom role 'Name' to global scope.");
   }

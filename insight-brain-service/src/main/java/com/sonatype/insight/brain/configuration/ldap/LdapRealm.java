@@ -35,8 +35,11 @@ public class LdapRealm
 {
   private final LdapService ldapService;
 
+  private final LdapServerDAO ldapServerDAO;
+
   @Inject
-  public LdapRealm(LdapService ldapService) {
+  public LdapRealm(final LdapService ldapService, final LdapServerDAO ldapServerDAO) {
+    this.ldapServerDAO = ldapServerDAO;
     setAuthenticationTokenClass(UsernamePasswordToken.class);
     this.ldapService = ldapService;
   }
@@ -44,7 +47,7 @@ public class LdapRealm
   @Override
   public boolean supports(AuthenticationToken token) {
     if (super.supports(token)) {
-      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+      for (LdapServer ldapServer : ldapServerDAO.getAll()) {
         if (ldapService.isLdapEnabled(ldapServer)) {
           return true;
         }

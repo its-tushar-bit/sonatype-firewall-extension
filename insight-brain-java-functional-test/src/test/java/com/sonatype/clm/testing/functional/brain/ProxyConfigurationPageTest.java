@@ -12,13 +12,14 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProxyConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.clm.testing.functional.utils.FormUtils;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,25 +29,30 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openqa.selenium.Keys.BACK_SPACE;
-import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class ProxyConfigurationPageTest
     extends AbstractFunctionalTest
 {
   private final ProxyConfigurationPage proxyConfigurationPage = new ProxyConfigurationPage();
 
-  private static final ProxyServerConfigurationDAO dao = new ProxyServerConfigurationDAO();
-
   private static final PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
 
   private static final String FAKE_PASSWORD = "\u0000\u0000\u0000\u0000\u0000";
+
+  private ProxyServerConfigurationDAO dao;
 
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(ProxyConfigurationPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    dao = lookup(ProxyServerConfigurationDAO.class);
   }
 
   @Override

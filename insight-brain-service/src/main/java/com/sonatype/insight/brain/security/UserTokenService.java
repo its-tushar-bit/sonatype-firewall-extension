@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NameNotFoundException;
@@ -62,16 +61,20 @@ public class UserTokenService
 
   private final CurrentUser currentUser;
 
+  private final LdapServerDAO ldapServerDAO;
+
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
       SamlUserDAO samlUserDAO,
+      LdapServerDAO ldapServerDAO,
       PasswordService passwordService,
       LdapService ldapService,
       CurrentUser currentUser)
   {
     this.userTokenDAO = userTokenDAO;
     this.samlUserDAO = samlUserDAO;
+    this.ldapServerDAO = ldapServerDAO;
     this.passwordService = passwordService;
     this.ldapService = ldapService;
     this.currentUser = currentUser;
@@ -152,7 +155,7 @@ public class UserTokenService
     if (CrowdRealm.ID.equals(realmId) && hasCrowdUserTokenSupport()) {
       return true;
     }
-    return new LdapServerDAO().getById(realmId) != null;
+    return ldapServerDAO.getById(realmId) != null;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -199,7 +202,7 @@ public class UserTokenService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void purgeUserTokens() throws NamingException {
     Map<String, LdapServer> ldapServersById =
-        new LdapServerDAO().getAll().stream().collect(Collectors.toMap(LdapServer::getId, Function.identity()));
+        ldapServerDAO.getAll().stream().collect(Collectors.toMap(LdapServer::getId, Function.identity()));
 
     for (UserToken userToken : userTokenDAO.getAllLdap()) {
       String username = userToken.getUsername();

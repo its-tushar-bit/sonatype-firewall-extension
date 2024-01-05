@@ -14,17 +14,23 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantConfigurationResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
-  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private SystemConfigurationPropertyDAO dao;
+
+  @Before
+  public void before() {
+    dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
 
   protected HttpRequest restRequest(String path) {
     return super.adminRequest().path("api/").path(path);

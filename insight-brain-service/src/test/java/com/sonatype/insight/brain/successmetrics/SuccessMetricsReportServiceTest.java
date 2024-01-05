@@ -31,7 +31,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SuccessMetricsReportServiceTest
     extends AbstractComponentTest
 {
-  private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
+  @Inject
+  private SuccessMetricsReportDAO successMetricsReportDAO;
 
   @Inject
   private SuccessMetricsReportService successMetricsReportService;

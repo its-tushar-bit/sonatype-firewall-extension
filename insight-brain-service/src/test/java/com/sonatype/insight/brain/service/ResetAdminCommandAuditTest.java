@@ -5,22 +5,26 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@H2DiskTest
 public class ResetAdminCommandAuditTest
+    extends AbstractDataTest
     implements AuditTestSupport
 {
   @Rule
@@ -29,25 +33,27 @@ public class ResetAdminCommandAuditTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  private InsightConfig insightConfig;
+
+  @Before
+  public void before() throws Exception {
+    insightConfig = new InsightConfig();
+    insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
+  }
+
   @Override
   public LogOutput getLogOutput() {
     return logOutput;
   }
 
-  @After
-  public void after() {
-    DataSourceFactory.clear_ForTestsOnly();
+  @Override
+  public PolicyDAO getPolicyDAO() {
+    return daoFactory.createPolicyDAO();
   }
 
   @Test
   public void testRun() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-    InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
-    OperationalDataStoreProvider
-        .init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
-
-    new ResetAdminCommand().run(null, null, insightConfig);
+    runTest();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_USER_PASSWORD, null, SYSTEM_USER);
     assertCustomData(auditDTO, "username", ResetAdminCommand.DEFAULT_ADMIN.getUsername());
@@ -57,5 +63,16 @@ public class ResetAdminCommandAuditTest
   public void testRun_Exception() {
     assertThatExceptionOfType(Exception.class).isThrownBy(() -> new ResetAdminCommand().run(null, null, null));
     assertAuditLog(AuditEvent.RESET_USER_PASSWORD, "server-error", SYSTEM_USER);
+  }
+
+  private void runTest() {
+    new ResetAdminCommand()
+    {
+      // Use the provided OperationalDataStore from DatabaseRule
+      @Override
+      protected OperationalDataStore getOperationalDataStore(final DatabaseConfig databaseConfig) {
+        return databaseRule.getOperationalDataStore();
+      }
+    }.run(null, null, insightConfig);
   }
 }

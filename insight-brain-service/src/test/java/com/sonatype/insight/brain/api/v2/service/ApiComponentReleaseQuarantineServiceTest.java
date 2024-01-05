@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -24,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiWaivedPolicyViolationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -47,6 +47,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -82,19 +83,32 @@ public class ApiComponentReleaseQuarantineServiceTest
   @Inject
   private ApiComponentReleaseQuarantineService service;
 
-  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   private final PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
+
+  private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(PolicyWaiverTelemetryCreator.class).toInstance(policyWaiverTelemetryCreator);
     binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     super.configure(binder);
+  }
+
+  @Before
+  public void before() {
+    policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
   }
 
   @Test
@@ -398,7 +412,7 @@ public class ApiComponentReleaseQuarantineServiceTest
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
-    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
+    policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
         repository, before, after, policyViolations, currentUser.getUsername());
   }
 }

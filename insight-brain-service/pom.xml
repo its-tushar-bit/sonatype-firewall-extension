@@ -83,6 +83,17 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-policy</artifactId>
     </dependency>
     <dependency>
@@ -97,6 +108,11 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
@@ -421,11 +437,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>postgres-server</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-test</artifactId>
       <scope>test</scope>
@@ -674,7 +685,7 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>${test.forkCount}</forkCount>
-          <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <argLine>@{argLine} -Xmx500m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>
@@ -791,10 +802,11 @@
             <configuration>
               <includes>
                 <include>**/PortAllocator*</include>
-                <include>**/AbstractBrainServiceTest*</include>
+                <include>**/AbstractBaseIntegrationTest*</include>
                 <include>**/HdsMockServerRule*</include>
                 <include>**/DefaultTestInsightBrainService*</include>
                 <include>**/MultiTenantBrainServiceTestService*</include>
+                <include>**/*InsightBrainServiceFactory*</include>
                 <include>**/TestInsightBrainService*</include>
                 <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/TestCLMServer*</include>
@@ -827,7 +839,10 @@
                 <include>**/BrainInjectedTest*</include>
                 <include>**/AuditTestSupport*</include>
                 <include>**/TestAuditSession*</include>
+                <include>**/MockCleaner*</include>
                 <include>**/*Test*</include>
+                <include>**/DatabaseContainerRule*</include>
+                <include>**/H2InMemoryDatabaseConfigProvider*</include>
               </includes>
             </configuration>
           </execution>

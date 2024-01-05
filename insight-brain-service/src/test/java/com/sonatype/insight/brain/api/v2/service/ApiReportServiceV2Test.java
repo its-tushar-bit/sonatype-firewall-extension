@@ -57,6 +57,12 @@ public class ApiReportServiceV2Test
   @Inject
   private InsightWork insightWork;
 
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   private Application appOne;
 
   private Application appThree;
@@ -296,9 +302,9 @@ public class ApiReportServiceV2Test
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
     createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
     app.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
     policy.setLegacyViolationAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 

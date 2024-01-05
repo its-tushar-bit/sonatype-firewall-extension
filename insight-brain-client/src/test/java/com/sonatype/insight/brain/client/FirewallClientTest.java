@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 
 @RunWith(Parameterized.class)
 public class FirewallClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final String REPOSITORY_PUBLIC_ID = "central";
 
@@ -58,7 +58,9 @@ public class FirewallClientTest
 
   private RepositoryManager repositoryManager;
 
-  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private RepositoryDAO repositoryDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
 
   private final String resourcePath;
 
@@ -76,6 +78,8 @@ public class FirewallClientTest
 
   @Before
   public void start() {
+    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
     if (resourcePath.equals(FirewallClient.ARTIFACTORY_RESOURCE_PATH)) {
       getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
     }
@@ -89,7 +93,7 @@ public class FirewallClientTest
 
     client.setEnabled(true);
 
-    Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
+    Repository repo = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
     assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
     assertThat(repo.isAuditEnabled()).isTrue();
@@ -112,7 +116,7 @@ public class FirewallClientTest
 
     client.setEnabled(false);
 
-    Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
+    Repository repo = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
     assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
     assertThat(repo.isAuditEnabled()).isFalse();
@@ -353,7 +357,6 @@ public class FirewallClientTest
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.removeExtraComponents(repositoryComponentPathnames);
 
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
@@ -404,7 +407,7 @@ public class FirewallClientTest
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.removeComponent(pathname);
 
-    repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
     assertThat(repositoryComponent).isNull();
   }
 

@@ -8,34 +8,24 @@ package com.sonatype.insight.brain.telemetry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import javax.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.service.TenantLifecycle;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantManager;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.io.Resources;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRealmTelemetryCollectorTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private RealmTelemetryCollector telemetryCollector;
 
@@ -45,16 +35,8 @@ public class MultiTenantRealmTelemetryCollectorTest
   @Override
   public void setup() {
     super.setup();
-    Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
-    Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
-    TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
-    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
 
-    tenantManager =
-        new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO, new TenantUtil());
-
-    samlConfigurationDAO = new SamlConfigurationDAO();
+    samlConfigurationDAO = daoFactory.createSamlConfigurationDAO();
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationDAO);
   }
 

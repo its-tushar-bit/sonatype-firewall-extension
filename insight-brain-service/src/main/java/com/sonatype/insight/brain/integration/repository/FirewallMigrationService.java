@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.integration.repository;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,9 +15,14 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
@@ -49,11 +53,21 @@ public class FirewallMigrationService
 
   private static final Logger log = LoggerFactory.getLogger(FirewallMigrationService.class);
 
-  private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO;
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO;
 
-  private static final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+  private final RepositoryMigrationDAO repositoryMigrationDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final LicenseOverrideDAO licenseOverrideDAO;
+
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
 
   private final ThreadPoolExecutor executor = new TenantThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
       new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
@@ -63,9 +77,29 @@ public class FirewallMigrationService
   private final ProductLicense productLicense;
 
   @Inject
-  public FirewallMigrationService(final VersionService versionService, final ProductLicense productLicense) {
+  public FirewallMigrationService(
+      final VersionService versionService,
+      final ProductLicense productLicense,
+      final RepositoryManagerDAO repositoryManagerDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryMigrationDAO repositoryMigrationDAO,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      final PolicyWaiverDAO policyWaiverDAO)
+  {
     this.versionService = versionService;
     this.productLicense = productLicense;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryMigrationDAO = repositoryMigrationDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.licenseOverrideDAO = licenseOverrideDAO;
+    this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+
     executor.allowCoreThreadTimeOut(true);
   }
 
@@ -169,7 +203,10 @@ public class FirewallMigrationService
     repositoryMigration.setRepositoryId(targetRepository.getId());
     repositoryMigration.setState(RUNNING);
     if (repositoryMigrationDAO.tryInsert(repositoryMigration)) {
-      executor.submit(new FirewallMigrationWorker(sourceRepository, targetRepository, repositoryMigration));
+      executor.submit(
+          new FirewallMigrationWorker(sourceRepository, targetRepository, repositoryMigration, repositoryDAO,
+              repositoryComponentDAO, repositoryPolicyViolationDAO, licenseOverrideDAO,
+              securityVulnerabilityOverrideDAO, policyWaiverDAO, repositoryMigrationDAO));
       log.info("Scheduled the history migration from {}:{} ({}) to {}:{} ({}).",
           sourceRepository.getRepositoryManagerId(), sourceRepository.getPublicId(), sourceRepository.getId(),
           targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
@@ -197,7 +234,7 @@ public class FirewallMigrationService
   MigrationDetails getRepositoryMigrationState(@AuthzContext(Key.REPOSITORY) Repository targetRepository) {
     RepositoryMigration repositoryMigration = repositoryMigrationDAO.getByRepositoryId(targetRepository.getId());
     if (repositoryMigration == null) {
-      RepositoryManager targetRepositoryManager = new RepositoryManagerDAO()
+      RepositoryManager targetRepositoryManager = repositoryManagerDAO
           .getById(targetRepository.getRepositoryManagerId());
       log.error("Migration was not started for repository {}:{} ({}).", targetRepositoryManager.getInstanceId(),
           targetRepository.getPublicId(), targetRepository.getId());

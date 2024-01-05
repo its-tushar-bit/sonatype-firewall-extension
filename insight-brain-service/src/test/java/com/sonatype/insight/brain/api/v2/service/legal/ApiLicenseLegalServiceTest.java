@@ -69,8 +69,22 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
@@ -107,6 +121,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -232,26 +247,80 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Inject
+  private IdUtils idUtils;
+
   @Mock
   private RepositoryQueryService repositoryQueryService;
 
   @Mock
   private Configuration configurationMock;
 
+  private LicenseDAO licenseDAO;
+
+  private ApplicationDAO applicationDAO;
+
+  private InnerSourceComponentDAO innerSourceComponentDAO;
+
+  private OwnerDAO ownerDAO;
+
+  private PolicyDAO policyDAO;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    apiLicenseDataAdapterSpy = spy(new ApiLicenseDataAdapter());
+
+    // Init DAOs
+    licenseDAO = daoFactory.createLicenseDAO();
+    applicationDAO = daoFactory.createApplicationDAO();
+    innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
+    ownerDAO = daoFactory.createOwnerDAO();
+    policyDAO = daoFactory.createPolicyDAO();
+
+    // Init Spys
+    apiLicenseDataAdapterSpy =
+        spy(new ApiLicenseDataAdapter(daoFactory.createMultiLicenseDAO()));
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
     lenient().when(configurationMock.isALPObservedLicenseDetectionEnabled()).thenReturn(true);
-    componentInfoServiceSpy =
-        spy(new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(null, configurationMock), null,
-            mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO));
+    componentInfoServiceSpy = spy(buildComponentInfoService());
+
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);
     super.configure(binder);
+  }
+
+  private ComponentInfoService buildComponentInfoService() {
+    ComponentCategoryDAO componentCategoryDAO = daoFactory.createComponentCategoryDAO();
+    LicenseThreatGroupDAO licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    LicenseOverrideDAO licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
+        daoFactory.createSecurityVulnerabilityOverrideDAO();
+    ComponentLabelDAO componentLabelDAO = daoFactory.createComponentLabelDAO();
+    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
+        daoFactory.createVulnerabilityCustomRemediationDAO();
+    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = daoFactory.createVulnerabilityCustomCweDAO();
+    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO =
+        daoFactory.createVulnerabilityCustomCvssVectorDAO();
+    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
+        daoFactory.createVulnerabilityCustomCvssSeverityDAO();
+    MultiLicenseDAO multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+
+    ComponentLoaderFactory componentLoaderFactory =
+        new ComponentLoaderFactory(multiLicenseDAO, licenseThreatGroupDAO, licenseThreatGroupLicenseDAO,
+            licenseOverrideDAO, securityVulnerabilityOverrideDAO, ownerDAO, componentLabelDAO,
+            vulnerabilityCustomRemediationDAO, vulnerabilityCustomCweDAO, vulnerabilityCustomCvssVectorDAO,
+            vulnerabilityCustomCvssSeverityDAO);
+
+    ComponentInfoService componentInfoService =
+        new ComponentInfoService(null, null,
+            new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
+            null,
+            mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO, applicationDAO, licenseDAO,
+            componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, idUtils);
+    return componentInfoService;
   }
 
   @Test
@@ -3196,9 +3265,9 @@ public class ApiLicenseLegalServiceTest
         File file = Report.getCacheFile(reportFile, filename);
         FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
       }
-      if (new InnerSourceComponentDAO().getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
+      if (innerSourceComponentDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
         tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
-            .getPackageUrl(), new ApplicationDAO().getById(evaluation.getApplicationId()));
+            .getPackageUrl(), applicationDAO.getById(evaluation.getApplicationId()));
       }
     }
     catch (IOException e) {

@@ -58,9 +58,13 @@ public class PullRequestMonitorTest
     extends AbstractComponentTest
 {
   @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
   private PullRequestMonitor pullRequestMonitor;
 
-  private final SourceControlPullRequestDAO pullRequestDAO = new SourceControlPullRequestDAO();
+  @Inject
+  private SourceControlPullRequestDAO pullRequestDAO;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -474,7 +478,7 @@ public class PullRequestMonitorTest
         .setEventType(SourceControlEvent.UPDATED_PULL_REQUEST_EVENT) //
         .setPullRequestNumber(pullRequest.getPullRequestId()) //
         .setEventStatus(eventStatus);
-    new SourceControlEventDAO().insert(existingEvent);
+    sourceControlEventDAO.insert(existingEvent);
 
     // The branch is updated
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))

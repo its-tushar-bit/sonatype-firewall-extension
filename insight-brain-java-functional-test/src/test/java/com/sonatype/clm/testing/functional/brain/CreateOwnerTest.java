@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -61,11 +60,11 @@ public class CreateOwnerTest
 
   private static final String NEW_NAME = "gibberish 2";
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private ApplicationDAO appDAO;
 
-  private final IconDAO iconDAO = new IconDAO();
+  private IconDAO iconDAO;
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   private Organization parentOrg;
 
@@ -83,6 +82,9 @@ public class CreateOwnerTest
 
   @Before
   public void init() {
+    appDAO = lookup(ApplicationDAO.class);
+    iconDAO = lookup(IconDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
     parentOrg = tempEntity.newOrganization("Parent");
     org = tempEntity.newOrganization(NAME, parentOrg);
     refreshOrOpen(OwnerSummaryPage.url());

@@ -13,18 +13,26 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApplicationSummaryResourceAuditTest
     extends AbstractAuditTest
 {
+  private ApplicationDAO applicationDAO;
+
+  @Before
+  public void setUp() {
+    applicationDAO = lookup(ApplicationDAO.class);
+  }
+
   @Test
   public void testVerifyOrCreateApplication() throws Exception {
     Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
     String nonExistentAppPublicId = tempEntity.uuid();
 
     verifyOrCreateApplicationRequest().parameter(nonExistentAppPublicId).post();
-    Application persistedApp = new ApplicationDAO().getByPublicIdNotNull(nonExistentAppPublicId);
+    Application persistedApp = applicationDAO.getByPublicIdNotNull(nonExistentAppPublicId);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.AUTO_CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, persistedApp, organization);

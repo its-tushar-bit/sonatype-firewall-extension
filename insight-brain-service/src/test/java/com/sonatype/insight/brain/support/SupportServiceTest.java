@@ -25,6 +25,7 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @since 1.27
  */
+@H2DiskTest
 public class SupportServiceTest
     extends AbstractComponentTest
 {

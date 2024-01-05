@@ -53,16 +53,24 @@ public class LdapService
 
   public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
 
-  private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
+  private final LdapServerDAO ldapServerDAO;
 
-  private final LdapConnectionDAO ldapConnectionDAO = new LdapConnectionDAO();
+  private final LdapConnectionDAO ldapConnectionDAO;
 
-  private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
+  private final LdapUserMappingDAO ldapUserMappingDAO;
 
   private final PasswordHandler passwordHandler;
 
   @Inject
-  public LdapService(PasswordHandler passwordHandler) {
+  public LdapService(
+      final PasswordHandler passwordHandler,
+      final LdapServerDAO ldapServerDAO,
+      final LdapConnectionDAO ldapConnectionDAO,
+      final LdapUserMappingDAO ldapUserMappingDAO)
+  {
+    this.ldapServerDAO = ldapServerDAO;
+    this.ldapConnectionDAO = ldapConnectionDAO;
+    this.ldapUserMappingDAO = ldapUserMappingDAO;
     this.passwordHandler = passwordHandler;
   }
 

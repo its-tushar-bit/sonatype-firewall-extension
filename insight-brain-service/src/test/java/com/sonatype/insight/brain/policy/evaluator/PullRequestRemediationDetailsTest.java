@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -23,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -47,6 +49,9 @@ public class PullRequestRemediationDetailsTest
   private static final String SCAN_ID = "5ea5363997ee2ba0c8730a5f785ae2c6";
 
   private static final String TEST_SCM_URL = "https://scm.mycompany.com";
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   private Application app;
 
@@ -132,7 +137,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", breakingChangesCount, "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -179,7 +184,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -223,7 +228,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -239,7 +244,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

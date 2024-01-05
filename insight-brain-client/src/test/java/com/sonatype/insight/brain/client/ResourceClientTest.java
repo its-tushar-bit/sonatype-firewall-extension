@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.Resource;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ResourceClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   @Test
   public void testMissingFile() {

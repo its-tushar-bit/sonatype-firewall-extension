@@ -11,20 +11,30 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SearchFilter;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.collections.CollectionUtils;
 
+@Named
+@Singleton
 public class ProprietaryComponentNamePatternDAO
     extends AbstractOperationalSqlDAO<ProprietaryComponentNamePattern>
 {
+  @Inject
+  public ProprietaryComponentNamePatternDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public List<ProprietaryComponentNamePattern> getByFormat(String format) {
     String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.format = ?1";
     return getList(sQuery, format);
@@ -77,7 +87,7 @@ public class ProprietaryComponentNamePatternDAO
     if (repositoryIds.isEmpty()) {
       return Collections.emptyList();
     }
-    
+
     // We need two SELECTs to be able to have namespace_pattern and name_pattern concatenated,
     // so we can filter and sort on it.
     String innerSelect = "SELECT pattern.proprietary_component_name_pattern_id, " + //
@@ -90,10 +100,10 @@ public class ProprietaryComponentNamePatternDAO
         "repoManager.name AS repository_manager_name, " + //
         "repo.public_id AS repository_public_id, " + //
         "pattern.enabled" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern pattern" + //
-        " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository repo" + //
+        " FROM " + getDatabaseSchema() + ".proprietary_component_name_pattern pattern" + //
+        " INNER JOIN " + getDatabaseSchema() + ".repository repo" + //
         " ON pattern.repository_id = repo.repository_id" + //
-        " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_manager repoManager" + //
+        " INNER JOIN " + getDatabaseSchema() + ".repository_manager repoManager" + //
         " ON repo.repository_manager_id = repoManager.repository_manager_id" + //
         " WHERE repo.repository_id IN " + //
         // I did not find a way to pass the list of repository IDs as query param

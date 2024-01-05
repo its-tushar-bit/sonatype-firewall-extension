@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -37,15 +37,17 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
 public class SourceControlClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   private static final String APP_ID = "SourceControlClientTest_AppId";
+
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   private Application application;
 
   @Before
   public void createApplication() {
-
+    automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     application = tempEntity.newApplicationWithParent(APP_ID);
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
@@ -149,8 +151,6 @@ public class SourceControlClientTest
   }
 
   private void turnOnAutomaticSourceControl() {
-    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
-        new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
   }
 

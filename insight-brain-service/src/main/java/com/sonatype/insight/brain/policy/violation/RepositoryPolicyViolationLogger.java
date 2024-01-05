@@ -21,14 +21,18 @@ public class RepositoryPolicyViolationLogger
 {
   private final Repository repository;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   public RepositoryPolicyViolationLogger(
       boolean licensed,
       Date logTimestamp,
       Repository repository,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      RepositoryManagerDAO repositoryManagerDAO)
   {
     super(licensed, logTimestamp, currentUser);
     this.repository = repository;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   @Override
@@ -40,7 +44,6 @@ public class RepositoryPolicyViolationLogger
     if (!PolicyViolationLogEvent.CLEAR.equals(policyViolationData.policyViolationLogEvent)) {
       policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     }
-    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
     policyViolationLogDTO.repositoryManagerId = repository.getRepositoryManagerId();
     policyViolationLogDTO.repositoryManagerInstanceId =
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId();

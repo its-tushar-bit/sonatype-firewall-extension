@@ -12,11 +12,13 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,10 +27,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class HashComponentIdentifierDAOTest
     extends AbstractDbDAOTest
 {
+  private HashComponentIdentifierDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createHashComponentIdentifierDAO();
+  }
+
   @Test
   public void testCRUD() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "123456789012345678901";
     assertThat(hash.length()).isGreaterThan(20);
     String truncatedHash = hash.substring(0, 20);
@@ -66,8 +75,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testGetByHashNotNull() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "11111111111111111111";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
@@ -80,7 +87,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testGetByHashNotNull_DoesNotExist() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
     String hash = "11111111111111111111";
     assertThatThrownBy(() -> dao.getByHashNotNull(hash)).isInstanceOf(NotFoundException.class)
         .hasMessage(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + ".");
@@ -88,8 +94,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testGetByComponentIdentifier() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "11111111111111111111";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
@@ -112,8 +116,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testAddDuplicateByHash() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "ab1234ab1234ab";
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
@@ -127,8 +129,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testAddDuplicateByComponentIdentifier() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "ab1234ab1234ab";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
 
@@ -141,8 +141,6 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testGetByHashes() {
-    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
-
     String hash = "11111111111111111111";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
@@ -158,7 +156,7 @@ public class HashComponentIdentifierDAOTest
 
   @Test
   public void testGetByHashes_GetsHashComponentIdentifiersInBatches() {
-    TestHashComponentIdentifierDAO dao = new TestHashComponentIdentifierDAO();
+    TestHashComponentIdentifierDAO dao = new TestHashComponentIdentifierDAO(databaseRule.getOperationalDataStore());
 
     List<HashComponentIdentifier> expectedIdentifiers = new ArrayList<>();
     List<String> hashes = new ArrayList<>();
@@ -190,6 +188,10 @@ public class HashComponentIdentifierDAOTest
   private static class TestHashComponentIdentifierDAO
       extends HashComponentIdentifierDAO
   {
+    TestHashComponentIdentifierDAO(OperationalDataStore operationalDataStore) {
+      super(operationalDataStore);
+    }
+
     private static final int PARTITION_THRESHOLD = 2;
 
     @Override

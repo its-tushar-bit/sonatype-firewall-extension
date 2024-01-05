@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.postgres.PostgresServer;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Test;
 
@@ -16,67 +14,36 @@ public class SourceControlUserPostgresqlDAOTest
 {
   @Override
   @Test
+  @PostgresTest
   public void testGetByApplicationId() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      super.testGetByApplicationId();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    super.testGetByApplicationId();
   }
 
   @Override
   @Test
+  @PostgresTest
   public void testGetUserIdByEmailFilteringByApplicationId() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      super.testGetUserIdByEmailFilteringByApplicationId();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    super.testGetUserIdByEmailFilteringByApplicationId();
   }
 
   @Override
   @Test
+  @PostgresTest
   public void testInsertAllIfNew_onlyNewUsers() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      super.testInsertAllIfNew_onlyNewUsers();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    super.testInsertAllIfNew_onlyNewUsers();
   }
 
   @Override
   @Test
+  @PostgresTest
   public void testInsertAllIfNew_someUserExists_notFailAndIgnore() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      super.testInsertAllIfNew_someUserExists_notFailAndIgnore();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    super.testInsertAllIfNew_someUserExists_notFailAndIgnore();
   }
 
   @Override
   @Test
+  @PostgresTest
   public void testDelete_CascadeToSourceControlUserActivity() {
-    DataSourceFactory.clear_ForTestsOnly();
-    try (PostgresServer postgres = new PostgresServer()) {
-      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      super.setup();
-      super.testDelete_CascadeToSourceControlUserActivity();
-    }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
-    }
+    super.testDelete_CascadeToSourceControlUserActivity();
   }
 }

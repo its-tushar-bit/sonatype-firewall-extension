@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -13,9 +18,16 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.33
  */
+@Named
+@Singleton
 public class SystemConfigurationPropertyDAO
     extends AbstractOperationalSqlWithFallbackDAO<SystemConfigurationProperty>
 {
+  @Inject
+  public SystemConfigurationPropertyDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   public SystemConfigurationProperty getByNameNotNull(String name) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByNameNotNull(tx, name);

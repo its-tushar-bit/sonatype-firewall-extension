@@ -41,7 +41,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
   public void after() {
     logout();
     clearAlerts();
-    new CrowdConfigurationDAO().delete();
+    lookup(CrowdConfigurationDAO.class).delete();
   }
 
   @Test

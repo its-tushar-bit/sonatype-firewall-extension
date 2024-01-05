@@ -32,8 +32,8 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -77,9 +77,9 @@ public class IdeResource
 
   private final HdsClient client;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO;
 
-  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   private final BaseUrl baseUrl;
 
@@ -93,6 +93,8 @@ public class IdeResource
 
   private final Configuration configuration;
 
+  private final ComponentLoaderFactory componentLoaderFactory;
+
   @Inject
   public IdeResource(
       BaseUrl baseUrl,
@@ -101,7 +103,10 @@ public class IdeResource
       TelemetrySender telemetrySender,
       UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao,
       CurrentUser currentUser,
-      Configuration configuration)
+      Configuration configuration,
+      ApplicationDAO applicationDAO,
+      HashComponentIdentifierDAO hashComponentIdentifierDAO,
+      ComponentLoaderFactory componentLoaderFactory)
   {
     this.baseUrl = baseUrl;
     this.client = client;
@@ -110,6 +115,9 @@ public class IdeResource
     this.userIdePolicyEvaluationDao = userIdePolicyEvaluationDao;
     this.currentUser = currentUser;
     this.configuration = configuration;
+    this.componentLoaderFactory = componentLoaderFactory;
+    this.applicationDAO = applicationDAO;
+    this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
   }
 
   /**
@@ -168,7 +176,8 @@ public class IdeResource
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation)) {
       Component component =
-          new ComponentDAO(app).getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
+          componentLoaderFactory.createComponentLoader(app)
+              .getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
           Collections.singletonList(component));

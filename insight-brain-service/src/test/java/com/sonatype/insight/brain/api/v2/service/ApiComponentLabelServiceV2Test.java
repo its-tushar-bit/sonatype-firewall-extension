@@ -27,7 +27,8 @@ public class ApiComponentLabelServiceV2Test
   @Inject
   private ApiComponentLabelServiceV2 apiComponentLabelService;
 
-  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  @Inject
+  private ComponentLabelDAO componentLabelDAO;
 
   @Test
   public void testSetComponentLabel_Organization() {

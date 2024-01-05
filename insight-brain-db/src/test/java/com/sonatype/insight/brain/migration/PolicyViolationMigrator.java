@@ -16,6 +16,6 @@ public class PolicyViolationMigrator
     implements PostIncrementalMigrator
 {
   @Override
-  public void migrate(DataSource dataSource) throws Exception {
+  public void migrate(final DataSource dataSource, final String databaseSchema) throws Exception {
   }
 }

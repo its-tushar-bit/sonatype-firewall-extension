@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -15,29 +19,47 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 
+@Named
+@Singleton
 public class IdUtils
 {
   static final String MSG_PREFIX_NO_OWNER_INSTANCE = "There is no Owner instance for OwnerType: ";
 
-  private IdUtils() {
-    // Utility class
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  public IdUtils(
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
+  {
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
-  public static Owner getOwnerNotNull(final OwnerType ownerType, final String ownerId) {
+  public Owner getOwnerNotNull(final OwnerType ownerType, final String ownerId) {
     switch (ownerType) {
       case APPLICATION:
-        ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId(ownerId);
         if (application != null) {
           return application;
         }
         return applicationDAO.getByIdNotNull(ownerId);
       case ORGANIZATION:
-        return new OrganizationDAO().getByIdNotNull(ownerId);
+        return organizationDAO.getByIdNotNull(ownerId);
       case REPOSITORY:
-        return new RepositoryDAO().getByIdNotNull(ownerId);
+        return repositoryDAO.getByIdNotNull(ownerId);
       case REPOSITORY_MANAGER:
-        return new RepositoryManagerDAO().getByIdNotNull(ownerId);
+        return repositoryManagerDAO.getByIdNotNull(ownerId);
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.SINGLETON;
       case GLOBAL:
@@ -47,21 +69,20 @@ public class IdUtils
     }
   }
 
-  public static String getInternalOwnerId(OwnerType ownerType, String ownerId) {
+  public String getInternalOwnerId(OwnerType ownerType, String ownerId) {
     switch (ownerType) {
       case APPLICATION:
-        ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId(ownerId);
         if (application != null) {
           return application.getId();
         }
         return applicationDAO.getByIdNotNull(ownerId).getId();
       case ORGANIZATION:
-        return new OrganizationDAO().getByIdNotNull(ownerId).getId();
+        return organizationDAO.getByIdNotNull(ownerId).getId();
       case REPOSITORY:
-        return new RepositoryDAO().getByIdNotNull(ownerId).getId();
+        return repositoryDAO.getByIdNotNull(ownerId).getId();
       case REPOSITORY_MANAGER:
-        return new RepositoryManagerDAO().getByIdNotNull(ownerId).getId();
+        return repositoryManagerDAO.getByIdNotNull(ownerId).getId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
       case GLOBAL:
@@ -71,21 +92,20 @@ public class IdUtils
     }
   }
 
-  public static String getPublicOwnerId(OwnerType ownerType, String ownerId) {
+  public String getPublicOwnerId(OwnerType ownerType, String ownerId) {
     switch (ownerType) {
       case APPLICATION:
-        ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId(ownerId);
         if (application != null) {
           return application.getPublicId();
         }
         return applicationDAO.getByIdNotNull(ownerId).getPublicId();
       case ORGANIZATION:
-        return new OrganizationDAO().getByIdNotNull(ownerId).getPublicId();
+        return organizationDAO.getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY:
-        return new RepositoryDAO().getByIdNotNull(ownerId).getPublicId();
+        return repositoryDAO.getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY_MANAGER:
-        return new RepositoryManagerDAO().getByIdNotNull(ownerId).getPublicId();
+        return repositoryManagerDAO.getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
       case GLOBAL:

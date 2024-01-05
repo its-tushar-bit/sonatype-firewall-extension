@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.assertj.core.util.Maps;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiJiraConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private final JiraConfigurationDAO dao = new JiraConfigurationDAO();
+  private JiraConfigurationDAO dao;
+
+  @Before
+  public void setUp() {
+    dao = lookup(JiraConfigurationDAO.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {

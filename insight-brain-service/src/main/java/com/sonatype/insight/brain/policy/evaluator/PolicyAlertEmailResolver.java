@@ -59,6 +59,8 @@ public class PolicyAlertEmailResolver
 
   private final CrowdClientFactory crowdClientFactory;
 
+  private final LdapServerDAO ldapServerDAO;
+
   @Inject
   public PolicyAlertEmailResolver(
       final UserDirectory userDirectory,
@@ -66,6 +68,7 @@ public class PolicyAlertEmailResolver
       final OwnerDAO ownerDAO,
       final SamlUserGroupHelper samlUserGroupHelper,
       final MembershipMappingDAO membershipMappingDAO,
+      final LdapServerDAO ldapServerDAO,
       final CrowdClientFactory crowdClientFactory)
   {
     this.userDirectory = userDirectory;
@@ -73,6 +76,7 @@ public class PolicyAlertEmailResolver
     this.ownerDAO = ownerDAO;
     this.samlUserGroupHelper = samlUserGroupHelper;
     this.membershipMappingDAO = membershipMappingDAO;
+    this.ldapServerDAO = ldapServerDAO;
     this.crowdClientFactory = crowdClientFactory;
   }
 
@@ -174,7 +178,7 @@ public class PolicyAlertEmailResolver
   }
 
   private void addEmailAddressesForLDAPGroupMembers(Set<String> emailAddresses, Member group) {
-    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
       try {
         for (LdapUser ldapUser : ldapService.getUsersByGroup(ldapServer, group.getDn())) {
           String email = ldapUser.getEmail();

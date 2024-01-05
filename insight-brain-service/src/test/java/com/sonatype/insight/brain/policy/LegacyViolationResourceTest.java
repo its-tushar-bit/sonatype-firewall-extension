@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.LegacyViolationService.LegacyViolationStatusDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LegacyViolationResourceTest
     extends AbstractResourceTest
 {
+  private ApplicationDAO applicationDAO;
+
+  private PolicyDAO policyDAO;
+
+  private OrganizationDAO organizationDAO;
+
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Before
+  public void setUp() {
+    policyDAO = lookup(PolicyDAO.class);
+    applicationDAO = lookup(ApplicationDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(LegacyViolationResource.RESOURCE_PATH);
@@ -43,7 +60,7 @@ public class LegacyViolationResourceTest
     HttpResponse response = restRequest().path(LegacyViolationResource.REVOKE_PATH)
         .parameter(application.getPublicId()).put();
     assertResponseStatus(204, response);
-    policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
+    policyViolation = policyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolation.isLegacyViolation()).isFalse();
   }
 
@@ -51,17 +68,17 @@ public class LegacyViolationResourceTest
   public void testGrantLegacyViolationStatus() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     application.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(application);
+    applicationDAO.update(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
     Policy policy = tempEntity.newPolicy();
     policy.setLegacyViolationAllowed(true);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GRANT_PATH)
         .parameter(application.getPublicId()).put();
     assertResponseStatus(204, response);
-    policyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
+    policyViolation = policyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolation.isLegacyViolation()).isTrue();
   }
 
@@ -69,10 +86,10 @@ public class LegacyViolationResourceTest
   public void testGetLegacyViolationsStatus_Application() throws Exception {
     Organization org = tempEntity.newOrganization();
     org.setAllowLegacyViolationOverride(true);
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
     Application app = tempEntity.newApplication(org.getId());
     app.setLegacyViolationEnabled(true);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
         .parameter(OwnerType.APPLICATION, app.getPublicId()).get();
@@ -90,7 +107,7 @@ public class LegacyViolationResourceTest
     Organization org = tempEntity.newOrganization();
     org.setLegacyViolationEnabled(true);
     org.setAllowLegacyViolationOverride(false);
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
         .parameter(OwnerType.ORGANIZATION, org.getId()).get();
@@ -107,7 +124,7 @@ public class LegacyViolationResourceTest
   public void testSetLegacyViolationStatus_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     app.setLegacyViolationEnabled(false);
-    new ApplicationDAO().update(app);
+    applicationDAO.update(app);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = new LegacyViolationStatusDTO();
     legacyViolationStatusDTO.enabled = true;
@@ -115,7 +132,7 @@ public class LegacyViolationResourceTest
         .parameter(OwnerType.APPLICATION, app.getPublicId()).body(legacyViolationStatusDTO).put();
     assertResponseStatus(200, response);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isLegacyViolationEnabled()).isTrue();
+    assertThat(applicationDAO.getById(app.getId()).isLegacyViolationEnabled()).isTrue();
     legacyViolationStatusDTO = response.getBody(LegacyViolationStatusDTO.class);
     assertThat(legacyViolationStatusDTO.enabled).isTrue();
   }
@@ -125,7 +142,7 @@ public class LegacyViolationResourceTest
     Organization org = tempEntity.newOrganization();
     org.setLegacyViolationEnabled(false);
     org.setAllowLegacyViolationOverride(false);
-    new OrganizationDAO().update(org);
+    organizationDAO.update(org);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = new LegacyViolationStatusDTO();
     legacyViolationStatusDTO.enabled = true;
@@ -134,7 +151,7 @@ public class LegacyViolationResourceTest
         .parameter(OwnerType.ORGANIZATION, org.getId()).body(legacyViolationStatusDTO).put();
     assertResponseStatus(200, response);
 
-    org = new OrganizationDAO().getById(org.getId());
+    org = organizationDAO.getById(org.getId());
     assertThat(org.isLegacyViolationEnabled()).isTrue();
     assertThat(org.isAllowLegacyViolationOverride()).isTrue();
     legacyViolationStatusDTO = response.getBody(LegacyViolationStatusDTO.class);

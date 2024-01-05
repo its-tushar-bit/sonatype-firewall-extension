@@ -6,14 +6,29 @@
 package com.sonatype.insight.brain.dataaccess.sast;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
 {
-  private final SastFindingDAO sastFindingDAO = new SastFindingDAO();
+  private final SastFindingDAO sastFindingDAO;
+
+  @Inject
+  public SastScanDAO(
+      final OperationalDataStore operationalDataStore,
+      final SastFindingDAO sastFindingDAO)
+  {
+    super(operationalDataStore);
+    this.sastFindingDAO = sastFindingDAO;
+  }
 
   @Override
   public void update(final TransactionContext tx, final SastScan entity) {

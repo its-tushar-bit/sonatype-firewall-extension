@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.scan;
 
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class PersistedScanTicketDAO
     extends AbstractOperationalSqlDAO<PersistedScanTicket>
 {
+  @Inject
+  public PersistedScanTicketDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public final void delete(TransactionContext tx, PersistedScanTicket persistedScanTicket) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,

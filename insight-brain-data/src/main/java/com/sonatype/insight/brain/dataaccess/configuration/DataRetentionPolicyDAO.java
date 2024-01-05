@@ -8,8 +8,12 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -19,9 +23,16 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @since 1.63
  */
+@Named
+@Singleton
 public class DataRetentionPolicyDAO
     extends AbstractOperationalSqlDAO<DataRetentionPolicy>
 {
+  @Inject
+  public DataRetentionPolicyDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public List<DataRetentionPolicy> getAll() {
     String sQuery = "SELECT entity FROM DataRetentionPolicy entity ORDER BY entity.ownerId, entity.contextId";

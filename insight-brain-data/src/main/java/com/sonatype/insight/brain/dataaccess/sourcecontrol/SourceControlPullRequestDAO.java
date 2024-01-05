@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,10 +20,17 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class SourceControlPullRequestDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequest>
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlPullRequestDAO.class);
+
+  @Inject
+  public SourceControlPullRequestDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
 
   @Override
   public List<SourceControlPullRequest> getAll() {

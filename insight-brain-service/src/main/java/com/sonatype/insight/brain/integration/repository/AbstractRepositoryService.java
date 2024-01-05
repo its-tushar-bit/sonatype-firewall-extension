@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -59,6 +58,7 @@ import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogg
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.repository.component.QuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.security.Authorize;
@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -89,13 +88,13 @@ public abstract class AbstractRepositoryService
 
   static final String HDS_COMPONENT_METADATA_PATH = "rest/component/details/firewall/allVersions";
 
-  private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO;
 
-  protected static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  protected final RepositoryDAO repositoryDAO;
 
-  protected static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  protected final RepositoryComponentDAO repositoryComponentDAO;
 
-  private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   protected final ProductLicense productLicense;
 
@@ -136,6 +135,10 @@ public abstract class AbstractRepositoryService
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
       TelemetrySender telemetrySender,
+      RepositoryManagerDAO repositoryManagerDAO,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
@@ -147,6 +150,10 @@ public abstract class AbstractRepositoryService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
   }
 

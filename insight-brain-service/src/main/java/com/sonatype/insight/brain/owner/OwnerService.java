@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.owner;
 
 import java.util.ArrayList;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -29,9 +28,12 @@ public class OwnerService
 {
   private final OwnerDAO ownerDAO;
 
+  private final IdUtils idUtils;
+
   @Inject
-  public OwnerService(OwnerDAO ownerDAO) {
+  public OwnerService(OwnerDAO ownerDAO, final IdUtils idUtils) {
     this.ownerDAO = ownerDAO;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -52,7 +54,7 @@ public class OwnerService
 
   @VisibleForTesting
   OwnerHierarchyDTO getHierarchyNoAuth(OwnerType ownerType, String ownerId) {
-    Owner currentOwner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Owner currentOwner = idUtils.getOwnerNotNull(ownerType, ownerId);
     OwnerHierarchyDTO currentHierarchy = null;
     for (Owner owner : ownerDAO.walkHierarchy(currentOwner)) {
       OwnerHierarchyDTO hierarchy =

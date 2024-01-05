@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.LegacyViolationsEditorPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -21,6 +21,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,7 +41,7 @@ public abstract class AbstractLegacyViolationsEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private OrganizationDAO organizationDAO;
 
   private LegacyViolationService legacyViolationService;
 
@@ -52,6 +53,11 @@ public abstract class AbstractLegacyViolationsEditorTest
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
+  }
+
+  @Before
+  public void setUp() {
+    organizationDAO = lookup(OrganizationDAO.class);
   }
 
   protected void init(Owner currentOwner) {

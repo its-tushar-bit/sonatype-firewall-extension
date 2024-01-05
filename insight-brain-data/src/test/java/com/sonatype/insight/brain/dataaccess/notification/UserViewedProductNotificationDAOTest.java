@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,8 +23,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class UserViewedProductNotificationDAOTest
     extends AbstractDbDAOTest
 {
-  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
-      new UserViewedProductNotificationDAO();
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    userViewedProductNotificationDAO = daoFactory.createUserViewedProductNotificationDAO();
+  }
 
   @Test
   public void testCRUD() {

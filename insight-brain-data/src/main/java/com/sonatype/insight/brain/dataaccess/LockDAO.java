@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.LockModeType;
@@ -12,13 +15,20 @@ import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.RollbackException;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Lock;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class LockDAO
     extends AbstractOperationalSqlDAO<Lock>
 {
+  @Inject
+  public LockDAO(OperationalDataStore operationalDataStore) {
+    super(operationalDataStore);
+  }
+
   @Override
   public void update(TransactionContext tx, Lock entity) {
     throw new UnsupportedOperationException();
@@ -68,7 +78,7 @@ public class LockDAO
           throw new IllegalStateException(String.format("Unknown lock mode type: %s.", lockModeType));
         }
       }
-      tx.createNativeQuery("SELECT * FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".lock" +
+      tx.createNativeQuery("SELECT * FROM " + getDatabaseSchema() + ".lock" +
               " WHERE lock_id = ?1 FOR " + lockType + (waitForLock ? "" : " NOWAIT")).setParameter(1, lockId)
           .getSingleResult();
     }

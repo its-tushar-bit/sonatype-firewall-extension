@@ -20,7 +20,7 @@ public class RepositoryReportResourceAuditTest
   private Repository repository;
 
   @Before
-  public void before() {
+  public void setUp() {
     repository = tempEntity.newRepository("repoPublicId");
   }
 

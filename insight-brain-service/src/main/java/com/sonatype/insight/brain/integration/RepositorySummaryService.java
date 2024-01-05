@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -23,6 +23,13 @@ public class RepositorySummaryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositorySummaryService.class);
 
+  private final RepositoryDAO repositoryDAO;
+
+  @Inject
+  public RepositorySummaryService(final RepositoryDAO repositoryDAO) {
+    this.repositoryDAO = repositoryDAO;
+  }
+
   List<RepositorySummary> getRepositories() {
     log.debug("Received request to get repositories");
     return toRepositorySummaryList(getRepositoriesForEvaluateComponent());
@@ -30,7 +37,7 @@ public class RepositorySummaryService
 
   @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.REPOSITORY)
   List<Repository> getRepositoriesForEvaluateComponent() {
-    return new RepositoryDAO().getAll();
+    return repositoryDAO.getAll();
   }
 
   private List<RepositorySummary> toRepositorySummaryList(List<Repository> repositories) {

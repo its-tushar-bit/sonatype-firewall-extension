@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -14,15 +13,24 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionValidator;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.ConstraintValidator;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyValidator;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.NotificationsValidator;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotificationValidator;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotificationValidator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.apache.commons.io.IOUtils;
@@ -34,6 +42,9 @@ public class PolicyDroolsCodeMigratorTest
     extends AbstractComponentTest
 {
   @Inject
+  private PolicyInternalDAO policyInternalDAO;
+
+  @Inject
   private PolicyDroolsCodeMigrator migrator;
 
   @Inject
@@ -41,6 +52,12 @@ public class PolicyDroolsCodeMigratorTest
 
   @Inject
   private PolicyDAO policyDAO;
+
+  @Inject
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Inject
+  private RoleDAO roleDAO;
 
   @Test
   public void testMigrate_GracefullyHandleInvalidPolicy() {
@@ -53,8 +70,21 @@ public class PolicyDroolsCodeMigratorTest
     policy.addConstraint(constraint);
     tempEntity.newPolicy(policy);
 
-    new LicenseThreatGroupDAO().delete(ltg);
-    ValidationResult validationResult = policy.validate(null, policy.getOwnerId());
+    licenseThreatGroupDAO.delete(ltg);
+
+    ConditionValidator conditionValidator = new ConditionValidator();
+    ConstraintValidator constraintValidator = new ConstraintValidator(conditionValidator);
+    UserNotificationValidator userNotificationValidator = new UserNotificationValidator();
+    RoleNotificationValidator roleNotificationValidator =
+        new RoleNotificationValidator(() -> roleDAO);
+    JiraNotificationValidator jiraNotificationValidator = new JiraNotificationValidator();
+    WebhookNotificationValidator webhookNotificationValidator = new WebhookNotificationValidator();
+    NotificationsValidator notificationsValidator =
+        new NotificationsValidator(userNotificationValidator, roleNotificationValidator, jiraNotificationValidator,
+            webhookNotificationValidator);
+    PolicyValidator policyValidator = new PolicyValidator(constraintValidator, notificationsValidator);
+
+    ValidationResult validationResult = policyValidator.validate(null, policy, policy.getOwnerId());
     assertThat(validationResult.isValid()).isFalse();
 
     fakeDroolsCodeVersion(2);
@@ -70,7 +100,6 @@ public class PolicyDroolsCodeMigratorTest
     // Verifies that the deprecated condition for security vulnerabilities can be migrated.
     // The migrator should not fail when it encounters this policy condition type.
     String policyId = tempEntity.newPolicy().getId();
-    PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
     policyInternalDAO.update(policyInternal);
@@ -88,7 +117,6 @@ public class PolicyDroolsCodeMigratorTest
   @Test
   public void testMigrate_FromVersion3() {
     String policyId = tempEntity.newPolicy().getId();
-    PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setDroolsCode("");
     policyInternalDAO.update(policyInternal);

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -25,7 +25,7 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqApiSourceControlResourceTest
-    extends AbstractMultiTenantBrainServiceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
@@ -79,7 +79,7 @@ public class MtiqApiSourceControlResourceTest
   }
 
   private HttpResponse sendSourceControlConfigWithProvider(SourceControlProvider gitlab) throws Exception {
-    Organization org = tempEntity.newOrganization();
+    Organization org = tenantTemporaryEntity.newOrganization();
 
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setProvider(gitlab)

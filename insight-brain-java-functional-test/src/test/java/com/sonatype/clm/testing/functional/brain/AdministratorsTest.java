@@ -30,6 +30,8 @@ import static com.codeborne.selenide.Condition.visible;
 public class AdministratorsTest
     extends AbstractFunctionalTest
 {
+  private LdapUserMappingDAO ldapUserMappingDAO;
+
   @BeforeClass
   public static void initialLogin() {
     refreshOrOpen(AdministratorsPage.url());
@@ -38,6 +40,8 @@ public class AdministratorsTest
 
   @Before
   public void startup() {
+    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
+
     //create two users
     tempEntity.newUser("test-a", "secret", "John", "Doe", "john@doe.net");
     tempEntity.newUser("test-b", "secret", "Jane", "Doe", "jane@doe.net");
@@ -262,7 +266,6 @@ public class AdministratorsTest
     addMembersForm.groupAlert().shouldNotBe(visible);
 
     // all servers have group search disabled
-    LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
     String ldap1 = tempEntity.newLdapServer("LDAP1").getId();
     tempEntity.newLdapConnection(ldap1);
 

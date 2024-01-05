@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -58,10 +58,13 @@ public class ApiComponentDetailsServiceV2Test
   @Inject
   private DefaultApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
 
+  @Inject
+  private PolicyDAO policyDAO;
+
   @Mock
   private HdsClient client;
 
-  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper;
 
   @Override
   public void configure(Binder binder) {
@@ -71,6 +74,7 @@ public class ApiComponentDetailsServiceV2Test
 
   @Before
   public void before() {
+    componentEvaluationV2Helper = new ComponentEvaluationV2Helper(policyDAO);
     apiComponentDetailsServiceV2.setChunkSize(CHUNK_SIZE);
   }
 

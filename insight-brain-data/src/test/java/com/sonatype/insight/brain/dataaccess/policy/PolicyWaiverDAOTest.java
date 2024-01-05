@@ -37,6 +37,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
@@ -51,16 +52,26 @@ public class PolicyWaiverDAOTest
 {
   private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
 
+  private PolicyViolationDAO policyViolationDAO;
+
+  private PolicyWaiverDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    policyViolationDAO = daoFactory.createPolicyViolationDAO();
+    dao = daoFactory.createPolicyWaiverDAO();
+  }
+
   @Test
   public void testGetByIdNotNull() {
-    assertThatThrownBy(() -> new PolicyWaiverDAO().getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> dao.getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
         .hasMessage("PolicyWaiver with ID fake id does not exist.");
   }
 
   @Test
   public void testCRUD() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "123456789012345678901";
     assertThat(hash.length()).isGreaterThan(20);
     String truncatedHash = hash.substring(0, 20);
@@ -158,8 +169,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testInsert_Duplicate_ComponentLevel() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -178,8 +187,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testInsert_Duplicate_PolicyLevel() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
@@ -197,7 +204,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetActiveApplicableByOwnerId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policyApp = tempEntity.newPolicy(application);
     Policy policyOrg = tempEntity.newPolicy(organization);
     Policy policyParentOrg = tempEntity.newPolicy(organization.getParentOrganizationId());
@@ -228,8 +234,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testInsert_CommentTooLong() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     String policyId = "MyPolicyId";
     String ownerId = organization.getId();
@@ -244,7 +248,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testInsert_ComponentMatchStrategyNotProvided_HashNotNull() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiver policyWaiver = new PolicyWaiver("testHash", policy.getId(), organization.getId(), "test comment");
@@ -262,7 +265,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testInsert_ComponentMatchStrategyNotProvided_HashNull() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiver policyWaiver = new PolicyWaiver(null /* hash */, policy.getId(), organization.getId(), "test comment");
@@ -280,7 +282,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_ComponentMatchStrategyNotProvided_HashNotNull() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiver policyWaiver = tempEntity.newWaiver("testHash", policy.getId(), organization.getId(), "test comment");
@@ -294,7 +295,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_ComponentMatchStrategyNotProvided_HashNull() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiver policyWaiver =
@@ -311,7 +311,6 @@ public class PolicyWaiverDAOTest
   public void testUpdate_CommentTooLong() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     String comment = StringUtils.repeat("X", 1001);
     policyWaiver.setComment(comment);
 
@@ -326,8 +325,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_Duplicate_ComponentLevel() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash1 = "11111111111111111111";
     String hash2 = "11111111111111111112";
     Policy policy = tempEntity.newPolicy(organization);
@@ -345,8 +342,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_Duplicate_PolicyLevel() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy1 = tempEntity.newPolicy(organization);
     Policy policy2 = tempEntity.newPolicy(organization);
     String policyId1 = policy1.getId();
@@ -364,8 +359,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetByOwnerId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     DateTime now = DateTime.now();
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -384,8 +377,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetActiveByOwnerId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     DateTime now = DateTime.now();
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -404,8 +395,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetApplicableAndExpiredByOwnerId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     DateTime now = DateTime.now();
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -424,8 +413,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetByOwnerIdAndHash() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     DateTime now = DateTime.now();
     Policy policy1 = tempEntity.newPolicy(organization);
@@ -462,8 +449,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetActiveByOwnerIdAndHash() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     DateTime now = DateTime.now();
     Policy policy1 = tempEntity.newPolicy(organization);
@@ -503,8 +488,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void getApplicableToComponent() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -526,8 +509,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void getApplicableToComponent_TimeBasedWaivers() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Instant now = Instant.now();
     Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
     Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
@@ -558,8 +539,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetApplicableToComponentIncludingAllVersions() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     String hash = "12345678901234567890";
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -591,7 +570,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetApplicableToComponentOnlyAllVersions_noPurl() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), organization.getId(), null);
@@ -611,7 +589,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetApplicableToComponentOnlyAllVersions_OnlySomeApply() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy1 = tempEntity.newPolicy(organization);
     Policy policy2 = tempEntity.newPolicy(organization);
     Policy policy3 = tempEntity.newPolicy(organization);
@@ -653,17 +630,14 @@ public class PolicyWaiverDAOTest
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
             "PolicyWaiverDAOTest");
     PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId())).isNotNull();
 
-    new PolicyWaiverDAO().delete(policyWaiver);
+    dao.delete(policyWaiver);
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId())).isNotNull();
   }
 
   @Test
   public void testGetByPolicyIdAndOwnerIds() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
     tempEntity.newWaiver(policy1.getId(), application.getId());
@@ -679,7 +653,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetCount() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     assertThat(dao.getCount()).isEqualTo(0);
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
@@ -701,7 +674,6 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, null, comment);
     tempEntity.newWaiver(hash, policyId, ownerId, createRandomConstraintFacts(), comment);
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
           ownerId, constraintFacts, policyWaiver1.getAssociatedPackageUrl(), policyWaiver1.getComponentMatchStrategy());
@@ -721,7 +693,6 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver =
         tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment, now.toDate(), now.toDate());
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
           ownerId, constraintFacts, policyWaiver.getAssociatedPackageUrl(), policyWaiver.getComponentMatchStrategy());
@@ -741,7 +712,6 @@ public class PolicyWaiverDAOTest
     PolicyWaiver unexpiredWaiver = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment, now.toDate(),
         now.plusDays(1).toDate());
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
           ownerId, constraintFacts, unexpiredWaiver.getAssociatedPackageUrl(),
@@ -760,7 +730,6 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver1 =
         tempEntity.newWaiver(hash, policyId, ownerId, null /* constraintFacts */, null, comment);
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       // Get using null constraint facts
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
@@ -784,7 +753,6 @@ public class PolicyWaiverDAOTest
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       // Get using not null match strategy
       PolicyWaiver foundPolicyWaiver =
@@ -806,7 +774,6 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver1 =
         tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, componentMatchStrategy, comment);
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       // Get using null associated packaged url
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
@@ -834,7 +801,6 @@ public class PolicyWaiverDAOTest
         tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackagedUrl, componentMatchStrategy,
             comment);
 
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
           ownerId, constraintFacts, associatedPackagedUrl, componentMatchStrategy);
@@ -871,7 +837,7 @@ public class PolicyWaiverDAOTest
         tempEntity.newWaiver(hash, policyId, application.getId(), constraintFacts, componentMatchStrategy, comment);
 
     PolicyWaiver databaseWaiver =
-        new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
+        dao.getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
 
     assertPolicyWaiver(policyWaiver, databaseWaiver);
   }
@@ -879,7 +845,7 @@ public class PolicyWaiverDAOTest
   @Test
   public void getByIdAndOwnerIdNotNull_throwsNotFound_whenNoWaiver() {
     assertThatThrownBy(
-        () -> new PolicyWaiverDAO().getByIdAndOwnerIdNotNull("fake id", application.getId()))
+        () -> dao.getByIdAndOwnerIdNotNull("fake id", application.getId()))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID fake id for owner " + application.getId() + ".");
   }
@@ -889,15 +855,13 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
 
-    assertThatThrownBy(() -> new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId"))
+    assertThatThrownBy(() -> dao.getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId"))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID " + policyWaiver.getId() + " for owner ownerId.");
   }
 
   @Test
   public void testUpdate_dontAllowUpdatingExpiredWaiverWhenThereIsAnIdenticalActiveWaiver() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
@@ -923,8 +887,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testUpdate_throwExceptionWhenAttemptingToHaveMultipleIdenticalActiveWaivers() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = organization.getId();
@@ -956,8 +918,6 @@ public class PolicyWaiverDAOTest
   @Test
   public void testUpdateWithNoChecks() {
     // setup
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
     String ownerId = application.getId();
@@ -977,7 +937,7 @@ public class PolicyWaiverDAOTest
 
     // verify
     PolicyWaiver updatedWaiver =
-        new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
+        dao.getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
 
     assertThat(updatedWaiver.getComment())
         .as("The waiver should have updated comment.")
@@ -986,8 +946,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetActiveByPolicyId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
 
@@ -1018,8 +976,6 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetByPolicyId() {
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
-
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
 
@@ -1062,8 +1018,6 @@ public class PolicyWaiverDAOTest
         oneYearAgo);
     tempEntity.newWaiver("hash4", policy.getId(), repository.getId(), Collections.emptyList(), "+1-year-ago-waived",
         moreThanOneYearAgo);
-
-    PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     Map<LocalDate, Long> results = dao.getCountByOwnerIdAndDate(repository.getId(), oneYearAgo);
 

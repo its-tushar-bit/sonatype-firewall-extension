@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -26,6 +30,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.7
  */
+@Named
+@Singleton
 public class UserDAO
     extends AbstractOperationalSqlDAO<User>
 {
@@ -34,6 +40,37 @@ public class UserDAO
   public static final int MAX_LAST_NAME_SIZE = 100;
 
   public static final int MAX_EMAIL_SIZE = 255;
+
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final UserTokenDAO userTokenDAO;
+
+  private final DashboardFilterDAO dashboardFilterDAO;
+
+  private final UserFilterDAO userFilterDAO;
+
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO;
+
+  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
+
+  @Inject
+  public UserDAO(
+      final OperationalDataStore operationalDataStore,
+      final MembershipMappingDAO membershipMappingDAO,
+      final UserTokenDAO userTokenDAO,
+      final DashboardFilterDAO dashboardFilterDAO,
+      final UserFilterDAO userFilterDAO,
+      final UserViewedProductNotificationDAO userViewedProductNotificationDAO,
+      final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO)
+  {
+    super(operationalDataStore);
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.userTokenDAO = userTokenDAO;
+    this.dashboardFilterDAO = dashboardFilterDAO;
+    this.userFilterDAO = userFilterDAO;
+    this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
+    this.userIdePolicyEvaluationDAO = userIdePolicyEvaluationDAO;
+  }
 
   public User getByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT entity FROM User entity" + //
@@ -145,34 +182,28 @@ public class UserDAO
   @Override
   public void delete(TransactionContext tx, User entity) {
     // Cascade to membership mappings
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(tx, entity.getUsername())) {
       membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to user token
-    UserTokenDAO userTokenDAO = new UserTokenDAO();
     UserToken userToken = userTokenDAO.getInternalByUsername(tx, entity.getUsername());
     if (userToken != null) {
       userTokenDAO.delete(tx, userToken);
     }
 
     // Cascade to dashboard filters
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     dashboardFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
     dashboardFilterDAO.deleteLegacyByUsername(tx, entity.getUsername());
 
     // Cascade to user filters
-    UserFilterDAO userFilterDAO = new UserFilterDAO();
     userFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
 
     // Cascade to user viewed product notifications
-    UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
     userViewedProductNotificationDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
     userViewedProductNotificationDAO.deleteLegacyByUsername(tx, entity.getUsername());
 
     // Cascade to userIdePolicyEvaluation
-    UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
     userIdePolicyEvaluationDAO.deleteByUsername(tx, entity.getUsername());
 
     super.delete(tx, entity);

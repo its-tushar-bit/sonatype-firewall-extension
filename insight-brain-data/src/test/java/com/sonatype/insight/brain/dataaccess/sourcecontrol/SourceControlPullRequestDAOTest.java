@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SourceControlPullRequestDAOTest
     extends AbstractDbDAOTest
 {
-  private final SourceControlPullRequestDAO dao = new SourceControlPullRequestDAO();
+  private SourceControlPullRequestDAO dao;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    dao = daoFactory.createSourceControlPullRequestDAO();
+  }
 
   @Test
   public void testCRUD() {

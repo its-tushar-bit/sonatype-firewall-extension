@@ -9,7 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -22,6 +26,8 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Singleton
+@Named
 public class LicenseThreatGroupConditionType
     extends AbstractComponentConditionType<String>
 {
@@ -34,7 +40,22 @@ public class LicenseThreatGroupConditionType
     supportedOperators.add("is not");
   }
 
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public LicenseThreatGroupConditionType(
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final LicenseDAO licenseDAO,
+      final OwnerDAO ownerDAO)
+  {
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.licenseDAO = licenseDAO;
+    this.ownerDAO = ownerDAO;
+  }
 
   @Override
   public List<String> getSupportedOperators() {
@@ -53,7 +74,8 @@ public class LicenseThreatGroupConditionType
     super.validateCondition(tx, condition, ownerId);
 
     String licenseThreatGroupId = condition.getValue();
-    LicenseThreatGroupValueType licenseThreatGroupValueType = new LicenseThreatGroupValueType(tx, ownerId);
+    LicenseThreatGroupValueType licenseThreatGroupValueType =
+        new LicenseThreatGroupValueType(tx, ownerId, ownerDAO, licenseThreatGroupDAO);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupValueType.getAvailableValues()) {
       if (licenseThreatGroup.getId().equals(licenseThreatGroupId)) {
         return;
@@ -123,7 +145,6 @@ public class LicenseThreatGroupConditionType
   }
 
   private String licenseIdsToLicenseNamesCsv(Set<String> licenseIds) {
-    LicenseDAO licenseDAO = new LicenseDAO();
     return licenseIds.stream().map(licenseId -> "'" + licenseDAO.getByIdNotNull(licenseId).getShortDisplayName() + "'")
         .collect(Collectors.joining(", "));
   }

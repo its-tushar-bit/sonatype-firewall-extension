@@ -9,90 +9,88 @@ import java.util.Arrays;
 import java.util.List;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.LogOutput;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TenantMigratorTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   @Rule
   public final LogOutput logOutput = new LogOutput(TenantMigrator.class);
 
-  @Mock
-  private DatabaseProvisionUtils databaseProvisionUtils;
-
-  @Mock
-  private MultiTenantInsightConfig insightConfig;
-
-  @Mock
-  private MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
-
-  @Mock
-  OperationalDataStore operationalDataStore;
-
-  @Mock
-  DataSource dataSource;
-
   private TenantMigrator underTest;
+
+  private DatabaseProvisionUtils spyDatabaseProvisionUtils;
+
+  private MultiTenantGlobalSchemaProtection spyMultiTenantGlobalSchemaProtection;
+
+  private MultiTenantInsightConfig insightConfig;
 
   @Before
   @Override
   public void setup() {
     super.setup();
-    underTest = new TenantMigrator(databaseProvisionUtils, insightConfig, multiTenantGlobalSchemaProtection);
+    spyDatabaseProvisionUtils = databaseRule.getDatabaseContainer().getDatabaseProvisionUtils();
+    spyMultiTenantGlobalSchemaProtection =
+        spy(new MultiTenantGlobalSchemaProtection(databaseRule.getOperationalDataStore()));
+    insightConfig = new MultiTenantInsightConfig();
+    underTest = new TenantMigrator(spyDatabaseProvisionUtils, insightConfig, spyMultiTenantGlobalSchemaProtection);
+
+    spyMultiTenantGlobalSchemaProtection.createWriteProtection();
+  }
+
+  @After
+  public void after() {
+    // this test migrates test tenants and we need clean/new tenants for each run
+    databaseRule.markDatabaseAsDirty();
   }
 
   @Test
   public void shouldRunMigrationsForGlobalSchema() {
     underTest.migrateGlobalSchema();
 
-    verify(multiTenantGlobalSchemaProtection).disableWriteProtection();
-    assertMigrationExecutedForTheExpectedNumberOfTenants(1);
-    verify(multiTenantGlobalSchemaProtection).enableWriteProtection();
+    verify(spyMultiTenantGlobalSchemaProtection).disableWriteProtection();
+    verify(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
+    verify(spyDatabaseProvisionUtils).initializeDatabasesWithMigration(any(MultiTenantInsightConfig.class));
   }
 
   @Test
   public void shouldThrowError_whenGlobalSchemaMigrationThrows() {
-    doThrow(new RuntimeException()).when(databaseProvisionUtils)
-        .initializeDatabases(any(InsightConfig.class), any(DatabaseConfigProvider.class));
+    doThrow(new RuntimeException()).when(spyDatabaseProvisionUtils)
+        .initializeDatabasesWithMigration(insightConfig);
 
     assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
         RuntimeException.class).hasMessage("Error trying to migrate the database for Global Schema.");
 
-    verify(multiTenantGlobalSchemaProtection).enableWriteProtection();
+    verify(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
   }
 
   @Test
   public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_disableWriteProtection_Throws() {
     doThrow(new RuntimeException("Error trying to disable write protection for MultiTenant Global schema."))
-        .when(multiTenantGlobalSchemaProtection).disableWriteProtection();
+        .when(spyMultiTenantGlobalSchemaProtection).disableWriteProtection();
 
     assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
         RuntimeException.class).hasMessage("Error trying to disable write protection for MultiTenant Global schema.");
@@ -101,7 +99,7 @@ public class TenantMigratorTest
   @Test
   public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_enableWriteProtection_Throws() {
     doThrow(new RuntimeException("Error trying to enable write protection for MultiTenant Global schema."))
-        .when(multiTenantGlobalSchemaProtection).enableWriteProtection();
+        .when(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
 
     assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
         RuntimeException.class).hasMessage("Error trying to enable write protection for MultiTenant Global schema.");
@@ -134,14 +132,11 @@ public class TenantMigratorTest
     testAsGlobalTenant(global -> {
       List<String> expectedSchemaList = Arrays.asList("t_tenant_1", "global");
 
-      when(operationalDataStore.getDataSource()).thenReturn(dataSource);
-      OperationalDataStoreProvider.setInstance(operationalDataStore);
+      try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class, CALLS_REAL_METHODS)) {
+        dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(any(DataSource.class))).thenReturn(expectedSchemaList);
 
-      try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-        dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource)).thenReturn(expectedSchemaList);
-
-        doThrow(new RuntimeException()).when(databaseProvisionUtils)
-            .initializeDatabases(any(InsightConfig.class), any(DatabaseConfigProvider.class));
+        doThrow(new RuntimeException()).when(spyDatabaseProvisionUtils)
+            .initializeDatabasesWithMigration(any(InsightConfig.class));
 
         assertThatThrownBy(underTest::migrateAllSchemas).isInstanceOf(
             RuntimeException.class).hasMessage("Error trying to migrate the database for tenant: tenant-1.");
@@ -154,27 +149,21 @@ public class TenantMigratorTest
     testAsGlobalTenant(global -> {
       runMigrateAllSchemas(Arrays.asList("global", "public"));
 
-      verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(
-          any(MultiTenantDatabaseConfigProvider.class));
-      verify(databaseProvisionUtils, never()).initializeDatabases(any(MultiTenantInsightConfig.class),
-          any(MultiTenantDatabaseConfigProvider.class));
+      verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
+      verify(spyDatabaseProvisionUtils, never()).initializeDatabasesWithMigration(any(MultiTenantInsightConfig.class));
     });
   }
 
   private void runMigrateAllSchemas(List<String> expectedSchemaList) {
-    when(operationalDataStore.getDataSource()).thenReturn(dataSource);
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
-
-    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource)).thenReturn(expectedSchemaList);
+    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class, CALLS_REAL_METHODS)) {
+      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(any(DataSource.class))).thenReturn(expectedSchemaList);
       underTest.migrateAllSchemas();
     }
   }
 
   private void assertMigrationExecutedForTheExpectedNumberOfTenants(int numberOfTenants) {
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(
-        any(MultiTenantDatabaseConfigProvider.class));
-    verify(databaseProvisionUtils, times(numberOfTenants)).initializeDatabases(any(MultiTenantInsightConfig.class),
-        any(MultiTenantDatabaseConfigProvider.class));
+    verify(spyDatabaseProvisionUtils, times(numberOfTenants + 1)).initializeDatabasesWithoutMigration();
+    verify(spyDatabaseProvisionUtils, times(numberOfTenants)).initializeDatabasesWithMigration(
+        any(MultiTenantInsightConfig.class));
   }
 }

@@ -56,6 +56,9 @@ public class ThirdPartyDataServiceTest
   @Inject
   private ThirdPartyDataService handler;
 
+  @Inject
+  private ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
   private static final String SCAN_ID = "scanId";
 
   private TelemetrySender mockTelemetrySender;
@@ -324,8 +327,7 @@ public class ThirdPartyDataServiceTest
     ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(reportZip, "app-id");
     assertThat(dto).isNotNull();
 
-    ThirdPartyVulnerability vulnerability =
-        new ThirdPartyVulnerabilityDAO().getByRefId(dto.securityRows.get(0).reference);
+    ThirdPartyVulnerability vulnerability = thirdPartyVulnerabilityDAO.getByRefId(dto.securityRows.get(0).reference);
     assertThat(vulnerability).isNotNull();
     assertThat(vulnerability.getAdvisories()).isEqualTo("https://docs.fugue.co/FG_R00229.html");
     assertThat(vulnerability.getUpdateTime()).isCloseTo(new Date(), Duration.ofMinutes(1).toMillis());

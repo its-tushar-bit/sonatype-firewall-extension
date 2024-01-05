@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OwnerResourceTest
     extends AbstractResourceTest
 {
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  private OwnerDAO ownerDAO;
+
+  @Before
+  public void setUp() {
+    ownerDAO = lookup(OwnerDAO.class);
+  }
 
   protected HttpRequest restRequest(Owner owner) {
     return restRequest().path(OwnerResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());

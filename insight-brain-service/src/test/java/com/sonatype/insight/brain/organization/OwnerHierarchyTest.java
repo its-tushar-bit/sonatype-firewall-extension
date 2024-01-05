@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -38,6 +39,9 @@ public class OwnerHierarchyTest extends AbstractComponentTest
   @Inject
   private ApplicationService applicationService;
 
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
@@ -53,7 +57,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = organizationService.getAll();
     List<Application> apps = new ArrayList<>(Arrays.asList(appOne, appTwo, appThree));
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     OwnerHierarchyOrganizationDTO root = hierarchy.root();
     assertThat(root).isNotNull();
@@ -93,7 +97,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     List<Application> apps = new ArrayList<>(Arrays.asList(appOne, appTwo));
     List<RepositoryManager> repositoryManagers = Arrays.asList(repositoryManagerOne, repositoryManagerTwo);
     List<Repository> repositories = Arrays.asList(repositoryOne, repositoryTwo, repositoryThree);
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, repositoryManagers, repositories);
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, repositoryManagers, repositories, organizationDAO);
 
     // then the hierarchy contains the organizations
     OwnerHierarchyOrganizationDTO root = hierarchy.root();
@@ -124,7 +128,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     // when creating the hierarchy
     List<RepositoryManager> repositoryManagers = Arrays.asList(repositoryManagerOne, repositoryManagerTwo);
     List<Repository> repositories = Arrays.asList(repositoryOne, repositoryTwo, repositoryThree);
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, emptyList(), repositoryManagers, repositories);
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, emptyList(), repositoryManagers, repositories, organizationDAO);
 
     // then the hierarchy contains the repository container, but no organization or application
     OwnerHierarchyOrganizationDTO root = hierarchy.root();
@@ -211,7 +215,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>(Arrays.asList(orgTwo));
     List<Application> apps = new ArrayList<>(Arrays.asList(appThree));
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     OwnerHierarchyOrganizationDTO root = hierarchy.root();
     assertThat(hierarchy.asHashMap()).hasSize(3);
@@ -234,7 +238,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>();
     List<Application> apps = new ArrayList<>(Arrays.asList(appThree));
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     OwnerHierarchyOrganizationDTO root = hierarchy.root();
     assertThat(hierarchy.asHashMap()).hasSize(3);
@@ -268,7 +272,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     List<Application> apps = applicationService.getApplications();
     List<RepositoryManager> repositoryManagers = Arrays.asList(repositoryManagerOne, repositoryManagerTwo);
     List<Repository> repositories = Arrays.asList(repositoryOne, repositoryTwo, repositoryThree);
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, repositoryManagers, repositories);
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, repositoryManagers, repositories, organizationDAO);
 
     Map<String, OwnerHierarchyEntityDTO> ownersMap = hierarchy.asHashMap();
     assertThat(ownersMap.containsKey(Organization.ROOT_ORGANIZATION_ID)).isTrue();
@@ -317,7 +321,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>(Arrays.asList(orgOne));
     List<Application> apps = new ArrayList<>();
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     assertThat(hierarchy.contains(orgOne.getId())).isTrue();
     assertThat(hierarchy.contains("Ramdom ID")).isFalse();
@@ -329,7 +333,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>();
     List<Application> apps = new ArrayList<>();
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     assertThat(hierarchy.contains(orgOne.getId())).isFalse();
     hierarchy.add(transformToOrganizationDTO.apply(orgOne));
@@ -342,7 +346,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>(Arrays.asList(orgOne));
     List<Application> apps = new ArrayList<>();
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     assertThat(hierarchy.contains(orgOne.getId())).isTrue();
     hierarchy.remove(orgOne.getId());
@@ -356,7 +360,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     List<Organization> orgs = new ArrayList<>(Arrays.asList(orgOne, orgTwo));
     List<Application> apps = new ArrayList<>();
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList());
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, emptyList(), emptyList(), organizationDAO);
 
     assertThat(hierarchy.getOrganizationById(orgOne.getId()).id).isEqualTo(orgOne.getId());
     assertThat(hierarchy.getOrganizationById(orgTwo.getId()).id).isEqualTo(orgTwo.getId());

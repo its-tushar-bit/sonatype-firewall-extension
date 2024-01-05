@@ -32,12 +32,16 @@ public class ApiSamlConfigurationResourceAuditTest
 {
   private static final String ENTITY_ID = "http://iqserver";
 
+  private SamlConfigurationDAO samlConfigurationDAO;
+
   private String xml;
 
   private ApiSamlConfigurationDTO apiSamlConfigurationDTO;
 
   @Before
   public void before() throws IOException {
+    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+
     if (xml == null) {
       URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
       xml = FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
@@ -50,7 +54,7 @@ public class ApiSamlConfigurationResourceAuditTest
 
   @After
   public void cleanup() {
-    new SamlConfigurationDAO().delete();
+    samlConfigurationDAO.delete();
     getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
@@ -107,7 +111,7 @@ public class ApiSamlConfigurationResourceAuditTest
   }
 
   private void assertAuditData(AuditDTO auditDTO) {
-    SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
+    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
     assertAuditData(auditDTO, samlConfiguration);
   }
 

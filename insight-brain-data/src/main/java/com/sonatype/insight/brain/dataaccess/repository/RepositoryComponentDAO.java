@@ -15,15 +15,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -36,6 +39,8 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 /**
  * @since 1.17
  */
+@Named
+@Singleton
 public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
@@ -46,7 +51,20 @@ public class RepositoryComponentDAO
   */
   private static final String EPOCH_START = new SimpleDateFormat("yyyy-MM-dd").format(Date.from(Instant.EPOCH));
 
-  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
+  private final ClusterLockManager clusterLockManager;
+
+  @Inject
+  public RepositoryComponentDAO(
+      final OperationalDataStore operationalDataStore,
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
+      final ClusterLockManager clusterLockManager)
+  {
+    super(operationalDataStore);
+    this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
+    this.clusterLockManager = clusterLockManager;
+  }
 
   public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
@@ -154,7 +172,7 @@ public class RepositoryComponentDAO
   public Map<LocalDate, Long> getConsolidatedQuarantinedComponentsMetricByDate(Date date) {
     String sQuery = "SELECT CAST(entity.quarantine_time AS DATE) as metrics_date, " +
         "COUNT(entity.repository_component_id) as metrics_value " +
-        "FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+        "FROM " + getDatabaseSchema() +
         ".repository_component entity " +
         "WHERE entity.quarantine_time > ?1 " +
         "GROUP BY metrics_date";
@@ -171,7 +189,7 @@ public class RepositoryComponentDAO
   @SuppressWarnings("unchecked")
   public Map<LocalDate, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
     String sQuery = "SELECT CAST(rc.quarantine_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
+        " FROM " + getDatabaseSchema() + ".repository_component rc" + //
         " WHERE rc.repository_id = ?1" + //
         " AND rc.quarantine_time >= ?2" + //
         " GROUP BY CAST(rc.quarantine_time AS DATE)";
@@ -216,7 +234,7 @@ public class RepositoryComponentDAO
       String repositoryId, Date date, boolean exclusiveDate)
   {
     String sQuery = "SELECT CAST(rc.unquarantine_time AS DATE), COUNT(1)" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component rc" + //
+        " FROM " + getDatabaseSchema() + ".repository_component rc" + //
         " WHERE rc.repository_id = ?1" + //
         " AND rc.unquarantine_time " + //
         (exclusiveDate ? ">" : ">=") + " ?2" + //
@@ -311,7 +329,7 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT COUNT(*) AS component_count FROM " + //
           "(SELECT DISTINCT pathname" + //
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation" + //
+          " FROM " + getDatabaseSchema() + ".repository_policy_violation" + //
           " WHERE repository_id = ?1 AND active = true AND waived = false" + //
           " AND threat_level >= ?2 AND threat_level <= ?3) inner_select_alias";
 
@@ -443,7 +461,7 @@ public class RepositoryComponentDAO
     // WARNING: Be careful adding business logic to this method because, for performance reasons,
     // we bypass this method when deleting all components for a repository.
     // See https://issues.sonatype.org/browse/CLM-15648 for details
-    ClusterLock.deleteForRepositoryComponent(tx, entity.getRepositoryId(), entity.getPathname());
+    clusterLockManager.deleteForRepositoryComponent(tx, entity.getRepositoryId(), entity.getPathname());
     quarantinedComponentAccessDAO.deleteByRepositoryComponentId(tx, entity.getId());
     super.delete(tx, entity);
   }
@@ -452,7 +470,7 @@ public class RepositoryComponentDAO
     // For H2 locks would normally be deleted by calling delete > ClusterLock.deleteForRepositoryComponent
     // on each repository component, but there may be orphaned locks that were created without a corresponding
     // repository component, this will also delete those orphaned locks as well as the locks for postgres
-    ClusterLock.deleteForRepository(tx, repositoryId);
+    clusterLockManager.deleteForRepository(tx, repositoryId);
     if (isDatabaseEmbedded()) {
       // We do not enroll the deletions in the transaction on purpose.
       // This improves performance and keeps db operations (including commits) reasonably short, which means other

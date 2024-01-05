@@ -13,8 +13,9 @@ import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelpe
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
-import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,12 +24,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class TenantMetadataResourceTest
-    extends AbstractMultiTenantResourceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   private static final TenantMetadataDTO metadata =
       new TenantMetadataDTO("appId1", "appName1", "connId1", "connName1", "encKeyName1");
 
-  private TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
+  private TenantMetadataDAO tenantMetadataDAO;
+
+  @Before
+  public void before() {
+    tenantMetadataDAO = lookup(TenantMetadataDAO.class);
+  }
 
   @Test
   public void shouldSetTenantMetadata_whenTenantExists() throws Exception {

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
+import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestPollingSchedulerTest
-    extends MultiTenantDatabaseTestSupport
+    extends AbstractMultiTenantDatabaseTest
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingSchedulerTest.class);
 

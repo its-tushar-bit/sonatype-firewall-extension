@@ -6,10 +6,15 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -18,9 +23,22 @@ import com.sonatype.insight.error.exception.BadRequestException;
 /**
  * @since 1.133
  */
+@Named
+@Singleton
 public class ComponentSourceLinkDAO
     extends AbstractOperationalSqlDAO<ComponentSourceLink>
 {
+  private final Provider<SourceLinkOverrideDAO> sourceLinkOverrideDAOProvider;
+
+  @Inject
+  public ComponentSourceLinkDAO(
+      final OperationalDataStore operationalDataStore,
+      final Provider<SourceLinkOverrideDAO> sourceLinkOverrideDAOProvider)
+  {
+    super(operationalDataStore);
+    this.sourceLinkOverrideDAOProvider = sourceLinkOverrideDAOProvider;
+  }
+
   public ComponentSourceLink getByOwnerIdAndComponentIdentifier(
       TransactionContext tx,
       String ownerId,
@@ -70,7 +88,7 @@ public class ComponentSourceLinkDAO
   @Override
   public void delete(TransactionContext tx, ComponentSourceLink componentSourceLink) {
     // Cascade to Source Link overrides
-    SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
+    SourceLinkOverrideDAO sourceLinkOverrideDAO = sourceLinkOverrideDAOProvider.get();
     for (SourceLinkOverride sourceLinkOverride : sourceLinkOverrideDAO
         .getByComponentSourceLinkId(tx, componentSourceLink.getId())) {
       sourceLinkOverrideDAO.delete(tx, sourceLinkOverride);

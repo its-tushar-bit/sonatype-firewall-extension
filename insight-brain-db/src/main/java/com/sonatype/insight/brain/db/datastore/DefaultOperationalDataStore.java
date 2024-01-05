@@ -13,14 +13,11 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DbApplicationNameGenerator;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.openjpa.lib.jdbc.JDBCListener;
@@ -45,21 +42,12 @@ public class DefaultOperationalDataStore
 
   private Boolean isDatabaseEmbedded;
 
-  public DefaultOperationalDataStore(
-      final DataSourceFactory dataSourceFactory,
-      final DatabaseMigrator databaseMigrator)
-  {
-    super(dataSourceFactory, databaseMigrator);
-    // Populate the legacy class
-    OperationalDataStoreProvider.setInstance(this);
+  public DefaultOperationalDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
+    super(dataSourceProvider, databaseConfig);
   }
 
   @Override
-  protected synchronized void init(
-      DatabaseConfig databaseConfig,
-      boolean migrateDatabase,
-      Boolean migrateToNewViolationModel)
-  {
+  public synchronized void initialize() {
     if (isInitialized()) {
       return;
     }
@@ -67,13 +55,11 @@ public class DefaultOperationalDataStore
     log.info("Initializing the {} data store.", getID());
     long start = System.currentTimeMillis();
 
-    this.databaseConfig = databaseConfig;
-    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
-    isDatabaseEmbedded = H2DatabaseEngine.class.equals(DatabaseUtil.getDatabaseEngine(dataSource).getClass());
+    dataSource = dataSourceProvider.getDataSource(databaseConfig, getID());
+    isDataStoreNew = !DatabaseUtil.schemaExists(dataSource, getDatabaseSchema());
 
-    if (migrateDatabase) {
-      migrate(migrateToNewViolationModel);
-    }
+    isDatabaseEmbedded = DatabaseUtil.isDatabaseEmbedded(databaseConfig);
+
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
 
@@ -112,8 +98,25 @@ public class DefaultOperationalDataStore
   }
 
   @Override
-  protected IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
-    return OperationalDataStoreProvider.getUpgradeGuard(migrateToNewViolationModel);
+  public IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
+    return currentVersion -> {
+      if (currentVersion < MINIMUM_DATABASE_VERSION) {
+        throw new UnsupportedOperationException(String.format(
+            "Cannot migrate %s database, this requires version %s at minimum, but you have version %s.\n"
+                + "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.",
+            OperationalDataStore.ID, MINIMUM_DATABASE_VERSION, currentVersion));
+      }
+      if (currentVersion <= OLD_VIOLATION_MODEL_DATABASE_VERSION && !migrateToNewViolationModel) {
+        log.error("|------------------------------------------");
+        log.error("|");
+        log.error("| Upgrade requires consent to proceed.");
+        log.error("| For detailed instructions, see");
+        log.error("| https://links.sonatype.com/products/clm/doc/upgrade/1.45");
+        log.error("|");
+        log.error("|------------------------------------------");
+        throw new UnsupportedOperationException("Consent to upgrade has not been given.");
+      }
+    };
   }
 
   @Override
@@ -123,19 +126,7 @@ public class DefaultOperationalDataStore
 
   @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
-    if (!isInitialized()) {
-      initWithMigration(null /* databaseConfig */, false);
-    }
     return entityManagerFactory;
-  }
-
-  @Override
-  public void clear_ForTestsOnly() {
-    super.clear_ForTestsOnly();
-    entityManagerFactory = null;
-    entityManagerFactoryForLocks = null;
-    isInitialized = false;
-    isDatabaseEmbedded = null;
   }
 
   @Override
@@ -145,14 +136,11 @@ public class DefaultOperationalDataStore
 
   @Override
   public boolean isDatabaseInMemory() {
-    return databaseConfig == null;
+    return DatabaseUtil.isInMemoryDatabase(databaseConfig);
   }
 
   @Override
   public EntityManagerFactory getEntityManagerFactoryForLocks() {
-    if (!isInitialized()) {
-      initWithMigration(null /* databaseConfig */, false);
-    }
     return entityManagerFactoryForLocks;
   }
 

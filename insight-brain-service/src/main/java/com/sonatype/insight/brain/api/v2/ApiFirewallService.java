@@ -127,6 +127,8 @@ public class ApiFirewallService
 
   private final ApiComponentDetailsAdapter apiComponentDetailsAdapter;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   ApiFirewallService(
       final ProductLicense productLicense,
@@ -138,7 +140,8 @@ public class ApiFirewallService
       final TelemetrySender telemetrySender,
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryService repositoryService,
-      final ApiComponentDetailsAdapter apiComponentDetailsAdapter)
+      final ApiComponentDetailsAdapter apiComponentDetailsAdapter,
+      final OwnerDAO ownerDAO)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -150,12 +153,13 @@ public class ApiFirewallService
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryService = repositoryService;
     this.apiComponentDetailsAdapter = apiComponentDetailsAdapter;
+    this.ownerDAO = ownerDAO;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
     try (AuditSession auditSession = AuditData.get()
         .recordSubEvent(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, false)) {
-      AuditData.get().setOwner(new OwnerDAO().getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
+      AuditData.get().setOwner(ownerDAO.getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
       runnable.run();
     }
   }

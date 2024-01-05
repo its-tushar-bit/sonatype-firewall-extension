@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
@@ -40,13 +41,17 @@ public class ApiMetricsReportingResourceV2Test
   @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
+  private SuccessMetricsTestUtils successMetricsTestUtils;
+
   @Before
   public void setup() {
     today = new LocalDate();
     Organization org = tempEntity.newOrganizationWithSpecificId("orgId", "orgName");
     app = tempEntity.newApplicationWithSpecificId("appId", "appName", "appPublicId", org.getId());
 
-    SuccessMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
+    PolicyViolationDAO policyViolationDAO = lookup(PolicyViolationDAO.class);
+    successMetricsTestUtils = new SuccessMetricsTestUtils(policyViolationDAO);
+    successMetricsTestUtils.createPolicyViolation(app, today, tempEntity);
   }
 
   @After
@@ -163,7 +168,7 @@ public class ApiMetricsReportingResourceV2Test
 
   @Test
   public void testJsonApi_Multiple() throws Exception {
-    SuccessMetricsTestUtils.createPolicyViolation(tempEntity.newApplicationWithParent(), today, tempEntity);
+    successMetricsTestUtils.createPolicyViolation(tempEntity.newApplicationWithParent(), today, tempEntity);
     ApiMetricsReportingQueryDTOV2 queryDto = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-11", "2017-11",
         null, null);
 
@@ -191,7 +196,7 @@ public class ApiMetricsReportingResourceV2Test
   public void testCsvApi_Multiple() throws Exception {
     Application app2 =
         tempEntity.newApplicationWithSpecificId("appId2", "appName2", "appPublicId2", app.getOrganizationId());
-    SuccessMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
+    successMetricsTestUtils.createPolicyViolation(app2, today, tempEntity);
     ApiMetricsReportingQueryDTOV2 queryDto = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-11", "2017-11",
         null, null);
 

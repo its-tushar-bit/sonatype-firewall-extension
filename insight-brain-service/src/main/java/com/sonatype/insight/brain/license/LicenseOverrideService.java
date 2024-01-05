@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +19,7 @@ import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -32,10 +32,10 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.JsonFileStore;
+import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -62,13 +62,19 @@ public class LicenseOverrideService
 
   private final LicenseOverrideEventService licenseOverrideEventService;
 
+  private final ClusterLockManager clusterLockManager;
+
+  private final IdUtils idUtils;
+
   @Inject
   public LicenseOverrideService(final InsightWork work,
                                 final OwnerDAO ownerDAO,
                                 final CurrentUser currentUser,
                                 final LicenseOverrideDAO licenseOverrideDAO,
                                 final LicenseDAO licenseDAO,
-                                final LicenseOverrideEventService licenseOverrideEventService)
+                                final LicenseOverrideEventService licenseOverrideEventService,
+                                final ClusterLockManager clusterLockManager,
+                                final IdUtils idUtils)
   {
     this.work = work;
     this.currentUser = currentUser;
@@ -76,6 +82,8 @@ public class LicenseOverrideService
     this.ownerDAO = ownerDAO;
     this.licenseDAO = licenseDAO;
     this.licenseOverrideEventService = licenseOverrideEventService;
+    this.clusterLockManager = clusterLockManager;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.CHANGE_LICENSES)
@@ -87,7 +95,7 @@ public class LicenseOverrideService
   {
     ComponentIdentifierValidator.validate(licenseOverride.getComponentIdentifier());
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     licenseOverride.setOwnerId(internalOwnerId);
 
@@ -136,9 +144,9 @@ public class LicenseOverrideService
                                     String ipAddress,
                                     boolean isDelete) throws IOException
   {
-    JsonStore store = new JsonFileStore(work.getAuditDir(ownerId), ownerId);
+    JsonStore store = new JsonFileStore(work.getAuditDir(ownerId), ownerId, clusterLockManager);
 
-    LicenseOverrideAudit licenseOverrideAudit = new LicenseOverrideAudit(licenseOverride);
+    LicenseOverrideAudit licenseOverrideAudit = new LicenseOverrideAudit(licenseOverride, licenseDAO);
     if (isDelete) {
       licenseOverrideAudit.setStatus("Deleted");
       licenseOverrideAudit.setComment(null);
@@ -153,7 +161,7 @@ public class LicenseOverrideService
                                     final String where,
                                     final HttpServletRequest request) throws IOException
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     LicenseOverride licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverrideId);
     if (!internalOwnerId.equals(licenseOverride.getOwnerId())) {
@@ -199,7 +207,7 @@ public class LicenseOverrideService
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
     result.licenseOverridesByOwner = new ArrayList<>();

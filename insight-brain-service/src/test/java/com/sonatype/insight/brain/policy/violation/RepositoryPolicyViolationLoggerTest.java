@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.policy.violation;
 
 import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -34,12 +36,18 @@ public class RepositoryPolicyViolationLoggerTest
   @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
   private Repository repository;
 
   private final Date evaluationTime = new Date();
 
+  private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
+
   @Before
   public void before() {
+    policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
     repository = tempEntity.newRepository();
   }
 
@@ -48,7 +56,8 @@ public class RepositoryPolicyViolationLoggerTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+            repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     RepositoryPolicyViolation policyViolationOne =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
@@ -71,7 +80,8 @@ public class RepositoryPolicyViolationLoggerTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+            repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     RepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
@@ -89,7 +99,8 @@ public class RepositoryPolicyViolationLoggerTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+            repositoryManagerDAO);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -111,7 +122,8 @@ public class RepositoryPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(false /* licensed */, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(false /* licensed */, evaluationTime, repository, currentUser,
+            repositoryManagerDAO);
     RepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATE, policyViolation);
@@ -126,7 +138,7 @@ public class RepositoryPolicyViolationLoggerTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     RepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
@@ -144,7 +156,7 @@ public class RepositoryPolicyViolationLoggerTest
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser);
+        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
     RepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
@@ -165,7 +177,7 @@ public class RepositoryPolicyViolationLoggerTest
                                          RepositoryPolicyViolation policyViolation,
                                          String userName) throws Exception
   {
-    PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
+    policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
         repository, evaluationTime, evaluationTime, policyViolation, userName);
   }
 }

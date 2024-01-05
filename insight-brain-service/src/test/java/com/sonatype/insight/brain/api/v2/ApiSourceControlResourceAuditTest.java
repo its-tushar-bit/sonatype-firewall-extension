@@ -28,10 +28,13 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 public class ApiSourceControlResourceAuditTest
     extends AbstractAuditTest
 {
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
+
   private Application app;
 
   @Before
   public void setup() {
+    automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     app = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
@@ -88,8 +91,6 @@ public class ApiSourceControlResourceAuditTest
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
 
     // make sure automatic source control is on
-    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
-        new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     //CREATE

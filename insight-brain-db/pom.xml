@@ -41,6 +41,11 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-common</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
 
     <dependency>
       <groupId>com.h2database</groupId>
@@ -49,6 +54,10 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
 
     <dependency>
@@ -77,13 +86,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>postgres-server</artifactId>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.stefanbirkner</groupId>
-      <artifactId>system-rules</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -107,9 +121,12 @@
             </goals>
             <configuration>
               <includes>
-                <include>**/*Rule</include>
-                <include>**/*Fixture</include>
-                <include>**/*Provider</include>
+                <include>**/*Rule*.class</include>
+                <include>**/*Fixture*.class</include>
+                <include>**/*Provider*.class</include>
+                <include>**/*TestCluster*.class</include>
+                <include>**/PostgresTestContainer.class</include>
+                <include>**/AbstractDatabaseTest.class</include>
               </includes>
             </configuration>
           </execution>

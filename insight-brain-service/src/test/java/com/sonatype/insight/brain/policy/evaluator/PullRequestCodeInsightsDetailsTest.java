@@ -21,10 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.PullRequestLocationDiscoveryService;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -114,6 +115,12 @@ public class PullRequestCodeInsightsDetailsTest
   @Inject
   private SourceControlComponentLoader sourceControlComponentLoader;
 
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   private Application app;
 
   private final String repositoryUrl;
@@ -162,7 +169,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
@@ -203,7 +210,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     // Pass because the policies do not have FAIL action for RELEASE stage
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
@@ -216,7 +223,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), null);
+        lookup(BaseUrl.class).getConfigured(), null, policyDAO, organizationDAO);
 
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     List<CodeInsightAnnotation> annotations = details.getAnnotations();
@@ -244,7 +251,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("Nexus IQ found no new policy violations on " + bomTimestamp +
@@ -275,7 +282,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("On " + bomTimestamp + ", Nexus IQ found 39 new policy " +
@@ -310,7 +317,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
@@ -334,7 +341,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails())
@@ -363,7 +370,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails()).contains("Nexus IQ found no new policy violations on " + bomTimestamp +
@@ -383,7 +390,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO);
 
     //then assert that created contents is not available
     String contents = details.getReportDetails();
@@ -396,7 +403,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, null, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
+            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("sourceControlComponentDetails is required and cannot be null");
   }
 
@@ -406,7 +413,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
-            null, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
+            null, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("policyViolationDiff is required and cannot be null");
   }
 
@@ -416,7 +423,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.normalizedRepositoryUrl, null, componentDetails, featureBranchPolicyEvaluation,
-            diff, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
+            diff, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("app is required and cannot be null");
   }
 
@@ -426,7 +433,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             null, app, componentDetails, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
+            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("repositoryUrl is required and cannot be null");
   }
 
@@ -436,7 +443,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, null, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
+            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("featureBranchEvaluation is required and cannot be null");
   }
 
@@ -446,7 +453,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
-            diff, null, locationDiscoveryResult))
+            diff, null, locationDiscoveryResult, policyDAO, organizationDAO))
         .withMessage("baseUrl is required and cannot be null");
   }
 

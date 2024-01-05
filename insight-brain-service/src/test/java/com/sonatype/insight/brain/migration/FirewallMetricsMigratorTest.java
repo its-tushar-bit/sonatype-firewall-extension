@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;

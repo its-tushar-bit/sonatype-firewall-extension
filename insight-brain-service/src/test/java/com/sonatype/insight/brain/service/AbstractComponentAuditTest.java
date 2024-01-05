@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
@@ -17,8 +20,16 @@ public abstract class AbstractComponentAuditTest
   @Rule
   public LogOutput logOutput = new LogOutput(AuditRecorder.BASE_LOGGER_NAME);
 
+  @Inject
+  private PolicyDAO policyDAO;
+
   @Override
   public LogOutput getLogOutput() {
     return logOutput;
+  }
+
+  @Override
+  public PolicyDAO getPolicyDAO() {
+    return policyDAO;
   }
 }

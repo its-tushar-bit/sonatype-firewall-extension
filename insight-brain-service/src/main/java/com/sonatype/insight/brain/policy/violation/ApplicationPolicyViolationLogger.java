@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.violation;
 
 import java.util.Date;
 
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -27,13 +26,14 @@ public class ApplicationPolicyViolationLogger
       boolean licensed,
       Date logTimestamp,
       Application application,
+      Organization organization,
       CurrentUser currentUser)
   {
     super(licensed, logTimestamp, currentUser);
 
     if (isEnabled()) {
       this.application = application;
-      organization = new OrganizationDAO().getById(application.getOrganizationId());
+      this.organization = organization;
     }
   }
 

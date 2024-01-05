@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
@@ -23,20 +22,21 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -104,6 +104,18 @@ public class ReportServiceTest
   @Inject
   private TestProductLicense productLicense;
 
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
+  private ComponentLoaderFactory componentLoaderFactory;
+
   // No default constructor, can't use @Spy
   private ThirdPartyDataService thirdPartyDataServiceSpy;
 
@@ -125,8 +137,8 @@ public class ReportServiceTest
   }
 
   private ReportService createReportService() {
-    return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), configuration,
-        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher,
+    return new ReportService(insightWork, reportDownloader, policyEvaluationDAO, configuration,
+        applicationDAO, organizationDAO, thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher,
         applicationRiskService, productLicense);
   }
 
@@ -170,12 +182,12 @@ public class ReportServiceTest
     File reportFile = reportService.fetchReport(app, scanId);
 
     // Verify bom.json
-    ComponentDAO componentDAO = new ComponentDAO(app);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
     ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
     ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
-    List<Component> components = componentDAO
+    List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(3);
     assertComponent(components.get(0), "964cd74171f427720480",
@@ -540,12 +552,12 @@ public class ReportServiceTest
 
     File reportFile = reportService.fetchReport(app, scanId);
 
-    ComponentDAO componentDAO = new ComponentDAO(app);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
     ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
     ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
-    List<Component> components = componentDAO
+    List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(9);
 

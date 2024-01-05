@@ -6,14 +6,25 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ThirdPartyScanDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyScan>
 {
+  @Inject
+  public ThirdPartyScanDAO(final ThirdPartyScansDataStore thirdPartyScansDataStore) {
+    super(thirdPartyScansDataStore);
+  }
+
   @Override
   public ThirdPartyScan getById(String id) {
     String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //

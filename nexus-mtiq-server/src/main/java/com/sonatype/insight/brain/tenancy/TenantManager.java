@@ -16,11 +16,10 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
@@ -55,8 +54,6 @@ public class TenantManager
 
   private final Collection<TenantManaged> tenantManagedBeans;
 
-  private final MultiTenantDatabaseConfigProvider multiTenantDatabaseConfigProvider;
-
   // This is a provider to prevent circular dependencies between Guice beans
   private final Provider<TenantLifecycle> tenantLifecycle;
 
@@ -66,26 +63,23 @@ public class TenantManager
 
   private final DeletedTenantDAO deletedTenantDAO;
 
-  private final TenantUtil tenantUtil;
+  private final TenantService tenantService;
 
   @Inject
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
-      final InsightConfig insightConfig,
       final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils,
       final TenantValidator tenantValidator,
       final DeletedTenantDAO deletedTenantDAO,
-      final TenantUtil tenantUtil)
+      final TenantService tenantService)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantValidator = tenantValidator;
     this.deletedTenantDAO = deletedTenantDAO;
-    this.tenantUtil = tenantUtil;
-
-    multiTenantDatabaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
+    this.tenantService = tenantService;
   }
 
   public Tenant getTenant() {
@@ -137,7 +131,7 @@ public class TenantManager
     List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
         .map(DeletedTenant::getId).collect(Collectors.toList());
 
-    List<String> nonDeletedTenants = tenantUtil.getAllTenants().stream()
+    List<String> nonDeletedTenants = tenantService.getAllTenantsNames().stream()
         .filter(t -> !deletedTenants.contains(t))
         .collect(Collectors.toList());
 
@@ -192,7 +186,7 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider));
+        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration());
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
@@ -223,7 +217,7 @@ public class TenantManager
       log.info("Registering DB for tenant {}", tenant.tenantSlug);
 
       try {
-        databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider);
+        databaseProvisionUtils.initializeDatabasesWithoutMigration();
         return supplier.get();
       }
       finally {

@@ -19,7 +19,7 @@ import org.quartz.Scheduler;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqShutdownTest
-    extends AbstractMultiTenantBrainServiceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
   /**
    * Tests against https://issues.sonatype.org/browse/CLM-24625. This bug was caused by the TaskScheduler being shutdown
@@ -38,7 +38,7 @@ public class MtiqShutdownTest
 
     TempTenantManaged tenantManaged = getCLMServer().getInstance(TempTenantManaged.class);
 
-    getCLMServer().stop();
+    stopClmServer();
 
     assertThat(tenantManaged.schedulerDuringDeregistration).isNotNull();
   }

@@ -53,7 +53,7 @@ public class AddProprietaryMatchersTest
 
   private static final com.codeborne.selenide.Condition ERROR = cssClass("error");
 
-  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private ProprietaryConfigDAO proprietaryConfigDAO;
 
   private Application app;
 
@@ -65,6 +65,8 @@ public class AddProprietaryMatchersTest
 
   @Before
   public void start() throws Exception {
+    proprietaryConfigDAO = lookup(ProprietaryConfigDAO.class);
+
     app = tempEntity.newApplicationWithParent("AddProprietaryMatchersTest", "AddProprietaryMatchersTest");
     URL zippedReport = ReportHelper.zipReport(CANNED_TEST_REPORT, tempDir);
     TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, WORK);

@@ -5,15 +5,25 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
 public abstract class AbstractDatamartSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
+  private final DataMartDataStore dataMartDataStore;
+
+  protected AbstractDatamartSqlDAO(DataMartDataStore dataMartDataStore) {
+    this.dataMartDataStore = dataMartDataStore;
+  }
+
   @Override
   public TransactionContext createTransactionContext() {
-    return new TransactionContext(DatamartProvider.getJPAEntityManagerFactory().createEntityManager());
+    return new TransactionContext(dataMartDataStore.getJPAEntityManagerFactory().createEntityManager());
+  }
+
+  protected DataMartDataStore getDataMartDataStore() {
+    return dataMartDataStore;
   }
 }

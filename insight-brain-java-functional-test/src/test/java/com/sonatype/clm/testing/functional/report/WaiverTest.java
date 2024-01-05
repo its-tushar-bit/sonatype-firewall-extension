@@ -59,6 +59,10 @@ public class WaiverTest
 
   public static final int numberOfComponents = 13;
 
+  private PolicyViolationDAO policyViolationDAO;
+
+  private PolicyWaiverDAO policyWaiverDAO;
+
   private Application app;
 
   private TestReportEvaluator evaluator;
@@ -71,6 +75,9 @@ public class WaiverTest
 
   @Before
   public void start() {
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
+    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+
     app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName(), "Waiver Test App", "Waiver Test Org");
     evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/canned-reports/small-report", tempDir),
         Configuration.baseUrl, work);
@@ -85,10 +92,10 @@ public class WaiverTest
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
     AddWaiverDialog.root().should(disappear);
 
-    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
     assertThat(policyViolations).hasSize(numberOfComponents - 1);
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);

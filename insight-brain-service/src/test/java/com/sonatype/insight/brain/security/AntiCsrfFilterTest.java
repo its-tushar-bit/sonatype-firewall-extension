@@ -13,29 +13,34 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AntiCsrfFilterTest
-    extends AbstractBrainServiceTest
+    extends AbstractBrainServiceIntegrationTest
 {
   // a known rest endpoint defined from SecurityModule for AntiCsrfFilter for integrations
   private static final String REST_PATH = "rest/ci/scan/testApp";
 
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO =
-      new ReverseProxyAuthenticationConfigurationDAO();
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
+  @Before
+  public void setUp() {
+    reverseProxyAuthenticationConfigurationDAO = lookup(ReverseProxyAuthenticationConfigurationDAO.class);
+  }
 
   @Override
-  protected void initServer() throws Exception {
-    initServer(config -> tempEntity.newReverseProxyAuthenticationConfiguration(true,
+  protected void startIqTestServer() throws Exception {
+    startIqTestServer(config -> tempEntity.newReverseProxyAuthenticationConfiguration(true,
         ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null));
     getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
         .applyReverseProxyAuthenticationConfigurationToClients();
@@ -138,9 +143,9 @@ public class AntiCsrfFilterTest
   }
 
   @Test
-  @ManualServerInit
+  @ManualIqServerInit
   public void testRequestUsingHttpsInitializesCsrfCookieWithSecure() throws Exception {
-    initServer(config -> {
+    startIqTestServer(config -> {
       HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
       applicationHttpsConnector.setUseForwardedHeaders(true);
       applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());

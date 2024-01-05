@@ -27,8 +27,11 @@ public class ApiSourceControlEventServiceTest
     extends AbstractComponentTest
 {
   @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
   private ApiSourceControlEventService apiSourceControlEventService;
-  
+
   @Test
   public void testGetSourceControlEventByOrganization_EventComplete() {
     long now = System.currentTimeMillis();
@@ -40,7 +43,6 @@ public class ApiSourceControlEventServiceTest
         "sourceCommit");
     SourceControlEvent event = tempEntity.newSourceControlEvent(application, policyEvaluation);
     ApiSourceControlEventFilterDTO filter = new ApiSourceControlEventFilterDTO();
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.markEventInProgress(event.getId());
     sourceControlEventDAO.markEventHasError(event.getId(), "error message", new RuntimeException());
     filter.setCreatedOnOrAfter(new Date(now - 1000));
@@ -79,7 +81,6 @@ public class ApiSourceControlEventServiceTest
         "sourceCommit");
     SourceControlEvent event = tempEntity.newSourceControlEvent(application, policyEvaluation);
     ApiSourceControlEventFilterDTO filter = new ApiSourceControlEventFilterDTO();
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.markEventInProgress(event.getId());
     sourceControlEventDAO.markEventHasError(event.getId(), "error message", new RuntimeException());
     filter.setCreatedOnOrAfter(new Date(now - 1000));

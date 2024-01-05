@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantSecurityConfigurationServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   private static final String IDENTITY_PROVIDER_XML = "<xml>IdP Metadata<xml>";
 
@@ -69,9 +69,7 @@ public class TenantSecurityConfigurationServiceTest
   private TenantSecurityConfigurationService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     tenantUtil = new TenantUtil();
     underTest = new TenantSecurityConfigurationService(tenantUtil, tenantValidator, apiSamlConfigurationService,
         membershipMappingService, roleDAO);

@@ -6,14 +6,31 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+@Named
+@Singleton
 public class ThirdPartyCoordinateSecurityDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyCoordinateSecurity>
 {
+  private final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  @Inject
+  public ThirdPartyCoordinateSecurityDAO(
+      final ThirdPartyScansDataStore thirdPartyScansDataStore,
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO)
+  {
+    super(thirdPartyScansDataStore);
+    this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
+  }
+
   @Override
   public ThirdPartyCoordinateSecurity getById(String id) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
@@ -57,7 +74,7 @@ public class ThirdPartyCoordinateSecurityDAO
   @Override
   public void delete(TransactionContext tx, ThirdPartyCoordinateSecurity coordinateSecurity) {
     // cascade delete vulnerability exploitability exchanges records
-    new ThirdPartyVulnerabilityExploitabilityExchangeDAO().deleteByCoordinateSecurityId(tx, coordinateSecurity.getId());
+    thirdPartyVulnerabilityExploitabilityExchangeDAO.deleteByCoordinateSecurityId(tx, coordinateSecurity.getId());
 
     // lastly delete this entity
     super.delete(tx, coordinateSecurity);

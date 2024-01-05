@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.version.VersionResource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
+  private MembershipMappingDAO membershipMappingDAO;
+
+  private UserDAO dao;
+
+  @Before
+  public void setUp() {
+    membershipMappingDAO = lookup(MembershipMappingDAO.class);
+    dao = lookup(UserDAO.class);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(UserResource.RESOURCE_PATH);
@@ -73,7 +84,6 @@ public class UserResourceTest
     assertThat(user.getId()).isNotNull();
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
-    UserDAO dao = new UserDAO();
     User expectedUser = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(expectedUser.getPassword())).isNotNull();
@@ -213,7 +223,7 @@ public class UserResourceTest
     user = response.getBody(User.class);
     MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         Role.SYSTEM_ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
-    new MembershipMappingDAO().insert(membershipMapping);
+    membershipMappingDAO.insert(membershipMapping);
 
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();

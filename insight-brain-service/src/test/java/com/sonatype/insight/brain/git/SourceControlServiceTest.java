@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -32,17 +31,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlServiceTest
     extends AbstractComponentTest
 {
-  private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO =
-      new SourceControlPullRequestCommentDAO();
-
-  private final SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO =
-      new SourceControlDefaultBranchCommitHistoryDAO();
-
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
-
   private Application app;
 
   private Organization org;
+
+  @Inject
+  private SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
+
+  @Inject
+  private SourceControlDefaultBranchCommitHistoryDAO commitHistoryDAO;
+
+  @Inject
+  private SourceControlDAO sourceControlDAO;
 
   @Inject
   private SourceControlService sourceControlService;

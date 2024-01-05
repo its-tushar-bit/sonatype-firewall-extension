@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.api.admin.service;
 import java.io.InputStream;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantLicenseServiceTest
-    extends MultiTenantTestSupport
+    extends AbstractMultiTenantTest
 {
   public static final String LICENSE_FILE_NAME = "license.lic";
 
@@ -44,9 +44,7 @@ public class TenantLicenseServiceTest
   private TenantLicenseService underTest;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
     tenantUtil = new TenantUtil();
     underTest = new TenantLicenseService(tenantUtil, tenantValidator, licenseService);
   }

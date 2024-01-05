@@ -20,12 +20,12 @@ import java.sql.Statement;
 import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.dropwizard.cli.Cli;
@@ -83,22 +83,25 @@ public class ExportEmbeddedDatabaseCommand
       throw new BadRequestException("Cannot find the embedded database in " + odsPath.getParent());
     }
 
-    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-    OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-    if (!DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.getDatabaseSchema())) {
+    DefaultDatabaseContainer databaseContainer = new DefaultDatabaseContainer(config);
+    OperationalDataStore operationalDataStore = databaseContainer.getOperationalDataStore();
+    AggregationDataStore aggregationDataStoreProvider = databaseContainer.getAggregationDataStore();
+    ThirdPartyScansDataStore thirdPartyScansDataStore = databaseContainer.getThirdPartyScansDataStore();
+
+    operationalDataStore.initialize();
+
+    if (!DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
+        operationalDataStore.getDatabaseSchema())) {
       throw new BadRequestException("The server needs to have been started normally once before"
           + " in order to complete the required upgrade steps.");
     }
-    if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID,
-        OperationalDataStoreProvider.getDatabaseSchema()) <= 0) {
+    if (DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), OperationalDataStore.ID,
+        operationalDataStore.getDatabaseSchema()) <= 0) {
       throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
           + " is empty. Please verify you specified the correct config.yml file.");
     }
-    AggregationDataStoreProvider
-        .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
-    ThirdPartyScansProvider
-        .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
+    aggregationDataStoreProvider.initialize();
+    thirdPartyScansDataStore.initialize();
 
     String path = namespace.getString("dump_file");
     File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql.gz");
@@ -107,9 +110,9 @@ public class ExportEmbeddedDatabaseCommand
     log.info("Exporting database to {}", dumpFile);
     try (BufferedWriter writer =
         new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8))) {
-      export(writer, OperationalDataStoreProvider.getDataSource());
-      export(writer, AggregationDataStoreProvider.getDataSource());
-      export(writer, ThirdPartyScansProvider.getDataSource());
+      export(writer, operationalDataStore.getDataSource());
+      export(writer, aggregationDataStoreProvider.getDataSource());
+      export(writer, thirdPartyScansDataStore.getDataSource());
     }
     log.info("Completed export to '{}' in {} ms.", dumpFile, System.currentTimeMillis() - start);
   }

@@ -43,6 +43,9 @@ public class PolicyEvaluatorCli
   }
 
   public static void main(String[] args) {
+    // From the TrueZip author https://stackoverflow.com/a/18161531 this prevents loading a Swing UI widget class
+    System.setProperty("java.awt.headless", "true");
+
     Parameters params = new Parameters(args);
     new PolicyEvaluatorCli().run(DefaultPolicyEvaluator.class, params);
   }

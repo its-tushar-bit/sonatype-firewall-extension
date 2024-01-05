@@ -38,7 +38,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowAnalysisConfig;
 import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphExtractor;
-import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphHandler;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
@@ -459,14 +458,18 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           restClient.getVulnerableComponentsWithSignatures(params.getApplicationId(), scanId);
 
       if (vulnerableComponentsSignatures != null && !vulnerableComponentsSignatures.getComponents().isEmpty()) {
-        CallFlowAnalysisConfig config =
-            new CallFlowAnalysisConfig(params.getScanTargets(), params.getCallFlowAnalysisNamespaces());
+        CallFlowAnalysisConfig config = new CallFlowAnalysisConfig(
+            params.getScanTargets(),
+            params.getCallFlowAnalysisNamespaces(),
+            // Pass down parameters entered by the user
+            getScanConfiguration(params, null)
+        );
 
         CallFlowGraphExtractor extractor = CallFlowGraphExtractor.newInstance(log, config);
-        CallFlowGraphHandler handler = extractor.buildCallFlowGraph();
 
-        VulnerabilitySignatureAnalysisDTO analysisDto =
-            handler.buildVulnerabilitySignatureAnalysis(vulnerableComponentsSignatures);
+        VulnerabilitySignatureAnalysisDTO analysisDto = extractor
+            .buildCallFlowGraph()
+            .buildVulnerabilitySignatureAnalysis(vulnerableComponentsSignatures);
 
         result = restClient.importReachabilityAnalysis(params.getApplicationId(), scanId, analysisDto);
 

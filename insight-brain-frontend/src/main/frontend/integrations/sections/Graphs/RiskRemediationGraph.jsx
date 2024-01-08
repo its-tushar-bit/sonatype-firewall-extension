@@ -24,14 +24,14 @@ export default function RiskAndRemediationGraph() {
     <div className="iq-developer-dashboard-risk-remediation-graph">
       <NxH2>Risk & Remediation Timeline</NxH2>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
-        <div style={{ height: 400 }}>
+        <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine
             {...commonGraphProps()}
             data={formattedGraphData}
             colors={graphColors['riskremediationGraph']}
             tooltip={(tooltip) => getTooltip(tooltip)}
             axisLeft={{
-              legend: 'Policy Action Failures & Remediation Waivers',
+              legend: 'Count',
               legendOffset: -50,
               legendPosition: 'middle',
               format: (tickVal) => (Math.floor(tickVal) === tickVal ? tickVal : ''),
@@ -48,12 +48,12 @@ export default function RiskAndRemediationGraph() {
                 data: [
                   {
                     id: 'remediationWaivers',
-                    label: 'Remediation Waivers',
+                    label: 'Active Waivers',
                     color: 'var(--nx-swatch-purple-40)',
                   },
                   {
                     id: 'policyActionFailures',
-                    label: 'Policy Action Failures',
+                    label: 'Apps with Failing Violations',
                     color: 'var(--nx-swatch-teal-40)',
                   },
                 ],
@@ -70,9 +70,7 @@ function getTooltip(tooltip) {
   return (
     <div className="iq-developer-dashboard-graph-tooltip">
       <div>
-        {tooltip.point.serieId === 'policyActionFailures'
-          ? 'Number of apps with failed policies: '
-          : 'Number of active waivers: '}
+        {tooltip.point.serieId === 'policyActionFailures' ? 'Apps with Failing Violations: ' : 'Active Waivers: '}
         <strong>{tooltip.point.data.y}</strong>
       </div>
     </div>

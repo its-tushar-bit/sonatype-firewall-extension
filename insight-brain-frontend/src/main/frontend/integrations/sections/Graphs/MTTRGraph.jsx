@@ -25,14 +25,14 @@ export default function MTTRGraph() {
     <div className="iq-developer-dashboard-mttr-graph">
       <NxH2>Mean Time to Remediate</NxH2>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
-        <div style={{ height: 400 }}>
+        <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine
             {...commonGraphProps()}
             data={formattedGraphData}
             colors={graphColors['mttrGraph']}
             tooltip={(tooltip) => getTooltip(tooltip)}
             axisLeft={{
-              legend: 'Mean Time to Remediate (days)',
+              legend: 'Number of Days',
               legendOffset: -50,
               legendPosition: 'middle',
             }}
@@ -48,7 +48,7 @@ export default function MTTRGraph() {
                 data: [
                   {
                     id: 'meanTimeToRemediate',
-                    label: 'Mean Time to Remediate (days)',
+                    label: 'Mean Time to Remediate',
                     color: 'var(--nx-swatch-turquoise-40)',
                   },
                 ],
@@ -66,7 +66,7 @@ function getTooltip(tooltip) {
   return (
     <div className="iq-developer-dashboard-graph-tooltip">
       <div>
-        Average Time to Remediate: <strong>{meanTime} Days</strong>
+        Mean Time to Remediate: <strong>{meanTime} Days</strong>
       </div>
     </div>
   );

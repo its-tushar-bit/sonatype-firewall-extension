@@ -23,7 +23,7 @@ export default function AdoptionGraph() {
     <div className="iq-developer-dashboard-adoption-graph">
       <NxH2>Integration Adoption Report</NxH2>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
-        <div style={{ height: 400 }}>
+        <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine
             {...commonGraphProps()}
             data={formattedGraphData}
@@ -67,14 +67,23 @@ export default function AdoptionGraph() {
 }
 
 function getTooltip(tooltip) {
+  const {
+    serieId,
+    data: { enabled, y, totalNumberOfApps },
+  } = tooltip.point;
+  const title = `Total ${serieId === 'cicd' ? 'CI' : 'SCM'} Apps:`;
+  const metric = serieId === 'cicd' ? 'CI/CD' : 'SCM';
+
   return (
     <div className="iq-developer-dashboard-graph-tooltip">
       <div>
-        Total CI Apps: <strong>{tooltip.point.data.totalNumberOfApps}</strong>
+        {title} <strong>{enabled}</strong>
       </div>
       <div>
-        {tooltip.point.serieId === 'cicd' ? 'CI/CD' : 'SCM'} Adoption:{' '}
-        <strong>{Math.round(tooltip.point.data.y * 100)}%</strong>
+        Total Apps: <strong>{totalNumberOfApps}</strong>
+      </div>
+      <div>
+        {metric} Adoption: <strong>{Math.round(y * 100)}%</strong>
       </div>
     </div>
   );

@@ -196,10 +196,9 @@ public class ApiConfigFeaturesService
 
     /**
      * Self-Hosted: SCM is not feature flagged for self-hosted, so it must always return true for self-hosted.
-     * SaaS: If SAAS_LIFECYCLE_SCM_ENABLED is configured it will enable the SCM resources for a SaaS tenant, disabled
-     * by default.
+     * SaaS: SAAS_LIFECYCLE_SCM_ENABLED is enabled by default.
      */
-    SAAS_LIFECYCLE_SCM_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED, false, false)
+    SAAS_LIFECYCLE_SCM_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED, true)
     {
       @Override
       public boolean isEnabled() {

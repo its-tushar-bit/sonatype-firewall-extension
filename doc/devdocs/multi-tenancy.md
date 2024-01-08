@@ -98,11 +98,15 @@ from one tenant to another the current tenant _must be invalidated_. The only ex
 2. T1(V) → G → T1(V)
 3. T1(V) → T1(V)
 
-#### Disallowed transitions
+#### Generally disallowed transitions
 
 1. T1(V) → T2(V)
 2. T1(V) → T2(In)
 3. T1(V) → G → T2(V)
+
+Note that privileged code inside of `insight-brain-tenancy` may internally break the restrictions above. For instance,
+`TenantAwareOneTimeRunnable` transitions from one potentially-valid tenant to another, because it also ensures that it
+transitions back to the first tenant after running the work for the second tenant.
 
 ## Asynchronous work
 
@@ -147,6 +151,17 @@ when finished. They cannot be reused, by design.
 
 Work that needs to run on a schedule will need its own context. The best way to handle this is to make use of Quartz
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
+
+### Safeguards against forgetting to use tenant aware classes
+
+The tenant invalidation system is designed to be an imperfect safeguard against the risk that code might create and/or
+reuse threads without using the various `TenantAware...` classes. In this case, the threads will inherit the parent
+tenant instance via the `InheritableThreadLocal` mechanism. The assumption is that this shared tenant instance will
+eventually be invalidated by the parent thread. If the child thread continues to try to do tenant-specific work after
+that time, appropriate exceptions will be raised. This does not guarantee that the child thread has not improperly used
+the shared tenant instance for work intended for a different tenant _before_ the parent thread has invalidated it, and
+is thus an imperfect mechanism. But it will at least raise alarms eventually, whereas without the tenant invalidation
+mechanism the child thread would be free to keep executing, potentially with the wrong tenant, indefinitely.
 
 ### Mtiq Batch Instances
 The majority of quartz jobs are background admin tasks. They either tidy up old data in the database or they read data 

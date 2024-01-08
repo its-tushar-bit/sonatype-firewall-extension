@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -289,5 +291,95 @@ public class TenantThreadLocalTest
     for (int i = 0; i < tenants.size(); i++) {
       assertThat(runAs.get(i).tenantSlug).isEqualTo(tenants.get(i));
     }
+  }
+
+  @Test
+  public void runAs_shouldRunInSpecifiedTenant() {
+    Tenant tenant1 = new Tenant("tenant1");
+
+    Tenant tenant = TenantThreadLocal.runAs(tenant1, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAs_shouldResetPreviousTenantAfter() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    tenant1.invalidate();
+    TenantTestHelper.setTenant(tenant1);
+
+    Tenant tenant = TenantThreadLocal.runAs(tenant2, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant2);
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAs_shouldDisallowTransitionIfPrevTenantIsValid() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+    TenantTestHelper.setTenant(tenant1);
+
+    MutableBoolean closureRan = new MutableBoolean(false);
+
+    assertThatThrownBy(() -> TenantThreadLocal.runAs(tenant2, (Supplier<Void>)() -> {
+      closureRan.setTrue();
+      return null;
+    }))
+        .isInstanceOf(TenantThreadLocal.InvalidTenantOperationException.class);
+
+    assertThat(closureRan.booleanValue()).isFalse();
+  }
+
+  @Test
+  public void runAs_shouldAllowTransitionToSameTenant() {
+    Tenant tenant1 = new Tenant("tenant1");
+    TenantTestHelper.setTenant(tenant1);
+
+    Tenant tenant = TenantThreadLocal.runAs(tenant1, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant1);
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAsWithoutValidation_shouldRunInSpecifiedTenant() {
+    Tenant tenant1 = new Tenant("tenant1");
+
+    Tenant tenant = TenantThreadLocal.runAsWithoutValidation(tenant1, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAsWithoutValidation_shouldResetPreviousTenantAfter() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    tenant1.invalidate();
+    TenantTestHelper.setTenant(tenant1);
+
+    Tenant tenant = TenantThreadLocal.runAsWithoutValidation(tenant2, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant2);
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAsWithoutValidation_shouldAllowTransitionIfPrevTenantIsValid() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+    TenantTestHelper.setTenant(tenant1);
+
+    Tenant tenant = TenantThreadLocal.runAsWithoutValidation(tenant2, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant2);
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isSameAs(tenant1);
+  }
+
+  @Test
+  public void runAsWithoutValidation_shouldAllowTransitionToSameTenant() {
+    Tenant tenant1 = new Tenant("tenant1");
+    TenantTestHelper.setTenant(tenant1);
+
+    Tenant tenant = TenantThreadLocal.runAsWithoutValidation(tenant1, TenantThreadLocal::getTenantWithoutValidation);
+    assertThat(tenant).isSameAs(tenant1);
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isSameAs(tenant1);
   }
 }

@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 
@@ -28,6 +30,8 @@ public class TenantThreadLocal
 
   private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<TenantState>()
   {
+    // NOTE: because this is an InheritableThreadLocal, this method is only actually called to set the value for the
+    // `main` thread. All other application threads use `InheritableThreadLocal#childValue()` instead
     @Override
     protected TenantState initialValue() {
       return new TenantState(null, defaultTenant);
@@ -88,10 +92,7 @@ public class TenantThreadLocal
     }
 
     // Once a tenant has been invalidated it should never be used again
-    if (tenant.isInvalid()) {
-      throw new InvalidTenantOperationException(
-          "Attempting to use a tenant from a previous request/process." + tenantInfo(tenant));
-    }
+    checkTenantValid(tenant);
 
     // No need to perform further validation if this is essentially a no-op, can always re-set the current tenant or go
     // back to the previous tenant.
@@ -116,6 +117,13 @@ public class TenantThreadLocal
       throw new InvalidTenantOperationException(
           "Cannot transition from one valid tenant to another via Global. This is to prevent " +
               "data leakage." + tenantInfo(tenant));
+    }
+  }
+
+  private static void checkTenantValid(Tenant tenant) {
+    if (tenant.isInvalid()) {
+      throw new InvalidTenantOperationException(
+          "Attempting to use a tenant from a previous request/process." + tenantInfo(tenant));
     }
   }
 
@@ -171,6 +179,9 @@ public class TenantThreadLocal
 
   static void setTenantWithoutValidation(Tenant tenant) {
     updateLoggingContext(tenant);
+
+    // Note: passing in an exception to get a stacktrace in the log
+    log.trace("Setting tenant to {} from {}", tenant, tenantThreadLocal.get().current, new Exception());
     tenantThreadLocal.set(new TenantState(tenant));
   }
 
@@ -262,6 +273,19 @@ public class TenantThreadLocal
    * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant.
    */
   static <T> T runAs(Tenant tenant, Supplier<T> supplier) {
+    checkPermission(tenant);
+    return runAsWithoutValidation(tenant, supplier);
+  }
+
+  /**
+   * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. This method exists for
+   * trusted code that does not need to care what the pre-existing thread-local tenancy situation is, it just
+   * knows it needs to run the provided code in the provided tenant and then put things back the way they were
+   * afterwards.  In particular `TenantAwareRunnable` and similar operate this way.
+   * Note: still checks that the new tenant isValid, but skips checks related to the previous tenant
+   */
+  static <T> T runAsWithoutValidation(Tenant tenant, Supplier<T> supplier) {
+    checkTenantValid(tenant);
     if (!tenantUtil.isMultiTenant()) {
       return supplier.get();
     }
@@ -270,7 +294,7 @@ public class TenantThreadLocal
     // because this thread could be used in a thread pool
     Tenant previous = getTenantWithoutValidation();
     try {
-      setTenant(tenant);
+      setTenantWithoutValidation(tenant);
 
       return supplier.get();
     }
@@ -288,6 +312,8 @@ public class TenantThreadLocal
       return;
     }
 
+    // Note: passing in an exception to get a stacktrace in the log
+    log.trace("Invalidating tenant {}", getTenantWithoutValidation(), new Exception());
     getTenantWithoutValidation().invalidate();
     clearLoggingContext();
   }
@@ -325,7 +351,8 @@ public class TenantThreadLocal
     }
   }
 
-  private static class InvalidTenantOperationException
+  @VisibleForTesting
+  static class InvalidTenantOperationException
       extends RuntimeException
   {
     private static final String ERROR_PREFIX = "Tenancy error detected";

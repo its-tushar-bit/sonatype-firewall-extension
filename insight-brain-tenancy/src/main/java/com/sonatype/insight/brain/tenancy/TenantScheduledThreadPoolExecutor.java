@@ -82,7 +82,7 @@ public class TenantScheduledThreadPoolExecutor
 
     @Override
     public void run() {
-      TenantThreadLocal.runAs(reusableTenant, (Supplier<Void>) () -> {
+      TenantThreadLocal.runAsWithoutValidation(reusableTenant, (Supplier<Void>) () -> {
         wrapped.run();
         return null;
       });

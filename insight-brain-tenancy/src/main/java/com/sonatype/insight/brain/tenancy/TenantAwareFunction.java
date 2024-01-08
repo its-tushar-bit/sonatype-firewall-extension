@@ -26,6 +26,6 @@ public class TenantAwareFunction<T, R>
 
   @Override
   public R apply(T t) {
-    return TenantThreadLocal.runAs(tenant, () -> wrapped.apply(t));
+    return TenantThreadLocal.runAsWithoutValidation(tenant, () -> wrapped.apply(t));
   }
 }

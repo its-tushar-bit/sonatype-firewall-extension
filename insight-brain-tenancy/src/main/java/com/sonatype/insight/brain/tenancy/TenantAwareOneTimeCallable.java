@@ -39,7 +39,7 @@ public class TenantAwareOneTimeCallable<T> implements Callable<T>
 
     previouslyRun = true;
 
-    T result = TenantThreadLocal.runAs(tenant, () -> {
+    T result = TenantThreadLocal.runAsWithoutValidation(tenant, () -> {
       try {
         return wrapped.call();
       }

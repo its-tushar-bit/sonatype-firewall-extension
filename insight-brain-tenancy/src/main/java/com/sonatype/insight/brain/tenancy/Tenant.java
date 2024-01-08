@@ -35,7 +35,7 @@ public class Tenant
 
   private final String createdByThreadName;
 
-  private boolean valid = true;
+  private volatile boolean valid = true;
 
   Tenant(String tenantSlug) {
     this.tenantSlug = tenantSlug;

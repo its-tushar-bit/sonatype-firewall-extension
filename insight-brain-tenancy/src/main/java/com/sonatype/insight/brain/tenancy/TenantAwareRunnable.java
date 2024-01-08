@@ -32,7 +32,7 @@ public class TenantAwareRunnable
 
   @Override
   public void run() {
-    TenantThreadLocal.runAs(tenant, (Supplier<Void>) () -> {
+    TenantThreadLocal.runAsWithoutValidation(tenant, (Supplier<Void>) () -> {
       wrapped.run();
 
       return null;

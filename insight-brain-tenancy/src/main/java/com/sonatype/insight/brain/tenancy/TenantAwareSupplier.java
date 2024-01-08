@@ -24,6 +24,6 @@ public class TenantAwareSupplier<T> implements Supplier<T>
 
   @Override
   public T get() {
-    return TenantThreadLocal.runAs(tenant, wrapped);
+    return TenantThreadLocal.runAsWithoutValidation(tenant, wrapped);
   }
 }

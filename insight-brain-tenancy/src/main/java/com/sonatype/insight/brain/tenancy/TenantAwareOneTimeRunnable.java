@@ -39,7 +39,7 @@ public class TenantAwareOneTimeRunnable
 
     previouslyRun = true;
 
-    TenantThreadLocal.runAs(tenant, (Supplier<Void>) () -> {
+    TenantThreadLocal.runAsWithoutValidation(tenant, (Supplier<Void>) () -> {
       try {
         wrapped.run();
 

@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -92,7 +93,7 @@ public class EnterpriseReportingService implements InsightJob
   // Visible for testing
   volatile LoadingCache<String, Integer> currentVersionCache;
 
-  private volatile LoadingCache<String, EnterpriseReportingConfigDTO> lookerConfigCache;
+  private volatile TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> lookerConfigCache;
 
   private final HdsClient hdsClient;
 
@@ -139,7 +140,7 @@ public class EnterpriseReportingService implements InsightJob
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
       final InsightWork insightWork,
-      final LoadingCache<String, EnterpriseReportingConfigDTO> configCache,
+      final TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> configCache,
       final AtomicReference<DashboardMetadataListDTO> dashboardData,
       final int currentVersion,
       final LoadingCache<String, Integer> currentVersionCache,
@@ -190,7 +191,6 @@ public class EnterpriseReportingService implements InsightJob
       DashboardsVersionDTO hdsVersion;
       hdsVersion = hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
       reloadCachesAndUpdateLocalVersion(hdsVersion);
-
       return;
     }
 
@@ -237,11 +237,11 @@ public class EnterpriseReportingService implements InsightJob
 
   public String getBaseUrl() {
     if (lookerConfigCache == null) {
-      lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
-          .build(newEnterpriseReportingConfigCacheLoader());
+      lookerConfigCache = new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
+          .build(newEnterpriseReportingConfigCacheLoader()));
     }
 
-    return lookerConfigCache.getUnchecked(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
+    return lookerConfigCache.get().getUnchecked(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
   }
 
   public DashboardMetadataListDTO getDashboardMetadata() {

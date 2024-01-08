@@ -33,6 +33,8 @@ import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.InternalServerException;
@@ -42,7 +44,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -57,6 +61,8 @@ import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportin
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -101,7 +107,11 @@ public class EnterpriseReportingServiceTest
   @Captor
   private ArgumentCaptor<SSOEmbedUrlRequest> lookerSSOEmbedUrlHdsRequestArgumentCaptor;
 
-  private final LoadingCache<String, EnterpriseReportingConfigDTO> mockConfigCache = mock(LoadingCache.class);
+  @Rule
+  public TestName testName = new TestName();
+
+  private final TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> mockConfigCache =
+      mock(TenantReference.class);
 
   private final LoadingCache<String, Integer> mockLatestVersionCache = mock(LoadingCache.class);
 
@@ -184,6 +194,34 @@ public class EnterpriseReportingServiceTest
         EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
         .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
     assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedBaseUrl);
+  }
+
+  @Test
+  public void testGetBaseUrl_Multitenant() {
+    String expectedTenant1BaseUrl = "https://sonatypeexternaldev.cloud.looker.com/";
+    String expectedTenant2BaseUrl = "https://sonatypeexternaldev.us-east.cloud.looker.com/";
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
+      when(hdsClientMock.get(EnterpriseReportingConfigDTO.class,
+          EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
+          .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant1BaseUrl));
+    });
+    testAs(tenant1, t1 -> {
+      assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedTenant1BaseUrl);
+    });
+    Tenant tenant2 = testAsNewTenant(testName, t1 -> {
+      when(hdsClientMock.get(EnterpriseReportingConfigDTO.class,
+          EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
+          .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant2BaseUrl));
+    });
+    testAs(tenant2, t1 -> {
+      assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedTenant2BaseUrl);
+    });
+    testAs(tenant1, t1 -> {
+      assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedTenant1BaseUrl);
+    });
+    testAs(tenant2, t1 -> {
+      assertThat(enterpriseReportingService.getBaseUrl()).isEqualTo(expectedTenant2BaseUrl);
+    });
   }
 
   @Test

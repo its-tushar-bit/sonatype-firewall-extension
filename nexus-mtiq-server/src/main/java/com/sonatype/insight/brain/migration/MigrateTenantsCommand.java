@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantMigrator;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
@@ -48,6 +49,8 @@ public class MigrateTenantsCommand
     log.info("Starting DB migrations for the Global Schema and all tenants");
 
     DatabaseContainer databaseContainer = createDatabaseContainer(insightConfig);
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
+    databaseProvisionUtils.initializeDatabasesWithoutMigration();
 
     MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection =
         new MultiTenantGlobalSchemaProtection(databaseContainer.getOperationalDataStore());

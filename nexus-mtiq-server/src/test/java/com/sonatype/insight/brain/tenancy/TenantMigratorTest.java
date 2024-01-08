@@ -149,7 +149,6 @@ public class TenantMigratorTest
     testAsGlobalTenant(global -> {
       runMigrateAllSchemas(Arrays.asList("global", "public"));
 
-      verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
       verify(spyDatabaseProvisionUtils, never()).initializeDatabasesWithMigration(any(MultiTenantInsightConfig.class));
     });
   }
@@ -162,7 +161,7 @@ public class TenantMigratorTest
   }
 
   private void assertMigrationExecutedForTheExpectedNumberOfTenants(int numberOfTenants) {
-    verify(spyDatabaseProvisionUtils, times(numberOfTenants + 1)).initializeDatabasesWithoutMigration();
+    verify(spyDatabaseProvisionUtils, times(numberOfTenants)).initializeDatabasesWithoutMigration();
     verify(spyDatabaseProvisionUtils, times(numberOfTenants)).initializeDatabasesWithMigration(
         any(MultiTenantInsightConfig.class));
   }

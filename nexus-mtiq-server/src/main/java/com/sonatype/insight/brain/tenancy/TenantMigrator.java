@@ -62,8 +62,6 @@ public class TenantMigrator
   }
 
   public void migrateAllSchemas() {
-    databaseProvisionUtils.initializeDatabasesWithoutMigration();
-
     List<String> schemas =
         DatabaseUtil.getSchemasList(databaseProvisionUtils.getOperationalDataStore().getDataSource());
 

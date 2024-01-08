@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
@@ -49,13 +50,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,6 +75,9 @@ public class ThirdPartyComponentDAOTest
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  @Rule
+  public TestName testName = new TestName();
 
   @Mock
   private InsightWork insightWork;
@@ -198,13 +206,56 @@ public class ThirdPartyComponentDAOTest
   }
 
   @Test
+  public void testGetComponentDetailsByIdentifier_tenantAware() {
+    String tenant1ScanId = "tenant1ScanId";
+    String tenant1AppId = "tenant1AppId";
+    String tenant2ScanId = "tenant2ScanId";
+    String tenant2AppId = "tenant2AppId";
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    Runnable mockRunnable = mock(Runnable.class);
+    final NamedComponentDetails[] componentDetails = new NamedComponentDetails[1];
+
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
+
+      when(insightWork.getReportFile(tenant1AppId, tenant1ScanId)).thenReturn(reportZip);
+      componentDetails[0] = dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), tenant1AppId, tenant1ScanId);
+
+      mockRunnable.run();
+    });
+
+    testAs(tenant1, t1 -> {
+      assertThirdPartyComponentResult(componentDetails[0]);
+      assertThat(dao.componentCache.get().getIfPresent(tenant1ScanId)).isNotNull();
+      assertThat(dao.componentCache.get().getIfPresent(tenant2ScanId)).isNull();
+
+      mockRunnable.run();
+    });
+
+    Tenant tenant2 = testAsNewTenant(testName, t2 -> {
+
+      when(insightWork.getReportFile(tenant2AppId, tenant2ScanId)).thenReturn(reportZip);
+      componentDetails[0] = dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), tenant2AppId, tenant2ScanId);
+
+      mockRunnable.run();
+    });
+
+    testAs(tenant2, t2 -> {
+      assertThirdPartyComponentResult(componentDetails[0]);
+      assertThat(dao.componentCache.get().getIfPresent(tenant2ScanId)).isNotNull();
+      assertThat(dao.componentCache.get().getIfPresent(tenant1ScanId)).isNull();
+
+      mockRunnable.run();
+    });
+  }
+
+  @Test
   public void testGetComponentSummary_Known() {
     testGetComponentSummary(testData.get(hashGlibc), true);
   }
 
   @Test
   public void testGetComponentSummary_Unknown() {
-    testGetComponentSummary(ComponentIdentifier.createGolangCoordinates("n","v"), false);
+    testGetComponentSummary(ComponentIdentifier.createGolangCoordinates("n", "v"), false);
   }
 
   @Test
@@ -382,7 +433,6 @@ public class ThirdPartyComponentDAOTest
     final Set<String> licResults = component.getDeclaredLicenseIds();
     assertThat(licResults).hasSize(1);
     assertThat(licResults.iterator().next()).isEqualTo("Apache-2.0");
-
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {
@@ -419,7 +469,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
 
     dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
-        dataJson,summaryJsonData, reportZip);
+        dataJson, summaryJsonData, reportZip);
 
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNotNull();
@@ -494,7 +544,7 @@ public class ThirdPartyComponentDAOTest
     ContainerNode<?> licensesJsonData = getContainerNode(reportZip, Report.LICENSES_JSON_FILENAME);
     ContainerNode<?> securityJsonData = getContainerNode(reportZip, Report.SECURITY_JSON_FILENAME);
 
-    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson,summaryJsonData, reportZip);
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, reportZip);
 
     JsonNode securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(6);

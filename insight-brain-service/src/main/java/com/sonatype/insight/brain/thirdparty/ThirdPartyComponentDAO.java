@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -90,19 +91,21 @@ public class ThirdPartyComponentDAO
 
   private final InsightWork work;
 
-  private final Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>> componentCache;
+  // For testing visibility
+  final TenantReference<Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>>
+      componentCache;
 
   private static final Comparator<ComparableVersion> comparator = ComparableVersion::compareTo;
 
   @Inject
   public ThirdPartyComponentDAO(final InsightWork work) {
     this.work = work;
-    componentCache = CacheBuilder.newBuilder()
+    componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)
         .maximumWeight(100000)
         .weigher((Weigher<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>) (key, value) ->
             value.size())
-        .build();
+        .build());
   }
 
   /**
@@ -237,7 +240,7 @@ public class ThirdPartyComponentDAO
       final String scanId)
   {
     Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO> scannedComponents =
-        componentCache.getIfPresent(scanId);
+        componentCache.get().getIfPresent(scanId);
 
     if (scannedComponents == null) {
       final Map<String, ThirdPartyReportComponentDTO> data = getData(work.getReportFile(appId, scanId));
@@ -250,7 +253,7 @@ public class ThirdPartyComponentDAO
         scannedComponents.put(thirdPartyDataEntry.getKey(), thirdPartyDataEntry.getValue().componentIdentifier,
             thirdPartyDataEntry.getValue());
       }
-      componentCache.put(scanId, scannedComponents);
+      componentCache.get().put(scanId, scannedComponents);
     }
 
     final Map<String, ThirdPartyReportComponentDTO> detailsByIdentifier = scannedComponents.column(identifier);

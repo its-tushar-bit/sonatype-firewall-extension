@@ -31,6 +31,6 @@ public class MtiqOrgsAndPoliciesSidebarTest
     orgsAndPoliciesSidebar.getOrganizationLink(0).click();
     orgsAndPoliciesSidebar.getApplicationPlusIcon().click();
 
-    orgsAndPoliciesSidebar.getImportApplicationsButton().shouldNotBe(visible);
+    orgsAndPoliciesSidebar.getImportApplicationsButton().shouldBe(visible);
   }
 }

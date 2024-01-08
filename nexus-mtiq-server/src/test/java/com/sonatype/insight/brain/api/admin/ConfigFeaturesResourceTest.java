@@ -63,6 +63,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
       SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.getId(),
+      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
       };
 
   /**
@@ -72,7 +73,6 @@ public class ConfigFeaturesResourceTest
       new String[]{
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
-          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId()
       }
   )).toArray(String[]::new);
 
@@ -286,16 +286,7 @@ public class ConfigFeaturesResourceTest
       assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
     });
 
-    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
-        .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-        .post();
-    assertResponseStatus(204, response);
-
-    testAsTestTenant(tenant -> {
-      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
-    });
-
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
+    HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
@@ -306,26 +297,17 @@ public class ConfigFeaturesResourceTest
   public void testEnableFeature_saasLifecycleScmDisabled_asTenant() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
         .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-        .post();
+        .delete();
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
       assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNotNull();
     });
 
-    response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
-        .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-        .delete();
-    assertResponseStatus(204, response);
-
-    testAsTestTenant(tenant -> {
-      assertThat(systemConfigurationPropertyDAO.getByName(SAAS_LIFECYCLE_SCM_ENABLED)).isNull();
-    });
-
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(defaultEnabledFeatures);
+    assertThat(features).doesNotContain(SAAS_LIFECYCLE_SCM_ENABLED);
   }
 }

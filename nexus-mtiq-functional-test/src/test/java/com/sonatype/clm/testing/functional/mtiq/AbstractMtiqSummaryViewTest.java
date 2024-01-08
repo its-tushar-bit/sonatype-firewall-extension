@@ -40,7 +40,7 @@ public abstract class AbstractMtiqSummaryViewTest
   public void testNavigationPills() {
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
-    navPills.pills().shouldHaveSize(9);
+    navPills.pills().shouldHaveSize(10);
 
     navPills.appCategory().click();
     OwnerSummaryPage.categoryTile().shouldBe(visible);
@@ -60,14 +60,14 @@ public abstract class AbstractMtiqSummaryViewTest
     navPills.labels().click();
     OwnerSummaryPage.labelTile().shouldBe(visible);
 
+    navPills.sourceControl().click();
+    OwnerSummaryPage.sourceControlTile().shouldBe(visible);
+
     navPills.ltg().click();
     OwnerSummaryPage.licenseThreatGroupSummaryTile().shouldBe(visible);
 
     navPills.retention().shouldNot(exist);
     OwnerSummaryPage.dataRetentionTile().shouldNot(exist);
-
-    navPills.sourceControl().shouldNot(exist);
-    OwnerSummaryPage.sourceControlTile().shouldNot(exist);
 
     navPills.innerSource().should(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().should(exist);

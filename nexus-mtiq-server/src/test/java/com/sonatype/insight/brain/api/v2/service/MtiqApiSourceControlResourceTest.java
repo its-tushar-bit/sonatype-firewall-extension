@@ -41,12 +41,7 @@ public class MtiqApiSourceControlResourceTest
   @Test
   public void testMtiqSupportsGithub() {
     testAsTestTenant(tenant -> {
-      HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
-          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-          .post();
-      assertResponseStatus(204, response);
-
-      response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
+      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
       assertResponseStatus(200, response);
     });
   }
@@ -54,7 +49,12 @@ public class MtiqApiSourceControlResourceTest
   @Test
   public void testMtiqDoesNotSupportGithubWithoutFeatureEnabled() {
     testAsTestTenant(tenant -> {
-      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
+      HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
+          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+          .delete();
+      assertResponseStatus(204, response);
+
+      response = sendSourceControlConfigWithProvider(SourceControlProvider.GITHUB);
       assertResponseStatus(404, response);
     });
   }
@@ -62,12 +62,7 @@ public class MtiqApiSourceControlResourceTest
   @Test
   public void testMtiqDoesNotSupportOtherProviders() {
     testAsTestTenant(tenant -> {
-      HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
-          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-          .post();
-      assertResponseStatus(204, response);
-
-      response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
+      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
       assertSourceControlFailed(response, SourceControlProvider.AZURE);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);

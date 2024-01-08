@@ -78,7 +78,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(22)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(21)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 
@@ -200,6 +200,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(INNER_SOURCE_REPOSITORY_INTEGRATION))
         .filter(f -> !f.equals(INNER_SOURCE_TRANSITIVE_WAIVER))
         .filter(f -> !f.equals(SAAS_PRE_REGISTER_ALL_TENANTS))
+        .filter(f -> !f.equals(SAAS_LIFECYCLE_SCM_ENABLED))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

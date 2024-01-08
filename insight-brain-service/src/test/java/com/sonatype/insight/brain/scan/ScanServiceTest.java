@@ -215,6 +215,17 @@ public class ScanServiceTest
   }
 
   @Test
+  public void testSaveBinary_DoesNotUseDirectoryInformation() throws Exception {
+    String[] paths = new String[]{"dir1/app.tar.gz", "../app.tar.gz", "/dir2/../app.tar.gz", "/dir1/dir2/app.tar.gz"};
+
+    for (String path : paths) {
+      File file = scanService.saveBinary(getBundle("app01.zip"), path);
+      file.delete();
+      assertThat(file.getName()).isEqualTo("app.tar.gz");
+    }
+  }
+
+  @Test
   public void testGetTicket() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
     scanTicket =

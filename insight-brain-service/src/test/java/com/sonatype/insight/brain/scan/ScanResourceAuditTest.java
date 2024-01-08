@@ -23,6 +23,8 @@ public class ScanResourceAuditTest
 
   private static final String RESOURCE_PATH = "/AbstractAuditTest/report";
 
+  private static final String FILENAME = "AbstractAuditTest-report";
+
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent("ScanResourceAuditTest_AppId");
@@ -60,7 +62,7 @@ public class ScanResourceAuditTest
 
   @Test
   public void testUploadBinary_Unauthorized() throws Exception {
-    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH).with(unauthorizedUser())
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, FILENAME).with(unauthorizedUser())
         .post();
     assertResponseStatus(403, response);
 
@@ -71,7 +73,7 @@ public class ScanResourceAuditTest
   @Test
   public void testUploadBinary_BadApplicationId() throws Exception {
     String appId = "unknown-app-public-id";
-    HttpResponse response = uploadRequest(appId, Stage.ID_BUILD, RESOURCE_PATH).post();
+    HttpResponse response = uploadRequest(appId, Stage.ID_BUILD, FILENAME).post();
     assertResponseStatus(404, response);
 
     assertEvaluationAuditLog("not-found", null, appId, null, null, null, null);
@@ -80,7 +82,7 @@ public class ScanResourceAuditTest
   @Test
   public void testUploadBinary_BadStageId() throws Exception {
     String stageId = "invalid-stage-id";
-    HttpResponse response = uploadRequest(app.getPublicId(), stageId, RESOURCE_PATH).post();
+    HttpResponse response = uploadRequest(app.getPublicId(), stageId, FILENAME).post();
     assertResponseStatus(400, response);
 
     assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, null, null);

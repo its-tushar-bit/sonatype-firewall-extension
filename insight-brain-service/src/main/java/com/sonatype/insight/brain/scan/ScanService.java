@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -114,6 +116,8 @@ public class ScanService
   {
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
+    validateFileName(filename);
+
     if (!productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
       log.debug("License does not support application evaluation");
       throw new InvalidLicenseException();
@@ -126,6 +130,12 @@ public class ScanService
 
     ScanTask scanTask = newScanTask(appPublicId, binFile, filename, stage, sendNotifications, userAgent, scanType);
     return toScanTicket(scanTask);
+  }
+
+  private void validateFileName(String fileName) {
+    if (fileName.contains("/") || fileName.contains("\\")) {
+      throw new BadRequestException("Filename must not be a directory: " + fileName);
+    }
   }
 
   /**
@@ -149,8 +159,11 @@ public class ScanService
   }
 
   File saveBinary(InputStream is, String filename) throws IOException {
+    // Prevent a user from inputting directory information as part of filename
+    String sanitizedFileName = Paths.get(filename).getFileName().toString();
+
     try (InputStream in = is) {
-      File file = new File(Files.createTempDirectory(null).toFile(), filename);
+      File file = new File(Files.createTempDirectory(null).toFile(), sanitizedFileName);
       log.debug("Saving file to {}", file);
       try {
         Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);

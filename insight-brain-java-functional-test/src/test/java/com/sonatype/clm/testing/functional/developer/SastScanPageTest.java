@@ -43,7 +43,7 @@ public class SastScanPageTest
   }
 
   @Test
-  public void testSastScanPage() throws InterruptedException {
+  public void testSastScanPage() {
     final Application application = tempEntity.newApplicationWithParent(APPLICATION_ID, APPLICATION_NAME);
     SastScan sastScan = tempEntity.newSastScanWithCustomTimestamp(application.getId(), Date.valueOf("2020-01-01"));
     setUpSastFindings(sastScan);

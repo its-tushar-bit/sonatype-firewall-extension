@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -41,6 +42,8 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -991,6 +994,30 @@ public class SupportInfoFilesTest
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
     assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedMigrationTrackers));
+  }
+
+  @Test
+  public void shouldProvideInnerSourceRepositoryConfigurationInfo() throws IOException {
+    // Given
+    List<RepositoryConnection> expectedRepositoryConfigs = new ArrayList<>();
+    expectedRepositoryConfigs.add(new RepositoryConnection("ownerId1", "http://www.example.com",
+        RepositoryFormat.MAVEN, "username", "password".toCharArray()));
+    expectedRepositoryConfigs.add(new RepositoryConnection("ownerId2", "http://www.example.com",
+        RepositoryFormat.GENERIC, "username2", "password2".toCharArray()));
+
+    // When
+    when(dbData.getInnerSourceRepositoriesConfiguration()).thenReturn(
+        wrapEntry("innerSourceRepositoryConnection", expectedRepositoryConfigs));
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedRepositoryConfigs),
+            "innerSourceRepositoryConnection.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withInnerSourceRepositoryInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedRepositoryConfigs));
   }
 
   private Entry<String, SortedMap<String, Object>> wrapEntry(String entryName, SortedMap<String, Object> objectToPut) {

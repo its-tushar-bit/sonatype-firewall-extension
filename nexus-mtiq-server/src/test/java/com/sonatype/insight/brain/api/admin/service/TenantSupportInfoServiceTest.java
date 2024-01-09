@@ -93,6 +93,7 @@ public class TenantSupportInfoServiceTest
       when(supportInfoFiles.withSourceControlInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withPolicyMonitoringInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withMigrationTrackerInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withInnerSourceRepositoryInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
       when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
           new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));

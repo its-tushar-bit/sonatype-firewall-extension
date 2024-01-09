@@ -451,6 +451,7 @@ public class SupportService
     addDbData(filesToZip, workDir, dbData.getPolicyMonitoring());
     addDbData(filesToZip, workDir, dbData.getSourceControl());
     addDbData(filesToZip, workDir, dbData.getReverseProxyAuthenticationConfiguration());
+    addDbData(filesToZip, workDir, dbData.getInnerSourceRepositoriesConfiguration());
   }
 
   private void addDbData(final List<SupportFile> filesToZip,

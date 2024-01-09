@@ -99,6 +99,7 @@ public class TenantSupportInfoService
         .withSourceControlInfo()
         .withPolicyMonitoringInfo()
         .withMigrationTrackerInfo()
+        .withInnerSourceRepositoryInfo()
         .build();
 
     return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);

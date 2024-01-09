@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordService;
@@ -126,6 +127,8 @@ class DbData
 
   private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
+  private final RepositoryConnectionDAO repositoryConnectionDAO;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -157,7 +160,8 @@ class DbData
          final SourceControlDAO sourceControlDAO,
          final RepositoryComponentDAO repositoryComponentDAO,
          final PolicyWaiverDAO policyWaiverDAO,
-         final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
+         final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+         final RepositoryConnectionDAO repositoryConnectionDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -190,6 +194,7 @@ class DbData
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
+    this.repositoryConnectionDAO = repositoryConnectionDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -346,6 +351,16 @@ class DbData
 
   Entry<String, Object> getReverseProxyAuthenticationConfiguration() {
     return wrapEntry("reverseProxyAuthenticationConfiguration", reverseProxyAuthenticationConfigurationDAO.get());
+  }
+
+  Entry<String, Object> getInnerSourceRepositoriesConfiguration() {
+    final List<RepositoryConnection> repositoryConfigs = repositoryConnectionDAO.getAll();
+    for (RepositoryConnection repositoryConfig : repositoryConfigs) {
+      repositoryConfig.setUsername(SystemInfo.MASK);
+      repositoryConfig.setPassword(SystemInfo.MASK.toCharArray());
+    }
+
+    return wrapEntry("innerSourceRepositoryConnection", repositoryConfigs);
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

@@ -250,7 +250,8 @@ public class SupportServiceTest
         "policy",
         "policyMonitoring",
         "sourceControl",
-        "reverseProxyAuthenticationConfiguration"
+        "reverseProxyAuthenticationConfiguration",
+        "innerSourceRepositoryConnection"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);

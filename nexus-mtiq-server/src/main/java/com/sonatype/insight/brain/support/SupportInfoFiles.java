@@ -109,6 +109,8 @@ public class SupportInfoFiles
 
   private static final String MIGRATION_TRACKER_FILE = "migrationTracker.json";
 
+  private static final String INNER_SOURCE_REPOSITORY_CONFIGURATION_FILE = "innerSourceRepositoryConnection.json";
+
   private final VersionService versionService;
 
   private final DbData dbData;
@@ -474,6 +476,16 @@ public class SupportInfoFiles
     String migrationTrackerJson = JsonUtils.format(migrationTracker);
 
     createAndAddSupportFile(migrationTrackerJson, MIGRATION_TRACKER_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withInnerSourceRepositoryInfo() {
+    Entry<String, Object> innerSourceRepositoriesConfiguration = dbData.getInnerSourceRepositoriesConfiguration();
+    String innerSourceRepositoriesConfigurationJson = JsonUtils.format(innerSourceRepositoriesConfiguration);
+
+    createAndAddSupportFile(innerSourceRepositoriesConfigurationJson, INNER_SOURCE_REPOSITORY_CONFIGURATION_FILE,
+        SupportFileType.DB);
 
     return this;
   }

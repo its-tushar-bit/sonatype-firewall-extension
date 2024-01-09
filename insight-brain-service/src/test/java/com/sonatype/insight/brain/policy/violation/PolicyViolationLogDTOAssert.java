@@ -330,6 +330,8 @@ public class PolicyViolationLogDTOAssert
     assertThat(policyViolationLogDTO.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
     assertThat(policyViolationLogDTO.repositoryManagerInstanceId).isEqualTo(
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
+    assertThat(policyViolationLogDTO.repositoryManagerName).isEqualTo(
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getName());
   }
 
   private static void assertUserData(PolicyViolationLogDTO policyViolationLogDTO, String userName) {

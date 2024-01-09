@@ -56,6 +56,8 @@ public class PolicyViolationLogDTO
 
   public String repositoryManagerInstanceId;
 
+  public String repositoryManagerName;
+
   public ComponentIdentifier componentIdentifier;
 
   public String componentHash;

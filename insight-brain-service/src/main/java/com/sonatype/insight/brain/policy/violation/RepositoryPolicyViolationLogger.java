@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.security.CurrentUser;
 
 /**
@@ -45,8 +46,9 @@ public class RepositoryPolicyViolationLogger
       policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     }
     policyViolationLogDTO.repositoryManagerId = repository.getRepositoryManagerId();
-    policyViolationLogDTO.repositoryManagerInstanceId =
-        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId();
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    policyViolationLogDTO.repositoryManagerInstanceId = repositoryManager.getInstanceId();
+    policyViolationLogDTO.repositoryManagerName = repositoryManager.getName();
     policyViolationLogDTO.repositoryId = repository.getId();
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();
     return policyViolationLogDTO;

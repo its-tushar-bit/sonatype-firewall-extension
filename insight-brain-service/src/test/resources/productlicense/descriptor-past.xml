@@ -6,6 +6,7 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
+<!-- This descriptor file generates an already-expired license -->
 <license>
   <subject>CLM</subject>
   <keystore>
@@ -15,7 +16,11 @@
     <password></password>
     <keyPassword></keyPassword>
   </keystore>
-  <validUntil>2050/12/31</validUntil>
+  <!--
+    Note: license-creator doesn't actually let you create a license that's already expired.
+    The best you can do is to create one that expires the day you create it, and then wait a day.
+  -->
+  <validUntil>2023/12/20</validUntil>
   <evaluation>false</evaluation>
   <licensedUsers>0</licensedUsers>
   <products>

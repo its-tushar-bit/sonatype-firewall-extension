@@ -18,10 +18,12 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.SisuApplication;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.eclipse.sisu.launch.InjectedTest;
+import org.eclipse.sisu.space.SpaceModule;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -72,6 +74,11 @@ public abstract class BrainInjectedTest
       System.setProperty("sisu.url.caches", "true");
     }
     super.setUp();
+  }
+
+  @Override
+  public SpaceModule spaceModule() {
+    return SisuApplication.getSpaceModule();
   }
 
   /**

@@ -15,7 +15,10 @@ import com.sonatype.insight.license.model.CLMLicenseBuilder;
 
 import org.sonatype.licensing.PreferencesFactory;
 
+import org.eclipse.sisu.Typed;
+
 @Named
+@Typed(PreferencesFactory.class)
 @Singleton
 public class DatabasePreferencesFactory
     implements PreferencesFactory

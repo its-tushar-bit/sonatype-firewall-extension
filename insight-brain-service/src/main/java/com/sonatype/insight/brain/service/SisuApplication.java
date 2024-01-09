@@ -17,6 +17,7 @@ import javax.ws.rs.ext.Provider;
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -29,7 +30,6 @@ import io.dropwizard.servlets.tasks.Task;
 import io.dropwizard.setup.Environment;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
-import org.eclipse.sisu.space.BeanScanning;
 import org.eclipse.sisu.space.ClassSpace;
 import org.eclipse.sisu.space.SpaceModule;
 import org.eclipse.sisu.space.URLClassSpace;
@@ -80,21 +80,22 @@ public abstract class SisuApplication<T extends Configuration>
 
     modules.addAll(modules(configuration));
 
-    ClassSpace space = new URLClassSpace(getClass().getClassLoader());
-    modules.add(new SpaceModule(space, scanning(configuration)));
+    modules.add(getSpaceModule());
 
     return Guice.createInjector(wire(modules));
   }
 
-  protected Module wire(final List<Module> modules) {
-    return new WireModule(modules);
+  /**
+   * Visible so it can be used by BrainInjectedTest to get the same SpaceModule in testing as in the app
+   */
+  @VisibleForTesting
+  public static SpaceModule getSpaceModule() {
+    ClassSpace space = new URLClassSpace(SisuApplication.class.getClassLoader());
+    return new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*"));
   }
 
-  //
-  // Allow the application to customize the scanning
-  //
-  protected BeanScanning scanning(@SuppressWarnings("unused") T configuration) {
-    return BeanScanning.ON;
+  protected Module wire(final List<Module> modules) {
+    return new WireModule(modules);
   }
 
   //

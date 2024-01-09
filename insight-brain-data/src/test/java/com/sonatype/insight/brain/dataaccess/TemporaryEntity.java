@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.dataaccess;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -3950,6 +3952,21 @@ public class TemporaryEntity
     productLicense.setLicenseDetails(licenseDetails);
     productLicenseDAO.update(productLicense);
     return productLicense;
+  }
+
+  public ProductLicense setProductLicense(Path licenseFilePath) {
+    byte[] licenseBytes;
+    try {
+      licenseBytes = Files.readAllBytes(licenseFilePath);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    return setProductLicense(
+        Base64.getEncoder().encodeToString(licenseBytes),
+        "LICENSE_DETAILS"
+    );
   }
 
   public FirewallIgnorePatterns setFirewallIgnorePatterns(

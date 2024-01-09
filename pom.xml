@@ -46,7 +46,8 @@
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
      keycloak 22.x requires Java 17 -->
     <keycloak.version>21.1.2</keycloak.version>
-
+    <bouncycastle.version>1.77</bouncycastle.version>
+    
     <!--
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.
       https://github.com/sonatype/insight-brain/pull/10613/files#r1394208485
@@ -331,6 +332,11 @@
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-jdbm-partition</artifactId>
           </exclusion>
+          <!-- Avoid security vulnerabilities -->
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+          </exclusion>
         </exclusions>
         <scope>test</scope>
       </dependency>
@@ -547,6 +553,16 @@
           <exclusion>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-server-spi-private</artifactId>
+          </exclusion>
+          <!-- Avoid security vulnerabilities -->
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+          </exclusion>
+          <!-- Avoid security vulnerabilities -->
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -972,8 +988,8 @@
       <dependency>
         <!-- avoid security vulnerabilities -->
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
-        <version>1.70</version>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
       </dependency>
 
       <dependency>

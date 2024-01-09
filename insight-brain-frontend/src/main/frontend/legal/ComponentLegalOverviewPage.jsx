@@ -52,6 +52,8 @@ export default function ComponentLegalOverviewPage(props) {
     $state,
     prevState,
     prevParams,
+    tabId,
+    scanId,
 
     //actions
     setDisplayCopyrightOverrideModal,
@@ -101,13 +103,22 @@ export default function ComponentLegalOverviewPage(props) {
   const isComponentEcosystemSupported = () =>
     SUPPORTED_COMPONENTS_ECOSYSTEM.find((supportedEcosystem) => supportedEcosystem === ecosystem);
 
-  const backHref =
+  const getDefaultBackButtonUrl = () =>
     applicationPublicId && stageTypeId
       ? $state.href($state.get('legal.applicationDetails'), {
           applicationPublicId: applicationPublicId,
           stageTypeId: stageTypeId,
         })
       : $state.href($state.get(prevState.name), { ...prevParams });
+
+  const backHref =
+    tabId === 'legal' && scanId
+      ? $state.href('applicationReport.componentDetails.legal', {
+          publicId: applicationPublicId,
+          scanId,
+          hash,
+        })
+      : getDefaultBackButtonUrl();
 
   return (
     <main className="nx-page-main">
@@ -252,4 +263,6 @@ ComponentLegalOverviewPage.propTypes = {
     name: PropTypes.string,
   }),
   prevParams: PropTypes.object,
+  tabId: PropTypes.string,
+  scanId: PropTypes.string,
 };

@@ -29,7 +29,16 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides, originalSo
     licenseFiles: component.component ? component.component.licenseLegalData.licenseFiles : null,
     sourceLinks: component.component ? component.component.licenseLegalData.sourceLinks : null,
     ...pick(
-      ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier', 'repositoryId'],
+      [
+        'hash',
+        'organizationId',
+        'applicationPublicId',
+        'stageTypeId',
+        'componentIdentifier',
+        'repositoryId',
+        'scanId',
+        'tabId',
+      ],
       router.currentParams
     ),
     ...pick(['prevState', 'prevParams'], router),

@@ -1041,6 +1041,21 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testLegalTab_licenseDetectionTileClickReviewObligationsButtonAndBackToCDP() {
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+    componentDetailsPage.legalTab().click();
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.reviewObligationsButton().shouldBe(visible);
+    navigateToLegalObligationsPage(licenseDetectionsTile);
+
+    ComponentLegalOverviewPage.backLink().click();
+    waitUntilUrl(ComponentDetailsPage.urlToLegal(app, SCAN_ID, HASH));
+    licenseDetectionsTile.reviewObligationsButton().shouldBe(visible);
+  }
+
+  @Test
   public void testLegalTab_licenseDetectionTileAlpDisabled() {
     setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
     // we need to refresh the browser to load the product features again
@@ -1439,8 +1454,9 @@ public class ComponentDetailsTest
 
   private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
     licenseDetectionsTile.reviewObligationsButton().click();
-    waitUntilUrl(LegalApplicationDetailsPage.urlToApplicationScope(app.getPublicId(), "build") + "/component/"
-        + HASH);
+    waitUntilUrl(LegalApplicationDetailsPage.urlToApplicationScopeComingFromCDP(
+        app.getPublicId(), "build", SCAN_ID, HASH));
+
     ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 

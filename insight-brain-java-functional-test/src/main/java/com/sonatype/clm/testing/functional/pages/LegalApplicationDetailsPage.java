@@ -19,11 +19,22 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class LegalApplicationDetailsPage
 {
+  private static final String BASE_URL_CDP_ORIGIN = "/applicationReport/%s/%s";
+
   private LegalApplicationDetailsPage() {}
 
   public static String urlToApplicationScope(String publicAppId, String stage) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/stage/%s",
         publicAppId, stage));
+  }
+
+  public static String urlToApplicationScopeComingFromCDP(String publicAppId, String stage,
+                                                          String scanId, String componentHash)
+  {
+    return BaseUrl.resolvePageUrl(String.format(BASE_URL_CDP_ORIGIN, publicAppId, scanId) +
+        String.format("/legal/application/%s/stage/%s", publicAppId, stage) +
+        String.format("/component/%s?scanId=%s&tabId=legal", componentHash, scanId)
+    );
   }
 
   public static String urlToComponentAtRootScopeByHash(String componentHash) {

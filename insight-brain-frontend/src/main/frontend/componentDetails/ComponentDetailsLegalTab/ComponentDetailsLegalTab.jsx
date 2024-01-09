@@ -20,10 +20,12 @@ import {
   selectApplicationInfo,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectReportParameters } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function ComponentDetailsLegalTab() {
   const LEGAL = policyTypes[1].id;
   const { applicationId, stageId } = useSelector(selectApplicationInfo) ?? { applicationId: null, stageId: null };
+  const { scanId } = useSelector(selectReportParameters);
   const { hash } = useSelector(selectComponentDetails) ?? { hash: null };
   const isLoadingComponentDetails = useSelector(selectComponentDetailsLoading);
   const componentDetailsLoadError = useSelector(selectComponentDetailsLoadErrors);
@@ -31,10 +33,12 @@ export default function ComponentDetailsLegalTab() {
   const dispatch = useDispatch();
   const reviewObligationsClickHandler = () =>
     dispatch(
-      stateGo('legal.applicationStageTypeComponentOverview', {
+      stateGo('applicationReport.applicationStageTypeComponentOverview', {
         applicationPublicId: applicationId,
         stageTypeId: stageId,
         hash: hash,
+        tabId: 'legal',
+        scanId,
       })
     );
 

@@ -140,6 +140,13 @@ function routes($stateProvider, $urlRouterProvider) {
       data: {
         title: 'Customize Vulnerability Details',
       },
+    })
+    .state('applicationReport.applicationStageTypeComponentOverview', {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
     });
 
   $urlRouterProvider

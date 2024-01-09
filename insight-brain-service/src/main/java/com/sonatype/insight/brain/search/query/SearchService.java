@@ -23,7 +23,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -58,7 +57,6 @@ import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
-import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -477,16 +475,20 @@ public class SearchService
       return query;
     }
 
-    contextIdsWithReadPermission.addAll(getChildContextIds(contextIdsWithReadPermission));
+    Map<String, OwnerType> contextIdsWithReadPermissionMap = getChildContextIds(contextIdsWithReadPermission);
 
     BooleanQuery.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
     Builder allowedContextIdsQueryBuilder = new Builder();
 
     try {
-      for (String contextId : contextIdsWithReadPermission) {
-        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
-        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
-      }
+      contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
+        if (OwnerType.APPLICATION.equals(type)) {
+          allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
+        }
+        else if (OwnerType.ORGANIZATION.equals(type)) {
+          allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
+        }
+      });
 
       return new Builder()
           .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
@@ -500,13 +502,14 @@ public class SearchService
     }
   }
 
-  private Set<String> getChildContextIds(Set<String> contextIdsWithReadPermission) {
-    Set<String> childContextIds = new HashSet<>();
+  private Map<String, OwnerType> getChildContextIds(Set<String> contextIdsWithReadPermission) {
+    Map<String, OwnerType> childContextIds = new HashMap<>();
     for (String contextIdWithReadPermission : contextIdsWithReadPermission) {
       Owner owner = ownerDAO.getById(contextIdWithReadPermission);
-      if (owner != null && OwnerType.ORGANIZATION.equals(owner.getType())) {
+      if (owner != null) {
+        childContextIds.put(owner.getId(), owner.getType());
         childContextIds
-            .addAll(ownerDAO.getChildOwners(owner).stream().map(HasStringId::getId).collect(Collectors.toSet()));
+            .putAll(ownerDAO.walkChildren(owner).stream().collect(Collectors.toMap(Owner::getId, Owner::getType)));
       }
     }
     return childContextIds;

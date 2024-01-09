@@ -387,6 +387,41 @@ public class SearchServiceTest
   }
 
   @Test
+  public void testSearchIndex_SearchVulnerabilityAndOrganizationNLevelContextPermission() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization("org-01");
+    Organization org2 = tempEntity.newOrganization("org-02", org1);
+    Organization org3 = tempEntity.newOrganization("org-03", org2);
+
+    Application app1 = tempEntity.newApplication("app-01", org1.getId());
+    newAppReport(app1.getId(), Stage.ID_RELEASE, "report-1", "/SearchServiceTest/report-1");
+
+    Application app2 = tempEntity.newApplication("app-02", org2.getId());
+    newAppReport(app2.getId(), Stage.ID_RELEASE, "report-2", "/SearchServiceTest/report-2");
+
+    Application app3 = tempEntity.newApplication("app-03", org3.getId());
+    newAppReport(app3.getId(), Stage.ID_RELEASE, "report-2", "/SearchServiceTest/report-2");
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(org3.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
+
+    tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);  // insufficient permissions
+
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5);  // sufficient permissions
+  }
+
+  @Test
   public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() throws IOException {
     Role role = tempEntity.newRole(false, Permission.READ);
 

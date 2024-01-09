@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -299,6 +301,25 @@ public class OwnerDAO
     public void remove() {
       throw new UnsupportedOperationException();
     }
+  }
+
+  /**
+   * Walk the children of a given owner
+   * THIS METHOD DOES NOT GUARANTEE ANY SPECIFIC ORDER
+   *
+   * @param owner Organization | Application | Repository | Repository Manager | Repository Container
+   * @return List of owners
+   */
+  public List<Owner> walkChildren(Owner owner) {
+    TransactionContext tx = appDAO.createTransactionContext();
+    List<Owner> ownersFound = new ArrayList<>();
+    Deque<Owner> ownerDeque = new ArrayDeque<>(getChildOwners(tx, owner));
+    while (!ownerDeque.isEmpty()) {
+      Owner child = ownerDeque.removeFirst();
+      ownersFound.add(child);
+      ownerDeque.addAll(getChildOwners(tx, child));
+    }
+    return ownersFound;
   }
 
   public void cascadeDelete(TransactionContext tx, Owner owner) {

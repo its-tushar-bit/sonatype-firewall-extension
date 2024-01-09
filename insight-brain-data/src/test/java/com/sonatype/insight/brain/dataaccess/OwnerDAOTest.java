@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
@@ -164,6 +165,88 @@ public class OwnerDAOTest
     }
     assertThat(ownersIds).containsExactly(repository.getRepositoryManagerId(),
         RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testWalkChildren_SingleOrgBranch() {
+    List<String> ownersIds = new ArrayList<>();
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+
+    Organization lastBranchOrg = testList.get(testList.size() - 1);
+
+    for (Owner owner : ownerDAO.walkChildren(lastBranchOrg)) {
+      ownersIds.add(owner.getId());
+    }
+    // Cannot guarantee any order
+    assertThat(ownersIds).containsOnly(testList.get(0).getId(), testList.get(1).getId(), app.getId());
+  }
+
+  @Test
+  public void testWalkChildren_MultiOrgBranches() {
+    List<String> ownersIds = new ArrayList<>();
+    List<Organization> mainBranch = tempEntity.newRelatedOrganizationsAsList(1, 5, 0);
+    List<Organization> secondBranch = tempEntity.newRelatedOrganizationsAsList(mainBranch.get(2) ,1, 2, 0);
+    List<Organization> thirdBranch = tempEntity.newRelatedOrganizationsAsList(secondBranch.get(1) ,1, 4, 0);
+    Application app1 = tempEntity.newApplicationWithParent(mainBranch.get(2));
+    Application app2 = tempEntity.newApplicationWithParent(secondBranch.get(0));
+    Application app3 = tempEntity.newApplicationWithParent(thirdBranch.get(1));
+
+    Organization lastBranchOrg = mainBranch.get(mainBranch.size() - 1);
+
+    for (Owner owner : ownerDAO.walkChildren(lastBranchOrg)) {
+      ownersIds.add(owner.getId());
+    }
+    // Cannot guarantee any order
+    assertThat(ownersIds).containsOnly(mainBranch.get(0).getId(), mainBranch.get(1).getId(),
+        mainBranch.get(2).getId(), mainBranch.get(3).getId(), secondBranch.get(0).getId(),
+        secondBranch.get(1).getId(), thirdBranch.get(0).getId(), thirdBranch.get(1).getId(),
+        thirdBranch.get(2).getId(), thirdBranch.get(3).getId(), app1.getId(), app2.getId(), app3.getId());
+  }
+
+  @Test
+  public void testWalkChildren_ApplicationAsRoot() {
+    List<String> ownersIds = new ArrayList<>();
+    Application app = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID);
+    for (Owner owner : ownerDAO.walkChildren(app)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).isEmpty();
+  }
+
+  @Test
+  public void testWalkChildren_RepositoryAsRoot() {
+    List<String> ownersIds = new ArrayList<>();
+    Repository repo = tempEntity.newRepository();
+    for (Owner owner : ownerDAO.walkChildren(repo)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).isEmpty();
+  }
+
+  @Test
+  public void testWalkChildren_RepoManagerAsRoot() {
+    List<String> ownersIds = new ArrayList<>();
+    Repository repo = tempEntity.newRepository();
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repo.getRepositoryManagerId());
+    for (Owner owner : ownerDAO.walkChildren(repoManager)) {
+      ownersIds.add(owner.getId());
+    }
+    // Cannot guarantee any order
+    assertThat(ownersIds).containsOnly(repo.getId());
+  }
+
+  @Test
+  public void testWalkChildren_RepoContainerAsRoot() {
+    List<String> ownersIds = new ArrayList<>();
+    Owner repositoryContainer = ownerDAO.getById(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    Repository repo = tempEntity.newRepository();
+    for (Owner owner : ownerDAO.walkChildren(repositoryContainer)) {
+      ownersIds.add(owner.getId());
+    }
+    // Cannot guarantee any order
+    assertThat(ownersIds).containsOnly(repo.getRepositoryManagerId(), repo.getId(), repository.getRepositoryManagerId(),
+        repository.getId());
   }
 
   @Test

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.successmetrics;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -18,9 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SuccessMetricsServiceTest
     extends AbstractComponentTest
 {
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   @Inject
   private SuccessMetricsService successMetricsService;
 

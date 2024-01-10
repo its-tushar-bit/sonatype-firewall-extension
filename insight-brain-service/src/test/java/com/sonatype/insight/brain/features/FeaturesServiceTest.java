@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -38,9 +37,6 @@ public class FeaturesServiceTest
 
   @Mock
   private ProductLicense productLicense;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
   private ApiConfigurationService configurationService;

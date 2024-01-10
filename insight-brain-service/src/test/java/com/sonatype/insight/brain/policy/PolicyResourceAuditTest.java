@@ -66,8 +66,6 @@ public class PolicyResourceAuditTest
 
   private TagDAO tagDAO;
 
-  private PolicyDAO policyDAO;
-
   private LabelDAO labelDAO;
 
   private Organization organization;
@@ -81,7 +79,6 @@ public class PolicyResourceAuditTest
     licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
     policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     tagDAO = lookup(TagDAO.class);
-    policyDAO = lookup(PolicyDAO.class);
     labelDAO = lookup(LabelDAO.class);
 
     organization = tempEntity.newOrganization();

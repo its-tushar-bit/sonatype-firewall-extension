@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Locale;
+
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -28,9 +28,6 @@ public class ApiConfigFeaturesServiceTest
 {
   @Inject
   private ApiConfigFeaturesService service;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.product.license;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -32,9 +31,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Inject
   private FirewallReleaseIntegrityLicenseListener listener;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
   private AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;

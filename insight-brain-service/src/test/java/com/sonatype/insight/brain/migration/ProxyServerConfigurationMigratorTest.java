@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator.ProxyConfig;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -42,9 +41,6 @@ public class ProxyServerConfigurationMigratorTest
 
   @Inject
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
   private ProxyServerConfigurationMigrator proxyServerConfigurationMigrator;

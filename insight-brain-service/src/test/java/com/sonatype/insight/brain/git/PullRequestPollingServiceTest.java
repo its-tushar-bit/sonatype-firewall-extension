@@ -80,9 +80,7 @@ public class PullRequestPollingServiceTest
   @Test
   public void testFetchAndSendPullRequestsForCommenting_noRepositoriesToPoll() throws IOException {
     // given:
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
-        .build();
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder().build();
 
     // when: fetch and send
     pollingService.fetchAndSendPullRequestsForCommenting();
@@ -97,8 +95,7 @@ public class PullRequestPollingServiceTest
     // given: necessary ingredients to emit a discovered pull request event
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("org5/repo5", SourceControlProvider.GITHUB)
         .withApplication("appBaseBranch", "develop")
         .withPollingTime(pullRequestPollingTime)
@@ -122,8 +119,7 @@ public class PullRequestPollingServiceTest
     // given: necessary ingredients to emit a discovered pull request event
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("org7/repo7", SourceControlProvider.GITHUB)
         .withApplication("appPost", "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -158,8 +154,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
     final boolean prCommentingEnabled = false;
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("org7/repo7", SourceControlProvider.GITHUB)
         .withApplication("appPost", "main-branch", prCommentingEnabled)
         .withPollingTime(pullRequestPollingTime)
@@ -183,8 +178,7 @@ public class PullRequestPollingServiceTest
     // given:
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
         .withApplication("app1", "main-branch", false)
         .withPollingTime(pullRequestPollingTime)
@@ -218,8 +212,7 @@ public class PullRequestPollingServiceTest
     // but the license does not support PR commenting
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("org7/repo7", SourceControlProvider.GITHUB)
         .withApplication("appPost", "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -240,8 +233,7 @@ public class PullRequestPollingServiceTest
     // given:
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
@@ -278,8 +270,7 @@ public class PullRequestPollingServiceTest
     // given:
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
@@ -312,8 +303,7 @@ public class PullRequestPollingServiceTest
     // given: PR without associated policy eval
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("org9/repo9", SourceControlProvider.GITHUB)
         .withApplication("appNoTarget", "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -371,8 +361,7 @@ public class PullRequestPollingServiceTest
     // given: necessary ingredients to emit a discovered pull request event
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("orgInt/repoInt", SourceControlProvider.GITHUB)
         .withApplication("appInternal", "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -407,8 +396,7 @@ public class PullRequestPollingServiceTest
   public void testFetchAndSendPullRequestsForCommenting_bitbucketCloudNotSupported() throws IOException {
     // given:
     String repositoryUrl = "https://bitbucket.org/orgBbcns/repoBbcns";
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository(repositoryUrl, "orgBbcns/repoBbcns", SourceControlProvider.BITBUCKET)
         .withApplication("appBitbucket", "main-branch")
         .build();
@@ -428,8 +416,7 @@ public class PullRequestPollingServiceTest
     // given: necessary ingredients to emit a discovered pull request event with a non-private repo
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("orgNp/repoNp", SourceControlProvider.GITHUB)
         .withApplication("appNotPrivate", "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -452,8 +439,7 @@ public class PullRequestPollingServiceTest
   public void testFetchAndSendPullRequestsForCommenting_errorFetchingPullRequests_GitHub() throws IOException {
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("orgErr/repoErr", SourceControlProvider.GITHUB)
         .withApplication("appGithub", "main-branch")
         .withPollingTime(new Date())
@@ -483,8 +469,7 @@ public class PullRequestPollingServiceTest
   public void testFetchAndSendPullRequestsForCommenting_errorFetchingPullRequests_GitLab() throws IOException {
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("orgErr/repoErr", SourceControlProvider.GITLAB)
         .withApplication("appGitLab", "main-branch")
         .withPollingTime(new Date())
@@ -518,7 +503,7 @@ public class PullRequestPollingServiceTest
     final Date repo1pullRequestPollingTime = new Date(System.currentTimeMillis() - 10000);
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     TestablePullRequestPollingServiceBuilder testablePullRequestPollingServiceBuilder =
-        new TestablePullRequestPollingServiceBuilder(applicationDAO, sourceControlDAO);
+        new TestablePullRequestPollingServiceBuilder();
     PullRequestPollingService pollingService = testablePullRequestPollingServiceBuilder
 
         .forRepository("org/multi-1", SourceControlProvider.GITLAB)
@@ -581,8 +566,7 @@ public class PullRequestPollingServiceTest
     final String appId = "app123456";
     String branchPrefix = new RemediationBranchNamePrefixGenerator().generatePrefixForApplication(appId);
 
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder(applicationDAO,
-        sourceControlDAO)
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("githubOrg/remediation", SourceControlProvider.GITHUB)
         .withApplication(appId, "main-branch")
         .withPollingTime(pullRequestPollingTime)
@@ -609,7 +593,7 @@ public class PullRequestPollingServiceTest
     final Date repo1pullRequestPollingTime = new Date(System.currentTimeMillis() - 10000);
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     TestablePullRequestPollingServiceBuilder testablePullRequestPollingServiceBuilder =
-        new TestablePullRequestPollingServiceBuilder(applicationDAO, sourceControlDAO);
+        new TestablePullRequestPollingServiceBuilder();
     PullRequestPollingService pollingService = testablePullRequestPollingServiceBuilder
         .forRepository("githubOrg/multi-1", SourceControlProvider.GITHUB)
         .withApplication("github1", "main-branch")
@@ -670,10 +654,6 @@ public class PullRequestPollingServiceTest
 
     private final Map<String, List<Application>> repoApplications = new HashMap<>();
 
-    private final ApplicationDAO applicationDAO;
-
-    private final SourceControlDAO sourceControlDAO;
-
     private MockRepo currentMockRepo;
 
     @Mock
@@ -695,12 +675,7 @@ public class PullRequestPollingServiceTest
 
     private boolean pullRequestCommentingSupported = true;
 
-    private TestablePullRequestPollingServiceBuilder(
-        final ApplicationDAO applicationDAO,
-        final SourceControlDAO sourceControlDAO)
-    {
-      this.applicationDAO = applicationDAO;
-      this.sourceControlDAO = sourceControlDAO;
+    private TestablePullRequestPollingServiceBuilder() {
     }
 
     PullRequestPollingService build() throws IOException {

@@ -44,9 +44,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -106,9 +104,6 @@ public class EnterpriseReportingServiceTest
 
   @Captor
   private ArgumentCaptor<SSOEmbedUrlRequest> lookerSSOEmbedUrlHdsRequestArgumentCaptor;
-
-  @Rule
-  public TestName testName = new TestName();
 
   private final TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> mockConfigCache =
       mock(TenantReference.class);

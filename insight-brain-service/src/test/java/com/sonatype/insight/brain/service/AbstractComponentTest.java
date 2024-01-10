@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
@@ -51,6 +52,7 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -94,7 +96,7 @@ public class AbstractComponentTest
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Inject
-  public SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  protected SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Rule
   public MockCleaner mockCleaner = new MockCleaner();

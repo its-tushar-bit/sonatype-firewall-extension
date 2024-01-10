@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -40,9 +38,6 @@ import static org.junit.Assert.assertNull;
 public class ConfigurationUtilsTest
     extends AbstractComponentTest
 {
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 

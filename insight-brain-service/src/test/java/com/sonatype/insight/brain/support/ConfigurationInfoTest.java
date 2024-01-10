@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.support;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -27,9 +26,6 @@ public class ConfigurationInfoTest
 
   @Inject
   private Configuration configuration;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Test
   public void testGetConfigurationInfo() throws Exception {

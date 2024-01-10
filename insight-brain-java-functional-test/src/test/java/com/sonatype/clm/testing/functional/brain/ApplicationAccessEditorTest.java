@@ -13,7 +13,6 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -35,14 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationAccessEditorTest
     extends AbstractAccessEditorTest
 {
-  private LdapUserMappingDAO ldapUserMappingDAO;
-
   private String serverId;
 
   @Before
   public void init() {
-    ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
-
     // note the ȧ being used to force a character to be encoded
     super.init(tempEntity.newApplicationWithParent("test_ȧpp_id", "ApplicationAccessEditorTest app"));
   }

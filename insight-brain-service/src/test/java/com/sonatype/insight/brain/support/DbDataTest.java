@@ -13,7 +13,6 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
@@ -44,9 +43,6 @@ public class DbDataTest
 
   @Inject
   private DbData dbData;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private Webhook getWebhook() {
     @SuppressWarnings("unchecked") final List<Webhook> webhooks = (List<Webhook>) dbData.getWebhook().getValue();

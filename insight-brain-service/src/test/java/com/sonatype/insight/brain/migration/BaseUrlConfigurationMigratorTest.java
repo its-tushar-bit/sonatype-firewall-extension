@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -41,9 +40,6 @@ public class BaseUrlConfigurationMigratorTest
 
   @Inject
   private InsightConfig insightConfig;
-
-  @Inject
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
   private BaseUrlConfigurationMigrator baseUrlConfigurationMigrator;

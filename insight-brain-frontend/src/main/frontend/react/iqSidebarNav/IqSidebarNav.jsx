@@ -181,24 +181,26 @@ function IqSidebarNav(props) {
               href={apiHref}
             />
           )}
-          <NxGlobalSidebarNavigationLink
-            isSelected={isSelected('enterpriseReporting')}
-            id="enterprise-reporting-navigation-button"
-            className="iq-enterprise-reporting-nav-link"
-            icon={faChartPieAlt}
-            text={
-              <>
-                <span>Data Insights</span>
-                <span className="iq-enterprise-reporting-nav-link__navigation-badge">
-                  {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                  <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
-                  NEW
-                  <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
-                </span>
+          {isLicensed && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('enterpriseReporting')}
+              id="enterprise-reporting-navigation-button"
+              className="iq-enterprise-reporting-nav-link"
+              icon={faChartPieAlt}
+              text={
+                <>
+                  <span>Data Insights</span>
+                  <span className="iq-enterprise-reporting-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text"> (</span>
+                    NEW
+                    <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
+                  </span>
               </>
             }
             href={enterpriseReportingHref}
-          />
+            />
+          )}
           {isDeveloperDashboardEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('integrations')}

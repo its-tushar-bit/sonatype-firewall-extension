@@ -333,7 +333,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
         try {
           copyRepo()
           Map<String, ?> testConfig = testConfig(
-                "-pl '!nexus-mtiq-server,!insight-brain-frontend' -Dtest=%regex[${regex}] " +
+                "-pl '!com.sonatype.insight.brain:nexus-mtiq-server' -Dtest=%regex[${regex}] " +
                     "-Dit.test=%regex[${regex}] -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)

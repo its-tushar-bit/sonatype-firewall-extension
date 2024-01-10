@@ -45,7 +45,7 @@ public class CspHeaderFilterTest
   @Test
   public void testGetFrameSrc_Valid_FeatureEnabled() {
     when(enterpriseReportingService.getBaseUrl()).thenReturn("https://sonatypeexternaldev.cloud.looker.com/");
-    assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo(" frame-src 'self' sonatypeexternaldev.cloud.looker.com;");
+    assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo("frame-src 'self' sonatypeexternaldev.cloud.looker.com; ");
   }
 
   @Test

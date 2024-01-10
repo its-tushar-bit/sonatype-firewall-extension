@@ -35,10 +35,6 @@ public class EnterpriseReportingLandingPage
     return child("#enterprise-reporting-landing-page-title");
   }
 
-  public SelenideElement subtitle() {
-    return child("#enterprise-reporting-landing-page-subtitle");
-  }
-
   public SelenideElement description() {
     return child("#enterprise-reporting-landing-page-description");
   }

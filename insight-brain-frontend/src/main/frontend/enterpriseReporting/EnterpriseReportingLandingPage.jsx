@@ -41,9 +41,6 @@ export default function EnterpriseReportingLandingPage() {
       <NxPageTitle id="enterprise-reporting-landing-page-title">
         <NxPageTitle.Headings>
           <NxH1 id="enterprise-reporting-landing-page-heading">Data Insights</NxH1>
-          <NxPageTitle.Subtitle id="enterprise-reporting-landing-page-subtitle">
-            Experimental and Collaborative Ideation
-          </NxPageTitle.Subtitle>
         </NxPageTitle.Headings>
         <NxPageTitle.Description id="enterprise-reporting-landing-page-description">
           <NxP>

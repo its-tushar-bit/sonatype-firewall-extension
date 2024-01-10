@@ -75,8 +75,6 @@ public class EnterpriseReportingLandingPageTest
   private void pageHeaderShouldBeVisible() {
     page.heading().shouldBe(visible);
     page.heading().shouldHave(text("Data Insights"));
-    page.subtitle().shouldBe(visible);
-    page.subtitle().shouldHave(text("Experimental and Collaborative Ideation"));
     page.description().shouldBe(visible);
     assertThat(page.description().innerText()).isNotEmpty();
   }

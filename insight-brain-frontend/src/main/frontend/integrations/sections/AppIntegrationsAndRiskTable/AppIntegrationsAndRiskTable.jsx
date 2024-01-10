@@ -11,7 +11,6 @@ import {
   NxTable,
   NxTableContainer,
   NX_STANDARD_DEBOUNCE_TIME,
-  NxStatefulFilterDropdown,
   NxButton,
   NxTooltip,
   NxTextLink,
@@ -33,11 +32,13 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-integrations-and-risk-enabled" />;
 export default function AppIntegrationsAndRiskTable() {
+  // SDEV-774: temporarily removing SCM filter from UI. Leaving filter options; will be needed again when filtering is re-implemented
   const scmFilterOptions = [
     { id: 'withScm', displayName: 'Configured apps' },
     { id: 'withoutScm', displayName: 'Non-configured apps' },
   ];
 
+  // SDEV-774: temporarily removing CI filter from UI. Leaving filter options; will be needed again when filtering is re-implemented
   const ciCdFilterOptions = [
     { id: 'withCiCd', displayName: 'Configured apps' },
     { id: 'withoutCiCd', displayName: 'Non-configured apps' },
@@ -113,28 +114,8 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell>
               <NxFilterInput searchIcon placeholder="Search by name" onChange={onFilterNameChange} value={nameFilter} />
             </NxTable.Cell>
-            <NxTable.Cell className="iq-developer-dashboard-filter-cell">
-              <NxStatefulFilterDropdown
-                placeholder="Filter"
-                id="iq-developer-app-integrations-cicd-filter"
-                data-testid="cicd-filter"
-                showReset={false}
-                options={ciCdFilterOptions}
-                selectedIds={ciCdFilterValues}
-                onChange={onCiCdFilterChange}
-              />
-            </NxTable.Cell>
-            <NxTable.Cell className="iq-developer-dashboard-filter-cell">
-              <NxStatefulFilterDropdown
-                placeholder="Filter"
-                id="iq-developer-app-integrations-scm-filter"
-                data-testid="scm-filter"
-                showReset={false}
-                options={scmFilterOptions}
-                selectedIds={scmFilterValues}
-                onChange={onSCMFilterChange}
-              />
-            </NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
             <NxTable.Cell />
             <NxTable.Cell />
             <NxTable.Cell />
@@ -252,6 +233,7 @@ export default function AppIntegrationsAndRiskTable() {
     return sort.includes('-') ? 'desc' : 'asc';
   }
 
+  // SDEV-774: temporarily removing SCM filter from UI. Leaving filter func; will be needed again when filtering is re-implemented
   function onSCMFilterChange(filter) {
     // Only none or one of the filter options can be selected at once
     const newScmFilterValue =
@@ -262,6 +244,7 @@ export default function AppIntegrationsAndRiskTable() {
     dispatch(actions.loadAppIntegrationsAndRisk());
   }
 
+  // SDEV-774: temporarily removing CI filter from UI. Leaving filter func; will be needed again when filtering is re-implemented
   function onCiCdFilterChange(filter) {
     // Only none or one of the filter options can be selected at once
     const newCiCdFilterValues =

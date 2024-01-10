@@ -59,6 +59,7 @@ const setNameFilter = (state, { payload }) => {
   state.nameFilter = payload;
 };
 
+// SDEV-774: temporarily removing SCM & CI filtering from UI. Leaving filter state, as filtering will be re-implemented shortly.
 const setCiCdFilter = (state, { payload }) => {
   state.ciCdFilter = payload;
 };

@@ -216,42 +216,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     applicationFilterInput().sendKeys("a");
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
 
-    // Filtering by SCM
-    appIntegrationsScmFilter().click();
-    appIntegrationsScmFilterConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
-    appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-    appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-
-    // Filtering by CI/CD
-    appIntegrationsCiCdFilter().click();
-    appIntegrationsCiCdFilterConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
-    appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-    appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-
-    // Filtering both at the same time
-    appIntegrationsScmFilter().click();
-    appIntegrationsScmFilterConfiguredInput().click();
-    appIntegrationsCiCdFilter().click();
-    appIntegrationsCiCdFilterConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(2);
-    appIntegrationsScmFilter().click();
-    appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsCiCdFilter().click();
-    appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-    appIntegrationsScmFilter().click();
-    appIntegrationsScmFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-    appIntegrationsCiCdFilter().click();
-    appIntegrationsCiCdFilterNotConfiguredInput().click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
-
     // Going to the second page
     appIntegrationPageButton(2).click();
     appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);

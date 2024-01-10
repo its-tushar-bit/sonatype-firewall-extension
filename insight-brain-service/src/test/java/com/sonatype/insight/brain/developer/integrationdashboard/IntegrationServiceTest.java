@@ -386,6 +386,7 @@ public class IntegrationServiceTest
         .isEmpty();
   }
 
+  // SDEV-774: temporarily removing SCM & UI filtering from dashboard. Leaving tests for re-implementation.
   @Test
   public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus()  throws Exception {
     setUpAppsWithRisk();
@@ -402,24 +403,24 @@ public class IntegrationServiceTest
 
     final ApiPageResult<IntegrationStatusDTO> resultOne =
             integrationService.getIntegrationStatuses(1, 100, null, null, false, null);
-    assertThat(resultOne.getTotal()).isEqualTo(3);
+    assertThat(resultOne.getTotal()).isEqualTo(4);
     final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
-    assertThat(appSummariesOne).hasSize(3);
+    assertThat(appSummariesOne).hasSize(4);
 
     final IntegrationStatusDTO app1Dto = appSummariesOne.get(0);
     assertThat(app1Dto.getApplicationId()).isEqualTo(app1.getId());
     assertThat(app1Dto.isAutomatedSourceControlFeedbackEnabled()).isFalse();
 
-    final IntegrationStatusDTO app3Dto = appSummariesOne.get(1);
+    final IntegrationStatusDTO app3Dto = appSummariesOne.get(2);
     assertThat(app3Dto.getApplicationId()).isEqualTo(app3.getId());
     assertThat(app3Dto.isAutomatedSourceControlFeedbackEnabled()).isFalse();
 
     final ApiPageResult<IntegrationStatusDTO> resultTwo =
             integrationService.getIntegrationStatuses(1, 100, null, null, true, null);
     final List<IntegrationStatusDTO> appSummariesTwo = resultTwo.getResults();
-    assertThat(appSummariesTwo).hasSize(1);
+    assertThat(appSummariesTwo).hasSize(4);
 
-    final IntegrationStatusDTO app2Dto = appSummariesTwo.get(0);
+    final IntegrationStatusDTO app2Dto = appSummariesTwo.get(1);
     assertThat(app2Dto.getApplicationId()).isEqualTo(app2.getId());
     assertThat(app2Dto.isAutomatedSourceControlFeedbackEnabled()).isTrue();
   }
@@ -433,18 +434,19 @@ public class IntegrationServiceTest
     final ApiPageResult<IntegrationStatusDTO> resultOne =
             integrationService.getIntegrationStatuses(1, 100, null, null, null, false);
     final List<IntegrationStatusDTO> appSummariesOne = resultOne.getResults();
-    assertThat(resultOne.getTotal()).isEqualTo(3);
+    assertThat(resultOne.getTotal()).isEqualTo(4);
 
-    assertThat(appSummariesOne).hasSize(3);
-    assertThat(appSummariesOne.get(0).isCiIntegrationEnabled()).isFalse();
+    assertThat(appSummariesOne).hasSize(4);
+    assertThat(appSummariesOne.get(0).isCiIntegrationEnabled()).isTrue();
     assertThat(appSummariesOne.get(1).isCiIntegrationEnabled()).isFalse();
 
     final ApiPageResult<IntegrationStatusDTO> resultTwo =
             integrationService.getIntegrationStatuses(1, 100, null, null, null, true);
     final List<IntegrationStatusDTO> appSummariesTwo = resultTwo.getResults();
 
-    assertThat(appSummariesTwo).hasSize(1);
+    assertThat(appSummariesTwo).hasSize(4);
     assertThat(appSummariesTwo.get(0).isCiIntegrationEnabled()).isTrue();
+    assertThat(appSummariesOne.get(1).isCiIntegrationEnabled()).isFalse();
   }
 
   @Test

@@ -97,13 +97,6 @@ public class IntegrationService
             .setApplicationId(riskScoreDTO.id).setApplicationPublicId(riskScoreDTO.applicationId)
             .setTotalRiskScore(riskScoreDTO.totalApplicationRisk.totalRisk)
             .setOrganizationId(riskScoreDTO.organizationId))
-        // Set CI/CD Integration status
-        .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
-            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId())))
-        // Set Automated Source Control Feedback status
-        .map(statusDTO -> statusDTO.setAutomatedSourceControlFeedbackEnabled(
-            !applicationSourceControlService.isAutomatedSourceControlFeedbackDisabledForApp(
-                statusDTO.getApplicationId())))
         // Set last commit time
         .map(statusDTO -> {
           final SourceControlDefaultBranchCommitHistory commitHistory =
@@ -117,24 +110,22 @@ public class IntegrationService
               Collections.singleton(statusDTO.getApplicationId()));
           return statusDTO.setLastEvaluationTimestamp(getLatestEvaluation(policyEvaluations));
         })
-        .filter(statusDTO ->
-                optionalFilterAppsByScmIntegration == null ||
-                statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
-        .filter(statusDTO ->
-                optionalFilterAppsByCiCdIntegration == null ||
-                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
+        .skip(skipCount)
+        .limit(filter.getPageSize())
+        // Set CI/CD Integration status
+        .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
+            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId())))
+        // Set Automated Source Control Feedback status
+        .map(statusDTO -> statusDTO.setAutomatedSourceControlFeedbackEnabled(
+            !applicationSourceControlService.isAutomatedSourceControlFeedbackDisabledForApp(
+                statusDTO.getApplicationId())))
         // Enrich after filtering to save some round trips to the sast_scan table
         .map(this::addSastScanData)
-        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
         .collect(Collectors.toList());
 
-    final int totalSize = summaries.size();
-    final List<IntegrationStatusDTO> paginatedSummaries = summaries.stream()
-            .skip(skipCount)
-            .limit(filter.getPageSize())
-            .collect(Collectors.toList());
-
-    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), paginatedSummaries);
+    final int totalSize = filteredApps.size();
+    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), summaries);
   }
 
   private IntegrationStatusDTO addSastScanData(final IntegrationStatusDTO integrationStatusDTO) {

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class AggregateFileTest
 {
   @Test
   public void testCreate() {
-    String applicationComponentId = tempEntity.uuid();
+    String applicationComponentId = TemporaryEntity.uuid();
     assertThat(new AggregateFile(applicationComponentId, null, null).getApplicationComponentId())
         .isEqualTo(applicationComponentId);
     String hash = "hash";

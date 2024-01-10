@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -33,7 +34,7 @@ public class PolicyResourceAuthzTest
   }
 
   private Policy newPolicy() {
-    Policy policy = new Policy(null, "Policy " + tempEntity.uuid());
+    Policy policy = new Policy(null, "Policy " + TemporaryEntity.uuid());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);

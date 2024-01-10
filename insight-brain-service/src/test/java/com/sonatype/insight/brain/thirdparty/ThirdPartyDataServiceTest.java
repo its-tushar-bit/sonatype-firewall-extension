@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -283,10 +284,10 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testDeleteByScanId() {
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
 
     handler.deleteByScanId(scanId);
     assertThat(handler.getScanData(scanId)).isNull();
@@ -294,12 +295,12 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testGetSecurityVulnerabilitiesForScanId() {
-    String scanId = tempEntity.uuid();
-    String anotherScanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
+    String anotherScanId = TemporaryEntity.uuid();
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     ThirdPartyFile anotherThirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), anotherScanId, anotherThirdPartyFile);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), anotherScanId, anotherThirdPartyFile);
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile1, "f1", "CLAIR", "n1", "v1", "hash1", "pkg:CLAIR/n1@v1");
     ThirdPartyFileCoordinate coord2 =
@@ -351,9 +352,9 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testProcessThirdPartyData_withContainerContent_getSecurityVulnerabilitiesForScanId() {
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
     ThirdPartyFileCoordinate coord1 = tempEntity
         .newThirdPartyFileCoordinate(thirdPartyFile1, "f1", "container", "n1", "v1", "hash1",
             "pkg:generic/n1@v1?qualifier=container");

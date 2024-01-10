@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
 import com.sonatype.clm.dto.model.signature.FunctionSignature;
 import com.sonatype.clm.dto.model.signature.Signature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
@@ -125,7 +126,7 @@ public class ScanClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     ScanClient scanClient = new ScanClient(config, APP_ID);
 
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(applicationDAO.getByPublicId(APP_ID).getId(), BuildStageType.ID, scanId);
     mockReport(policyEvaluation, getClass().getSimpleName());

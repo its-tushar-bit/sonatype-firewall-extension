@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.Firewall
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -80,8 +81,6 @@ public class FirewallPageTest
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private final FirewallAutoUnquarantinePage autoUnquarantinePage = new FirewallAutoUnquarantinePage();
-
-  private final DashboardPage dashboardPage = new DashboardPage();
 
   private PolicyMonitoringDAO policyMonitoringDAO;
 
@@ -374,7 +373,7 @@ public class FirewallPageTest
     componentsWaived.value().shouldHave(text("30Last 12 months"));
     componentsWaived.link().click();
     // Confirm you're on the dashboard's waivers tab by confirming that its selected
-    assertThat(dashboardPage.waiversTab().getElement().attr("aria-selected")).isEqualTo("true");
+    assertThat(DashboardPage.waiversTab().getElement().attr("aria-selected")).isEqualTo("true");
   }
 
   @Test
@@ -404,7 +403,7 @@ public class FirewallPageTest
     Date date = new Date(time + 1);
 
     Repository repository = tempEntity.newRepository();
-    String pathname = tempEntity.uuid();
+    String pathname = TemporaryEntity.uuid();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         pathname, pathname.substring(0, Math.min(pathname.length(), 20)),
         ComponentIdentifier.createMavenCoordinates("g", "b1", "v"), date, date);
@@ -475,7 +474,7 @@ public class FirewallPageTest
     assertThat(time).isNotNull();
     Date date = new Date(time + 1);
     Repository repository = tempEntity.newRepository();
-    String pathname = tempEntity.uuid();
+    String pathname = TemporaryEntity.uuid();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         pathname, pathname.substring(0, Math.min(pathname.length(), 20)),
         ComponentIdentifier.createMavenCoordinates("g", "b1", "v"), date, date);

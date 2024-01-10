@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -105,8 +106,8 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testGetByScanId_RepeatedFileInSameScan() {
-    String scanRequestId = tempEntity.uuid();
-    String scanId = tempEntity.uuid();
+    String scanRequestId = TemporaryEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile("f1");
     ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile("f2");
@@ -130,14 +131,14 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testGetByHashAndScanId_RepeatedFileInDifferentScans() {
-    String scanRequestId = tempEntity.uuid();
-    String scanId = tempEntity.uuid();
+    String scanRequestId = TemporaryEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile("f1");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile1);
 
     ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile("f2");
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), tempEntity.uuid(), thirdPartyFile2);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), TemporaryEntity.uuid(), thirdPartyFile2);
 
     List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByScanId(scanId);
     assertThat(retrievedThirdPartyFiles).hasSize(1);
@@ -148,8 +149,8 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testGetByScanId() {
-    String scanRequestId = tempEntity.uuid();
-    String scanId = tempEntity.uuid();
+    String scanRequestId = TemporaryEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile();
@@ -172,10 +173,10 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testDeleteByScanId() {
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
 
     dao.deleteByScanId(scanId);
 

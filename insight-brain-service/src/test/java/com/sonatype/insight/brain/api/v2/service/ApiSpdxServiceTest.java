@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -95,7 +96,7 @@ public class ApiSpdxServiceTest
 
   @Before
   public void setup() throws IOException {
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
     setBaseUrl("http://localhost:8070/");
     createReportAndPolicyEvaluation("report");

@@ -11,6 +11,7 @@ import javax.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -93,7 +94,7 @@ public class SourceControlConfigurationDAOTest
     assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(new SourceControlConfiguration()))
         .withCauseInstanceOf(EntityExistsException.class);
     SourceControlConfiguration config = new SourceControlConfiguration();
-    config.setId(tempEntity.uuid());
+    config.setId(TemporaryEntity.uuid());
     assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
         .withCauseInstanceOf(EntityExistsException.class);
   }
@@ -103,7 +104,7 @@ public class SourceControlConfigurationDAOTest
     dao.insert(new SourceControlConfiguration());
 
     SourceControlConfiguration config = new SourceControlConfiguration();
-    config.setId(tempEntity.uuid());
+    config.setId(TemporaryEntity.uuid());
     dao.update(config);
     assertThat(dao.createQuery("SELECT entity FROM SourceControlConfiguration entity").getList())
         .extracting(SourceControlConfiguration::getId)

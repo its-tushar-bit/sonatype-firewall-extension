@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationCom
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -547,10 +548,10 @@ public class LegalApplicationDashboardServiceTest
       String... effectiveLicenseIds)
   {
     Application application = tempEntity.newApplicationWithParent();
-    Tag tag = tempEntity.newTag(application.getOrganizationId(), tempEntity.uuid());
+    Tag tag = tempEntity.newTag(application.getOrganizationId(), TemporaryEntity.uuid());
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
     ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash", componentIdentifier);
     for (String effectiveLicenseId : effectiveLicenseIds) {

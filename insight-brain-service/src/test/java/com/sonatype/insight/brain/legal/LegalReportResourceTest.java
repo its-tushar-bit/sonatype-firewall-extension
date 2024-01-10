@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.insight.brain.*;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.filter.AdvancedLegalPackDashboardFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -46,11 +47,11 @@ public class LegalReportResourceTest extends AbstractResourceTest
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME,
         ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
     PolicyEvaluation policyEvaluationBuild =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluationBuild, getClass().getSimpleName());
 
     PolicyEvaluation policyEvaluationRelease =
-        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, TemporaryEntity.uuid());
 
     mockReport(policyEvaluationRelease, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -78,7 +79,7 @@ public class LegalReportResourceTest extends AbstractResourceTest
     advancedLegalPackDashboardFilter.getStageTypeFilters().add(BuildStageType.ID);
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
-    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
@@ -113,11 +114,11 @@ public class LegalReportResourceTest extends AbstractResourceTest
   public void testGetDefaultLicenseLegalApplicationReportFromActiveUserFilterNoFilterWithApps() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluationBuild =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluationBuild, getClass().getSimpleName());
 
     PolicyEvaluation policyEvaluationRelease =
-        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, TemporaryEntity.uuid());
 
     mockReport(policyEvaluationBuild, getClass().getSimpleName());
     mockReport(policyEvaluationRelease, getClass().getSimpleName());

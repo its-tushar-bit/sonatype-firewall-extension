@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -29,7 +30,7 @@ public class ApplicationSummaryResourceAuditTest
   @Test
   public void testVerifyOrCreateApplication() throws Exception {
     Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
-    String nonExistentAppPublicId = tempEntity.uuid();
+    String nonExistentAppPublicId = TemporaryEntity.uuid();
 
     verifyOrCreateApplicationRequest().parameter(nonExistentAppPublicId).post();
     Application persistedApp = applicationDAO.getByPublicIdNotNull(nonExistentAppPublicId);

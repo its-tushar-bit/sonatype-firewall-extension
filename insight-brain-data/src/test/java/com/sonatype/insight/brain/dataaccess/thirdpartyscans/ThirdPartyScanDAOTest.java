@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -35,7 +36,7 @@ public class ThirdPartyScanDAOTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     // Create
-    String scanRequestId = tempEntity.uuid();
+    String scanRequestId = TemporaryEntity.uuid();
     Date created = new Date();
     ThirdPartyScan entity = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, created);
     dao.insert(entity);
@@ -46,7 +47,7 @@ public class ThirdPartyScanDAOTest
     assertThirdPartyScan(entity.getId(), thirdPartyFile.getId(), scanRequestId, null, created, retrievedScan);
 
     // Update
-    String updatedScanId = tempEntity.uuid();
+    String updatedScanId = TemporaryEntity.uuid();
     retrievedScan.setScanId(updatedScanId);
     dao.update(retrievedScan);
     ThirdPartyScan updated = dao.getById(retrievedScan.getId());
@@ -60,8 +61,8 @@ public class ThirdPartyScanDAOTest
 
   @Test
   public void testGetByScannedFileIdAndScanId() {
-    String scanId = tempEntity.uuid();
-    ThirdPartyScan scan = tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId);
+    String scanId = TemporaryEntity.uuid();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId);
 
     ThirdPartyScan retrievedMapping =
         dao.getByThirdPartyFileIdAndScanId(scan.getThirdPartyFileId(), scan.getScanId());
@@ -98,7 +99,7 @@ public class ThirdPartyScanDAOTest
   @Test
   public void testGetByScanRequestId_MultipleRecords() {
     ThirdPartyScan expected1 = tempEntity.newThirdPartyScan();
-    ThirdPartyScan expected2 = tempEntity.newThirdPartyScan(expected1.getScanRequestId(), tempEntity.uuid());
+    ThirdPartyScan expected2 = tempEntity.newThirdPartyScan(expected1.getScanRequestId(), TemporaryEntity.uuid());
 
     List<ThirdPartyScan> found = dao.getByScanRequestId(expected1.getScanRequestId());
 

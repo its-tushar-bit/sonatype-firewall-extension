@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -27,7 +28,7 @@ public class ApiSpdxResourceAuditTest
 
   @Before
   public void setUp() {
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
     app = tempEntity.newApplicationWithParent();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
   }

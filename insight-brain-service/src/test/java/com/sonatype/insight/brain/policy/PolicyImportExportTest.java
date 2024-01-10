@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -407,7 +408,7 @@ public class PolicyImportExportTest
   private List<Policy> createPolicy(String ownerId, String labelId, String policyName) {
     Policy policy = new Policy(null, policyName);
     policy.setOwnerId(ownerId);
-    Constraint constraint = new Constraint(null, tempEntity.uuid(), LogicalOperator.AND);
+    Constraint constraint = new Constraint(null, TemporaryEntity.uuid(), LogicalOperator.AND);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
     tempEntity.newPolicy(policy);

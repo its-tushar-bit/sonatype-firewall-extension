@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -34,7 +35,7 @@ public class ApiSpdxServiceAuthzTest
 
   @Before
   public void setup() {
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
     setBaseUrl("http://localhost:8070/");
   }
 

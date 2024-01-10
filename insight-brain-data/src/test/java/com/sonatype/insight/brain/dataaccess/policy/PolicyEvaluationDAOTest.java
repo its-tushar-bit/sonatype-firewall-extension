@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
@@ -373,7 +374,7 @@ public class PolicyEvaluationDAOTest
         PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD : PolicyEvaluationDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
     Set<String> appIds = new LinkedHashSet<>();
     while (appIds.size() < inOperatorThreshold) {
-      appIds.add(tempEntity.uuid());
+      appIds.add(TemporaryEntity.uuid());
     }
     appIds.add(application.getId());
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(appIds,
@@ -441,7 +442,7 @@ public class PolicyEvaluationDAOTest
         PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD : PolicyEvaluationDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
 
     while (appIds.size() < threshold) {
-      appIds.add(tempEntity.uuid());
+      appIds.add(TemporaryEntity.uuid());
     }
     appIds.add(application.getId());
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(appIds);

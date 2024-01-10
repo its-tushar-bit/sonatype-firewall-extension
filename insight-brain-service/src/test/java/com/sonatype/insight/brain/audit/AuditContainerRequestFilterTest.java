@@ -16,6 +16,7 @@ import javax.ws.rs.core.UriInfo;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -99,7 +100,7 @@ public class AuditContainerRequestFilterTest
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     repositoryManager = tempEntity.newRepositoryManager();
-    repository = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    repository = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
   }
 
   @Test

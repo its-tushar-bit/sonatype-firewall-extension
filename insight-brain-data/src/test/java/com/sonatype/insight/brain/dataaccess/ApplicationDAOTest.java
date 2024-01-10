@@ -410,7 +410,7 @@ public class ApplicationDAOTest
   @Test
   public void testInsert_ValidatePublicIdValidChars() {
     for (String publicId : NameHelperTest.VALID_NAMES) {
-      tempEntity.newApplication(tempEntity.uuid(), publicId.replaceAll("\\s", ""), organization.getId());
+      tempEntity.newApplication(TemporaryEntity.uuid(), publicId.replaceAll("\\s", ""), organization.getId());
     }
   }
 
@@ -584,7 +584,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testInsert_DuplicatePublicId() {
-    assertThatThrownBy(() -> tempEntity.newApplication(tempEntity.uuid(), application.getPublicId(),
+    assertThatThrownBy(() -> tempEntity.newApplication(TemporaryEntity.uuid(), application.getPublicId(),
         organization.getId())).isInstanceOf(InvalidApplicationException.class)
         .hasMessage(application.getPublicId() + " is already used as an ID.");
   }
@@ -627,7 +627,7 @@ public class ApplicationDAOTest
     final Map<String, Application> expecteApplications = new HashMap<>();
     for (int i = 1; i <= numApplications; i++) {
       // Create some with contact name
-      Application application = tempEntity.newApplication("app-with-contact-" + i, tempEntity.uuid(),
+      Application application = tempEntity.newApplication("app-with-contact-" + i, TemporaryEntity.uuid(),
           organization.getId(), contactName);
       expecteApplications.put(application.getId(), application);
       // Create some without

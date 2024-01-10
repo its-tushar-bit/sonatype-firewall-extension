@@ -10,6 +10,7 @@ import javax.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -88,7 +89,7 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
         .isThrownBy(() -> dao.insert(new ReverseProxyAuthenticationConfiguration()))
         .withCauseInstanceOf(EntityExistsException.class);
     ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
-    config.setId(tempEntity.uuid());
+    config.setId(TemporaryEntity.uuid());
     assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
         .withCauseInstanceOf(EntityExistsException.class);
   }
@@ -98,7 +99,7 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
     dao.insert(new ReverseProxyAuthenticationConfiguration());
 
     ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
-    config.setId(tempEntity.uuid());
+    config.setId(TemporaryEntity.uuid());
     dao.update(config);
     assertThat(dao.createQuery("SELECT entity FROM ReverseProxyAuthenticationConfiguration entity").getList())
         .extracting(ReverseProxyAuthenticationConfiguration::getId)

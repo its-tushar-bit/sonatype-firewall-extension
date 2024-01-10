@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
@@ -846,7 +847,7 @@ public class ApiFirewallServiceTest
     Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoNpm2", RepositoryType.proxy, "npm",
             new Date(1));
 
-    Repository repository3 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    Repository repository3 = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
 
     ApiRepositoryListDTO apiRepositoryListDTO =
             apiFirewallService.getConfiguredRepositories(repositoryManager.getId(), null);

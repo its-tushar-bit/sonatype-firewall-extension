@@ -13,6 +13,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -68,8 +69,8 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Policy policy() {
     Policy policy = new Policy();
-    policy.setId(tempEntity.uuid());
-    policy.setName(tempEntity.uuid());
+    policy.setId(TemporaryEntity.uuid());
+    policy.setName(TemporaryEntity.uuid());
     policy.setPolicyActionsOverrideAllowed(true);
     Constraint constraint = new Constraint();
     constraint.setName("constraintName");
@@ -101,22 +102,22 @@ public abstract class AbstractPolicyImportAuditTest
 
   protected Label label() {
     Label label = new Label();
-    label.setId(tempEntity.uuid());
-    label.setLabel(tempEntity.uuid());
+    label.setId(TemporaryEntity.uuid());
+    label.setLabel(TemporaryEntity.uuid());
     return label;
   }
 
   protected LicenseThreatGroup licenseThreatGroup() {
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
-    licenseThreatGroup.setId(tempEntity.uuid());
-    licenseThreatGroup.setName(tempEntity.uuid());
+    licenseThreatGroup.setId(TemporaryEntity.uuid());
+    licenseThreatGroup.setName(TemporaryEntity.uuid());
     return licenseThreatGroup;
   }
 
   protected Tag tag() {
     Tag tag = new Tag();
-    tag.setId(tempEntity.uuid());
-    tag.setName(tempEntity.uuid());
+    tag.setId(TemporaryEntity.uuid());
+    tag.setName(TemporaryEntity.uuid());
     tag.setDescription("tagDescription");
     return tag;
   }
@@ -172,7 +173,7 @@ public abstract class AbstractPolicyImportAuditTest
   }
 
   protected Constraint constraint(final String name, final LogicalOperator logicalOperator, Condition... conditions) {
-    Constraint constraint = new Constraint(tempEntity.uuid(), name, logicalOperator);
+    Constraint constraint = new Constraint(TemporaryEntity.uuid(), name, logicalOperator);
     constraint.setConditions(Arrays.asList(conditions));
     return constraint;
   }

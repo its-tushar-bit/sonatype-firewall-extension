@@ -10,6 +10,7 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 
 import org.junit.Before;
@@ -32,7 +33,7 @@ public class PersistedPolicyEvaluationPollingResultDAOTest
   @Test
   public void testCRUD() {
     // Create
-    String statusId = tempEntity.uuid();
+    String statusId = TemporaryEntity.uuid();
     PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
     policyEvaluationPollingResult.setReason("reason");
     PersistedPolicyEvaluationPollingResult expected =
@@ -61,15 +62,15 @@ public class PersistedPolicyEvaluationPollingResultDAOTest
   public void testDeleteBeforeOrOn() {
     long now = System.currentTimeMillis();
     PersistedPolicyEvaluationPollingResult result1 = new PersistedPolicyEvaluationPollingResult(application.getId(),
-        tempEntity.uuid(), new PolicyEvaluationPollingResult());
+        TemporaryEntity.uuid(), new PolicyEvaluationPollingResult());
     result1.setCreateTime(new Date(now - 1));
     dao.insert(result1);
     PersistedPolicyEvaluationPollingResult result2 = new PersistedPolicyEvaluationPollingResult(application.getId(),
-        tempEntity.uuid(), new PolicyEvaluationPollingResult());
+        TemporaryEntity.uuid(), new PolicyEvaluationPollingResult());
     result2.setCreateTime(new Date(now));
     dao.insert(result2);
     PersistedPolicyEvaluationPollingResult result3 = new PersistedPolicyEvaluationPollingResult(application.getId(),
-        tempEntity.uuid(), new PolicyEvaluationPollingResult());
+        TemporaryEntity.uuid(), new PolicyEvaluationPollingResult());
     result3.setCreateTime(new Date(now + 1));
     dao.insert(result3);
 
@@ -83,10 +84,10 @@ public class PersistedPolicyEvaluationPollingResultDAOTest
   @Test
   public void testDeleteAll() {
     PersistedPolicyEvaluationPollingResult result1 = new PersistedPolicyEvaluationPollingResult(application.getId(),
-        tempEntity.uuid(), new PolicyEvaluationPollingResult());
+        TemporaryEntity.uuid(), new PolicyEvaluationPollingResult());
     dao.insert(result1);
     PersistedPolicyEvaluationPollingResult result2 = new PersistedPolicyEvaluationPollingResult(application.getId(),
-        tempEntity.uuid(), new PolicyEvaluationPollingResult());
+        TemporaryEntity.uuid(), new PolicyEvaluationPollingResult());
     dao.insert(result2);
 
     dao.deleteAll();

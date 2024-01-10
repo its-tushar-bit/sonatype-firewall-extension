@@ -11,6 +11,7 @@ import java.util.GregorianCalendar;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -184,8 +185,8 @@ public class UserTokenDAOTest
 
   @Test
   public void testGetAllLdap() {
-    UserToken userToken1 = tempEntity.newUserToken("username1", tempEntity.uuid());
-    UserToken userToken2 = tempEntity.newUserToken("username2", tempEntity.uuid());
+    UserToken userToken1 = tempEntity.newUserToken("username1", TemporaryEntity.uuid());
+    UserToken userToken2 = tempEntity.newUserToken("username2", TemporaryEntity.uuid());
     tempEntity.newUserToken("username3", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("username4", SamlUser.SAML_REALM_ID);
 

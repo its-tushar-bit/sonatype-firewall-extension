@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -29,7 +30,7 @@ public class ApiLegalReportResourceV2AuthzTest
   @Before
   public void setup() {
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, ApiLegalReportResourceV2Test.class.getSimpleName());
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
@@ -58,7 +59,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetDefaultLicenseLegalApplicationReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -83,11 +84,11 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluationBuild =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluationBuild, getClass().getSimpleName());
 
     PolicyEvaluation policyEvaluationRelease =
-        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, TemporaryEntity.uuid());
 
     mockReport(policyEvaluationRelease, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -112,7 +113,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetLicenseLegalApplicationReport_NoStage() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -145,7 +146,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetLicenseLegalApplicationHTMLReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -166,9 +167,9 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
     Application application2 = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     mockReport(policyEvaluation2, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -210,9 +211,9 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
     Application application2 = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     mockReport(policyEvaluation2, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -245,7 +246,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetLicenseLegalApplicationHTMLReport_withNoticeFile() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -277,7 +278,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetLicenseLegalApplicationHTMLReport_withNonTextNoticeFile() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -306,7 +307,7 @@ public class ApiLegalReportResourceV2Test
   public void testGetLicenseLegalApplicationHTMLReport_NoStage() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -451,7 +452,7 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -483,7 +484,7 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -516,9 +517,9 @@ public class ApiLegalReportResourceV2Test
     Application application2 = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     mockReport(policyEvaluation2, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -553,9 +554,9 @@ public class ApiLegalReportResourceV2Test
     Application application2 = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     mockReport(policyEvaluation2, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -585,7 +586,7 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -618,7 +619,7 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
@@ -650,7 +651,7 @@ public class ApiLegalReportResourceV2Test
     Application application = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);

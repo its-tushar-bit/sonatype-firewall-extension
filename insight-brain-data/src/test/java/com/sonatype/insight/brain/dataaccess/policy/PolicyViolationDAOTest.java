@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -654,10 +655,12 @@ public class PolicyViolationDAOTest
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation eval;
-    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + tempEntity.uuid(), asDate("2023-01-01"));
+    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + TemporaryEntity.uuid(),
+        asDate("2023-01-01"));
     String jan01 = tempEntity.newPolicyViolation(eval, policy).getId();
 
-    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + tempEntity.uuid(), asDate("2023-01-15"));
+    eval = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "scan-" + TemporaryEntity.uuid(),
+        asDate("2023-01-15"));
     String jan15 = tempEntity.newPolicyViolation(eval, policy).getId();
 
     List<String> app = asList(appId);
@@ -730,7 +733,7 @@ public class PolicyViolationDAOTest
     }
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId,
-        "scan-" + tempEntity.uuid(), openTime);
+        "scan-" + TemporaryEntity.uuid(), openTime);
     PolicyViolation violation;
     if (waiveTime != null) {
       violation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
@@ -757,7 +760,7 @@ public class PolicyViolationDAOTest
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId,
-        "scan-" + tempEntity.uuid(), openTime);
+        "scan-" + TemporaryEntity.uuid(), openTime);
     PolicyViolation violation;
     if (waiveTime != null) {
       violation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,

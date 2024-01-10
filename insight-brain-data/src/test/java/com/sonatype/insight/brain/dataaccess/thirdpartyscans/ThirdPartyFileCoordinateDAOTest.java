@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -92,7 +93,7 @@ public class ThirdPartyFileCoordinateDAOTest
 
   @Test
   public void testGetByHashAndScanId() {
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
     String hash = tempEntity.newRandomHash();
     List<ThirdPartyFileCoordinate> fileCoordinateList = createThirdPartyScans(scanId, hash);
     List<ThirdPartyFileCoordinate> results =
@@ -154,7 +155,7 @@ public class ThirdPartyFileCoordinateDAOTest
 
   @Test
   public void testGetByScanId() {
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
     String hash = tempEntity.newRandomHash();
     createThirdPartyScans(scanId, hash);
 
@@ -184,7 +185,7 @@ public class ThirdPartyFileCoordinateDAOTest
   private List<ThirdPartyFileCoordinate> createThirdPartyScans(String scanId, String hash) {
     List<ThirdPartyFileCoordinate> fileCoordinateList = new ArrayList<>();
 
-    String scanRequestId = tempEntity.uuid();
+    String scanRequestId = TemporaryEntity.uuid();
 
     ThirdPartyFileCoordinate fileCoordinate1 = new ThirdPartyFileCoordinate(hash, "s1", "f1", "n1", "v1", null);
     newThirdPartyScan(scanId, scanRequestId, fileCoordinate1);

@@ -18,6 +18,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
@@ -191,7 +192,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_InvalidJson() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-invalid-json.xml");
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
@@ -215,7 +216,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScanner() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     File tempScanFile = tempDir.newFile();
     String scanRequestId =
@@ -233,7 +234,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScannerUsingSameClairFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
-    String scanId = tempEntity.uuid();
+    String scanId = TemporaryEntity.uuid();
 
     File tempScanFile = tempDir.newFile();
     String scanRequestId =

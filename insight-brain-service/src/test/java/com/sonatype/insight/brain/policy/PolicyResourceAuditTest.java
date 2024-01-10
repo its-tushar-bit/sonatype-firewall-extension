@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -150,7 +151,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testImportPolicies_LogImportedLicenseThreatGroups() throws Exception {
     LicenseThreatGroup ltg = new LicenseThreatGroup(organization.getId(), "Test LTG", 6);
-    ltg.setId(tempEntity.uuid());
+    ltg.setId(TemporaryEntity.uuid());
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
     policyExportResult.licenseThreatGroups = Collections.singletonList(ltg);
@@ -389,7 +390,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testUpdatePolicy_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    String existingPolicyId = tempEntity.newPolicy(app.getId(), tempEntity.uuid()).getId();
+    String existingPolicyId = tempEntity.newPolicy(app.getId(), TemporaryEntity.uuid()).getId();
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
 
@@ -402,7 +403,7 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testUpdatePolicy_Organization() throws Exception {
-    String existingPolicyId = tempEntity.newPolicy(organization.getId(), tempEntity.uuid()).getId();
+    String existingPolicyId = tempEntity.newPolicy(organization.getId(), TemporaryEntity.uuid()).getId();
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
 
@@ -416,7 +417,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testUpdatePolicy_RepositoryContainer() throws Exception {
     String existingPolicyId =
-        tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, tempEntity.uuid()).getId();
+        tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, TemporaryEntity.uuid()).getId();
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
 
@@ -430,7 +431,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testUpdatePolicy_RepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    String existingPolicyId = tempEntity.newPolicy(repositoryManager.getId(), tempEntity.uuid()).getId();
+    String existingPolicyId = tempEntity.newPolicy(repositoryManager.getId(), TemporaryEntity.uuid()).getId();
 
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
@@ -445,7 +446,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testUpdatePolicy_Repository() throws Exception {
     Repository repository = tempEntity.newRepository();
-    String existingPolicyId = tempEntity.newPolicy(repository.getId(), tempEntity.uuid()).getId();
+    String existingPolicyId = tempEntity.newPolicy(repository.getId(), TemporaryEntity.uuid()).getId();
 
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
@@ -762,8 +763,8 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testImportPolicies_PolicyTags_InheritMatchingCategory() throws Exception {
-    Tag existingTag = tempEntity.newTag(organization.getId(), tempEntity.uuid());
-    Tag newTag = new Tag(organization.getId(), tempEntity.uuid(), "desc2");
+    Tag existingTag = tempEntity.newTag(organization.getId(), TemporaryEntity.uuid());
+    Tag newTag = new Tag(organization.getId(), TemporaryEntity.uuid(), "desc2");
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
     Policy policy = policy();
@@ -799,7 +800,7 @@ public class PolicyResourceAuditTest
     Policy invalidPolicy = policy();
     invalidPolicy.setName(policy1.getName());
     policyExportResult.policies = Arrays.asList(policy1, invalidPolicy);
-    Tag existingTag = tempEntity.newTag(organization.getId(), tempEntity.uuid());
+    Tag existingTag = tempEntity.newTag(organization.getId(), TemporaryEntity.uuid());
     policyExportResult.policyTags = Collections.singletonList(new PolicyTag(policy1.getId(), existingTag.getId()));
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();

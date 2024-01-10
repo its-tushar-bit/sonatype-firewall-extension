@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -173,7 +174,7 @@ public class MembershipMappingResourceAuditTest
 
   private Member member(MemberType memberType) {
     Member member = new Member();
-    member.setInternalName(tempEntity.uuid());
+    member.setInternalName(TemporaryEntity.uuid());
     member.setType(memberType);
     return member;
   }

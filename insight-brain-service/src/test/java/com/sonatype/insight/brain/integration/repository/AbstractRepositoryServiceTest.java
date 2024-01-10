@@ -39,6 +39,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -3333,13 +3334,13 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testGetConfiguredRepositories_NullTimestamp() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository1 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    Repository repository1 = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
     repository1.setLastManualConfigureTime(new Date(0));
     repositoryDAO.update(repository1);
-    Repository repository2 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    Repository repository2 = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
     repository2.setLastManualConfigureTime(new Date(1));
     repositoryDAO.update(repository2);
-    Repository repository3 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    Repository repository3 = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
     String clientUserAgent = getUserAgent();
 
     List<RepositoryDTO> repositoryDTOS =

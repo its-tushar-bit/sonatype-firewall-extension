@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsServi
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -133,7 +134,7 @@ public class ApiLicenseLegalServiceAuthzTest
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "hash", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
   }
 
   @Test(expected = UnauthenticatedException.class)

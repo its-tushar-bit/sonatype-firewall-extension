@@ -10,6 +10,7 @@ import javax.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -91,7 +92,7 @@ public class JiraConfigurationDAOTest
         .withCauseInstanceOf(EntityExistsException.class);
     JiraConfiguration jiraConfiguration3 = new JiraConfiguration();
     jiraConfiguration3.setUrl("http://url");
-    jiraConfiguration3.setId(tempEntity.uuid());
+    jiraConfiguration3.setId(TemporaryEntity.uuid());
     assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(jiraConfiguration3))
         .withCauseInstanceOf(EntityExistsException.class);
   }
@@ -103,7 +104,7 @@ public class JiraConfigurationDAOTest
     dao.insert(jiraConfiguration1);
     JiraConfiguration jiraConfiguration2 = new JiraConfiguration();
     jiraConfiguration2.setUrl("http://url");
-    jiraConfiguration2.setId(tempEntity.uuid());
+    jiraConfiguration2.setId(TemporaryEntity.uuid());
 
     dao.update(jiraConfiguration2);
 

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueAnalysisDTO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -110,7 +111,7 @@ public class ApiCycloneDxServiceV2Test
 
   @Before
   public void setup() {
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
     setBaseUrl("http://localhost:8070/");
   }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.releasegraph;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -42,7 +43,7 @@ public class ReleaseGraphResourceTest
   @Before
   public void init() {
     app = tempEntity.newApplicationWithParent();
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
   }
 
   @Test

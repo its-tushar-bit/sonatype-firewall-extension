@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
@@ -117,7 +118,7 @@ public class ApiLicenseLegalResourceTest
     Tag tag = tempEntity.newTag(application.getOrganizationId(), "Test-Tag");
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
 
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
@@ -169,7 +170,7 @@ public class ApiLicenseLegalResourceTest
     Tag tag = tempEntity.newTag(application.getOrganizationId(), "Test-Tag");
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");

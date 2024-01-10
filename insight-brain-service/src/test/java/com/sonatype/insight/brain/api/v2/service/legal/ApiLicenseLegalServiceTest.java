@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -461,7 +462,7 @@ public class ApiLicenseLegalServiceTest
     Tag tag = triple.getMiddle();
     PolicyEvaluation policyEvaluation = triple.getRight();
 
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, Sets.newHashSet(tag.getId()),
@@ -478,7 +479,7 @@ public class ApiLicenseLegalServiceTest
     Application otherApp = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
@@ -817,10 +818,10 @@ public class ApiLicenseLegalServiceTest
       String... effectiveLicenseIds)
   {
     Application application = tempEntity.newApplicationWithParent();
-    Tag tag = tempEntity.newTag(application.getOrganizationId(), tempEntity.uuid());
+    Tag tag = tempEntity.newTag(application.getOrganizationId(), TemporaryEntity.uuid());
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash", componentIdentifier);
     for (String effectiveLicenseId : effectiveLicenseIds) {
@@ -1292,12 +1293,12 @@ public class ApiLicenseLegalServiceTest
   public void testGetLastRawApplicationReport() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Application otherApp = tempEntity.newApplicationWithParent();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date(1));
-    tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID, tempEntity.uuid(), new Date(2));
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date(1));
+    tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID, TemporaryEntity.uuid(), new Date(2));
     PolicyEvaluation policyEvaluation3 =
-        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(3));
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TemporaryEntity.uuid(), new Date(3));
     mockReport(policyEvaluation3);
-    tempEntity.newPolicyEvaluation(otherApp.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(4));
+    tempEntity.newPolicyEvaluation(otherApp.getId(), ReleaseStageType.ID, TemporaryEntity.uuid(), new Date(4));
 
     Optional<ApiReportRawDataDTOV2> lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReport(app.getPublicId());
@@ -1312,19 +1313,19 @@ public class ApiLicenseLegalServiceTest
     Application otherApp = tempEntity.newApplicationWithParent();
 
     PolicyEvaluation policyEvaluation1 =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date(1));
-    tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID, tempEntity.uuid(), new Date(2));
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date(1));
+    tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID, TemporaryEntity.uuid(), new Date(2));
 
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(2));
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TemporaryEntity.uuid(), new Date(2));
     PolicyEvaluation policyEvaluation3 =
-        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(3));
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TemporaryEntity.uuid(), new Date(3));
 
     mockReport(policyEvaluation1);
     mockReport(policyEvaluation2);
     mockReport(policyEvaluation3);
 
-    tempEntity.newPolicyEvaluation(otherApp.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(4));
+    tempEntity.newPolicyEvaluation(otherApp.getId(), ReleaseStageType.ID, TemporaryEntity.uuid(), new Date(4));
 
     Optional<ApiReportRawDataDTOV2> lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), BuildStageType.ID);
@@ -1369,7 +1370,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
@@ -1382,7 +1383,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_WithInnerSource() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
@@ -1395,9 +1396,9 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_ByStage() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation1 =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation1);
     mockReport(policyEvaluation2);
     ApiReportRawDataDTOV2 rawReport =
@@ -1788,7 +1789,7 @@ public class ApiLicenseLegalServiceTest
         componentIdentifier, application.getId(), null, "content2", "legalContentHash");
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
 
     // Verify that the application report contains the overridden data
@@ -2990,7 +2991,7 @@ public class ApiLicenseLegalServiceTest
     LegalCopyrightDTO legalCopyrightDTO = new LegalCopyrightDTO();
     legalCopyrightDTO.setAuthor("author");
     legalCopyrightDTO.setYear("year");
-    legalCopyrightDTO.setContent(tempEntity.uuid() + " content");
+    legalCopyrightDTO.setContent(TemporaryEntity.uuid() + " content");
     return legalCopyrightDTO;
   }
 
@@ -3006,7 +3007,7 @@ public class ApiLicenseLegalServiceTest
 
   private LegalFileDTO createLicenseLegalFileDTO() {
     LegalFileDTO licenseLegalFileDTO = createLegalFileDTO("LICENSE");
-    final String uuid = tempEntity.uuid();
+    final String uuid = TemporaryEntity.uuid();
     licenseLegalFileDTO.setRelPath(uuid + " relPath");
     licenseLegalFileDTO.setContent(uuid + " contentLicense");
     licenseLegalFileDTO.setContentHash(uuid);
@@ -3015,7 +3016,7 @@ public class ApiLicenseLegalServiceTest
 
   private LegalFileDTO createNoticeLegalFileDTO() {
     LegalFileDTO noticeLegalFileDTO = createLegalFileDTO("NOTICE");
-    final String uuid = tempEntity.uuid();
+    final String uuid = TemporaryEntity.uuid();
     noticeLegalFileDTO.setRelPath(uuid + " relPath");
     noticeLegalFileDTO.setContent(uuid + " contentNotice");
     noticeLegalFileDTO.setContentHash(uuid);
@@ -3024,7 +3025,7 @@ public class ApiLicenseLegalServiceTest
 
   private LegalFileDTO createLegalFileDTO(String type) {
     LegalFileDTO legalFileDTO = new LegalFileDTO();
-    legalFileDTO.setContentHash(tempEntity.uuid());
+    legalFileDTO.setContentHash(TemporaryEntity.uuid());
     legalFileDTO.setRelPath("relPath");
     legalFileDTO.setType(type);
     return legalFileDTO;
@@ -3338,7 +3339,7 @@ public class ApiLicenseLegalServiceTest
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, tempEntity.uuid(), new Date(scanTime));
+        tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, TemporaryEntity.uuid(), new Date(scanTime));
 
     return new ImmutableTriple<>(app, tag, policyEvaluation);
   }

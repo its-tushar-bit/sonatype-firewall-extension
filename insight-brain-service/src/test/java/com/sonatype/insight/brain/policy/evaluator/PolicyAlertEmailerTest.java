@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -645,7 +646,7 @@ public class PolicyAlertEmailerTest
   @Test
   public void testSendNotifications_Role_Saml() {
     tempEntity.newSamlConfiguration();
-    String uuid = tempEntity.uuid();
+    String uuid = TemporaryEntity.uuid();
     SamlUser samlUser1 = tempEntity.newSamlUser("username1" + uuid, null, null, "email1", null);
     SamlUser samlUser2 = tempEntity.newSamlUser("username2" + uuid, null, null, null, null);
     SamlUser samlUser3 = tempEntity.newSamlUser("username3" + uuid, null, null, "", null);

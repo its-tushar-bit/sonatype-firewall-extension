@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -45,7 +46,7 @@ public class ApiCycloneDxResourceV2Test
 
   @Before
   public void setUp() {
-    scanId = tempEntity.uuid();
+    scanId = TemporaryEntity.uuid();
     app = tempEntity.newApplicationWithParent();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
   }

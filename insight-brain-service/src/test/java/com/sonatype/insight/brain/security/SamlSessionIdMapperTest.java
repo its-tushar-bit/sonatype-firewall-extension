@@ -9,6 +9,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -34,12 +35,13 @@ public class SamlSessionIdMapperTest
   public void testGetUserSessions() {
     String principalName = "john";
     PersistedUserSession persistedUserSession1 =
-        new PersistedUserSession(createSession(principalName, tempEntity.uuid()));
+        new PersistedUserSession(createSession(principalName, TemporaryEntity.uuid()));
     persistedUserSessionDAO.insert(persistedUserSession1);
     PersistedUserSession persistedUserSession2 =
-        new PersistedUserSession(createSession(principalName, tempEntity.uuid()));
+        new PersistedUserSession(createSession(principalName, TemporaryEntity.uuid()));
     persistedUserSessionDAO.insert(persistedUserSession2);
-    persistedUserSessionDAO.insert(new PersistedUserSession(createSession("not" + principalName, tempEntity.uuid())));
+    persistedUserSessionDAO
+        .insert(new PersistedUserSession(createSession("not" + principalName, TemporaryEntity.uuid())));
     persistedUserSessionDAO.insert(new PersistedUserSession(new SimpleSession()));
 
     Set<String> userSessions = samlSessionIdMapper.getUserSessions(principalName);
@@ -50,10 +52,10 @@ public class SamlSessionIdMapperTest
   @Test
   public void testGetSessionFromSSO() {
     String principalName = "john";
-    String sessionIndex = tempEntity.uuid();
+    String sessionIndex = TemporaryEntity.uuid();
     PersistedUserSession persistedUserSession = new PersistedUserSession(createSession(principalName, sessionIndex));
     persistedUserSessionDAO.insert(persistedUserSession);
-    persistedUserSessionDAO.insert(new PersistedUserSession(createSession(principalName, tempEntity.uuid())));
+    persistedUserSessionDAO.insert(new PersistedUserSession(createSession(principalName, TemporaryEntity.uuid())));
 
     String sessionFromSSO = samlSessionIdMapper.getSessionFromSSO(sessionIndex);
 

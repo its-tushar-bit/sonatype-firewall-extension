@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -37,12 +38,12 @@ public class LdapResourceAuditTest
   @Before
   public void before() {
     ldapServerDAO = lookup(LdapServerDAO.class);
-    ldapServer = tempEntity.newLdapServer(tempEntity.uuid());
+    ldapServer = tempEntity.newLdapServer(TemporaryEntity.uuid());
   }
 
   @Test
   public void testAddLdapServer() throws Exception {
-    LdapServer ldapServer = new LdapServer(tempEntity.uuid());
+    LdapServer ldapServer = new LdapServer(TemporaryEntity.uuid());
     LdapServer persistedLdapServer = ldapRequest().body(ldapServer).post().getBody(LdapServer.class);
     try {
       AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LDAP_SERVER, null);
@@ -56,7 +57,7 @@ public class LdapResourceAuditTest
 
   @Test
   public void testAddLdapServer_Unauthorized() throws Exception {
-    LdapServer ldapServer = new LdapServer(tempEntity.uuid());
+    LdapServer ldapServer = new LdapServer(TemporaryEntity.uuid());
     ldapRequest().with(unauthorizedUser()).body(ldapServer).post();
 
     assertAuditLog(AuditEvent.CREATE_LDAP_SERVER, "unauthorized");

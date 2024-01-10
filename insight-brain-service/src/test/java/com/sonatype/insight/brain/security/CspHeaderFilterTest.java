@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 
 import org.junit.Before;
@@ -30,11 +31,15 @@ public class CspHeaderFilterTest
   @Mock
   private EnterpriseReportingService enterpriseReportingService;
 
+  @Mock
+  ProductLicense productLicense;
+
   private CspHeaderFilter cspHeaderFilter;
 
   @Before
   public void before() {
-    cspHeaderFilter = new CspHeaderFilter(configuration, enterpriseReportingService);
+    cspHeaderFilter = new CspHeaderFilter(configuration, enterpriseReportingService, productLicense);
+    when(productLicense.isValid()).thenReturn(true);
   }
 
   @Test
@@ -51,6 +56,12 @@ public class CspHeaderFilterTest
 
   @Test
   public void testGetFrameSrc_FeatureDisabled() {
+    assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
+  }
+
+  @Test
+  public void testGetFrameSrc_InvalidLicense() {
+    when(productLicense.isValid()).thenReturn(false);
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
   }
 }

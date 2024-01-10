@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 
 /**
  * @since 1.59
@@ -34,10 +35,17 @@ public class CspHeaderFilter
 
   private final EnterpriseReportingService enterpriseReportingService;
 
+  private final ProductLicense productLicense;
+
   @Inject
-  public CspHeaderFilter(Configuration configuration, EnterpriseReportingService enterpriseReportingService) {
+  public CspHeaderFilter(
+      Configuration configuration,
+      EnterpriseReportingService enterpriseReportingService,
+      ProductLicense productLicense)
+  {
     this.configuration = configuration;
     this.enterpriseReportingService = enterpriseReportingService;
+    this.productLicense = productLicense;
   }
 
   @Override
@@ -64,8 +72,11 @@ public class CspHeaderFilter
 
   //visible for testing
   String getFrameSrc() {
-    String lookerHost = getUrlHost(enterpriseReportingService.getBaseUrl());
-    return lookerHost != null ? String.format(" frame-src 'self' %s;", lookerHost) : "";
+    String lookerHost = null;
+    if (productLicense.isValid()) {
+      lookerHost = getUrlHost(enterpriseReportingService.getBaseUrl());
+    }
+    return lookerHost != null ? String.format("frame-src 'self' %s; ", lookerHost) : "";
   }
 
   private String getUrlHost(String urlString) {

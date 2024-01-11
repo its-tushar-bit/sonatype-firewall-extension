@@ -299,6 +299,10 @@ public abstract class AbstractFunctionalTest
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
+
+    // Set the default product license - can't use a @Rule because this functional test is setup with a static database
+    testProductLicenseRule.insertLicenseIfNeeded();
+    testCLMServer.getCLMServer().setHdsUrl();
   }
 
   protected static void setupWebDriver() {
@@ -337,7 +341,6 @@ public abstract class AbstractFunctionalTest
   @Before
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
-    testCLMServer.getCLMServer().setHdsUrl();
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
 
@@ -347,9 +350,6 @@ public abstract class AbstractFunctionalTest
     // Re-inject classes that have static dependencies
     DAOFactory daoFactory = new TestDAOFactory(databaseContainer);
     StaticInjectionTestHelper.inject(daoFactory);
-
-    // Set the default product license - can't use a @Rule because this functional test is setup with a static database
-    testProductLicenseRule.insertLicenseIfNeeded();
   }
 
   @After
@@ -692,6 +692,7 @@ public abstract class AbstractFunctionalTest
   }
 
   protected void installLicense() {
+    testProductLicenseRule.insertLicenseIfNeeded();
     try {
       lookup(CLMLicenseManager.class)
           .installLicense(new ByteArrayInputStream(new byte[1]));

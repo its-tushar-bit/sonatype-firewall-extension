@@ -80,6 +80,7 @@ import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.context.SharedConfigurationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -138,6 +139,7 @@ public class AbstractComponentTest
     tearDownSecurity();
     resetBaseUrl();
     resetAccessAllowlist();
+    SharedConfigurationState.clear();
   }
 
   public String getBaseUrl() {

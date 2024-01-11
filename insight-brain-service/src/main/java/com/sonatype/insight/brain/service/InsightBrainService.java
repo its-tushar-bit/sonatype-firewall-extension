@@ -14,11 +14,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
-import javax.inject.Named;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
@@ -26,15 +25,19 @@ import javax.validation.Validator;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
+import com.sonatype.insight.brain.audit.AuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.db.DatabaseContainerSupport;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -75,7 +78,10 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
+
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.Command;
@@ -99,11 +105,10 @@ import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
-@Named
 public class InsightBrainService
     extends SisuApplication<InsightConfig>
-    implements DatabaseContainerSupport
 {
   protected static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
@@ -274,7 +279,6 @@ public class InsightBrainService
     bootApplicationLifecycle();
   }
 
-  @Override
   public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
     return new DefaultDatabaseContainer(insightConfig);
   }
@@ -371,6 +375,7 @@ public class InsightBrainService
 
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
+    super.initialize(bootstrap);
     configureObjectMapperDeserializationFeature(bootstrap.getObjectMapper());
 
     bootstrap.addBundle(new MultiPartBundle());
@@ -460,9 +465,28 @@ public class InsightBrainService
 
   @Override
   protected void customize(final InsightConfig config, final Environment env) {
+    super.customize(config, env);
+
     replaceGenericExceptionMapper(env, config);
-    env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
+
+    // This provider comes from HDS and does not have the necessary annotations for automatic injection,
+    // so register it manually
     env.jersey().register(new ComponentIdentifierParamConverterProvider(env.getObjectMapper()));
+
+    // Most jersey components are injected automatically by dropwizard-guicey. However it seems to be unable
+    // to correctly handle @Context injections on @Providers. So for that case, we register them here. Note that
+    // even doing it manually, jersey won't do the @Context injection if you provide it a class, it only seems to
+    // work with an instance. This means that classes registered this way are effectively singletons
+    Injector injector = getInjector();
+    AuditContainerRequestFilter auditContainerRequestFilter = new AuditContainerRequestFilter(
+        injector.getInstance(ApplicationDAO.class),
+        injector.getInstance(OrganizationDAO.class),
+        injector.getInstance(RepositoryDAO.class),
+        injector.getInstance(RepositoryManagerDAO.class)
+    );
+    getInjector().injectMembers(auditContainerRequestFilter);
+    env.jersey().register(auditContainerRequestFilter);
+
     env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
@@ -520,8 +544,10 @@ public class InsightBrainService
   }
 
   @Override
-  protected List<Module> modules(final InsightConfig config) {
-    Module bindings = new AbstractModule()
+  protected List<Module> modules() {
+    List<Module> modules = new ArrayList<>();
+
+    modules.add(new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -538,11 +564,16 @@ public class InsightBrainService
         requestStaticInjection(ApiConfigFeaturesService.class);
 
         bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
+
+        // This binding is referenced by a class present in sonatype-licensing that we don't actually use.
+        // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
+        // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
+        bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
       }
-    };
-    Module authc = new SecurityModule();
-    Module authz = new SecurityAopModule();
-    Module dbModule = new AbstractModule()
+    });
+    modules.add(new SecurityModule());
+    modules.add(new SecurityAopModule());
+    modules.add(new DropwizardAwareModule<InsightConfig>()
     {
       @Override
       public void configure() {
@@ -551,11 +582,14 @@ public class InsightBrainService
         bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
         bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
         bind(DataStoreProvider.class).toInstance(databaseContainer);
-        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
+        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
         bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
       }
-    };
-    return Arrays.asList(bindings, authc, authz, dbModule);
+    });
+
+    modules.addAll(baseModules());
+
+    return modules;
   }
 
   public static String getInstanceId() {

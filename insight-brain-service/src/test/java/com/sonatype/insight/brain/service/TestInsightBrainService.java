@@ -67,4 +67,6 @@ public interface TestInsightBrainService
   Injector getInjector();
 
   <C> C getInstance(Class<C> type);
+
+  boolean isInitialized();
 }

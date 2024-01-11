@@ -225,9 +225,6 @@ public abstract class AbstractBaseIntegrationTest
     }
 
     setUpTestLicenseThreatGroups();
-    if (testCLMServer != null) {
-      testCLMServer.getCLMServer().setProxyConfiguration();
-    }
 
     // This must get reset for every test because MockCleaner undoes it after every test
     when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
@@ -280,6 +277,7 @@ public abstract class AbstractBaseIntegrationTest
     }
 
     setBaseUrl("http://localhost");
+    testCLMServer.getCLMServer().setProxyConfiguration();
     testCLMServer.getCLMServer().setHdsUrl();
   }
 

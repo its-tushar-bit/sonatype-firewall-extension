@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service.banning.rest;
 
 import java.lang.reflect.Method;
 import javax.annotation.Priority;
-import javax.inject.Named;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -20,22 +19,24 @@ import javax.ws.rs.ext.Provider;
 import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 
 import com.google.common.annotations.VisibleForTesting;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 /**
  * This filter checks for endpoint methods or resource classes annotated with BlockIfMultiTenant and stop the request
  * to send back a NOT_FOUND response
  */
-@Named
 @Provider
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
-@Priority(value = Priorities.AUTHENTICATION / 2)
+@Priority(BlockEndpointsContainerRequestFilter.PRIORITY)
+@Order(Integer.MAX_VALUE - BlockEndpointsContainerRequestFilter.PRIORITY)
 public class BlockEndpointsContainerRequestFilter
     implements ContainerRequestFilter
 {
+  public static final int PRIORITY = Priorities.AUTHENTICATION / 2;
+
   @Context
   private ResourceInfo resInfo;
 
-  @VisibleForTesting
   public BlockEndpointsContainerRequestFilter() { }
 
   @VisibleForTesting

@@ -351,6 +351,10 @@
       <groupId>io.dropwizard.modules</groupId>
       <artifactId>dropwizard-web</artifactId>
     </dependency>
+    <dependency>
+      <groupId>ru.vyarus</groupId>
+      <artifactId>dropwizard-guicey</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
@@ -689,7 +693,7 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>${test.forkCount}</forkCount>
-          <argLine>@{argLine} -Xmx500m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <argLine>@{argLine} -Xmx1g -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>

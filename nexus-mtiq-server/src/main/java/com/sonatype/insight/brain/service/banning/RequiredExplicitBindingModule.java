@@ -7,27 +7,29 @@ package com.sonatype.insight.brain.service.banning;
 
 import java.util.List;
 
-import com.google.inject.AbstractModule;
+import com.sonatype.insight.brain.service.DropwizardAwareAggregatingModule;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
+
+import com.google.inject.Module;
 import com.google.inject.Key;
 import com.google.inject.spi.Element;
+import com.google.inject.spi.Elements;
 import com.google.inject.spi.LinkedKeyBinding;
 import com.google.inject.spi.UntargettedBinding;
 
 public class RequiredExplicitBindingModule
-    extends AbstractModule
+    extends DropwizardAwareAggregatingModule<MultiTenantInsightConfig>
 {
-  private final List<Element> elements;
-
   private final BannedImplementationService banned;
 
-  public RequiredExplicitBindingModule(final List<Element> elements, final BannedImplementationService banned) {
-    this.elements = elements;
+  public RequiredExplicitBindingModule(final List<Module> modules, final BannedImplementationService banned) {
+    super(modules);
     this.banned = banned;
   }
 
   @Override
   protected void configure() {
-    for (Element element : elements) {
+    for (Element element : Elements.getElements(modules)) {
       if (isUntargettedBinding(element) || isDefinedAsInterface(element)) {
         continue;
       }

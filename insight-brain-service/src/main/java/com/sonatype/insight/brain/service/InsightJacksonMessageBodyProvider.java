@@ -5,14 +5,20 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.ext.Provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
 
+@Named
+@Provider
 class InsightJacksonMessageBodyProvider
     extends JacksonMessageBodyProvider
 {
+  @Inject
   public InsightJacksonMessageBodyProvider(ObjectMapper mapper) {
     super(mapper);
   }

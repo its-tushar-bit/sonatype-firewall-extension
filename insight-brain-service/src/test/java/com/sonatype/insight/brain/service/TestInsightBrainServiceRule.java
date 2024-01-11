@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -131,6 +132,9 @@ public class TestInsightBrainServiceRule
     ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
+
+    // refresh license details from the new HDS
+    getInstance(CLMLicenseManager.class).loadLicense();
   }
 
   public void setProxyConfiguration() {
@@ -168,7 +172,7 @@ public class TestInsightBrainServiceRule
   }
 
   public <T> T getInstance(Class<T> type) {
-    if (brain.getInjector() == null) {
+    if (!brain.isInitialized()) {
       return null;
     }
     return brain.getInstance(type);
@@ -192,7 +196,7 @@ public class TestInsightBrainServiceRule
   }
 
   public void resetDisableForTesting() {
-    if (brain != null && brain.getInjector() != null) {
+    if (brain != null && brain.isInitialized()) {
       brain.disableForTesting();
       log.info("Reset TestInsightBrainService");
     }

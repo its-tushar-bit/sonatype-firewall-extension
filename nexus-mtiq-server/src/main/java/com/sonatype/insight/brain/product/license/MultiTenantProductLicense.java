@@ -16,12 +16,17 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.licensing.product.ProductLicenseKey;
 
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+
 @Named
 @Singleton
-@Priority(1)
+@Priority(MultiTenantProductLicense.PRIORITY)
+@Order(Integer.MAX_VALUE - MultiTenantProductLicense.PRIORITY)
 public class MultiTenantProductLicense
     extends DefaultProductLicense
 {
+  public static final int PRIORITY = 1;
+
   private final TenantReference<ProductLicenseData> productLicenseData =
       new TenantReference<>(DefaultProductLicense::initialProductLicenseData);
 

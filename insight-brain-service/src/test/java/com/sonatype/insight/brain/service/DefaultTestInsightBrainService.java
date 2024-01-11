@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.BiConsumer;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -54,6 +57,7 @@ import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
+import com.google.inject.Module;
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationFactoryFactory;
@@ -95,6 +99,8 @@ public class DefaultTestInsightBrainService
   private InsightConfig insightConfig;
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
+
+  private Collection<Module> extraModules = new ArrayList<>();
 
   @Override
   public void setHttpPort(final int port) {
@@ -176,26 +182,6 @@ public class DefaultTestInsightBrainService
   }
 
   @Override
-  protected boolean acceptComponent(Class<?> type) {
-    if (!super.acceptComponent(type)) {
-      return false;
-    }
-    // the test classpath can be messy when used in Hudson/Nexus/etc., so let's be a little defensive
-    String name = type.getName();
-    if (name.startsWith("com.sonatype.insight.") || name.startsWith("com.sonatype.clm.")) {
-      return true;
-    }
-    if (name.startsWith("org.sonatype.licensing.") || name.startsWith("codeguard.licensing.")) {
-      return true;
-    }
-    if (name.startsWith("org.sonatype.micromailer.")) {
-      return true;
-    }
-    log.debug("Excluding {} from test Brain server", name);
-    return false;
-  }
-
-  @Override
   public void start() throws Exception {
     if (testBrainServer != null) {
       throw new IllegalStateException("Brain server already started");
@@ -255,6 +241,7 @@ public class DefaultTestInsightBrainService
         }
       };
     });
+
   }
 
   @Override
@@ -289,7 +276,11 @@ public class DefaultTestInsightBrainService
 
     RestRequestFilter.configure(env, (request, response) -> getRestRequestFilterHandler().accept(request, response));
 
-    config.setHdsUrl(testHdsUrl);
+    System.out.println("DefaultTestInsightBrainService run using HDS url " + testHdsUrl);
+
+    // Note: beans have already been constructed at this point, so we need to not only set the HDS url in the config
+    // but also update the HdsClients
+    setHdsUrl(config);
 
     super.run(config, env);
 
@@ -378,6 +369,26 @@ public class DefaultTestInsightBrainService
   @Override
   public InsightConfig getConfiguration() {
     return insightConfig;
+  }
+
+  @Override
+  public void addModules(Collection<Module> modules) {
+    extraModules.addAll(modules);
+  }
+
+  @Override
+  public List<Module> modules() {
+    List<Module> modules = new ArrayList<>(extraModules);
+    modules.addAll(super.modules());
+
+    return modules;
+  }
+
+  private void setHdsUrl(InsightConfig config) {
+    config.setHdsUrl(testHdsUrl);
+    ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, testHdsUrl);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
   private void initWorkDirectory(File workDir) throws Exception {

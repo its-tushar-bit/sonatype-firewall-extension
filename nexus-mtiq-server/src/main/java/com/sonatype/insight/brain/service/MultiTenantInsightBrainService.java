@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import javax.servlet.DispatcherType;
@@ -77,12 +78,16 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
+import com.google.inject.name.Names;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
+import ru.vyarus.dropwizard.guice.GuiceBundle;
+import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.ResourceInstaller;
+import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
@@ -181,13 +186,16 @@ public class MultiTenantInsightBrainService
   protected void customize(InsightConfig configuration, Environment environment) {
     super.customize(configuration, environment);
 
-    // Adding filter to look for banned endpoints
-    environment.jersey().register(BlockEndpointsContainerRequestFilter.class);
+    // Most jersey components are injected automatically by dropwizard-guicey. However it seems to be unable
+    // to correctly handle @Context injections on @Providers. So for that case, we register them here. Note that
+    // even doing it manually, jersey won't do the @Context injection if you provide it a class, it only seems to
+    // work with an instance. This means that classes registered this way are effectively singletons
+    environment.jersey().register(new BlockEndpointsContainerRequestFilter());
 
     // Ensuring we have the same jersey configuration we have for the application context
     adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));
     adminResourceBundle.jersey().register(new ComponentIdentifierParamConverterProvider(environment.getObjectMapper()));
-    adminResourceBundle.jersey().register(AdminAuditContainerRequestFilter.class);
+    adminResourceBundle.jersey().register(new AdminAuditContainerRequestFilter());
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     adminResourceBundle.jersey().register(jaxRsExceptionMapper);
 
@@ -250,8 +258,10 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected List<Module> modules(InsightConfig config) {
-    Module bindings = new AbstractModule()
+  protected List<Module> modules() {
+    List<Module> modules = new ArrayList<>();
+
+    modules.add(new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -259,12 +269,17 @@ public class MultiTenantInsightBrainService
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
 
         bind(GuiceShiroFilter.class);
-      }
-    };
 
-    Module authc = new SecurityModule();
-    Module authz = new SecurityAopModule();
-    Module dbModule = new AbstractModule()
+        // This binding is referenced by a class present in sonatype-licensing that we don't actually use.
+        // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
+        // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
+        bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
+      }
+    });
+
+    modules.add(new SecurityModule());
+    modules.add(new SecurityAopModule());
+    modules.add(new DropwizardAwareModule<InsightConfig>()
     {
       @Override
       protected void configure() {
@@ -273,11 +288,15 @@ public class MultiTenantInsightBrainService
         bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
         bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
         bind(DataStoreProvider.class).toInstance(databaseContainer);
-        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
+        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
       }
-    };
+    });
 
-    return Arrays.asList(bindings, authc, authz, dbModule, buildMultiTenantModule(config));
+    modules.add(buildMultiTenantModule());
+
+    modules.addAll(baseModules());
+
+    return modules;
   }
 
   @Override
@@ -285,8 +304,8 @@ public class MultiTenantInsightBrainService
     return new MultiTenantDbMigrationCommand();
   }
 
-  protected Module buildMultiTenantModule(InsightConfig config) {
-    return new AbstractModule()
+  protected Module buildMultiTenantModule() {
+    return new DropwizardAwareModule<InsightConfig>()
     {
       @Override
       protected void configure() {
@@ -301,10 +320,10 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(ApiConfigFeaturesService.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
+
         bind(DatabaseProvisionUtils.class).toInstance(databaseContainer.getDatabaseProvisionUtils());
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
-        bind(InsightConfig.class).to(MultiTenantInsightConfig.class);
 
         bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
@@ -318,7 +337,7 @@ public class MultiTenantInsightBrainService
 
         bind(VersionService.class).to(MultiTenantVersionService.class);
 
-        bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(config));
+        bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(configuration()));
 
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
 
@@ -342,15 +361,14 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected boolean acceptComponent(Class<?> type) {
-    if (bannedImplementationService.isBanned(type)) {
-      return false;
-    }
-    return super.acceptComponent(type);
+  protected DropwizardAwareModule wire(final List<Module> modules) {
+    return bannedImplementationService.getBannedModule(modules);
   }
 
   @Override
-  protected Module wire(final List<Module> modules) {
-    return bannedImplementationService.getBannedModule(modules);
+  protected GuiceBundle.Builder customizeGuiceBundle(GuiceBundle.Builder builder) {
+    return builder
+        .disableInstallers(ResourceInstaller.class)
+        .installers(MtiqResourceInstaller.class);
   }
 }

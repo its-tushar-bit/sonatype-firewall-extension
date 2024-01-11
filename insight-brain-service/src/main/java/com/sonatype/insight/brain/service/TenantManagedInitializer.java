@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+
 import io.dropwizard.lifecycle.Managed;
 
 /**
@@ -13,4 +15,5 @@ import io.dropwizard.lifecycle.Managed;
 public interface TenantManagedInitializer
     extends Managed
 {
+  public static final int PRIORITY = TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1;
 }

@@ -11,8 +11,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 /**
  * This class ensure that, in a single tenant deployment, job registration/creation happens at startup and
@@ -28,7 +29,8 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
  */
 @Named
 @Singleton
-@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
+@Priority(TenantManagedInitializer.PRIORITY)
+@Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
 public class DefaultTenantManagedInitializer
     implements TenantManagedInitializer
 {

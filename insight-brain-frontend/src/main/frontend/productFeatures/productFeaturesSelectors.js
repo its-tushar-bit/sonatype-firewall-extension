@@ -181,9 +181,11 @@ export const selectTenantMode = createSelector(
   }
 );
 
+const MULTI_TENANT_SCM_PROVIDERS = new Set(['github', 'azure']);
+
 export const selectTenantScmProviderTypes = createSelector(selectTenantMode, (mode) => {
   if (mode === MULTI_TENANT) {
-    return PROVIDER_TYPES.filter((provider) => provider.value.toLocaleLowerCase() === 'github');
+    return PROVIDER_TYPES.filter((provider) => MULTI_TENANT_SCM_PROVIDERS.has(provider.value.toLocaleLowerCase()));
   } else {
     return PROVIDER_TYPES;
   }

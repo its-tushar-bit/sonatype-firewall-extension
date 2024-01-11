@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -15,8 +17,13 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.ImmutableSet;
+
 public class ApiSourceControlAdapter
 {
+  private static final Set<SourceControlProvider> MULTI_TENANT_SCM_PROVIDERS =
+      ImmutableSet.of(SourceControlProvider.AZURE, SourceControlProvider.GITHUB);
+
   @SuppressWarnings("deprecation")
   public static ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
     if (sourceControl == null) {
@@ -69,7 +76,7 @@ public class ApiSourceControlAdapter
 
   private static Predicate<SourceControlProvider> getSourceControlPredicate() {
     if (new TenantUtil().isMultiTenant()) {
-      return provider -> provider.equals(SourceControlProvider.GITHUB);
+      return MULTI_TENANT_SCM_PROVIDERS::contains;
     }
     else {
       return provider -> true;
@@ -107,7 +114,7 @@ public class ApiSourceControlAdapter
         .setSshEnabled(dto.sshEnabled)
         .setCommitStatusEnabled(dto.commitStatusEnabled)
         .build();
-    
+
     return sourceControl;
   }
 }

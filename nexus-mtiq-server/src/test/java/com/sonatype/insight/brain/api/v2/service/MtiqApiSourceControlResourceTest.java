@@ -47,6 +47,14 @@ public class MtiqApiSourceControlResourceTest
   }
 
   @Test
+  public void testMtiqSupportsAzure() {
+    testAsTestTenant(tenant -> {
+      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
+      assertResponseStatus(200, response);
+    });
+  }
+
+  @Test
   public void testMtiqDoesNotSupportGithubWithoutFeatureEnabled() {
     testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
@@ -60,12 +68,22 @@ public class MtiqApiSourceControlResourceTest
   }
 
   @Test
+  public void testMtiqDoesNotSupportAzureWithoutFeatureEnabled() {
+    testAsTestTenant(tenant -> {
+      HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
+          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+          .delete();
+      assertResponseStatus(204, response);
+
+      response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
+      assertResponseStatus(404, response);
+    });
+  }
+
+  @Test
   public void testMtiqDoesNotSupportOtherProviders() {
     testAsTestTenant(tenant -> {
-      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.AZURE);
-      assertSourceControlFailed(response, SourceControlProvider.AZURE);
-
-      response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
+      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
       assertSourceControlFailed(response, SourceControlProvider.GITLAB);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);

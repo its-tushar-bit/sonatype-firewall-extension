@@ -236,9 +236,12 @@ describe('productFeaturesSelectors', () => {
   });
 
   describe('selectScmProviders', () => {
-    it('returns only github in multi-tenant mode', () => {
+    it('returns github and azure in multi-tenant mode', () => {
       mockState.productFeatures.productFeatures['multi-tenant'] = true;
-      expect(selectTenantScmProviderTypes(mockState)).toHaveSize(1);
+      expect(selectTenantScmProviderTypes(mockState)).toEqual([
+        { name: 'Azure DevOps', value: 'azure' },
+        { name: 'GitHub', value: 'github' },
+      ]);
     });
 
     it('returns all providers in single-tenant mode', () => {

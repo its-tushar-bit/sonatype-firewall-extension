@@ -81,15 +81,15 @@ describe('SastScanFindings', () => {
     return {
       sastFindingId: faker.datatype.uuid(),
       coordinate: {
-        namespace: faker.lorem.word(),
-        name: faker.lorem.word(),
-        methodName: faker.lorem.word(),
+        namespace: faker.lorem.word(5),
+        name: faker.lorem.word(1),
+        methodName: faker.lorem.word(4),
       },
       lineNumber: faker.random.numeric(),
       cwe: `CWE-${faker.random.numeric()}`,
       severity: severity,
       confidence: 'HIGH',
-      ruleName: faker.lorem.word(),
+      ruleName: `${faker.random.word()} + ${severity}`,
       description: faker.lorem.paragraph(),
       remediations: [],
     };

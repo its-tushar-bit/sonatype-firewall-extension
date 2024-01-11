@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -137,7 +138,7 @@ public class ApiCycloneDxServiceV2
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.versionService = versionService;
-    this.multiLicenseDAO = multiLicenseDAO;
+    ApiCycloneDxServiceV2.multiLicenseDAO = multiLicenseDAO;
   }
 
   @Authorize(permission = Permission.READ)

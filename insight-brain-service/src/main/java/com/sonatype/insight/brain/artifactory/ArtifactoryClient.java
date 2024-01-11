@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +57,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.collect.Iterables;
 
 public class ArtifactoryClient
 {
@@ -128,27 +131,35 @@ public class ArtifactoryClient
   public Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
       ChecksumType checksumType,
       Set<String> checksums,
-      Set<String> repositories) throws IOException
+      Set<String> repositories,
+      Integer aqlBatchSize) throws IOException
   {
     if (CollectionUtils.isEmpty(checksums)) {
       log.debug("No checksums provided for AQL call, returning empty result.");
       return Collections.emptyMap();
     }
-    String aqlQuery = ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repositories);
-    log.debug("Artifactory AQL query checksum search: {}", aqlQuery);
-    HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
-    request.setEntity(new StringEntity(aqlQuery));
-    HttpResponse response = httpClient.execute(request, httpClientContext);
-    log.debug("Artifactory AQL checksums search response status: {}", response.getStatusLine());
-    int status = response.getStatusLine().getStatusCode();
-    if (status != 200) {
-      handleError(status, EntityUtils.toString(response.getEntity()));
-    }
 
-    String responseContent = EntityUtils.toString(response.getEntity());
-    log.debug("Artifactory AQL checksums search response: {}", responseContent);
-    return convertAQLResultsToArtifactoryChecksumSearchResults(checksumType, checksums,
-        new ObjectMapper().readTree(responseContent));
+    Map<String, ArtifactoryChecksumSearchResults> allResults = new HashMap<>();
+
+    for (List<String> checksumsBatch : Iterables.partition(checksums, aqlBatchSize)) {
+      String aqlQuery =
+          ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, new HashSet<>(checksumsBatch), repositories);
+      log.debug("Artifactory AQL query checksum search: {} with batch size: {}", aqlQuery, checksumsBatch.size());
+      HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
+      request.setEntity(new StringEntity(aqlQuery));
+      HttpResponse response = httpClient.execute(request, httpClientContext);
+      log.debug("Artifactory AQL checksums search response status: {}", response.getStatusLine());
+      int status = response.getStatusLine().getStatusCode();
+      if (status != 200) {
+        handleError(status, EntityUtils.toString(response.getEntity()));
+      }
+
+      String responseContent = EntityUtils.toString(response.getEntity());
+      log.debug("Artifactory AQL checksums search response: {}", responseContent);
+      allResults.putAll(convertAQLResultsToArtifactoryChecksumSearchResults(checksumType, checksums,
+          new ObjectMapper().readTree(responseContent)));
+    }
+    return allResults;
   }
 
   private Map<String, ArtifactoryChecksumSearchResults> convertAQLResultsToArtifactoryChecksumSearchResults(

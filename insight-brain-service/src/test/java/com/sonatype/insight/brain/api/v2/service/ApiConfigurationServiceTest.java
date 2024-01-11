@@ -509,6 +509,37 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_BfsArtifactoryAqlBatchSize_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
+        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryAqlBatchSize_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
+        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryAqlBatchSize() {
+    Integer batchSize = 10;
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, batchSize));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)).isEqualTo(batchSize.toString());
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
+        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, batchSize);
+    assertMinAndMax(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 0, 1000);
+  }
+
+  @Test
   public void testGetConfiguration_BfsQueryRepositoriesList_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(

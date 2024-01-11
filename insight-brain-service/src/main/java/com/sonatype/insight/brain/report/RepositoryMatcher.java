@@ -681,8 +681,10 @@ public class RepositoryMatcher
       sha256s = new HashSet<>(Iterables.partition(sha256s, componentQueryLimit).iterator().next());
     }
 
+    Integer aqlBatchSize = configuration.getBfsArtifactoryAqlBatchSize();
+
     for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
-        ChecksumType.SHA256, sha256s, repositories).entrySet()) {
+        ChecksumType.SHA256, sha256s, repositories, aqlBatchSize).entrySet()) {
       ComponentIdentifier componentIdentifier = resolveComponentIdentifier(entry.getValue());
       if (componentIdentifier != null) {
         result.put(entry.getKey(), componentIdentifier);

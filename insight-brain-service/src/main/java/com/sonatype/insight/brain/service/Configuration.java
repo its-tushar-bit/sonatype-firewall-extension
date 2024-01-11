@@ -175,6 +175,7 @@ public class Configuration
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
         SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,
+        SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE,
         SystemConfigurationProperty.BFS_REPOSITORIES,
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
@@ -520,6 +521,10 @@ public class Configuration
 
   public Integer getBfsComponentLimit() {
     return configCache.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+  }
+
+  public Integer getBfsArtifactoryAqlBatchSize() {
+    return configCache.get(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE);
   }
 
   public String getBfsQueryRepositoriesList() {

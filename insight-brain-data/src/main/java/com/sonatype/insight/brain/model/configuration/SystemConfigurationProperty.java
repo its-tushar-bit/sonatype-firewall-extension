@@ -169,6 +169,8 @@ public class SystemConfigurationProperty
 
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL = "bfs.artifactoryExpiredTokenEmail";
 
+  public static final String BFS_ARTIFACTORY_AQL_BATCH_SIZE = "bfs.artifactoryAqlBatchSize";
+
   public static final String BFS_COMPONENT_QUERY_LIMIT = "bfs.componentQueryLimit";
 
   public static final String BFS_REPOSITORIES = "bfs.repositories";

@@ -64,6 +64,19 @@ describe('EnterpriseReportingDashboardPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
+  it('shows page with top description message', async () => {
+    renderPage();
+
+    expect(
+      screen.queryByText(
+        'The following visualizations have been generated to help you better understand ' +
+          'your product usage, start conversations about new product features, and reveal what is happening within' +
+          ' your organizations. Click the buttons below to view or use the links listed to share your feedback ' +
+          'with our team.'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('shows dashboard data', async () => {
     renderPage();
 

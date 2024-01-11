@@ -44,8 +44,9 @@ export default function EnterpriseReportingLandingPage() {
         </NxPageTitle.Headings>
         <NxPageTitle.Description id="enterprise-reporting-landing-page-description">
           <NxP>
-            The visualizations below have been created by the Sonatype Research Team and are designed to invite
-            conversations about potential new product features and data to maximize innovation.
+            The following visualizations have been generated to help you better understand your product usage, start
+            conversations about new product features, and reveal what is happening within your organizations. Click the
+            buttons below to view or use the links listed to share your feedback with our team.
           </NxP>
         </NxPageTitle.Description>
       </NxPageTitle>

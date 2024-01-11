@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
@@ -37,15 +36,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Inject
   private PolicyMonitoringDAO policyMonitoringDAO;
-
-  @After
-  public void cleanup() {
-    systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED));
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-    autoUnquarantinePolicyConditionTypeDAO
-        .delete(new AutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID));
-  }
 
   @Test
   public void testProductLicenseChanged_EnablesPolicyMonitoring() {

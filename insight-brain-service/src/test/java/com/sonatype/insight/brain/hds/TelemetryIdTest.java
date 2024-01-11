@@ -19,7 +19,6 @@ import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,7 +29,6 @@ public class TelemetryIdTest
 {
   private SystemConfigurationPropertyDAO dao;
 
-  @After
   @Before
   public void cleanup() {
     dao = new SystemConfigurationPropertyDAO(databaseRule.getOperationalDataStore());

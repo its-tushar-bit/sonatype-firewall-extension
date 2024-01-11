@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,41 +68,6 @@ public class NewInstancePopulatorTest
     licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
     tagDAO = daoFactory.createTagDAO();
     policyTagDAO = daoFactory.createPolicyTagDAO();
-  }
-
-  @After
-  public void cleanup() {
-    Application app = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-    Organization org = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    Collection<Policy> policies = policyDAO.getAll();
-    Collection<Label> labels = labelDAO.getAll();
-    Collection<LicenseThreatGroup> ltgs = licenseThreatGroupDAO.getAll();
-    Collection<Tag> tags = tagDAO.getAll();
-
-    if (app != null) {
-      applicationDAO.delete(app);
-    }
-    if (org != null) {
-      organizationDAO.delete(org);
-    }
-
-    for (Policy policy : policies) {
-      policyDAO.delete(policy);
-    }
-
-    for (Label label : labels) {
-      labelDAO.delete(label);
-    }
-
-    for (LicenseThreatGroup ltg : ltgs) {
-      licenseThreatGroupDAO.delete(ltg);
-    }
-
-    for (Tag tag : tags) {
-      tagDAO.delete(tag);
-    }
-
-    // LicenseThreatGroupLicenses and PolicyTags get deleted with the LicenseThreatGroups and Policies
   }
 
   @Override

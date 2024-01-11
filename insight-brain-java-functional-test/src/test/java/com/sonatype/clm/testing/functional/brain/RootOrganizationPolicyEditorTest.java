@@ -97,8 +97,6 @@ public class RootOrganizationPolicyEditorTest
     assertThat(newPolicy).isNotNull();
     assertThat(newPolicy.getActions()).containsEntry(Stage.ID_BUILD, "warn");
     assertThat(newPolicy.getActions()).containsEntry(Stage.ID_PROXY, "fail");
-
-    policyDAO.delete(newPolicy);
   }
 
   @Test

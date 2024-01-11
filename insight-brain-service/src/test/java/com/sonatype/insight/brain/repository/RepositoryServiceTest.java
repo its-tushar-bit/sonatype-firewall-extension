@@ -73,7 +73,6 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,8 +90,6 @@ import static org.mockito.Mockito.when;
 
 public class RepositoryServiceTest extends AbstractComponentTest
 {
-  private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
-
   private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
 
   private static final String REPO_PUBLIC_ID = "repoPublicId";
@@ -154,14 +151,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Collections.singletonList("a"));
     lenient().when(hdsClient.get(eq(FirewallIgnorePatterns.class),
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
-  }
-
-  @After
-  public void cleanup() {
-    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
-    if (repositoryManager != null) {
-      repositoryManagerDAO.delete(repositoryManager);
-    }
   }
 
   @Test

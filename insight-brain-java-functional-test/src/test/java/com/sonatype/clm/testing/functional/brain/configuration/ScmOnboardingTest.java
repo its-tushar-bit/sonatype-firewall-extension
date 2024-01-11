@@ -20,7 +20,6 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage.OrganizationsDropdownMenu;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
@@ -63,7 +62,6 @@ import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openqa.selenium.Keys.BACK_SPACE;
@@ -100,8 +98,6 @@ public class ScmOnboardingTest
   @After
   public void clearCookies() {
     Selenide.clearBrowserCookies();
-    OrganizationDAO organizationDAO = lookup(OrganizationDAO.class);
-    organizationDAO.getByNames(singleton("Foo Organization")).forEach(organizationDAO::delete);
   }
 
   @Before

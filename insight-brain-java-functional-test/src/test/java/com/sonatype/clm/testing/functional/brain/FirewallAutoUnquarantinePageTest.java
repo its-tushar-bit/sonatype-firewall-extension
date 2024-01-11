@@ -17,12 +17,10 @@ import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,8 +37,6 @@ public class FirewallAutoUnquarantinePageTest
 {
   private final FirewallAutoUnquarantinePage page = new FirewallAutoUnquarantinePage();
 
-  private PolicyMonitoringDAO policyMonitoringDAO;
-
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
@@ -49,15 +45,8 @@ public class FirewallAutoUnquarantinePageTest
 
   @Before
   public void before() {
-    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
-
     setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
-  }
-
-  @After
-  public void after() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
   }
 
   private void setupData() {

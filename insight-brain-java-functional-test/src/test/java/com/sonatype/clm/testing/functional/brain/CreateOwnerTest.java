@@ -5,13 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -40,7 +41,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -88,19 +88,6 @@ public class CreateOwnerTest
     parentOrg = tempEntity.newOrganization("Parent");
     org = tempEntity.newOrganization(NAME, parentOrg);
     refreshOrOpen(OwnerSummaryPage.url());
-  }
-
-  @After
-  public void cleanup() {
-    Organization org = organizationDAO.getByName(NAME);
-    if (org != null) {
-      organizationDAO.delete(org);
-    }
-
-    Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
-    if (app != null) {
-      appDAO.delete(app);
-    }
   }
 
   @Test

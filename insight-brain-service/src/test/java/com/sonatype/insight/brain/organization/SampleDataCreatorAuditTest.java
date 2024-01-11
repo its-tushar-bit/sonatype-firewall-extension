@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 public class SampleDataCreatorAuditTest
@@ -29,18 +28,6 @@ public class SampleDataCreatorAuditTest
 
   @Inject
   private SampleDataCreator sampleDataCreator;
-
-  @After
-  public void cleanup() {
-    Application app = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-    Organization org = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    if (app != null) {
-      applicationDAO.delete(app);
-    }
-    if (org != null) {
-      organizationDAO.delete(org);
-    }
-  }
 
   @Test
   public void testCreateSampleData() {

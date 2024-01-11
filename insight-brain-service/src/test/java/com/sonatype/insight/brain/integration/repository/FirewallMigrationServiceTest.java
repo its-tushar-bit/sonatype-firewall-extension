@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -19,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -39,7 +39,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.joda.time.DateTime;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,9 +81,6 @@ public class FirewallMigrationServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Inject
-  private RepositoryManagerDAO repositoryManagerDAO;
-
-  @Inject
   private RepositoryMigrationDAO repositoryMigrationDAO;
 
   @Inject
@@ -98,14 +94,6 @@ public class FirewallMigrationServiceTest
   @Before
   public void createPolicy() {
     policy = tempEntity.newPolicy();
-  }
-
-  @After
-  public void deleteAutoCreatedRepositoryManagers() {
-    RepositoryManager manager = repositoryManagerDAO.getByInstanceId(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
-    if (manager != null) {
-      repositoryManagerDAO.delete(manager);
-    }
   }
 
   @Test

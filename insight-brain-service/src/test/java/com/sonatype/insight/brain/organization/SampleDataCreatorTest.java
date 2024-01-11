@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,18 +30,6 @@ public class SampleDataCreatorTest
 
   @Inject
   private OrganizationDAO organizationDAO;
-
-  @After
-  public void cleanup() {
-    Application app = applicationDAO.getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-    Organization org = organizationDAO.getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    if (app != null) {
-      applicationDAO.delete(app);
-    }
-    if (org != null) {
-      organizationDAO.delete(org);
-    }
-  }
 
   @Test
   public void testCreateSampleData() {

@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -31,17 +30,6 @@ public class ApiConfigFeaturesServiceTest
 
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-  @After
-  public void after() {
-    for (SystemConfigurationPropertyFeature s : SystemConfigurationPropertyFeature.values()) {
-      SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(s.getPropertyName());
-      if (systemConfigurationProperty != null) {
-        systemConfigurationPropertyDAO.delete(systemConfigurationProperty);
-      }
-    }
-  }
 
   @Test
   public void testGetPropertyNameForFeature() {

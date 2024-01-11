@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.UUID;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -14,7 +15,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,19 +25,13 @@ public class ArtifactoryRepositoryServiceWrapperTest
     extends AbstractComponentTest
 {
   @Inject
-  public RepositoryManagerDAO repositoryManagerDAO;
+  private RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
-  public RepositoryDAO repositoryDAO;
+  private RepositoryDAO repositoryDAO;
 
   @Inject
   private ArtifactoryRepositoryServiceWrapper wrapper;
-
-  @After
-  public void after() {
-    // The migration may create repository managers, so we need to delete them here.
-    repositoryManagerDAO.getAll().forEach(a -> repositoryManagerDAO.delete(a));
-  }
 
   @Test
   public void testAllDelegatedServiceMethodsInvoked() {

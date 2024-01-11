@@ -280,14 +280,9 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     organization = new Organization();
     organization.setId("testId");
     organization.setName("testName");
-    try {
-      dao.insert(organization);
-      organization = dao.getById("testId");
-      assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
-    }
-    finally {
-      dao.delete(organization);
-    }
+    dao.insert(organization);
+    organization = dao.getById("testId");
+    assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -297,14 +292,9 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     organization.setName("testName");
     organization.setParentOrganizationId(parentOrg.getId());
 
-    try {
-      dao.insert(organization);
-      organization = dao.getById(organization.getId());
-      assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
-    }
-    finally {
-      dao.delete(organization);
-    }
+    dao.insert(organization);
+    organization = dao.getById(organization.getId());
+    assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
   }
 
   @Test

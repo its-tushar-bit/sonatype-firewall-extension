@@ -26,7 +26,6 @@ import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -47,7 +46,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -82,8 +80,6 @@ public class FirewallPageTest
 
   private final FirewallAutoUnquarantinePage autoUnquarantinePage = new FirewallAutoUnquarantinePage();
 
-  private PolicyMonitoringDAO policyMonitoringDAO;
-
   private FirewallMetricsDAO firewallMetricsDAO;
 
   private PolicyDAO policyDAO;
@@ -98,7 +94,6 @@ public class FirewallPageTest
 
   @Before
   public void before() {
-    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
     firewallMetricsDAO = lookup(FirewallMetricsDAO.class);
     policyDAO = lookup(PolicyDAO.class);
     repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
@@ -108,11 +103,6 @@ public class FirewallPageTest
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.DASHBOARD,
         LicensedFeature.WAIVERS_DASHBOARD);
-  }
-
-  @After
-  public void after() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
   }
 
   private void setupData() {

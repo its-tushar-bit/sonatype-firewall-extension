@@ -277,34 +277,22 @@ public class PolicyMonitoringResourceTest
 
   @Test
   public void testSet_RootOrgProxyStageTypeId() throws Exception {
-    HttpResponse response = null;
-    try {
-      PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
-      response =
-          restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
+    HttpResponse response =
+        restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
 
-      assertResponseStatus(200, response);
-      assertThat(policyMonitoringDAO.getAll()).hasSize(1);
-    }
-    finally {
-      policyMonitoringDAO.delete(response.getBody(PolicyMonitoring.class));
-    }
+    assertResponseStatus(200, response);
+    assertThat(policyMonitoringDAO.getAll()).hasSize(1);
   }
 
   @Test
   public void testSet_RootOrgNonProxyStageTypeId() throws Exception {
-    HttpResponse response = null;
-    try {
-      PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-      response =
-          restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    HttpResponse response =
+        restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
 
-      assertResponseStatus(200, response);
-      assertThat(policyMonitoringDAO.getAll()).hasSize(1);
-    }
-    finally {
-      policyMonitoringDAO.delete(response.getBody(PolicyMonitoring.class));
-    }
+    assertResponseStatus(200, response);
+    assertThat(policyMonitoringDAO.getAll()).hasSize(1);
   }
 
   @Test

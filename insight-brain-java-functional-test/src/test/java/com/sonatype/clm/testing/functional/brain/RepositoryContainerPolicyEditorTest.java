@@ -119,14 +119,9 @@ public class RepositoryContainerPolicyEditorTest
 
     PolicyEditorPage.savePolicy();
     Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
-    try {
-      PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
-      assertThat(newPolicy).isNotNull();
-      assertThat(newPolicy.getActions()).containsEntry(Stage.ID_PROXY, "fail");
-    }
-    finally {
-      policyDAO.delete(newPolicy);
-    }
+    PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
+    assertThat(newPolicy).isNotNull();
+    assertThat(newPolicy.getActions()).containsEntry(Stage.ID_PROXY, "fail");
   }
 
   @Test
@@ -179,13 +174,7 @@ public class RepositoryContainerPolicyEditorTest
     ageCondition.value().age().shouldBe(empty).val("3");
     PolicyEditorPage.savePolicy();
 
-    Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
-    try {
-      PolicyEditorPage.alert().shouldHave(text("There were validation errors"));
-    }
-    finally {
-      policyDAO.delete(newPolicy);
-    }
+    PolicyEditorPage.alert().shouldHave(text("There were validation errors"));
   }
 
   @Test
@@ -309,15 +298,10 @@ public class RepositoryContainerPolicyEditorTest
     PolicyEditorPage.savePolicy();
     Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
 
-    try {
-      PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
-      assertThat(newPolicy).isNotNull();
-      assertThat(newPolicy.getNotifications().getUserNotifications()).hasSize(1);
-      testUserNotification(newPolicy.getNotifications().getUserNotifications().get(0), "aaa@sonatype.com");
-    }
-    finally {
-      policyDAO.delete(newPolicy);
-    }
+    PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
+    assertThat(newPolicy).isNotNull();
+    assertThat(newPolicy.getNotifications().getUserNotifications()).hasSize(1);
+    testUserNotification(newPolicy.getNotifications().getUserNotifications().get(0), "aaa@sonatype.com");
   }
 
   @Test
@@ -362,18 +346,13 @@ public class RepositoryContainerPolicyEditorTest
 
     PolicyEditorPage.savePolicy();
     Policy newPolicy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
-    try {
-      PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
-      assertThat(newPolicy).isNotNull();
-      assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
+    PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
+    assertThat(newPolicy).isNotNull();
+    assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
 
-      String roleName = "Policy Administrator";
-      RoleNotification roleNotification = new RoleNotification(roleDAO.getByName(roleName).getId(), roleName);
-      testRoleNotification(newPolicy.getNotifications().getRoleNotifications().get(0), roleNotification.getRoleId());
-    }
-    finally {
-      policyDAO.delete(newPolicy);
-    }
+    String roleName = "Policy Administrator";
+    RoleNotification roleNotification = new RoleNotification(roleDAO.getByName(roleName).getId(), roleName);
+    testRoleNotification(newPolicy.getNotifications().getRoleNotifications().get(0), roleNotification.getRoleId());
   }
 
   @Test

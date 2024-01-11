@@ -71,8 +71,7 @@ public class ApiOrganizationServiceAuthzTest
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
     ApiOrganizationDTO newOrganizationDTO = apiOrganizationService.addOrganization(apiOrganizationDTO);
 
-    Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
-    organizationDAO.delete(organization);
+    organizationDAO.getByIdNotNull(newOrganizationDTO.id);
   }
 
   @Test(expected = UnauthenticatedException.class)

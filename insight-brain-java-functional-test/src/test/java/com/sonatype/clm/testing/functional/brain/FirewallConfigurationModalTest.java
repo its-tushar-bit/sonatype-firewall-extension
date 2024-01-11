@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
@@ -45,13 +44,10 @@ public class FirewallConfigurationModalTest
           .filter(conditionType -> !conditionType.getId().equals(IntegrityRatingConditionType.ID))
           .count();
 
-  private PolicyMonitoringDAO policyMonitoringDAO;
-
   private AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
   @Before
   public void before() {
-    policyMonitoringDAO = lookup(PolicyMonitoringDAO.class);
     autoUnquarantinePolicyConditionTypeDAO = lookup(AutoUnquarantinePolicyConditionTypeDAO.class);
 
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
@@ -62,9 +58,6 @@ public class FirewallConfigurationModalTest
 
   @After
   public void after() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-    autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
-
     hardreset();
   }
 

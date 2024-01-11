@@ -9,12 +9,9 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 public class FirewallReleaseIntegrityLicenseListenerAuditTest
@@ -22,16 +19,6 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
 {
   @Inject
   private FirewallReleaseIntegrityLicenseListener firewallReleaseIntegrityLicenseListener;
-
-  @Inject
-  private PolicyMonitoringDAO policyMonitoringDAO;
-
-  @After
-  public void cleanup() {
-    systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED));
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-  }
 
   @Test
   public void testProductLicenseChanged() {

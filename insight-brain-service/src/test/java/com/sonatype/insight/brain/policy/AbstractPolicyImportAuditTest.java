@@ -14,11 +14,8 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -38,7 +35,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.junit.After;
 import org.junit.Before;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,17 +50,6 @@ public abstract class AbstractPolicyImportAuditTest
   public void setUp() {
     roleDAO = lookup(RoleDAO.class);
     policyDAO = lookup(PolicyDAO.class);
-  }
-
-  @After
-  public void after() {
-    policyDAO.getAll().forEach(policyDAO::delete);
-    LabelDAO labelDAO = lookup(LabelDAO.class);
-    labelDAO.getAll().forEach(labelDAO::delete);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
-    licenseThreatGroupDAO.getAll().forEach(licenseThreatGroupDAO::delete);
-    TagDAO tagDAO = lookup(TagDAO.class);
-    tagDAO.getAll().forEach(tagDAO::delete);
   }
 
   protected Policy policy() {

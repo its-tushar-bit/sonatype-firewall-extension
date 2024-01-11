@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,15 +60,8 @@ public class ProxyServerConfigurationMigratorTest
   }
 
   @Before
-  @After
   public void clear() {
     migrationTrackerDAO.deleteById(ProxyServerConfigurationMigrator.MIGRATION_ID);
-    proxyServerConfigurationDAO.delete();
-    SystemConfigurationProperty proxyExcludeHostsProperty =
-        systemConfigurationPropertyDAO.getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME);
-    if (proxyExcludeHostsProperty != null) {
-      systemConfigurationPropertyDAO.delete(proxyExcludeHostsProperty);
-    }
   }
 
   @Test

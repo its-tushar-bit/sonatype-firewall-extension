@@ -47,17 +47,12 @@ public class ApiOrganizationServiceTest
 
     Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
 
-    try {
-      assertThat(organization.getName()).isEqualTo(ORGANIZATION_NAME);
-      assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
+    assertThat(organization.getName()).isEqualTo(ORGANIZATION_NAME);
+    assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
 
-      assertThat(newOrganizationDTO.id).isNotEmpty();
-      assertThat(newOrganizationDTO.name).isEqualTo(ORGANIZATION_NAME);
-      assertThat(newOrganizationDTO.tags).isEmpty();
-    }
-    finally {
-      organizationDAO.delete(organization);
-    }
+    assertThat(newOrganizationDTO.id).isNotEmpty();
+    assertThat(newOrganizationDTO.name).isEqualTo(ORGANIZATION_NAME);
+    assertThat(newOrganizationDTO.tags).isEmpty();
   }
 
   @Test

@@ -696,7 +696,6 @@ public abstract class DefaultPolicyEvaluatorTest
 
     Application app = applicationDAO.getByPublicId("non-existent-app-public-id");
     assertThat(app).isNotNull();
-    applicationDAO.delete(app);
   }
 
   @Test
@@ -716,7 +715,6 @@ public abstract class DefaultPolicyEvaluatorTest
     Application app = applicationDAO.getByPublicId("non-existent-app-public-id");
     assertThat(app).isNotNull();
     assertThat(app.getOrganizationId()).isEqualTo(org.getId());
-    applicationDAO.delete(app);
   }
 
   @Test
@@ -735,8 +733,6 @@ public abstract class DefaultPolicyEvaluatorTest
         .expectFailExit()
         .expectErrorLog("The application ID app-in-org is invalid for organization ID " + org2.getId() + ".")
         .doPolicyEvaluationRun();
-
-    applicationDAO.delete(app);
   }
 
   @Test

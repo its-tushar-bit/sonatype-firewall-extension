@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,14 +28,6 @@ public class SystemConfigurationPropertyDAOTest
   }
 
   private static final String DUMMY_PROPERTY_NAME = "TEST-NAME";
-
-  @After
-  public void after() {
-    SystemConfigurationProperty property = dao.getByName(DUMMY_PROPERTY_NAME);
-    if (property != null) {
-      dao.delete(property);
-    }
-  }
 
   @Test
   public void testCRUD() {

@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -95,7 +96,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -233,14 +233,6 @@ public abstract class AbstractRepositoryServiceTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     mailConfigurationDAO.set(mailConfiguration);
-  }
-
-  @After
-  public void cleanup() {
-    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
-    if (repositoryManager != null) {
-      repositoryManagerDAO.delete(repositoryManager);
-    }
   }
 
   @Test

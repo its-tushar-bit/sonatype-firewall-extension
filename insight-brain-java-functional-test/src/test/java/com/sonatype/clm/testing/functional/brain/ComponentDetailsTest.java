@@ -1389,8 +1389,8 @@ public class ComponentDetailsTest
     SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(refId);
     securityVulnerabilityData.isAdvancedVulnerabilityDetection = true;
     securityVulnerabilityData.researchType = ResearchType.DEEP_DIVE;
-    securityVulnerabilityData.mainSeverity = new SecurityVulnerabilitySeverity("source-test",
-        7.0f, "test/vector");
+    securityVulnerabilityData.mainSeverity =
+        new SecurityVulnerabilitySeverity("source-test", "source-test-label", 7.0f, "test/vector");
     securityVulnerabilityData.weakness = new SecurityVulnerabilityWeakness();
     securityVulnerabilityData.weakness.cweIds = new ArrayList<>();
     securityVulnerabilityData.weakness.cweIds.add(new CweId("123", URI.create("http://localhost")));

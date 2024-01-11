@@ -549,6 +549,9 @@ public class ApiCycloneDxServiceV2
           case "cve_cvss_31":
             rating.setMethod(Method.CVSSV31);
             break;
+          case "cve_cvss_4":
+            rating.setMethod(Method.CVSSV4);
+            break;
           default:
             rating.setMethod(Method.OTHER);
         }

@@ -140,7 +140,7 @@ public class InactiveRepositoryViolationCleaner
     }
 
     private List<String> getInactivePolicyViolationIds() throws SQLException {
-      String query = "SELECT repository_policy_violation_id FROM " + operationalDataStore.ID
+      String query = "SELECT repository_policy_violation_id FROM " + OperationalDataStore.ID
           + ".repository_policy_violation" + " WHERE active = false FETCH FIRST " + BATCH_SIZE + " ROWS ONLY";
       try (Connection connection = operationalDataStore.getDataSource().getConnection();
           PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -156,7 +156,7 @@ public class InactiveRepositoryViolationCleaner
     private int deleteInactivePolicyViolations(List<String> inactivePolicyViolationIds) throws SQLException {
       String in = inactivePolicyViolationIds.stream().map(violationId -> "'" + violationId + "'")
           .collect(Collectors.joining(","));
-      String query = "DELETE FROM " + operationalDataStore.ID
+      String query = "DELETE FROM " + OperationalDataStore.ID
           + ".repository_policy_violation WHERE repository_policy_violation_id IN (" + in + ")";
       try (Connection connection = operationalDataStore.getDataSource().getConnection();
           Statement statement = connection.createStatement()) {

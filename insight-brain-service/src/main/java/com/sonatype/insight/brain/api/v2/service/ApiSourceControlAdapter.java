@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 public class ApiSourceControlAdapter
 {
   private static final Set<SourceControlProvider> MULTI_TENANT_SCM_PROVIDERS =
-      ImmutableSet.of(SourceControlProvider.AZURE, SourceControlProvider.GITHUB);
+      ImmutableSet.of(SourceControlProvider.AZURE, SourceControlProvider.GITHUB, SourceControlProvider.GITLAB);
 
   @SuppressWarnings("deprecation")
   public static ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {

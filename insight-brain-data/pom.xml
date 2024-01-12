@@ -42,9 +42,8 @@
       <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
-      <version>1.6.1</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
     </dependency>
 
     <dependency>

@@ -55,6 +55,14 @@ public class MtiqApiSourceControlResourceTest
   }
 
   @Test
+  public void testMtiqSupportsBitBucket() {
+    testAsTestTenant(tenant -> {
+      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);
+      assertResponseStatus(200, response);
+    });
+  }
+
+  @Test
   public void testMtiqSupportsGitlab() {
     testAsTestTenant(tenant -> {
       HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
@@ -102,10 +110,15 @@ public class MtiqApiSourceControlResourceTest
   }
 
   @Test
-  public void testMtiqDoesNotSupportOtherProviders() {
+  public void testMtiqDoesNotSupportBitBucketWithoutFeatureEnabled() {
     testAsTestTenant(tenant -> {
-      HttpResponse response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);
-      assertSourceControlFailed(response, SourceControlProvider.BITBUCKET);
+      HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
+          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+          .delete();
+      assertResponseStatus(204, response);
+
+      response = sendSourceControlConfigWithProvider(SourceControlProvider.BITBUCKET);
+      assertResponseStatus(404, response);
     });
   }
 

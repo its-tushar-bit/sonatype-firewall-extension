@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
+import java.util.function.IntConsumer;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -107,6 +108,8 @@ public interface DataStore
    * @return the {@link EntityManagerFactory} for this data store
    */
   EntityManagerFactory getJPAEntityManagerFactory();
+
+  IntConsumer getUpgradeGuard(Boolean migrateToNewViolationModel);
 
   // Should disappear with LegacyDataSourceProvider
   @Deprecated

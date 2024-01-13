@@ -1,4 +1,5 @@
 hdsUrl: https://clm-staging.sonatype.com
+consentToUpgradeToVersion_1_45: true
 logging:
   level: DEBUG
   loggers:

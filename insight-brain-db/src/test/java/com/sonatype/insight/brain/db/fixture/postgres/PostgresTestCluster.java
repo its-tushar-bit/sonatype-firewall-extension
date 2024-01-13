@@ -104,7 +104,7 @@ public class PostgresTestCluster
     thirdPartyScansDataStore.initialize();
 
     (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore)).migrate();
+        thirdPartyScansDataStore)).migrate(true);
   }
 
   /**

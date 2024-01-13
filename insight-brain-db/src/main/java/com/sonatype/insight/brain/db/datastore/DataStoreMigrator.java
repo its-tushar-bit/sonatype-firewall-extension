@@ -14,17 +14,18 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.function.IntConsumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.LegacyDataSourceProvider;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.LegacyDataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -50,7 +51,7 @@ public class DataStoreMigrator
     this.dataStore = dataStore;
   }
 
-  public void migrate() {
+  public void migrate(final Boolean migrateToNewViolationModel) {
     DataSource dataSource = dataStore.getDataSource();
     String dataStoreId = dataStore.getID();
     String databaseSchema = dataStore.getDatabaseSchema();
@@ -95,6 +96,11 @@ public class DataStoreMigrator
 
       if (currentVersion == desiredVersion) {
         return;
+      }
+
+      IntConsumer upgradeGuard = dataStore.getUpgradeGuard(migrateToNewViolationModel);
+      if (upgradeGuard != null) {
+        upgradeGuard.accept(currentVersion);
       }
 
       log.info("Migrating database schema {} from version {} to version: {}", databaseSchema, currentVersion,

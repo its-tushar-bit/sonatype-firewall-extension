@@ -157,7 +157,7 @@ public class CanonicalSchemaValidationTest
 
   private void migrateTenant(Tenant tenant) {
     TenantTestHelper.testAs(tenant, t -> {
-      new DatabaseMigrator(databaseRule).migrate();
+      new DatabaseMigrator(databaseRule).migrate(true);
     });
   }
 

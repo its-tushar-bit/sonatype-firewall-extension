@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache
 import com.sonatype.insight.brain.service.HdsMockServerRule
+import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider
@@ -117,7 +118,7 @@ extends GebReportingSpec {
 
   static def initDatabase() {
     DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils()
-    databaseProvisionUtils.initializeDatabasesWithMigration()
+    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig())
   }
 
   def getBrainModules() {

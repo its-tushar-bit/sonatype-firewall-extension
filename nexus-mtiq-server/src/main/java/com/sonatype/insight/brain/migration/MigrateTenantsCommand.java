@@ -56,7 +56,8 @@ public class MigrateTenantsCommand
         new MultiTenantGlobalSchemaProtection(databaseContainer.getOperationalDataStore());
 
     TenantMigrator tenantMigrator =
-        new TenantMigrator(databaseContainer.getDatabaseProvisionUtils(), multiTenantGlobalSchemaProtection);
+        new TenantMigrator(databaseContainer.getDatabaseProvisionUtils(), insightConfig,
+            multiTenantGlobalSchemaProtection);
 
     tenantMigrator.migrateGlobalSchema();
     log.info("DB migrations for Global schema finished.");

@@ -24,6 +24,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -99,8 +100,10 @@ public class MigrateTenantsCommandTest
 
       // One for each tenant and +1 for the global one executed in TenantMigrate.migrateAllSchemas
       verify(spyDatabaseProvisionUtils, times(currentTenantCount + 2)).initializeDatabasesWithoutMigration();
-      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).initializeDatabasesWithMigration();
-      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).migrateDatabasesIfNeeded();
+      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).initializeDatabasesWithMigration(
+          any(MultiTenantInsightConfig.class));
+      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).migrateDatabasesIfNeeded(
+          any(MultiTenantInsightConfig.class));
     });
   }
 }

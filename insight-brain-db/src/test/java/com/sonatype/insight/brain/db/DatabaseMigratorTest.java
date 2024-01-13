@@ -204,6 +204,6 @@ public class DatabaseMigratorTest
   }
 
   private void runDatabaseMigrator() {
-    new DatabaseMigrator(databaseRule).migrate();
+    new DatabaseMigrator(databaseRule).migrate(true);
   }
 }

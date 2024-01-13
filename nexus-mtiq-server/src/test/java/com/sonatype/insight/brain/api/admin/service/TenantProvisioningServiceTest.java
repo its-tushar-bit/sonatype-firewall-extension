@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -34,6 +35,9 @@ import static org.mockito.Mockito.when;
 public class TenantProvisioningServiceTest
     extends AbstractMultiTenantTest
 {
+  @Mock
+  private InsightConfig insightConfig;
+
   @Mock
   private DatabaseProvisionUtils databaseProvisionUtils;
 
@@ -62,7 +66,7 @@ public class TenantProvisioningServiceTest
   public void setup() {
     tenantUtil = new TenantUtil();
     config = new MultiTenantInsightConfig();
-    underTest = new TenantProvisioningService(databaseProvisionUtils, tenantUtil,
+    underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, tenantUtil,
         tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, systemConfigurationPropertyDAO, config);
   }
 
@@ -77,7 +81,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(userDAO).getById("ADMIN");
       verify(userDAO, never()).delete(user);
     });
@@ -93,7 +97,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(userDAO).getById("ADMIN");
       verify(userDAO).delete(user);
     });
@@ -109,7 +113,7 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
       verify(systemConfigurationPropertyDAO).set("ADVANCED_SEARCH_ENABLED", "false");
     });
   }

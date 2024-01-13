@@ -105,20 +105,6 @@ public class InsightConfigTest
             + "The showRootOrganization configuration option should be removed from the config yml file.");
   }
 
-  /**
-   * @deprecated The tested method is deprecated.
-   */
-  @Test
-  @Deprecated
-  public void testSetConsentToUpgradeToVersion_1_45() {
-    InsightConfig config = new InsightConfig();
-
-    config.setConsentToUpgradeToVersion_1_45(true);
-
-    assertThat(logOutput).atWarnLevel().contains("The consentToUpgradeToVersion_1_45 configuration option is " +
-        "obsolete and can be removed from the config yml file.");
-  }
-
   @Test
   public void testGetClusterDirectory() {
     InsightConfig insightConfig = new InsightConfig();
@@ -187,6 +173,7 @@ public class InsightConfigTest
             "cdnUrl",
             "clusterDirectory",
             "connectTimeoutInSeconds",
+            "consentToUpgradeToVersion_1_45",
             "createSampleData",
             "cspEnabled",
             "csrfProtection",

@@ -287,7 +287,7 @@ public class InsightBrainService
     DatabaseContainer databaseContainer = createDatabaseContainer(configuration);
 
     DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration();
+    databaseProvisionUtils.initializeDatabasesWithMigration(configuration);
 
     validateMinimumSchemaVersion(databaseProvisionUtils);
 

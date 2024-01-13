@@ -330,7 +330,7 @@ public class DatabaseRule
   }
 
   private void migrateDatabase() {
-    new DatabaseMigrator(this).migrate();
+    new DatabaseMigrator(this).migrate(true);
   }
 
   private void initializeNewDatabaseFixture() {

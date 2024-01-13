@@ -198,6 +198,16 @@ public class InsightConfig
   private boolean importReferencePoliciesFromHDS = true;
 
   /**
+   * Flag that signals consent by the user that the server can be upgraded to the new policy violation model.
+   *
+   * @since 1.45
+   */
+  @NotNull
+  @JsonProperty
+  @SuppressWarnings("checkstyle:MemberName")
+  private boolean consentToUpgradeToVersion_1_45;
+
+  /**
    * @since 1.47
    */
   @JsonProperty
@@ -670,14 +680,13 @@ public class InsightConfig
     this.reportTimeoutInSeconds = reportTimeoutInSeconds;
   }
 
-  /**
-   * @deprecated removed in Jan 2024 as we no longer have any customers running an IQ this old. See CLM-29089.
-   */
-  @Deprecated
+  public boolean isConsentToUpgradeToVersion_1_45() {
+    return consentToUpgradeToVersion_1_45;
+  }
+
   @SuppressWarnings("checkstyle:ParameterName")
-  public void setConsentToUpgradeToVersion_1_45(@SuppressWarnings("unused") boolean consentToUpgradeToVersion_1_45) {
-    log.warn("The consentToUpgradeToVersion_1_45 configuration option is obsolete and can be removed from the " +
-        "config yml file.");
+  public void setConsentToUpgradeToVersion_1_45(boolean consentToUpgradeToVersion_1_45) {
+    this.consentToUpgradeToVersion_1_45 = consentToUpgradeToVersion_1_45;
   }
 
   public Boolean isEnableDefaultPasswordWarning() {

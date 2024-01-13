@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -28,6 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -53,14 +55,17 @@ public class TenantSchemaServiceTest
   private TenantValidator tenantValidator;
 
   @Mock
+  private InsightConfig insightConfig;
+
+  @Mock
   private DatabaseProvisionUtils databaseProvisionUtils;
 
   private TenantSchemaService underTest;
 
   @Before
   public void setup() {
-    underTest =
-        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, databaseProvisionUtils);
+    underTest = new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, insightConfig,
+        databaseProvisionUtils);
   }
 
   @Test
@@ -113,7 +118,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
     });
   }
 
@@ -124,7 +129,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(global.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisionUtils).initializeDatabasesWithMigration(any(InsightConfig.class));
     });
   }
 
@@ -132,7 +137,8 @@ public class TenantSchemaServiceTest
   public void shouldPassUpExceptions_migrateSchema() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
-      doThrow(new RuntimeException()).when(databaseProvisionUtils).initializeDatabasesWithMigration();
+      doThrow(new RuntimeException()).when(databaseProvisionUtils)
+          .initializeDatabasesWithMigration(any(InsightConfig.class));
 
       assertThatNoException().isThrownBy(() -> underTest.migrateSchema(tenant.tenantSlug));
     });

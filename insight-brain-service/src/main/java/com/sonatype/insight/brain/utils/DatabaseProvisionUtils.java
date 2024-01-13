@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -75,9 +76,9 @@ public class DatabaseProvisionUtils
     return clusterLockManagerProvider.get();
   }
 
-  public void initializeDatabasesWithMigration() {
+  public void initializeDatabasesWithMigration(InsightConfig insightConfig) {
     initializeDatabasesWithoutMigration();
-    migrateDatabasesIfNeeded();
+    migrateDatabasesIfNeeded(insightConfig);
   }
 
   public void initializeDatabasesWithoutMigration() {
@@ -87,7 +88,7 @@ public class DatabaseProvisionUtils
     aggregationDataStore.initialize();
   }
 
-  public void migrateDatabasesIfNeeded() {
+  public void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
     int schemaVersion = -2;
     boolean schemaVersionTableExists = isSchemaVersionTableExists();
     if (schemaVersionTableExists) {
@@ -103,14 +104,14 @@ public class DatabaseProvisionUtils
         clusterLock.lock();
         if (isMigrationEnabledOrHasNewDataSource && isMigrationNeeded()) {
           clusterLockManager.createForSchemaMigrationInProgress();
-          doMigrateDatabases();
+          doMigrateDatabases(insightConfig);
           clusterLockManager.deleteForSchemaMigrationInProgress();
         }
       }
     }
     else {
       if (isMigrationEnabledOrHasNewDataSource) {
-        doMigrateDatabases();
+        doMigrateDatabases(insightConfig);
       }
     }
   }
@@ -156,8 +157,10 @@ public class DatabaseProvisionUtils
   }
 
   // Visible for testing
-  public void doMigrateDatabases() {
-    (new DatabaseMigrator(this)).migrate();
+  public void doMigrateDatabases(InsightConfig insightConfig) {
+    // NOTE: The ODS can refuse upgrade if the existing schema is too old. So upgrade it first to avoid
+    // upgrading the other databases if the ODS fails and a previous server version must be run first instead.
+    (new DatabaseMigrator(this)).migrate(insightConfig.isConsentToUpgradeToVersion_1_45());
   }
 
   @Override

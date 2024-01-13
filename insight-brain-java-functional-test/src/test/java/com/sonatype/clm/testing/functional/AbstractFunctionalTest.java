@@ -222,7 +222,7 @@ public abstract class AbstractFunctionalTest
 
   private static void initDatabase() {
     DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration();
+    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig());
   }
 
   @Rule

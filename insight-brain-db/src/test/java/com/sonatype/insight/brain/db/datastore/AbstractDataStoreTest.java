@@ -25,7 +25,11 @@ public abstract class AbstractDataStoreTest
   protected abstract DataStore getTestDataStore();
 
   protected void migrateDatabase() {
-    new DataStoreMigrator(getTestDataStore()).migrate();
+    migrateDatabase(true);
+  }
+
+  protected void migrateDatabase(final Boolean migrateToNewViolationModel) {
+    new DataStoreMigrator(getTestDataStore()).migrate(migrateToNewViolationModel);
   }
 
   @Test

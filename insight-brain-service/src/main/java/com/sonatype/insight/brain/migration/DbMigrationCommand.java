@@ -53,7 +53,7 @@ public class DbMigrationCommand
       tryCheckLastCheckinTimeNotRecent(databaseProvisionUtils.getOperationalDataStore(),
           getAttemptsToWaitForLastCheckinToNotBeRecent());
 
-      databaseProvisionUtils.migrateDatabasesIfNeeded();
+      databaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig);
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);

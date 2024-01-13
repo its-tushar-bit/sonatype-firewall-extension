@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.slf4j.Logger;
@@ -25,13 +26,17 @@ public class TenantMigrator
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
+  private final MultiTenantInsightConfig insightConfig;
+
   private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
   public TenantMigrator(
       final DatabaseProvisionUtils databaseProvisionUtils,
+      final MultiTenantInsightConfig insightConfig,
       final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
     this.databaseProvisionUtils = databaseProvisionUtils;
+    this.insightConfig = insightConfig;
     this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
   }
 
@@ -94,7 +99,7 @@ public class TenantMigrator
     try {
       DatabaseMigrator.setForceEnableMigration(true);
 
-      databaseProvisionUtils.initializeDatabasesWithMigration();
+      databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);

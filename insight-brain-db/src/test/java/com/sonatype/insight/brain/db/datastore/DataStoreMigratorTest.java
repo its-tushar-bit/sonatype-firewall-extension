@@ -6,17 +6,16 @@
 package com.sonatype.insight.brain.db.datastore;
 
 import java.io.File;
-import java.util.function.IntConsumer;
 import java.util.zip.ZipFile;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
@@ -250,7 +249,7 @@ public class DataStoreMigratorTest
     DataSource dataSource = dataStore.getDataSource();
     assertThat(DatabaseUtil.schemaExists(dataSource, dataStore.getDatabaseSchema())).isFalse();
 
-    newDataStoreMigrator(dataStore).migrate(true);
+    newDataStoreMigrator(dataStore).migrate();
 
     assertThat(DatabaseUtil.schemaExists(dataSource, dataStore.getDatabaseSchema())).isTrue();
     assertThat(
@@ -264,7 +263,7 @@ public class DataStoreMigratorTest
 
   private void runDataStoreMigrator(final DataStore dataStore) {
     DataStoreMigrator dataStoreMigrator = new DataStoreMigrator(dataStore);
-    dataStoreMigrator.migrate(true);
+    dataStoreMigrator.migrate();
   }
 
   private class TestDataStore
@@ -312,11 +311,6 @@ public class DataStoreMigratorTest
     @Override
     public EntityManagerFactory getJPAEntityManagerFactory() {
       throw new NotImplementedException();
-    }
-
-    @Override
-    public IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
-      return null;
     }
 
     @Override

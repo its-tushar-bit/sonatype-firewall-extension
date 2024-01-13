@@ -12,7 +12,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -31,8 +30,6 @@ public class TenantSchemaService
 
   private final TenantValidator tenantValidator;
 
-  private final InsightConfig insightConfig;
-
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
   @Inject
@@ -40,13 +37,11 @@ public class TenantSchemaService
       OperationalDataStore operationalDataStore,
       DataMartDataStore dataMartDataStore,
       TenantValidator tenantValidator,
-      InsightConfig insightConfig,
       DatabaseProvisionUtils databaseProvisionUtils)
   {
     this.operationalDataStore = operationalDataStore;
     this.tenantValidator = tenantValidator;
     this.dataMartDataStore = dataMartDataStore;
-    this.insightConfig = insightConfig;
     this.databaseProvisionUtils = databaseProvisionUtils;
   }
 
@@ -75,7 +70,7 @@ public class TenantSchemaService
     validateCurrentTenant(tenantSlug);
 
     try {
-      databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
+      databaseProvisionUtils.initializeDatabasesWithMigration();
     }
     catch (RuntimeException e) {
       //we are passing up any exception when migrating a Tenant schema

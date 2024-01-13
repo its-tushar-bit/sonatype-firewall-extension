@@ -63,7 +63,7 @@ public class MultiTenantPostgresTestCluster
     dataMartDataStore.initialize();
     thirdPartyScansDataStore.initialize();
     (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore)).migrate(true);
+        thirdPartyScansDataStore)).migrate();
 
     // now create a tenant to use as a template
     TenantTestHelper.testAsNewTenant(TEMPLATE_TENANT_NAME, x -> {
@@ -73,7 +73,7 @@ public class MultiTenantPostgresTestCluster
       thirdPartyScansDataStore.initialize();
 
       (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-          thirdPartyScansDataStore)).migrate(true);
+          thirdPartyScansDataStore)).migrate();
     });
   }
 

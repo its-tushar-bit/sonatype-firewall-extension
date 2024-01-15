@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.db.datastore;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.IntConsumer;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
@@ -29,10 +28,6 @@ public class DefaultOperationalDataStore
     implements OperationalDataStore
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultOperationalDataStore.class);
-
-  public static final int MINIMUM_DATABASE_VERSION = 85;
-
-  public static final int OLD_VIOLATION_MODEL_DATABASE_VERSION = 114;
 
   private EntityManagerFactory entityManagerFactory;
 
@@ -95,28 +90,6 @@ public class DefaultOperationalDataStore
   @Override
   public String getDatabaseSchema() {
     return ID;
-  }
-
-  @Override
-  public IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
-    return currentVersion -> {
-      if (currentVersion < MINIMUM_DATABASE_VERSION) {
-        throw new UnsupportedOperationException(String.format(
-            "Cannot migrate %s database, this requires version %s at minimum, but you have version %s.\n"
-                + "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.",
-            OperationalDataStore.ID, MINIMUM_DATABASE_VERSION, currentVersion));
-      }
-      if (currentVersion <= OLD_VIOLATION_MODEL_DATABASE_VERSION && !migrateToNewViolationModel) {
-        log.error("|------------------------------------------");
-        log.error("|");
-        log.error("| Upgrade requires consent to proceed.");
-        log.error("| For detailed instructions, see");
-        log.error("| https://links.sonatype.com/products/clm/doc/upgrade/1.45");
-        log.error("|");
-        log.error("|------------------------------------------");
-        throw new UnsupportedOperationException("Consent to upgrade has not been given.");
-      }
-    };
   }
 
   @Override

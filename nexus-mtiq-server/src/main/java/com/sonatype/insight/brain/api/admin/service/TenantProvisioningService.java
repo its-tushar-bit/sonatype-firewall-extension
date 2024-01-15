@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -36,8 +35,6 @@ public class TenantProvisioningService
 {
   private static final Logger log = LoggerFactory.getLogger(TenantProvisioningService.class);
 
-  private final InsightConfig insightConfig;
-
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
   private final TenantUtil tenantUtil;
@@ -56,7 +53,6 @@ public class TenantProvisioningService
 
   @Inject
   public TenantProvisioningService(
-      InsightConfig insightConfig,
       DatabaseProvisionUtils databaseProvisionUtils,
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
@@ -66,7 +62,6 @@ public class TenantProvisioningService
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       MultiTenantInsightConfig config)
   {
-    this.insightConfig = insightConfig;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
@@ -94,15 +89,15 @@ public class TenantProvisioningService
       throw new ConflictException("Tenant already exists");
     }
 
-    databaseProvisionUtils.initializeDatabasesWithMigration(insightConfig);
+    databaseProvisionUtils.initializeDatabasesWithMigration();
     log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();
   }
 
   /**
-   * Make adjustments to the rows that the database scripts add to the database. Some of these rows add default
-   * entities that are not appropriate for SaaS tenants
+   * Make adjustments to the rows that the database scripts add to the database. Some of these rows add default entities
+   * that are not appropriate for SaaS tenants
    */
   private void adjustDefaultTenantData() {
     // Delete the built-in default admin if configuration is set
@@ -118,8 +113,8 @@ public class TenantProvisioningService
 
   /**
    * Adds a DeletedTenant record that will later be picked up by a scheduled job. Essentially this puts the tenant into
-   * an "archived" state while it is waiting to be deleted. Tenants are not deleted at this stage because deleting
-   * the DB schema is a destructive operation, and therefore we need to prevent accidental deletion.
+   * an "archived" state while it is waiting to be deleted. Tenants are not deleted at this stage because deleting the
+   * DB schema is a destructive operation, and therefore we need to prevent accidental deletion.
    *
    * @param tenantSlug - the URL slug of the tenant to be deleted
    */

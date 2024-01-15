@@ -7,16 +7,15 @@ package com.sonatype.insight.brain.db.rule;
 
 import java.lang.annotation.Annotation;
 
-import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
-import com.sonatype.insight.brain.db.fixture.postgres.MultiTenantPostgresDatabaseFixture;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
-import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
+import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.postgres.MultiTenantPostgresDatabaseFixture;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -104,11 +103,8 @@ public class MultiTenantDatabaseContainerRule
     TenantTestHelper.testAs(tenant, t -> {
       cloneTenant(tenant.databaseSchema);
 
-      MultiTenantInsightConfig multiTenantInsightConfig = new MultiTenantInsightConfig();
-      multiTenantInsightConfig.setConsentToUpgradeToVersion_1_45(true);
-
       DatabaseProvisionUtils databaseProvisionUtils = getDatabaseContainer().getDatabaseProvisionUtils();
-      databaseProvisionUtils.initializeDatabasesWithMigration(multiTenantInsightConfig);
+      databaseProvisionUtils.initializeDatabasesWithMigration();
     });
   }
 

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import java.util.function.IntConsumer;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
@@ -28,15 +27,6 @@ public abstract class AbstractDataStore
   public AbstractDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
     this.dataSourceProvider = dataSourceProvider;
     this.databaseConfig = databaseConfig;
-  }
-
-  /**
-   * The new violation model in IQ 114 requires the database to be at version 85 first.
-   */
-  @Override
-  public IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {
-    // as of writing only ODS has an upgrade guard
-    return null;
   }
 
   @Override

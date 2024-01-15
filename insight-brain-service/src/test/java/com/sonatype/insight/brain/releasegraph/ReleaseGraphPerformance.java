@@ -28,12 +28,12 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
-import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
@@ -111,8 +111,8 @@ public class ReleaseGraphPerformance
   /**
    * Simulates browser test which
    *
-   * @param reports the number of reports
-   * @param usersPerReport the number of users per report
+   * @param reports            the number of reports
+   * @param usersPerReport     the number of users per report
    * @param connectionsPerUser the number of connections each user uses (FF uses 6)
    * @param work
    * @throws Exception
@@ -187,14 +187,13 @@ public class ReleaseGraphPerformance
     DatabaseProvisionUtils databaseProvisionUtils =
         new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore,
             dataMartDataStore, thirdPartyScansDataStore);
-    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
+    return new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
         operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore);
-    return databaseContainer;
   }
 
   private void initDatabase() {
     DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration(new InsightConfig());
+    databaseProvisionUtils.initializeDatabasesWithMigration();
   }
 
   void clearCache() {

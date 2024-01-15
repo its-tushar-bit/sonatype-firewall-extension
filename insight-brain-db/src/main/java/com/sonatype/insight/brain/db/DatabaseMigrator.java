@@ -66,15 +66,15 @@ public class DatabaseMigrator
     };
   }
 
-  public void migrate(final Boolean migrateToNewViolationModel) {
+  public void migrate() {
     if (!isMigrationEnabled(dataStoreProvider.getOperationalDataStore())) {
       return;
     }
 
-    new DataStoreMigrator(dataStoreProvider.getOperationalDataStore()).migrate(migrateToNewViolationModel);
-    new DataStoreMigrator(dataStoreProvider.getAggregationDataStore()).migrate(migrateToNewViolationModel);
-    new DataStoreMigrator(dataStoreProvider.getDataMartDataStore()).migrate(migrateToNewViolationModel);
-    new DataStoreMigrator(dataStoreProvider.getThirdPartyScansDataStore()).migrate(migrateToNewViolationModel);
+    new DataStoreMigrator(dataStoreProvider.getOperationalDataStore()).migrate();
+    new DataStoreMigrator(dataStoreProvider.getAggregationDataStore()).migrate();
+    new DataStoreMigrator(dataStoreProvider.getDataMartDataStore()).migrate();
+    new DataStoreMigrator(dataStoreProvider.getThirdPartyScansDataStore()).migrate();
   }
 
   public static void setForceEnableMigration(boolean forceEnableMigration) {

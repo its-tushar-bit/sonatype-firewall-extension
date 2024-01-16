@@ -79,19 +79,6 @@ public class ScanResourceTest
     }
   }
 
-  @Test
-  public void testUploadBinary_PathTraversal_ThrowsException() throws Exception {
-    String[] filePaths = new String[]{"dir1/app01.zip", "dir1\\app01.zip"};
-
-    for (String filePath : filePaths) {
-      HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, filePath).post();
-
-      assertResponseStatus(400, response);
-      assertThat(response.getContentType()).startsWith("text/plain");
-      assertThat(response.getBodyText()).isEqualTo("Filename must not be a directory: " + filePath);
-    }
-  }
-
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) {
     HttpRequest request = restRequest().path("{ticketId}").parameter(appPublicId, scanTicketId);
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {

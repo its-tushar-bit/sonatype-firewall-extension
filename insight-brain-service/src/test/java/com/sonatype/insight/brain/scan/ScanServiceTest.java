@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -223,6 +224,28 @@ public class ScanServiceTest
       file.delete();
       assertThat(file.getName()).isEqualTo("app.tar.gz");
     }
+  }
+
+  @Test
+  public void testScanBinary_ThrowsException_WhenDirectory_WithForwardSlash() throws Exception {
+    String filePath = "dir1/app01.zip";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      InputStream appBundle = getBundle("app01.zip");
+      scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
+              null, null);
+    }).withMessage("Filename must not be a directory: " + filePath);
+  }
+
+  @Test
+  public void testScanBinary_ThrowsException_WhenDirectory_WithBackSlash() throws Exception {
+    String filePath = "dir1\\app01.zip";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      InputStream appBundle = getBundle("app01.zip");
+      scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
+              null, null);
+    }).withMessage("Filename must not be a directory: " + filePath);
   }
 
   @Test

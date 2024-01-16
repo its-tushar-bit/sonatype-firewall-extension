@@ -277,13 +277,14 @@ public class SearchService
       final SearchResultDTO searchResultDTO,
       final Map<String, String> groupFieldNamesByItemType)
   {
+    Map<String, GroupingByDTO> groupByDTOByGroupBy = new HashMap<>();
     for (Document document : documents) {
       SearchResultItemDTO searchResultItemDTO = toDto(document);
       String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
       FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
       String groupBy = document.get(groupFieldName);
 
-      if (searchResultDTO.groupingByDTOS.stream().noneMatch(dto -> dto.groupBy.equals(groupBy))) {
+      if (!groupByDTOByGroupBy.containsKey(groupBy)) {
         GroupingByDTO groupingByDTO = new GroupingByDTO();
         groupingByDTO.groupBy = groupBy;
         groupingByDTO.groupIdentifier = groupIdentifier;
@@ -292,10 +293,9 @@ public class SearchService
           groupingByDTO.additionalInfo = document.get(VULNERABILITY_DESCRIPTION.label);
         }
         searchResultDTO.groupingByDTOS.add(groupingByDTO);
+        groupByDTOByGroupBy.put(groupBy, groupingByDTO);
       }
-      searchResultDTO.groupingByDTOS.stream().filter(dto -> dto.groupBy.equals(groupBy)).findAny().ifPresent(
-          groupingByDTO -> groupingByDTO.searchResultItemDTOS.add(searchResultItemDTO)
-      );
+      groupByDTOByGroupBy.get(groupBy).searchResultItemDTOS.add(searchResultItemDTO);
     }
     setResultIndexOnSearchResultItemDTOS(searchResultDTO);
   }

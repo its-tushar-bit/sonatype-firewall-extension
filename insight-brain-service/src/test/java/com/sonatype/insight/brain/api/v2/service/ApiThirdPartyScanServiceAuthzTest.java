@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -20,6 +21,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 
@@ -39,7 +41,8 @@ public class ApiThirdPartyScanServiceAuthzTest
 
     // Wait for the policy evaluation (started async) to finish, otherwise we cannot cleanup properly after the test.
     String scanRequestId = getScanRequestId(apiThirdPartyScanTicketDTO);
-    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> isCompleted(app.getId(), scanRequestId));
+    await().atMost(Duration.ofMillis(5000))
+        .untilAsserted(() -> assertThat(isCompleted(app.getId(), scanRequestId)).isTrue());
   }
 
   private boolean isCompleted(String appId, String scanRequestId) {
@@ -54,7 +57,7 @@ public class ApiThirdPartyScanServiceAuthzTest
 
   private String getScanRequestId(ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO) {
     String statusUrl = apiThirdPartyScanTicketDTO.statusUrl;
-    return statusUrl.substring(statusUrl.lastIndexOf('/'));
+    return statusUrl.substring(statusUrl.lastIndexOf('/') + 1);
   }
 
   @Test(expected = UnauthenticatedException.class)

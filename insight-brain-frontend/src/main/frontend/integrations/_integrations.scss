@@ -168,6 +168,10 @@ svg.nx-icon.iq-total-risk-info-icon {
   .nx-dropdown {
     width: 100%;
   }
+
+  .iq-integrations-applications-table__name-cell {
+    overflow-wrap: anywhere;
+  }
 }
 
 #iq-developer-app-integrations-scm-configure-button,

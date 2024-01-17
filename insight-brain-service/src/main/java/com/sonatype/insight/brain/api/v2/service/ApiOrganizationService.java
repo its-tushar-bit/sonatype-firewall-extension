@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -90,5 +90,9 @@ public class ApiOrganizationService
     Organization newOrganization = organizationService.addOrganization(apiOrganization);
 
     return ApiOrganizationAdapter.convert(newOrganization, Collections.emptyList());
+  }
+
+  public void deleteOrganization(String organizationId) throws IOException {
+    organizationService.deleteOrganization(organizationId);
   }
 }

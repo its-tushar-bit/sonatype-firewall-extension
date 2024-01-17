@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -105,5 +107,13 @@ public class DefaultApiOrganizationResourceV2
     return Response.status(Status.OK)
         .entity(moveOrganizationResponseDTO)
         .build();
+  }
+
+  @Override
+  @DELETE
+  @Path(ORGANIZATION_ID)
+  @Audited(AuditEvent.DELETE_ORGANIZATION)
+  public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
+    apiOrganizationService.deleteOrganization(organizationId);
   }
 }

@@ -70,6 +70,25 @@ public class ApiOrganizationResourceV2AuditTest
     assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, "unauthorized");
   }
 
+  @Test
+  public void testDeleteOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    organizationApiRequest().path(organization.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ORGANIZATION, null);
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testDeleteOrganization_Unauthorized() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    organizationApiRequest().path(organization.getId()).with(unauthorizedUser()).delete();
+
+    assertAuditLog(AuditEvent.DELETE_ORGANIZATION, "unauthorized");
+  }
+
   private HttpRequest organizationApiRequest() {
     return restRequest().path(PublicApiPaths.ORG_RESOURCE_PATH);
   }

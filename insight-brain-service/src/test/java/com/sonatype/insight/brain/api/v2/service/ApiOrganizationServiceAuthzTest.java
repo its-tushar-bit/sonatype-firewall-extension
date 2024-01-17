@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
@@ -102,5 +101,22 @@ public class ApiOrganizationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetOrganizationById_Unauthenticated() {
     apiOrganizationService.getOrganizationById(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteOrganization_Unauthenticated() throws Exception {
+    apiOrganizationService.deleteOrganization(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteOrganization_Unauthorized() throws Exception {
+    login();
+    apiOrganizationService.deleteOrganization(org.getId());
+  }
+
+  @Test
+  public void testDeleteOrganization_Authorized() throws Exception {
+    grantWritePermission(org.getId());
+    apiOrganizationService.deleteOrganization(org.getId());
   }
 }

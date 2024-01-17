@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
 import java.util.Set;
 import javax.ws.rs.core.Response;
 
@@ -32,4 +33,6 @@ public interface ApiOrganizationResourceV2
    * @since 1.161
    */
   Response moveOrganization(String orgId, String newParentOrgId, boolean failEarlyOnError);
+
+  void deleteOrganization(String organizationId) throws IOException;
 }

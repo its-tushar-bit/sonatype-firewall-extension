@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
@@ -166,6 +165,24 @@ public class ApiOrganizationServiceTest
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).hasSize(1);
     assertOrganizationData(apiOrganizationListDTO.organizations.get(0), organization, Collections.singletonList(tag));
+  }
+
+  @Test
+  public void testDeleteOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Organization otherOrganization = tempEntity.newOrganization();
+
+    apiOrganizationService.deleteOrganization(organization.getId());
+
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+    assertThat(organizationDAO.getById(otherOrganization.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteOrganization_RootOrganization() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> apiOrganizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID))
+        .withMessage("The root organization cannot be deleted.");
   }
 
   private void assertOrganizationData(

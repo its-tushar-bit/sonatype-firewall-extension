@@ -207,6 +207,21 @@ public class ApiOrganizationResourceV2Test
     assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
   }
 
+  @Test
+  public void testDeleteOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Organization otherOrganization = tempEntity.newOrganization();
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID)
+        .parameter(organization.getId())
+        .delete();
+
+    assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+    assertThat(organizationDAO.getById(otherOrganization.getId())).isNotNull();
+  }
+
   private void assertOrganizationData(
       ApiOrganizationDTO apiOrganizationDTO,
       Organization organization,

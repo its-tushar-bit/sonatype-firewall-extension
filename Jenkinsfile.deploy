@@ -44,30 +44,6 @@ pipeline {
         publishProduct('CLIScanner')
       }
     }
-    stage('Build and push internal RPM') {
-      when {
-        expression {'Staging' == params?.environment}
-      }
-      steps {
-        dir('iq-server-rpm') {
-          git(url: 'git@github.com:sonatype/iq-server-rpm.git', branch: 'master',
-              credentialsId: 'a046da04-58b6-4f2a-894c-7b7dcd83004e')
-          runSafely "make -f Makefile.bamboo -e VERSION=${getVersionFromBuildName(env.releaseBuild_NAME)} rpm"
-          archiveArtifacts artifacts: 'build/rpmbuild/RPMS/noarch/*.rpm'
-          publishRpm()
-        }
-      }
-    }
-    stage('Check internal RPM was published') {
-      when {
-        expression {'Staging' == params?.environment}
-      }
-      steps {
-        build job: 'ops-utility/check-rpm-published', propagate: true, wait: true, parameters: [
-            [$class: 'StringParameterValue', name: 'RPM_NAME', value: getIqServerRpmNameFromVersion(getVersionFromBuildName(env.releaseBuild_NAME))]
-        ]
-      }
-    }
     stage('Update iq-server latest version') {
       steps {
         updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))

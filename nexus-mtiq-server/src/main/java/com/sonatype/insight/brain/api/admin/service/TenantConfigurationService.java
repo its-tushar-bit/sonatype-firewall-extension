@@ -52,6 +52,7 @@ public class TenantConfigurationService
    * GLOBAL_CONFIGURABLE_PROPERTIES can only be configured globally with the global tenant
    */
   private static final Set<String> GLOBAL_CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+      SAAS_POLICY_MONITOR_POOL_SIZE,
       SOURCE_CONTROL_IMPORT_POOL_SIZE,
       SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE
   );

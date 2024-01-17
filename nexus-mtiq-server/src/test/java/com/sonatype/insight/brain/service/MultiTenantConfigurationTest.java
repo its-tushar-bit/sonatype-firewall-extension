@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineRele
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.junit.Before;
@@ -87,6 +88,9 @@ public class MultiTenantConfigurationTest
   @Mock
   Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
 
+  @Mock
+  TenantUtil tenantUtil;
+
   private Configuration underTest;
 
   @Before
@@ -98,7 +102,7 @@ public class MultiTenantConfigurationTest
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
         asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
         releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider,
-        waivedComponentUpgradeSchedulerProvider);
+        waivedComponentUpgradeSchedulerProvider, tenantUtil);
   }
 
   @Test

@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -33,8 +34,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Strings;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,8 @@ public class ConfigurationUtils
       "NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE";
 
   public static final String NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE = "NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE";
+
+  public static final String NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE = "NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE";
 
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -334,31 +337,34 @@ public class ConfigurationUtils
 
   public static int getEventBusThreadPoolSize(String value, int defaultVal) {
     if (Strings.isNullOrEmpty(value)) {
-      String eventBusSizeEnv = System.getenv(NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE);
-      if (eventBusSizeEnv != null) {
-        return NumberUtils.toInt(eventBusSizeEnv, defaultVal);
-      }
+      return getIntEnvValueOrDefault(NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE, defaultVal);
     }
     return NumberUtils.toInt(value, defaultVal);
   }
 
   public static int getSourceControlEventProcessorPoolSize(String value, int defaultVal) {
     if (Strings.isNullOrEmpty(value)) {
-      String sourceControlEventProcessorPoolSizeEnv = System.getenv(NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE);
-      if (sourceControlEventProcessorPoolSizeEnv != null) {
-        return NumberUtils.toInt(sourceControlEventProcessorPoolSizeEnv, defaultVal);
-      }
+      return getIntEnvValueOrDefault(NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE, defaultVal);
     }
     return NumberUtils.toInt(value, defaultVal);
   }
 
   public static int getSourceControlImportPoolSize(String value, int defaultVal) {
     if (Strings.isNullOrEmpty(value)) {
-      String sourceControlImportPoolSize = System.getenv(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE);
-      if (sourceControlImportPoolSize != null) {
-        return NumberUtils.toInt(sourceControlImportPoolSize, defaultVal);
-      }
+      return getIntEnvValueOrDefault(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE, defaultVal);
     }
     return NumberUtils.toInt(value, defaultVal);
+  }
+
+  public static int getSaasPolicyMonitorPoolSize(String value, int defaultVal) {
+    if (Strings.isNullOrEmpty(value)) {
+      return getIntEnvValueOrDefault(NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE, defaultVal);
+    }
+    return NumberUtils.toInt(value, defaultVal);
+  }
+
+  private static int getIntEnvValueOrDefault(@NotNull String env, int defaultVal) {
+    String envValue = System.getenv(env);
+    return NumberUtils.toInt(envValue, defaultVal);
   }
 }

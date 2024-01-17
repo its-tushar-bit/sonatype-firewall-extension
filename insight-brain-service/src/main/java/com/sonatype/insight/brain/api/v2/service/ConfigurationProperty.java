@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
+import static com.sonatype.insight.brain.policy.evaluator.PolicyMonitor.POLICY_MONITOR_THREADS_DEFAULT;
+
 public class ConfigurationProperty
 {
   protected static final ConfigurationProperty[] PROPERTIES = new ConfigurationProperty[]{
@@ -194,6 +196,9 @@ public class ConfigurationProperty
           (p, s) -> NumberUtils.toInt(s, 10),
           (p, o) -> ConfigurationUtils.integerValueToString(o,
               SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES, 1, 120)),
+      new ConfigurationProperty(SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE, Integer.class,
+          (p, s) -> ConfigurationUtils.getSaasPolicyMonitorPoolSize(s, POLICY_MONITOR_THREADS_DEFAULT),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

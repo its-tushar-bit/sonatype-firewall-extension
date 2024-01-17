@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
@@ -54,11 +55,11 @@ public class PolicyMonitor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitor.class);
 
-  private static final int APPLICATION_MONITOR_THREADS_MIN = 1;
+  public static final int POLICY_MONITOR_THREADS_DEFAULT = 1;
 
-  private static final int APPLICATION_MONITOR_THREADS_MAX = 20;
+  private static final int POLICY_MONITOR_THREADS_MIN = 1;
 
-  private static final int APPLICATION_MONITOR_THREADS_DEFAULT = 1;
+  private static final int POLICY_MONITOR_THREADS_MAX = 20;
 
   private final ForkJoinPool applicationMonitorForkJoinPool;
 
@@ -96,7 +97,8 @@ public class PolicyMonitor
       final PolicyMonitoringDAO policyMonitoringDAO,
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO)
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final Configuration configuration)
   {
     this.work = work;
     this.uploader = uploader;
@@ -109,16 +111,21 @@ public class PolicyMonitor
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.applicationMonitorForkJoinPool = initThreadPool();
+    this.applicationMonitorForkJoinPool = initThreadPool(configuration);
   }
 
-  private ForkJoinPool initThreadPool() {
-    ForkJoinPool threadPool = ExecutorThreadPools.getInstance().createThreadPool(
-        APPLICATION_MONITOR_THREADS_MIN,
-        APPLICATION_MONITOR_THREADS_MAX,
-        APPLICATION_MONITOR_THREADS_DEFAULT,
-        "insight.threads.monitor");
+  private ForkJoinPool initThreadPool(Configuration configuration) {
+    int maxThreadCount = POLICY_MONITOR_THREADS_MAX;
+    int threadCount = POLICY_MONITOR_THREADS_DEFAULT;
 
+    Integer saasPolicyMonitorPoolSize = configuration.getSaasPolicyMonitorPoolSize();
+    if (saasPolicyMonitorPoolSize != null && saasPolicyMonitorPoolSize > 0) {
+      maxThreadCount = saasPolicyMonitorPoolSize;
+      threadCount = saasPolicyMonitorPoolSize;
+    }
+
+    ForkJoinPool threadPool = ExecutorThreadPools.getInstance().createThreadPool(
+        POLICY_MONITOR_THREADS_MIN, maxThreadCount, threadCount, "insight.threads.monitor");
     log.info("insight.threads.monitor pool-size: {}", threadPool.getParallelism());
 
     return threadPool;

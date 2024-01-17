@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -99,6 +100,8 @@ public class Configuration
 
   private final Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public Configuration(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
@@ -114,7 +117,8 @@ public class Configuration
       Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
       Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
       Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider,
-      Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider)
+      Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider,
+      TenantUtil tenantUtil)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
@@ -130,6 +134,7 @@ public class Configuration
     this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
     this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
     this.waivedComponentUpgradeSchedulerProvider = waivedComponentUpgradeSchedulerProvider;
+    this.tenantUtil = tenantUtil;
     initializeValues();
   }
 
@@ -149,6 +154,7 @@ public class Configuration
         SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES,
         SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
         SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+        SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
         SystemConfigurationProperty.CSRF_PROTECTION,
@@ -545,6 +551,13 @@ public class Configuration
 
   public Integer getEnterpriseReportingVersionCacheExpirationInMinutes() {
     return configCache.get(SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES);
+  }
+
+  public Integer getSaasPolicyMonitorPoolSize() {
+    if (tenantUtil.isSingleTenant()) {
+      return null;
+    }
+    return configCache.get(SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE);
   }
 
   public Map<String, String> getMatcherConfiguration() {

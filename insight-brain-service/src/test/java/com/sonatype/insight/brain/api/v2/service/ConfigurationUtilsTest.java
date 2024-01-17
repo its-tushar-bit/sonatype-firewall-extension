@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -409,7 +410,7 @@ public class ConfigurationUtilsTest
   }
 
   @Test
-  public void testGetSourceControlEventProcessorThreadSize_withoutValueWithConfigAsGlobal() {
+  public void testGetSourceControlEventProcessorThreadSize_withoutValueWithEnvConfig() {
     environmentVariables.set(NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE, "30");
 
     assertThat(ConfigurationUtils.getSourceControlEventProcessorPoolSize("", 10)).isEqualTo(30);
@@ -426,9 +427,33 @@ public class ConfigurationUtilsTest
   }
 
   @Test
-  public void testGetSourceControlImportThreadSize_withoutValueWithConfigAsGlobal() {
+  public void testGetSourceControlImportThreadSize_withoutValueWithEnvConfig() {
     environmentVariables.set(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE, "30");
 
     assertThat(ConfigurationUtils.getSourceControlImportPoolSize("", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetSaasPolicyMonitorMaxPoolSize_withValue() {
+    assertThat(ConfigurationUtils.getSaasPolicyMonitorPoolSize("5", 10)).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetSaasPolicyMonitorMaxPoolSize_withoutValue() {
+    assertThat(ConfigurationUtils.getSaasPolicyMonitorPoolSize("", 10)).isEqualTo(10);
+  }
+
+  @Test
+  public void testGetSaasPolicyMonitorMaxPoolSize_withValueWithEnvConfig() {
+    environmentVariables.set(NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE, "30");
+
+    assertThat(ConfigurationUtils.getSaasPolicyMonitorPoolSize("5", 10)).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetSaasPolicyMonitorMaxPoolSize_withoutValueWithEnvConfig() {
+    environmentVariables.set(NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE, "30");
+
+    assertThat(ConfigurationUtils.getSaasPolicyMonitorPoolSize("", 10)).isEqualTo(30);
   }
 }

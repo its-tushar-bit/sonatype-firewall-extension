@@ -239,7 +239,7 @@ public class ApiConfigFeaturesService
         final String propertyName,
         final boolean propertyValue,
         final boolean enabledWhenAbsent,
-        TenantUtil tenantUtil)
+        final TenantUtil tenantUtil)
     {
       this.propertyName = propertyName;
       this.propertyValue = propertyValue;

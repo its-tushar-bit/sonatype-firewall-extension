@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.support;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -331,22 +332,23 @@ class DbData
 
   Entry<String, Object> getSystemConfiguration() {
     List<SystemConfigurationProperty> systemConfigurationPropertyList = systemConfigurationPropertyDAO.getAll();
+    List<SystemConfigurationProperty> scpList = new ArrayList<>();
 
     HashSet<String> needsMasking = new HashSet<>();
     needsMasking.add(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
 
     // Obfuscation (CLM-12603)
     for (SystemConfigurationProperty scp : systemConfigurationPropertyList) {
-      if (!needsMasking.contains(scp.getName())) {
+      if (!needsMasking.contains(scp.getName()) || StringUtils.isBlank(scp.getValue())) {
+        scpList.add(scp);
         continue;
       }
-      if (StringUtils.isBlank(scp.getValue())) {
-        continue;
-      }
-      scp.setValue(SystemInfo.MASK);
+      SystemConfigurationProperty telemetryInstanceId = new SystemConfigurationProperty(scp.getName(), SystemInfo.MASK);
+      telemetryInstanceId.setId(scp.getId());
+      scpList.add(telemetryInstanceId);
     }
 
-    return wrapEntry("systemConfiguration", systemConfigurationPropertyList);
+    return wrapEntry("systemConfiguration", scpList);
   }
 
   Entry<String, Object> getReverseProxyAuthenticationConfiguration() {

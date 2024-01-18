@@ -595,8 +595,12 @@ export function getLicenseLegalComponentUrl(orgOrApp, ownerId, hash) {
   return uriTemplate`/api/v2/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?hash=${hash}`;
 }
 
-export function getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier) {
-  return uriTemplate`/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=${componentIdentifier}`;
+export function getLicenseLegalComponentByComponentIdentifierUrl(
+  componentIdentifier,
+  orgOrApp = 'organization',
+  ownerId = 'ROOT_ORGANIZATION_ID'
+) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?componentIdentifier=${componentIdentifier}`;
 }
 
 export function getLegalDashboardApplicationsUrl() {

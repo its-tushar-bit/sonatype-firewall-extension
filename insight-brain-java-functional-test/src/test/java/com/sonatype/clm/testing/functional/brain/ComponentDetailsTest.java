@@ -1454,9 +1454,10 @@ public class ComponentDetailsTest
 
   private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
     licenseDetectionsTile.reviewObligationsButton().click();
-    waitUntilUrl(LegalApplicationDetailsPage.urlToApplicationScopeComingFromCDP(
-        app.getPublicId(), "build", SCAN_ID, HASH));
-
+    String componentIdentifier = "%7B\"format\":\"maven\",\"coordinates\":%7B\"artifactId\":\"license-maven-plugin\","
+        + "\"classifier\":\"\",\"extension\":\"jar\",\"groupId\":\"com.mycila\",\"version\":\"2.11\"%7D%7D";
+    waitUntilUrl(LegalApplicationDetailsPage.urlToComponentAtApplicationScopeByComponentIdentifier(
+            componentIdentifier, app.getPublicId()));
     ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 

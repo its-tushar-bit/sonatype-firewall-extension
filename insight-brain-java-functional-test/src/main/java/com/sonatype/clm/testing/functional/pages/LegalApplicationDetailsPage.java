@@ -45,6 +45,15 @@ public class LegalApplicationDetailsPage
     return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s", componentIdentifier));
   }
 
+  public static String urlToComponentAtApplicationScopeByComponentIdentifier(
+      String componentIdentifier,
+      String publicAppId
+  )
+  {
+    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s/application/%s",
+        componentIdentifier, publicAppId));
+  }
+
   public static SelenideElement title() {
     return $("h1");
   }

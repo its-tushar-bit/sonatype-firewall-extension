@@ -93,7 +93,11 @@ describe('ComponentLicenseFileDetailsAction', function () {
       store = SpecUtil.mockReduxStore(state);
 
       const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
-      const licenseLegalCompByCompIdentifier = getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier');
+      const licenseLegalCompByCompIdentifier = getLicenseLegalComponentByComponentIdentifierUrl(
+        'componentIdentifier',
+        'organization',
+        'org'
+      );
 
       mockAxiosCalls({
         get: {

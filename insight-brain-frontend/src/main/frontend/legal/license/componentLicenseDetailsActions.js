@@ -21,7 +21,10 @@ export function loadComponentAndLicenseDetails(ownerType, ownerId, hash, license
       dispatch(loadAvailableScopes(ownerType, ownerId));
       const promise = hash
         ? loadComponent(ownerType, ownerId, hash)
-        : loadComponentByComponentIdentifier(componentIdentifier);
+        : loadComponentByComponentIdentifier(componentIdentifier, {
+            orgOrApp: ownerType,
+            ownerId: ownerId,
+          });
       return dispatch(promise).then(() => requestLoadLicenseDetails(dispatch, licenseIndex));
     } else {
       return requestLoadLicenseDetails(dispatch, licenseIndex);

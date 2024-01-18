@@ -30,16 +30,23 @@ export default function ComponentDetailsLegalTab() {
   const isLoadingComponentDetails = useSelector(selectComponentDetailsLoading);
   const componentDetailsLoadError = useSelector(selectComponentDetailsLoadErrors);
   const identificationSource = useSelector(selectComponentIdentificationSource);
+  const componentDetails = useSelector(selectComponentDetails);
   const dispatch = useDispatch();
+
   const reviewObligationsClickHandler = () =>
     dispatch(
-      stateGo('applicationReport.applicationStageTypeComponentOverview', {
-        applicationPublicId: applicationId,
-        stageTypeId: stageId,
-        hash: hash,
-        tabId: 'legal',
-        scanId,
-      })
+      componentDetails.componentIdentifier
+        ? stateGo('legal.appicationComponentOverviewByComponentIdentifier', {
+            componentIdentifier: JSON.stringify(componentDetails.componentIdentifier),
+            applicationPublicId: applicationId,
+          })
+        : stateGo('applicationReport.applicationStageTypeComponentOverview', {
+            applicationPublicId: applicationId,
+            stageTypeId: stageId,
+            hash: hash,
+            tabId: 'legal',
+            scanId,
+          })
     );
 
   return (

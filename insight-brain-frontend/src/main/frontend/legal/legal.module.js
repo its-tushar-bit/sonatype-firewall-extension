@@ -99,6 +99,13 @@ function routes($stateProvider) {
         title: 'Component - Legal Overview',
       },
     })
+    .state('legal.appicationComponentOverviewByComponentIdentifier', {
+      url: '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
     .state('legal.noticeFilesByComponentIdentifier', {
       url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/notices',
       component: 'componentNoticeDetails',

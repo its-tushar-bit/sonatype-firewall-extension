@@ -80,8 +80,24 @@ export default function ComponentLegalOverviewPage(props) {
         loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
       }
     } else if (componentIdentifier) {
-      loadComponentByComponentIdentifier(componentIdentifier, repositoryId);
-      loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
+      if (repositoryId) {
+        loadComponentByComponentIdentifier(componentIdentifier, {
+          repositoryId,
+        });
+        loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
+      } else if (applicationPublicId) {
+        loadComponentByComponentIdentifier(componentIdentifier, {
+          orgOrApp: 'application',
+          ownerId: applicationPublicId,
+        });
+        loadAvailableScopes('application', applicationPublicId);
+      } else {
+        loadComponentByComponentIdentifier(componentIdentifier, {
+          orgOrApp: 'organization',
+          ownerId: organizationId || 'ROOT_ORGANIZATION_ID',
+        });
+        loadAvailableScopes('organization', organizationId || 'ROOT_ORGANIZATION_ID');
+      }
     }
   }
 
@@ -145,6 +161,7 @@ export default function ComponentLegalOverviewPage(props) {
               ownerId={ownerId}
               hash={hash}
               stageTypeId={stageTypeId}
+              componentIdentifier={componentIdentifier}
               $state={$state}
               effectiveLicenses={effectiveLicenses}
             />

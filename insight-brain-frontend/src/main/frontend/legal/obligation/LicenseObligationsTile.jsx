@@ -37,13 +37,21 @@ export default function LicenseObligationsTile(props) {
     stageTypeId,
     $state,
     effectiveLicenses,
+    componentIdentifier,
   } = props;
 
   const flatEffectiveLicenses = effectiveLicenses.map((e) => e.licenseId);
   const isObligationPresent = () => licenseObligations.length > 0;
 
-  const licenseDetailsTargetState = () =>
-    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
+  const licenseDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentLicenseDetails';
+    } else if (componentIdentifier) {
+      return 'legal.componentLicenseDetailsByComponentIdentifier';
+    } else {
+      return 'legal.componentLicenseDetails';
+    }
+  };
 
   const createObligationStatusIcon = (obligationStatus) => {
     switch (obligationStatus) {
@@ -134,6 +142,7 @@ export default function LicenseObligationsTile(props) {
               ownerId,
               hash,
               stageTypeId,
+              componentIdentifier,
               licenseIndex: findSingleLicenseIndex(licenseWithObligations.licenseId, licenseLegalMetadata),
             })}
           >
@@ -240,6 +249,7 @@ LicenseObligationsTile.propTypes = {
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
   stageTypeId: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
   effectiveLicenses: PropTypes.arrayOf(PropTypes.object),
 };

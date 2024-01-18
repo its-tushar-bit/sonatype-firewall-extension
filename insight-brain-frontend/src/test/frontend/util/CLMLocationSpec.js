@@ -264,6 +264,10 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier')).toBe(
       '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier'
     );
+
+    expect(
+      CLMLocation.getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier', 'application', 'app')
+    ).toBe('/api/v2/licenseLegalMetadata/application/app/component?componentIdentifier=componentIdentifier');
   });
 
   it('should return the legal dashboard applicationsUrl url', function () {

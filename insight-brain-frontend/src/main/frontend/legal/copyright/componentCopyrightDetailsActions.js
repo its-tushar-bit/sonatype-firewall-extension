@@ -63,7 +63,10 @@ export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyr
       dispatch(loadAvailableScopes(ownerType, ownerId));
       const componentPromise = hash
         ? loadComponent(ownerType, ownerId, hash)
-        : loadComponentByComponentIdentifier(componentIdentifier);
+        : loadComponentByComponentIdentifier(componentIdentifier, {
+            orgOrApp: ownerType,
+            ownerId: ownerId,
+          });
       return dispatch(componentPromise).then(() => getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex));
     } else {
       return getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex);

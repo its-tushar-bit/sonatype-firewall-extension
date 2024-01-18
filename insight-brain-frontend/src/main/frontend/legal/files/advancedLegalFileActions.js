@@ -103,10 +103,13 @@ export function saveLicenses() {
     const visitedScope = availableScopes.values[0];
     const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
     const { hash } = getState().router.currentParams;
+    const { ownerType, ownerId } = scope;
     const componentPromise = hash
       ? loadComponent(visitedScope.type, visitedScope.publicId, hash)
-      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
-    const { ownerType, ownerId } = scope;
+      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier), {
+          orgOrApp: visitedScope.type,
+          ownerId: visitedScope.publicId,
+        });
     const payloadLicenseIds = isOverriddenOrSelected(status) ? licenseIds : [];
     const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
       payload = {
@@ -145,7 +148,10 @@ export function deleteLicenses() {
     const { hash } = state.router.currentParams;
     const componentPromise = hash
       ? loadComponent(visitedScope.type, visitedScope.publicId, hash)
-      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
+      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier), {
+          orgOrApp: visitedScope.type,
+          ownerId: visitedScope.publicId,
+        });
     if (!licenseOverride) {
       dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
       dispatch(componentPromise);

@@ -107,7 +107,9 @@ describe('ComponentNoticeDetailsAction', function () {
       store = SpecUtil.mockReduxStore(state);
 
       const licenseLegalComponentByComponentIdentifierUrl = getLicenseLegalComponentByComponentIdentifierUrl(
-        'componentIdentifier'
+        'componentIdentifier',
+        'organization',
+        'org'
       );
 
       mockAxiosCalls({

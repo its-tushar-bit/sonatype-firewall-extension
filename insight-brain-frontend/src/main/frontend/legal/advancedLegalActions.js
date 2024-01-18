@@ -69,15 +69,21 @@ export function loadComponent(orgOrApp, ownerId, hash) {
       });
   };
 }
-export function loadComponentByComponentIdentifier(componentIdentifier, repositoryId) {
+export function loadComponentByComponentIdentifier(componentIdentifier, parameters) {
   return (dispatch) => {
     dispatch(loadComponentRequested());
 
     return axios
-      .get(getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier))
+      .get(
+        getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier, parameters?.orgOrApp, parameters?.ownerId)
+      )
       .then(({ data }) => {
-        const componentIdentifier = JSON.stringify(data.component.componentIdentifier);
-        dispatch(loadMultiLicensesByRepositoryId(componentIdentifier, repositoryId));
+        const componentIdentifierFromData = JSON.stringify(data.component.componentIdentifier);
+        if (parameters?.repositoryId) {
+          dispatch(loadMultiLicensesByRepositoryId(componentIdentifierFromData, parameters.repositoryId));
+        } else if (parameters?.orgOrApp && parameters?.ownerId) {
+          dispatch(loadMultiLicenses(parameters.orgOrApp, parameters.ownerId, undefined, componentIdentifierFromData));
+        }
         dispatch(loadComponentFulfilled(data));
       })
       .catch((error) => {

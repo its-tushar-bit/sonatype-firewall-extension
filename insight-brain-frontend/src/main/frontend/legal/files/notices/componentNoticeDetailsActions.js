@@ -16,7 +16,12 @@ export function loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIn
     const component = getState().advancedLegal.component.component;
     if (!component) {
       if (componentIdentifier) {
-        return dispatch(loadComponentByComponentIdentifier(componentIdentifier)).then(() => {
+        return dispatch(
+          loadComponentByComponentIdentifier(componentIdentifier, {
+            orgOrApp: ownerType,
+            ownerId,
+          })
+        ).then(() => {
           dispatchSelectedNotice(dispatch, getState(), noticeIndex);
         });
       } else {

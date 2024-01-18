@@ -159,15 +159,17 @@ describe('advancedLegalActions', function () {
         },
       });
 
-      store.dispatch(loadComponentByComponentIdentifier('componentIdentifier', 'repositoryId')).then(() => {
-        const actions = store.getActions();
-        expect(actions.length).toBe(4);
-        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-        expect(actions[2].payload).toBe(componentInfo);
-        expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
-        expect(actions[3].payload).toEqual([licenseInfo, multiLicenseInfo, overrideInfo]);
-        done();
-      });
+      store
+        .dispatch(loadComponentByComponentIdentifier('componentIdentifier', { repositoryId: 'repositoryId' }))
+        .then(() => {
+          const actions = store.getActions();
+          expect(actions.length).toBe(4);
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions[2].payload).toBe(componentInfo);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
+          expect(actions[3].payload).toEqual([licenseInfo, multiLicenseInfo, overrideInfo]);
+          done();
+        });
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FAILED action when API fails', function (done) {

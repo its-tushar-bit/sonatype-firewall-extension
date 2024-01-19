@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastScan;
+import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
@@ -21,13 +22,17 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
 {
   private final SastFindingDAO sastFindingDAO;
 
+  private final SastScmScanContextDAO sastScmScanContextDAO;
+
   @Inject
   public SastScanDAO(
       final OperationalDataStore operationalDataStore,
-      final SastFindingDAO sastFindingDAO)
+      final SastFindingDAO sastFindingDAO,
+      final SastScmScanContextDAO sastScmScanContextDAO)
   {
     super(operationalDataStore);
     this.sastFindingDAO = sastFindingDAO;
+    this.sastScmScanContextDAO = sastScmScanContextDAO;
   }
 
   @Override
@@ -38,6 +43,8 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
   @Override
   public void delete(final TransactionContext tx, final SastScan entity) {
     sastFindingDAO.deleteBySastScanId(tx, entity.getId());
+    final SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(tx, entity.getSastScmScanContextId());
+    sastScmScanContextDAO.delete(tx, sastScmScanContext);
     super.delete(tx, entity);
   }
 

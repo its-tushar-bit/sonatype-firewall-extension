@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
+import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +28,8 @@ public class SastScanDAOTest
 
   private SastRemediationDAO sastRemediationDAO;
 
+  private SastScmScanContextDAO sastScmScanContextDAO;
+
   @Before
   @Override
   public void setup() {
@@ -34,6 +37,7 @@ public class SastScanDAOTest
     sastScanDAO = daoFactory.createSastScanDAO();
     sastFindingDAO = daoFactory.createSastFindingDAO();
     sastRemediationDAO = daoFactory.createSastRemediationDAO();
+    sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
   }
 
   @Test
@@ -61,7 +65,34 @@ public class SastScanDAOTest
   }
 
   @Test
-  public void testDeleteByApplicationId_CascadeToSastFindingAndSastRemediation() {
+  public void testDeleteByApplicationId_CascadeToSastFinding() {
+    // Insert
+    final SastScan sastScan = new SastScan(application.getId());
+    sastScanDAO.insert(sastScan);
+    assertThat(sastScan.getId()).isNotNull();
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    final SastFinding sastFinding = new SastFinding();
+    sastFinding.setSastScanId(sastScan.getId());
+    sastFinding.setCoordinate("someCoordinate");
+    sastFinding.setLineNumber(null);
+    sastFinding.setCwe("someCWE");
+    sastFinding.setSeverity(SastFindingSeverity.MEDIUM);
+    sastFinding.setConfidence(SastFindingConfidence.MEDIUM);
+    sastFinding.setRuleName("someRuleName");
+    sastFinding.setDescription("someDescription");
+    sastFindingDAO.insert(sastFinding);
+    assertThat(sastFinding.getId()).isNotNull();
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNotNull();
+
+    // Cascade delete via DeleteByApplicationId
+    sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteByApplicationId_CascadeToSastRemediation() {
     // Insert
     final SastScan sastScan = new SastScan(application.getId());
     sastScanDAO.insert(sastScan);
@@ -89,7 +120,25 @@ public class SastScanDAOTest
     // Cascade delete via DeleteByApplicationId
     sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
     assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
-    assertThat(sastFindingDAO.getById(sastFinding.getId())).isNull();
     assertThat(sastRemediationDAO.getById(sastRemediation.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteByApplicationId_CascadeToSastScmScanContext() {
+    // Insert
+    final SastScmScanContext sastScmScanContext = new SastScmScanContext("testBranch", "testCommitHash");
+    sastScmScanContextDAO.insert(sastScmScanContext);
+    assertThat(sastScmScanContext.getId()).isNotNull();
+    assertThat(sastScmScanContextDAO.getById(sastScmScanContext.getId())).isNotNull();
+
+    final SastScan sastScan = new SastScan(application.getId(), sastScmScanContext.getId());
+    sastScanDAO.insert(sastScan);
+    assertThat(sastScan.getId()).isNotNull();
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    // Cascade delete via DeleteByApplicationId
+    sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+    assertThat(sastScmScanContextDAO.getById(sastScmScanContext.getId())).isNull();
   }
 }

@@ -19,12 +19,14 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
+import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -54,6 +56,8 @@ class ApiSastScanService
 
   private final SastRemediationDAO sastRemediationDAO;
 
+  private final SastScmScanContextDAO sastScmScanContextDAO;
+
   private final IdUtils idUtils;
 
   @Inject
@@ -61,11 +65,13 @@ class ApiSastScanService
       final SastScanDAO sastScanDAO,
       final SastFindingDAO sastFindingDAO,
       final SastRemediationDAO sastRemediationDAO,
+      final SastScmScanContextDAO sastScmScanContextDAO,
       final IdUtils idUtils)
   {
     this.sastScanDAO = sastScanDAO;
     this.sastFindingDAO = sastFindingDAO;
     this.sastRemediationDAO = sastRemediationDAO;
+    this.sastScmScanContextDAO = sastScmScanContextDAO;
     this.idUtils = idUtils;
   }
 
@@ -84,10 +90,16 @@ class ApiSastScanService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final SastScanRequestDTO sastScanRequestDTO)
   {
+    final SastScmContext sastScmContext = sastScanRequestDTO.scmContext;
+    SastScmScanContext sastScmScanContext = null;
+    if (nonNull(sastScmContext)) {
+      sastScmScanContext = new SastScmScanContext(sastScmContext.branchName, sastScmContext.commitHash);
+    }
+
     final String applicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
     try (final TransactionContext tx = sastScanDAO.createTransactionContext()) {
       tx.begin();
-      final SastScan sastScan = persistSastScan(tx, applicationId);
+      final SastScan sastScan = persistSastScan(tx, applicationId, sastScmScanContext);
       if (nonNull(sastScanRequestDTO.findings)) {
         sastScanRequestDTO.findings.forEach(
             sastFindingRequestDTO -> createSastFinding(tx, sastScan.getId(), sastFindingRequestDTO));
@@ -105,8 +117,20 @@ class ApiSastScanService
     }
   }
 
-  private SastScan persistSastScan(final TransactionContext tx, final String applicationId) {
-    final SastScan sastScan = new SastScan(applicationId);
+  private SastScan persistSastScan(
+      final TransactionContext tx,
+      final String applicationId,
+      final SastScmScanContext sastScmScanContext)
+  {
+    final SastScan sastScan;
+    if (nonNull(sastScmScanContext)) {
+      sastScmScanContextDAO.insert(tx, sastScmScanContext);
+      sastScan = new SastScan(applicationId, sastScmScanContext.getId());
+    }
+    else {
+      sastScan = new SastScan(applicationId);
+    }
+
     sastScanDAO.insert(tx, sastScan);
     return sastScan;
   }

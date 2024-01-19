@@ -76,6 +76,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.search.DefaultSearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -212,7 +213,8 @@ public class TestDAOFactory
   @Override
   public SastScanDAO createSastScanDAO() {
     SastFindingDAO sastFindingDAO = createSastFindingDAO();
-    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastFindingDAO);
+    SastScmScanContextDAO sastScmScanContextDAO = createSastScmScanContextDAO();
+    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastFindingDAO, sastScmScanContextDAO);
   }
 
   @Override
@@ -224,6 +226,11 @@ public class TestDAOFactory
   @Override
   public SastRemediationDAO createSastRemediationDAO() {
     return new SastRemediationDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public SastScmScanContextDAO createSastScmScanContextDAO() {
+    return new SastScmScanContextDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

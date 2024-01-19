@@ -72,6 +72,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -137,6 +138,8 @@ public interface DAOFactory
   SastFindingDAO createSastFindingDAO();
 
   SastRemediationDAO createSastRemediationDAO();
+
+  SastScmScanContextDAO createSastScmScanContextDAO();
 
   ArtifactoryConnectionDAO createArtifactoryConnectionDAO();
 

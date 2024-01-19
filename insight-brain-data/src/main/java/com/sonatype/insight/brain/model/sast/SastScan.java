@@ -26,12 +26,20 @@ public class SastScan
   @Column(name = "application_id")
   private String applicationId;
 
+  @Column(name = "sast_scm_scan_context_id")
+  private String sastScmScanContextId;
+
   @Column(name = "created_at")
   private Date createdAt;
 
   public SastScan(final String applicationId) {
     this.applicationId = applicationId;
     this.createdAt = new Date();
+  }
+
+  public SastScan(final String applicationId, final String sastScmScanContextId) {
+    this(applicationId);
+    this.sastScmScanContextId = sastScmScanContextId;
   }
 
   @Override
@@ -52,6 +60,14 @@ public class SastScan
     this.applicationId = applicationId;
   }
 
+  public String getSastScmScanContextId() {
+    return sastScmScanContextId;
+  }
+
+  public void setSastScmScanContextId(String sastScmScanContextId) {
+    this.sastScmScanContextId = sastScmScanContextId;
+  }
+
   public Date getCreatedAt() {
     return createdAt;
   }
@@ -65,6 +81,7 @@ public class SastScan
     return "SastScan{" +
         "id='" + id + '\'' +
         ", applicationId='" + applicationId + '\'' +
+        ", sastScmScanContextId='" + sastScmScanContextId + '\'' +
         ", createdAt=" + createdAt +
         '}';
   }

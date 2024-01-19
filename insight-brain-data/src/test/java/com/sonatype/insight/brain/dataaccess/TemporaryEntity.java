@@ -556,7 +556,7 @@ public class TemporaryEntity
 
   private SastScanDAO sastScanDAO;
 
-  private  SastFindingDAO sastFindingDAO;
+  private SastFindingDAO sastFindingDAO;
 
   private Collection<String> persistedUserSessionIds;
 

@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -40,6 +41,9 @@ public class ApiSastScanServiceTest
   @Inject
   private SastRemediationDAO sastRemediationDAO;
 
+  @Inject
+  private SastScmScanContextDAO sastScmScanContextDAO;
+
   private SastTestUtil sastTestUtil;
 
   @Before
@@ -62,6 +66,14 @@ public class ApiSastScanServiceTest
 
     // Then assert the proper SastScan fields are populated
     sastTestUtil.assertSastScan(applicationId, sastScanResponseDTO);
+
+    // Assert that the SAST scan record contains the SCM context
+    final SastScan sastScan = sastScanDAO.getById(sastScanResponseDTO.sastScanId);
+    assertThat(sastScan.getSastScmScanContextId())
+        .isNotNull();
+
+    // Assert that a SastScmScanContext record was created
+    assertThat(sastScmScanContextDAO.getCount()).isEqualTo(1);
   }
 
   @Test
@@ -207,5 +219,31 @@ public class ApiSastScanServiceTest
     assertThatThrownBy(() -> apiSastScanService.createSastScan("myApp", sastScanRequestDTO))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid value for SastFindingConfidence");
+  }
+
+  @Test
+  public void testCreateSastScan_MissingScmContext_Success() {
+    // Given an application public id
+    final String applicationId = tempEntity.newApplicationWithParent("myApp").getId();
+
+    // And a payload and no SCM context
+    final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
+    sastScanRequestDTO.scmContext = null;
+
+    // When a sast scan is created
+    assertThat(sastScanDAO.getAll()).isEmpty();
+    final SastScanResponseDTO sastScanResponseDTO = apiSastScanService.createSastScan(
+        "myApp", sastScanRequestDTO);
+
+    // Then assert the proper SastScan fields are populated
+    sastTestUtil.assertSastScan(applicationId, sastScanResponseDTO);
+
+    // Assert that the SAST scan record does not contain the SCM context
+    final SastScan sastScan = sastScanDAO.getById(sastScanResponseDTO.sastScanId);
+    assertThat(sastScan.getSastScmScanContextId())
+        .isNull();
+
+    // Assert that a SastScmScanContext record was not created
+    assertThat(sastScmScanContextDAO.getCount()).isZero();
   }
 }

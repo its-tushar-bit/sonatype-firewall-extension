@@ -152,4 +152,26 @@ public class ApiSastScanResourceTest
     assertThat(sastScanResponseDTO.findings.get(1).severity).isEqualTo("LOW");
     assertThat(sastScanResponseDTO.findings.get(1).ruleName).isEqualTo("myRuleName");
   }
+
+  @Test
+  public void testCreateSastScan_MissingScmContext_Success() throws Exception {
+    // Given an existing application and no SCM context
+    final Application application = tempEntity.newApplicationWithParent();
+    final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
+    sastScanRequestDTO.scmContext = null;
+
+    // When a sast scan is created with an existing application
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.EXPERIMENTAL_SAST_SCAN_DATA_PATH)
+        .parameter(application.getPublicId())
+        .body(sastScanRequestDTO)
+        .post();
+
+    // Then assert the request is successful and the response body is a childless SastScanDTO
+    assertResponseStatus(200, response);
+    final SastScanResponseDTO sastScanResponseDTO = response.getBody(SastScanResponseDTO.class);
+
+    // Then assert the proper SastScan fields are populated
+    sastTestUtil.assertSastScan(application.getId(), sastScanResponseDTO);
+  }
 }

@@ -46,6 +46,11 @@ class SastTestUtil
 
   static SastScanRequestDTO buildTestSastScanRequestDTOWith2Findings() {
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
+    final SastScmContext scmContext = new SastScmContext();
+    scmContext.branchName = "testBranchName";
+    scmContext.commitHash = "testCommitHash";
+    sastScanRequestDTO.scmContext = scmContext;
+
     sastScanRequestDTO.findings.get(0).severity = "LOW";
     final SastFindingRequestDTO sastFindingRequestDTO = new SastFindingRequestDTO();
     sastFindingRequestDTO.severity = "HIGH";
@@ -65,6 +70,12 @@ class SastTestUtil
     final SastRemediationRequestDTO sastRemediationRequestDTO = new SastRemediationRequestDTO();
 
     sastScanRequestDTO.findings = newArrayList(sastFindingRequestDTO);
+
+    final SastScmContext scmContext = new SastScmContext();
+    scmContext.branchName = "testBranchName";
+    scmContext.commitHash = "testCommitHash";
+    sastScanRequestDTO.scmContext = scmContext;
+
     sastFindingRequestDTO.remediations = newArrayList(sastRemediationRequestDTO);
 
     sastFindingRequestDTO.ruleName = "myRuleName";

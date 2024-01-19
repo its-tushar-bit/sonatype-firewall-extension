@@ -12,6 +12,8 @@ public class SastScanRequestDTO
 {
   public List<SastFindingRequestDTO> findings;
 
+  public SastScmContext scmContext;
+
   public static class SastFindingRequestDTO
   {
     public Map<String, Object> coordinate;

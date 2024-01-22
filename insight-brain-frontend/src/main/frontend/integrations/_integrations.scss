@@ -78,9 +78,18 @@ a.nx-text-link.integrations-link.integrations-link-selected {
 }
 
 .iq-integrations-card-cicd,
-.iq-integrations-card-ide {
+.iq-integrations-card-ide,
+.iq-integrations-card-ascf {
   &.nx-card {
     text-align: left;
+
+    .nx-card__content {
+      align-items: flex-start;
+    }
+
+    .nx-card__text {
+      max-width: 800px;
+    }
   }
 }
 

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
-import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxH3, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDeveloperDashboardGraphsSlice } from 'MainRoot/integrations/selectors/developerDashboardGraphsSelectors';
 import { actions } from 'MainRoot/integrations/slices/developerDashboardGraphsSlice';
@@ -22,7 +22,7 @@ export default function RiskAndRemediationGraph() {
 
   return (
     <div className="iq-developer-dashboard-risk-remediation-graph">
-      <NxH2>Risk & Remediation Timeline</NxH2>
+      <NxH3>Risk & Remediation Timeline</NxH3>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
         <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine

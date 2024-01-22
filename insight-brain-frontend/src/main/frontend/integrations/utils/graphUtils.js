@@ -31,7 +31,7 @@ export function commonGraphProps() {
         },
       },
     },
-    margin: { top: 50, right: 40, bottom: 80, left: 80 },
+    margin: { top: 20, right: 40, bottom: 80, left: 80 },
     xScale: { type: 'point' },
     yScale: {
       type: 'linear',

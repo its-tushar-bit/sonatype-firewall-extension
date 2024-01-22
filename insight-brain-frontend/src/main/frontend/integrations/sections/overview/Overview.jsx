@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectUsageOverTimeChartVisibilitySlice } from 'MainRoot/integrations/selectors/chartVisibilitySelectors';
 import { NxCard, NxH2, NxTile, NxLoadWrapper } from '@sonatype/react-shared-components';
 import GraphsContainer from '../Graphs/GraphsContainer';
+import AutomatedSourceControlFeedbackCard from './AutomatedSourceControlFeedbackCard';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -41,6 +42,7 @@ export default function Overview() {
 
         <NxCard.Container>
           <CiCard />
+          <AutomatedSourceControlFeedbackCard />
           <IdeIntegrationsCard />
         </NxCard.Container>
       </NxLoadWrapper>

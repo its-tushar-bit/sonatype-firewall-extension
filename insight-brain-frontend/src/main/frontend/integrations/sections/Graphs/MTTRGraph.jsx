@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
-import { NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxH3, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDeveloperDashboardGraphsSlice } from 'MainRoot/integrations/selectors/developerDashboardGraphsSelectors';
 import { actions } from 'MainRoot/integrations/slices/developerDashboardGraphsSlice';
@@ -23,7 +23,7 @@ export default function MTTRGraph() {
 
   return (
     <div className="iq-developer-dashboard-mttr-graph">
-      <NxH2>Mean Time to Remediate</NxH2>
+      <NxH3>Mean Time to Remediate</NxH3>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
         <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine

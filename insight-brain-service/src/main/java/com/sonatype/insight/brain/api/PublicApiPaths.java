@@ -148,4 +148,7 @@ public class PublicApiPaths
 
   public static final String EXPERIMENTAL_SAST_SCAN_DATA_PATH =
       EXPERIMENTAL_PATH + "application/{applicationPublicId}/sastScan";
+
+  public static final String EXPERIMENTAL_SAST_PATH =
+      EXPERIMENTAL_PATH + "application/sast";
 }

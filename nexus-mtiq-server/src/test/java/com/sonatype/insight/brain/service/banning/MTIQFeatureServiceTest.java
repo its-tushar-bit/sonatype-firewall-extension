@@ -78,7 +78,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(21)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(20)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 

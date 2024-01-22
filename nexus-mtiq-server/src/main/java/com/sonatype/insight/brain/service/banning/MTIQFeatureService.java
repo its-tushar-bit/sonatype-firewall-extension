@@ -87,8 +87,7 @@ public class MTIQFeatureService
       BUILT_FROM_SOURCE,
       INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
       ADVANCED_SEARCH_CONFIGURATION,
-      LicensedFeature.ADVANCED_LEGAL_PACK,
-      ORG_APP_MANAGEMENT_WEBHOOK_EVENT
+      LicensedFeature.ADVANCED_LEGAL_PACK
   );
 
   private final ApiConfigFeaturesService service;

@@ -11,7 +11,6 @@ import java.util.HashSet;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -107,17 +106,6 @@ public class WebhookResourceTest
     assertResponseStatus(200, response);
 
     WebhookEventType[] results = response.getBody(WebhookEventType[].class);
-
-    assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, POLICY_ALERT,
-        LICENSE_OVERRIDE_MANAGEMENT, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT, WAIVER_REQUEST);
-
-    // With org app management webhook enabled
-    SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT.setEnabled(true);
-
-    response = restRequest().path(WEBHOOK_EVENT_TYPES_PATH).get();
-    assertResponseStatus(200, response);
-
-    results = response.getBody(WebhookEventType[].class);
 
     assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, POLICY_ALERT,
         LICENSE_OVERRIDE_MANAGEMENT, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT, WAIVER_REQUEST, ORG_APP_MANAGEMENT);

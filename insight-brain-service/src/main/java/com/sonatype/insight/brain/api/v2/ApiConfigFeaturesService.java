@@ -192,8 +192,6 @@ public class ApiConfigFeaturesService
 
     SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
 
-    ORG_APP_MANAGEMENT_WEBHOOK_EVENT(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT, false),
-
     /**
      * Self-Hosted: SCM is not feature flagged for self-hosted, so it must always return true for self-hosted.
      * SaaS: SAAS_LIFECYCLE_SCM_ENABLED is enabled by default.

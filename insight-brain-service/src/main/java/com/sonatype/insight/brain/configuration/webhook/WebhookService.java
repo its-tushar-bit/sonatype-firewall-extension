@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -121,11 +120,7 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<WebhookEventType> getAllWebhookEventTypes() {
-    final List<WebhookEventType> eventTypes = new LinkedList<>(Arrays.asList(WebhookEventType.values()));
-    if (!SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT.isEnabled()) {
-      eventTypes.remove(WebhookEventType.ORG_APP_MANAGEMENT);
-    }
-    return eventTypes;
+    return new LinkedList<>(Arrays.asList(WebhookEventType.values()));
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

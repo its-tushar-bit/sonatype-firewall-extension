@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,7 +17,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 @Named
 @Singleton

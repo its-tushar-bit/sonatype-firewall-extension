@@ -68,7 +68,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;

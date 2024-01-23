@@ -12,6 +12,7 @@ make(
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
+    retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'

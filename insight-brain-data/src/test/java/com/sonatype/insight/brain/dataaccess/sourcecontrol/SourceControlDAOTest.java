@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -1157,19 +1158,19 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_noMatchingApp() {
+  public void testBuildCompositeSourceControlInApplication_noMatchingApp() {
     // given: a root organization source control
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "some token", GITLAB);
 
     // when: fetch the composite source control for an app that doesn't currently exist
-    SourceControl fetchedSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId("does not exist");
+    SourceControl fetchedSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication("does not exist");
 
     // then: null result
     assertThat(fetchedSourceControl).isNull();
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_inheritFromRoot() {
+  public void testBuildCompositeSourceControlInApplication_inheritFromRoot() {
     // given: a hierarch with everything inheriting from root
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
@@ -1185,7 +1186,7 @@ public class SourceControlDAOTest
         .withStatusChecks(false, null, null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
         testableHierarchy.getApplication("appComposite").getId()
     );
 
@@ -1196,7 +1197,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_CommitStatusEnabled_AllNull() {
+  public void testBuildCompositeSourceControlInApplication_CommitStatusEnabled_AllNull() {
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
         .withProvider(GITLAB, null, null)
@@ -1205,7 +1206,7 @@ public class SourceControlDAOTest
         .withCommitStatusEnabled(null, null, null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
         testableHierarchy.getApplication("appComposite").getId()
     );
 
@@ -1213,7 +1214,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_inheritFromIntermediaryOrg() {
+  public void testBuildCompositeSourceControlInApplicationinheritFromIntermediaryOrg() {
     // given: a hierarch with everything inheriting from an intermediary org
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appComposite")
@@ -1232,7 +1233,7 @@ public class SourceControlDAOTest
         .withToken("org4.token", null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
         testableHierarchy.getApplication("appComposite").getId()
     );
 
@@ -1243,7 +1244,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_inheritFromIntermediaryOrg_startsFromOrg() {
+  public void testBuildCompositeSourceControlInApplication_inheritFromIntermediaryOrg_startsFromOrg() {
     // given: a hierarch with everything inheriting from an intermediary org
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appComposite")
@@ -1259,7 +1260,7 @@ public class SourceControlDAOTest
         .withStatusChecks(false, null, true, null, null)
         .build();
 
-    SourceControl org3SourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId("org3");
+    SourceControl org3SourceControl = sourceControlDAO.buildCompositeSourceControlInApplication("org3");
 
     assertSourceControl(
         org3SourceControl,
@@ -1268,7 +1269,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_inheritFromOrg() {
+  public void testBuildCompositeSourceControlInApplication_inheritFromOrg() {
     // given: a hierarch with everything inheriting from parent org
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
@@ -1284,7 +1285,7 @@ public class SourceControlDAOTest
         .withStatusChecks(false, true, null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
         testableHierarchy.getApplication("appComposite").getId()
     );
 
@@ -1295,7 +1296,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlByOwnerId_overrideAll() {
+  public void testBuildCompositeSourceControlInApplication_overrideAll() {
     // given: a hierarch with everything overridden in the app source control
     TestableHierarchy testableHierarchy = new TestableHierarchy()
         .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
@@ -1311,7 +1312,7 @@ public class SourceControlDAOTest
         .withStatusChecks(false, null, true)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+    SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
         testableHierarchy.getApplication("appComposite").getId()
     );
 
@@ -1361,6 +1362,314 @@ public class SourceControlDAOTest
     for (ScanTriggerType scanTriggerType : ScanTriggerType.values()) {
       testGetCompositeSourceControlForOutdatedSourceScans(scanTriggerType, appSourceControl);
     }
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationId_noMatchingApp_postgres() {
+    // given: a root organization source control
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "fake token", GITHUB);
+
+    // when: build the composite source control for an application that does not exist
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId("contrived app id");
+
+    // then: null result
+    assertThat(sourceControl).isNull();
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationId_noMatchingApp_h2() {
+    // given: a root organization source control
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "fake token", GITHUB);
+
+    // when: build the composite source control for an application that does not exist
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId("contrived app id");
+
+    // then: null result
+    assertThat(sourceControl).isNull();
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromRoot_postgres() {
+    // given: a hierarchy with all attributes inheriting from the root org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgID", "appOne")
+        .withProvider(GITHUB, null, null)
+        .withToken("fakeToken", null, null)
+        .withDefaultBranch("main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, null)
+        .withRemediationPullRequests(true, null, null)
+        .withSourceControlEvaluations(false, null, null)
+        .withSsh(false, null, null)
+        .withCommitStatusEnabled(false, null, null)
+        .withStatusChecks(false, null, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: composite source control is built successfully
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromRoot_h2() {
+    // given: a hierarchy with all attributes inheriting from the root org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgID", "appOne")
+        .withProvider(GITHUB, null, null)
+        .withToken("fakeToken", null, null)
+        .withDefaultBranch("main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, null)
+        .withRemediationPullRequests(true, null, null)
+        .withSourceControlEvaluations(false, null, null)
+        .withSsh(false, null, null)
+        .withCommitStatusEnabled(false, null, null)
+        .withStatusChecks(false, null, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: composite source control is built successfully
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationId_CommitStatusEnabled_AllNull_postgres() {
+    // given: a hierarchy with commit status enabled set to null
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITHUB, null, null)
+        .withDefaultBranch("main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withCommitStatusEnabled(null, null, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: composite source control is built, with commitStatusEnabled having a null value
+    assertThat(sourceControl.getCommitStatusEnabled()).isNull();
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationId_CommitStatusEnabled_AllNull_h2() {
+    // given: a hierarchy with commit status enabled set to null
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITHUB, null, null)
+        .withDefaultBranch("main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withCommitStatusEnabled(null, null, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: composite source control is built, with commitStatusEnabled having a null value
+    assertThat(sourceControl.getCommitStatusEnabled()).isNull();
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromIntermediateOrg_postgres() {
+    // given: a hierarchy with multiple nested organizations
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appOne")
+        .withProvider(GITLAB, null, GITHUB, null, null)
+        .withToken("rootToken", null, "org2.token", null, null)
+        .withDefaultBranch("trunk", null, "main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, true, null, null)
+        .withRemediationPullRequests(true, null, false, null, null)
+        .withSourceControlEvaluations(false, null, true, null, null)
+        .withSsh(false, null, true, null, null)
+        .withCommitStatusEnabled(false, null, true, null, null)
+        .withStatusChecks(false, null, true, null, null)
+        .branchFrom("org2", "org4", "app2")
+        .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
+        .withToken("org4.token", null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromIntermediateOrg_h2() {
+    // given: a hierarchy with multiple nested organizations
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appOne")
+        .withProvider(GITLAB, null, GITHUB, null, null)
+        .withToken("rootToken", null, "org2.token", null, null)
+        .withDefaultBranch("trunk", null, "main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, true, null, null)
+        .withRemediationPullRequests(true, null, false, null, null)
+        .withSourceControlEvaluations(false, null, true, null, null)
+        .withSsh(false, null, true, null, null)
+        .withCommitStatusEnabled(false, null, true, null, null)
+        .withStatusChecks(false, null, true, null, null)
+        .branchFrom("org2", "org4", "app2")
+        .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
+        .withToken("org4.token", null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromOrg_postgres() {
+    // given: a hierarchy with everything inheriting from parent org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITLAB, GITHUB, null)
+        .withToken("rootToken", "gh-token", null)
+        .withDefaultBranch("trunk", "main", null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, null)
+        .withRemediationPullRequests(true, false, null)
+        .withSourceControlEvaluations(false, true, null)
+        .withSsh(false, true, null)
+        .withCommitStatusEnabled(false, true, null)
+        .withStatusChecks(false, true, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationId_inheritFromOrg_h2() {
+    // given: a hierarchy with everything inheriting from parent org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITLAB, GITHUB, null)
+        .withToken("rootToken", "gh-token", null)
+        .withDefaultBranch("trunk", "main", null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, null)
+        .withRemediationPullRequests(true, false, null)
+        .withSourceControlEvaluations(false, true, null)
+        .withSsh(false, true, null)
+        .withCommitStatusEnabled(false, true, null)
+        .withStatusChecks(false, true, null)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  @PostgresTest
+  public void testBuildCompositeSourceControlForApplicationid_overrideAll_postgres() {
+    // given: a hierarchy with everything overridden in the app source control
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITLAB, GITHUB, GITLAB)
+        .withToken("rootToken", "gh-token", "gl-token")
+        .withDefaultBranch("trunk", "main", "develop")
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, false)
+        .withRemediationPullRequests(true, null, false)
+        .withSourceControlEvaluations(false, null, true)
+        .withSsh(false, true, false)
+        .withCommitStatusEnabled(false, true, false)
+        .withStatusChecks(false, null, true)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  public void testBuildCompositeSourceControlForApplicationid_overrideAll_h2() {
+    // given: a hierarchy with everything overridden in the app source control
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appOne")
+        .withProvider(GITLAB, GITHUB, GITLAB)
+        .withToken("rootToken", "gh-token", "gl-token")
+        .withDefaultBranch("trunk", "main", "develop")
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, false)
+        .withRemediationPullRequests(true, null, false)
+        .withSourceControlEvaluations(false, null, true)
+        .withSsh(false, true, false)
+        .withCommitStatusEnabled(false, true, false)
+        .withStatusChecks(false, null, true)
+        .build();
+
+    // when: build the composite source control for appOne
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
+        testableHierarchy.getApplication("appOne").getId()
+    );
+
+    // then: source control is built correctly
+    assertSourceControl(
+        sourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
+    );
   }
 
   private void testGetCompositeSourceControlForOutdatedSourceScans(

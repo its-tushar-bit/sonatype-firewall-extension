@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -1217,6 +1218,135 @@ public class ApiSourceControlServiceTest
     assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
     assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_h2() {
+    final SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_URL)
+        .setToken("fake token")
+        .build();
+
+    tempEntity.newSourceControl(
+        sourceControl.getOwnerId(),
+        sourceControl.getRepositoryUrl(),
+        sourceControl.getToken(),
+        sourceControl.getProvider()
+    );
+
+    final SourceControl compositeSourceControl =
+        sourceControlService.getCompositeSourceControlByApplicationId(app.getId());
+
+    assertThat(compositeSourceControl.getOwnerId()).isEqualTo(app.getId());
+    assertThat(compositeSourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(compositeSourceControl.getUsername()).isNull();
+    assertThat(compositeSourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetCompositeSourceControlByApplicationId_postgres() {
+    final SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_URL)
+        .setToken("fake token")
+        .build();
+
+    tempEntity.newSourceControl(
+        sourceControl.getOwnerId(),
+        sourceControl.getRepositoryUrl(),
+        sourceControl.getToken(),
+        sourceControl.getProvider()
+    );
+
+    final SourceControl compositeSourceControl =
+        sourceControlService.getCompositeSourceControlByApplicationId(app.getId());
+
+    assertThat(compositeSourceControl.getOwnerId()).isEqualTo(app.getId());
+    assertThat(compositeSourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(compositeSourceControl.getUsername()).isNull();
+    assertThat(compositeSourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_DoesNotExist_h2() {
+    final SourceControl sourceControl = sourceControlService.getCompositeSourceControlByApplicationId("Fake ID");
+    assertThat(sourceControl).isNull();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetCompositeSourceControlByApplicationId_DoesNotExist_postgres() {
+    final SourceControl sourceControl = sourceControlService.getCompositeSourceControlByApplicationId("Fake ID");
+    assertThat(sourceControl).isNull();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_nLevelOwnerHierarchy_h2() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    // Create a series of SourceControl records - for app2
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+    tempEntity.newSourceControl(sourceControl);
+    // for org2 - sets token
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org2.getId()).setToken("token2").build();
+    sourceControlService.encryptToken(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
+    // for org1 - disable RemediationPullRequests
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+    tempEntity.newSourceControl(sourceControl);
+
+    // when:
+    final SourceControl sourceControlByApplicationId =
+        sourceControlService.getCompositeSourceControlByApplicationId(app2.getId());
+
+    // then:
+    assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app2.getId());
+    assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControlByApplicationId.getUsername()).isNull();
+    assertThat(sourceControlByApplicationId.getRemediationPullRequestsEnabled()).isFalse(); // from org1
+    assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB); // from root org
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetCompositeSourceControlByApplicationId_nLevelOwnerHierarchy_postgres() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    // Create a series of SourceControl records - for app2
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+    tempEntity.newSourceControl(sourceControl);
+    // for org2 - sets token
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org2.getId()).setToken("token2").build();
+    sourceControlService.encryptToken(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
+    // for org1 - disable RemediationPullRequests
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+    tempEntity.newSourceControl(sourceControl);
+
+    // when:
+    final SourceControl sourceControlByApplicationId =
+        sourceControlService.getCompositeSourceControlByApplicationId(app2.getId());
+
+    // then:
+    assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app2.getId());
+    assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControlByApplicationId.getUsername()).isNull();
+    assertThat(sourceControlByApplicationId.getRemediationPullRequestsEnabled()).isFalse(); // from org1
+    assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB); // from root org
   }
 
   private GeneralSCMApiClient createMockGeneralSCMApiClient() throws Exception {

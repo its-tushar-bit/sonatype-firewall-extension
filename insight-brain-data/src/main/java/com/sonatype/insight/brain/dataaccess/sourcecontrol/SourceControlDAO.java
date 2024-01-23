@@ -85,6 +85,52 @@ public class SourceControlDAO
       // This case happens if the user manually creates the application with source control information
       "      OR lpe.application_id IS NULL ";
 
+  private static final String BUILD_COMPOSITE_SOURCE_CONTROL =
+      "SELECT " +
+      // select the first non-null value for each column in the ordered set of Source Control records
+      "(ARRAY_REMOVE(ARRAY_AGG(source_control_id ORDER BY hierarchy_order), NULL))[1] as source_control_id," +
+      "(ARRAY_REMOVE(ARRAY_AGG(owner_id ORDER BY hierarchy_order), NULL))[1] as owner_id," +
+      "(ARRAY_REMOVE(ARRAY_AGG(repository_url ORDER BY hierarchy_order), NULL))[1] as repository_url," +
+      "(ARRAY_REMOVE(ARRAY_AGG(normalized_repository_url ORDER BY hierarchy_order), NULL))[1] " +
+      "as normalized_repository_url," +
+      "(ARRAY_REMOVE(ARRAY_AGG(repository_ssh_url ORDER BY hierarchy_order), NULL))[1] as repository_ssh_url," +
+      "(ARRAY_REMOVE(ARRAY_AGG(username ORDER BY hierarchy_order), NULL))[1] as username," +
+      "(ARRAY_REMOVE(ARRAY_AGG(token ORDER BY hierarchy_order), NULL))[1] as token," +
+      "(ARRAY_REMOVE(ARRAY_AGG(provider ORDER BY hierarchy_order), NULL))[1] as provider," +
+      "(ARRAY_REMOVE(ARRAY_AGG(base_branch ORDER BY hierarchy_order), NULL))[1] as base_branch," +
+      "(ARRAY_REMOVE(ARRAY_AGG(remediation_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as remediation_pull_requests_enabled," +
+      "(ARRAY_REMOVE(ARRAY_AGG(status_checks_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as status_checks_enabled," +
+      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_poll_time ORDER BY hierarchy_order), NULL))[1] " +
+      "as pull_request_poll_time," +
+      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_error_count ORDER BY hierarchy_order), NULL))[1] " +
+      "as pull_request_error_count," +
+      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_commenting_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as pull_request_commenting_enabled," +
+      "(ARRAY_REMOVE(ARRAY_AGG(source_control_evaluations_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as source_control_evaluations_enabled," +
+      "(ARRAY_REMOVE(ARRAY_AGG(source_control_scan_target ORDER BY hierarchy_order), NULL))[1] " +
+      "as source_control_scan_target," +
+      "(ARRAY_REMOVE(ARRAY_AGG(ssh_enabled ORDER BY hierarchy_order), NULL))[1] as ssh_enabled," +
+      "(ARRAY_REMOVE(ARRAY_AGG(commit_status_enabled ORDER BY hierarchy_order), NULL))[1] " +
+      "as commit_status_enabled " +
+      "FROM (" +
+      // Create ordered set of Source Control records, from application to root organization
+      "SELECT * FROM (" +
+      "WITH RECURSIVE ownership_hierarchy(entity_id, hierarchy_order) AS (" +
+      "SELECT organization_id, 1 from _SCHEMA_.application WHERE application_id=?1" +
+      "  UNION " +
+      "SELECT org.parent_organization_id, oh.hierarchy_order+1 " +
+      "FROM ownership_hierarchy oh, _SCHEMA_.organization org " +
+      "WHERE org.organization_id = oh.entity_id AND org.parent_organization_id IS NOT NULL" +
+      ") SELECT DISTINCT hierarchy_order, entity_id " +
+      "FROM ownership_hierarchy UNION SELECT 0, ?1 FROM ownership_hierarchy " +
+      "ORDER BY hierarchy_order" +
+      ") AS ORDERED_SOURCE_CONTROLS LEFT JOIN _SCHEMA_.source_control " +
+      "ON source_control.owner_id = ORDERED_SOURCE_CONTROLS.entity_id" +
+      ") AS FINAL_RESULT";
+
   @Inject
   public SourceControlDAO(
       final OperationalDataStore operationalDataStore,
@@ -209,6 +255,27 @@ public class SourceControlDAO
     orderByHierarchy(ownerIds, getByOwnerIds(ownerIds)).forEach(sc -> SourceControl.coalesce(sourceControl, sc));
 
     return sourceControl;
+  }
+
+  private SourceControl buildCompositeSourceControlInPostgres(String applicationId) {
+    // Single query to build Source Control instance for an application. Relies on Postgres-specific features
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(
+          injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL), SourceControl.class
+      );
+      query.setParameter(1, applicationId);
+      return (SourceControl) query.getSingleResult();
+    }
+  }
+
+  public SourceControl buildCompositeSourceControlForApplicationId(String applicationId) {
+    // Use optimized single query if using Postgres. Otherwise, use application logic to build composite SourceControl.
+    if (this.isDatabasePostgresql()) {
+      return buildCompositeSourceControlInPostgres(applicationId);
+    }
+    else {
+      return buildCompositeSourceControlInApplication(applicationId);
+    }
   }
 
   public List<SourceControl> getByOwnerIds(final List<String> ownerIds) {
@@ -604,7 +671,7 @@ public class SourceControlDAO
    *  Note: The composite source control owner ID can be different from the given owner ID.
    * @param ownerId an application or organization ID
    */
-  public SourceControl getCompositeSourceControlByOwnerId(final String ownerId) {
+  public SourceControl buildCompositeSourceControlInApplication(final String ownerId) {
     List<String> ownerIds = ownerDAO.getOwnerIds(ownerId);
     if (CollectionUtils.isEmpty(ownerIds)) {
       return null;
@@ -631,7 +698,7 @@ public class SourceControlDAO
   // done transitively in the forEach call below
   private List<SourceControl> expandToCompositeSourceControlEntries(List<String> initialOwnerIdList) {
     List<SourceControl> result = new ArrayList<>();
-    initialOwnerIdList.forEach(ownerId -> result.add(getCompositeSourceControlByOwnerId(ownerId)));
+    initialOwnerIdList.forEach(ownerId -> result.add(buildCompositeSourceControlInApplication(ownerId)));
     return result;
   }
 

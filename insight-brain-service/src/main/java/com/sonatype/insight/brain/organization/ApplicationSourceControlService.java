@@ -70,7 +70,7 @@ public class ApplicationSourceControlService
   }
 
   public boolean isAutomatedSourceControlFeedbackDisabledForApp(final String appId) {
-    final SourceControl sourceControl = apiSourceControlService.getCompositeSourceControlByOwnerDecrypted(appId);
+    final SourceControl sourceControl = apiSourceControlService.getCompositeSourceControlByApplicationId(appId);
     final GitRepositoryInfo gitRepositoryInfo =
         SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, appId);
 

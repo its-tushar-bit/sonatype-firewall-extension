@@ -76,7 +76,7 @@ public class SourceControlRepositoryUtils
   }
 
   public boolean isRepositoryReachable(Application application, String repositoryUrl) {
-    SourceControl sourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(application.getId());
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(application.getId());
 
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
     gitRepositoryInfo.repositoryUrl = repositoryUrl;

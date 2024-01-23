@@ -391,11 +391,15 @@ public class ApiSourceControlService
    * @param ownerId an application or organization ID
    */
   public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
-    SourceControl sourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(ownerId);
+    SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(ownerId);
     if (sourceControl != null && StringUtils.isNotEmpty(sourceControl.getToken())) {
       decryptToken(sourceControl);
     }
     return sourceControl;
+  }
+
+  public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
+    return sourceControlDAO.buildCompositeSourceControlForApplicationId(applicationId);
   }
 
   private String getPublicOwnerId(final String ownerId) {
@@ -473,7 +477,7 @@ public class ApiSourceControlService
 
   private SourceControl getCompositeSourceControl(OwnerType ownerType, SourceControl sourceControl) {
     if (OwnerType.APPLICATION.equals(ownerType)) {
-      return sourceControlDAO.getCompositeSourceControlByOwnerId(sourceControl.getOwnerId());
+      return sourceControlDAO.buildCompositeSourceControlInApplication(sourceControl.getOwnerId());
     }
     return sourceControl;
   }

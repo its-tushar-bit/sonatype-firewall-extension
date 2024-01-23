@@ -16,6 +16,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -64,7 +65,7 @@ public class ApplicationSourceControlServiceTest
   }
 
   @Test
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmEnabled() {
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmEnabled_h2() {
     final Application app1 = tempEntity.newApplication(org.getId());
     final Application app2 = tempEntity.newApplication(org.getId());
 
@@ -84,7 +85,28 @@ public class ApplicationSourceControlServiceTest
   }
 
   @Test
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmDisabled() {
+  @PostgresTest
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmEnabled_postgres() {
+    final Application app1 = tempEntity.newApplication(org.getId());
+    final Application app2 = tempEntity.newApplication(org.getId());
+
+    // Add a source control record for app1 with ASCF enabled, so it shouldn't be in the result list
+    // app2 has no source control record, so it should be in the result list
+    tempEntity.newSourceControl(app1.getId(), REPO_URL, null, null, null, null, false,
+        null, null, null, true, true, "/target/*", true, true);
+
+    final List<?> appsWithAutomatedSourceControlFeedbackDisabled =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+
+    assertThat(appsWithAutomatedSourceControlFeedbackDisabled).hasSize(1);
+    assertThat(appsWithAutomatedSourceControlFeedbackDisabled)
+        .extracting("applicationPublicId", "applicationName", "totalRisk")
+        .containsExactly(new Tuple(app2.getPublicId(), app2.getName(), 0));
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmDisabled_h2() {
     final Application app1 = tempEntity.newApplication(org.getId());
     final Application app2 = tempEntity.newApplication(org.getId());
 
@@ -107,7 +129,31 @@ public class ApplicationSourceControlServiceTest
   }
 
   @Test
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_AllAppsScmDisabled() {
+  @PostgresTest
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_ScmDisabled_postgres() {
+    final Application app1 = tempEntity.newApplication(org.getId());
+    final Application app2 = tempEntity.newApplication(org.getId());
+
+    // Add a source control record for app1 with ASCF disabled, so it should be in the result list
+    // app2 has no source control record, so it should be in the result list
+    tempEntity.newSourceControl(app1.getId(), REPO_URL, null, null, null, null, false,
+        null, null, null, true, true, "/target/*", true, false);
+
+    final List<?> appsWithAutomatedSourceControlFeedbackDisabled =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+
+    assertThat(appsWithAutomatedSourceControlFeedbackDisabled).hasSize(2);
+    assertThat(appsWithAutomatedSourceControlFeedbackDisabled)
+        .extracting("applicationPublicId", "applicationName")
+        .contains(
+            new Tuple(app1.getPublicId(), app1.getName())
+        )
+        .contains(new Tuple(app2.getPublicId(), app2.getName()));
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_AllAppsScmDisabled_h2() {
     // All apps missing source control records = SCM disabled
     final int numTotalApps = 8;
     final List<Application> applications = givenApplicationsWithAscendingRisk(numTotalApps);
@@ -122,7 +168,34 @@ public class ApplicationSourceControlServiceTest
   }
 
   @Test
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NoApps() {
+  @PostgresTest
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_AllAppsScmDisabled_postgres() {
+    // All apps missing source control records = SCM disabled
+    final int numTotalApps = 8;
+    final List<Application> applications = givenApplicationsWithAscendingRisk(numTotalApps);
+    Collections.reverse(applications);
+
+    final List<ApplicationTotalRiskDTO> appsWithAutomatedSourceControlFeedbackDisabled =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+
+    assertResultsLimitedAfterSortingByRisk(appsWithAutomatedSourceControlFeedbackDisabled, applications, numTotalApps,
+        7);
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NoApps_h2() {
+    final List<?> appsWithAutomatedSourceControlFeedbackDisabled =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+
+    assertThat(appsWithAutomatedSourceControlFeedbackDisabled)
+        .isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NoApps_postgres() {
     final List<?> appsWithAutomatedSourceControlFeedbackDisabled =
         applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
             LIMIT_LARGER_THAN_RESULT_SIZE);

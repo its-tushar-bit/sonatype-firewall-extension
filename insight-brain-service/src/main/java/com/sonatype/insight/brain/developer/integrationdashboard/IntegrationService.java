@@ -82,6 +82,7 @@ public class IntegrationService
       throw new BadRequestException("Page and Page size must be greater than 0");
     }
 
+    final boolean paginateEarly = optionalFilterAppsByScmIntegration == null;
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
     final List<ApplicationRiskScoreDTO> apps = applicationRiskService.getRiskForApplicationsWithReadPermissions();
     final List<ApplicationRiskScoreDTO> filteredApps =
@@ -91,7 +92,7 @@ public class IntegrationService
                     filter.getOptionalFilterApplicationNamesBy()))
             .collect(Collectors.toList()) : apps;
 
-    final List<IntegrationStatusDTO> summaries = filteredApps.stream()
+    final List<IntegrationStatusDTO> minimalSummaries = filteredApps.stream()
         // Set application and total risk
         .map(riskScoreDTO -> new IntegrationStatusDTO().setApplicationName(riskScoreDTO.applicationName)
             .setApplicationId(riskScoreDTO.id).setApplicationPublicId(riskScoreDTO.applicationId)
@@ -110,22 +111,44 @@ public class IntegrationService
               Collections.singleton(statusDTO.getApplicationId()));
           return statusDTO.setLastEvaluationTimestamp(getLatestEvaluation(policyEvaluations));
         })
-        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
-        .skip(skipCount)
-        .limit(filter.getPageSize())
         // Set CI/CD Integration status
         .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
             policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId())))
+        // Optionally filter on CI/CD Integration status
+        .filter(statusDTO ->
+            optionalFilterAppsByCiCdIntegration == null ||
+                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+        .collect(Collectors.toList());
+
+    final List<IntegrationStatusDTO> possiblyPaginatedSummaries = paginateEarly ?
+        minimalSummaries.stream()
+        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
+        .skip(skipCount)
+        .limit(filter.getPageSize())
+        .collect(Collectors.toList()) : minimalSummaries;
+
+    final List<IntegrationStatusDTO> enrichedSummaries = possiblyPaginatedSummaries.stream()
         // Set Automated Source Control Feedback status
         .map(statusDTO -> statusDTO.setAutomatedSourceControlFeedbackEnabled(
             !applicationSourceControlService.isAutomatedSourceControlFeedbackDisabledForApp(
                 statusDTO.getApplicationId())))
+        // Optionally filter on SCM Integration status
+        .filter(statusDTO ->
+            optionalFilterAppsByScmIntegration == null ||
+                statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
         // Enrich after filtering to save some round trips to the sast_scan table
         .map(this::addSastScanData)
         .collect(Collectors.toList());
 
-    final int totalSize = filteredApps.size();
-    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), summaries);
+    final List<IntegrationStatusDTO> completeSummaries = paginateEarly ? enrichedSummaries :
+        enrichedSummaries.stream()
+        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
+        .skip(skipCount)
+        .limit(filter.getPageSize())
+        .collect(Collectors.toList());
+
+    final int totalSize = paginateEarly ? minimalSummaries.size() : enrichedSummaries.size();
+    return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), completeSummaries);
   }
 
   private IntegrationStatusDTO addSastScanData(final IntegrationStatusDTO integrationStatusDTO) {

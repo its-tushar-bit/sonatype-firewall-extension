@@ -122,11 +122,6 @@ pipeline {
               parameters: [ run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
-    stage('Publish Release Notes & Documentation') {
-          steps {
-            build(job: 'insight/insight-brain/Publish Documentation')
-          }
-        }
     stage('Send Release Complete Notifications') {
       steps {
         build(job: 'insight/insight-brain/Release Notification',

@@ -27,15 +27,18 @@ import {
   selectReEvaluateMaskSuccess,
   selectRepositoryInformation,
   selectRepositoryResultsSummaryPageSlice,
-  selectShowFilterPopover,
   selectShowMaskSuccessDialog,
 } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import ReportStatusBar from 'MainRoot/applicationReport/ReportStatusBar';
 import RepositoryResultsComponentsTable from './repositoryResultsComponentsTable/RepositoryResultsComponentsTable';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
+import { selectOwnerSideNavSlice } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 export default function RepositoryResultsSummaryPage() {
   const params = useSelector(selectRouterCurrentParams);
+  const { ownersMap } = useSelector(selectOwnerSideNavSlice);
+  const repositoryContainer = ownersMap['REPOSITORY_CONTAINER_ID'];
   const repositoryInfo = useSelector(selectRepositoryInformation);
   const repositorySummary = useSelector(selectRepositoryResultsSummaryPageSlice);
   const errorSummaryTile = repositorySummary.errorSummaryTile;
@@ -57,6 +60,7 @@ export default function RepositoryResultsSummaryPage() {
   }
 
   const loadInitData = () => {
+    dispatch(ownerSideNavActions.load());
     dispatch(actions.loadData(params.repositoryId));
   };
   useEffect(() => {
@@ -68,8 +72,10 @@ export default function RepositoryResultsSummaryPage() {
       <RepositoryResultsComponentsFilter repositoryId={params.repositoryId} />
       <NxPageMain>
         <MenuBarBackButton
-          href={uiRouterState.href('management.view.repository_container')}
-          text="Back to Repositories"
+          href={uiRouterState.href('management.view.repository_container', {
+            repositoryContainerId: repositoryContainer?.id,
+          })}
+          text={`Back to ${repositoryContainer?.name}`}
         />
         {showMaskSuccessDialog && <NxStatefulSubmitMask success={showReEvaluateMaskSuccess} message="Re-Evaluating" />}
         <NxLoadWrapper

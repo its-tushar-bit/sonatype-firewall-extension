@@ -29,6 +29,7 @@ import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryFilterPopover;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -1233,6 +1235,18 @@ public class RepositoryResultsSummaryTest
 
     ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
     table.versionRow().get(1).shouldHave(text("0.5.3"));
+  }
+
+  @Test
+  public void testRepositoryResultPageBackButton() {
+    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
+    RepositoryResultDetailPage.backButton()
+        .shouldBe(visible)
+        .shouldHave(text(RepositoryContainer.SINGLETON.getName()));
+
+    RepositoryResultDetailPage.backButton().click();
+    waitUntilUrl(RepositoriesSummaryPage.url());
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repository Managers"));
   }
 
   private void riskRemediationSetup(List<ComponentDetails> componentDetailsArrayList) {

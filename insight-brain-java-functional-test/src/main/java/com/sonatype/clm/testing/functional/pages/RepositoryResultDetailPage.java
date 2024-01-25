@@ -32,6 +32,14 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     return $("repository-results-summary-page .nx-h1");
   }
 
+  public static SelenideElement backButton() {
+    return $(".nx-back-button");
+  }
+
+  public static SelenideElement backButtonLink() {
+    return $(".nx-back-button .nx-text-link");
+  }
+
   public static SelenideElement filterPopoverButton() {
     return $("#repository-filter-popover-button");
   }

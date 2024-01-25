@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
+import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
@@ -30,6 +31,8 @@ public class SastScanDAOTest
 
   private SastScmScanContextDAO sastScmScanContextDAO;
 
+  private SastPullRequestCommentDAO sastPullRequestCommentDAO;
+
   @Before
   @Override
   public void setup() {
@@ -38,6 +41,7 @@ public class SastScanDAOTest
     sastFindingDAO = daoFactory.createSastFindingDAO();
     sastRemediationDAO = daoFactory.createSastRemediationDAO();
     sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
+    sastPullRequestCommentDAO = daoFactory.createSastPullRequestCommentDAO();
   }
 
   @Test
@@ -140,5 +144,31 @@ public class SastScanDAOTest
     sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
     assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
     assertThat(sastScmScanContextDAO.getById(sastScmScanContext.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteByApplicationId_CascadeToSastPullRequestComment() {
+    // Insert
+    final SastScan sastScan = new SastScan(application.getId());
+    sastScanDAO.insert(sastScan);
+    assertThat(sastScan.getId()).isNotNull();
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
+
+    final SastPullRequestComment sastPullRequestComment = new SastPullRequestComment(
+        sastScan.getId(),
+        "https://github.com/sonatype/insight-brain/pull/10894",
+        "commit-hash",
+        "content-hash",
+        "discussion_r1450570374"
+    );
+
+    sastPullRequestCommentDAO.insert(sastPullRequestComment);
+    String sastPullRequestCommentId = sastPullRequestComment.getId();
+    assertThat(sastPullRequestCommentId).isNotNull();
+
+    // Cascade delete via DeleteByApplicationId
+    sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
+    assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
+    assertThat(sastPullRequestCommentDAO.getById(sastPullRequestCommentId)).isNull();
   }
 }

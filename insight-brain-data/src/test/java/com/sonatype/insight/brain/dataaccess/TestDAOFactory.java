@@ -74,6 +74,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
@@ -214,7 +215,9 @@ public class TestDAOFactory
   public SastScanDAO createSastScanDAO() {
     SastFindingDAO sastFindingDAO = createSastFindingDAO();
     SastScmScanContextDAO sastScmScanContextDAO = createSastScmScanContextDAO();
-    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastFindingDAO, sastScmScanContextDAO);
+    SastPullRequestCommentDAO sastPullRequestCommentDAO = createSastPullRequestCommentDAO();
+    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastFindingDAO, sastScmScanContextDAO,
+        sastPullRequestCommentDAO);
   }
 
   @Override
@@ -1036,5 +1039,10 @@ public class TestDAOFactory
     ThirdPartyScanDAO thirdPartyScanDAO = createThirdPartyScanDAO();
     return new ThirdPartyFileDAO(dataStoreProvider.getThirdPartyScansDataStore(), thirdPartyFileCoordinateDAO,
         thirdPartyScanDAO);
+  }
+
+  @Override
+  public SastPullRequestCommentDAO createSastPullRequestCommentDAO() {
+    return new SastPullRequestCommentDAO(dataStoreProvider.getOperationalDataStore());
   }
 }

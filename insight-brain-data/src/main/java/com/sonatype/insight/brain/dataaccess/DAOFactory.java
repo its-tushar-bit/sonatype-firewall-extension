@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
@@ -378,4 +379,6 @@ public interface DAOFactory
   ThirdPartyFileCoordinateDAO createThirdPartyFileCoordinateDAO();
 
   ThirdPartyFileDAO createThirdPartyFileDAO();
+
+  SastPullRequestCommentDAO createSastPullRequestCommentDAO();
 }

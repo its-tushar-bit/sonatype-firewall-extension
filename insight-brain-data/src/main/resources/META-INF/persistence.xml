@@ -119,6 +119,7 @@
     <class>com.sonatype.insight.brain.model.sast.SastFinding</class>
     <class>com.sonatype.insight.brain.model.sast.SastRemediation</class>
     <class>com.sonatype.insight.brain.model.sast.SastScmScanContext</class>
+    <class>com.sonatype.insight.brain.model.sast.SastPullRequestComment</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

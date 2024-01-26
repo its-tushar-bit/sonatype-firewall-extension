@@ -17,6 +17,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
@@ -24,10 +26,12 @@ import com.sonatype.insight.brain.developer.integrationdashboard.api.Integration
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -50,19 +54,27 @@ public class IntegrationService
 
   private final SastScanDAO sastScanDAO;
 
+  private final SourceControlDAO sourceControlDAO;
+
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public IntegrationService(
       final ApplicationRiskService applicationRiskService,
       final ApplicationSourceControlService applicationSourceControlService,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
-      final SastScanDAO sastScanDAO)
+      final SastScanDAO sastScanDAO,
+      final SourceControlDAO sourceControlDAO,
+      final OwnerDAO ownerDAO)
   {
     this.applicationRiskService = applicationRiskService;
     this.applicationSourceControlService = applicationSourceControlService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sastScanDAO = sastScanDAO;
+    this.sourceControlDAO = sourceControlDAO;
+    this.ownerDAO = ownerDAO;
   }
 
   public ApiPageResult<IntegrationStatusDTO> getIntegrationStatuses(
@@ -152,8 +164,7 @@ public class IntegrationService
   }
 
   private IntegrationStatusDTO addSastScanData(final IntegrationStatusDTO integrationStatusDTO) {
-    Optional<SastScan> lastSastScan = sastScanDAO.getByApplicationId(integrationStatusDTO.getApplicationId()).stream()
-        .max(Comparator.comparing(SastScan::getCreatedAt));
+    Optional<SastScan> lastSastScan = getLatestSastScan(integrationStatusDTO.getApplicationId());
     return new IntegrationStatusDTO(
         integrationStatusDTO.getApplicationName(),
         integrationStatusDTO.getApplicationId(),
@@ -214,5 +225,33 @@ public class IntegrationService
     }
 
     return filter;
+  }
+
+  private Optional<SastScan> getLatestSastScan(final String applicationId) {
+    final Optional<SastScan> latestSastScanByBaseBranch =
+        sastScanDAO.getByApplicationIdAndBranchName(applicationId, getBaseBranch(applicationId))
+          .stream()
+          .max(Comparator.comparing(SastScan::getCreatedAt));
+
+    if (latestSastScanByBaseBranch.isPresent()) {
+      return latestSastScanByBaseBranch;
+    }
+
+    return sastScanDAO.getByApplicationId(applicationId)
+        .stream()
+        .max(Comparator.comparing(SastScan::getCreatedAt));
+  }
+
+  private String getBaseBranch(final String ownerId) {
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      if (OwnerType.APPLICATION.equals(owner.getType()) || OwnerType.ORGANIZATION.equals(owner.getType())) {
+        final SourceControl sourceControl = sourceControlDAO.getByOwnerId(owner.getId());
+        final String baseBranch = sourceControl != null ? sourceControl.getBaseBranch() : null;
+        if (StringUtils.isNotEmpty(baseBranch)) {
+          return baseBranch;
+        }
+      }
+    }
+    return null;
   }
 }

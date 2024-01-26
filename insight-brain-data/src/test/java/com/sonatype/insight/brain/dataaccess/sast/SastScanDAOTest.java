@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.sast;
 
+import java.util.List;
+import java.util.Locale;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
@@ -144,6 +147,61 @@ public class SastScanDAOTest
     sastScanDAO.deleteByApplicationId(sastScan.getApplicationId());
     assertThat(sastScanDAO.getById(sastScan.getId())).isNull();
     assertThat(sastScmScanContextDAO.getById(sastScmScanContext.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByBranchName_ValidInput() {
+    final String branchName1 = "getThisBranch";
+    final SastScmScanContext sastScmScanContext1 = new SastScmScanContext(branchName1, "testCommitHash1");
+    final SastScmScanContext sastScmScanContext2 = new SastScmScanContext(branchName1, "testCommitHash2");
+    final SastScmScanContext sastScmScanContext3 = new SastScmScanContext(branchName1, "testCommitHash3");
+    final SastScmScanContext sastScmScanContext4 = new SastScmScanContext(branchName1, "testCommitHash4");
+    sastScmScanContextDAO.insert(sastScmScanContext1);
+    sastScmScanContextDAO.insert(sastScmScanContext2);
+    sastScmScanContextDAO.insert(sastScmScanContext3);
+    sastScmScanContextDAO.insert(sastScmScanContext4);
+
+    final SastScan sastScan1 = new SastScan(application.getId(), sastScmScanContext1.getId());
+    final SastScan sastScan2 = new SastScan(application.getId(), sastScmScanContext2.getId());
+    final SastScan sastScan3 = new SastScan(application.getId(), sastScmScanContext3.getId());
+    final SastScan sastScan4 =
+        new SastScan(tempEntity.newApplication(organization.getId()).getId(), sastScmScanContext4.getId());
+    sastScanDAO.insert(sastScan1);
+    sastScanDAO.insert(sastScan2);
+    sastScanDAO.insert(sastScan3);
+    sastScanDAO.insert(sastScan4);
+
+    List<SastScan> sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), branchName1);
+    assertThat(sastScans)
+        .hasSize(3)
+        .extracting("id")
+        .containsExactlyInAnyOrder(sastScan1.getId(), sastScan2.getId(), sastScan3.getId())
+        .doesNotContain(sastScan4.getId());
+
+    sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), branchName1.toUpperCase(Locale.ROOT));
+    assertThat(sastScans)
+        .isEmpty();
+
+    sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), "no match");
+    assertThat(sastScans).isEmpty();
+  }
+
+  @Test
+  public void testGetByBranchName_InvalidInput() {
+    final SastScmScanContext sastScmScanContext = new SastScmScanContext("bRaNcH", "testCommitHash");
+    sastScmScanContextDAO.insert(sastScmScanContext);
+
+    final SastScan sastScan = new SastScan(application.getId(), sastScmScanContext.getId());
+    sastScanDAO.insert(sastScan);
+
+    List<SastScan> sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), "    ");
+    assertThat(sastScans).isEmpty();
+
+    sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), "");
+    assertThat(sastScans).isEmpty();
+
+    sastScans = sastScanDAO.getByApplicationIdAndBranchName(application.getId(), null);
+    assertThat(sastScans).isEmpty();
   }
 
   @Test

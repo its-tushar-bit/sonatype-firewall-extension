@@ -106,6 +106,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -238,6 +239,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastScan;
+import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -557,6 +559,8 @@ public class TemporaryEntity
   private SastScanDAO sastScanDAO;
 
   private SastFindingDAO sastFindingDAO;
+
+  private SastScmScanContextDAO sastScmScanContextDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -4484,6 +4488,20 @@ public class TemporaryEntity
     return sastScan;
   }
 
+  public SastScan newSastScanWithScmContextWithCustomTimestamp(
+      final String applicationId,
+      final Date date,
+      final String branchName)
+  {
+    final SastScmScanContext sastScmScanContext = new SastScmScanContext(branchName, "testCommitHash");
+    sastScmScanContextDAO.insert(sastScmScanContext);
+
+    final SastScan sastScan = new SastScan(applicationId, sastScmScanContext.getId());
+    sastScan.setCreatedAt(date);
+    sastScanDAO.insert(sastScan);
+    return sastScan;
+  }
+
   public SastFinding newSastFinding(final SastFinding sastFinding) {
     sastFindingDAO.insert(sastFinding);
     return sastFinding;
@@ -4642,6 +4660,7 @@ public class TemporaryEntity
     applicationCountHistoryDAO = daoFactory.createApplicationCountHistoryDAO();
     sastScanDAO = daoFactory.createSastScanDAO();
     sastFindingDAO = daoFactory.createSastFindingDAO();
+    sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

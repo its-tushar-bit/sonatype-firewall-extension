@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -492,16 +491,12 @@ public class RepositoryServiceAuthzTest
         tempEntity.newRepository(repoManager, "testPublicId2", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
 
     grantReadPermission(repo1.getId());
-    RepositoriesDTO result = repositoryService.getRepositoriesByRepositoryManagerId(repoManager.getId());
-    assertThat(result.repositories).hasSize(1);
-    assertThat(result.repositories.get(0).repository.getId()).isEqualTo(repo1.getId());
+    List<Repository> result = repositoryService.getRepositoriesByRepositoryManagerId(repoManager.getId());
+    assertThat(result).extracting(Repository::getId).containsExactly(repo1.getId());
 
     grantReadPermission(repo2.getId());
     result = repositoryService.getRepositoriesByRepositoryManagerId(repoManager.getId());
-    assertThat(result.repositories).hasSize(2);
-    List<String> repositoryIds =
-        result.repositories.stream().map(dto -> dto.repository.getId()).collect(Collectors.toList());
-    assertThat(repositoryIds).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
+    assertThat(result).extracting(Repository::getId).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -138,8 +138,8 @@ const loadRepositories = createAsyncThunk(
       axios.get(getSupportedRepositoriesFormat()),
     ];
     return Promise.all(promises)
-      .then(([repositoriesDto, formats]) => ({
-        repositories: repositoriesDto.data.repositories.map((item) => item.repository),
+      .then(([repositories, formats]) => ({
+        repositories: repositories.data,
         supportedFormats: formats.data?.regexpsByRepositoryFormat || {},
       }))
       .catch(rejectWithValue);

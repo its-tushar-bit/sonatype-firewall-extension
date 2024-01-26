@@ -5,21 +5,10 @@
  */
 import React from 'react';
 import RepositoryManagerSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerSummaryView';
-import {
-  getRepositoryManagerById,
-  getActionStageUrl,
-  getApplicablePolicies,
-  getRepositoryInfoUrl,
-  getRepositoryListUrl,
-} from 'MainRoot/util/CLMLocation';
+import { getRepositoryManagerById, getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actionStagesPayload } from 'TestRoot/OrgsAndPolicies/ownerSummary/policiesTile/policiesTileTestData';
-import { render, axiosMockAdapter, within, screen, fireEvent, mockInterceptionObserver } from 'TestRoot/SpecUtil';
-import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
-import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
-import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { groupBy, prop } from 'ramda';
+import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 const ownerType = 'repository_manager';
 const ownerId = 'c47da5d840b84eda8585381de5ebb189';
@@ -73,39 +62,12 @@ const policiesByOwner = [
   },
 ];
 
-const repos = [
-  {
-    oldestEvalTimestamp: null,
-    managerInstanceId: 'managerInstanceId',
-    managerName: 'managerName',
-    repository: {
-      id: 'repository',
-      repositoryManagerId: 'c47da5d840b84eda8585381de5ebb189',
-      publicId: 'repositoryName',
-      auditEnabled: true,
-      quarantineEnabled: true,
-      format: 'maven',
-      repositoryType: 'proxy',
-    },
-  },
-];
-
-const ownerInfo = {
-  id: 'c47da5d840b84eda8585381de5ebb189',
-  name: 'repo-manager-name',
-  instanceId: 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232',
-  productName: 'Nexus',
-  productVersion: '3.61.0-02',
-};
-
 describe('RepositoryManagerSummaryView', () => {
-  let axiosMock, preloadedState, goToEditPolicySpy, loadRepositoriesByManagerIdSpy;
-
+  let axiosMock, preloadedState, goToEditPolicySpy;
   const renderComponent = (preloadedState) => render(<RepositoryManagerSummaryView />, { preloadedState });
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
-    mockInterceptionObserver();
   });
 
   beforeEach(() => {
@@ -147,7 +109,7 @@ describe('RepositoryManagerSummaryView', () => {
       productVersion: '3.61.0-02',
     });
 
-    goToEditPolicySpy = jest.spyOn(actions, 'goToEditPolicy');
+    goToEditPolicySpy = spyOn(actions, 'goToEditPolicy').and.callThrough();
   });
 
   it('renders a loading indicator', () => {
@@ -171,7 +133,7 @@ describe('RepositoryManagerSummaryView', () => {
     expect(retryButton).toBeVisible();
     fireEvent.click(retryButton);
 
-    expect(screen.queryByText('Loading…')).toBeInTheDocument();
+    expect(await screen.findByText('Loading…')).toBeVisible();
     failureAlert = await screen.findByRole('alert');
     expect(failureAlert).toBeVisible();
     expect(failureAlert).toHaveTextContent('An error occurred loading data.');
@@ -217,28 +179,5 @@ describe('RepositoryManagerSummaryView', () => {
 
     fireEvent.click(editButton);
     expect(goToEditPolicySpy).toHaveBeenCalledWith(inheretedFromRepoContainerPolicy.id);
-  });
-
-  it('renders configuration tile', async () => {
-    jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
-    jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue(ownerInfo);
-    jest
-      .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
-      .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
-
-    loadRepositoriesByManagerIdSpy = jest.spyOn(repositoriesActions, 'loadRepositoriesByManagerId');
-
-    axiosMock.onGet(getRepositoryListUrl('c47da5d840b84eda8585381de5ebb189')).reply(200, repos);
-    axiosMock.onGet(getRepositoryManagerById(ownerId)).reply(200, ownerInfo);
-    axiosMock.onDelete(getRepositoryInfoUrl('repository')).reply(204);
-
-    renderComponent(preloadedState);
-
-    expect(await screen.findByRole('button', { name: 'Configuration' })).toBeVisible();
-    expect(await screen.findByText('repositoryName')).toBeVisible();
-    expect(await screen.findByText('maven')).toBeVisible();
-    expect(await screen.findByText('proxy')).toBeVisible();
-    expect(await screen.findByText('Audit, Quarantine')).toBeVisible();
-    expect(loadRepositoriesByManagerIdSpy).toHaveBeenCalled();
   });
 });

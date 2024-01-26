@@ -17,7 +17,6 @@ import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/Pol
 
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import RepositoryManagerPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerPills';
-import RepositoriesConfigurationTile from "MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile";
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 
@@ -61,7 +60,7 @@ export default function RepositoryManagerSummaryView() {
           id="repositories-summary-sections"
         >
           <div id="scrollable-content">
-            <RepositoriesConfigurationTile />
+            {/* <RepositoriesConfigurationTile /> goes here*/}
             <PoliciesTile />
             {/* <NamespaceConfusionProtectionTile /> goes here*/}
             {/* <AccessTile /> goes here*/}

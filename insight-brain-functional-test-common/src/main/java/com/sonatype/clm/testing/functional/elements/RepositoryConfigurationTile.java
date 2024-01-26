@@ -13,7 +13,6 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -57,10 +56,6 @@ public class RepositoryConfigurationTile
           "tr" + ":nth-of-type(" + rowIndex + ")");
     }
 
-    public ConfigurationTableRow repoManagerConfigTableRow(final int rowIndex) {
-      return new ConfigurationTableRow(selector, "tbody tr", nthChild(rowIndex));
-    }
-
     public SelenideElement repositoryPublicIdFilter() {
       return child(".nx-filter-input", "input");
     }
@@ -86,14 +81,6 @@ public class RepositoryConfigurationTile
 
       public SelenideElement publicId() {
         return child("td a", nthChild(1));
-      }
-
-      public SelenideElement repoManagerConfigTablePublicId() {
-        return child("td", nthChild(1));
-      }
-
-      public SelenideElement repoManagerConfigTableLink() {
-        return $("[data-testid='repositories_configuration-link']");
       }
 
       public SelenideElement format() {

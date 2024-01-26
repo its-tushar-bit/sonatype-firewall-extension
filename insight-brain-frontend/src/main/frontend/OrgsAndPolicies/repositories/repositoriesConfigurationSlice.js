@@ -6,12 +6,7 @@
 import { compose, createAsyncThunk, createSlice, original } from '@reduxjs/toolkit';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
-import {
-  getRepositoriesUrl,
-  getRepositoryInfoUrl,
-  getRepositoryListUrl,
-  getRepositoryManagerUrl,
-} from 'MainRoot/util/CLMLocation';
+import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryManagerUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import {
@@ -254,40 +249,6 @@ const filterRepositories = (state) => {
   };
 };
 
-const loadRepositoriesByManagerIdRequested = (state) => {
-  state.loading = true;
-  state.loadError = null;
-  state.repositories = [];
-  state.submitMaskState = null;
-};
-
-const loadRepositoriesByManagerIdFulfilled = (state, { payload }) => {
-  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
-  return {
-    ...state,
-    loading: false,
-    loadError: null,
-    originalRepositories: repos,
-    repositories: repos,
-  };
-};
-
-const loadRepositoriesByManagerIdFailed = (state, { payload }) => {
-  state.loading = false;
-  state.repositories = null;
-  state.loadError = Messages.getHttpErrorMessage(payload);
-};
-
-const loadRepositoriesByManagerId = createAsyncThunk(
-  `${REDUCER_NAME}/loadRepositoriesByManagerId`,
-  (managerId, { rejectWithValue }) => {
-    return axios
-      .get(getRepositoryListUrl(managerId))
-      .then(path(['data', 'repositories']))
-      .catch(rejectWithValue);
-  }
-);
-
 const repositoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -312,9 +273,6 @@ const repositoriesSlice = createSlice({
     [editRepositoryManagerName.pending]: editRepositoryManagerNameRequested,
     [editRepositoryManagerName.fulfilled]: editRepositoryManagerNameFulfilled,
     [editRepositoryManagerName.rejected]: editRepositoryManagerNameFailed,
-    [loadRepositoriesByManagerId.pending]: loadRepositoriesByManagerIdRequested,
-    [loadRepositoriesByManagerId.fulfilled]: loadRepositoriesByManagerIdFulfilled,
-    [loadRepositoriesByManagerId.rejected]: loadRepositoriesByManagerIdFailed,
   },
 });
 
@@ -325,5 +283,4 @@ export const actions = {
   loadRepositories,
   deleteRepository,
   editRepositoryManagerName,
-  loadRepositoriesByManagerId,
 };

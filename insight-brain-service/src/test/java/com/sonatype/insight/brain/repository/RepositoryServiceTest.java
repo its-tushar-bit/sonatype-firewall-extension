@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentName
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
@@ -1120,11 +1121,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
     Repository repository1 = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
     Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoUnsupported", "unsupportedFormat");
 
-    List<Repository> repositories =
+    RepositoriesDTO result =
         repositoryService.getRepositoriesByRepositoryManagerId(repositoryManager.getId());
 
-    assertThat(repositories).extracting(Repository::getId) //
-        .containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
+    List<String> repositoryIds =
+        result.repositories.stream().map(dto -> dto.repository.getId()).collect(Collectors.toList());
+    assertThat(repositoryIds).containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
   }
 
   @Test

@@ -55,11 +55,11 @@ describe('repositoriesConfigurationSliceActions', () => {
     it('dispatches a repositories/editRepositoryManagerName/fulfilled action after a successful request', (done) => {
       store = SpecUtil.mockReduxStore(state);
       axiosMock.onPut(getRepositoryManagerUrl('someManagerId', 'someManagerName')).reply(200, {});
-      jasmine.clock().install();
+      jest.useFakeTimers();
 
       store.dispatch(actions.editRepositoryManagerName()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        jasmine.clock().uninstall();
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
         expect(actions).toHaveActionsInOrder([
           {

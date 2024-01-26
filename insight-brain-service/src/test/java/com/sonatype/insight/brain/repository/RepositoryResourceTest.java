@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -346,9 +348,10 @@ public class RepositoryResourceTest
             .parameter(repositoryManager.getId()).get();
 
     assertResponseStatus(200, response);
-    Repository[] repositories = response.getBody(Repository[].class);
-    assertThat(repositories).extracting(Repository::getId) //
-        .containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
+    RepositoriesDTO result = response.getBody(RepositoriesDTO.class);
+    List<String> repositoryIds =
+        result.repositories.stream().map(dto -> dto.repository.getId()).collect(Collectors.toList());
+    assertThat(repositoryIds).containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
   }
 
   @Test

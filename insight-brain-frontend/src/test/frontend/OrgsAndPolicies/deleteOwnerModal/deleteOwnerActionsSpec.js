@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getOrganizationsUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { getOrganizationsUrl, getApplicationsUrl, getRepositoryManagerById } from 'MainRoot/util/CLMLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
@@ -69,6 +69,7 @@ describe('deleteOwnerActions', () => {
         parentOrganizationId: 'ROOT_ORGANIZATION_ID',
       });
       spyOn(routerSelectors, 'selectIsApplication').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(true);
     });
 
     it('handles remove', (done) => {
@@ -138,6 +139,82 @@ describe('deleteOwnerActions', () => {
       mockAxiosCalls({
         del: {
           [`${getApplicationsUrl()}/applicationThreePublicID`]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(actions.removeOwner()).then(() => {
+        expect(axios.delete).toHaveBeenCalledTimes(1);
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'ownerActions/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/fulfilled',
+        ]);
+
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'ownerActions/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/fulfilled',
+          'ownerActions/delete/closeModal',
+        ]);
+
+        done();
+      });
+    });
+  });
+
+  describe('removeOwner repository manager', () => {
+    beforeEach(() => {
+      state = {
+        router: {
+          currentParams: {
+            repositoryManagerId: 'repositoryManagerTwoID',
+            name: 'Repository Manager Two Name',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'repositoryManagerTwoID',
+              name: 'Repository Manager Two Name',
+              parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+            },
+          },
+          organizations: SidebarResourceMockData.getOwnerListUrl(),
+          ownerSideNav: {
+            ownersMap: {
+              repositoryManagerTwoID: {
+                id: 'repositoryManagerTwoID',
+                name: 'Repository Manager Two Name',
+                parentId: 'REPOSITORY_CONTAINER_ID',
+                repositoryIds: ['repo1', 'repo2'],
+              },
+              repo1: { id: 'repo-one-id', repositoryId: 'repository-one', name: 'Repository One' },
+              repo2: { id: 'repo-two-id', repositoryId: 'repository-two', name: 'Repository Two' },
+            },
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').and.returnValue({
+        id: 'repositoryManagerTwoID',
+        name: 'Repository Manager Two Name',
+        parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+      });
+      spyOn(routerSelectors, 'selectIsApplication').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsRepository').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsRepositoryManager').and.returnValue(true);
+    });
+
+    it('handles remove', (done) => {
+      mockAxiosCalls({
+        del: {
+          [getRepositoryManagerById('repositoryManagerTwoID')]: Promise.resolve(),
         },
       });
 

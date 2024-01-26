@@ -6,11 +6,16 @@
 import axios from 'axios';
 import { batch } from 'react-redux';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getOrganizationsUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationsUrl, getOrganizationsUrl, getRepositoryManagerById } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as ownerSideNavActions } from '../ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsApplication,
+  selectIsOrganization,
+  selectIsRepository,
+  selectIsRepositoryManager,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
@@ -44,25 +49,43 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
   const state = getState();
   const ownerToDelete = selectSelectedOwner(state);
   const isApp = selectIsApplication(state);
-  const url = isApp
-    ? `${getApplicationsUrl()}/${ownerToDelete.publicId}`
-    : `${getOrganizationsUrl()}/${ownerToDelete.id}`;
+  const isOrg = selectIsOrganization(state);
+  const isRepositoryManager = selectIsRepositoryManager(state);
+  const isRepository = selectIsRepository(state);
+
+  let url;
+  if (isApp) {
+    url = `${getApplicationsUrl()}/${ownerToDelete.publicId}`;
+  } else if (isOrg) {
+    url = `${getOrganizationsUrl()}/${ownerToDelete.id}`;
+  } else if (isRepositoryManager) {
+    url = getRepositoryManagerById(ownerToDelete.id);
+  }
 
   return axios
     .delete(url)
     .then(() => {
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
-        const organizationId = isApp ? ownerToDelete.organizationId : ownerToDelete.parentOrganizationId;
-        dispatch(stateGo('management.view.organization', { organizationId }));
-
         batch(() => {
           if (isApp) {
+            dispatch(stateGo('management.view.organization', { organizationId: ownerToDelete.organizationId }));
             dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
-          } else {
+            dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.organizationId }));
+          } else if (isOrg) {
+            dispatch(stateGo('management.view.organization', { organizationId: ownerToDelete.parentOrganizationId }));
             dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
+            dispatch(
+              ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.parentOrganizationId })
+            );
+          } else if (isRepositoryManager) {
+            dispatch(
+              stateGo('management.view.repository_container', { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' })
+            );
+            dispatch(ownerSideNavActions.removeRepositoryManagerFromOwnerHierarchy(ownerToDelete.id));
+            dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.parentId }));
+          } else if (isRepository) {
+            // will be implemented when creating action menu for repository
           }
-
-          dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId }));
         });
       });
     })

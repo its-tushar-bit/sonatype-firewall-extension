@@ -149,48 +149,125 @@ describe('ownerSideNavSelectors', () => {
       expect(selectAllDescendantsByParentId.dependencies).toEqual([selectOwnersMap, expect.any(Function)]);
     });
 
-    it('selects all descentand apps and orgs for a given parent org', () => {
-      const ownersMap = {
-        parent: {
-          id: 'parent',
-          name: 'parent',
-          synthetic: false,
-          applicationIds: ['nexus', 'lifecycle'],
-          organizationIds: ['orgLevelTwo'],
-        },
-        nexus: { publicId: 'nexus', name: 'nexus', synthetic: false },
-        lifecycle: { publicId: 'lifecycle', name: 'lifecycle', synthetic: false },
-        orgLevelOne: {
-          id: 'orgLevelOne',
-          name: 'orgLevelOne',
-          synthetic: false,
-          applicationIds: ['hds'],
-          organizationIds: [],
-        },
-        hds: { publicId: 'hds', name: 'hds', synthetic: false },
-        orgLevelTwo: {
-          id: 'orgLevelTwo',
-          name: 'orgLevelTwo',
-          synthetic: false,
-          applicationIds: ['childOrgAppOne', 'childOrgAppTwo'],
-          organizationIds: ['orgLevelThree'],
-        },
-        childOrgAppOne: { publicId: 'childOrgAppOne', name: 'childOrgAppOne', synthetic: false },
-        childOrgAppTwo: { publicId: 'childOrgAppTwo', name: 'childOrgAppTwo', synthetic: false },
-        orgLevelThree: {
-          id: 'orgLevelThree',
-          name: 'orgLevelThree',
-          synthetic: false,
-          applicationIds: ['childOrgAppThree'],
-          organizationIds: [],
-        },
-        childOrgAppThree: { publicId: 'childOrgAppThree', name: 'childOrgAppThree', synthetic: false },
-      };
-      const result = selectAllDescendantsByParentId.resultFunc(ownersMap, 'parent');
+    const ownersMap = {
+      orgsAndAppsParent: {
+        id: 'orgsAndAppsParent',
+        name: 'orgsAndAppsParent',
+        synthetic: false,
+        applicationIds: ['nexus', 'lifecycle'],
+        organizationIds: ['orgLevelTwo'],
+      },
+      repoParent: {
+        id: 'repoParent',
+        name: 'repoParent',
+        synthetic: false,
+        repositoryContainerId: 'repoContainer',
+      },
+      nexus: { publicId: 'nexus', name: 'nexus', synthetic: false },
+      lifecycle: { publicId: 'lifecycle', name: 'lifecycle', synthetic: false },
+      orgLevelOne: {
+        id: 'orgLevelOne',
+        name: 'orgLevelOne',
+        synthetic: false,
+        applicationIds: ['hds'],
+        organizationIds: [],
+      },
+      hds: { publicId: 'hds', name: 'hds', synthetic: false },
+      orgLevelTwo: {
+        id: 'orgLevelTwo',
+        name: 'orgLevelTwo',
+        synthetic: false,
+        applicationIds: ['childOrgAppOne', 'childOrgAppTwo'],
+        organizationIds: ['orgLevelThree'],
+      },
+      childOrgAppOne: { publicId: 'childOrgAppOne', name: 'childOrgAppOne', synthetic: false },
+      childOrgAppTwo: { publicId: 'childOrgAppTwo', name: 'childOrgAppTwo', synthetic: false },
+      orgLevelThree: {
+        id: 'orgLevelThree',
+        name: 'orgLevelThree',
+        synthetic: false,
+        applicationIds: ['childOrgAppThree'],
+        organizationIds: [],
+      },
+      childOrgAppThree: { publicId: 'childOrgAppThree', name: 'childOrgAppThree', synthetic: false },
+      repoContainer: {
+        type: 'repository_container',
+        id: 'repoContainer',
+        name: 'Repository Managers',
+        repositoryManagerIds: ['repomanager1', 'repomanager2'],
+        parentId: 'repoParent',
+      },
+      repomanager1: {
+        type: 'repository_manager',
+        id: 'repomanager1',
+        name: '4C5ABCA7-0DBA-449B-A3D3-A7607F8E91B5',
+        instanceId: '4C5ABCA7-0DBA-449B-A3D3-A7607F8E91B5',
+        repositoryIds: ['repo1a', 'repo1b'],
+        parentId: 'repoContainer',
+      },
+      repomanager2: {
+        type: 'repository_manager',
+        id: 'repomanager2',
+        name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+        instanceId: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+        repositoryIds: ['repo2a', 'repo2b'],
+        parentId: 'repoContainer',
+      },
+      repo2b: {
+        type: 'repository',
+        id: 'repo2b',
+        name: 'nuget-hosted',
+        repositoryManagerId: '0b9a675da0a14deabe26ad90df74a0cf',
+        repositoryType: 'hosted',
+        parentId: '0b9a675da0a14deabe26ad90df74a0cf',
+      },
+      repo1b: {
+        type: 'repository',
+        id: 'repo1b',
+        name: 'maven-releases',
+        repositoryManagerId: 'repomanager1',
+        repositoryType: 'hosted',
+        parentId: 'repomanager1',
+      },
+      repo2a: {
+        type: 'repository',
+        id: 'repo2a',
+        name: 'maven-snapshots',
+        repositoryManagerId: '0b9a675da0a14deabe26ad90df74a0cf',
+        repositoryType: 'hosted',
+        parentId: '0b9a675da0a14deabe26ad90df74a0cf',
+      },
+      repo1a: {
+        type: 'repository',
+        id: 'repo1a',
+        name: 'maven-central',
+        repositoryManagerId: 'repomanager1',
+        repositoryType: 'proxy',
+        parentId: 'repomanager1',
+      },
+    };
+
+    it('selects all descendant apps and orgs for a given orgsAndAppsParent org', () => {
+      const result = selectAllDescendantsByParentId.resultFunc(ownersMap, 'orgsAndAppsParent');
 
       expect(result).toEqual({
         applicationIds: ['nexus', 'lifecycle', 'childOrgAppOne', 'childOrgAppTwo', 'childOrgAppThree'],
         organizationIds: ['orgLevelTwo', 'orgLevelThree'],
+        repositoryContainerId: null,
+        repositoryManagerIds: [],
+        repositoryIds: [],
+      });
+    });
+
+    it('selects all descendant repos, repos managers and repo containers for the given parent', () => {
+      const result = selectAllDescendantsByParentId.resultFunc(ownersMap, 'repoParent');
+
+      expect(result).toEqual({
+        applicationIds: [],
+        organizationIds: [],
+        repositoryContainerId: 'repoContainer',
+        repositoryManagerIds: ['repomanager1', 'repomanager2'],
+        repositoryIds: ['repo1a', 'repo1b', 'repo2a', 'repo2b'],
       });
     });
   });

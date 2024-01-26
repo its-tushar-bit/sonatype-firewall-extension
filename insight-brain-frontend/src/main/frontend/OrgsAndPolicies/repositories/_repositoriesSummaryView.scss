@@ -18,11 +18,23 @@
   display: flex;
   flex-direction: column;
 
-  #repositories-summary {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  .nx-page-title {
+    margin-bottom: var(--nx-spacing-2x);
+    .nx-h1 .nx-icon {
+      vertical-align: -2px;
+      img {
+        height: 26px;
+        vertical-align: baseline;
+      }
+    }
+  }
+
+  #iq-owner-actions-dropdown {
+    .nx-dropdown-menu {
+      width: 325px !important;
+      margin-left: -175px;
+      max-height: none;
+    }
   }
 
   #scrollable-content:nth-last-child(1) {

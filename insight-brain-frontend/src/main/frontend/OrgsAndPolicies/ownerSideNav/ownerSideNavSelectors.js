@@ -6,7 +6,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { isEmpty, prop } from 'ramda';
-import { selectOrgsAndPoliciesSlice, selectSelectedOwner } from '../orgsAndPoliciesSelectors';
+import { selectOrgsAndPoliciesSlice, selectSelectedOwner, selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 import { flatEntries } from './utils';
 
 export const selectOwnerSideNavSlice = createSelector(selectOrgsAndPoliciesSlice, prop('ownerSideNav'));
@@ -57,29 +57,51 @@ export const selectChildApplicationsByOrgId = createSelector(
 export const selectAllDescendantsByParentId = createSelector(
   selectOwnersMap,
   (_, organizationId) => organizationId,
-  (organizations, parentOrganizationId) => {
-    if (!organizations || !parentOrganizationId) return {};
-    if (!organizations[parentOrganizationId]) return {};
-
-    const applicationIds = [];
-    const organizationIds = [];
-    const parentOrganizations = [organizations[parentOrganizationId].id];
-
-    while (!isEmpty(parentOrganizations)) {
-      const parentOrganization = organizations[parentOrganizations.shift()];
-
-      if (!isNilOrEmpty(parentOrganization.applicationIds)) {
-        applicationIds.push(...parentOrganization.applicationIds);
-      }
-      if (!isNilOrEmpty(parentOrganization.organizationIds)) {
-        parentOrganizations.push(...parentOrganization.organizationIds);
-        organizationIds.push(...parentOrganization.organizationIds);
-      }
-    }
-
-    return { applicationIds, organizationIds };
+  (ownersMap, parentId) => {
+    return findDescendantsByParentId(ownersMap, parentId);
   }
 );
+
+export const selectAllDescendants = createSelector(selectOwnersMap, selectSelectedOwnerId, (ownersMap, parentId) => {
+  return findDescendantsByParentId(ownersMap, parentId);
+});
+
+function findDescendantsByParentId(ownersMap, parentId) {
+  if (!ownersMap || !parentId) return {};
+  if (!ownersMap[parentId]) return {};
+
+  const applicationIds = [];
+  const organizationIds = [];
+  const repositoryManagerIds = [];
+  const repositoryIds = [];
+  let repositoryContainerId = null;
+  const parentOrganizations = [ownersMap[parentId].id];
+
+  while (!isEmpty(parentOrganizations)) {
+    const parent = ownersMap[parentOrganizations.shift()];
+
+    if (!isNilOrEmpty(parent.applicationIds)) {
+      applicationIds.push(...parent.applicationIds);
+    }
+    if (!isNilOrEmpty(parent.organizationIds)) {
+      parentOrganizations.push(...parent.organizationIds);
+      organizationIds.push(...parent.organizationIds);
+    }
+    if (!isNilOrEmpty(parent.repositoryContainerId)) {
+      parentOrganizations.push(parent.repositoryContainerId);
+      repositoryContainerId = parent.repositoryContainerId;
+    }
+    if (!isNilOrEmpty(parent.repositoryManagerIds)) {
+      parentOrganizations.push(...parent.repositoryManagerIds);
+      repositoryManagerIds.push(...parent.repositoryManagerIds);
+    }
+    if (!isNilOrEmpty(parent.repositoryIds)) {
+      repositoryIds.push(...parent.repositoryIds);
+    }
+  }
+
+  return { applicationIds, organizationIds, repositoryContainerId, repositoryManagerIds, repositoryIds };
+}
 
 export const selectIsDisplayedOrganizationSynthetic = createSelector(selectDisplayedOrganization, prop('synthetic'));
 

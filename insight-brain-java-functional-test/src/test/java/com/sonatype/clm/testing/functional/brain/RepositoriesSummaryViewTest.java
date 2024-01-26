@@ -18,19 +18,22 @@ import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
+import com.sonatype.clm.testing.functional.elements.NxCollapsible;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
+import com.sonatype.clm.testing.functional.elements.SummarySection;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
@@ -596,6 +599,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
 
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
     namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
     namespaceConfusionProtectionTile.enabledHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Enabled ascending"));
@@ -1230,5 +1234,71 @@ public class RepositoriesSummaryViewTest
     assertThat(summarySection.policyName().input().getValue()).isEqualTo(inheritedFromRootOrgPolicies.get(0).getName());
 
     eyesWatcher.eyesCheck("repository manager policy view page");
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_actionMenu() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("B666EF16-83E0-460C-848F-10E8C6928E13");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    ActionDropDown.menu().shouldBe(hidden);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.deleteOwnerButton().shouldBe(visible);
+    ActionDropDown.copyOrgIdButton().shouldBe(visible);
+    ActionDropDown.actions().shouldHaveSize(2);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_delete() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("1E3F88A4-81E8-49AD-93B8-05C97A32A813");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    ActionDropDown.actionButton().click();
+    ActionDropDown.deleteOwnerButton().click();
+
+    NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
+    deleteModal.header().shouldHave(text("Delete Repository Manager"));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove 1E3F88A4-81E8-49AD-93B8-05C97A32" +
+        "A813 and 0 descendants. This action cannot be undone."));
+
+    deleteModal.submitButton().click();
+    deleteModal.shouldNotBe(visible);
+
+    waitUntilUrl(RepositoriesSummaryPage.url());
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.children().shouldHaveSize(0);
+
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_cancelDelete() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("05D4BA23-7123-437D-992E-CDAC8A102711");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    ActionDropDown.actionButton().click();
+    ActionDropDown.deleteOwnerButton().click();
+
+    NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
+    deleteModal.header().shouldHave(text("Delete Repository Manager"));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove 05D4BA23-7123-437D-992E-CDAC8A10" +
+        "2711 and 0 descendants. This action cannot be undone."));
+
+    deleteModal.closeButton().click();
+    deleteModal.shouldNotBe(visible);
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    refreshOrOpen(RepositoriesSummaryPage.url());
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.children().shouldHaveSize(1);
   }
 }

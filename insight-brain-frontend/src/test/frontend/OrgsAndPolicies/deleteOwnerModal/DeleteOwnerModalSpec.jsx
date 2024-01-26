@@ -109,6 +109,8 @@ describe('DeleteOwnerModal', () => {
         ).toBeVisible();
       });
 
+      // TODO repo test required
+
       it('if organization has >1 descendant', () => {
         preloadedState.orgsAndPolicies.ownerSideNav.ownersMap.organizationTwoID.subOrgs = 10;
         preloadedState.orgsAndPolicies.ownerSideNav.ownersMap.organizationTwoID.totalApps = 12;
@@ -199,6 +201,61 @@ describe('DeleteOwnerModal', () => {
       renderComponent(preloadedState);
       expect(
         screen.getByText(`You are about to permanently remove ${OWNER_APP_NAME}. This action cannot be undone.`)
+      ).toBeVisible();
+    });
+  });
+
+  describe('Repository', () => {
+    const preloadedState = {
+      router: {
+        currentParams: { '#': null, repositoryManagerId: 'repositoryManagerId' },
+        currentState: {
+          name: 'management.view.repository_manager',
+          url: '/repository_manager/{repositoryManagerId}',
+        },
+      },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          ownersMap: {
+            '0b9a675da0a14deabe26ad90df74a0cf': {
+              type: 'repositoryManager',
+              id: '0b9a675da0a14deabe26ad90df74a0cf',
+              name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+              synthetic: false,
+              parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+              repositoryIds: ['repositoryId'],
+            },
+          },
+        },
+        root: {
+          selectedOwner: {
+            id: '0b9a675da0a14deabe26ad90df74a0cf',
+            parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+            name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+          },
+        },
+        ownerActions: {
+          deleteOwner: {
+            submitError: null,
+            isModalOpen: true,
+          },
+        },
+      },
+    };
+
+    it('renders correct title for repository', () => {
+      renderComponent(preloadedState);
+
+      expect(screen.getByText('Delete Repository Manager')).toBeVisible();
+      expect(screen.getByRole('dialog')).toHaveTextContent(preloadedState.orgsAndPolicies.root.selectedOwner.name);
+    });
+
+    it('renders correct modal content', () => {
+      renderComponent(preloadedState);
+      expect(
+        screen.getByText(
+          `You are about to permanently remove ${preloadedState.orgsAndPolicies.root.selectedOwner.name} and 1 descendant. This action cannot be undone.`
+        )
       ).toBeVisible();
     });
   });

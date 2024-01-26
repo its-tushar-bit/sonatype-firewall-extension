@@ -215,6 +215,21 @@ const removeOrganizationFromOwnerHierarchy = (state, { payload: organizationId }
   }
 };
 
+const removeRepositoryManagerFromOwnerHierarchy = (state, { payload: repositoryManagerId }) => {
+  const repositoryManager = state.ownersMap[repositoryManagerId];
+  if (repositoryManager) {
+    const ownerIdsToDelete = [];
+    collectOwnerIdsToDelete(state.ownersMap, [repositoryManagerId], ownerIdsToDelete);
+    state.ownersMap = omit(ownerIdsToDelete)(state.ownersMap);
+
+    const repositoryContainer = state.ownersMap[repositoryManager.repositoryContainerId];
+    if (repositoryContainer) {
+      const repositoryManagerIds = reject(equals(repositoryManagerId))(repositoryContainer.repositoryManagerIds);
+      state.ownersMap[repositoryContainer.id] = { ...repositoryContainer, organizationIds: repositoryManagerIds };
+    }
+  }
+};
+
 function collectOwnerIdsToDelete(ownersMap, orgIds, acc) {
   acc.push(...orgIds);
   for (const orgId of orgIds) {
@@ -379,6 +394,7 @@ const ownerSideNavSlice = createSlice({
   reducers: {
     removeOrganizationFromOwnerHierarchy,
     removeApplicationFromOwnerHierarchy,
+    removeRepositoryManagerFromOwnerHierarchy,
     toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
     toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),

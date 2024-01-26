@@ -38,12 +38,12 @@ export default function RepositoriesSummaryView() {
     <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
       <div id="repository-page">
         <header>
-          <NxPageTitle id="repositories-summary">
+          <NxPageTitle id="repositories-summary" className="iq-page-title">
             <NxH1>
               <span>{owner.name}</span>
             </NxH1>
-            <RepositoriesPills />
           </NxPageTitle>
+          <RepositoriesPills />
         </header>
 
         {/*Configuration / Access tabs to go here*/}

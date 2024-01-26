@@ -17,6 +17,8 @@ import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/Pol
 
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import RepositoryManagerPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerPills';
+import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
+import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 
 export default function RepositoryManagerSummaryView() {
   const dispatch = useDispatch();
@@ -38,15 +40,18 @@ export default function RepositoryManagerSummaryView() {
     <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
       <div id="repository-page">
         <header>
-          <NxPageTitle id="repositories-summary">
+          <NxPageTitle id="repositories-summary" className="iq-page-title">
             <NxH1>
               <span className="nx-icon">
                 <NxFontAwesomeIcon icon={faCubes} />
               </span>
               <span>{owner.name}</span>
             </NxH1>
-            <RepositoryManagerPills />
+            <div className="nx-btn-bar">
+              <ActionDropdown />
+            </div>
           </NxPageTitle>
+          <RepositoryManagerPills />
         </header>
 
         {/*Configuration / Access tabs to go here*/}
@@ -62,6 +67,7 @@ export default function RepositoryManagerSummaryView() {
           </div>
         </div>
       </div>
+      <DeleteOwnerModal />
     </NxLoadWrapper>
   );
 }

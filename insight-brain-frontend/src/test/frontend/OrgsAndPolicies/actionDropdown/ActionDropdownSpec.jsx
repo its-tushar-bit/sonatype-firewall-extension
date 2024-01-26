@@ -260,6 +260,47 @@ describe('ActionDropdown', () => {
       expect(axiosMock.history.put.length).toBe(0);
       expect(axiosMock.history.get.length).toBe(0);
     });
+
+    it('on Repo Manager level', async () => {
+      renderComponent({
+        router: {
+          currentParams: { '#': null, repositoryManagerId: 'repositoryManagerId' },
+          currentState: {
+            name: 'management.view.repository_manager',
+            url: '/repository_manager/{repositoryManagerId}',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: '0b9a675da0a14deabe26ad90df74a0cf',
+              parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+              name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+            },
+          },
+          ownerActions: {
+            loading: false,
+            loadError: null,
+            applicationSummary: null,
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+      const dropdownButtons = await screen.findAllByRole('button');
+      dropdownButtons.forEach((button) => expect(button).toBeVisible());
+      const buttonNames = [
+        'Actions',
+        'Repository Manager ID to Clipboard',
+        'Delete 91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+      ];
+      dropdownButtons.forEach((button, ind) => {
+        expect(button.textContent).toBe(buttonNames[ind]);
+      });
+      // there should be no API calls on Repo Manager level
+      expect(axiosMock.history.put.length).toBe(0);
+      expect(axiosMock.history.get.length).toBe(0);
+    });
   });
 
   describe('Change App ID', () => {

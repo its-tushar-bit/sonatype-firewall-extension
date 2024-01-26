@@ -17,6 +17,8 @@ import {
   selectIsRootOrganization,
   selectIsApplication,
   selectIsOrganization,
+  selectIsRepositoriesRelated,
+  selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
@@ -80,6 +82,8 @@ const ActionDropdown = () => {
   const isRootOrg = useSelector(selectIsRootOrganization);
   const isOrg = useSelector(selectIsOrganization);
   const isApp = useSelector(selectIsApplication);
+  const isRepositories = useSelector(selectIsRepositoriesRelated);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
   const isLegacyViolationEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
@@ -136,6 +140,16 @@ const ActionDropdown = () => {
     }
   };
 
+  const getShortOwnerName = () => {
+    if (isApp) {
+      return 'App';
+    } else if (isOrg) {
+      return 'Org';
+    } else if (isRepositoryManager) {
+      return 'Repository Manager';
+    }
+  };
+
   const dropdownOptions = () => {
     return (
       <>
@@ -145,7 +159,7 @@ const ActionDropdown = () => {
           className="nx-dropdown-button"
         >
           <NxFontAwesomeIcon icon={faPaste} />
-          <span>{isApp ? 'App' : 'Org'} ID to Clipboard</span>
+          <span>{getShortOwnerName()} ID to Clipboard</span>
         </button>
 
         {isApp && (
@@ -159,16 +173,18 @@ const ActionDropdown = () => {
           </button>
         )}
 
-        <NxOverflowTooltip>
-          <button
-            id="app-org-link"
-            onClick={() => dispatch(ownerModalActions.openEditModal(owner))}
-            className="nx-dropdown-button"
-          >
-            <NxFontAwesomeIcon icon={faPen} />
-            <span>Edit {isApp ? 'App' : 'Org'} Name / Icon</span>
-          </button>
-        </NxOverflowTooltip>
+        {!isRepositories && (
+          <NxOverflowTooltip>
+            <button
+              id="app-org-link"
+              onClick={() => dispatch(ownerModalActions.openEditModal(owner))}
+              className="nx-dropdown-button"
+            >
+              <NxFontAwesomeIcon icon={faPen} />
+              <span>Edit {getShortOwnerName()} Name / Icon</span>
+            </button>
+          </NxOverflowTooltip>
+        )}
 
         {isApp && (
           <NxTooltip title={!hasPermissionToChangeAppId ? 'Insufficient permissions to change App ID' : ''}>
@@ -183,7 +199,7 @@ const ActionDropdown = () => {
           </NxTooltip>
         )}
 
-        {!isRootOrg && (
+        {!isRootOrg && !isRepositories && (
           <NxOverflowTooltip>
             <button
               id="owner-move-link"

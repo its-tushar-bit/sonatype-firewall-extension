@@ -14,9 +14,18 @@ import './DropdownFilterInput.scss';
  * A Dropdown with a Filter Input element which operates on the list of elements in the dropdown
  */
 function DropdownFilterInput(props) {
-  const { children, filterFn, ...nxDropdownProps } = props;
+  const { children, filterFn, onToggleCollapse: onToggleCollapseProp, isOpen, ...nxDropdownProps } = props;
 
   const [filterValue, setFilterValue] = useState('');
+
+  // Intercept toggle collapse
+  // so that NxDropdown does not close menu
+  // when filter is focused.
+  const onToggleCollapse = () => {
+    if (!isOpen || !document.activeElement?.closest('.nx-dropdown-menu-filter')) {
+      onToggleCollapseProp();
+    }
+  };
 
   const filterChildren = () => {
     if (!children || !filterFn) {
@@ -34,7 +43,11 @@ function DropdownFilterInput(props) {
     ];
   };
 
-  return <NxDropdown {...nxDropdownProps}>{filterChildren()}</NxDropdown>;
+  return (
+    <NxDropdown {...nxDropdownProps} isOpen={isOpen} onToggleCollapse={onToggleCollapse}>
+      {filterChildren()}
+    </NxDropdown>
+  );
 }
 
 DropdownFilterInput.propTypes = {

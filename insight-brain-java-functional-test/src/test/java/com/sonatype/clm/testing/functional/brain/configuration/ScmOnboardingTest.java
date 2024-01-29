@@ -1447,6 +1447,37 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "a-Bb"));
   }
 
+  @Test
+  public void testOrgDropdown_filterRemainsVisible() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given several additional organizations
+    tempEntity.newOrganization("alice");
+    tempEntity.newOrganization("bob");
+    Organization targetOrg = tempEntity.newOrganization("cheshire");
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // when we pull down the list and filter we should see matching values
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownFilter().click();
+    scmOnboardingPage.orgDropdownFilter().shouldBe(visible, focused);
+    scmOnboardingPage.orgDropdownFilter().sendKeys("cheshire");
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("cheshire"));
+    scmOnboardingPage.orgDropdownItems().find(exactText("cheshire")).click();
+
+    waitUntilUrl(ScmOnboardingPage.url(targetOrg.getId()));
+  }
+
   private void clearOrgFilter(final ScmOnboardingPage scmOnboardingPage) {
     // not sure why .clear isn't working, so send a flurry of backspaces instead
     for (int i = 0; i < 15; i++) {

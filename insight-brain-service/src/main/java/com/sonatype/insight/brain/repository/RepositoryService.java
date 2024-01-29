@@ -488,14 +488,22 @@ public class RepositoryService
     proprietaryComponentNameDetector.invalidateMatchersOnOtherNodes();
   }
 
-  List<Repository> getRepositoriesByRepositoryManagerId(String repositoryManagerId) {
+  RepositoriesDTO getRepositoriesByRepositoryManagerId(String repositoryManagerId) {
     log.debug("Getting repositories for repository manager ID {}...", repositoryManagerId);
 
     List<Repository> repositories =
         filterRepositoriesWithReadPermission(repositoryDAO.getByRepositoryManagerId(repositoryManagerId));
     log.debug("Found {} repositories for repository manager ID {}.", repositories.size(), repositoryManagerId);
 
-    return repositories;
+    if (repositories.isEmpty()) {
+      return new RepositoriesDTO();
+    }
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
+    for (Repository repository : repositories) {
+      repositoryDTOs.add(convertRepository(repository));
+    }
+    return new RepositoriesDTO(repositoryDTOs);
   }
 
   @Authorize(permission = Permission.READ)

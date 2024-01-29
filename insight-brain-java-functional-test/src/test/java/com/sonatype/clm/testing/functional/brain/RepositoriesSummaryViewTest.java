@@ -189,6 +189,8 @@ public class RepositoriesSummaryViewTest
       ConfigurationTableRow repositoryRow,
       Repository repositoryToDelete)
   {
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(2000, 1000));
+
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
 
     NxDeleteModal deleteModal = new NxDeleteModal("#repositories-delete-modal");
@@ -464,8 +466,10 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testNamespaceConfusionProtection_sortTableByRepository() {
-    String[] repositoryManagerInstanceIds = {"1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
-        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
+    String[] repositoryManagerInstanceIds = {
+        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
+    };
     String[] repositoryPublicIds = {"my-hosted-maven", "hosted-npm", "custom-hosted-maven"};
 
     RepositoryManager repoManager1 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
@@ -516,8 +520,10 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_sortTableByRepoManagerInstanceId() {
     String[] componentNamespaces = {"ant", "b-social", "moment"};
-    String[] repositoryManagerInstanceIds = {"2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
-        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
+    String[] repositoryManagerInstanceIds = {
+        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
+    };
     String[] repositoryPublicIds = {"custom-maven-hosted", "my-maven-hosted", "custom-npm-hosted"};
 
     RepositoryManager repoManager1 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
@@ -648,8 +654,10 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testNamespaceConfusionProtection_Pagination() {
-    String[] componentNamespaces = {"@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
-        "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"};
+    String[] componentNamespaces = {
+        "@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
+        "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"
+    };
     String mvnRepositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
     String npmRepositoryManagerId = "9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
     String mvnRepositoryPublicName = "hosted-mvn";
@@ -1300,5 +1308,48 @@ public class RepositoriesSummaryViewTest
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.children().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_configTile() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+    Repository proxyRepo = tempEntity.newProxyRepository(repositoryManager, "proxy-repo", "maven", true, false);
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, "hosted-repo", "npm", true);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    RepositoryConfigurationTile configTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configTable = configTile.configurationTable();
+    configTile.shouldBe(visible);
+    // 1 header row, 1 row for header filters, 2 repository rows
+    configTable.rows().shouldHaveSize(4);
+
+    configTable.repoManagerConfigTableRow(1).repoManagerConfigTablePublicId()
+        .shouldHave(text(hostedRepo.getPublicId()));
+    configTable.repoManagerConfigTableRow(1).format().shouldHave(text(hostedRepo.getFormat()));
+    configTable.repoManagerConfigTableRow(1).repositoryType().shouldHave(text(hostedRepo.getRepositoryType().name()));
+    configTable.repoManagerConfigTableRow(1).enablement().shouldHave(text("Namespace Scanning"));
+
+    configTable.repoManagerConfigTableRow(2).repoManagerConfigTablePublicId().shouldHave(text(proxyRepo.getPublicId()));
+    configTable.repoManagerConfigTableRow(2).format().shouldHave(text(proxyRepo.getFormat()));
+    configTable.repoManagerConfigTableRow(2).repositoryType().shouldHave(text(proxyRepo.getRepositoryType().name()));
+    configTable.repoManagerConfigTableRow(2).enablement().shouldHave(text("Audit"));
+
+    eyesWatcher.eyesCheck("repository manager configuration tile");
+
+    configTable.repoManagerConfigTableRow(2).repoManagerConfigTableLink().click();
+
+    try {
+      Selenide.switchTo().window(1);
+      waitUntilUrl(RepositoryReportContainerPage.url(proxyRepo.getId()));
+      RepositoryReportContainerPage.title().shouldHave(text(proxyRepo.getName() + " Repository Results"));
+    }
+    finally {
+      Selenide.switchTo().window(0);
+    }
+
+    testRepositorySummaryView_configurationTile_deleteRepository(configTable.repoManagerConfigTableRow(1), hostedRepo);
   }
 }

@@ -446,7 +446,10 @@ public class FirewallOnboardingPageTest
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
 
-    createUnconfiguredRepositoryManager();
+    RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+    List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+    mockComponentSupportedFormats(supportedFormats);
+    createRepositories(1, repositoryManager, "maven2", proxy, supportedFormats);
     loginAsAdmin();
 
     waitUntilUrl(FirewallOnboardingPage.url());
@@ -1095,7 +1098,10 @@ public class FirewallOnboardingPageTest
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
 
-    createUnconfiguredRepositoryManager("instanceId3");
+    RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+    List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+    mockComponentSupportedFormats(supportedFormats);
+    createRepositories(1, repositoryManager, "maven2", proxy, supportedFormats);
     Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
     Policy securityNamespaceConflictPolicy =
         tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");

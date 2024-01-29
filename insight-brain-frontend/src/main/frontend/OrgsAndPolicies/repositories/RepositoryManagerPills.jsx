@@ -10,7 +10,7 @@ const navList = [
   {
     label: 'Configuration',
     target: 'repositories-pill-configuration',
-    isDisplayed: false,
+    isDisplayed: true,
   },
   {
     label: 'Policies',

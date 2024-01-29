@@ -229,7 +229,7 @@ public class RepositoryResource
   @Path(REPOSITORIES_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public List<Repository> getRepositoriesByRepositoryManagerId(
+  public RepositoriesDTO getRepositoriesByRepositoryManagerId(
       @PathParam("repositoryManagerId") String repositoryManagerId)
   {
     return repositoryService.getRepositoriesByRepositoryManagerId(repositoryManagerId);

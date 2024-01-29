@@ -4,34 +4,27 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
-import axios from 'axios';
 import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
-import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
+import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryListUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent, within } from '@testing-library/react';
 import { groupBy, prop } from 'ramda';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('RepositoriesConfigurationTile', () => {
   let renderComponent,
     repos,
-    mockAxiosCalls,
-    selectIsLoadingSpy,
-    selectRepositoriesLoadErrorSpy,
-    selectRepositoriesDeleteErrorSpy,
-    selectEditRepositoryManagerNameErrorSpy,
+    reposAtManagerLevel,
+    axiosMock,
     openDeleteModalSpy,
     openEditRepositoryManagerNameModalSpy,
-    selectRepositoriesByManagerInstanceIdSpy,
-    selectRepositoriesSpy,
-    selectDeleteModalSpy,
-    selectDeleteModalInfoSpy,
-    selectShowEditRepositoryManagerNameModalSpy,
-    selectEditRepositoryManagerNameModalInfoSpy,
     deleteRepositorySpy,
     loadRepositoriesSpy,
-    editRepositoryManagerNameSpy;
+    editRepositoryManagerNameSpy,
+    loadRepositoriesByManagerIdSpy;
 
   repos = [
     {
@@ -64,55 +57,43 @@ describe('RepositoriesConfigurationTile', () => {
     },
   ];
 
+  reposAtManagerLevel = [
+    {
+      oldestEvalTimestamp: null,
+      managerInstanceId: 'managerInstanceId',
+      managerName: 'managerName',
+      repository: {
+        id: 'repository',
+        repositoryManagerId: 'repositoryManagerId',
+        publicId: 'repositoryName',
+        auditEnabled: true,
+        quarantineEnabled: true,
+        format: 'maven',
+        repositoryType: 'proxy',
+      },
+    },
+  ];
+
   beforeEach(() => {
-    mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-    selectRepositoriesByManagerInstanceIdSpy = spyOn(
-      repositoriesSelectors,
-      'selectRepositoriesByManagerInstanceId'
-    ).and.callThrough();
-    selectRepositoriesSpy = spyOn(repositoriesSelectors, 'selectRepositories').and.callThrough();
-    selectRepositoriesLoadErrorSpy = spyOn(repositoriesSelectors, 'selectRepositoriesLoadError').and.callThrough();
-    selectIsLoadingSpy = spyOn(repositoriesSelectors, 'selectRepositoriesLoading').and.callThrough();
-    selectDeleteModalSpy = spyOn(repositoriesSelectors, 'selectDeleteModal').and.callThrough();
-    selectRepositoriesDeleteErrorSpy = spyOn(repositoriesSelectors, 'selectRepositoriesDeleteError').and.callThrough();
-    selectEditRepositoryManagerNameErrorSpy = spyOn(
-      repositoriesSelectors,
-      'selectEditRepositoryManagerNameError'
-    ).and.callThrough();
-    selectDeleteModalInfoSpy = spyOn(repositoriesSelectors, 'selectDeleteModalInfo').and.callThrough();
-    selectShowEditRepositoryManagerNameModalSpy = spyOn(
-      repositoriesSelectors,
-      'selectShowEditRepositoryManagerNameModal'
-    ).and.callThrough();
-    selectEditRepositoryManagerNameModalInfoSpy = spyOn(
-      repositoriesSelectors,
-      'selectEditRepositoryManagerNameModalInfo'
-    ).and.callThrough();
+    axiosMock = axiosMockAdapter();
 
-    deleteRepositorySpy = spyOn(repositoriesActions, 'deleteRepository').and.callThrough();
-    loadRepositoriesSpy = spyOn(repositoriesActions, 'loadRepositories').and.callThrough();
-    editRepositoryManagerNameSpy = spyOn(repositoriesActions, 'editRepositoryManagerName').and.callThrough();
-    openDeleteModalSpy = spyOn(repositoriesActions, 'openDeleteModal').and.callThrough();
-    openEditRepositoryManagerNameModalSpy = spyOn(
-      repositoriesActions,
-      'openEditRepositoryManagerNameModal'
-    ).and.callThrough();
+    deleteRepositorySpy = jest.spyOn(repositoriesActions, 'deleteRepository');
+    loadRepositoriesSpy = jest.spyOn(repositoriesActions, 'loadRepositories');
+    editRepositoryManagerNameSpy = jest.spyOn(repositoriesActions, 'editRepositoryManagerName');
+    openDeleteModalSpy = jest.spyOn(repositoriesActions, 'openDeleteModal');
+    openEditRepositoryManagerNameModalSpy = jest.spyOn(repositoriesActions, 'openEditRepositoryManagerNameModal');
+    loadRepositoriesByManagerIdSpy = jest.spyOn(repositoriesActions, 'loadRepositoriesByManagerId');
 
-    mockAxiosCalls({
-      get: {
-        [getRepositoriesUrl()]: Promise.resolve({ data: repos }),
-      },
-      del: {
-        [getRepositoryInfoUrl('repositoryA')]: Promise.resolve(),
-      },
-    });
+    axiosMock.onGet(getRepositoriesUrl()).reply(200, repos);
+    axiosMock.onDelete(getRepositoryInfoUrl('repositoryA')).reply(204);
+    axiosMock.onGet(getRepositoryListUrl('repositoryManagerId')).reply(200, reposAtManagerLevel);
 
     renderComponent = () => render(<RepositoriesConfigurationTile />);
   });
 
   describe('when data are being loaded', () => {
     beforeEach(() => {
-      selectIsLoadingSpy.and.returnValue(true);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(true);
     });
 
     it('renders loading message', () => {
@@ -124,8 +105,8 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('when the page has a loading error', () => {
     beforeEach(() => {
-      selectIsLoadingSpy.and.returnValue(false);
-      selectRepositoriesLoadErrorSpy.and.returnValue('Test loading error');
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoadError').mockReturnValue('Test loading error');
     });
 
     it('renders error section', () => {
@@ -140,8 +121,8 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('when there are no repositories ', () => {
     beforeEach(() => {
-      selectRepositoriesSpy.and.returnValue([]);
-      selectIsLoadingSpy.and.returnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
     });
 
     it('renders default empty message', () => {
@@ -154,8 +135,10 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('when repositories exist', () => {
     beforeEach(() => {
-      selectRepositoriesByManagerInstanceIdSpy.and.returnValue(groupBy(prop('managerInstanceId'))(repos));
-      selectIsLoadingSpy.and.returnValue(false);
+      jest
+        .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+        .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
     });
 
     it('renders page with all elements on the table', () => {
@@ -180,14 +163,14 @@ describe('RepositoriesConfigurationTile', () => {
 
       expect(repositories[0].managerLabel).toBeVisible();
       expect(repositories[0].publicId).toBeVisible();
-      expect(repositories[0].publicId.parentElement).toHaveClassName('nx-text-link');
+      expect(repositories[0].publicId.parentElement).toHaveClass('nx-text-link');
       expect(repositories[0].format).toBeVisible();
       expect(repositories[0].repositoryType).toBeVisible();
       expect(repositories[0].enablement).toBeVisible();
 
       expect(repositories[1].managerLabel).toBeVisible();
       expect(repositories[1].publicId).toBeVisible();
-      expect(repositories[1].publicId.parentElement).not.toHaveClassName('nx-text-link');
+      expect(repositories[1].publicId.parentElement).not.toHaveClass('nx-text-link');
       expect(repositories[1].format).toBeVisible();
       expect(repositories[1].repositoryType).toBeVisible();
       expect(repositories[1].enablement).toBeVisible();
@@ -200,7 +183,7 @@ describe('RepositoriesConfigurationTile', () => {
         renderComponent();
         const deleteIcons = screen.queryAllByTestId('repository-delete-button');
 
-        expect(deleteIcons).toHaveSize(2);
+        expect(deleteIcons.length).toBe(2);
         fireEvent.click(deleteIcons[0]);
 
         const deleteModal = screen.getByTestId('delete-modal');
@@ -235,8 +218,8 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('handles deleting error', () => {
     beforeEach(() => {
-      selectDeleteModalSpy.and.returnValue(true);
-      selectRepositoriesDeleteErrorSpy.and.returnValue('Test deleting error');
+      jest.spyOn(repositoriesSelectors, 'selectDeleteModal').mockReturnValue(true);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesDeleteError').mockReturnValue('Test deleting error');
     });
 
     it('shows deleting error section', () => {
@@ -251,8 +234,10 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('handles edit repository manager name error', () => {
     beforeEach(() => {
-      selectShowEditRepositoryManagerNameModalSpy.and.returnValue(true);
-      selectEditRepositoryManagerNameErrorSpy.and.returnValue('Test edit repository manager name error');
+      jest.spyOn(repositoriesSelectors, 'selectShowEditRepositoryManagerNameModal').mockReturnValue(true);
+      jest
+        .spyOn(repositoriesSelectors, 'selectEditRepositoryManagerNameError')
+        .mockReturnValue('Test edit repository manager name error');
     });
 
     it('shows edit repository manager name error section', () => {
@@ -269,8 +254,10 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('deleting repository', () => {
     beforeEach(() => {
-      selectDeleteModalSpy.and.returnValue(true);
-      selectDeleteModalInfoSpy.and.returnValue({ id: 'repositoryA', publicId: 'repositoryNameA' });
+      jest.spyOn(repositoriesSelectors, 'selectDeleteModal').mockReturnValue(true);
+      jest
+        .spyOn(repositoriesSelectors, 'selectDeleteModalInfo')
+        .mockReturnValue({ id: 'repositoryA', publicId: 'repositoryNameA' });
     });
 
     it('deletes repository from the table', () => {
@@ -285,8 +272,8 @@ describe('RepositoriesConfigurationTile', () => {
 
   describe('editing a repository manager name', () => {
     beforeEach(() => {
-      selectShowEditRepositoryManagerNameModalSpy.and.returnValue(true);
-      selectEditRepositoryManagerNameModalInfoSpy.and.returnValue({
+      jest.spyOn(repositoriesSelectors, 'selectShowEditRepositoryManagerNameModal').mockReturnValue(true);
+      jest.spyOn(repositoriesSelectors, 'selectEditRepositoryManagerNameModalInfo').mockReturnValue({
         managerInstanceId: 'someManagerInstanceId',
         managerName: 'someManagerName',
       });
@@ -312,6 +299,65 @@ describe('RepositoriesConfigurationTile', () => {
       fireEvent.click(editRepositoryManagerNameButton);
 
       expect(editRepositoryManagerNameSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when there are no repositories at repository manager level', () => {
+    beforeEach(() => {
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue('repositoryManagerId');
+    });
+
+    it('renders default empty message', () => {
+      renderComponent();
+
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      expect(screen.getByText('There are no repositories registered with the server.')).toBeInTheDocument();
+      expect(loadRepositoriesByManagerIdSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('when repositories exist at repository manager level', () => {
+    beforeEach(() => {
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue('repositoryManagerId');
+      jest
+        .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+        .mockReturnValue(groupBy(prop('managerInstanceId'))(reposAtManagerLevel));
+    });
+
+    it('renders page with all elements on the table', () => {
+      renderComponent();
+
+      expect(screen.queryByText('managerName')).not.toBeInTheDocument();
+      expect(screen.getByText('repositoryName')).toBeVisible();
+      expect(screen.getByText('repositoryName').parentElement).toHaveClass('nx-text-link');
+      expect(screen.getByText('maven')).toBeVisible();
+      expect(screen.getByText('proxy')).toBeVisible();
+      expect(screen.getByText('Audit, Quarantine')).toBeVisible();
+      expect(loadRepositoriesByManagerIdSpy).toHaveBeenCalled();
+    });
+
+    describe('Delete modal at repository manager level', () => {
+      it('renders delete modal warning for corresponding repository', () => {
+        const REPOSITORY_A_WARNING =
+          'Are you sure you want to remove the Repository with ID "repositoryName"? This action is not reversible.';
+        renderComponent();
+        const deleteIcons = screen.queryAllByTestId('repository-delete-button');
+
+        expect(deleteIcons.length).toBe(1);
+        fireEvent.click(deleteIcons[0]);
+
+        const deleteModal = screen.getByTestId('delete-modal');
+
+        expect(openDeleteModalSpy).toHaveBeenCalled();
+        expect(deleteModal).toBeVisible();
+        expect(screen.getByText(REPOSITORY_A_WARNING)).toBeInTheDocument();
+      });
     });
   });
 });

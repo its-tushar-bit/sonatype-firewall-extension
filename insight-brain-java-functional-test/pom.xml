@@ -38,6 +38,7 @@
             <include>${it.includes}</include>
           </includes>
           <trimStackTrace>false</trimStackTrace>
+          <skip>false</skip>
           <skipITs>${skip.functional.tests}</skipITs>
 
           <!--

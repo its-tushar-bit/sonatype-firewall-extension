@@ -223,9 +223,19 @@
         </executions>
       </plugin>
       <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
+          <skip>false</skip>
+          <includes>
+            <include>**/*Test.*</include>
+          </includes>
           <trimStackTrace>false</trimStackTrace>
           <reuseForks>false</reuseForks>
           <useUnlimitedThreads>false</useUnlimitedThreads>

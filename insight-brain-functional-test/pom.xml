@@ -41,11 +41,18 @@
           <compilerId>groovy-eclipse-compiler</compilerId>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
       <!-- Make failsafe aware of Spec tests -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
+          <skip>false</skip>
           <!--
             Don't halt on failures, so that the damage control report can pick up the test results.
             CI builds set this to true so that it can analyze the test results.

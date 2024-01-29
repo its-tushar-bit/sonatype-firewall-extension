@@ -11,6 +11,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -19,21 +20,26 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Named
 public class TenantMetadataConfigurationService
 {
+  private final MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore;
+
+  private final TenantMetadataDAO tenantMetadataDAO;
+
   private final TenantUtil tenantUtil;
 
   private final TenantValidator tenantValidator;
 
-  private final TenantMetadataDAO tenantMetadataDAO;
-
   @Inject
   public TenantMetadataConfigurationService(
+      MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore,
+      TenantMetadataDAO tenantMetadataDAO,
       TenantUtil tenantUtil,
-      TenantValidator tenantValidator,
-      TenantMetadataDAO tenantMetadataDAO)
+      TenantValidator tenantValidator
+  )
   {
+    this.multiTenantEncryptionKeyStore = multiTenantEncryptionKeyStore;
+    this.tenantMetadataDAO = tenantMetadataDAO;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
-    this.tenantMetadataDAO = tenantMetadataDAO;
   }
 
   public void insertOrUpdateMetadata(
@@ -57,5 +63,7 @@ public class TenantMetadataConfigurationService
       updateAuth0.setId(tenantMetadata.getId());
       this.tenantMetadataDAO.update(updateAuth0);
     }
+
+    multiTenantEncryptionKeyStore.initializeTenantKey();
   }
 }

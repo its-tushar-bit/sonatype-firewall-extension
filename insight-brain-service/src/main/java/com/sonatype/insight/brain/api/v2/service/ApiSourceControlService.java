@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlRepositoryUtils;
@@ -86,8 +87,6 @@ public class ApiSourceControlService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSourceControlService.class);
 
-  static final String ENC = "CMMDwoV";
-
   private static final int EMAIL_AND_COMMIT_DATE_MAP_LIMIT = 1000;
 
   private final PlexusCipher plexusCipher;
@@ -118,6 +117,8 @@ public class ApiSourceControlService
 
   private final SourceControlUserActivityService sourceControlUserActivityService;
 
+  private final EncryptionKeyStore encryptionKeyStore;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -133,7 +134,8 @@ public class ApiSourceControlService
       final FileCleaner fileCleaner,
       final SourceControlRepositoryUtils sourceControlRepositoryUtils,
       final GitClientFactory gitClientFactory,
-      final SourceControlUserActivityService sourceControlUserActivityService)
+      final SourceControlUserActivityService sourceControlUserActivityService,
+      final EncryptionKeyStore encryptionKeyStore)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -149,6 +151,7 @@ public class ApiSourceControlService
     this.sourceControlRepositoryUtils = sourceControlRepositoryUtils;
     this.gitClientFactory = gitClientFactory;
     this.sourceControlUserActivityService = sourceControlUserActivityService;
+    this.encryptionKeyStore = encryptionKeyStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -414,7 +417,7 @@ public class ApiSourceControlService
   void encryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
-        sourceControl.setToken(plexusCipher.encrypt(sourceControl.getToken(), ENC));
+        sourceControl.setToken(plexusCipher.encrypt(sourceControl.getToken(), encryptionKeyStore.getKey()));
       }
       catch (PlexusCipherException e) {
         log.error("Unable to encrypt SourceControl token", e);
@@ -426,7 +429,7 @@ public class ApiSourceControlService
   private void decryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
-        String decrypted = plexusCipher.decrypt(sourceControl.getToken(), ENC);
+        String decrypted = plexusCipher.decrypt(sourceControl.getToken(), encryptionKeyStore.getKey());
         if (StringUtils.isNotBlank(decrypted)) {
           sourceControl.setToken(decrypted);
         }

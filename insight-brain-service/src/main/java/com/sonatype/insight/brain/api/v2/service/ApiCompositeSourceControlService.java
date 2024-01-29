@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -32,7 +31,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -40,7 +39,6 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.ENC;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 
 @Named
@@ -61,6 +59,8 @@ public class ApiCompositeSourceControlService
 
   private final PlexusCipher plexusCipher;
 
+  private final EncryptionKeyStore encryptionKeyStore;
+
   @Inject
   public ApiCompositeSourceControlService(
       final SourceControlDAO sourceControlDAO,
@@ -68,7 +68,8 @@ public class ApiCompositeSourceControlService
       final IqForScmLicenseChecker licenseChecker,
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
-      final PlexusCipher plexusCipher)
+      final PlexusCipher plexusCipher,
+      final EncryptionKeyStore encryptionKeyStore)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
@@ -76,6 +77,7 @@ public class ApiCompositeSourceControlService
     this.organizationDAO = organizationDAO;
     this.ownerDAO = ownerDAO;
     this.plexusCipher = plexusCipher;
+    this.encryptionKeyStore = encryptionKeyStore;
   }
 
   @Authorize(permission = Permission.READ)
@@ -291,7 +293,7 @@ public class ApiCompositeSourceControlService
     }
     synchronized (plexusCipher) {
       try {
-        return plexusCipher.decrypt(value, ENC);
+        return plexusCipher.decrypt(value, encryptionKeyStore.getKey());
       }
       catch (PlexusCipherException e) {
         log.error("Unable to decrypt SourceControl token", e);

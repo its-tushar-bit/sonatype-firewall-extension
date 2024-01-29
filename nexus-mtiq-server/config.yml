@@ -114,3 +114,9 @@ auth0Domain: ${AUTH0_DOMAIN:-"local/"}
 
 # If true, the built-in admin user will be deleted when creating a new tenant
 deleteBuiltInAdmin: ${DELETE_BUILT_IN_ADMIN:-true}
+
+# The Global tenant encryption key name used to retrieve the key from AWS secrets manager
+globalTenantEncryptionKeyName: ${GLOBAL_TENANT_ENCRYPTION_KEY_NAME:-mtiq-dev/tenant-encryption-key-legacy}
+
+# Use the IQ DefaultEncryptionKeyStore for local development, this returns the mtiq-dev/tenant-encryption-key-legacy key
+usingDefaultEncryptionKeyStore: ${USING_DEFAULT_ENCRYPTION_KEY_STORE:-false}

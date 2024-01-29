@@ -36,9 +36,15 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private boolean deleteBuiltInAdmin = true;
 
+  @JsonProperty
+  private boolean usingDefaultEncryptionKeyStore = false;
+
   @Valid
   @JsonProperty(value = "auth0")
   private Auth0Config auth0Config;
+
+  @JsonProperty
+  private String globalTenantEncryptionKeyName;
 
   @Override
   public File getSonatypeWork() {
@@ -112,5 +118,21 @@ public class MultiTenantInsightConfig
 
   public void setAuth0Config(final Auth0Config auth0Config) {
     this.auth0Config = auth0Config;
+  }
+
+  public boolean isUsingDefaultEncryptionKeyStore() {
+    return usingDefaultEncryptionKeyStore;
+  }
+
+  public void setUsingDefaultEncryptionKeyStore(boolean usingDefaultEncryptionKeyStore) {
+    this.usingDefaultEncryptionKeyStore = usingDefaultEncryptionKeyStore;
+  }
+
+  public String getGlobalTenantEncryptionKeyName() {
+    return globalTenantEncryptionKeyName;
+  }
+
+  public void setGlobalTenantEncryptionKeyName(String globalTenantEncryptionKeyName) {
+    this.globalTenantEncryptionKeyName = globalTenantEncryptionKeyName;
   }
 }

@@ -14,13 +14,14 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 @Named
 public class PasswordHandler
 {
-  private static final String ENC = "CMMDwoV";
-
   private final PlexusCipher cipher;
 
+  private final EncryptionKeyStore encryptionKeyStore;
+
   @Inject
-  public PasswordHandler(PlexusCipher cipher) {
+  public PasswordHandler(PlexusCipher cipher, EncryptionKeyStore encryptionKeyStore) {
     this.cipher = cipher;
+    this.encryptionKeyStore = encryptionKeyStore;
   }
 
   public char[] decryptPassword(char[] encryptedPassword) {
@@ -37,7 +38,7 @@ public class PasswordHandler
 
     try {
       synchronized (cipher) {
-        return cipher.decryptDecorated(String.valueOf(encryptedPassword), ENC).toCharArray();
+        return cipher.decryptDecorated(String.valueOf(encryptedPassword), encryptionKeyStore.getKey()).toCharArray();
       }
     }
     catch (PlexusCipherException e) {
@@ -52,7 +53,7 @@ public class PasswordHandler
 
     try {
       synchronized (cipher) {
-        return cipher.encryptAndDecorate(String.valueOf(password), ENC).toCharArray();
+        return cipher.encryptAndDecorate(String.valueOf(password), encryptionKeyStore.getKey()).toCharArray();
       }
     }
     catch (PlexusCipherException e) {

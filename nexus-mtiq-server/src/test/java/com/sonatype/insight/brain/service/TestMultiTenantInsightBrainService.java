@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -136,7 +137,9 @@ public class TestMultiTenantInsightBrainService
     testProxyServerConfiguration.setPort(port);
     testProxyServerConfiguration.setUsername(user);
     testProxyServerConfiguration
-        .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
+        .setPassword(
+            new PasswordHandler(new DefaultPlexusCipher(), new TestMultiTenantEncryptionKeyStore()).encryptPassword(
+                pass.toCharArray()));
   }
 
   @Override

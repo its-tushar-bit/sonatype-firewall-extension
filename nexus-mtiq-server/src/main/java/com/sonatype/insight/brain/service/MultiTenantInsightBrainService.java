@@ -49,6 +49,9 @@ import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -207,7 +210,6 @@ public class MultiTenantInsightBrainService
     // Unfortunately JAX-RS annotations are not a qualifier in JSR-330, so we need to check all known bindings.
     // (In practice this isn't that slow because of various caches in Sisu to optimize lookups.)
     // We could always optimize this by introducing a marker interface for injectable resources.
-    //
     for (BeanEntry<Annotation, Object> resourceBeanEntry : locate(locator, Object.class)) {
       Class<?> impl = resourceBeanEntry.getImplementationClass();
       if (impl != null && (impl.isAnnotationPresent(Path.class) && impl.isAnnotationPresent(MtiqAdminEndpoint.class))) {
@@ -342,6 +344,8 @@ public class MultiTenantInsightBrainService
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
 
         bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
+
+        bind(EncryptionKeyStore.class).to(getEncryptionKeyStoreClass(configuration()));
       }
     };
   }
@@ -353,6 +357,16 @@ public class MultiTenantInsightBrainService
       return new MultiTenantJwkLocalProvider();
     }
     return new MultiTenantJwkAuth0Provider((MultiTenantInsightConfig) insightConfig);
+  }
+
+  private Class<? extends EncryptionKeyStore> getEncryptionKeyStoreClass(final InsightConfig config) {
+    if (((MultiTenantInsightConfig)config).isUsingDefaultEncryptionKeyStore()) {
+      log.info("Using DefaultEncryptionKeyStore for local development.");
+      return DefaultEncryptionKeyStore.class;
+    }
+    else {
+      return MultiTenantEncryptionKeyStore.class;
+    }
   }
 
   @Override

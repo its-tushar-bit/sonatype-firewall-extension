@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
@@ -47,8 +48,8 @@ public abstract class AbstractSourceControlEditorTest
   public void init() {
     sourceControlDAO = lookup(SourceControlDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
-
-    TOKEN = new String(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword("secret_key".toCharArray()));
+    TOKEN = new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).encryptPassword(
+        "secret_key".toCharArray()));
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
@@ -79,7 +80,8 @@ public abstract class AbstractSourceControlEditorTest
   }
 
   private String getDecryptedToken(String token) {
-    return new String(new PasswordHandler(new DefaultPlexusCipher()).decryptPassword(token.toCharArray()));
+    return new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).decryptPassword(
+        token.toCharArray()));
   }
 
   protected void assertSourceControlDoesNotExist(final String ownerId) {

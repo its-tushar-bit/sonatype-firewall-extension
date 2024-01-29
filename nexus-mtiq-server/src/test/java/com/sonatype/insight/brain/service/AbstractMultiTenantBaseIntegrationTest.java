@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -144,6 +146,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       @Override
       protected void configure() {
         bind(TenantUtil.class).toInstance(tenantUtil);
+        bind(EncryptionKeyStore.class).to(TestMultiTenantEncryptionKeyStore.class);
       }
     });
 

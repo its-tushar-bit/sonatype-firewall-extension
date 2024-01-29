@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineRele
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
@@ -138,8 +139,9 @@ public class DefaultTestInsightBrainService
     testProxyServerConfiguration.setHostname(host);
     testProxyServerConfiguration.setPort(port);
     testProxyServerConfiguration.setUsername(user);
-    testProxyServerConfiguration
-        .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
+    testProxyServerConfiguration.setPassword(
+        new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).encryptPassword(
+            pass.toCharArray()));
   }
 
   @Override

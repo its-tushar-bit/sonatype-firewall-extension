@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.admin.service;
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -41,6 +42,9 @@ public class TenantTenantMetadataServiceTest
   public static final String ENC_KEY_NAME = "encKeyName";
 
   @Mock
+  private MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore;
+
+  @Mock
   private TenantValidator tenantValidator;
 
   @Mock
@@ -50,8 +54,8 @@ public class TenantTenantMetadataServiceTest
 
   @Before
   public void setup() {
-    TenantUtil tenantUtil = new TenantUtil();
-    underTest = new TenantMetadataConfigurationService(tenantUtil, tenantValidator, tenantMetadataDAO);
+    underTest = new TenantMetadataConfigurationService(multiTenantEncryptionKeyStore, tenantMetadataDAO,
+        new TenantUtil(), tenantValidator);
   }
 
   @Test
@@ -73,6 +77,8 @@ public class TenantTenantMetadataServiceTest
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
       assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
+
+      verify(multiTenantEncryptionKeyStore).initializeTenantKey();
     });
   }
 
@@ -96,6 +102,8 @@ public class TenantTenantMetadataServiceTest
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
       assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
+
+      verify(multiTenantEncryptionKeyStore).initializeTenantKey();
     });
   }
 

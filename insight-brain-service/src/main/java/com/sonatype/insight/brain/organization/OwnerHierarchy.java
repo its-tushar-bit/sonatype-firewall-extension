@@ -177,7 +177,7 @@ public class OwnerHierarchy
   }
 
   private void addChildToParentIfAbsent(final OwnerHierarchyEntityDTO child, final OwnerHierarchyEntityDTO parent) {
-    if (!parent.getChildIds().contains(child.id)) {
+    if (!parent.hasChild(child.id)) {
       parent.addChild(child);
     }
   }
@@ -334,7 +334,8 @@ public class OwnerHierarchy
         org -> !org.synthetic || (org.applicationIds != null && !org.applicationIds.isEmpty());
     HashSet<String> targetOrganizationIds = filterOrganizationIdsBy(predicate);
 
-    return findLCA(targetOrganizationIds);
+    OwnerHierarchyOrganizationDTO lowestCommonAncestor = findLCA(targetOrganizationIds);
+    return lowestCommonAncestor != null ? lowestCommonAncestor : rootOrganization;
   }
 
   // returns the lowest common ancestor of N number of targets
@@ -351,7 +352,7 @@ public class OwnerHierarchy
 
     // the first organization to contain all occurrences of matching ids will be inserted first
     // following ancestors can be ignored as they're added during the process of backtracking to the root.
-    return ancestors.get(0);
+    return ancestors.isEmpty() ? null : ancestors.get(0);
   }
 
   private int getMatchCount(

@@ -67,6 +67,8 @@ public class OwnerHierarchyDTO
     abstract List<String> getChildIds(OwnerType... types);
 
     public abstract void addChild(OwnerHierarchyEntityDTO child);
+
+    abstract boolean hasChild(String childId);
   }
 
   public static class OwnerHierarchyOrganizationDTO
@@ -115,19 +117,10 @@ public class OwnerHierarchyDTO
 
     @Override
     List<String> getChildIds(OwnerType... types) {
-      return Stream.of(types == null ? OwnerType.values() : types)
-          .flatMap(type -> {
-            if (type.equals(OwnerType.APPLICATION)) {
-              return applicationIds.stream();
-            }
-            else if (type.equals(OwnerType.ORGANIZATION)) {
-              return organizationIds.stream();
-            }
-            else {
-              return Stream.empty();
-            }
-          })
-          .collect(Collectors.toList());
+      if (applicationIds != null) {
+        return Stream.concat(applicationIds.stream(), organizationIds.stream()).collect(Collectors.toList());
+      }
+      return organizationIds;
     }
 
     @Override
@@ -141,6 +134,11 @@ public class OwnerHierarchyDTO
       else {
         throw new IllegalArgumentException("Cannot add child of this type to organization");
       }
+    }
+
+    @Override
+    boolean hasChild(final String childId) {
+      return organizationIds.contains(childId) || (applicationIds != null && applicationIds.contains(childId));
     }
 
     @Override
@@ -185,6 +183,11 @@ public class OwnerHierarchyDTO
     }
 
     @Override
+    boolean hasChild(final String childId) {
+      return false;
+    }
+
+    @Override
     public String toString() {
       return "<Application [name=" + name + ", id=" + id + ", parentId=" + organizationId + "]>";
     }
@@ -214,6 +217,11 @@ public class OwnerHierarchyDTO
     public void addChild(final OwnerHierarchyEntityDTO child) {
       repositoryManagerIds.add(child.id);
     }
+
+    @Override
+    boolean hasChild(final String childId) {
+      return this.getChildIds().contains(childId);
+    }
   }
 
   public static class OwnerHierarchyRepositoryManagerDTO
@@ -236,6 +244,11 @@ public class OwnerHierarchyDTO
     @Override
     public void addChild(final OwnerHierarchyEntityDTO child) {
       repositoryIds.add(child.id);
+    }
+
+    @Override
+    boolean hasChild(final String childId) {
+      return this.getChildIds().contains(childId);
     }
 
     public static Function<RepositoryManager, OwnerHierarchyRepositoryManagerDTO> transformToRepositoryManagerDTO =
@@ -278,6 +291,11 @@ public class OwnerHierarchyDTO
     @Override
     public void addChild(final OwnerHierarchyEntityDTO child) {
       throw new UnsupportedOperationException("Cannot add child to repository");
+    }
+
+    @Override
+    boolean hasChild(final String childId) {
+      return false;
     }
 
     @Override

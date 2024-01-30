@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
@@ -331,6 +332,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
     getInstance(ApplicationCountHistoryKeeper.class).disableForTesting = true;
+    getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
   }
 
   @Override

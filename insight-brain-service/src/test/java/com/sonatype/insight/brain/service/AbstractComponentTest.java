@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
@@ -50,6 +49,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -176,7 +176,7 @@ public class AbstractComponentTest
 
   private void releaseScmPerpetualLock() {
     PerpetualLockDAO perpetualLockDAO = lookup(PerpetualLockDAO.class);
-    String perpetualLockId = SourceControlInstanceManager.SOURCE_CONTROL_ACCESS_LOCK;
+    String perpetualLockId = SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK;
     PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
     if (perpetualLock != null) {
       perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());

@@ -990,6 +990,7 @@ CREATE TABLE perpetual_lock (
   perpetual_lock_id VARCHAR(1100) NOT NULL,
   owner VARCHAR(50),
   expiration_time timestamp,
+  category varchar(50) NOT NULL DEFAULT 'source-control',
   CONSTRAINT perpetual_lock_id_pk PRIMARY KEY (perpetual_lock_id)
 );
 

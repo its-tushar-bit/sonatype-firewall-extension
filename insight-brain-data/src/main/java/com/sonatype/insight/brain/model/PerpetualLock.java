@@ -23,6 +23,9 @@ public class PerpetualLock
   @Column(name = "perpetual_lock_id")
   private String id;
 
+  @Column(name = "category")
+  private String category;
+
   @Column(name = "owner")
   private String owner;
 
@@ -32,7 +35,8 @@ public class PerpetualLock
   public PerpetualLock() {
   }
 
-  public PerpetualLock(String id) {
+  public PerpetualLock(String category, String id) {
+    this.category = category;
     this.id = id;
   }
 
@@ -44,6 +48,14 @@ public class PerpetualLock
   @Override
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public void setCategory(String category) {
+    this.category = category;
   }
 
   public Date getExpirationTime() {

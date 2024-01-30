@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class UserEventManagerTest
 {
@@ -40,11 +42,15 @@ public class UserEventManagerTest
   private SourceControlEventProcessor mockSourceControlEventProcessor;
 
   @Mock
+  private SourceControlLoadBalancer mockSourceControlLoadBalancer;
+
+  @Mock
   private SourceControlUtils mockSourceControlUtils;
 
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
+    when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
   }
 
   @Test
@@ -57,8 +63,8 @@ public class UserEventManagerTest
           .setApplicationId("app-1");
 
       UserEventManager userEventManager =
-          new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, provider,
-              mockSourceControlUtils);
+          new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer,
+              mockSourceControlEventProcessor, provider, mockSourceControlUtils);
 
       // when: add the event
       userEventManager.addEvent(event);
@@ -69,10 +75,45 @@ public class UserEventManagerTest
   }
 
   @Test
+  public void testOnEventCompleted_relatedEventsReleased() {
+    // given: event manager with an event queued up and the load balancer unable to reserve the event
+    UserEventManager userEventManager =
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
+            GITLAB, mockSourceControlUtils)
+            .setEventsSuspendedForTesting(true);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .forUpdatedPullRequest()
+        .withId("event-1")
+        .setApplicationId("app-1");
+
+    when(mockSourceControlLoadBalancer.reserveEvent(eq(event))).thenReturn(false);
+
+    userEventManager.addEvent(event);
+    verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
+    userEventManager.setEventsSuspendedForTesting(false);
+
+    // when: report an event completed
+    SourceControlEvent completedEvent = new SourceControlEvent()
+        .forUpdatedPullRequest()
+        .withId("completed")
+        .setApplicationId("app-completed");
+
+    userEventManager.onEventCompleted(completedEvent);
+
+    // then: completed event should be marked as such, queued event should NOT be sent for processing, and
+    //       load balancer should be called to release related events
+    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(completedEvent.getId()));
+    verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
+    verify(mockSourceControlLoadBalancer, times(1)).releaseRelatedEvents(eq(event), eq(true));
+  }
+
+  @Test
   public void testOnEventCompleted_queuedEventPushed() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITLAB, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
+            GITLAB, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -101,7 +142,8 @@ public class UserEventManagerTest
   public void testOnEventPartiallyCompleted_queuedEventPushed() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITHUB, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
+            GITHUB, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -133,7 +175,8 @@ public class UserEventManagerTest
   public void testOnEventStarted_queuedEventNotPushed() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITLAB, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
+            GITLAB, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -162,7 +205,8 @@ public class UserEventManagerTest
   public void testOnEventError_errorEventNoRetry() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, AZURE, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
+            AZURE, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -190,8 +234,8 @@ public class UserEventManagerTest
   @Test
   public void testOnEventError_errorEventWithRetry() throws InterruptedException {
     // given: event manager
-    UserEventManager userEventManager = new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor,
-        BITBUCKET, mockSourceControlUtils)
+    UserEventManager userEventManager = new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer,
+        mockSourceControlEventProcessor, BITBUCKET, mockSourceControlUtils)
             .setSuspensionTimeoutForTesting(1);
 
     // capture the retry event we expect to be inserted into the DB

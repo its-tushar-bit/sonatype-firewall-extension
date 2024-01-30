@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -31,6 +32,7 @@ import com.sonatype.nexus.scm.api.model.PullRequest;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class PullRequestPollingService
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingService.class);
+
+  private static final String SCM_ANONYMOUS_POLLER = "anonymous-poller";
 
   @VisibleForTesting
   static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 50;
@@ -67,7 +71,7 @@ public class PullRequestPollingService
   private final RemediationBranchNamePrefixGenerator remediationBranchNamePrefixGenerator =
       new RemediationBranchNamePrefixGenerator();
 
-  private final SourceControlInstanceManager sourceControlInstanceManager;
+  private final SourceControlLoadBalancer sourceControlLoadBalancer;
 
   private final IqForScmLicenseChecker licenseChecker;
 
@@ -82,7 +86,7 @@ public class PullRequestPollingService
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       PullRequestRepositoryValidator pullRequestRepositoryValidator,
-      SourceControlInstanceManager sourceControlInstanceManager,
+      SourceControlLoadBalancer sourceControlLoadBalancer,
       IqForScmLicenseChecker licenseChecker,
       PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
@@ -93,7 +97,7 @@ public class PullRequestPollingService
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
-    this.sourceControlInstanceManager = sourceControlInstanceManager;
+    this.sourceControlLoadBalancer = sourceControlLoadBalancer;
     this.licenseChecker = licenseChecker;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
   }
@@ -101,13 +105,6 @@ public class PullRequestPollingService
   public void fetchAndSendPullRequestsForCommenting() {
     if (!licenseChecker.isPullRequestCommentingSupported()) {
       log.trace("License does not support source control automation feature");
-      return;
-    }
-
-    // for now this is a global check;  future plan is to base this on specific tokens/repos/users, in which case
-    // we can push this check down into this class' canPoll() method
-    if (!sourceControlInstanceManager.canPoll()) {
-      log.trace("This instance is not allowed to poll.  Skipping.");
       return;
     }
 
@@ -309,7 +306,14 @@ public class PullRequestPollingService
   }
 
   private boolean canPoll(GitRepositoryInfo gitRepositoryInfo) {
-    if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
+    if (!sourceControlUtils.isScmEnabled(gitRepositoryInfo) ) {
+      log.debug("PR polling will be skipped for given repo due to incomplete gitRepositoryInfo:%n" +
+              "  url={}%n  provider={}%n  has token={}%n  has username={}",
+          gitRepositoryInfo.repositoryUrl,
+          gitRepositoryInfo.provider,
+          StringUtils.isNotBlank(gitRepositoryInfo.token) ? "true" : "false",
+          StringUtils.isNotBlank(gitRepositoryInfo.username) ? "true" : "false"
+      );
       return false;
     }
     if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
@@ -320,6 +324,13 @@ public class PullRequestPollingService
       }
       return false;
     }
-    return sourceControlUtils.isScmEnabled(gitRepositoryInfo);
+
+    return  sourceControlLoadBalancer.canPollForPullRequests(getScmUsernameForPolling(gitRepositoryInfo));
+  }
+
+  private String getScmUsernameForPolling(GitRepositoryInfo gitRepositoryInfo) {
+    return  StringUtils.isNotBlank(gitRepositoryInfo.getUsername())
+        ? gitRepositoryInfo.getUsername()
+        : String.format("%s-%s", gitRepositoryInfo.provider, SCM_ANONYMOUS_POLLER);
   }
 }

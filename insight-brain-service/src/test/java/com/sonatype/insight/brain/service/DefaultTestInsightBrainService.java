@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -335,6 +336,7 @@ public class DefaultTestInsightBrainService
     getInstance(FirewallMetricsComponentWaivedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob.class).disableForTesting = true;
+    getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
   }
 
   @Override

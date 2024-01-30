@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -657,7 +658,7 @@ public class PullRequestPollingServiceTest
     private MockRepo currentMockRepo;
 
     @Mock
-    private SourceControlInstanceManager mockSourceControlInstanceManager;
+    private SourceControlLoadBalancer mockSourceControlLoadBalancer;
 
     @Mock
     private SourceControlUtils mockSourceControlUtils;
@@ -722,14 +723,14 @@ public class PullRequestPollingServiceTest
         }
         mockRepo.pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(mockRepo.isGitRepositoryPrivate));
 
-        doReturn(true).when(mockSourceControlInstanceManager).canPoll();
+        doReturn(true).when(mockSourceControlLoadBalancer).canPollForPullRequests(any());
 
         doReturn(pullRequestCommentingSupported).when(mockLicenseChecker).isPullRequestCommentingSupported();
       }
 
       return new PullRequestPollingService(applicationDAO, sourceControlDAO,
           sourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker,
+          mockPullRequestRepositoryValidator, mockSourceControlLoadBalancer, mockLicenseChecker,
           new PullRequestCommentingEligibilityValidator());
     }
 

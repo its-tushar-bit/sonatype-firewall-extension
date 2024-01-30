@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -76,6 +75,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -400,7 +400,7 @@ public abstract class AbstractBaseIntegrationTest
 
   private void releaseScmPerpetualLock() {
     final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO(databaseContainerRule.getOperationalDataStore());
-    String perpetualLockId = SourceControlInstanceManager.SOURCE_CONTROL_ACCESS_LOCK;
+    String perpetualLockId = SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK;
     PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
     if (perpetualLock != null) {
       perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());

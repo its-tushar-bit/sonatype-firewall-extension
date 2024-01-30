@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,7 +21,6 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -44,6 +44,8 @@ public class SourceControlEventDAO
 
   private static final int DELETE_BATCH_SIZE = 100;
 
+  private static final String AN_INVALID_INSTANCE_ID = "-1";
+
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlEvent entity ";
 
   private static final String UPDATE_ENTITY = "UPDATE SourceControlEvent entity ";
@@ -55,6 +57,32 @@ public class SourceControlEventDAO
   @Inject
   public SourceControlEventDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  /**
+   * The purpose of this method is to release (i.e. unassign) events that are 'related' to the given event.  Events
+   * are related if they are for the same scm user.
+   * @param event
+   */
+  public void releaseRelatedEvents(SourceControlEvent event) {
+    try (TransactionContext txn = createTransactionContext()) {
+      txn.begin();
+
+      txn.createNativeQuery(
+              "UPDATE " + getDatabaseSchema() + ".source_control_event" +
+                  " SET instance_id = NULL" +
+                  " WHERE scm_username = ?1 " +
+                  "   AND event_status = 'new'"
+          )
+          .setParameter(1, event.getScmUsername())
+          .executeUpdate();
+      txn.commit();
+    }
+  }
+
+  public void reserveEventForInstance(SourceControlEvent event, String instanceId) {
+    event.setInstanceId(instanceId);
+    update(event);
   }
 
   public int reserveEventsForInstance(final String instanceId) {
@@ -91,12 +119,6 @@ public class SourceControlEventDAO
       txn.commit();
     }
     return result;
-  }
-
-  @VisibleForTesting
-  List<SourceControlEvent> getAvailableEvents() {
-    String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL";
-    return getList(sQuery);
   }
 
   public List<SourceControlEvent> selectUnassignedNewEventsAndAssignToInstance(final String instanceId) {
@@ -211,14 +233,35 @@ public class SourceControlEventDAO
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }
 
-  public void resetStaleEvents(Date cutoffTime, String instanceIdToIgnore) {
+  public void resetStaleEvents(Set<String> activeInstanceIds, int eventsOlderThanSeconds) {
+    if (activeInstanceIds.isEmpty()) {
+      // the set cannot be empty, so default it to an invalid instance ID, which will cause stale events for any
+      // instance to be updated
+      activeInstanceIds.add(AN_INVALID_INSTANCE_ID);
+    }
+
+    // we ignore events for 'active' instances as well as complete or error events
     String sQuery = UPDATE_ENTITY +
         "SET entity.instanceId = null, entity.eventStatus = 'new' " +
-        "WHERE entity.instanceId IS NOT NULL " +
-        "AND ((entity.eventStatus = 'new' AND entity.createTime < ?1) " +
-        "OR (entity.eventStatus = 'in progress' AND entity.startTime < ?1)) " +
-        "AND entity.instanceId <> ?2";
-    createQuery(sQuery, cutoffTime, instanceIdToIgnore).executeUpdate();
+        "WHERE (entity.instanceId IS NOT NULL " +
+        "  AND NOT entity.instanceId IN ?1 " +
+        "  AND (" +
+        "    (entity.eventStatus = 'new' AND entity.createTime < ?2) " +
+        "      OR " +
+        "    (entity.eventStatus = 'in progress' AND entity.startTime < ?2)" +
+        "  )) " +
+        "OR ( " +
+        "  entity.instanceId IS NULL AND entity.eventStatus = 'in progress' AND entity.startTime < ?2" +
+        ")";
+    long cutoffTimeMs = System.currentTimeMillis() - eventsOlderThanSeconds * 1_000L;
+    Date cutoffTime = new Date(cutoffTimeMs);
+    createQuery(sQuery, activeInstanceIds, cutoffTime).executeUpdate();
+  }
+
+  public List<SourceControlEvent> getUnassignedEventsToProcess() {
+    String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL AND entity.eventStatus = 'new' " +
+        "ORDER BY entity.createTime";
+    return getList(sQuery);
   }
 
   public void deleteByApplicationId(final String applicationId) {

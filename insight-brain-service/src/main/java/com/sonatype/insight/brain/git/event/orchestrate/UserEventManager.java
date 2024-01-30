@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.Simultane
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApplicationSelectionRule;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -50,6 +51,8 @@ public class UserEventManager
   private static final int EVENT_PUSH_MAX_QUIET_PERIOD_SECONDS = 15;
 
   private final SourceControlEventDAO sourceControlEventDAO;
+
+  private final SourceControlLoadBalancer sourceControlLoadBalancer;
 
   private final SourceControlEventProcessor sourceControlEventProcessor;
 
@@ -89,11 +92,13 @@ public class UserEventManager
 
   public UserEventManager(
       SourceControlEventDAO sourceControlEventDAO,
+      SourceControlLoadBalancer sourceControlLoadBalancer,
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlProvider sourceControlProvider,
       SourceControlUtils sourceControlUtils)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlLoadBalancer = sourceControlLoadBalancer;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
     eventCostSelectionRule = new EventCostSelectionRule(sourceControlProvider);
     repositoryUrlErrorRule = new RepositoryUrlErrorRule(sourceControlUtils);
@@ -120,8 +125,7 @@ public class UserEventManager
       sourceControlEventDAO.markEventComplete(event.getId());
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
-      processRetryEvents();
-      pushEvents();
+      balanceRetryAndPushEvents();
     }
   }
 
@@ -133,8 +137,7 @@ public class UserEventManager
       sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason, e);
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
-      processRetryEvents();
-      pushEvents();
+      balanceRetryAndPushEvents();
     }
   }
 
@@ -166,6 +169,46 @@ public class UserEventManager
     backupTriggerEnabled = enabled;
   }
 
+  private void balanceRetryAndPushEvents() {
+    SourceControlEvent anEvent = getAnEvent();
+    if (null == anEvent) {
+      // we don't have any events queued up to process
+      return;
+    }
+
+    if (sourceControlLoadBalancer.reserveEvent(anEvent)) {
+      processRetryEvents();
+      pushEvents();
+    }
+    else {
+      clearPendingEvents();
+      sourceControlLoadBalancer.releaseRelatedEvents(anEvent, !areAnyEventsInProgress());
+    }
+  }
+
+  private void clearPendingEvents() {
+    retryEventBucket.clear();
+    prioritizedEventMap.clear();
+  }
+
+  // return a source control event this user event manager is responsible for
+  private SourceControlEvent getAnEvent() {
+    SourceControlEvent result = null;
+
+    for (List<SourceControlEvent> prioritizedEvents : prioritizedEventMap.values()) {
+      if (!prioritizedEvents.isEmpty()) {
+        result = prioritizedEvents.get(0);
+        break;
+      }
+    }
+
+    if (null == result && !retryEventBucket.isEmpty()) {
+      result = retryEventBucket.get(0);
+    }
+
+    return result;
+  }
+
   private void handleEventProcessingError(SourceControlEvent event, Exception e) {
     applicationScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
     userScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
@@ -173,6 +216,10 @@ public class UserEventManager
     if (eventProcessingErrorRetryRule.shouldRetry(event, e)) {
       retryEvent(event);
     }
+  }
+
+  private boolean areAnyEventsInProgress() {
+    return !eventsInProgress.isEmpty();
   }
 
   /**
@@ -294,8 +341,7 @@ public class UserEventManager
     if (backupTriggerEnabled && shouldTriggerEventProcessing()) {
       synchronized (prioritizedEventMap) {
         log.trace("timer triggered event processing");
-        processRetryEvents();
-        pushEvents();
+        balanceRetryAndPushEvents();
       }
     }
   }

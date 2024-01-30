@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,11 +19,11 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -36,7 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.lang.System.currentTimeMillis;
+import static com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS;
 
 /**
  * This orchestrator is the central hub for event processing and acts sort of like a router for events.  This class
@@ -68,9 +68,7 @@ public class SourceControlEventOrchestrator
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventOrchestrator.class);
 
-  // arbitrarily picking 2 minutes to detect when another instance of IQ server has gone down/offline and is no longer
-  // processing events
-  private static final int STALE_EVENT_CUTOFF_MS = 1_000 * 120;
+  private static final int DEFAULT_EVENT_PROCESSING_STARTUP_DELAY_SECONDS = 30;
 
   private final TenantReference<Map<String, UserEventManager>> userEventManagerMap =
       new TenantReference<>(HashMap::new);
@@ -81,7 +79,7 @@ public class SourceControlEventOrchestrator
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
-  private final SourceControlInstanceManager sourceControlInstanceManager;
+  private final SourceControlLoadBalancer sourceControlLoadBalancer;
 
   private final SourceControlUtils sourceControlUtils;
 
@@ -91,9 +89,9 @@ public class SourceControlEventOrchestrator
 
   private final TenantReference<ScheduledExecutorService> tenantScheduledExecutorServices;
 
-  private int otherInstanceEventProcessingIntervalSeconds = 15;
+  private int otherInstanceEventProcessingIntervalSeconds = SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS;
 
-  private int otherInstanceEventProcessingStartupDelaySeconds = 30;
+  private int otherInstanceEventProcessingStartupDelaySeconds = DEFAULT_EVENT_PROCESSING_STARTUP_DELAY_SECONDS;
 
   public boolean disableForTesting;
 
@@ -102,7 +100,7 @@ public class SourceControlEventOrchestrator
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlEventPublisher sourceControlEventPublisher,
-      SourceControlInstanceManager sourceControlInstanceManager,
+      SourceControlLoadBalancer sourceControlLoadBalancer,
       IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils,
       ApiConfigFeaturesService apiConfigFeaturesService)
@@ -110,7 +108,7 @@ public class SourceControlEventOrchestrator
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
-    this.sourceControlInstanceManager = sourceControlInstanceManager;
+    this.sourceControlLoadBalancer = sourceControlLoadBalancer;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
     this.apiConfigFeaturesService = apiConfigFeaturesService;
@@ -132,7 +130,7 @@ public class SourceControlEventOrchestrator
   @Override
   public void onNewEvent(SourceControlEvent event) {
     synchronized (userEventManagerMap.get()) {
-      if (sourceControlInstanceManager.canProcessEvents()) {
+      if (sourceControlLoadBalancer.reserveEvent(event)) {
         assignEventForProcessing(event);
       }
     }
@@ -165,7 +163,7 @@ public class SourceControlEventOrchestrator
 
   @VisibleForTesting
   String getInstanceId() {
-    return sourceControlInstanceManager.getSourceControlInstanceId();
+    return sourceControlLoadBalancer.getInstanceId();
   }
 
   private void assignEventForProcessing(SourceControlEvent event) {
@@ -173,34 +171,32 @@ public class SourceControlEventOrchestrator
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
     UserEventManager userEventManager = userEventManagerMap.get().computeIfAbsent(event.getScmUsername(),
-        k -> new UserEventManager(sourceControlEventDAO, sourceControlEventProcessor, gitRepositoryInfo.getProvider(),
-            sourceControlUtils));
+        k -> new UserEventManager(
+            sourceControlEventDAO,
+            sourceControlLoadBalancer,
+            sourceControlEventProcessor,
+            gitRepositoryInfo.getProvider(),
+            sourceControlUtils)
+    );
     userEventManager.addEvent(event);
   }
 
   /**
-   * Events originating from other running IQ instances wind up in the database 'untagged' with an instance ID.
-   * This method:
-   * - resets (un-tags) events assigned to other IQ instances that no longer appear to be running
-   * - fetches all untagged new events and routes them to the appropriate UserEventManager for processing
+   * Fetches events that can be processed by this instance of IQ Server and routes them to the appropriate
+   * UserEventManager
    */
   private void fetchAndRouteEvents() {
-    if (!sourceControlInstanceManager.canProcessEvents()) {
-      log.debug("not processing source control events for this instance");
-      return;
-    }
-
     if (!licenseChecker.isIqForScmSupported() || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
       log.trace("unable to fetch and route source control events due to licensing or configuration");
       return;
     }
 
     synchronized (userEventManagerMap.get()) {
-      sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
-      List<SourceControlEvent> sourceControlEvents =
-          sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
+      List<SourceControlEvent> sourceControlEvents = sourceControlLoadBalancer.acquireEventsToProcess();
       if (CollectionUtils.isNotEmpty(sourceControlEvents)) {
-        sourceControlEvents.forEach(this::assignEventForProcessing);
+        for (SourceControlEvent event : sourceControlEvents) {
+          assignEventForProcessing(event);
+        }
       }
       log.debug(
           "Fetched and routed {} events originating from other IQ instances for processing by this instance '{}'",

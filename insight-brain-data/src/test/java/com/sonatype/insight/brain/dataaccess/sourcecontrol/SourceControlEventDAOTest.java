@@ -24,15 +24,18 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUSES;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 import static java.lang.System.currentTimeMillis;
@@ -86,103 +89,108 @@ public class SourceControlEventDAOTest
     assertThat(sourceControlEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
   }
 
+  private static class StaleEventTestData
+  {
+    static final int staleEventCutoffSeconds = 60;
+
+    static final long cutoffTimeMs = currentTimeMillis() - staleEventCutoffSeconds * 1_000L;
+
+    static final Date beforeCutoff = new Date(cutoffTimeMs - 30_000L);
+
+    static final Date beforeCutoff2 = new Date(cutoffTimeMs - 20_000L);
+
+    static final Date beforeCutoff3 = new Date(cutoffTimeMs - 10_000L);
+
+    static final Date afterCutoff = new Date(cutoffTimeMs + 10_000L);
+
+    static final String activeInstanceId = "activeInstance";
+
+    static final String inactiveInstanceId = "inactiveInstance";
+
+    static final Set<String> activeInstanceIds = ImmutableSet.of(activeInstanceId, "activeInstance2");
+
+    static final Set<String> resettableStatuses = ImmutableSet.of(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
+  }
+
   @Test
   public void testResetStaleEvents() {
-    // given: new, active and stale source control events
-    long cutoffTimeMs = currentTimeMillis() - 1000;
-    SourceControlEvent activeNewEvent = getNewSourceControlEvent()
-        .setEventStatus("new")
-        .setInstanceId("instance1")
-        .setCreateTime(new Date(cutoffTimeMs + 500));
-    sourceControlEventDAO.insert(activeNewEvent);
+    // check all the permutations and combinations of event status, staleness, and instance state
+    for (String eventStatus : EVENT_STATUSES) {
+      for (boolean isStaleEvent : new boolean[]{false, true}) {
+        for (boolean isUnassigned : new boolean[]{false, true}) {
+          for (boolean isActiveInstance : new boolean[]{false, true}) {
+            testResetStaleEvent(eventStatus, isStaleEvent, isUnassigned, isActiveInstance);
+          }
+        }
+      }
+    }
+  }
 
-    SourceControlEvent activeInProgressEvent = getNewSourceControlEvent()
-        .setEventStatus("in progress")
-        .setInstanceId("instance2")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs + 500));
-    sourceControlEventDAO.insert(activeInProgressEvent);
+  private void testResetStaleEvent(
+      String eventStatus,
+      boolean isStaleEvent,
+      boolean isUnassigned,
+      boolean isActiveInstance)
+  {
+    // given: an event that satisfies the given parameters
+    SourceControlEvent event = getNewSourceControlEvent()
+        .setEventStatus(eventStatus)
+        .setInstanceId(isUnassigned ? null
+            : (isActiveInstance ? StaleEventTestData.activeInstanceId : StaleEventTestData.inactiveInstanceId));
 
-    SourceControlEvent staleNewEvent = getNewSourceControlEvent()
-        .setEventStatus("new")
-        .setInstanceId("instance3")
-        .setCreateTime(new Date(cutoffTimeMs - 500));
-    sourceControlEventDAO.insert(staleNewEvent);
+    switch (eventStatus) {
+      case EVENT_STATUS_COMPLETE:
+      case EVENT_STATUS_PARTIALLY_COMPLETE:
+      case EVENT_STATUS_ERROR:
+        event.setCreateTime(StaleEventTestData.beforeCutoff);
+        event.setStartTime(StaleEventTestData.beforeCutoff2);
+        event.setCompleteTime(isStaleEvent ? StaleEventTestData.beforeCutoff3 : StaleEventTestData.afterCutoff);
+        break;
 
-    SourceControlEvent staleInProgressEvent = getNewSourceControlEvent()
-        .setEventStatus("new")
-        .setInstanceId("instance4")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs - 500));
-    sourceControlEventDAO.insert(staleInProgressEvent);
+      case EVENT_STATUS_IN_PROGRESS:
+        event.setCreateTime(StaleEventTestData.beforeCutoff);
+        event.setStartTime(isStaleEvent ? StaleEventTestData.beforeCutoff2 : StaleEventTestData.afterCutoff);
+        break;
 
-    SourceControlEvent staleCompletedEvent = getNewSourceControlEvent()
-        .setEventStatus("complete")
-        .setInstanceId("instance5")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs - 400))
-        .setCompleteTime(new Date(cutoffTimeMs - 300));
-    sourceControlEventDAO.insert(staleCompletedEvent);
+      case EVENT_STATUS_NEW:
+        event.setCreateTime(isStaleEvent ? StaleEventTestData.beforeCutoff : StaleEventTestData.afterCutoff);
+        break;
 
-    SourceControlEvent stalePartiallyCompletedEvent = getNewSourceControlEvent()
-        .setEventStatus("partially complete")
-        .setInstanceId("instance6")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs - 400))
-        .setCompleteTime(new Date(cutoffTimeMs - 300));
-    sourceControlEventDAO.insert(stalePartiallyCompletedEvent);
+      default:
+        throw new IllegalArgumentException("Invalid event status " + eventStatus);
+    }
+    sourceControlEventDAO.insert(event);
 
-    SourceControlEvent staleErrorEvent = getNewSourceControlEvent()
-        .setEventStatus("error")
-        .setInstanceId("instance7")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs - 400))
-        .setCompleteTime(new Date(cutoffTimeMs - 300));
-    sourceControlEventDAO.insert(staleErrorEvent);
+    // when:
+    sourceControlEventDAO.resetStaleEvents(
+        StaleEventTestData.activeInstanceIds,
+        StaleEventTestData.staleEventCutoffSeconds);
 
-    SourceControlEvent staleThisInstanceEvent = getNewSourceControlEvent()
-        .setEventStatus("in progress")
-        .setInstanceId("instance8")
-        .setCreateTime(new Date(cutoffTimeMs - 500))
-        .setStartTime(new Date(cutoffTimeMs - 400));
-    sourceControlEventDAO.insert(staleThisInstanceEvent);
+    // then: fetched event matches expectations
+    SourceControlEvent fetchedEvent = sourceControlEventDAO.getById(event.getId());
+    assertThat(fetchedEvent).isNotNull();
 
-    // when: reset stale events
-    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs), "instance8");
+    // stale 'new' and 'in progress' events for non-active instances should be reset
+    // as well as stale unassigned events stuck 'in progress'
+    final boolean expectReset = isStaleEvent && (
+        isInactiveAndResettable(isActiveInstance, eventStatus) || isUnassignedInProgress(isUnassigned, eventStatus));
 
-    SourceControlEvent fetchedActiveNewEvent = sourceControlEventDAO.getById(activeNewEvent.getId());
-    SourceControlEvent fetchedActiveInProgressEvent = sourceControlEventDAO.getById(activeInProgressEvent.getId());
-    SourceControlEvent fetchedStaleNewEvent = sourceControlEventDAO.getById(staleNewEvent.getId());
-    SourceControlEvent fetchedStaleInProgressEvent = sourceControlEventDAO.getById(staleInProgressEvent.getId());
-    SourceControlEvent fetchedStaleCompletedEvent = sourceControlEventDAO.getById(staleCompletedEvent.getId());
-    SourceControlEvent fetchedStalePartiallyCompletedEvent =
-        sourceControlEventDAO.getById(stalePartiallyCompletedEvent.getId());
-    SourceControlEvent fetchedStaleErrorEvent = sourceControlEventDAO.getById(staleErrorEvent.getId());
-    SourceControlEvent fetchedStaleThisInstanceEvent = sourceControlEventDAO.getById(staleThisInstanceEvent.getId());
+    if (expectReset) {
+      assertThat(fetchedEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
+      assertThat(fetchedEvent.getInstanceId()).isNull();
+    }
+    else {
+      assertThat(fetchedEvent.getEventStatus()).isEqualTo(event.getEventStatus());
+      assertThat(fetchedEvent.getInstanceId()).isEqualTo(event.getInstanceId());
+    }
+  }
 
-    // then: active events were unchanged
-    assertThat(fetchedActiveNewEvent.getInstanceId()).isEqualTo("instance1");
-    assertThat(fetchedActiveNewEvent.getEventStatus()).isEqualTo("new");
-    assertThat(fetchedActiveInProgressEvent.getInstanceId()).isEqualTo("instance2");
-    assertThat(fetchedActiveInProgressEvent.getEventStatus()).isEqualTo("in progress");
+  private boolean isInactiveAndResettable(boolean isActiveInstance, String eventStatus) {
+    return !isActiveInstance && StaleEventTestData.resettableStatuses.contains(eventStatus);
+  }
 
-    // and: stale new/in progress events were reset to new
-    assertThat(fetchedStaleNewEvent.getInstanceId()).isNull();
-    assertThat(fetchedStaleNewEvent.getEventStatus()).isEqualTo("new");
-    assertThat(fetchedStaleInProgressEvent.getInstanceId()).isNull();
-    assertThat(fetchedStaleInProgressEvent.getEventStatus()).isEqualTo("new");
-
-    // and: complete/error events were NOT reset
-    assertThat(fetchedStaleCompletedEvent.getInstanceId()).isEqualTo("instance5");
-    assertThat(fetchedStaleCompletedEvent.getEventStatus()).isEqualTo("complete");
-    assertThat(fetchedStalePartiallyCompletedEvent.getInstanceId()).isEqualTo("instance6");
-    assertThat(fetchedStalePartiallyCompletedEvent.getEventStatus()).isEqualTo("partially complete");
-    assertThat(fetchedStaleErrorEvent.getInstanceId()).isEqualTo("instance7");
-    assertThat(fetchedStaleErrorEvent.getEventStatus()).isEqualTo("error");
-
-    // and: 'this' instance was stale but was not reset
-    assertThat(fetchedStaleThisInstanceEvent.getInstanceId()).isEqualTo("instance8");
-    assertThat(fetchedStaleThisInstanceEvent.getEventStatus()).isEqualTo("in progress");
+  private boolean isUnassignedInProgress(boolean isUnassigned, String eventStatus) {
+    return isUnassigned && EVENT_STATUS_IN_PROGRESS.equalsIgnoreCase(eventStatus);
   }
 
   @Test
@@ -214,6 +222,80 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  public void testReleaseRelatedEvents() {
+    // given: a number of events associated with various SCM users and instances
+    List<SourceControlEvent> events = new ArrayList<>();
+    events.add(createScmUserEvent("instance1", "user1", EVENT_STATUS_NEW));
+    events.add(createScmUserEvent("instance3", "user1", EVENT_STATUS_NEW));
+    events.add(createScmUserEvent("instance4", "user1", EVENT_STATUS_NEW));
+    events.add(createScmUserEvent("instance2", "user1", EVENT_STATUS_IN_PROGRESS));
+    events.add(createScmUserEvent("instance3", "user1", EVENT_STATUS_PARTIALLY_COMPLETE));
+    events.add(createScmUserEvent("instance4", "user1", EVENT_STATUS_COMPLETE));
+    events.add(createScmUserEvent("instance5", "user1", EVENT_STATUS_ERROR));
+    events.add(createScmUserEvent("instance1", "user2", EVENT_STATUS_NEW));
+    events.add(createScmUserEvent("instance2", "user2", EVENT_STATUS_IN_PROGRESS));
+    events.add(createScmUserEvent("instance3", "user2", EVENT_STATUS_PARTIALLY_COMPLETE));
+    events.add(createScmUserEvent("instance4", "user2", EVENT_STATUS_COMPLETE));
+    events.add(createScmUserEvent("instance5", "user2", EVENT_STATUS_ERROR));
+
+    // when: release related events for user1
+    sourceControlEventDAO.releaseRelatedEvents(events.get(0));
+
+    // then: 'new' events associated with the given SCM user have been unassigned to an instance
+    for (SourceControlEvent event : events) {
+      SourceControlEvent fetchedEvent = sourceControlEventDAO.getById(event.getId());
+      assertThat(fetchedEvent.getEventStatus()).isEqualTo(event.getEventStatus());
+      assertThat(fetchedEvent.getScmUsername()).isEqualTo(event.getScmUsername());
+
+      if ("user1".equalsIgnoreCase(event.getScmUsername())
+          && EVENT_STATUS_NEW.equalsIgnoreCase(event.getEventStatus())) {
+        assertThat(fetchedEvent.getInstanceId()).isNull();
+      }
+      else {
+        assertThat(fetchedEvent.getInstanceId()).isEqualTo(event.getInstanceId());
+      }
+    }
+  }
+
+  private SourceControlEvent createScmUserEvent(String instanceId, String scmUsername, String eventStatus) {
+    SourceControlEvent event = getNewSourceControlEvent()
+        .setInstanceId(instanceId)
+        .setScmUsername(scmUsername)
+        .setEventStatus(eventStatus)
+        .setCreateTime(new Date());
+    sourceControlEventDAO.insert(event);
+    return event;
+  }
+
+  @Test
+  public void testReserveEventForInstance_unassigned() {
+    // given: an unassigned event
+    SourceControlEvent event = createScmUserEvent(null, "user1", EVENT_STATUS_NEW);
+
+    // when:
+    sourceControlEventDAO.reserveEventForInstance(event, "instance1");
+
+    // then: the event was reserved
+    SourceControlEvent fetchedEvent = sourceControlEventDAO.getById(event.getId());
+    assertThat(fetchedEvent.getInstanceId()).isEqualTo("instance1");
+    assertThat(fetchedEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
+  }
+
+  @Test
+  public void testReserveEventForInstance_alreadyAssigned() {
+    // given: an unassigned event
+    SourceControlEvent event = createScmUserEvent("instance1", "user1", EVENT_STATUS_NEW);
+
+    // when:
+    sourceControlEventDAO.reserveEventForInstance(event, "instance2");
+
+    // then: the event was reserved
+    SourceControlEvent fetchedEvent = sourceControlEventDAO.getById(event.getId());
+    assertThat(fetchedEvent.getInstanceId()).isEqualTo("instance2");
+    assertThat(fetchedEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
+  }
+
+  @Test
   public void testReserveEventsForInstance_eventPriority() {
     // given: a set of prioritized events
     createNewPrioritizedSourceControlEvents(app.getId(), 2, 2, 1, 3, 2);
@@ -240,7 +322,7 @@ public class SourceControlEventDAOTest
     AtomicInteger expectedEventCount = new AtomicInteger();
 
     SourceControlEvent.EVENT_TYPES.forEach(type -> {
-      SourceControlEvent.EVENT_STATUSES.forEach(status -> {
+      EVENT_STATUSES.forEach(status -> {
         instanceIds.forEach(instanceId -> {
           boolean expectAssignment = status.equals(EVENT_STATUS_NEW) && instanceId == null;
           // using the status details field to record whether or not we expect the event to be assigned
@@ -350,7 +432,7 @@ public class SourceControlEventDAOTest
 
     // then the event is marked with partial completion message and a complete time
     SourceControlEvent sourceControlEventById = sourceControlEventDAO.getById(sourceControlEvent.getId());
-    assertThat(sourceControlEventById.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE);
+    assertThat(sourceControlEventById.getEventStatus()).isEqualTo(EVENT_STATUS_PARTIALLY_COMPLETE);
     assertThat(sourceControlEventById.getEventStatusDetails()).isEqualTo("informational message");
     assertThat(sourceControlEventById.getCompleteTime()).isAfter(testStartTime);
     if (testException == null) {
@@ -394,6 +476,35 @@ public class SourceControlEventDAOTest
 
     // then only new events still exist
     assertThat(sourceControlEventDAO.getAll()).hasSize(3);
+  }
+
+  @Test
+  public void testGetUnassignedEventsToProcess() {
+    // given: a number of events, all assigned
+    List<SourceControlEvent> eventList = new ArrayList<>();
+
+    for (String eventStatus : EVENT_STATUSES) {
+      SourceControlEvent event = getNewSourceControlEvent().setInstanceId("someInstance").setEventStatus(eventStatus);
+      sourceControlEventDAO.insert(event);
+      eventList.add(event);
+    }
+
+    // when:
+    List<SourceControlEvent> unassignedEventsToProcess = sourceControlEventDAO.getUnassignedEventsToProcess();
+
+    // then: at this point all events are assigned, so unassigned should be empty
+    assertThat(unassignedEventsToProcess).isEmpty();
+
+    // when: update events to unassigned and refetch unassigned
+    for (SourceControlEvent event : eventList) {
+      event.setInstanceId(null);
+      sourceControlEventDAO.update(event);
+    }
+    unassignedEventsToProcess = sourceControlEventDAO.getUnassignedEventsToProcess();
+
+    // then: only the event with status 'new' should be picked up for processing
+    assertThat(unassignedEventsToProcess).hasSize(1);
+    assertThat(unassignedEventsToProcess.get(0).getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
   }
 
   @Test
@@ -635,8 +746,8 @@ public class SourceControlEventDAOTest
     Organization tempOrganization = tempEntity.newOrganization();
     Application tempApplication = tempEntity.newApplication(tempOrganization.getId());
     long cutOffTimeMs = 100000;
-    persistSourceControlEvent(0 , tempApplication.getId());
-    persistSourceControlEvent(0 , tempApplication.getId());
+    persistSourceControlEvent(0, tempApplication.getId());
+    persistSourceControlEvent(0, tempApplication.getId());
     SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
     SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
     boolean ascending = true;

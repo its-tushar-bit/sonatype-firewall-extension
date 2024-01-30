@@ -17,7 +17,7 @@ import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/Pol
 
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import RepositoryManagerPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerPills';
-import RepositoriesConfigurationTile from "MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile";
+import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 

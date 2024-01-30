@@ -1066,7 +1066,7 @@ public class TemporaryEntity
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg, nameSupplier);
-    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+    return orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   public List<Organization> newRelatedOrganizationsAsList(
@@ -1079,13 +1079,13 @@ public class TemporaryEntity
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg, nameSupplier);
-    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+    return orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   public List<Organization> newRelatedOrganizationsAsList(int orgsPerLevel, int depth, int appsPerOrg) {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg);
-    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+    return orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   public List<Organization> newRelatedOrganizationsAsList(
@@ -1097,7 +1097,7 @@ public class TemporaryEntity
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg);
-    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+    return orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   public Map<Integer, List<Organization>> newRelatedOrganizationsAsMap(
@@ -1196,7 +1196,7 @@ public class TemporaryEntity
     return orgName;
   }
 
-  public FirewallMetrics newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value, Date lastUpdatedDate ) {
+  public FirewallMetrics newFirewallMetrics(FirewallMetricsName firewallMetricsName, int value, Date lastUpdatedDate) {
     java.time.LocalDate testDate = java.time.LocalDate.of(2023, Month.OCTOBER, 1);
     FirewallMetrics firewallMetrics = new FirewallMetrics(testDate, firewallMetricsName, value);
     firewallMetrics.setMetricsLastUpdatedAt(lastUpdatedDate);
@@ -2475,6 +2475,14 @@ public class TemporaryEntity
       final Application application,
       final PolicyEvaluation sourcePolicyEvaluation)
   {
+    return newSourceControlEvent(application, sourcePolicyEvaluation, "user");
+  }
+
+  public SourceControlEvent newSourceControlEvent(
+      Application application,
+      PolicyEvaluation sourcePolicyEvaluation,
+      String scmUsername)
+  {
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(application.getId())
         .setCommitHash("abcdefg")
@@ -2482,11 +2490,12 @@ public class TemporaryEntity
         .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
         .setBranchName("branch")
         .setPullRequestNumber(2)
-        .setScmUsername("user")
+        .setScmUsername(scmUsername)
         .setInitiator("webhook");
 
     sourceControlEventDAO.insert(sourceControlEvent);
     return sourceControlEvent;
+
   }
 
   public SourceControlEvent newSourceControlEvaluationEvent(final Application application) {
@@ -3228,8 +3237,9 @@ public class TemporaryEntity
     return customCvssVector;
   }
 
-  public VulnerabilityCustomCvssVectorTag newVulnerabilityCustomCvssVectorTag(String vulnerabilityCustomVectorId,
-                                                                              String tagId)
+  public VulnerabilityCustomCvssVectorTag newVulnerabilityCustomCvssVectorTag(
+      String vulnerabilityCustomVectorId,
+      String tagId)
   {
     VulnerabilityCustomCvssVectorTag vulnerabilityCustomVectorTag = new VulnerabilityCustomCvssVectorTag();
     vulnerabilityCustomVectorTag.setVulnerabilityCustomCvssVectorId(vulnerabilityCustomVectorId);

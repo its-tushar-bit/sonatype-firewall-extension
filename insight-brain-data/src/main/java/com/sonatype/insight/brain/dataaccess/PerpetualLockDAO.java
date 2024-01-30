@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,12 +30,23 @@ public class PerpetualLockDAO
     super(operationalDataStore);
   }
 
-  public PerpetualLock createPerpetualLock(String perpetualLockId, String owner, Date expiration) {
-    PerpetualLock perpetualLock = new PerpetualLock(perpetualLockId)
+  public PerpetualLock createPerpetualLock(String perpetualLockId, String category, String owner, Date expiration) {
+    PerpetualLock perpetualLock = new PerpetualLock(category, perpetualLockId)
         .setOwner(owner)
         .setExpirationTime(expiration);
     insert(perpetualLock);
     return perpetualLock;
+  }
+
+  public List<PerpetualLock> getAllActivePartitionLocksForCategory(String category) {
+    Date currentTime = new Date();
+    Query<PerpetualLock> sQuery = createQuery(
+        "SELECT entity FROM PerpetualLock entity " +
+            "WHERE entity.category = ?1 " +
+            "  AND entity.expirationTime > ?2 " +
+            "ORDER BY entity.expirationTime ASC", category, currentTime);
+
+    return sQuery.getList();
   }
 
   public PerpetualLock getPerpetualLockById(String perpetualLockId) {
@@ -52,6 +64,14 @@ public class PerpetualLockDAO
     return sQuery.get(txn);
   }
 
+  public int deleteExpiredLocks(Date expirationCutoff) {
+    Query<PerpetualLock> sQuery = createQuery(
+        "DELETE FROM PerpetualLock entity WHERE entity.expirationTime < ?1",
+        expirationCutoff);
+
+    return sQuery.executeUpdate();
+  }
+
   /**
    * Only the current owner of the lock can proactively release the lock
    *
@@ -62,6 +82,12 @@ public class PerpetualLockDAO
     final String sQuery = "UPDATE PerpetualLock entity SET entity.owner = null, entity.expirationTime = null" +
         " WHERE entity.id = ?1 AND entity.owner = ?2";
     createQuery(sQuery, perpetualLockId, owner).executeUpdate();
+  }
+
+  public void releaseAllPerpetualLocksForOwner(String owner) {
+    final String sQuery = "UPDATE PerpetualLock entity SET entity.owner = null, entity.expirationTime = null" +
+        " WHERE entity.owner = ?1";
+    createQuery(sQuery, owner).executeUpdate();
   }
 
   public int reservePerpetualLock(TransactionContext txn, String perpetualLockId, String owner, Date expiration) {

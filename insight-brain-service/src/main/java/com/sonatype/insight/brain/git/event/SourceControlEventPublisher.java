@@ -11,7 +11,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -25,8 +24,6 @@ public class SourceControlEventPublisher
 {
   private final SourceControlEventDAO sourceControlEventDAO;
 
-  private final SourceControlInstanceManager sourceControlInstanceManager;
-
   private final SourceControlUtils sourceControlUtils;
 
   private final ApiConfigFeaturesService apiConfigFeaturesService;
@@ -36,12 +33,10 @@ public class SourceControlEventPublisher
   @Inject
   public SourceControlEventPublisher(
       SourceControlEventDAO sourceControlEventDAO,
-      SourceControlInstanceManager sourceControlInstanceManager,
       SourceControlUtils sourceControlUtils,
       ApiConfigFeaturesService apiConfigFeaturesService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
-    this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.sourceControlUtils = sourceControlUtils;
     this.apiConfigFeaturesService = apiConfigFeaturesService;
   }
@@ -60,7 +55,6 @@ public class SourceControlEventPublisher
       return;
     }
     populateScmUsernameIfMissing(event);
-    populateInstanceIdIfProcessingEvents(event);
     sourceControlEventDAO.insert(event);
     if (null != sourceControlEventCreationListener && null != sourceControlEventCreationListener.get()) {
       sourceControlEventCreationListener.get().onNewEvent(event);
@@ -81,11 +75,6 @@ public class SourceControlEventPublisher
 
   public boolean doesRemediationEventExistForBranch(String applicationId, String branchName) {
     return sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
-  }
-
-  private void populateInstanceIdIfProcessingEvents(SourceControlEvent event) {
-    event.setInstanceId(sourceControlInstanceManager.canProcessEvents() ? sourceControlInstanceManager
-        .getSourceControlInstanceId() : null);
   }
 
   private void populateScmUsernameIfMissing(SourceControlEvent event) {

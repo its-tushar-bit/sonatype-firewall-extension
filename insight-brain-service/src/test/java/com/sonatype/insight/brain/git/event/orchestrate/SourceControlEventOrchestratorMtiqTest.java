@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.git.event.orchestrate;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,7 +40,7 @@ public class SourceControlEventOrchestratorMtiqTest
   private SourceControlEventPublisher mockSourceControlEventPublisher;
 
   @Mock
-  private SourceControlInstanceManager mockSourceControlInstanceManager;
+  private SourceControlLoadBalancer mockSourceControlLoadBalancer;
 
   @Mock
   private SourceControlUtils mockSourceControlUtils;
@@ -59,12 +60,12 @@ public class SourceControlEventOrchestratorMtiqTest
     MockitoAnnotations.openMocks(this);
 
     when(mockIqForScmLicenseChecker.isIqForScmSupported()).thenReturn(true);
-    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
     SourceControlEventOrchestrator orchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils,
+        mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
         mockApiConfigFeaturesService
     );
 

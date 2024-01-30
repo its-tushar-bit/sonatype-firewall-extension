@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 public class PerpetualLockDAOTest
     extends AbstractDbDAOTest
 {
+  private static final String LOCK_CATEGORY = "testing";
+
   // test subject
   private PerpetualLockDAO perpetualLockDAO;
 
@@ -30,7 +32,7 @@ public class PerpetualLockDAOTest
   public void setup() {
     super.setup();
     perpetualLockDAO = daoFactory.createPerpetualLockDAO();
-    assertThat(perpetualLockDAO.getAll()).hasSize(0);
+    assertThat(perpetualLockDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -48,7 +50,7 @@ public class PerpetualLockDAOTest
 
     // when: create the lock
     Date expiration = new Date(currentTimeMillis() + 5_000);
-    PerpetualLock perpetualLock = perpetualLockDAO.createPerpetualLock(lockId, "test-owner", expiration);
+    PerpetualLock perpetualLock = perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "test-owner", expiration);
 
     // then: lock created
     assertThat(perpetualLock).isNotNull();
@@ -73,10 +75,11 @@ public class PerpetualLockDAOTest
   public void testCreatePerpetualLock_alreadyExists() {
     // given: existing perpetual lock
     final String lockId = "test-lock-2";
-    perpetualLockDAO.createPerpetualLock(lockId, null, null);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, null, null);
 
     // when: try to create a duplicate lock
-    Throwable throwable = catchThrowable(() -> perpetualLockDAO.createPerpetualLock(lockId, "test-owner", new Date()));
+    Throwable throwable = catchThrowable(() -> perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY,
+        "test-owner", new Date()));
 
     // then: an exception about the duplicate is raised
     assertThat(throwable).isInstanceOf(RollbackException.class).hasCauseInstanceOf(EntityExistsException.class);
@@ -87,7 +90,7 @@ public class PerpetualLockDAOTest
     // given: an existing perpetual lock assigned to an owner
     final String lockId = "test-lock-3";
     final Date expiration = new Date(currentTimeMillis() + 5_000);
-    perpetualLockDAO.createPerpetualLock(lockId, "owner-1", expiration);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "owner-1", expiration);
 
     // when: try to release the lock as a different owner
     perpetualLockDAO.releasePerpetualLockForOwner(lockId, "owner-2");
@@ -103,7 +106,7 @@ public class PerpetualLockDAOTest
     // given: an existing perpetual lock assigned to an owner
     final String lockId = "test-lock-4";
     final Date expiration = new Date(currentTimeMillis() + 5_000);
-    perpetualLockDAO.createPerpetualLock(lockId, "owner-1", expiration);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "owner-1", expiration);
 
     // when: try to release the lock as a different owner
     perpetualLockDAO.releasePerpetualLockForOwner(lockId, "owner-1");
@@ -115,11 +118,30 @@ public class PerpetualLockDAOTest
   }
 
   @Test
+  public void testReleaseAllPerpetualLocksForOwner() {
+    // given: a number of active locks for a given owner
+    final Date expiration = new Date(currentTimeMillis() + 5_000);
+    final String lockCategory = "owner-test";
+    final String owner = "owner-1";
+    perpetualLockDAO.createPerpetualLock("owner-1-lock-1", lockCategory, owner, expiration);
+    perpetualLockDAO.createPerpetualLock("owner-1-lock-2", lockCategory, owner, expiration);
+    perpetualLockDAO.createPerpetualLock("owner-1-lock-3", lockCategory, owner, expiration);
+    perpetualLockDAO.createPerpetualLock("owner-1-lock-4", lockCategory, owner, expiration);
+    assertThat(perpetualLockDAO.getAllActivePartitionLocksForCategory(lockCategory)).hasSize(4);
+
+    // when:
+    perpetualLockDAO.releaseAllPerpetualLocksForOwner(owner);
+
+    // then: there are no longer any active locks for that owner
+    assertThat(perpetualLockDAO.getAllActivePartitionLocksForCategory(lockCategory)).isEmpty();
+  }
+
+  @Test
   public void testReservePerpetualLock_differentOwner() {
     // given: an existing perpetual lock assigned to an owner
     final String lockId = "test-lock-5";
     final Date expiration = new Date(currentTimeMillis() + 5_000);
-    perpetualLockDAO.createPerpetualLock(lockId, "owner-1", expiration);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "owner-1", expiration);
 
     // then: unable to reserve lock for different user
     assertThat(perpetualLockDAO.reservePerpetualLock(lockId, "owner-2", new Date(currentTimeMillis() + 10_000)))
@@ -136,7 +158,7 @@ public class PerpetualLockDAOTest
     // given: an existing perpetual lock assigned to an owner
     final String lockId = "test-lock-6";
     Date expiration = new Date(currentTimeMillis() + 5_000);
-    perpetualLockDAO.createPerpetualLock(lockId, "owner-1", expiration);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "owner-1", expiration);
 
     // when: lock reserved again for same user with new expiration time
     expiration = new Date(currentTimeMillis() + 10_000);
@@ -156,7 +178,7 @@ public class PerpetualLockDAOTest
     // given: an already expired perpetual lock assigned to an owner
     final String lockId = "test-lock-7";
     Date expiration = new Date(currentTimeMillis() - 5_000);
-    perpetualLockDAO.createPerpetualLock(lockId, "owner-1", expiration);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "owner-1", expiration);
 
     // when: lock reserved for different user
     expiration = new Date(currentTimeMillis() + 10_000);
@@ -176,7 +198,7 @@ public class PerpetualLockDAOTest
     Date expiration = new Date(currentTimeMillis() + 3_000);
     // given: an existing unassigned perpetual lock
     final String lockId = "test-lock-8";
-    perpetualLockDAO.createPerpetualLock(lockId, null, null);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, null, null);
 
     // when: select for update
     try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {
@@ -203,7 +225,7 @@ public class PerpetualLockDAOTest
     // given: an existing perpetual lock currently assigned
     final Date expiration1 = new Date(currentTimeMillis() + 3_000);
     final String lockId = "test-lock-9";
-    perpetualLockDAO.createPerpetualLock(lockId, "test-owner-1", expiration1);
+    perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY, "test-owner-1", expiration1);
 
     // when: select for update
     try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {

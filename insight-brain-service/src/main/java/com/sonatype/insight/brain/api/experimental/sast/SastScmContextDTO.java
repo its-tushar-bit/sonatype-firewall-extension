@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.api.experimental.sast;
 
-public class SastScmContext
+public class SastScmContextDTO
 {
   public String branchName;
 

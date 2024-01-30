@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsDeveloperDashboardEnabled } from '../productFeatures/productFeaturesSelectors';
 import SastScanTitle from 'MainRoot/sastScan/SastScanTitle';
@@ -21,7 +21,7 @@ export default function SastScanPage() {
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const hookValue = useLoadSastScan({ applicationPublicId, sastScanId });
 
-  const { loading, loadError, result: sastScan, reload } = hookValue;
+  const { loading, result: sastScan } = hookValue;
 
   if (loading || !sastScan) {
     return <NxLoadingSpinner />;
@@ -50,10 +50,42 @@ export default function SastScanPage() {
   }
 
   function getDescription() {
-    return `Triggered on ${getFormatedDate()}`;
+    return (
+      <>
+        {getFormattedDate()} {getFormattedCommitHash()} {getFormattedBranchName()}
+      </>
+    );
   }
 
-  function getFormatedDate() {
-    return formatDate(sastScan.createdAt, STANDARD_DATE_TIME_FORMAT);
+  function getFormattedDate() {
+    return (
+      <>
+        <strong>Triggered on:</strong> {formatDate(sastScan.createdAt, STANDARD_DATE_TIME_FORMAT)}
+      </>
+    );
+  }
+
+  function getFormattedCommitHash() {
+    const commitHash = sastScan?.sastScmScanContext?.commitHash;
+
+    return !!commitHash ? (
+      <>
+        <b>Commit:</b> {commitHash}
+      </>
+    ) : (
+      ''
+    );
+  }
+
+  function getFormattedBranchName() {
+    const branchName = sastScan?.sastScmScanContext?.branchName;
+    // Using <div> will break the line.
+    return !!branchName ? (
+      <div>
+        <b>Branch:</b> {branchName}
+      </div>
+    ) : (
+      ''
+    );
   }
 }

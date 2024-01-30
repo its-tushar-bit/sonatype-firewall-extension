@@ -153,7 +153,7 @@ public class ApiSastScanServiceTest
         createdSastScanResult.sastScanId);
 
     // Then assert the proper SastScan fields are populated
-    sastTestUtil.assertSastScan(applicationId, getSastScanResult);
+    sastTestUtil.assertSastScanWithScmContext(applicationId, getSastScanResult);
   }
 
   @Test

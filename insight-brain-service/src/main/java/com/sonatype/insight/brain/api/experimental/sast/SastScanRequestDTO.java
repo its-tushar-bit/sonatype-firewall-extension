@@ -12,7 +12,7 @@ public class SastScanRequestDTO
 {
   public List<SastFindingRequestDTO> findings;
 
-  public SastScmContext scmContext;
+  public SastScmContextDTO scmContext;
 
   public static class SastFindingRequestDTO
   {

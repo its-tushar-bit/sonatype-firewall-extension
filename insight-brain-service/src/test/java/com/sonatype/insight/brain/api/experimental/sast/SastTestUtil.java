@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.experimental.sast.SastScanRequestDTO.SastF
 import com.sonatype.insight.brain.api.experimental.sast.SastScanRequestDTO.SastRemediationRequestDTO;
 import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.SastFindingResponseDTO;
 import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.SastRemediationResponseDTO;
+import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.SastScmScanContextResponseDTO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
@@ -46,7 +47,7 @@ class SastTestUtil
 
   static SastScanRequestDTO buildTestSastScanRequestDTOWith2Findings() {
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
-    final SastScmContext scmContext = new SastScmContext();
+    final SastScmContextDTO scmContext = new SastScmContextDTO();
     scmContext.branchName = "testBranchName";
     scmContext.commitHash = "testCommitHash";
     sastScanRequestDTO.scmContext = scmContext;
@@ -71,7 +72,7 @@ class SastTestUtil
 
     sastScanRequestDTO.findings = newArrayList(sastFindingRequestDTO);
 
-    final SastScmContext scmContext = new SastScmContext();
+    final SastScmContextDTO scmContext = new SastScmContextDTO();
     scmContext.branchName = "testBranchName";
     scmContext.commitHash = "testCommitHash";
     sastScanRequestDTO.scmContext = scmContext;
@@ -95,30 +96,23 @@ class SastTestUtil
    */
   void assertSastScan(final String expectedApplicationId, final SastScanResponseDTO sastScanResponseDTO) {
     assertSastScanDTO(sastScanResponseDTO);
+    assertSastScanEntity(expectedApplicationId, sastScanResponseDTO);
+  }
 
-    final String expectedSastScanId = sastScanResponseDTO.sastScanId;
-    final Date expectedCreatedAt = sastScanResponseDTO.createdAt;
-    final String expectedSastFindingId = sastScanResponseDTO.findings.get(0).sastFindingId;
-    final String expectedSastRemediationId = sastScanResponseDTO.findings.get(0).remediations.get(0).sastRemediationId;
-
-    assertSastScanEntity(
-        expectedApplicationId,
-        expectedSastScanId,
-        expectedCreatedAt,
-        expectedSastFindingId,
-        expectedSastRemediationId);
+  void assertSastScanWithScmContext(final String expectedApplicationId, final SastScanResponseDTO sastScanResponseDTO) {
+    assertSastScanDTOWithScmContext(sastScanResponseDTO);
+    assertSastScanEntity(expectedApplicationId, sastScanResponseDTO);
   }
 
   /**
    * Asserts the database contains the expected data for a sast scan
    */
-  private void assertSastScanEntity(
-      final String expectedApplicationId,
-      final String expectedSastScanId,
-      final Date expectedCreatedAt,
-      final String expectedSastFindingId,
-      final String expectedSastRemediationId)
-  {
+  void assertSastScanEntity(final String expectedApplicationId, final SastScanResponseDTO sastScanResponseDTO) {
+    final String expectedSastScanId = sastScanResponseDTO.sastScanId;
+    final Date expectedCreatedAt = sastScanResponseDTO.createdAt;
+    final String expectedSastFindingId = sastScanResponseDTO.findings.get(0).sastFindingId;
+    final String expectedSastRemediationId = sastScanResponseDTO.findings.get(0).remediations.get(0).sastRemediationId;
+
     final SastScan sastScan = sastScanDAO.getByIdNotNull(expectedSastScanId);
     assertThat(sastScan.getApplicationId()).isEqualTo(expectedApplicationId);
     assertThat(sastScan.getId()).isEqualTo(expectedSastScanId);
@@ -148,7 +142,7 @@ class SastTestUtil
   /**
    * Asserts that the sastScanResponseDTO contains the expected data
    */
-  private static void assertSastScanDTO( final SastScanResponseDTO actualSastScanResponseDTO) {
+  private static void assertSastScanDTO(final SastScanResponseDTO actualSastScanResponseDTO) {
     assertThat(actualSastScanResponseDTO.sastScanId).isNotNull();
     assertThat(actualSastScanResponseDTO.createdAt).isNotNull();
     assertThat(actualSastScanResponseDTO.findings).hasSize(1);
@@ -168,5 +162,14 @@ class SastTestUtil
     final SastRemediationResponseDTO sastRemediationResponseDTO = sastFindingResponseDTO.remediations.get(0);
     assertThat(sastRemediationResponseDTO.sastRemediationId).isNotNull();
     assertThat(sastRemediationResponseDTO.content).isEqualTo("myContent");
+  }
+
+  private static void assertSastScanDTOWithScmContext(final SastScanResponseDTO actualSastScanResponseDTO) {
+    assertSastScanDTO(actualSastScanResponseDTO);
+
+    final SastScmScanContextResponseDTO sastScmScanContext = actualSastScanResponseDTO.sastScmScanContext;
+    assertThat(sastScmScanContext).isNotNull();
+    assertThat(sastScmScanContext.commitHash).isEqualTo("testCommitHash");
+    assertThat(sastScmScanContext.branchName).isEqualTo("testBranchName");
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental.sast;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -82,7 +83,8 @@ class ApiSastScanService
   {
     final SastScan sastScan = sastScanDAO.getByIdNotNull(sastScanId);
     validateSastScanAssociatedWithApplication(applicationPublicId, sastScan);
-    return toSastScanDTO(sastScan);
+    SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(sastScan.getSastScmScanContextId());
+    return toSastScanDTO(sastScan, sastScmScanContext);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -90,7 +92,7 @@ class ApiSastScanService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final SastScanRequestDTO sastScanRequestDTO)
   {
-    final SastScmContext sastScmContext = sastScanRequestDTO.scmContext;
+    final SastScmContextDTO sastScmContext = sastScanRequestDTO.scmContext;
     SastScmScanContext sastScmScanContext = null;
     if (nonNull(sastScmContext)) {
       sastScmScanContext = new SastScmScanContext(sastScmContext.branchName, sastScmContext.commitHash);
@@ -168,11 +170,26 @@ class ApiSastScanService
   }
 
   private SastScanResponseDTO toSastScanDTO(final SastScan sastScan) {
-    final SastScanResponseDTO sastScanResponseDTO = new SastScanResponseDTO();
-    sastScanResponseDTO.sastScanId = sastScan.getId();
-    sastScanResponseDTO.createdAt = sastScan.getCreatedAt();
-    sastScanResponseDTO.findings = toSastFindingDTOs(sastScan.getId());
-    return sastScanResponseDTO;
+    return new SastScanResponseDTO.Builder()
+            .setSastScanId(sastScan.getId())
+            .setCreatedAt(sastScan.getCreatedAt())
+            .setFindings(toSastFindingDTOs(sastScan.getId()))
+            .build();
+  }
+
+  private SastScanResponseDTO toSastScanDTO(final SastScan sastScan, final SastScmScanContext sastScmScanContext) {
+    SastScanResponseDTO.Builder builder = new SastScanResponseDTO.Builder()
+            .setSastScanId(sastScan.getId())
+            .setCreatedAt(sastScan.getCreatedAt())
+            .setFindings(toSastFindingDTOs(sastScan.getId()));
+    return Optional.ofNullable(sastScmScanContext)
+            .map(scmContext -> builder.setSastScmScanContext(
+                            new SastScanResponseDTO.SastScmScanContextResponseDTO(
+                                    scmContext.getBranchName(),
+                                    scmContext.getCommitHash()))
+                    .build()
+            )
+            .orElseGet(builder::build);
   }
 
   private List<SastFindingResponseDTO> toSastFindingDTOs(final String sastScanId) {

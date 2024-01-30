@@ -46,6 +46,7 @@ import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardT
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
 import { actions as importPoliciesActions } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
 import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
+import { actions as repositoryiesConfigurationActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import { actions as actionDropdownActions } from './actionDropdownSlice';
 import { selectActionDropdownSlice } from './actionDropdownSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
@@ -173,18 +174,18 @@ const ActionDropdown = () => {
           </button>
         )}
 
-        {!isRepositories && (
-          <NxOverflowTooltip>
-            <button
-              id="app-org-link"
-              onClick={() => dispatch(ownerModalActions.openEditModal(owner))}
-              className="nx-dropdown-button"
-            >
-              <NxFontAwesomeIcon icon={faPen} />
-              <span>Edit {getShortOwnerName()} Name / Icon</span>
-            </button>
-          </NxOverflowTooltip>
-        )}
+        <NxOverflowTooltip>
+          <button
+            id="app-org-link"
+            onClick={() => dispatch(ownerModalActions.openEditModal(owner))}
+            className="nx-dropdown-button"
+          >
+            <NxFontAwesomeIcon icon={faPen} />
+            <span>
+              Edit {getShortOwnerName()} Name{isRepositoryManager ? '' : ' / Icon'}
+            </span>
+          </button>
+        </NxOverflowTooltip>
 
         {isApp && (
           <NxTooltip title={!hasPermissionToChangeAppId ? 'Insufficient permissions to change App ID' : ''}>

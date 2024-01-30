@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessLi
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxCollapsible;
@@ -26,6 +27,7 @@ import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
@@ -1246,23 +1248,22 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testRepositoryManagerSummaryView_actionMenu() {
-    RepositoryManager repositoryManager = tempEntity
-        .newRepositoryManager("B666EF16-83E0-460C-848F-10E8C6928E13");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
 
     ActionDropDown.menu().shouldBe(hidden);
     ActionDropDown.actionButton().click();
-    ActionDropDown.deleteOwnerButton().shouldBe(visible);
+    ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(2);
+    ActionDropDown.editOwner().shouldHave(text("Repository Manager")).shouldBe(visible);
+    ActionDropDown.actions().shouldHaveSize(3);
   }
 
   @Test
   public void testRepositoryManagerSummaryView_delete() {
-    RepositoryManager repositoryManager = tempEntity
-        .newRepositoryManager("1E3F88A4-81E8-49AD-93B8-05C97A32A813");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
 
@@ -1271,8 +1272,8 @@ public class RepositoriesSummaryViewTest
 
     NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
     deleteModal.header().shouldHave(text("Delete Repository Manager"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove 1E3F88A4-81E8-49AD-93B8-05C97A32" +
-        "A813 and 0 descendants. This action cannot be undone."));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
+        repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
 
     deleteModal.submitButton().click();
     deleteModal.shouldNotBe(visible);
@@ -1287,8 +1288,7 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testRepositoryManagerSummaryView_cancelDelete() {
-    RepositoryManager repositoryManager = tempEntity
-        .newRepositoryManager("05D4BA23-7123-437D-992E-CDAC8A102711");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     ActionDropDown.actionButton().click();
@@ -1296,8 +1296,8 @@ public class RepositoriesSummaryViewTest
 
     NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
     deleteModal.header().shouldHave(text("Delete Repository Manager"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove 05D4BA23-7123-437D-992E-CDAC8A10" +
-        "2711 and 0 descendants. This action cannot be undone."));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
+        repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
 
     deleteModal.closeButton().click();
     deleteModal.shouldNotBe(visible);
@@ -1308,6 +1308,71 @@ public class RepositoriesSummaryViewTest
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.children().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_rename() {
+    // create a repository manager
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    // when the user clicks the edit button, the edit dialog should appear
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().click();
+
+    // and the new name is saved
+    String newRepositoryManagerName = "New Name";
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text("Edit Repository Manager"));
+    OwnerEditorDialog.name().val(newRepositoryManagerName);
+    OwnerEditorDialog.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then the name change should be reflected in the summary view
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(newRepositoryManagerName));
+
+    // and the name change should be reflected in the sidebar
+    refreshOrOpen(RepositoriesSummaryPage.url());
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.click();
+    repoManagerList.children().shouldHaveSize(1);
+    repoManagerList.children().get(0).shouldHave(text(newRepositoryManagerName));
+
+    // and the name change should be reflected in the database
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId()).getName()).isEqualTo(newRepositoryManagerName);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_cancelRename() {
+    // create a repository manager
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    // when the user clicks the edit button, the edit dialog should appear
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().click();
+
+    // and the dialog is dismissed without saving
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text("Edit Repository Manager"));
+    OwnerEditorDialog.cancelButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then the name change should be unchanged in the summary view
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(repositoryManager.getInstanceId()));
+
+    // and the name should be unchanged in the sidebar
+    refreshOrOpen(RepositoriesSummaryPage.url());
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.click();
+    repoManagerList.children().shouldHaveSize(1);
+    repoManagerList.children().get(0).shouldHave(text(repositoryManager.getInstanceId()));
+
+    // and the name should be unchanged in the database
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId()).getName()).isEqualTo(
+        repositoryManager.getInstanceId());
   }
 
   @Test

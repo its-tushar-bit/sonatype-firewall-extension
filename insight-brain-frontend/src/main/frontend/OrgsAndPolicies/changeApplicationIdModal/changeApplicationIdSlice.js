@@ -10,8 +10,7 @@ import { validateNonEmpty, validateUsernameCharacters, validateMaxLength } from 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
-import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectOwnerProperties, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectChangeApplicationIdSlice } from './changeApplicationIdSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -50,7 +49,7 @@ const changeApplicationId = createAsyncThunk(
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const currentOwner = selectSelectedOwner(state);
-    const isApp = selectIsApplication(state);
+    const { ownerType } = selectOwnerProperties(state);
     const { newPublicId } = selectChangeApplicationIdSlice(state);
 
     const ownerToSave = {
@@ -59,7 +58,7 @@ const changeApplicationId = createAsyncThunk(
     };
 
     try {
-      await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp }));
+      await dispatch(ownerEditorActions.updateOwner({ ownerToSave, ownerType }));
 
       dispatch(
         ownerSideNavActions.updateOwnersMapWithNewAppId({

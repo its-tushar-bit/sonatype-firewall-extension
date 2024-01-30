@@ -37,6 +37,7 @@ const nameIncludesProprietary = includesNamePart('proprietary');
 const nameIncludesLabel = includesNamePart('label');
 const nameIncludesLicenseThreatGroup = includesNamePart('licenseThreatGroup');
 const nameIncludesSourceControl = includesNamePart('source-control');
+const nameIncludesOnboarding = includesNamePart('onboarding');
 const nameIncludesAccess = includesNamePart('access');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
@@ -54,6 +55,7 @@ export const selectIsProprietary = createSelector(selectRouterStateUrl, nameIncl
 export const selectIsLabel = createSelector(selectRouterStateUrl, nameIncludesLabel);
 export const selectIsLicenseThreatGroup = createSelector(selectRouterStateUrl, nameIncludesLicenseThreatGroup);
 export const selectIsSourceControl = createSelector(selectRouterStateUrl, nameIncludesSourceControl);
+export const selectIsScmOnboarding = createSelector(selectRouterStateUrl, nameIncludesOnboarding);
 export const selectIsAccess = createSelector(selectRouterStateUrl, nameIncludesAccess);
 export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
 // we can access to component details page from application report but also from firewall or repository results view,

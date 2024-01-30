@@ -17,7 +17,11 @@ import {
   selectValidationError,
   selectIsApplication,
 } from './ownerModalSelectors';
-import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsOrganization,
+  selectIsRepositoryManager,
+  selectIsRootOrganization,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -37,9 +41,11 @@ import {
   NxFontAwesomeIcon,
   NxFileUpload,
   NxOverflowTooltip,
+  NxReadOnly,
 } from '@sonatype/react-shared-components';
 import { actions, iconTypes } from './ownerModalSlice';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
+import { selectIsScmOnboarding } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function OwnerModal({ shouldRedirectToNewOrg }) {
   const dispatch = useDispatch();
@@ -58,6 +64,9 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
 
   const isRootOrg = useSelector(selectIsRootOrganization);
   const isApp = useSelector(selectIsApplication);
+  const isOrganization = useSelector(selectIsOrganization);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isScmOnboarding = useSelector(selectIsScmOnboarding);
   const newOwnerName = useSelector(selectNewOwnerName);
   const ownerAppId = useSelector(selectNewOwnerAppId);
   const ownersFlatEntries = useSelector(selectOwnersFlattenEntries);
@@ -126,6 +135,18 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
     </>
   );
 
+  const getHeaderTitle = () => {
+    if (isApp) {
+      return 'Application';
+    }
+    if (isOrganization || isScmOnboarding) {
+      return 'Organization';
+    }
+    if (isRepositoryManager) {
+      return 'Repository Manager';
+    }
+  };
+
   return (
     <>
       {isModalOpen ? (
@@ -141,7 +162,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
             <NxModal.Header>
               <NxH2>
                 {isEditMode ? 'Edit ' : 'New '}
-                {isApp ? 'Application' : 'Organization'}
+                {getHeaderTitle()}
               </NxH2>
               {!isEditMode && (
                 <NxOverflowTooltip>
@@ -153,7 +174,14 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
               )}
             </NxModal.Header>
             <NxModal.Content ref={contentRef}>
-              <NxFormGroup id="editor-owner-name" label={`${isApp ? 'Application' : 'Organization'} Name`} isRequired>
+              {isRepositoryManager && (
+                <NxReadOnly>
+                  <NxReadOnly.Label>Repository Manager ID</NxReadOnly.Label>
+                  <NxReadOnly.Data>{selectedOwner.id}</NxReadOnly.Data>
+                </NxReadOnly>
+              )}
+
+              <NxFormGroup id="editor-owner-name" label={`${getHeaderTitle()} Name`} isRequired>
                 <NxTextInput onChange={onChangeOwnerName} {...newOwnerName} validatable={true} />
               </NxFormGroup>
 
@@ -163,27 +191,29 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
                 </NxFormGroup>
               )}
 
-              <NxFieldset label="Icon" isRequired>
-                <NxRadio name="icon" value="" onChange={setIconType} isChecked={ownerIconType === ''}>
-                  Use a default icon
-                </NxRadio>
-                <NxRadio
-                  name="icon"
-                  value={iconTypes.custom}
-                  onChange={setIconType}
-                  isChecked={ownerIconType === iconTypes.custom}
-                >
-                  Upload a custom icon
-                </NxRadio>
-                <NxRadio
-                  name="icon"
-                  value={iconTypes.robot}
-                  onChange={setIconType}
-                  isChecked={ownerIconType === iconTypes.robot}
-                >
-                  Get a robot
-                </NxRadio>
-              </NxFieldset>
+              {(isApp || isOrganization || isScmOnboarding) && (
+                <NxFieldset label="Icon" isRequired>
+                  <NxRadio name="icon" value="" onChange={setIconType} isChecked={ownerIconType === ''}>
+                    Use a default icon
+                  </NxRadio>
+                  <NxRadio
+                    name="icon"
+                    value={iconTypes.custom}
+                    onChange={setIconType}
+                    isChecked={ownerIconType === iconTypes.custom}
+                  >
+                    Upload a custom icon
+                  </NxRadio>
+                  <NxRadio
+                    name="icon"
+                    value={iconTypes.robot}
+                    onChange={setIconType}
+                    isChecked={ownerIconType === iconTypes.robot}
+                  >
+                    Get a robot
+                  </NxRadio>
+                </NxFieldset>
+              )}
 
               {ownerIconType === iconTypes.robot && (
                 <div id="robot-icon-selector">

@@ -6,24 +6,52 @@
 import axios from 'axios';
 import { omit, pick } from 'ramda';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { getApplicationsUrl, getNLevelOrgUrl, getOrganizationsUrl } from '../util/CLMLocation';
+import { getApplicationsUrl, getNLevelOrgUrl, getOrganizationsUrl, getRepositoryManagerUrl } from '../util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 const REDUCER_NAME = 'ownerActions';
 
 const updateOwner = createAsyncThunk(
   `${REDUCER_NAME}/updateOwner`,
-  ({ ownerToSave, isApp }, { dispatch, rejectWithValue }) => {
+  ({ ownerToSave, ownerType }, { dispatch, rejectWithValue }) => {
     const isNew = !!ownerToSave.isNew;
 
-    const url = isApp ? getApplicationsUrl() : isNew ? getNLevelOrgUrl() : getOrganizationsUrl();
-    const payload = isApp
-      ? pick(['id', 'name', 'publicId', 'organizationId', 'contactInternalName'], ownerToSave)
-      : omit(['isNew'], ownerToSave);
+    function getUpdateUrl() {
+      if (ownerType === 'application') {
+        return getApplicationsUrl();
+      }
+      if (ownerType === 'organization') {
+        return isNew ? getNLevelOrgUrl() : getOrganizationsUrl();
+      }
+      if (ownerType === 'repository_manager') {
+        return getRepositoryManagerUrl(ownerToSave.id, ownerToSave.name);
+      }
+    }
 
-    return axios[isNew ? 'post' : 'put'](url, payload)
+    function getPayload() {
+      if (ownerType === 'application') {
+        return pick(['id', 'name', 'publicId', 'organizationId', 'contactInternalName'], ownerToSave);
+      }
+      if (ownerType === 'organization') {
+        return omit(['isNew'], ownerToSave);
+      }
+      if (ownerType === 'repository_manager') {
+        return null;
+      }
+    }
+
+    function getMethod() {
+      if (ownerType === 'application' || ownerType === 'organization') {
+        return isNew ? 'post' : 'put';
+      }
+      if (ownerType === 'repository_manager') {
+        return 'put';
+      }
+    }
+
+    return axios[getMethod()](getUpdateUrl(), getPayload())
       .then(async ({ data }) => {
-        const updatedOwner = { isNew, [isApp ? 'application' : 'organization']: data };
+        const updatedOwner = { isNew, [ownerType]: data };
         await dispatch(rootActions.loadSelectedOwner(true));
 
         return updatedOwner;

@@ -10,6 +10,8 @@ import {
   getApplicationSummaryUrl,
   getApplicationsUrl,
   getOrganizationsUrl,
+  getRepositoryManagerUrl,
+  getRepositoryManagerById,
 } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
@@ -211,6 +213,39 @@ const editAppState = {
   },
 };
 
+const editRepositoryManagerNameState = {
+  router: {
+    currentParams: { '#': null, repositoryManagerId: 'repositoryManagerId' },
+    currentState: {
+      name: 'management.view.repository_manager',
+      url: '/repository_manager/{repositoryManagerId}',
+    },
+  },
+  orgsAndPolicies: {
+    root: {
+      selectedOwner: {
+        id: 'repositoryManagerId',
+        parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
+        name: 'oldName',
+      },
+    },
+    ownerActions: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: true,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('newRepositoryManagerName'),
+        appId: rscInitialState(''),
+      },
+    },
+  },
+};
+
 describe('ownerModal actions', () => {
   let mock;
 
@@ -380,6 +415,55 @@ describe('ownerModal actions', () => {
     store.dispatch(actions.editCurrentOwner()).then(() => {
       expect(mock.history.put.length).toBe(1);
       expect(mock.history.put[0].url).toBe(getApplicationsUrl());
+
+      const actions = store.getActions();
+
+      expect(actions.length).toBe(6);
+      expect(actions).toHaveActionTypesInOrder([
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/fulfilled',
+        'ownerActions/updateOwner/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
+      ]);
+
+      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+      expect(actions.length).toBe(7);
+      expect(actions).toHaveActionTypesInOrder([
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/fulfilled',
+        'ownerActions/updateOwner/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
+        'ownerActions/ownerModal/closeModal',
+      ]);
+
+      done();
+    });
+  });
+
+  it('handles edit current repository manager name', (done) => {
+    const store = SpecUtil.mockReduxStore(editRepositoryManagerNameState);
+    mock.onPut(getRepositoryManagerUrl('repositoryManagerId', 'newRepositoryManagerName')).reply(200, {
+      id: 'repositoryManagerId',
+      name: 'newRepositoryManagerName',
+    });
+
+    mock.onGet(getRepositoryManagerById('repositoryManagerId')).reply(200, {
+      data: {
+        id: 'applicationOneID',
+        publicId: 'applicationOnePublicID',
+        organizationId: 'organizationOneID',
+        name: 'newAppName',
+      },
+    });
+
+    store.dispatch(actions.editCurrentOwner()).then(() => {
+      expect(mock.history.put.length).toBe(1);
+      expect(mock.history.put[0].url).toBe(getRepositoryManagerUrl('repositoryManagerId', 'newRepositoryManagerName'));
 
       const actions = store.getActions();
 

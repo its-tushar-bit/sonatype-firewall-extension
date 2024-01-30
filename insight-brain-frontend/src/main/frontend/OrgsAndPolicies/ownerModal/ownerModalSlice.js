@@ -22,7 +22,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
-import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnerProperties, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication, selectIsRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectOwnerModalSlice } from './ownerModalSelectors';
@@ -30,6 +30,7 @@ import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { selectIsScmOnboarding } from '../../reduxUiRouter/routerSelectors';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
@@ -180,7 +181,9 @@ const createNewOwner = createAsyncThunk(
       ? appData(ownerName.trimmedValue, appId.trimmedValue, currentOwner)
       : orgData(ownerName.trimmedValue, currentOwner, isRepo);
     try {
-      const updatedOwnerAction = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp: isApplication }));
+      const updatedOwnerAction = await dispatch(
+        ownerEditorActions.updateOwner({ ownerToSave, ownerType: isApplication ? 'application' : 'organization' })
+      );
       const payload = unwrapResult(updatedOwnerAction);
       if (payload) {
         dispatch(
@@ -233,6 +236,8 @@ const editCurrentOwner = createAsyncThunk(
     const currentOwner = selectSelectedOwner(state);
     const { ownerName, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
     const isApp = selectIsApplication(state);
+    const isScmOnboarding = selectIsScmOnboarding(state);
+    const { ownerType } = selectOwnerProperties(state);
 
     try {
       if (ownerName.trimmedValue.toLowerCase() !== currentOwner.name.toLowerCase()) {
@@ -242,31 +247,33 @@ const editCurrentOwner = createAsyncThunk(
           ownerToSave.contactInternalName = currentOwner.contact.internalName;
         }
 
-        await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp }));
+        await dispatch(ownerEditorActions.updateOwner({ ownerToSave, ownerType }));
       }
 
-      const iconUrl = getAddIconUrl(isApp, currentOwner.id);
-      const formData = new FormData();
+      if (ownerType === 'application' || ownerType === 'organization' || isScmOnboarding) {
+        const iconUrl = getAddIconUrl(isApp, currentOwner.id);
+        const formData = new FormData();
 
-      if (ownerIconType === '') {
-        const file = new File([new Blob()], '', {
-          type: 'application/octet-stream',
-        });
-        formData.append('hasRobotSource', false);
-        formData.append('file', file);
+        if (ownerIconType === '') {
+          const file = new File([new Blob()], '', {
+            type: 'application/octet-stream',
+          });
+          formData.append('hasRobotSource', false);
+          formData.append('file', file);
+        }
+
+        if (ownerIconType === iconTypes.robot) {
+          formData.append('hasRobotSource', true);
+          formData.append('hashcode', robotHash);
+        }
+
+        if (ownerIconType === iconTypes.custom) {
+          formData.append('hasRobotSource', false);
+          formData.append('file', ownerIcon.files[0]);
+        }
+
+        await axios.post(iconUrl, formData);
       }
-
-      if (ownerIconType === iconTypes.robot) {
-        formData.append('hasRobotSource', true);
-        formData.append('hashcode', robotHash);
-      }
-
-      if (ownerIconType === iconTypes.custom) {
-        formData.append('hasRobotSource', false);
-        formData.append('file', ownerIcon.files[0]);
-      }
-
-      await axios.post(iconUrl, formData);
 
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => dispatch(stateReload()));
     } catch (err) {

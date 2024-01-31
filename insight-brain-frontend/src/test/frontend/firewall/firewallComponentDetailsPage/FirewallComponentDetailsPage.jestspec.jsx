@@ -1,0 +1,209 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { axiosMockAdapter, fireEvent, render, screen, within } from 'TestRoot/SpecUtil';
+import {
+  getApplicableLabelsUrl,
+  getComponentDetailsUrl,
+  getComponentLabels,
+  getComponentPolicyViolationsUrl,
+  getComponentWaivers,
+} from 'MainRoot/util/CLMLocation';
+
+import { applicableLabelsData, componentDetailsData, labelsData, policyViolationsData } from './data';
+import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import FirewallComponentDetailsPage from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
+import { lensPath, set } from 'ramda';
+
+describe('ComponentDetails', () => {
+  let axiosMock;
+  let defaultPreloadedState;
+  let renderComponent;
+  const repositoryId = 'ff7688303b844b08bd9854d3e53802ce';
+  const componentIdentifier =
+    '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6.1"}}';
+  const componentHash = '684aeca90db2a55234f5';
+  const matchState = 'exact';
+  const pathname = 'ant/ant/1.6.1/ant-1.6.1.jar';
+  const componentDisplayName = 'ant : ant : 1.6.1';
+  const tabId = 'overview';
+  const requestParams = {
+    clientType: 'ci',
+    ownerType: 'repository',
+    ownerId: repositoryId,
+    componentIdentifier,
+    hash: componentHash,
+    matchState,
+  };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    defaultPreloadedState = {
+      router: {
+        currentParams: {
+          repositoryId,
+          componentIdentifier,
+          componentHash,
+          matchState,
+          pathname,
+          componentDisplayName,
+          tabId,
+        },
+        currentState: { name: 'firewall.componentDetailsPage.violations' },
+      },
+    };
+
+    axiosMock.onGet(getComponentDetailsUrl(requestParams)).reply(200, componentDetailsData);
+    axiosMock.onGet(getComponentLabels(repositoryId, componentHash, 'repository')).reply(200, { labelsByOwner: [] });
+    axiosMock.onGet(getComponentPolicyViolationsUrl(pathname, repositoryId)).reply(200, policyViolationsData);
+    axiosMock.onGet(getComponentWaivers('repository', repositoryId, componentHash)).reply(200, { waiversByOwner: [] });
+    axiosMock.onGet(getApplicableLabelsUrl('repository', repositoryId)).reply(200, applicableLabelsData);
+
+    const routerContext = {
+      href: jest.fn(() => '#'),
+      get: jest.fn(() => '#'),
+    };
+
+    renderComponent = (preloadedState = defaultPreloadedState) =>
+      render(
+        <RouterStateContext.Provider value={routerContext}>
+          <FirewallComponentDetailsPage />
+        </RouterStateContext.Provider>,
+        { preloadedState }
+      );
+  });
+
+  it('renders a loading indicator and title', async () => {
+    renderComponent();
+    await screen.findByText('Loading…');
+    const titles = await screen.findAllByText('ant : ant : 1.6.1');
+    const title = titles[0];
+    expect(title.parentNode.tagName).toBe('H1');
+    expect(title).toBeVisible();
+  });
+
+  it('renders an error message', async () => {
+    axiosMock.onGet(getComponentDetailsUrl(requestParams)).reply(500, 'some error');
+    renderComponent();
+    const error = await screen.findAllByRole('alert', /An error occurred loading data. some error/i);
+    expect(error[0]).toBeVisible();
+  });
+
+  describe('Tags', () => {
+    it('does not render application tags, but renders format tags', async () => {
+      renderComponent();
+      const tags = await screen.findAllByTestId('component-details-tag');
+      expect(tags.length).toBe(1);
+      expect(tags[0]).toHaveTextContent('Maven');
+    });
+
+    it('renders application tags', async () => {
+      axiosMock.onGet(getComponentLabels(repositoryId, componentHash, 'repository')).reply(200, labelsData);
+      renderComponent();
+      await screen.findAllByText('ant : ant : 1.6.1');
+      const tags = await screen.findAllByTestId('component-details-tag');
+      expect(tags.length).toBe(2);
+      expect(tags[0]).toHaveTextContent('Maven');
+      expect(tags[1]).toHaveTextContent('Architecture-Blacklisted');
+    });
+  });
+
+  describe('Tabs', () => {
+    it('renders the tabs', async () => {
+      renderComponent();
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs.length).toBe(5);
+      expect(tabs[0]).toHaveTextContent('Overview');
+      expect(tabs[1]).toHaveTextContent('Policy Violations');
+      expect(tabs[2]).toHaveTextContent('Security');
+      expect(tabs[3]).toHaveTextContent('Legal');
+      expect(tabs[4]).toHaveTextContent('Labels');
+    });
+
+    it('renders overview tab', async () => {
+      renderComponent();
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const headers = screen.getAllByRole('heading');
+      expect(headers[1]).toHaveTextContent('Component Information');
+      expect(headers[2]).toHaveTextContent('Risk Remediation');
+      expect(headers[3]).toHaveTextContent('Recommended Versions');
+      expect(headers[4]).toHaveTextContent('Version Explorer');
+      expect(headers[5]).toHaveTextContent('Compare Versions');
+    });
+
+    it('renders policy violations tab', async () => {
+      const tabIdLens = lensPath(['router', 'currentParams', 'tabId']);
+      const newState = set(tabIdLens, 'violations', defaultPreloadedState);
+      renderComponent(newState);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const headers = screen.getAllByRole('heading');
+      expect(headers[1]).toHaveTextContent('Policy Violations');
+    });
+
+    it('renders security violations tab', async () => {
+      const tabIdLens = lensPath(['router', 'currentParams', 'tabId']);
+      const newState = set(tabIdLens, 'security', defaultPreloadedState);
+      renderComponent(newState);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const headers = screen.getAllByRole('heading');
+      expect(headers[1]).toHaveTextContent('Security Violations');
+      expect(headers[2]).toHaveTextContent('Vulnerabilities');
+    });
+
+    it('renders legal tab', async () => {
+      const tabIdLens = lensPath(['router', 'currentParams', 'tabId']);
+      const newState = set(tabIdLens, 'legal', defaultPreloadedState);
+      renderComponent(newState);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const headers = await screen.findAllByRole('heading');
+      expect(headers[1]).toHaveTextContent('Legal Policy Violations');
+    });
+
+    it('renders labels tab', async () => {
+      const tabIdLens = lensPath(['router', 'currentParams', 'tabId']);
+      const newState = set(tabIdLens, 'labels', defaultPreloadedState);
+      renderComponent(newState);
+      const title = await screen.findByText('Manage Labels');
+      expect(title).toBeVisible();
+      const headers = screen.getAllByRole('heading');
+      expect(headers[1]).toHaveTextContent('Manage Labels');
+    });
+  });
+
+  describe('Violations NxDrawer', () => {
+    it('shows the popover when clicking a violation', async () => {
+      const tabIdLens = lensPath(['router', 'currentParams', 'tabId']);
+      const newState = set(tabIdLens, 'violations', defaultPreloadedState);
+      renderComponent(newState);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const violationRows = screen.getAllByRole('row');
+      expect(violationRows.length).toBe(8);
+      fireEvent.click(violationRows[3]);
+      const dialog = screen.getByRole('dialog', { hidden: true });
+      expect(dialog).not.toHaveAttribute('open');
+      await fireEvent.animationEnd(dialog);
+      expect(dialog).toHaveAttribute('open');
+      const dialogTitle = within(dialog).getByText('Violation of Security-Medium');
+      expect(dialogTitle).toBeVisible();
+    });
+  });
+});

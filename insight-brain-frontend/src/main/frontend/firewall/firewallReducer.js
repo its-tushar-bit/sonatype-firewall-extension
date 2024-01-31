@@ -64,11 +64,13 @@ import {
   FIREWALL_POLICIES_WITH_CONDITIONS_FAILED,
   FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED,
   FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED,
+  FIREWALL_SET_SELECTED_POLICY_ID,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
-import { pathSet } from '../util/jsUtil';
+import { pathSet, propSet } from '../util/jsUtil';
 
 export const initialState = Object.freeze({
+  selectedPolicyId: null,
   showWelcomeModal: false,
   cip: Object.freeze({
     showCipModal: false,
@@ -83,6 +85,10 @@ export const initialState = Object.freeze({
     policyViolations: [],
     isLoadingPolicyViolations: false,
     policyViolationsError: null,
+    firewallPolicyName: null,
+    firewallThreatLevel: null,
+    firewallViolationDetailsError: null,
+    firewallViolationDetailsLoading: false,
     componentLicenses: {
       declaredLicenses: [],
       observedLicenses: [],
@@ -98,8 +104,6 @@ export const initialState = Object.freeze({
     existingWaiversError: null,
     showManageWaiverPage: false,
     violationDetails: [],
-    isLoadViolationDetails: false,
-    violationDetailsError: null,
     hasEditIqPermission: false,
   }),
   viewState: Object.freeze({
@@ -719,34 +723,40 @@ const showManageWaiverPage = (payload, state) => ({
   },
 });
 
-const loadViolationDetailRequested = (_, state) => ({
-  ...state,
-  componentDetailsPage: {
-    ...state.componentDetailsPage,
-    violationDetails: [],
-    isLoadViolationDetails: true,
-    violationDetailsError: null,
-  },
-});
+const loadViolationDetailRequested = (_, state) => {
+  return {
+    ...state,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
+      violationDetails: [],
+      firewallViolationDetailsLoading: true,
+      firewallViolationDetailsError: null,
+    },
+  };
+};
 
-const loadViolationDetailFulfilled = (payload, state) => ({
-  ...state,
-  componentDetailsPage: {
-    ...state.componentDetailsPage,
-    violationDetails: payload,
-    isLoadViolationDetails: false,
-    violationDetailsError: null,
-    hasEditIqPermission: payload?.hasEditIqPermission,
-  },
-});
+const loadViolationDetailFulfilled = (payload, state) => {
+  return {
+    ...state,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
+      violationDetails: payload,
+      hasEditIqPermission: payload?.hasEditIqPermission,
+      firewallPolicyName: payload.policyName,
+      firewallThreatLevel: payload.threatLevel,
+      firewallViolationDetailsLoading: false,
+      firewallViolationDetailsError: null,
+    },
+  };
+};
 
 const loadViolationDetailFailed = (error, state) => ({
   ...state,
   componentDetailsPage: {
     ...state.componentDetailsPage,
     violationDetails: [],
-    isLoadViolationDetails: false,
-    violationDetailsError: error,
+    firewallViolationDetailsError: error,
+    firewallViolationDetailsLoading: false,
   },
 });
 
@@ -852,6 +862,7 @@ const reducerActionMap = {
   [FIREWALL_REEVALUATE_COMPONENT_REQUESTED]: reevaluateComponentRequested,
   [FIREWALL_REEVALUATE_COMPONENT_FULFILLED]: reevaluateComponentFulfilled,
   [FIREWALL_REEVALUATE_COMPONENT_FAILED]: reevaluateComponentFailed,
+  [FIREWALL_SET_SELECTED_POLICY_ID]: propSet('selectedPolicyId'),
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

@@ -308,7 +308,7 @@ describe('componentDetailsSelectors', () => {
     // we need to use the uiRouterState from props because it is passed by context
     // so we mock it here and pass it in as the props second selector argument
     // the router state is used to determine the HREF of next and prev components
-    const uiRouterState = {
+    const uiRouterStateService = {
       href(routeName, { hash }) {
         return `${routeName}.${hash}`;
       },
@@ -321,7 +321,7 @@ describe('componentDetailsSelectors', () => {
         currentPage: 2,
         pageCount: 3,
       };
-      const actual = selectComponentPagination(mockState, { uiRouterState });
+      const actual = selectComponentPagination(mockState, uiRouterStateService);
       expect(actual).toEqual(expected);
     });
 
@@ -341,7 +341,7 @@ describe('componentDetailsSelectors', () => {
         currentPage: 1,
         pageCount: 3,
       };
-      const actual = selectComponentPagination(state, { uiRouterState });
+      const actual = selectComponentPagination(state, uiRouterStateService);
       expect(actual).toEqual(expected);
     });
 
@@ -361,7 +361,7 @@ describe('componentDetailsSelectors', () => {
         currentPage: 3,
         pageCount: 3,
       };
-      const actual = selectComponentPagination(state, { uiRouterState });
+      const actual = selectComponentPagination(state, uiRouterStateService);
       expect(actual).toEqual(expected);
     });
   });

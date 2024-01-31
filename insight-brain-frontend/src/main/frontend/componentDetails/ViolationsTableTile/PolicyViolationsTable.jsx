@@ -16,7 +16,6 @@ import {
 } from '@sonatype/react-shared-components';
 
 import { waiverType } from '../../util/waiverUtils';
-import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
 import PolicyViolationsTableRow, { violationPropTypes } from './PolicyViolationsTableRow';
 
@@ -31,15 +30,14 @@ export default function PolicyViolationsTable({
   loadPolicyViolationsInformation,
   toggleShowViolationsDetailPopover,
   setSelectedPolicyViolationId,
-  showViolationsDetailPopover,
   showComponentWaiversPopover,
   componentName,
   componentNameWithoutVersion,
   waivers,
   toggleComponentWaiversPopover,
+  setViolationsDetailRowClicked,
   waiverToDelete,
   setWaiverToDelete,
-  resetViolationDetails,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -50,7 +48,7 @@ export default function PolicyViolationsTable({
   const containsOldViolations = orderedViolations.some((violation) => isNil(violation.policyViolationId));
 
   const toggleShowViolationsDetail = () => {
-    resetViolationDetails();
+    setViolationsDetailRowClicked();
     toggleShowViolationsDetailPopover();
   };
 
@@ -90,7 +88,6 @@ export default function PolicyViolationsTable({
       </NxTable>
       {!loading && !error && (
         <Fragment>
-          {showViolationsDetailPopover && <PolicyViolationDetailsPopover onClose={toggleShowViolationsDetail} />}
           {showComponentWaiversPopover && (
             <ComponentWaiversPopover
               componentName={componentName}
@@ -111,15 +108,14 @@ PolicyViolationsTable.propTypes = {
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   componentName: PropTypes.string,
   componentNameWithoutVersion: PropTypes.string,
-  showViolationsDetailPopover: PropTypes.bool.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  setViolationsDetailRowClicked: PropTypes.func.isRequired,
   loadPolicyViolationsInformation: PropTypes.func.isRequired,
   violations: PropTypes.arrayOf(PropTypes.shape(violationPropTypes)),
   error: PropTypes.string,
   loading: PropTypes.bool,
   showComponentWaiversPopover: PropTypes.bool.isRequired,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
-  resetViolationDetails: PropTypes.func.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),

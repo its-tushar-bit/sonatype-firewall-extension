@@ -110,6 +110,7 @@
 @use '../violation/transitiveViolationsPage';
 @use '../violation/waiveTransitiveViolationsPopover';
 @use '../violation/requestWaiveTransitiveViolationsPopover';
+@use '../violation/policyViolationConstraintInfo';
 @use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';
 @use '../quarantinedComponentReport/quarantinedComponentReport';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';

@@ -3,42 +3,113 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect } from 'react';
+
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import IqPopover from 'MainRoot/react/IqPopover/IqPopover';
+import { NxDrawer, NxFooter, NxButtonBar, NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
+
 import ViolationPageContainer from 'MainRoot/violation/ViolationPageContainer';
-export default function PolicyViolationDetailsPopover({
-  showPopover,
-  showViolationsDetailPopover,
-  selectPolicyId,
-  savePolicyId,
-}) {
+import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
+import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { useDispatch, useSelector } from 'react-redux';
+import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
+import {
+  selectSelectedPolicyViolation,
+  selectIsViolationsDetailPopoverOpen,
+} from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
+import {
+  selectAddWaiverFromFirewallRedirectionProps,
+  selectFirewallPolicyViolations,
+  selectHasEditIqPermission,
+  selectFirewallIsLoading,
+} from 'MainRoot/firewall/firewallSelectors';
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+
+export default function FirewallPolicyViolationDetailsPopover() {
+  const dispatch = useDispatch();
   const uiRouterState = useRouterState();
 
+  const toggleDrawer = () => dispatch(actions.toggleShowViolationsDetailPopover());
+  const unsetRowClick = () => dispatch(actions.unsetViolationsDetailRowClicked());
+  const unsetShowViolationsDetailPopover = () => dispatch(actions.unsetShowViolationsDetailPopover());
+  const isViolationsDetailPopoverOpen = useSelector(selectIsViolationsDetailPopoverOpen);
+  const isFirewall = useSelector(selectIsFirewall);
+  const selectedPolicyViolation = useSelector(selectSelectedPolicyViolation);
+  const redirectionProps = useSelector(selectAddWaiverFromFirewallRedirectionProps);
+  const { activeWaivers } = useSelector(selectApplicableWaivers);
+  const policyViolations = useSelector(selectFirewallPolicyViolations);
+  const hasPermissionForAppWaivers = useSelector(selectHasEditIqPermission);
+  const loading = useSelector(selectFirewallIsLoading);
+
+  const policyDetail = selectedPolicyViolation
+    ? policyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId)
+    : null;
+
+  const redirectToAddWaiverPage = () => {
+    dispatch(
+      stateGo(`${isFirewall ? 'firewall' : 'repository'}.addWaiver`, {
+        ...redirectionProps,
+        violationId: policyDetail.policyViolationId,
+      })
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      unsetShowViolationsDetailPopover();
+      unsetRowClick();
+    };
+  }, []);
+
   return (
-    <IqPopover size="extra-large" onClose={() => showPopover(false)} id="component-details-policy-violations-popover">
-      <IqPopover.Header
-        id="policy-violation-detail-header"
-        className="policy-violation-detail-header"
-        buttonId="policy-violation-close-btn"
-        onClose={() => showPopover(false)}
-        headerTitle="Violation Details"
-      />
-      <ViolationPageContainer
-        $state={uiRouterState}
-        showViolationsDetailPopover={showViolationsDetailPopover}
-        selectPolicyId={selectPolicyId}
-        savePolicyId={savePolicyId}
-        isFromPolicyViolations
-      />
-    </IqPopover>
+    <NxDrawer
+      id="component-details-policy-violations-popover"
+      aria-labelledby="policy-violation-details-popover-title"
+      open={isViolationsDetailPopoverOpen}
+      onClose={() => {
+        toggleDrawer();
+        unsetRowClick();
+      }}
+      className="policy-violation-detail-header"
+    >
+      <NxDrawer.Header id="component-details-popover-scroll">
+        <NxDrawer.HeaderTitle id="policy-violation-details-popover-title">
+          <span className="policy-violation-details-popover-title">
+            Violation of {selectedPolicyViolation?.policyName}
+          </span>
+          <NxPolicyViolationIndicator policyThreatLevel={selectedPolicyViolation?.policyThreatLevel} />
+        </NxDrawer.HeaderTitle>
+      </NxDrawer.Header>
+      <NxDrawer.Content tabIndex={0}>
+        {isViolationsDetailPopoverOpen && (
+          <ViolationPageContainer
+            $state={uiRouterState}
+            selectPolicyId={selectedPolicyViolation?.policyViolationId}
+            isFromPolicyViolations
+          />
+        )}
+      </NxDrawer.Content>
+      <NxFooter>
+        {!loading ? (
+          <NxButtonBar>
+            {activeWaivers?.length ? (
+              <ActiveWaiversIndicator
+                activeWaiverCount={activeWaivers.length}
+                waived={policyDetail?.waived}
+                showUnapplied
+              />
+            ) : null}
+            <AddOrRequestWaiverButton
+              variant={activeWaivers?.length ? 'secondary' : 'primary'}
+              hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+              isFirewallOrRepository
+              onClick={redirectToAddWaiverPage}
+            />
+          </NxButtonBar>
+        ) : null}
+      </NxFooter>
+    </NxDrawer>
   );
 }
-
-PolicyViolationDetailsPopover.propTypes = {
-  showPopover: PropTypes.func,
-  showViolationsDetailPopover: PropTypes.bool,
-  selectPolicyId: PropTypes.string,
-  savePolicyId: PropTypes.func,
-};

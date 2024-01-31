@@ -85,7 +85,7 @@
       "id": "831468cdf77e4b308dd8a4666b24ee13",
       "name": "Component-Similar",
       "ownerId": "ROOT_ORGANIZATION_ID",
-      "threatLevel": 7,
+      "threatLevel": 5,
       "legacyViolationAllowed": true,
       "constraints": [
         {

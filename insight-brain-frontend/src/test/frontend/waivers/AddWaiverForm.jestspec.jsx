@@ -372,7 +372,11 @@ describe('AddWaiverForm', function () {
     const form = component.find(NxStatefulForm);
 
     expect(customExpiryTimeSection).toExist();
+
+    // Trigger form submission
     form.simulate('submit', { preventDefault: preventDefaultSpy });
+
+    // Check if saveWaiverSpy was called with specific arguments
     expect(saveWaiverSpy).toHaveBeenCalledWith(
       'violationId',
       'application',

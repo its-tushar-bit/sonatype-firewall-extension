@@ -117,6 +117,7 @@ const initState = Object.freeze({
   selectedRootAncestor: null,
   policyTypeFilterEnabled: true,
   isUnknownJs: false,
+  reportParameters: {},
 
   vulnerabilities: null,
   vulnerabilitiesPageEnabled: true,

@@ -5,7 +5,8 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
-import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
+import { selectIsTransitiveViolations, selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
+import { selectTransitiveViolationsData } from 'MainRoot/violation/violationSelectors';
 
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
@@ -38,4 +39,38 @@ export const selectSelectedComponentPolicyViolationId = createSelector(
   prop('selectedPolicyViolationId')
 );
 
+export const selectSelectedComponentPolicyViolation = createSelector(
+  selectSelectedComponentPolicyViolationId,
+  violationsSlice,
+  selectTransitiveViolationsData,
+  selectIsTransitiveViolations,
+  (violationId, violations, transitiveViolations, isTransitiveViolations) =>
+    (isTransitiveViolations ? transitiveViolations : violations)?.find(
+      (violation) => violation.policyViolationId === violationId
+    )
+);
+
 export const selectIsPolicyViolationsLoading = createSelector(selectComponentDetailsViolationsSlice, prop('loading'));
+
+export const selectShowViolationsDetailPopover = createSelector(
+  selectComponentDetailsViolationsSlice,
+  prop('showViolationsDetailPopover')
+);
+
+export const selectViolationsDetailRowClicked = createSelector(
+  selectComponentDetailsViolationsSlice,
+  prop('violationsDetailRowClicked')
+);
+
+export const selectSelectedPolicyViolation = createSelector(
+  selectComponentDetailsViolationsSlice,
+  prop('selectedPolicyViolation')
+);
+
+export const selectIsViolationsDetailPopoverOpen = createSelector(
+  selectShowViolationsDetailPopover,
+  selectViolationsDetailRowClicked,
+  (showViolationsDetailPopover, violationsDetailRowClicked) => {
+    return showViolationsDetailPopover || violationsDetailRowClicked;
+  }
+);

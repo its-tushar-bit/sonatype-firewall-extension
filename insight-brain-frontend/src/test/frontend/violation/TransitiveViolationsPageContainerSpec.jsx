@@ -128,7 +128,6 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('isRequestWaiveTransitiveViolationsOpen', 'someIsRequestWaiveTransitiveViolationsOpen');
     expect(wrapper).toHaveProp('isWaiveTransitiveViolationsOpen', 'someIsWaiveTransitiveViolationsOpen');
     expect(wrapper).toHaveProp('isViewTransitiveViolationWaiversOpen', 'someIsViewTransitiveViolationWaiversOpen');
-    expect(wrapper).toHaveProp('showViolationsDetailPopover', 'someValueToShowThePopover');
     expect(wrapper).toHaveProp('waiverToDelete', 'someWaiverToDelete');
     expect(wrapper).toHaveProp('shouldGoBackToComponentDetails', true);
   });

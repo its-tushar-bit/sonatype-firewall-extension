@@ -618,20 +618,6 @@ describe('FirewallLegalTab', () => {
     expect(reviewObligationsButton).toBeNull();
   });
 
-  it('will show "Violation Details" popover on violation row click', () => {
-    render(<FirewallLegalTab />, { preloadedState });
-    let clickableElement = screen.queryByText(/Luis Policy/);
-    expect(clickableElement).toBeVisible();
-    fireEvent.click(clickableElement);
-    expect(screen.queryByText(/Violation of/)).toBeVisible();
-    expect(screen.queryAllByText(/Luis Policy/)[1]).toBeVisible();
-    expect(screen.queryByText(/Policy Constraint/)).toBeVisible();
-    expect(screen.queryAllByText(/Apache 1 not allowed/)[1]).toBeVisible();
-    expect(screen.queryByText(/is in violation for the following reason\(s\)/)).toBeVisible();
-    expect(screen.queryByText(/Policy Constraint/)).toBeVisible();
-    expect(screen.queryAllByText(/Found 'Apache-1.1' license/)[1]).toBeVisible();
-  });
-
   it('will show "Edit Licenses" popover on Edit button click', async () => {
     render(<FirewallLegalTab />, { preloadedState });
     let editButton;

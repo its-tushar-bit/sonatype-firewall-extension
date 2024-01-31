@@ -21,7 +21,7 @@ import {
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { setWaiverToDelete } from '../waivers/waiverActions';
 
-function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyViolations, deleteWaiver }) {
+function mapStateToProps({ router, transitiveViolations, deleteWaiver, componentDetailsPolicyViolations }) {
   return {
     ...pick(['ownerType', 'ownerId', 'scanId', 'hash'], router.currentParams),
     ...pick(
@@ -36,8 +36,8 @@ function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyV
       ],
       transitiveViolations
     ),
-    showViolationsDetailPopover: componentDetailsPolicyViolations.showViolationsDetailPopover,
     ...pick(['waiverToDelete'], deleteWaiver),
+    ...pick(['showViolationsDetailPopover', 'violationsDetailRowClicked'], componentDetailsPolicyViolations),
     shouldGoBackToComponentDetails: 'applicationReport.policy' !== router.prevState.name,
   };
 }
@@ -54,6 +54,7 @@ const mapDispatchToProps = {
   toggleViewTransitiveViolationWaivers,
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
   toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
+  setViolationsDetailRowClicked: actions.setViolationsDetailRowClicked,
   setWaiverToDelete,
 };
 

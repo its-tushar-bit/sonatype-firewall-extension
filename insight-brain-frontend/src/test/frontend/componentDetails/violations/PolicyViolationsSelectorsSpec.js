@@ -8,7 +8,8 @@ import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
   selectIsPolicyViolationsLoading,
-} from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+  selectSelectedComponentPolicyViolation,
+} from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 describe('policyViolationsSelectors', () => {
   const mainViolation = {
@@ -132,6 +133,57 @@ describe('policyViolationsSelectors', () => {
       };
       const actual2 = selectIsPolicyViolationsLoading(state2);
       expect(actual2).toEqual(false);
+    });
+  });
+
+  describe('selectSelectedComponentPolicyViolation', () => {
+    const violations = [
+      {
+        policyName: 'Some policy name',
+        threatLevel: 10,
+        policyViolationId: 'violationId',
+      },
+    ];
+    const transitiveViolations = [
+      {
+        policyName: 'Some transitive policy name',
+        threatLevel: 2,
+        policyViolationId: 'violationId',
+      },
+    ];
+    const selectedPolicyViolationId = 'violationId';
+
+    it('selects the violation that has been selected from violations slice', () => {
+      const result = selectSelectedComponentPolicyViolation.resultFunc(
+        selectedPolicyViolationId,
+        violations,
+        transitiveViolations,
+        false
+      );
+      expect(result).toEqual({
+        policyName: 'Some policy name',
+        threatLevel: 10,
+        policyViolationId: 'violationId',
+      });
+    });
+
+    it('selects the violation that has been selected from transitive violations slice', () => {
+      const result = selectSelectedComponentPolicyViolation.resultFunc(
+        selectedPolicyViolationId,
+        violations,
+        transitiveViolations,
+        true
+      );
+      expect(result).toEqual({
+        policyName: 'Some transitive policy name',
+        threatLevel: 2,
+        policyViolationId: 'violationId',
+      });
+    });
+
+    it('returns undefined when there is no violation selected', () => {
+      const result = selectSelectedComponentPolicyViolation.resultFunc(null, violations);
+      expect(result).toBeUndefined();
     });
   });
 });

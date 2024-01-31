@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -16,17 +17,21 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationApplicableWaiversInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationApplicableWaiversTab;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfo;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSecurityDetailsInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNavListItem;
@@ -35,21 +40,29 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.textCaseSensitive;
 import static com.codeborne.selenide.Condition.visible;
 
 public class ViolationDetailsTest
@@ -63,6 +76,8 @@ public class ViolationDetailsTest
 
   private PolicyViolation deletedPolicyViolation;
 
+  private PolicyViolation nonSecurityPolicyViolation;
+  
   private PolicyDAO policyDAO;
 
   private PolicyViolationDAO policyViolationDAO;
@@ -113,7 +128,31 @@ public class ViolationDetailsTest
     deletedPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, deletedPolicy);
     policyDAO.delete(deletedPolicy);
 
+    Policy nonSecurityPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "Policy 4",
+            LicenseThreatGroupLevelConditionType.ID, "<=", "1");
+    nonSecurityPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation2, nonSecurityPolicy);
+
     mockHdsResponseForVulnerabilityDetails();
+  }
+
+  private Policy createPolicy(
+          String ownerId,
+          int threatLevel,
+          String name,
+          String conditionType,
+          String operator,
+          String value)
+  {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
+    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
+            conditionType, operator, value);
+    constraint.setConditions(Collections.singletonList(condition));
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(ProxyStageType.ID, FailActionType.ID);
+    return tempEntity.newPolicy(policy);
   }
 
   @Test
@@ -164,9 +203,9 @@ public class ViolationDetailsTest
   public void testDetails_PolicyNoLongerExists() {
     refreshOrOpen(ViolationDetailsPage.url(deletedPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.headerTitle().shouldHave(text("Deleted Policy Policy no longer exists"));
+    PolicyViolationApplicableWaiversTab applicableWaiversTab = new ViolationDetailsPage().applicableWaiversTab();
     tile.policyOwner().shouldHave(text("Policy no longer exists"));
-    tile.waiversIndicator().shouldNotBe(visible);
+    applicableWaiversTab.waiversIndicator().shouldBe(visible).shouldHave(text("Applicable Waivers"));
     tile.manageWaiversButton().shouldNotBe(visible);
   }
 
@@ -201,36 +240,111 @@ public class ViolationDetailsTest
   }
 
   @Test
-  public void testPolicyViolationInfoTiles() {
+  public void testPolicyViolationInfo() {
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationConstraintInfo constraintInfo = violationDetailsPage.policyViolationConstraintInfo();
     PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
         violationDetailsPage.securityVulnerabilityDetailsTile();
 
-    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
-    constraintInfoTile.subheaderTitle().shouldBe(visible)
+    constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfo.subheaderTitle().shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
-    constraintInfoTile.reasons().shouldHaveSize(1);
-    constraintInfoTile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
+    constraintInfo.reasons().shouldHaveSize(1);
+    constraintInfo.reason(0).shouldHave(exactText("sonatype-2017-0507"));
 
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
         .shouldHave(exactText("sonatype-2017-0507"));
   }
 
   @Test
-  public void testPolicyViolationInfoTiles_OtherPolicyViolation() {
+  public void testSecurityPolicyViolationTabTiles() {
+    // Set up a waiver for security violation
+    List<ConstraintFact> constraintFacts = securityPolicyViolation.getConstraintFacts();
+    String policyId = securityPolicyViolation.getPolicyId();
+    String policyName = securityPolicyViolation.getPolicyName();
+    String orgId = application.getParentOwnerId();
+
+    tempEntity.newWaiver(
+            securityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment"
+    );
+
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+
+    SelenideElement vulnerabilityTab = violationDetailsPage.securityVulnerabilityDetailsTab();
+    PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile
+            = violationDetailsPage.securityVulnerabilityDetailsTile();
+    PolicyViolationApplicableWaiversInfoTile applicableWaiversInfoTile
+            = violationDetailsPage.applicableWaiversInfoTile();
+
+    // Check tabs presence
+    vulnerabilityTab.shouldBe(visible).shouldHave(exactText("Vulnerability Details"));
+    waiversTab.shouldBe(visible).shouldHave(textCaseSensitive("1 Applicable Waivers"));
+
+    // Check that default tab (security vulnerability) is displayed and that info is correct.
+    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
+            .shouldHave(exactText("sonatype-2017-0507"));
+    applicableWaiversInfoTile.shouldNotBe(visible);
+
+    // Switch tabs, check visibility
+    waiversTab.click();
+    securityDetailsInfoTile.shouldNotBe(visible);
+    applicableWaiversInfoTile.shouldBe(visible);
+    applicableWaiversInfoTile.waiverListHeader().shouldBe(visible)
+      .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+    applicableWaiversInfoTile.getApplicableWaiversTable().shouldBe(visible);
+    
+    // Switch tabs again
+    vulnerabilityTab.click();
+    securityDetailsInfoTile.shouldBe(visible);
+    applicableWaiversInfoTile.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNonSecurityPolicyApplicableWaiversTile() {
+    // Set up a waiver for security violation
+    List<ConstraintFact> constraintFacts = nonSecurityPolicyViolation.getConstraintFacts();
+    String policyName = nonSecurityPolicyViolation.getPolicyName();
+    String policyId = nonSecurityPolicyViolation.getPolicyId();
+    String orgId = application.getParentOwnerId();
+
+    tempEntity.newWaiver(
+            nonSecurityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment"
+    );
+
+    refreshOrOpen(ViolationDetailsPage.url(nonSecurityPolicyViolation.getId()));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+
+    SelenideElement vulnerabilityTab = violationDetailsPage.securityVulnerabilityDetailsTab();
+    PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
+
+    vulnerabilityTab.shouldNotBe(visible);
+    waiversTab.shouldBe(visible).shouldHave(text("Applicable Waivers"));;
+
+    PolicyViolationApplicableWaiversInfoTile applicableWaiversTile =
+            violationDetailsPage.applicableWaiversInfoTile();
+    applicableWaiversTile.shouldBe(visible);
+    applicableWaiversTile.waiverListHeader().shouldBe(visible)
+            .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+
+    // TODO: CLM-28964 redundant when tabs are always shown.
+  }
+
+  @Test
+  public void testPolicyViolationInfo_OtherPolicyViolation() {
     refreshOrOpen(ViolationDetailsPage.url(otherPolicyViolation.getId()));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationConstraintInfo constraintInfo = violationDetailsPage.policyViolationConstraintInfo();
     PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
         violationDetailsPage.securityVulnerabilityDetailsTile();
 
-    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
-    constraintInfoTile.subheaderTitle().shouldBe(visible)
+    constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfo.subheaderTitle().shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
-    constraintInfoTile.reasons().shouldHaveSize(1);
-    constraintInfoTile.reason(0).shouldHave(exactText("reason"));
+    constraintInfo.reasons().shouldHaveSize(1);
+    constraintInfo.reason(0).shouldHave(exactText("reason"));
 
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldNotBe(visible);
   }
@@ -416,87 +530,43 @@ public class ViolationDetailsTest
   }
 
   @Test
-  public void testRequestWaiver() {
-    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
-
-    detailsTile.manageWaiversButton().shouldBe(visible);
-    detailsTile.manageWaiversButton().click();
-
-    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.requestWaiverButton().shouldBe(visible, enabled).click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.root().shouldBe(visible);
-    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiverPage.root()
-        .shouldHave(text("A waiver request will be sent to the designated approver upon submit, if a webhook event " +
-            "for waiver requests is configured. If you are unsure about the webhook configuration, share the policy " +
-            "violation ID and the curl command with the designated approver."));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
-    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
-    requestWaiverPage.backButton().click();
-  }
-
-  @Test
-  public void testAddWaiver() {
-    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
-
-    detailsTile.manageWaiversButton().shouldBe(visible);
-    detailsTile.manageWaiversButton().click();
-
-    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-
-    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.cancelButton().shouldBe(visible, enabled).click();
-    // clicking cancel takes back to list waivers page
-    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
-    addWaiverPage.artifactName().shouldHave(text("Artifact1"));
-    addWaiverPage.policyName().shouldHave(text("Policy 1"));
-    addWaiverPage.constraintName().shouldHave(text("Test Constraint"));
-    addWaiverPage.comments().setValue("Test Comment");
-    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
-    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    // verify that it was added
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
-    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
-    listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Test Comment"));
-  }
-
-  @Test
   public void testGoDirectlyToRequestWaiver() {
-    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+    try {
+      User developerUser = tempEntity.newUser();
+      tempEntity.newMembershipMapping(
+          Organization.ROOT_ORGANIZATION_ID,
+          Role.DEVELOPER_ROLE_ID,
+          developerUser.getUsername()
+      );
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(developerUser.getUsername(), developerUser.getPassword());
+      refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
 
-    detailsTile.manageWaiversDropdownToggle().shouldBe(visible);
-    detailsTile.manageWaiversDropdownToggle().click();
+      detailsTile.requestWaiverButton().shouldBe(visible);
+      detailsTile.requestWaiverButton().click();
 
-    detailsTile.requestWaiverDropdownButton().shouldBe(visible);
-    detailsTile.requestWaiverDropdownButton().click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
-    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+      RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+      requestWaiverPage.root().shouldBe(visible);
+      requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
+      requestWaiverPage.root()
+          .shouldHave(text("A waiver request will be sent to the designated approver upon submit, if a webhook " +
+              "event for waiver requests is configured. If you are unsure about the webhook configuration, share " +
+              "the policy violation ID and the curl command with the designated approver."));
+      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
+      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
+      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
+      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
+      requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+      requestWaiverPage.backButton().click();
+    }
+    finally {
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      loginAsAdmin();
+    }
   }
 
   @Test
@@ -505,11 +575,8 @@ public class ViolationDetailsTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
 
-    detailsTile.manageWaiversDropdownToggle().shouldBe(visible);
-    detailsTile.manageWaiversDropdownToggle().click();
-
-    detailsTile.addWaiverDropdownButton().shouldBe(visible);
-    detailsTile.addWaiverDropdownButton().click();
+    detailsTile.addWaiverButton().shouldBe(visible);
+    detailsTile.addWaiverButton().click();
 
     waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
     AddWaiverPage addWaiverPage = new AddWaiverPage();
@@ -532,8 +599,77 @@ public class ViolationDetailsTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
 
-    detailsTile.manageWaiversButton().shouldBe(visible);
-    detailsTile.waiversIndicator().shouldBe(visible);
-    detailsTile.waiversIndicator().shouldHave(text("1 Active Waiver"));
+    detailsTile.addWaiverButton().shouldBe(visible);
+    violationDetailsPage.applicableWaiversTab().shouldBe(visible).shouldHave(text("1 Applicable Waivers"));
+  }
+
+  @Test
+  public void testApplicableWaiversTable() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+
+    violationDetailsPage.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTable =
+        violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.headerRow().dateCreated().shouldHave(text("CREATED"));
+    applicableWaiversTable.headerRow().createdBy().shouldHave(text("AUTHOR"));
+    applicableWaiversTable.headerRow().scope().shouldHave(text("SCOPE"));
+    applicableWaiversTable.headerRow().components().shouldHave(text("COMPONENT"));
+    applicableWaiversTable.headerRow().waiverExpiration().shouldHave(text("EXPIRATION"));
+    applicableWaiversTable.headerRow().comments().shouldHave(text("COMMENTS"));
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+    applicableWaiversTable.noWaiversMessage().shouldHave(
+        text("You don't have any waivers: to learn more about waivers you can check our help documentation."));
+
+    violationDetailsPage.detailsTile().addWaiverButton().click();
+    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    final String expectedComment = "Loremipsumdolorsitametconsecteturadipiscingelitseddoeiusmodtempor" +
+        "incididuntutlaboreetdoloremagnaaliquaUtenimadminimveniamquisnostrudexercitationullamco" +
+        "laborisnisiutaliquipexeacommodoconsequatDuisauteiruredolorinreprehenderitinvoluptate" +
+        "velitessecillumdoloreeufugiatnullapariaturExcepteursintoccaecatcupidatatnonproident" +
+        "suntinculpaquiofficiadeseruntmollitanimidestlaborum";
+    addWaiverPage.comments().setValue(expectedComment);
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    violationDetailsPage.applicableWaiversTab().click();
+    applicableWaiversTable = violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.noWaiversMessage().shouldNotBe(visible);
+    applicableWaiversTable.rows().shouldHaveSize(1);
+    applicableWaiversTable.row(1).comments().shouldHave(text(expectedComment));
+
+    eyesWatcher.eyesCheck("Applicable waivers in Violation details");
+  }
+
+  @Test
+  public void testApplicableWaiversTable_delete() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTable =
+        violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+
+    violationDetailsPage.detailsTile().addWaiverButton().click();
+    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    violationDetailsPage.applicableWaiversTab().click();
+    applicableWaiversTable.noWaiversMessage().shouldNotBe(visible);
+    applicableWaiversTable.rows().shouldHaveSize(1);
+
+    applicableWaiversTable.row(1).deleteButton().click();
+    DeleteWaiverModal modal = new DeleteWaiverModal();
+    modal.root().shouldBe(visible);
+    modal.header().shouldHave(text("Delete Waiver"));
+    modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));
+    modal.yesButton().click();
+
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
   }
 }

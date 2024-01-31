@@ -6,22 +6,22 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { map } from 'ramda';
+import classnames from 'classnames';
 
-export default function PolicyViolationConstraintInfoTile(props) {
-  const { constraintViolations, isFirewallContext } = props;
+export default function PolicyViolationConstraintInfo(props) {
+  const { constraintViolations, isFirewallContext, isFromPolicyViolations } = props;
   const { constraintName, reasons, conditions } = constraintViolations[0];
 
   return (
-    <div id="policy-violation-constraint-info-tile" className="nx-tile">
-      <div className="nx-tile-header">
+    <div id="policy-violation-constraint-info">
+      <div className={classnames({ 'nx-tile-header': !isFromPolicyViolations })}>
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Policy Constraint</h2>
+          <h3 className="nx-h3">Policy Constraint</h3>
         </div>
       </div>
-      <div className="nx-tile-content">
+      <div className={classnames({ 'nx-tile-content': !isFromPolicyViolations })}>
         <h3 className="nx-h3">
-          <strong>{constraintName}</strong>{' '}
-          <span className="regular">is in violation for the following reason(s):</span>
+          <span>{constraintName}</span> <span className="regular">is in violation for the following reason(s):</span>
         </h3>
         <div className="nx-list nx-list--bulleted nx-list--violation-reasons">
           <ul id="policy-violation-reasons">
@@ -74,8 +74,9 @@ const constraintViolationPropType = PropTypes.shape({
 
 export const constraintViolationsPropType = PropTypes.arrayOf(constraintViolationPropType);
 
-PolicyViolationConstraintInfoTile.propTypes = {
+PolicyViolationConstraintInfo.propTypes = {
   constraintViolations: constraintViolationsPropType,
   isFirewallContext: PropTypes.bool,
+  isFromPolicyViolations: PropTypes.bool,
   conditions: PropTypes.arrayOf(conditionsPropType),
 };

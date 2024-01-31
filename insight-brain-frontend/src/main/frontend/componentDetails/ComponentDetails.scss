@@ -36,3 +36,16 @@ component-details {
     @include nx-container-helpers.container-horizontal;
   }
 }
+
+.policy-violation-details-popover {
+  &.nx-drawer {
+    width: 740px;
+
+    & .nx-drawer-content {
+      padding: var(--nx-spacing-base);
+    }
+  }
+  &-title {
+    margin-right: var(--nx-spacing-4x);
+  }
+}

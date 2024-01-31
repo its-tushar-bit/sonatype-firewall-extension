@@ -9,13 +9,11 @@ import classnames from 'classnames';
 import { NxTableCell, NxTableRow, NxThreatIndicator, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import FirewallPolicyViolationsWaiverIndicators from './FirewallPolicyViolationsWaiverIndicators';
+import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { useDispatch } from 'react-redux';
 
-export default function FirewallPolicyViolationsTableRow({
-  violation,
-  showProxyState = false,
-  showPopover,
-  savePolicyId,
-}) {
+export default function FirewallPolicyViolationsTableRow({ violation, showProxyState = false }) {
+  const dispatch = useDispatch();
   const { policyThreatLevel, policyName, constraints, policyViolationId, waived } = violation;
   const [constraintFacts] = constraints;
   const conditionFacts = [...constraintFacts.conditions];
@@ -26,10 +24,13 @@ export default function FirewallPolicyViolationsTableRow({
   const rowClassNames = classnames('iq-policy-violation-row', {
     'iq-policy-violation-row--remediated': isRemediated,
   });
-
+  const setViolationsDetailRowClicked = actions.setViolationsDetailRowClicked;
+  const toggleShowViolationsDetailPopover = actions.toggleShowViolationsDetailPopover();
+  const setSelectPolicyViolation = actions.setSelectedPolicyViolation;
   const setPolicyViolationIdToShow = () => {
-    showPopover(true);
-    savePolicyId(policyViolationId);
+    dispatch(setViolationsDetailRowClicked());
+    dispatch(toggleShowViolationsDetailPopover);
+    dispatch(setSelectPolicyViolation({ policyViolationId, policyName, policyThreatLevel }));
   };
 
   return (
@@ -100,6 +101,4 @@ FirewallPolicyViolationsTableRow.propTypes = {
     policyActionTypeId: PropTypes.string,
   }),
   showProxyState: PropTypes.bool,
-  showPopover: PropTypes.func,
-  savePolicyId: PropTypes.func,
 };

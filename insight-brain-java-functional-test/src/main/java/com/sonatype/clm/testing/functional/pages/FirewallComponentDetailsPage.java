@@ -55,7 +55,7 @@ public class FirewallComponentDetailsPage
       String url = (fromFirewallRoute ? "/firewall" : "") + "/repository/" + component.getRepositoryId() + "/component/"
           + componentIdentifierJSONString
           + "/" + component.getHash() + "/" + component.getMatchStateId() + (tabId.isEmpty() ? NO_TAB_ID : "/" + tabId)
-          + "?proprietary=false&pathname=" + component.getPathname();
+          + "?pathname=" + URLEncoder.encode(component.getPathname(), String.valueOf(StandardCharsets.UTF_8));
       return BaseUrl.resolvePageUrl(url);
     }
     catch (UnsupportedEncodingException e) {

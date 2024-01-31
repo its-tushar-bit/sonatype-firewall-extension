@@ -63,6 +63,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -347,14 +348,11 @@ public class TransitiveViolationsTest
   @Test
   public void testPolicyViolationDetails_InitialState() {
     visitPolicyViolationDetailsPopover();
-    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
-    tile.headerTitle().shouldHave(text("Violation of aPolicyX"));
-    ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
-    elements.shouldHaveSize(3);
-    elements.get(0).shouldHave(text("Test Org"));
-    elements.get(1).shouldHave(text("Test App"));
-    elements.get(2).shouldHave(text("g : ZtransitiveY : e : v"));
+    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    policyViolationDetailPopover.headerPopoverTitle().shouldHave(text("Violation of aPolicyX"));
 
     tile.policyType().shouldHave(text("Security"));
     tile.threatLevel().shouldHave(text("10"));
@@ -389,7 +387,7 @@ public class TransitiveViolationsTest
   public void testPolicyViolationDetails_Cancel() {
     PolicyViolationDetailPopover policyViolationDetailPopover = visitPolicyViolationDetailsPopover();
     policyViolationDetailPopover.getCloseButton().click();
-    policyViolationDetailPopover.shouldNotBe(Condition.visible);
+    policyViolationDetailPopover.getElement().waitUntil(disappear, 500 ,50);
   }
 
   @Test

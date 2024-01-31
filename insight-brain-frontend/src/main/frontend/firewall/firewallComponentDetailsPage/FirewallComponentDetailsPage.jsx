@@ -5,7 +5,6 @@
  */
 
 import React, { useEffect } from 'react';
-import * as PropTypes from 'prop-types';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import ComponentDetailsTabs from '../../componentDetails/ComponentDetailsTabs';
 import {
@@ -22,8 +21,20 @@ import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
 import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/legal/FirewallLegalTab';
 import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
+import FirewallPolicyViolationDetailsPopover from './policyViolations/policyViolationsTile/FirewallPolicyViolationDetailsPopover';
+
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectFirewallComponentDetailsPageRouteParams,
+  selectFirewallComponentDetailsPage,
+} from '../firewallSelectors';
+import { selectLabels } from 'MainRoot/componentDetails/componentDetailsSelectors';
+
+import * as firewallActions from '../firewallActions';
+import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
+import { useDispatch, useSelector } from 'react-redux';
 
 export const getEnabledTabs = (componentDetails) => {
   const isUnknown = isUnknownComponent(componentDetails);
@@ -42,19 +53,22 @@ export const getEnabledTabs = (componentDetails) => {
   return tabsConfiguration;
 };
 
-export default function FirewallComponentDetailsPage(props) {
-  const {
-    loadComponentDetails,
-    componentDetailsPageResponseState,
-    onComponentDetailsPageTabChange,
-    routeParams,
-    loadComponentPolicyViolations,
-    loadExistingWaiversData,
-    reevaluateComponent,
-    firewallLoadApplicableLabels,
-    labels,
-    isFirewall,
-  } = props;
+export default function FirewallComponentDetailsPage() {
+  const dispatch = useDispatch();
+  const componentDetailsPageResponseState = useSelector(selectFirewallComponentDetailsPage);
+  const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const labels = useSelector(selectLabels);
+  const isFirewall = useSelector(selectIsFirewall);
+  const loadComponentDetails = (routeParams) => dispatch(firewallActions.loadComponentDetails(routeParams));
+  const loadComponentPolicyViolations = (pathname, repositoryId) =>
+    dispatch(firewallActions.loadComponentPolicyViolations(pathname, repositoryId));
+  const loadExistingWaiversData = (type, repositoryId, componentHash) =>
+    dispatch(firewallActions.loadExistingWaiversData(type, repositoryId, componentHash));
+  const onComponentDetailsPageTabChange = (tabIdToMoveTo) =>
+    dispatch(firewallActions.onComponentDetailsPageTabChange(tabIdToMoveTo));
+  const reevaluateComponent = () => dispatch(firewallActions.reevaluateComponent());
+  const firewallLoadApplicableLabels = () => dispatch(componentDetailsActions.firewallLoadApplicableLabels());
+
   const { tabId, componentDisplayName } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
   const componentCoordinates =
@@ -84,74 +98,52 @@ export default function FirewallComponentDetailsPage(props) {
   };
 
   return (
-    <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
-      <MenuBarBackButton {...backButtonParams} />
-      <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
-        <NxLoadWrapper
-          loading={isLoadingComponentDetails}
-          error={componentDetailsError}
-          retryHandler={() => loadComponentDetails(routeParams)}
-        >
-          {() => (
-            <>
-              <ComponentDetailsHeader>
-                <Title id="component-details-title">{componentCoordinates}</Title>
-                <div className="nx-btn-bar">
-                  <NxTooltip
-                    id="firewall-component-details-page--reevalaute-tooltip"
-                    title="Re-evaluating will check for policy violations. Quarantined components will be released from quarantine if no policy violations causing quarantine are found."
-                    placement="bottom"
-                  >
-                    <NxButton
-                      id="firewall-component-details-page__reevaluate-button"
-                      name="re-evaluate"
-                      variant="tertiary"
-                      onClick={reevaluateComponent}
+    <>
+      <FirewallPolicyViolationDetailsPopover />
+      <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
+        <MenuBarBackButton {...backButtonParams} />
+        <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
+          <NxLoadWrapper
+            loading={isLoadingComponentDetails}
+            error={componentDetailsError}
+            retryHandler={() => loadComponentDetails(routeParams)}
+          >
+            {() => (
+              <>
+                <ComponentDetailsHeader>
+                  <Title id="component-details-title">{componentCoordinates}</Title>
+                  <div className="nx-btn-bar">
+                    <NxTooltip
+                      id="firewall-component-details-page--reevalaute-tooltip"
+                      title="Re-evaluating will check for policy violations. Quarantined components will be released from quarantine if no policy violations causing quarantine are found."
+                      placement="bottom"
                     >
-                      <NxFontAwesomeIcon icon={faSync} />
-                      <span>Re-evaluate Component</span>
-                    </NxButton>
-                  </NxTooltip>
-                </div>
-                <ComponentDetailsReportInfo {...componentDetails?.metadata} />
-                <ComponentDetailsTags format={componentDetails?.componentIdentifier?.format} labels={labels} />
-              </ComponentDetailsHeader>
-            </>
+                      <NxButton
+                        id="firewall-component-details-page__reevaluate-button"
+                        name="re-evaluate"
+                        variant="tertiary"
+                        onClick={reevaluateComponent}
+                      >
+                        <NxFontAwesomeIcon icon={faSync} />
+                        <span>Re-evaluate Component</span>
+                      </NxButton>
+                    </NxTooltip>
+                  </div>
+                  <ComponentDetailsReportInfo {...componentDetails?.metadata} />
+                  <ComponentDetailsTags format={componentDetails?.componentIdentifier?.format} labels={labels} />
+                </ComponentDetailsHeader>
+              </>
+            )}
+          </NxLoadWrapper>
+          {componentDetails && (
+            <ComponentDetailsTabs
+              tabsConfiguration={getEnabledTabs(componentDetails)}
+              onTabChange={handleTabChange}
+              activeTabId={tabId}
+            />
           )}
-        </NxLoadWrapper>
-        {componentDetails && (
-          <ComponentDetailsTabs
-            tabsConfiguration={getEnabledTabs(componentDetails)}
-            onTabChange={handleTabChange}
-            activeTabId={tabId}
-          />
-        )}
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }
-
-FirewallComponentDetailsPage.propTypes = {
-  loadComponentDetails: PropTypes.func,
-  onComponentDetailsPageTabChange: PropTypes.func.isRequired,
-  loadComponentPolicyViolations: PropTypes.func.isRequired,
-  loadExistingWaiversData: PropTypes.func.isRequired,
-  routeParams: PropTypes.shape({
-    repositoryId: PropTypes.string,
-    componentHash: PropTypes.string,
-    matchState: PropTypes.string,
-    tabId: PropTypes.string,
-    componentIdentifier: PropTypes.string,
-    pathname: PropTypes.string,
-    componentDisplayName: PropTypes.string,
-  }).isRequired,
-  componentDetailsPageResponseState: PropTypes.shape({
-    componentDetails: PropTypes.object,
-    isLoadingComponentDetails: PropTypes.bool.isRequired,
-    componentDetailsError: PropTypes.string,
-  }).isRequired,
-  reevaluateComponent: PropTypes.func,
-  firewallLoadApplicableLabels: PropTypes.func,
-  labels: PropTypes.array,
-  isFirewall: PropTypes.bool.isRequired,
-};

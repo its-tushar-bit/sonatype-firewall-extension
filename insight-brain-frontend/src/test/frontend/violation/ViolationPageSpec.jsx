@@ -10,7 +10,8 @@ import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDeta
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationPage from '../../../main/frontend/violation/ViolationPage';
 import SecurityVulnerabilityDetailsTile from '../../../main/frontend/violation/SecurityVulnerabilityDetailsTile';
-import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
+import { NxTab, NxTabs } from '@sonatype/react-shared-components';
+import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 
 describe('ViolationPage', function () {
   let minimalProps,
@@ -279,17 +280,7 @@ describe('ViolationPage', function () {
     expect(tile.prop('stageTypes')).toBe(stageTypes);
     expect(tile.prop('isFirewallContext')).toBe(minimalProps.isFirewallContext);
     expect(tile.prop('policyViolations')).toBe(minimalProps.policyViolations);
-    expect(tile.prop('selectPolicyId')).toBe(minimalProps.selectPolicyId);
     expect(tile.prop('policyDetail')).toEqual(minimalProps.policyDetail);
-  });
-
-  it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function () {
-    const violationDetails = { constraintViolations: 'constraintViolations', isFirewallContext: false };
-    const tile = getShallowComponent({ violationDetails }).find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
-
-    expect(tile).toExist();
-    expect(tile.prop('constraintViolations')).toBe('constraintViolations');
-    expect(tile.prop('isFirewallContext')).toBe(false);
   });
 
   it("renders a SecurityVulnerabilityDetailsTile with correct props if it's a security vulnerability", function () {
@@ -310,7 +301,7 @@ describe('ViolationPage', function () {
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
     expect(tile.prop('error')).toBe('Test Error');
     expect(tile.prop('loading')).toBe(true);
-    expect(tile.prop('showTitle')).toBe(true);
+    expect(tile.prop('showTitle')).toBe(false);
 
     tile = getShallowComponent({
       vulnerabilityDetails,
@@ -395,5 +386,83 @@ describe('ViolationPage', function () {
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
     expect(tile.prop('loading')).toBe(true);
     expect(tile.prop('componentName')).toBe('a : b : c');
+  });
+
+  describe('Tabs with no active waiver', () => {
+    it('renders tabs for security violation', () => {
+      const violationDetails = {
+        policyThreatCategory: 'security',
+      };
+
+      let pageComponent = getShallowComponent({
+        violationDetails,
+      });
+
+      const tabsComp = pageComponent.find(NxTabs);
+      const tabs = pageComponent.find(NxTab);
+      expect(tabsComp).toExist();
+
+      // Note that this doesn't check for visiblity. Just that they are present as descendants of NxTab.
+      expect(tabsComp.find(SecurityVulnerabilityDetailsTile)).toExist();
+      expect(tabsComp.find(ListWaiversTable)).toExist();
+      expect(tabs.length).toBe(2);
+      expect(pageComponent.find('.iq-waiver-indicator-tab').text()).toBe(' Applicable Waivers ');
+    });
+
+    it('renders single tab for non security violations', () => {
+      const violationDetails = {
+        policyThreatCategory: 'license',
+      };
+
+      let pageComponent = getShallowComponent({
+        violationDetails,
+      });
+
+      const tabsComp = pageComponent.find(NxTabs);
+      const tabs = pageComponent.find('.iq-waiver-indicator-tab');
+      expect(tabsComp).toExist();
+      expect(tabs.length).toBe(1);
+      expect(pageComponent.find('.iq-waiver-indicator-tab').text()).toBe(' Applicable Waivers ');
+    });
+  });
+
+  describe('Tabs with active waivers', () => {
+    it('renders tabs for security violation', () => {
+      const violationDetails = {
+        policyThreatCategory: 'security',
+      };
+
+      let pageComponent = getShallowComponent({
+        violationDetails,
+        activeWaivers: [1, 2, 3],
+      });
+
+      const tabsComp = pageComponent.find(NxTabs);
+      const tabs = pageComponent.find(NxTab);
+      expect(tabsComp).toExist();
+
+      // Note that this doesn't check for visiblity. Just that they are present as descendants of NxTab.
+      expect(tabsComp.find(SecurityVulnerabilityDetailsTile)).toExist();
+      expect(tabsComp.find(ListWaiversTable)).toExist();
+      expect(tabs.length).toBe(2);
+      expect(pageComponent.find('.iq-waiver-indicator-tab').text()).toBe('3 Applicable Waivers ');
+    });
+
+    it('renders single tab for non security violations', () => {
+      const violationDetails = {
+        policyThreatCategory: 'license',
+      };
+
+      let pageComponent = getShallowComponent({
+        violationDetails,
+        activeWaivers: [5, 6],
+      });
+
+      const tabsComp = pageComponent.find(NxTabs);
+      const tabs = pageComponent.find('.iq-waiver-indicator-tab');
+      expect(tabsComp).toExist();
+      expect(tabs.length).toBe(1);
+      expect(pageComponent.find('.iq-waiver-indicator-tab').text()).toBe('2 Applicable Waivers ');
+    });
   });
 });

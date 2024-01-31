@@ -11,11 +11,35 @@
 
 #violation-page {
   @include nx-container-helpers.container-vertical;
+  .iq-violations-details-info {
+    margin-top: 0;
+  }
+  .nx-list--violation-reasons:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.nx-drawer .iq-violation-details-popover-section {
+  padding: var(--nx-spacing-6x);
+
+  &.iq-tabs-section {
+    padding-top: var(--nx-spacing-2x);
+
+    .nx-tabs {
+      margin-top: 0;
+    }
+  }
 }
 
 .iq-violation-details {
   .nx-tile-header {
     row-gap: var(--nx-spacing-2x);
+
+    .iq-waiver-indicator--active {
+      color: var(--nx-swatch-green-30);
+      font-weight: 600;
+      margin-right: var(--nx-spacing-base);
+    }
   }
 
   .nx-tile-header__subtitle {
@@ -35,11 +59,9 @@
     }
   }
 
-  .nx-tile-header {
-    &.nx-tile-header--disabled {
-      // Increase padding due to the manage waivers button not being present
-      padding-top: calc(var(--nx-spacing-6x) + var(--nx-spacing-2x) / 2);
-    }
+  .header--disabled {
+    // Increase padding due to the manage waivers button not being present
+    padding-top: calc(var(--nx-spacing-6x) + var(--nx-spacing-2x) / 2);
   }
 
   .nx-tile-header__title {
@@ -53,6 +75,14 @@
       > span {
         color: var(--nx-color-text-disabled);
         margin-left: 11px;
+      }
+    }
+    .nx-h2 {
+      display: flex;
+      align-items: center;
+      .nx-policy-violation-indicator {
+        margin-left: var(--nx-spacing-4x);
+        margin-bottom: 0;
       }
     }
   }
@@ -140,14 +170,30 @@
 }
 
 .nx-grid-col.iq-violation-details__left-details {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
   flex: 0 auto;
 }
 
 .iq-violation-details__right-details {
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+.iq-violation-details__bottom-details {
+  display: flex;
+  justify-content: space-between;
+  &.iq-violation-details__bottom-from-firewall {
+    flex-direction: column;
+  }
+}
+
+.iq-violation-details__reported {
+  display: flex;
+}
+
+.iq-violation-details__first-reported {
+  margin-right: var(--nx-spacing-6x);
 }
 
 .iq-violation-details__policy-owner-icon {
@@ -190,4 +236,16 @@
 
 .iq-waiver-indicator__counter--inactive {
   background-color: var(--nx-color-text-disabled);
+}
+
+.iq-waiver-indicator-tab {
+  > span:first-child {
+    margin-right: var(--nx-spacing-2x);
+  }
+
+  > span {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: baseline;
+  }
 }

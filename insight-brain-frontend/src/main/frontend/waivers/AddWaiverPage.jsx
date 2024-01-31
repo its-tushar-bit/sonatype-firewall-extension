@@ -9,7 +9,7 @@ import { NxSubmitMask } from '@sonatype/react-shared-components';
 
 import LoadWrapper from '../react/LoadWrapper';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
-import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfo';
 import AddWaiverForm, { waiverScopePropTypes } from './AddWaiverForm';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
 import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';

@@ -4,42 +4,43 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import moment from 'moment';
 import { curry, descend, map, prop, sort } from 'ramda';
 
 import {
+  NxButton,
+  NxFontAwesomeIcon,
   NxTable,
   NxTableBody,
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxButton,
-  NxFontAwesomeIcon,
   NxTextLink,
 } from '@sonatype/react-shared-components';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
-import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfo';
 import { Messages } from '../utilAngular/CommonServices';
-import { waiverType, displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
+import { displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
 import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+import { loadApplicableWaivers, setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
+import { selectManageWaiverSlice } from 'MainRoot/waivers/manageWaiversSelectors';
+import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
+import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
+import { selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
 
 export default function ListWaiversTable(props) {
-  const {
-    activeWaivers,
-    expiredWaivers,
-    violationDetails,
-    setWaiverToDelete,
-    loadingApplicableWaivers,
-    loadApplicableWaiversError,
-    reloadApplicableWaivers,
-    unknownComponentName,
-  } = props;
+  const { violationDetails, unknownComponentName } = props;
 
+  const dispatch = useDispatch();
+  const { activeWaivers, expiredWaivers } = useSelector(selectApplicableWaivers);
+  const { loadingApplicableWaivers, loadApplicableWaiversError } = useSelector(selectManageWaiverSlice);
+  const waiverToDelete = useSelector(selectWaiverToDelete);
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({
       'list-waivers-row--expired': isWaiverExpired,
@@ -47,7 +48,7 @@ export default function ListWaiversTable(props) {
     const key = waiver.policyWaiverId;
     return (
       <NxTableRow className={rowClass} key={key}>
-        <NxTableCell className="visual-testing-ignore">
+        <NxTableCell className="iq-waivers-table--create-time visual-testing-ignore">
           {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
         </NxTableCell>
         <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>
@@ -56,7 +57,7 @@ export default function ListWaiversTable(props) {
           {isWaiverAllVersionsOrExact(waiver) ? (
             <ComponentDisplay
               component={violationDetails}
-              truncate={true}
+              truncate={false}
               matcherStrategy={waiver.matcherStrategy}
               displayTextIfUnknown={unknownComponentName}
             />
@@ -64,15 +65,18 @@ export default function ListWaiversTable(props) {
             'All'
           )}
         </NxTableCell>
-        <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
+        <NxTableCell className="iq-waivers-table--expiry-time">
+          {waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}
+        </NxTableCell>
         <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
-        <NxTableCell>
+        <NxTableCell className="iq-waivers-table--delete">
           <div className="nx-btn-bar">
             <NxButton
               variant="icon-only"
+              title="delete"
               key={key}
               className="list-waivers-row__delete-btn"
-              onClick={() => setWaiverToDelete(waiver)}
+              onClick={() => dispatch(setWaiverToDelete(waiver))}
             >
               <NxFontAwesomeIcon icon={faTrashAlt} />
             </NxButton>
@@ -85,43 +89,42 @@ export default function ListWaiversTable(props) {
   const emptyMessage = (
     <span>
       You don&apos;t have any waivers: to learn more about waivers you can check our{' '}
-      <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/waivers">
+      <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/waivers">
         help documentation.
       </NxTextLink>
     </span>
   );
 
   return (
-    <NxTable id="list-waivers-page-waiver-table">
-      <NxTableHead>
-        <NxTableRow>
-          <NxTableCell>CREATED</NxTableCell>
-          <NxTableCell>AUTHOR</NxTableCell>
-          <NxTableCell>SCOPE</NxTableCell>
-          <NxTableCell>COMPONENT</NxTableCell>
-          <NxTableCell>EXPIRATION</NxTableCell>
-          <NxTableCell>COMMENTS</NxTableCell>
-          <NxTableCell> </NxTableCell>
-        </NxTableRow>
-      </NxTableHead>
-      <NxTableBody
-        emptyMessage={emptyMessage}
-        isLoading={loadingApplicableWaivers}
-        error={Messages.getHttpErrorMessage(loadApplicableWaiversError)}
-        retryHandler={reloadApplicableWaivers}
-      >
-        {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
-        {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}
-      </NxTableBody>
-    </NxTable>
+    <>
+      {waiverToDelete && <DeleteWaiverModalContainer />}
+      <NxTable id="list-waivers-table">
+        <NxTableHead>
+          <NxTableRow>
+            <NxTableCell>CREATED</NxTableCell>
+            <NxTableCell>AUTHOR</NxTableCell>
+            <NxTableCell>SCOPE</NxTableCell>
+            <NxTableCell>COMPONENT</NxTableCell>
+            <NxTableCell>EXPIRATION</NxTableCell>
+            <NxTableCell>COMMENTS</NxTableCell>
+            <NxTableCell> </NxTableCell>
+          </NxTableRow>
+        </NxTableHead>
+        <NxTableBody
+          emptyMessage={emptyMessage}
+          isLoading={loadingApplicableWaivers}
+          error={Messages.getHttpErrorMessage(loadApplicableWaiversError)}
+          retryHandler={() => dispatch(loadApplicableWaivers(violationDetails.policyViolationId))}
+        >
+          {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
+          {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}
+        </NxTableBody>
+      </NxTable>
+    </>
   );
 }
 
 ListWaiversTable.propTypes = {
-  activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  setWaiverToDelete: PropTypes.func.isRequired,
-  reloadApplicableWaivers: PropTypes.func.isRequired,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,
@@ -131,7 +134,5 @@ ListWaiversTable.propTypes = {
     filename: PropTypes.string,
     policyViolationId: PropTypes.string.isRequired,
   }),
-  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
-  loadingApplicableWaivers: PropTypes.bool,
   unknownComponentName: PropTypes.string,
 };

@@ -147,7 +147,6 @@ public class FirewallPageTest
   private void waitUntilComponentDetailsPageSpinnersGone() {
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
-    firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
   @Test

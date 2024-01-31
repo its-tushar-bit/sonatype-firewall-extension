@@ -21,20 +21,28 @@ export const waiverMatcherStrategy = {
 export const originNamesForAddRequestPages = {
   // From CIP policy view
   APP_REPORT_CIP: 'applicationReport.policy',
-  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers -> Add Waiver
-  APP_REPORT_VIOLATION_WAIVERS: 'applicationReport.violationWaivers',
-  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   APP_REPORT_COMPONENT_DETAILS: 'applicationReport.componentDetails.violations',
-  // App Report -> Component Details -> Security Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  // App Report -> Component Details -> Security Violations -> Violation Details Popover -> Add Waiver
   APP_REPORT_COMPONENT_DETAILS_SECURITY: 'applicationReport.componentDetails.security',
-  // App Report -> Component Details -> Legal Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  // App Report -> Component Details -> Legal Violations -> Violation Details Popover -> Add Waiver
   APP_REPORT_COMPONENT_DETAILS_LEGAL: 'applicationReport.componentDetails.legal',
-  // Dashboard -> Violations -> Violation Details -> Manage Waivers dropdown -> Add Waiver
+  // Firewall -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
+  FIREWALL_COMPONENT_DETAILS: 'firewall.componentDetailsPage.violations',
+  // Firewall -> Component Details -> Security Violations -> Violation Details Popover -> Add Waiver
+  FIREWALL_COMPONENT_DETAILS_SECURITY: 'firewall.componentDetailsPage.security',
+  // Firewall -> Component Details -> Legal Violations -> Violation Details Popover -> Add Waiver
+  FIREWALL_COMPONENT_DETAILS_LEGAL: 'firewall.componentDetailsPage.legal',
+  // Repository -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
+  REPOSITORY_COMPONENT_DETAILS: 'repository.componentDetailsPage.violations',
+  // Repository -> Component Details -> Security Violations -> Violation Details Popover -> Add Waiver
+  REPOSITORY_COMPONENT_DETAILS_SECURITY: 'repository.componentDetailsPage.security',
+  // Repository -> Component Details -> Legal Violations -> Violation Details Popover -> Add Waiver
+  REPOSITORY_COMPONENT_DETAILS_LEGAL: 'repository.componentDetailsPage.legal',
+  // Dashboard -> Violations -> Violation Details -> Add Waiver
   DASHBOARD_VIOLATIONS_VIEW: 'sidebarView.violation',
-  // Dashboard -> Violations -> Violation Details -> Manage Waivers -> Add Waiver
-  WAIVERS_FOR_VIOLATION: 'listWaivers',
-  FIREWALL_VIOLATION_WAIVERS: 'firewall.violationWaivers',
-  REPOSITORY_VIOLATION_WAIVERS: 'repository.violationWaivers',
+  FIREWALL_VIOLATION_WAIVERS: 'firewall.componentDetailsPage',
+  REPOSITORY_VIOLATION_WAIVERS: 'repository.componentDetailsPage',
 };
 
 export const waiverExpirations = [

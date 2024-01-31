@@ -18,17 +18,19 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
   const showDependencyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
   return (
     <div {...props} className={cx('component-details-header__tags', props.className)}>
-      {!!format && <ComponentFormatTag name={format} />}
+      {!!format && <ComponentFormatTag name={format} data-testid="component-details-tag" />}
       {showDependencyTypeTags && (
         <>
-          {dependencyType && dependencyType !== 'unknown' && <DependencyTypeTag type={dependencyType} />}
-          {isInnerSource && <DependencyTypeTag type="innerSource" />}
+          {dependencyType && dependencyType !== 'unknown' && (
+            <DependencyTypeTag type={dependencyType} data-testid="component-details-tag" />
+          )}
+          {isInnerSource && <DependencyTypeTag type="innerSource" data-testid="component-details-tag" />}
         </>
       )}
       {labels.length > 0 && (
         <>
           {labels.map(({ id, color, label, description }) => (
-            <ComponentLabelTag key={id} color={color} description={description}>
+            <ComponentLabelTag key={id} color={color} description={description} data-testid="component-details-tag">
               {label}
             </ComponentLabelTag>
           ))}

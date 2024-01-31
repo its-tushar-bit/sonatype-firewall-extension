@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -27,19 +26,11 @@ public class WaiverApplierForReport
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
     violationDetailPopover.shouldBe(visible);
 
-    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.shouldBe(visible);
-    waiversForViolationPage.addWaiverButton().click();
+    violationDetailPopover.getAddWaiversButton().shouldBe(visible).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.shouldBe(visible);
     addWaiverPage.saveButton().shouldBe(visible).click();
-
-    waiversForViolationPage.backButton().shouldBe(visible).click();
-    violationDetailPopover.getCloseButton().click();
   }
 
   public static void waiveReportRow(ApplicationReportPage reportPage, int rowNumber) {

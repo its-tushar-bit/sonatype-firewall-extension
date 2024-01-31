@@ -8,7 +8,7 @@ import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
 import firewallCipModalModule from './firewallCipModal/module';
 import firewall from './firewall';
-import FirewallComponentDetailsPageContainer from './firewallComponentDetailsPage/FirewallComponentDetailsPageContainer';
+import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
 
 export default angular
   .module('firewallModule', [firewallCipModalModule.name, 'ngRedux'])
@@ -18,10 +18,7 @@ export default angular
     'firewallAutoUnquarantinePage',
     iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$ngRedux', '$state'])
   )
-  .component(
-    'firewallComponentDetailsPage',
-    iqReact2Angular(FirewallComponentDetailsPageContainer, [], ['$ngRedux', '$state'])
-  )
+  .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {

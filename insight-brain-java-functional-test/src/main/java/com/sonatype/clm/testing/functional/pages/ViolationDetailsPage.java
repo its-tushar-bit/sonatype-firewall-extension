@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -91,12 +92,24 @@ public class ViolationDetailsPage
     return new ViolationDetailsTile(childSelector("#violation-details-tile"));
   }
 
-  public PolicyViolationConstraintInfoTile policyViolationConstraintInfoTile() {
-    return new PolicyViolationConstraintInfoTile(childSelector("#policy-violation-constraint-info-tile"));
+  public PolicyViolationConstraintInfo policyViolationConstraintInfo() {
+    return new PolicyViolationConstraintInfo(childSelector("#policy-violation-constraint-info"));
   }
 
   public PolicyViolationSecurityDetailsInfoTile securityVulnerabilityDetailsTile() {
     return new PolicyViolationSecurityDetailsInfoTile(childSelector("#security-vulnerability-details-tile"));
+  }
+
+  public PolicyViolationApplicableWaiversInfoTile applicableWaiversInfoTile() {
+    return new PolicyViolationApplicableWaiversInfoTile(childSelector("#applicable-waivers-tile"));
+  }
+
+  public SelenideElement securityVulnerabilityDetailsTab() {
+    return child("#violation-security-vulnerability-details-tab");
+  }
+
+  public PolicyViolationApplicableWaiversTab applicableWaiversTab() {
+    return new PolicyViolationApplicableWaiversTab(childSelector("#violation-applicable-waivers-tab"));
   }
 
   public static class ViolationDetailsTile
@@ -155,16 +168,12 @@ public class ViolationDetailsPage
       return child(".nx-segmented-btn__dropdown-btn");
     }
 
-    public SelenideElement addWaiverDropdownButton() {
+    public SelenideElement addWaiverButton() {
       return child("#violation-page-add-waiver");
     }
 
-    public SelenideElement requestWaiverDropdownButton() {
+    public SelenideElement requestWaiverButton() {
       return child("#violation-page-request-waiver");
-    }
-
-    public SelenideElement waiversIndicator() {
-      return child(".iq-waiver-indicator");
     }
   }
 
@@ -188,10 +197,10 @@ public class ViolationDetailsPage
     }
   }
 
-  public class PolicyViolationConstraintInfoTile
-      extends BasicElement<PolicyViolationConstraintInfoTile>
+  public class PolicyViolationConstraintInfo
+      extends BasicElement<PolicyViolationConstraintInfo>
   {
-    private PolicyViolationConstraintInfoTile(String selector) {
+    private PolicyViolationConstraintInfo(String selector) {
       super(selector);
     }
 
@@ -200,7 +209,7 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement subheaderTitle() {
-      return child("h3.nx-h3");
+      return child(".nx-tile-content h3.nx-h3");
     }
 
     public ElementsCollection reasons() {
@@ -221,6 +230,37 @@ public class ViolationDetailsPage
 
     public SelenideElement vulnerabilityDetailsHeader() {
       return child(".iq-vulnerability-details .nx-h2");
+    }
+  }
+
+  public static class PolicyViolationApplicableWaiversInfoTile
+          extends BasicElement<PolicyViolationApplicableWaiversInfoTile>
+  {
+    private final String parentSelector;
+
+    public PolicyViolationApplicableWaiversInfoTile(String selector) {
+      super(selector);
+      parentSelector = selector;
+    }
+
+    public SelenideElement waiverListHeader() {
+      return child(".nx-h3");
+    }
+
+    public ListWaiversTable getApplicableWaiversTable() {
+      return new ListWaiversTable(parentSelector);
+    }
+  }
+
+  public static class PolicyViolationApplicableWaiversTab
+          extends BasicElement<PolicyViolationApplicableWaiversTab>
+  {
+    public PolicyViolationApplicableWaiversTab(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement waiversIndicator() {
+      return child(".iq-waiver-indicator-tab");
     }
   }
 }

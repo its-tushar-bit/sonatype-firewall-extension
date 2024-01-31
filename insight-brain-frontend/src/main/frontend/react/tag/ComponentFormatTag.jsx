@@ -38,14 +38,14 @@ const nameMapping = {
   swift: 'Swift',
 };
 
-export default function ComponentFormatTag({ name }) {
+export default function ComponentFormatTag({ name, ...props }) {
   const routeIconOrNull = propOr(null, name);
   const iconRoute = routeIconOrNull(formatsThatHaveIcon);
   const icon = iconRoute ? <img src={iconRoute} alt="" /> : null;
   const formatName = nameMapping[name] || name;
 
   return (
-    <NxTag className="iq-component-format-tag" aria-label={`Format ${formatName}`}>
+    <NxTag className="iq-component-format-tag" aria-label={`Format ${formatName}`} {...props}>
       {icon}
       <span>{formatName}</span>
     </NxTag>

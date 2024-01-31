@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain.applicationreport;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -17,10 +15,6 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListRow;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -38,7 +32,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,18 +40,14 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyCentricReportWaiverTest
     extends AbstractFunctionalTest
 {
-  public static final int numberOfComponents = 4;
-
   private static final String policyName = "All components";
 
   private static final String scanId = "306e0a923df34c64b836358182b1b902";
@@ -126,70 +115,6 @@ public class PolicyCentricReportWaiverTest
     reportPage.aggregateByComponentToggle().shouldBeOff();
 
     reportPage.resultRow(2).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-  }
-
-  @Test
-  public void testViewComponentPolicyWaivers() throws Exception {
-    createGavViolatingPolicy(app.getOrganizationId());
-
-    evaluator.evaluatePolicy();
-    waiveComponent();
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.comments().setValue("TEST COMMENT");
-    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.should(disappear);
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
-    WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
-    waiverListTable.shouldBe(visible);
-    waiverListTable.rows().shouldHaveSize(1);
-    WaiverListRow existingWaiver = waiverListTable.row(1);
-
-    assertWaiver(existingWaiver, "TEST COMMENT");
-
-    eyesWatcher.eyesCheck("Waivers list");
-
-    existingWaiver.deleteButton().shouldBe(visible).click();
-    DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
-    deleteWaiverModal.root().shouldBe(visible);
-    deleteWaiverModal.yesButton().shouldBe(visible).click();
-    NxSubmitMask.seeAndWaitForDismissal();
-
-    waiverListTable.rows().shouldHaveSize(1);
-    waiverListTable.noWaiversMessage().shouldBe(visible);
-
-    listWaiversPage.addWaiverButton().shouldBe(visible).click();
-
-    // get policy violation id
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
-        "ch.qos.logback", "logback-access", "0.6", "", "jar");
-    String policyViolationId = getViolationForPolicyComponent(policyName, componentIdentifier);
-    waitUntilUrl(AddWaiverPage.url(policyViolationId));
-
-    addWaiverPage.should(appear);
-
-    String longComment = StringUtils.repeat("Long text ", 101);
-    String truncatedLongComment = longComment.substring(0, 1000);
-    addWaiverPage.shouldBe(visible);
-    addWaiverPage.comments().setValue(longComment);
-    scrollIntoView(addWaiverPage.artifactName());
-    eyesWatcher.eyesCheck("Add waiver");
-    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.should(disappear);
-
-    waiverListTable.shouldBe(visible);
-    waiverListTable.rows().shouldHaveSize(1);
-    assertWaiver(waiverListTable.row(1), truncatedLongComment);
-
-    existingWaiver.deleteButton().click();
-    deleteWaiverModal.cancelButton().shouldBe(visible).click();
-    deleteWaiverModal.cancelButton().shouldBe(hidden);
-
-    waiverListTable.rows().shouldHaveSize(1);
-    assertWaiver(waiverListTable.row(1), truncatedLongComment);
   }
 
   @Test
@@ -281,12 +206,6 @@ public class PolicyCentricReportWaiverTest
                 "1 Waived Violation", "1 Waived Violation", "None"));
   }
 
-  private void assertWaiver(WaiverListRow waiver, String comment) {
-    waiver.dateCreated().shouldHave(text(new SimpleDateFormat("yyyy-MM-dd").format(new Date())));
-    waiver.scope().shouldHave(text(app.getName()));
-    waiver.comments().shouldHave(text(comment));
-  }
-
   private void waiveComponent() {
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
@@ -304,11 +223,7 @@ public class PolicyCentricReportWaiverTest
     row.click();
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
     violationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
-    manageWaiversButton.click();
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.shouldBe(visible);
-    waiversForViolationPage.addWaiverButton().click();
+    violationDetailPopover.getAddWaiversButton().click();
 
     // get policy violation id
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(

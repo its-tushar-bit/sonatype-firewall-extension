@@ -4,25 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import ViolationDetailsSubtitle from 'MainRoot/violation/ViolationDetailsSubtitle';
 import StageDisplay from 'MainRoot/violation/StageDisplay';
 import { pathSet } from 'MainRoot/util/jsUtil';
-import { NxStatefulSegmentedButton, NxTooltip, NxTextLink } from '@sonatype/react-shared-components';
-import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
+import { NxTextLink, NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
+import PolicyViolationConstraintInfo from 'MainRoot/violation/PolicyViolationConstraintInfo';
 
 describe('ViolationDetailsTile', function () {
   let timeAgoMock,
     mockDate,
     dateCreatorMock,
-    getOwnerImageUrlMock,
     ViolationDetailsTile,
     stateGetMock,
     stateHrefMock,
     minimalProps,
     stateGoMock,
     goToWaiversMock,
-    getShallowComponent;
+    getShallowComponent,
+    getMountedComponent,
+    getMountedComponentWithAutoClean,
+    mountedComponent;
 
   beforeEach(function () {
     let timeAgoCallCounter = 0;
@@ -38,7 +39,6 @@ describe('ViolationDetailsTile', function () {
     dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
     stateGoMock = jasmine.createSpy('stateGo');
     goToWaiversMock = jasmine.createSpy('stateGo');
-    getOwnerImageUrlMock = jasmine.createSpy('getOwnerImageUrl').and.returnValue('/rest/icon');
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
     stateHrefMock = jasmine.createSpy('$state.href').and.returnValue('#/foo');
     minimalProps = {
@@ -77,7 +77,7 @@ describe('ViolationDetailsTile', function () {
         applicationPublicId: 'app1',
         organizationName: 'Org 1',
         applicationName: 'App 1',
-        displayName: { foo: 'bar' },
+        displayName: { foo: 'bar', parts: [{ value: 'foo' }] },
         filenames: ['/foo/bar'],
         waived: true,
       },
@@ -89,6 +89,7 @@ describe('ViolationDetailsTile', function () {
       applicationPublicId: 'app1',
       stateGo: stateGoMock,
       goToWaivers: goToWaiversMock,
+      isFromPolicyViolations: false,
       activeWaivers: [],
       isFirewallContext: false,
       policyDetail: {
@@ -133,16 +134,33 @@ describe('ViolationDetailsTile', function () {
         lastReported: '2022-08-10T13:35:40.641+03:00',
       },
       hasPermissionForAppWaivers: true,
+      constraintViolations: [
+        {
+          constraintName: 'Constraint 1',
+          reasons: [],
+        },
+        {
+          constraintName: 'Constraint 2',
+          reasons: [],
+        },
+      ],
     };
 
     ViolationDetailsTile = require('inject-loader!../../../main/frontend/violation/ViolationDetailsTile')({
       '../utilAngular/CommonServices': { timeAgo: timeAgoMock },
-      '../utilAngular/CLMContextLocation': {
-        getOwnerImageUrl: getOwnerImageUrlMock,
-      },
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationDetailsTile, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ViolationDetailsTile, minimalProps);
+    getMountedComponentWithAutoClean = (additionalProps) => {
+      mountedComponent = getMountedComponent(additionalProps);
+      return mountedComponent;
+    };
+  });
+
+  afterEach(() => {
+    mountedComponent?.unmount();
+    mountedComponent = null;
   });
 
   it('renders an nx-tile with the iq-violation-details class', function () {
@@ -150,68 +168,69 @@ describe('ViolationDetailsTile', function () {
   });
 
   describe('header', function () {
-    it('renders a ViolationExclamation and "Violation of (policyName)"', function () {
-      const header = getShallowComponent().find('.nx-tile-header .nx-tile-header__title h2'),
-        exclamation = header.find(ViolationExclamation);
-
-      expect(exclamation).toExist();
-      expect(header).toHaveText('<ViolationExclamation />Violation of pol');
+    it('renders a NxPolicyViolationIndicator and "Violation of (policyName)"', function () {
+      const header = getMountedComponentWithAutoClean();
+      const policyViolationIndicator = header.find(NxPolicyViolationIndicator);
+      expect(policyViolationIndicator.exists()).toBe(true);
+      expect(header.text().trim()).toContain('Violation of pol');
     });
 
     it('appends "Policy no longer exists" to the title when policyOwner prop has null ownerId', function () {
-      const component = getShallowComponent(
+      const component = getMountedComponentWithAutoClean(
           pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
         ),
         header = component.find('.nx-tile-header .nx-tile-header__title'),
         texts = header.find('span');
-
       expect(texts.at(0)).toHaveText('Violation of pol');
-      expect(texts.at(1)).toHaveText('Policy no longer exists');
+      expect(texts.at(3)).toHaveText('Policy no longer exists');
     });
 
-    it('sets the correct threatLevelCategory on the ViolationExclamation', function () {
-      expect(getShallowComponent().find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'critical');
+    it('sets the correct threatLevelCategory on the NxPolicyViolationIndicator', function () {
+      expect(getMountedComponentWithAutoClean().find(NxPolicyViolationIndicator)).toHaveProp(
+        'threatLevelCategory',
+        'critical'
+      );
       expect(
-        getShallowComponent({
+        getMountedComponentWithAutoClean({
           violationDetails: {
             ...minimalProps.violationDetails,
             threatLevel: 7,
           },
-        }).find(ViolationExclamation)
+        }).find(NxPolicyViolationIndicator)
       ).toHaveProp('threatLevelCategory', 'severe');
       expect(
-        getShallowComponent({
+        getMountedComponentWithAutoClean({
           violationDetails: {
             ...minimalProps.violationDetails,
             threatLevel: 3,
           },
-        }).find(ViolationExclamation)
+        }).find(NxPolicyViolationIndicator)
       ).toHaveProp('threatLevelCategory', 'moderate');
       expect(
-        getShallowComponent({
+        getMountedComponentWithAutoClean({
           violationDetails: {
             ...minimalProps.violationDetails,
             threatLevel: 1,
           },
-        }).find(ViolationExclamation)
+        }).find(NxPolicyViolationIndicator)
       ).toHaveProp('threatLevelCategory', 'low');
       expect(
-        getShallowComponent({
+        getMountedComponentWithAutoClean({
           violationDetails: {
             ...minimalProps.violationDetails,
             threatLevel: 0,
           },
-        }).find(ViolationExclamation)
+        }).find(NxPolicyViolationIndicator)
       ).toHaveProp('threatLevelCategory', 'none');
       expect(
-        getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)).find(
-          ViolationExclamation
-        )
-      ).toHaveProp('threatLevelCategory', 'disabled');
+        getMountedComponentWithAutoClean(
+          pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
+        ).find(NxPolicyViolationIndicator)
+      ).toHaveProp('threatLevelCategory', null);
     });
 
     it('renders the policy name in an <em>', function () {
-      expect(getShallowComponent().find('.nx-tile-header__title h2 em')).toHaveText('pol');
+      expect(getMountedComponentWithAutoClean().find('.nx-tile-header__title h2 em')).toHaveText('pol');
     });
 
     it('renders a ViolationDetailsSubtitle', function () {
@@ -224,53 +243,8 @@ describe('ViolationDetailsTile', function () {
       expect(subtitle).toHaveProp('filenames', minimalProps.violationDetails.filenames);
     });
 
-    it('renders an nx-tile__actions section with a Manage Waivers button', function () {
-      const actions = getShallowComponent().find('.nx-tile__actions'),
-        manageWaiversButton = actions.find(NxStatefulSegmentedButton);
-
-      expect(actions).toExist();
-      expect(manageWaiversButton).toExist();
-      expect(manageWaiversButton).toHaveProp('buttonContent', 'Manage Waivers');
-
-      manageWaiversButton.simulate('click');
-      expect(stateGoMock).toHaveBeenCalledWith('listWaivers', {
-        violationId: 'selectedViolationId',
-        type: 'violation',
-        sidebarReference: 'filter',
-      });
-      expect(goToWaiversMock).toHaveBeenCalledTimes(0);
-    });
-
-    it('renders an nx-tile__actions section with a Manage Waivers button calling the goToWaivers func', function () {
-      const actions = getShallowComponent({
-          isFromPolicyViolations: true,
-        }).find('.nx-tile__actions'),
-        manageWaiversButton = actions.find(NxStatefulSegmentedButton);
-
-      expect(actions).toExist();
-      expect(manageWaiversButton).toExist();
-      expect(manageWaiversButton).toHaveProp('buttonContent', 'Manage Waivers');
-
-      manageWaiversButton.simulate('click');
-      expect(goToWaiversMock).toHaveBeenCalledWith('selectedViolationId');
-      expect(stateGoMock).toHaveBeenCalledTimes(0);
-    });
-
-    it('renders a Manage Waivers segmented button with Add Waiver and Request Waiver menu buttons', function () {
-      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
-        addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver'),
-        requestWaiverButton = manageWaiversButton.children().at(1);
-
-      expect(manageWaiversButton).toExist();
-      expect(addWaiverButton).toExist();
-      expect(requestWaiverButton).toExist();
-      expect(addWaiverButton.text()).toContain('Add Waiver');
-      expect(requestWaiverButton.text()).toContain('Request Waiver');
-    });
-
     it('renders an Add Waiver menu button that navigates to the Add Waiver page when clicked', function () {
-      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
-        addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver');
+      const addWaiverButton = getShallowComponent().find('#violation-page-add-waiver');
 
       expect(addWaiverButton).toExist();
 
@@ -288,33 +262,15 @@ describe('ViolationDetailsTile', function () {
         });
       });
 
-      it('renders a Manage Waivers segmented button with a disabled Add Waiver button', function () {
-        const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton);
-        const addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver');
-        const addWaiverTooltip = manageWaiversButton.find(NxTooltip);
+      it('renders an Request Waiver menu button that navigates to the Add Waiver page when clicked', function () {
+        const requestWaiverButton = getShallowComponent().find('#violation-page-request-waiver');
 
-        expect(manageWaiversButton).toExist();
-        expect(addWaiverButton).toExist();
-        expect(addWaiverTooltip).toExist();
-        expect(addWaiverButton.text()).toContain('Add Waiver');
-        expect(addWaiverTooltip).toHaveProp('title', 'Insufficient permissions to Add Waiver');
+        expect(requestWaiverButton).toExist();
 
-        addWaiverButton.simulate('click');
-        expect(stateGoMock).not.toHaveBeenCalledWith('addWaiver', {
+        requestWaiverButton.simulate('click');
+        expect(stateGoMock).toHaveBeenCalledWith('requestWaiver', {
           violationId: 'selectedViolationId',
         });
-      });
-    });
-
-    it('renders an Add Waiver menu button that navigates to the Request Waiver page when clicked', function () {
-      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
-        requestWaiverButton = manageWaiversButton.children().at(1);
-
-      expect(requestWaiverButton).toExist();
-
-      requestWaiverButton.simulate('click');
-      expect(stateGoMock).toHaveBeenCalledWith('requestWaiver', {
-        violationId: 'selectedViolationId',
       });
     });
 
@@ -326,67 +282,6 @@ describe('ViolationDetailsTile', function () {
     it('hide header subtitle if isFirewallContext active', () => {
       const component = getShallowComponent({ isFirewallContext: true });
       expect(component.find(ViolationDetailsSubtitle)).not.toExist();
-    });
-
-    describe('active waivers counter', function () {
-      it('renders as inactive when there are no active waivers for the violation', function () {
-        const componentWithZeroWaivers = getShallowComponent(),
-          waiverIndicator = componentWithZeroWaivers.find(ActiveWaiversIndicator);
-
-        expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('activeWaiverCount', 0);
-        expect(waiverIndicator).toHaveProp('waived', true);
-      });
-
-      it('renders as active and singular when there is only one active waiver for the violation', function () {
-        const componentWithOneWaiver = getShallowComponent({
-            activeWaivers: ['an active waiver'],
-            isFromPolicyViolations: true,
-          }),
-          waiverIndicator = componentWithOneWaiver.find(ActiveWaiversIndicator);
-
-        expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('activeWaiverCount', 1);
-        expect(waiverIndicator).toHaveProp('waived', true);
-        expect(waiverIndicator).toHaveProp('showUnapplied', true);
-      });
-
-      it('renders as active and unapplied when waived is false and showUnapplied is set', function () {
-        const componentWithOneWaiver = getShallowComponent({
-            activeWaivers: ['an active waiver'],
-
-            violationDetails: { ...minimalProps.violationDetails, waived: false },
-          }),
-          waiverIndicator = componentWithOneWaiver.find(ActiveWaiversIndicator);
-
-        expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('activeWaiverCount', 1);
-        expect(waiverIndicator).toHaveProp('waived', false);
-      });
-
-      it('renders as active and plural when there is more than one active waiver for the violation', function () {
-        const componentWithSeveralWaiver = getShallowComponent({
-            activeWaivers: ['an active waiver', 'and an another one', 'and another one bites the dust!'],
-          }),
-          waiverIndicator = componentWithSeveralWaiver.find(ActiveWaiversIndicator);
-        expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('activeWaiverCount', 3);
-        expect(waiverIndicator).toHaveProp('waived', true);
-      });
-
-      it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function () {
-        const component = getShallowComponent(
-          pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
-        );
-        expect(component.find('.nx-tile__actions')).not.toExist();
-      });
-
-      it('does not render active waiver indicator when policyOwner prop has null ownerId', function () {
-        const component = getShallowComponent(
-          pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
-        );
-        expect(component.find(ActiveWaiversIndicator)).not.toExist();
-      });
     });
   });
 
@@ -515,18 +410,11 @@ describe('ViolationDetailsTile', function () {
   });
 
   describe('policy owner section', function () {
-    it('contains a dt and a dd with the owner icon and link', function () {
+    it('contains a dt and a dd with a link', function () {
       const component = getShallowComponent().find('.iq-violation-details__policy-owner');
 
       expect(component.find('dt')).toExist();
-      expect(component.find('dd img')).toExist();
       expect(component.find('dd').find(NxTextLink)).toExist();
-    });
-
-    it('sets the iq-violation-details__policy-owner-icon class on the icon', function () {
-      expect(getShallowComponent().find('.iq-violation-details__policy-owner img')).toHaveClassName(
-        'iq-violation-details__policy-owner-icon'
-      );
     });
 
     it('displays the ownerName within the link', function () {
@@ -542,15 +430,6 @@ describe('ViolationDetailsTile', function () {
         expect(stateGetMock).toHaveBeenCalledWith('management.view.organization');
         expect(stateHrefMock).toHaveBeenCalledWith('theState', {
           organizationId: '1234',
-        });
-      });
-
-      it('sets the icon URL using CLMContextLocation.getOwnerImageUrl', function () {
-        expect(getShallowComponent().find('.iq-violation-details__policy-owner img')).toHaveProp('src', '/rest/icon');
-
-        expect(getOwnerImageUrlMock).toHaveBeenCalledWith({
-          publicId: undefined,
-          id: '1234',
         });
       });
     });
@@ -580,18 +459,6 @@ describe('ViolationDetailsTile', function () {
           applicationPublicId: 'app2',
         });
       });
-
-      it('sets the icon URL using CLMContextLocation.getOwnerImageUrl', function () {
-        expect(getComponentWithAppProps().find('.iq-violation-details__policy-owner img')).toHaveProp(
-          'src',
-          '/rest/icon'
-        );
-
-        expect(getOwnerImageUrlMock).toHaveBeenCalledWith({
-          publicId: 'app2',
-          id: '1234',
-        });
-      });
     });
 
     describe('when policyOwner prop has null ownerId', function () {
@@ -601,6 +468,16 @@ describe('ViolationDetailsTile', function () {
         );
         expect(component.find('.iq-violation-details__policy-owner dd')).toHaveText('Policy no longer exists');
       });
+    });
+  });
+
+  describe('policy violations constraint info', function () {
+    it('renders policy violation constraint info component with the right props', function () {
+      const policyViolationConstraintInfo = getShallowComponent().find(PolicyViolationConstraintInfo);
+
+      expect(policyViolationConstraintInfo).toExist();
+      expect(policyViolationConstraintInfo).toHaveProp('isFirewallContext', minimalProps.isFirewallContext);
+      expect(policyViolationConstraintInfo).toHaveProp('constraintViolations', minimalProps.constraintViolations);
     });
   });
 });

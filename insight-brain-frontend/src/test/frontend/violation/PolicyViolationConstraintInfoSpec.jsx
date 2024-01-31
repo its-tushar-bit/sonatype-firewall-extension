@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
+import PolicyViolationConstraintInfo from 'MainRoot/violation/PolicyViolationConstraintInfo';
 
-describe('PolicyViolationConstraintInfoTile', function () {
+describe('PolicyViolationConstraintInfo', function () {
   const minimalProps = {
     isFirewallContext: false,
     constraintViolations: [
@@ -17,10 +17,10 @@ describe('PolicyViolationConstraintInfoTile', function () {
       },
     ],
   };
-  const getShallowComponent = enzymeUtils.getShallowComponent(PolicyViolationConstraintInfoTile, minimalProps);
+  const getShallowComponent = enzymeUtils.getShallowComponent(PolicyViolationConstraintInfo, minimalProps);
 
   it('renders Policy Constraint title', function () {
-    const header = getShallowComponent().find('.nx-tile-header .nx-tile-header__title h2');
+    const header = getShallowComponent().find('.nx-tile-header .nx-tile-header__title h3');
     expect(header).toHaveText('Policy Constraint');
   });
 

@@ -7,6 +7,7 @@ import reduce from '../../../main/frontend/firewall/firewallReducer';
 
 describe('firewallReducer', function () {
   const defaultState = Object.freeze({
+    selectedPolicyId: null,
     showWelcomeModal: false,
     cip: Object.freeze({
       showCipModal: false,
@@ -16,11 +17,15 @@ describe('firewallReducer', function () {
     }),
     componentDetailsPage: Object.freeze({
       isLoadingComponentDetails: false,
+      firewallViolationDetailsError: null,
       componentDetails: null,
       componentDetailsError: null,
       policyViolations: [],
       isLoadingPolicyViolations: false,
       policyViolationsError: null,
+      firewallPolicyName: null,
+      firewallThreatLevel: null,
+      firewallViolationDetailsLoading: false,
       componentLicenses: {
         declaredLicenses: [],
         observedLicenses: [],
@@ -36,8 +41,6 @@ describe('firewallReducer', function () {
       existingWaiversError: null,
       showManageWaiverPage: false,
       violationDetails: [],
-      isLoadViolationDetails: false,
-      violationDetailsError: null,
       hasEditIqPermission: false,
     }),
     viewState: Object.freeze({
@@ -1352,6 +1355,7 @@ describe('firewallReducer', function () {
           policyExistingWaivers: null,
           isLoadExistingWaivers: true,
           existingWaiversError: null,
+          firewallViolationDetailsLoading: false,
         },
       };
 
@@ -1386,12 +1390,12 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED action', function () {
-    it('updates the state and sets isLoadViolationDetails to true', () => {
+    it('updates the state and sets firewallViolationDetailsLoading to true', () => {
       let minimumState = {
         componentDetailsPage: {
+          firewallViolationDetailsLoading: true,
+          firewallViolationDetailsError: null,
           violationDetails: [],
-          isLoadViolationDetails: false,
-          violationDetailsError: null,
         },
       };
 
@@ -1400,8 +1404,8 @@ describe('firewallReducer', function () {
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
           violationDetails: [],
-          isLoadViolationDetails: true,
-          violationDetailsError: null,
+          firewallViolationDetailsLoading: true,
+          firewallViolationDetailsError: null,
         },
       });
     });
@@ -1411,9 +1415,11 @@ describe('firewallReducer', function () {
     it('updates the state and sets selected violation details with the response results', () => {
       let minimumState = {
         componentDetailsPage: {
+          firewallPolicyName: undefined,
+          firewallThreatLevel: undefined,
+          firewallViolationDetailsLoading: false,
+          firewallViolationDetailsError: null,
           violationDetails: [],
-          isLoadViolationDetails: false,
-          violationDetailsError: null,
         },
       };
 
@@ -1424,9 +1430,9 @@ describe('firewallReducer', function () {
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
           violationDetails: { data: 'payload' },
-          isLoadViolationDetails: false,
-          violationDetailsError: null,
           hasEditIqPermission: undefined,
+          firewallViolationDetailsLoading: false,
+          firewallViolationDetailsError: null,
         },
       });
     });
@@ -1437,8 +1443,8 @@ describe('firewallReducer', function () {
       let minimumState = {
         componentDetailsPage: {
           violationDetails: [],
-          isLoadViolationDetails: false,
-          violationDetailsError: null,
+          firewallViolationDetailsLoading: false,
+          firewallViolationDetailsError: 'Error',
         },
       };
 
@@ -1447,8 +1453,8 @@ describe('firewallReducer', function () {
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
           violationDetails: [],
-          isLoadViolationDetails: false,
-          violationDetailsError: 'Error',
+          firewallViolationDetailsError: 'Error',
+          firewallViolationDetailsLoading: false,
         },
       });
     });

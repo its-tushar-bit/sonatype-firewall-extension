@@ -196,9 +196,9 @@ function IqSidebarNav(props) {
                     NEW
                     <span className="iq-enterprise-reporting-nav-link__tooltip-only-text">)</span>
                   </span>
-              </>
-            }
-            href={enterpriseReportingHref}
+                </>
+              }
+              href={enterpriseReportingHref}
             />
           )}
           {isDeveloperDashboardEnabled && (

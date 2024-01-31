@@ -5,10 +5,10 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import ComponentDetailsContainer from './ComponentDetailsContainer';
+import ComponentDetails from './ComponentDetails';
 
 const componentDetailsModule = angular
   .module('componentDetails', ['ui.router'])
-  .component('componentDetails', iqReact2Angular(ComponentDetailsContainer, [], ['$ngRedux', '$state']));
+  .component('componentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']));
 
 export default componentDetailsModule;

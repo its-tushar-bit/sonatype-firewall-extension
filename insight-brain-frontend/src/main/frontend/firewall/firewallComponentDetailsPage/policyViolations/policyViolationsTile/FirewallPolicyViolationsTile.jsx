@@ -19,7 +19,6 @@ import {
   selectComponentNameWithoutVersion,
 } from '../firewallPolicyViolationsSelectors';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector.js';
-import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import ViewAllPoliciesWaiversButton from './ViewAllPoliciesWaiversButton';
 
 export default function FirewallPolicyViolationsTile({ title, violations }) {
@@ -31,7 +30,6 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
   const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
   const waivers = useSelector(selectWaivers);
   const waiverToDelete = useSelector(selectWaiverToDelete);
-  const componentDetails = useSelector(selectFirewallComponentDetailsPageRouteParams);
 
   return (
     <NxTile>
@@ -52,16 +50,13 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
           <FirewallPolicyViolationsTable
             setShowComponentWaiversPopover={setShowComponentWaiversPopover}
             showPolicyWaiversPopover={showPolicyWaiversPopover}
+            loadPolicyViolationsInformation={loadComponentPolicyViolations}
             {...{ violations }}
             showProxyState
             componentName={componentName || componentDisplayName}
             componentNameWithoutVersion={componentNameWithoutVersion}
             waivers={waivers}
             waiverToDelete={waiverToDelete}
-            setWaiverToDelete={setWaiverToDelete}
-            componentHash={componentDetails?.componentHash}
-            tabId={componentDetails?.tabId}
-            repositoryId={componentDetails?.repositoryId}
           />
         </NxLoadWrapper>
       </NxTile.Content>
@@ -77,5 +72,4 @@ FirewallPolicyViolationsTile.propTypes = {
   componentNameWithoutVersion: PropTypes.string,
   waivers: FirewallPolicyViolationsTable.propTypes.waivers,
   waiverToDelete: FirewallPolicyViolationsTable.propTypes.waiverToDelete,
-  setWaiverToDelete: FirewallPolicyViolationsTable.propTypes.setWaiverToDelete,
 };

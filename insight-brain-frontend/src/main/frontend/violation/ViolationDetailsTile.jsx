@@ -8,22 +8,15 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import {
-  NxStatefulSegmentedButton,
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTooltip,
-  NxTextLink,
-} from '@sonatype/react-shared-components';
-import { faEye } from '@fortawesome/pro-solid-svg-icons';
+import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
 
-import ViolationExclamation from '../react/ViolationExclamation';
+import ViolationDetailsTileHeaderMainTitle from './ViolationDetailsTileHeaderMainTitle';
+import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 import { timeAgo } from '../utilAngular/CommonServices';
 import { capitalizeFirstLetter } from '../util/jsUtil';
-import { getOwnerImageUrl } from '../utilAngular/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
-import ActiveWaiversIndicator from './ActiveWaiversIndicator';
+import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './PolicyViolationConstraintInfo';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -37,20 +30,17 @@ export default function ViolationDetailsTile(props) {
       stageTypes,
       stateGo,
       activeWaivers,
-      goToWaivers,
       selectedViolationId,
       isFromPolicyViolations,
       isFirewallContext,
       policyDetail,
-      selectPolicyId,
-      onGoToRepositoryComponentWaiversPage,
       hasPermissionForAppWaivers,
+      constraintViolations,
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
     policyExists = isFirewallContext ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
     threatLevel = isFirewallContext ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
-    selectedId = isFirewallContext ? selectPolicyId : selectedViolationId,
     stageData = isFirewallContext
       ? { release: { mostRecentEvaluationTime: policyDetail.lastReported } }
       : violationDetails.stageData,
@@ -81,17 +71,6 @@ export default function ViolationDetailsTile(props) {
         <StageDisplay {...{ $state, stageType, stageData, applicationPublicId }} />
       </dd>
     ),
-    onManageWaiversClick = () => {
-      if (isFromPolicyViolations) {
-        isFirewallContext ? onGoToRepositoryComponentWaiversPage(selectedId) : goToWaivers(selectedId);
-      } else {
-        stateGo('listWaivers', {
-          violationId: selectedId,
-          type: $state.params.type,
-          sidebarReference: $state.params.sidebarReference,
-        });
-      }
-    },
     // Manage waivers buttons
     redirectToAddWaiverPage = () => {
       if (hasPermissionForAppWaivers) {
@@ -99,33 +78,22 @@ export default function ViolationDetailsTile(props) {
       }
     },
     redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId }),
-    manageWaiversButton = isFirewallContext ? (
-      <NxButton id="violation-page-add-waiver" variant="tertiary" onClick={onManageWaiversClick}>
-        <NxFontAwesomeIcon icon={faEye} />
-        <span>Manage Waivers</span>
+    waiversButton = hasPermissionForAppWaivers ? (
+      <NxButton
+        id="violation-page-add-waiver"
+        variant={activeWaivers.length === 0 ? 'primary' : 'secondary'}
+        onClick={redirectToAddWaiverPage}
+      >
+        <span>Add Waiver</span>
       </NxButton>
     ) : (
-      <NxStatefulSegmentedButton
-        id="violation-page-manage-waivers"
-        variant="tertiary"
-        onClick={onManageWaiversClick}
-        buttonContent="Manage Waivers"
+      <NxButton
+        id="violation-page-request-waiver"
+        variant={activeWaivers.length === 0 ? 'primary' : 'secondary'}
+        onClick={redirectToRequestWaiverPage}
       >
-        <div>
-          <NxTooltip title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'} placement="top">
-            <button
-              id="violation-page-add-waiver"
-              className={classnames('nx-dropdown-button', { disabled: !hasPermissionForAppWaivers })}
-              onClick={redirectToAddWaiverPage}
-            >
-              Add Waiver
-            </button>
-          </NxTooltip>
-        </div>
-        <button id="violation-page-request-waiver" className="nx-dropdown-button" onClick={redirectToRequestWaiverPage}>
-          Request Waiver
-        </button>
-      </NxStatefulSegmentedButton>
+        <span>Request Waiver</span>
+      </NxButton>
     );
 
   function getOwnerHref(owner) {
@@ -139,59 +107,51 @@ export default function ViolationDetailsTile(props) {
   const secondFormGroupClasses =
     'nx-form-group iq-read-only iq-read-only-data--horizontal nx-grid-col iq-violation-details__right-details';
 
-  const headerMainTitle = () => {
-    const titleClassnames = classnames('nx-tile-header__title', {
-      'nx-tile-header__title--disabled': !policyExists,
-    });
-    let titleThreatLevelCategory,
-      nonExistingPolicyText,
-      violationNameText = (
-        <span>
-          Violation of <em>{policyName}</em>
-        </span>
-      );
+  const sectionClasses = classnames('iq-violation-details', {
+    'nx-tile': !isFromPolicyViolations,
+    'iq-violation-details-popover-section': isFromPolicyViolations,
+  });
 
-    if (policyExists) {
-      titleThreatLevelCategory = threatLevelCategory;
-      nonExistingPolicyText = null;
-    } else {
-      titleThreatLevelCategory = 'disabled';
-      violationNameText = <strike>{violationNameText}</strike>;
-      nonExistingPolicyText = <span>Policy no longer exists</span>;
-    }
-
-    return (
-      <div className={titleClassnames}>
-        <h2 className="nx-h2">
-          <ViolationExclamation threatLevelCategory={titleThreatLevelCategory} />
-          {violationNameText}
-        </h2>
-        {nonExistingPolicyText}
-      </div>
-    );
-  };
-
+  const bottomFormGroupClasses = classnames('iq-violation-details__bottom-details', {
+    'iq-violation-details__bottom-from-firewall': isFirewallContext,
+  });
   return (
-    <section id="violation-details-tile" className="nx-tile iq-violation-details">
-      <header
-        className={classnames('nx-tile-header', {
-          'nx-tile-header--disabled': !policyExists,
+    <section id="violation-details-tile" className={sectionClasses}>
+      {isFromPolicyViolations ? (
+        ''
+      ) : (
+        <header
+          className={classnames({
+            'nx-tile-header': !isFromPolicyViolations,
+            'header--disabled': !policyExists,
+          })}
+        >
+          <ViolationDetailsTileHeaderMainTitle
+            policyExists={policyExists}
+            policyName={policyName}
+            threatLevelCategory={threatLevelCategory}
+          />
+          {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} />}
+          {policyExists && (
+            <Fragment>
+              <div className="nx-tile__actions">{waiversButton}</div>
+              {activeWaivers?.length && hasPermissionForAppWaivers ? (
+                <ActiveWaiversIndicator
+                  activeWaiverCount={activeWaivers.length}
+                  waived={isFirewallContext ? policyDetail?.waived : violationDetails?.waived}
+                  showUnapplied={isFromPolicyViolations}
+                />
+              ) : null}
+            </Fragment>
+          )}
+        </header>
+      )}
+      <div
+        className={classnames('nx-grid-row', {
+          'nx-tile-content': !isFromPolicyViolations,
+          'iq-violations-details-info': isFromPolicyViolations,
         })}
       >
-        {headerMainTitle()}
-        {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} />}
-        {policyExists && (
-          <Fragment>
-            <div className="nx-tile__actions">{manageWaiversButton}</div>
-            <ActiveWaiversIndicator
-              activeWaiverCount={activeWaivers.length}
-              waived={isFirewallContext ? policyDetail.waived : violationDetails.waived}
-              showUnapplied={isFromPolicyViolations}
-            />
-          </Fragment>
-        )}
-      </header>
-      <div className="nx-tile-content nx-grid-row">
         <dl className="nx-form-group iq-read-only nx-grid-col iq-violation-details__left-details">
           <div className="iq-violation-details__threat-level">
             <dt>Threat Level</dt>
@@ -205,20 +165,6 @@ export default function ViolationDetailsTile(props) {
               )}
             </dd>
           </div>
-          {isFirewallContext ? null : (
-            <div className="iq-violation-details__first-reported">
-              <dt>First Reported</dt>
-              <dd className="iq-read-only-data">
-                {openTime.age} {openTime.qualifier}
-              </dd>
-            </div>
-          )}
-          <div className="iq-violation-details__last-reported">
-            <dt>Last Reported</dt>
-            <dd className="iq-read-only-data">
-              {mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}
-            </dd>
-          </div>
         </dl>
         <dl className={secondFormGroupClasses}>
           {isFirewallContext ? null : (
@@ -227,27 +173,41 @@ export default function ViolationDetailsTile(props) {
               {map(createStageDisplay, stageDisplayData)}
             </div>
           )}
-          <div className="iq-violation-details__policy-owner">
-            <dt>Policy Owner</dt>
-            <dd className="iq-read-only-data">
-              {policyExists ? (
-                <Fragment>
-                  <img
-                    className="iq-violation-details__policy-owner-icon"
-                    src={getOwnerImageUrl({
-                      publicId: policyOwner.ownerPublicId,
-                      id: policyOwner.ownerId,
-                    })}
-                  />
+          <div className={bottomFormGroupClasses}>
+            <div className="iq-violation-details__policy-owner">
+              <dt>Policy Owner</dt>
+              <dd className="iq-read-only-data">
+                {policyExists ? (
                   <NxTextLink href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</NxTextLink>
-                </Fragment>
-              ) : (
-                'Policy no longer exists'
+                ) : (
+                  'Policy no longer exists'
+                )}
+              </dd>
+            </div>
+            <div className={'iq-violation-details__reported'}>
+              {isFirewallContext ? null : (
+                <div className="iq-violation-details__first-reported">
+                  <dt>First Reported</dt>
+                  <dd className="iq-read-only-data">
+                    {openTime.age} {openTime.qualifier}
+                  </dd>
+                </div>
               )}
-            </dd>
+              <div className="iq-violation-details__last-reported">
+                <dt>Last Reported</dt>
+                <dd className="iq-read-only-data">
+                  {mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}
+                </dd>
+              </div>
+            </div>
           </div>
         </dl>
       </div>
+      <PolicyViolationConstraintInfo
+        isFirewallContext={isFirewallContext}
+        constraintViolations={constraintViolations}
+        isFromPolicyViolations={isFromPolicyViolations}
+      />
     </section>
   );
 }
@@ -302,11 +262,9 @@ ViolationDetailsTile.propTypes = {
   ),
   stateGo: PropTypes.func.isRequired,
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes)),
-  goToWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
   isFirewallContext: PropTypes.bool,
   policyDetail: PropTypes.object,
-  selectPolicyId: PropTypes.string,
-  onGoToRepositoryComponentWaiversPage: PropTypes.func.isRequired,
   hasPermissionForAppWaivers: PropTypes.bool,
+  constraintViolations: constraintViolationsPropType,
 };

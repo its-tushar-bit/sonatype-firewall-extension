@@ -90,10 +90,18 @@
   }
 }
 
-.policy-violation-detail-header {
+.policy-violation-details-popover .nx-drawer-header {
   .policy-violation-detail-header__title {
     display: flex;
     justify-content: space-between;
+  }
+  .nx-h2 {
+    display: flex;
+    align-items: center;
+    .nx-policy-violation-indicator {
+      margin-left: var(--nx-spacing-4x);
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -106,6 +114,15 @@
     .nx-tile-header,
     .nx-tile-content {
       padding-left: 0px;
+    }
+  }
+  .nx-loading-spinner {
+    padding: var(--nx-spacing-6x);
+  }
+  .nx-footer {
+    .iq-waiver-indicator--active > span:last-child {
+      color: var(--nx-swatch-green-30);
+      font-weight: 600;
     }
   }
 }

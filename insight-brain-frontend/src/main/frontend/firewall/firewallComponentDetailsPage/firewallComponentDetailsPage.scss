@@ -40,3 +40,9 @@ firewall-component-details-page {
     }
   }
 }
+
+#component-details-policy-violations-popover {
+  &.nx-drawer {
+    width: 740px;
+  }
+}

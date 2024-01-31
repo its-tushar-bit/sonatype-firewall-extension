@@ -88,7 +88,13 @@ describe('waiverActions', function () {
         },
       },
       router: {
-        currentParams: { violationId: 'policyViolationId', repositoryPolicyId: 'repositoryPolicyId' },
+        currentParams: {
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          publicId: 'appPublicId',
+          scanId: 'scanId',
+          hash: 'hash',
+        },
         prevParams: { repositoryPolicyId: 'repositoryPolicyId' },
         currentState: { name: 'firewall.whatever' },
       },
@@ -101,6 +107,9 @@ describe('waiverActions', function () {
         },
       },
       isFromFirewallPage: false,
+      applicationReport: {
+        metadata: { application: { id: 'metadataId' } },
+      },
     };
     store = SpecUtil.mockReduxStore(state);
     mock = axiosMockAdapter();
@@ -159,8 +168,16 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          put: {
+            [getPermissionContextTestUrl('application', 'metadataId')]: Promise.resolve(),
+          },
           get: {
             [url]: Promise.resolve(),
+            [getViolationDetailsUrl('policyViolationId')]: Promise.resolve(),
+            [getApplicableWaiversUrl('policyViolationId')]: Promise.resolve(),
+            [getReportPolicyThreatsUrl('appPublicId', 'scanId')]: Promise.resolve(),
+            [getComponentWaivers('application', 'appPublicId', 'hash')]: Promise.resolve(),
+            [getProductFeaturesUrl()]: Promise.resolve(),
           },
         });
         jest.useFakeTimers();
@@ -174,13 +191,13 @@ describe('waiverActions', function () {
             const actions = store.getActions();
             expect(actions.length).toBe(4);
             expect(actions).toHaveActionTypesInOrder([
+              WAIVERS_SAVE_WAIVER_REQUESTED,
               WAIVERS_SAVE_WAIVER_FULFILLED,
               RouterActions.STATE_GO,
               WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
             ]);
             done();
           });
-
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
@@ -197,18 +214,30 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          put: {
+            [getPermissionContextTestUrl('application', 'metadataId')]: Promise.resolve(),
+          },
           get: {
             [url]: Promise.resolve(),
+            [getViolationDetailsUrl('policyViolationId')]: Promise.resolve(),
+            [getApplicableWaiversUrl('policyViolationId')]: Promise.resolve(),
+            [getReportPolicyThreatsUrl('appPublicId', 'scanId')]: Promise.resolve(),
+            [getComponentWaivers('application', 'appPublicId', 'hash')]: Promise.resolve(),
+            [getProductFeaturesUrl()]: Promise.resolve(),
           },
         });
 
         store
           .dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', 'EXACT_COMPONENT', 30))
           .then(() => {
+            const actions = store.getActions();
             expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-            expect(store.getActions().length).toBe(3);
-            expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
-            expect(store.getActions()[2].type).toBe(RouterActions.STATE_GO);
+            expect(actions.length).toBe(3);
+            expect(actions).toHaveActionTypesInOrder([
+              WAIVERS_SAVE_WAIVER_REQUESTED,
+              WAIVERS_SAVE_WAIVER_FULFILLED,
+              RouterActions.STATE_GO,
+            ]);
             done();
           });
 
@@ -308,8 +337,19 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          put: {
+            [getPermissionContextTestUrl('application', 'metadataId')]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
+          },
           get: {
             [url]: Promise.resolve(),
+            [getViolationDetailsUrl('policyViolationId')]: Promise.resolve({ data: {} }),
+            [getApplicableWaiversUrl('policyViolationId')]: Promise.resolve({ data: {} }),
+            [getReportPolicyThreatsUrl('appPublicId', 'scanId')]: Promise.resolve({ data: {} }),
+            [getComponentWaivers('application', 'appPublicId', 'hash')]: Promise.resolve({ data: {} }),
+            [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
+            [getApplicationSummaryUrl('appPublicId')]: Promise.resolve({ data: { id: 'metadataId' } }),
           },
         });
         jest.useFakeTimers();
@@ -332,7 +372,6 @@ describe('waiverActions', function () {
             const actions = store.getActions();
             expect(actions.length).toBe(6);
             expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
-            expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_FULFILLED);
             expect(actions).toHaveActionType(WAIVERS_RESET_ADD_WAIVER_DATA);
             expect(actions).toHaveActionType(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
             done();
@@ -354,8 +393,19 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          put: {
+            [getPermissionContextTestUrl('application', 'metadataId')]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
+          },
           get: {
             [url]: Promise.resolve(),
+            [getViolationDetailsUrl('policyViolationId')]: Promise.resolve({ data: {} }),
+            [getApplicableWaiversUrl('policyViolationId')]: Promise.resolve({ data: {} }),
+            [getReportPolicyThreatsUrl('appPublicId', 'scanId')]: Promise.resolve({ data: {} }),
+            [getComponentWaivers('application', 'appPublicId', 'hash')]: Promise.resolve({ data: {} }),
+            [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
+            [getApplicationSummaryUrl('appPublicId')]: Promise.resolve({ data: { id: 'metadataId' } }),
           },
         });
 
@@ -1154,8 +1204,8 @@ describe('waiverActions', function () {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
-        to: 'listWaivers',
-        params: { violationId: 'policyViolationId' },
+        to: 'sidebarView.violation',
+        params: { id: 'policyViolationId', sidebarReference: undefined, type: undefined },
         options: undefined,
       });
     });
@@ -1277,36 +1327,6 @@ describe('waiverActions', function () {
       });
     });
 
-    it('dispatches STATE_GO with the route to ComponentDetails list waivers page when router comes from component details', function () {
-      const state = {
-        router: {
-          prevState: { name: 'applicationReport.violationWaivers' },
-          prevParams: {
-            hash: 'hash',
-            publicId: 'publicId',
-            scanId: 'scanId',
-            violationId: 'violationId',
-          },
-          currentParams: { violationId: 'policyViolationId' },
-        },
-      };
-      store = SpecUtil.mockReduxStore(state);
-
-      store.dispatch(returnToAddWaiverOriginPage());
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
-      expect(store.getActions()[0].payload).toEqual({
-        to: 'applicationReport.violationWaivers',
-        params: {
-          hash: 'hash',
-          publicId: 'publicId',
-          scanId: 'scanId',
-          violationId: 'violationId',
-        },
-        options: undefined,
-      });
-    });
-
     it('dispatches STATE_GO with the route to Violation Details sidebar view when router comes from the dashboard', function () {
       const state = {
         router: {
@@ -1352,8 +1372,8 @@ describe('waiverActions', function () {
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
         expect(store.getActions()[0].payload).toEqual({
-          to: 'listWaivers',
-          params: { violationId: 'policyViolationId' },
+          to: 'sidebarView.violation',
+          params: { id: 'policyViolationId', sidebarReference: undefined, type: undefined },
           options: undefined,
         });
       }
@@ -1438,10 +1458,11 @@ describe('waiverActions', function () {
         store.dispatch(deleteWaiver('repository', 'ownerId', 'waiverId')).then(() => {
           jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(store.getActions().length).toBe(4);
+          expect(store.getActions().length).toBe(5);
           expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
           expect(store.getActions()[2].type).toEqual(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
-          expect(store.getActions()[3].type).toEqual(WAIVERS_DELETE_MASK_TIMER_DONE);
+          expect(store.getActions()[3].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+          expect(store.getActions()[4].type).toEqual(WAIVERS_DELETE_MASK_TIMER_DONE);
           done();
         });
 

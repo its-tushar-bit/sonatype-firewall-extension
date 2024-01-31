@@ -14,8 +14,7 @@ import {
   selectComponentDetailsViolationsSlice,
   selectSelectedViolationId,
 } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
-import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
-import { onGoToRepositoryComponentWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
+import { loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
 import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import {
@@ -27,19 +26,21 @@ import {
 import {
   selectFirewallComponentDetailsPage,
   selectFirewallComponentDetailsPageRouteParams,
+  selectFirewallIsLoading,
 } from 'MainRoot/firewall/firewallSelectors';
+import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
-function mapStateToProps(state, showViolationsDetailPopover) {
+function mapStateToProps(state, props) {
   const { stages, violation } = state;
   const isFirewall = selectIsFirewall(state);
   const isFirewallOrRepository = selectIsFirewallOrRepository(state);
   const firewallComponentDetailsPage = selectFirewallComponentDetailsPage(state);
   const { hasEditIqPermission: firewallHasEditIqPermission } = firewallComponentDetailsPage;
   const applicationHasEditPermission = pick(['hasEditIqPermission'], violation)?.hasEditIqPermission;
+  const firewallIsLoading = selectFirewallIsLoading(state);
 
   const stageData = stages.dashboard;
-  const isShowViolationsDetailPopover = showViolationsDetailPopover.showViolationsDetailPopover;
-  const selectPolicyId = showViolationsDetailPopover.selectPolicyId;
+  const selectPolicyId = props.selectPolicyId;
   const firewallPolicyViolations = firewallComponentDetailsPage.policyViolations;
   const applicationPolicyViolations = selectComponentDetailsViolationsSlice(state);
   const componentApplicationDetails = selectComponentDetails(state);
@@ -63,6 +64,7 @@ function mapStateToProps(state, showViolationsDetailPopover) {
         'vulnerabilityDetails',
         'vulnerabilityDetailsError',
         'activeWaivers',
+        'expiredWaivers',
         'addWaiverPermission',
         'addWaiverPermissionLoading',
         'addWaiverPermissionError',
@@ -76,7 +78,7 @@ function mapStateToProps(state, showViolationsDetailPopover) {
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error,
     selectedViolationId: selectSelectedViolationId(state),
-    isFirewallContext: isShowViolationsDetailPopover,
+    isFirewallContext: isFirewallOrRepository && !!selectPolicyId,
     policyViolations: isFirewallOrRepository ? firewallPolicyViolations : applicationPolicyViolations,
     selectPolicyId: selectPolicyId,
     componentHash: isFirewallOrRepository
@@ -86,7 +88,9 @@ function mapStateToProps(state, showViolationsDetailPopover) {
     repositoryId: isFirewallOrRepository ? firewallComponentDetailsPageParams.repositoryId : null,
     matchState: isFirewallOrRepository ? firewallComponentDetailsPageParams.matchState : null,
     pathname: isFirewallOrRepository ? firewallComponentDetailsPageParams.pathname : null,
+    componentDisplayName: isFirewallOrRepository ? firewallComponentDetailsPageParams.componentDisplayName : null,
     isFirewall,
+    firewallIsLoading,
   };
 }
 
@@ -96,10 +100,9 @@ const mapDispatchToProps = {
   loadFirewallPolicyVulnerabilityDetails,
   fetchStageTypes,
   stateGo,
-  goToWaivers: actions.goToWaivers,
-  onGoToRepositoryComponentWaiversPage: onGoToRepositoryComponentWaiversPage,
   loadFirewallViolationDetails: loadFirewallViolationDetails,
   loadApplicableWaivers: loadApplicableWaivers,
+  setSelectPolicyViolation: actions.setSelectedPolicyViolation,
 };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);

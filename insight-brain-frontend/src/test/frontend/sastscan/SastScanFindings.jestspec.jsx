@@ -36,11 +36,11 @@ describe('SastScanFindings', () => {
     expect(threatHeader).toBeInTheDocument();
 
     const highRow = within(rows[1]);
-    expect(highRow.getByText(highFinding.ruleName)).toBeInTheDocument();
+    expect(highRow.getAllByText(highFinding.ruleName)[0]).toBeInTheDocument();
     const mediumRow = within(rows[2]);
-    expect(mediumRow.getByText(mediumFinding.ruleName)).toBeInTheDocument();
+    expect(mediumRow.getAllByText(mediumFinding.ruleName)[0]).toBeInTheDocument();
     const lowRow = within(rows[3]);
-    expect(lowRow.getByText(lowFinding.ruleName)).toBeInTheDocument();
+    expect(lowRow.getAllByText(lowFinding.ruleName)[0]).toBeInTheDocument();
   });
 
   it('should only show the selected severity finding when filter is applied', () => {

@@ -199,7 +199,7 @@ describe('ViolationPageContainer', function () {
   it('maps the state slice "isFirewallContext" to ViolationPageContainer props', () => {
     let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('isFirewallContext', undefined);
+    expect(wrapper).toHaveProp('isFirewallContext', false);
   });
 
   it('maps the state slice "selectPolicyId" to ViolationPageContainer props', () => {

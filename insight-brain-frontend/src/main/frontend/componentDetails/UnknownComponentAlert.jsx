@@ -11,7 +11,7 @@ import { AddProprietaryComponentMatchersPopoverContainer } from './AddProprietar
 export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchersPopover, pathnames }) {
   return (
     <Fragment>
-      <NxWarningAlert className="iq-component-details-unknown-component-alert">
+      <NxWarningAlert className="iq-component-details-unknown-component-alert" role="alert">
         <span>The component is unknown.</span>
         <NxButton id="iq-component-details-unknown-component-claim" onClick={onClaimClick} variant="secondary">
           Claim Component

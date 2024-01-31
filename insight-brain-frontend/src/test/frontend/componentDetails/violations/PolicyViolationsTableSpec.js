@@ -9,7 +9,6 @@ import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@son
 import PolicyViolationsTable from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTable';
 import PolicyViolationsTableRow from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
 import ComponentWaiversPopover from 'MainRoot/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
-import PolicyViolationDetailsPopover from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 
 describe('PolicyViolationsTable', () => {
   let minimalProps, getShallow, getMounted;
@@ -185,21 +184,30 @@ describe('PolicyViolationsTable', () => {
   });
 
   describe('PolicyViolationDetailsPopover', () => {
-    it('is not rendered if policy violations information is loading', () => {
-      const component = getShallow({ loading: true });
-      const popover = component.find(PolicyViolationDetailsPopover);
+    it('setShowViolationsDetailPopover is called on row click', () => {
+      const setViolationsDetailRowClicked = jasmine.createSpy('setViolationsDetailRowClicked');
+      const toggleShowViolationsDetailPopover = jasmine.createSpy('toggleShowViolationsDetailPopover');
+      const violation = {
+        policyViolationId: 'policyViolationId3',
+        policyThreatLevel: 3,
+        policyName: 'Security-Low',
+        actions: [],
+        constraints: [],
+        waived: false,
+      };
+      const component = getMounted({
+        violations: [violation],
+        toggleShowViolationsDetailPopover,
+        setViolationsDetailRowClicked,
+      });
+      const table = component.find(NxTable);
+      const tBody = table.find(NxTableBody);
+      const rows = tBody.find(PolicyViolationsTableRow);
 
-      expect(popover).not.toExist();
-    });
+      rows.at(0).simulate('click');
 
-    it('renders a PolicyViolationDetailsPopover component when the flag is active', () => {
-      let violationsDetail;
-      violationsDetail = getShallow().find(PolicyViolationDetailsPopover);
-      expect(violationsDetail).not.toExist();
-
-      violationsDetail = getShallow({ showViolationsDetailPopover: true }).find(PolicyViolationDetailsPopover);
-      expect(violationsDetail).toExist();
-      expect(violationsDetail).toHaveProp('onClose');
+      expect(setViolationsDetailRowClicked).toHaveBeenCalledTimes(1);
+      expect(toggleShowViolationsDetailPopover).toHaveBeenCalledTimes(1);
     });
   });
 });

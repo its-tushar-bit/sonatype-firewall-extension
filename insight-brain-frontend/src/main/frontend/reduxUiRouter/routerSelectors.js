@@ -23,6 +23,7 @@ export const selectPreviousRouteName = createSelector(selectRouterPrevState, pro
 
 const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
 const nameIncludesOrganization = includesNamePart('organization');
+const nameIncludesTransitiveViolations = includesNamePart('transitiveViolations');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePart('repository');
@@ -41,6 +42,7 @@ const nameIncludesOnboarding = includesNamePart('onboarding');
 const nameIncludesAccess = includesNamePart('access');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
+export const selectIsTransitiveViolations = createSelector(selectCurrentRouteName, nameIncludesTransitiveViolations);
 export const selectIsApplication = createSelector(selectCurrentRouteName, nameIncludesApplication);
 export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
 export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);

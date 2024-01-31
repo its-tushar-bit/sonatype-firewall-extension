@@ -5,17 +5,26 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -23,7 +32,15 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,20 +53,28 @@ import static com.codeborne.selenide.Condition.visible;
 public class RequestWaiverTest
     extends AbstractFunctionalTest
 {
+  private static final String SCAN_ID = "scan1";
+
   private Organization organization;
 
   private Application application;
 
   private PolicyViolation policyViolation;
 
+  private User developerUser;
+
+  private TestReportEvaluator evaluator;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
+    logout();
   }
 
   @Before
-  public void startup() {
+  public void init() throws IOException {
+    developerUser = tempEntity.newUser();
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
@@ -57,15 +82,27 @@ public class RequestWaiverTest
     application = tempEntity.newApplication("App 1", "app1", organization.getId());
     Policy securityPolicy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
 
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(application, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+        StageTypes.BUILD.getId(), SCAN_ID, false, false, Date.from(twoDaysAgo));
 
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
+    refreshOrOpen(DashboardPage.url());
+  }
+
+  @After
+  public void cleanUp() {
+    logout();
   }
 
   @Test
   public void testPageLayout() {
+    loginAsLimitedUser();
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
 
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
@@ -89,24 +126,27 @@ public class RequestWaiverTest
 
   @Test
   public void testBackButton() {
+    loginAsLimitedUser();
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.backButton().shouldHave(text("Back to Waivers")).click();
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
+    requestWaiverPage.backButton().shouldHave(text("Back to Violation Details")).click();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.shouldBe(visible);
   }
 
   @Test
   public void testCancelButton() {
+    loginAsLimitedUser();
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.cancelButton().click();
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.shouldBe(visible);
   }
 
   @Test
   public void testBackButtonWhenNavigatedFromViolationDetails() {
+    loginAsLimitedUser();
     refreshOrOpen(DashboardPage.url());
     DashboardPage.violationsTab().click();
     DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
@@ -114,17 +154,15 @@ public class RequestWaiverTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.shouldBe(visible);
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.manageWaiversButton().click();
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
-    listWaiversPage.requestWaiverButton().click();
+    tile.requestWaiverButton().shouldHave(cssClass("nx-btn--primary")).click();
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.backButton().shouldHave(text("Back to Waivers")).click();
-    listWaiversPage.shouldBe(visible);
+    requestWaiverPage.backButton().shouldHave(text("Back to Violation Details")).click();
+    tile.shouldBe(visible);
   }
 
   @Test
   public void testCancelButtonWhenNavigatedFromViolationDetails() {
+    loginAsLimitedUser();
     refreshOrOpen(DashboardPage.url());
     DashboardPage.violationsTab().click();
     DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
@@ -132,22 +170,49 @@ public class RequestWaiverTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.shouldBe(visible);
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.manageWaiversButton().click();
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
-    listWaiversPage.requestWaiverButton().click();
+    tile.requestWaiverButton().click();
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.cancelButton().click();
-    listWaiversPage.shouldBe(visible);
+    tile.shouldBe(visible);
   }
 
   @Test
   public void testBackButtonWhenNavFromComponentDetails() {
-    //todo when the Add/Request Waiver segmented button gets added to the Violation Details Popover
+    String hash = "dc810b3d25f9e8c930f5";
+
+    loginAsLimitedUser();
+    refreshOrOpen(ApplicationReportPage.url(application, SCAN_ID));
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    reportPage.shouldBe(visible);
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement firstViolation = violations.first();
+    firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.url(application, SCAN_ID, hash));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(application, SCAN_ID, hash));
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    SelenideElement firstRow = policyViolationsTable.getRow(1);
+    firstRow.shouldBe(visible).click();
+
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+    violationDetailPopover.getRequestWaiversButton().shouldBe(visible).click();
+
+    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+    requestWaiverPage.requestWaiverHeader().shouldBe(visible);
+    requestWaiverPage.backButton().click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(application, SCAN_ID, hash));
   }
 
   @Test
   public void testSubmitButtonAndDisabledBehavior() {
+    loginAsLimitedUser();
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.waiverRequestWebhookWarning().shouldBe(visible).shouldHave(text(
@@ -163,7 +228,49 @@ public class RequestWaiverTest
     requestWaiverPage.saveButton().shouldNotHave(cssClass("disabled")).click();
     NxSubmitMask.seeAndWaitForDismissal();
     requestWaiverPage.submitError().shouldNotBe(visible);
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.shouldBe(visible);
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.shouldBe(visible);
+  }
+
+  @Test
+  public void testButtonStylingWithWaiverApplied() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+    DashboardPage.violationsTab().click();
+    DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
+    table.firstViolation().click();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.shouldBe(visible);
+    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+    tile.addWaiverButton().click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.click();
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    violationDetailsPage.detailsTile().shouldBe(visible);
+    logout();
+    refreshOrOpen(DashboardPage.url());
+    loginAsLimitedUser();
+    DashboardPage.violationsTab().click();
+    table = DashboardPage.violationsView().results();
+    table.firstViolation().click();
+    violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.shouldBe(visible);
+    tile = new ViolationDetailsPage().detailsTile();
+    tile.requestWaiverButton().shouldHave(cssClass("nx-btn--secondary")).click();
+  }
+
+  private void loginAsLimitedUser() {
+    developerUser = tempEntity.newUser();
+    tempEntity.newMembershipMapping(
+        Organization.ROOT_ORGANIZATION_ID,
+        Role.DEVELOPER_ROLE_ID,
+        developerUser.getUsername()
+    );
+    login(developerUser.getUsername(), developerUser.getPassword());
   }
 }

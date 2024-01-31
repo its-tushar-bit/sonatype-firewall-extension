@@ -3,33 +3,47 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use 'MainRoot/scss/mixins';
 
-list-waivers-page {
-  display: contents;
-}
-
-.list-waivers-page {
-  .iq-waivers-list-header {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-  }
-
+#list-waivers-table {
   .list-waivers-row--expired {
-    background-color: var(--nx-swatch-grey-90);
+    background-color: var(--nx-swatch-grey-95);
   }
 }
 
-#list-waivers-page .list-waivers-row--expired > .nx-cell {
-  border-bottom-color: #c7c7c7;
-}
+.iq-waivers-table {
+  &--scope,
+  &--creator,
+  &--component-name,
+  &--comments {
+    @include mixins.overflow-wrap-anywhere;
+  }
 
-.iq-waivers-table--scope,
-.iq-waivers-table--creator,
-.iq-waivers-table--comments {
-  overflow-wrap: anywhere;
-}
+  &--create-time {
+    max-width: 84px;
+  }
 
-.iq-waivers-table--component-name {
-  max-width: 350px;
+  &--creator {
+    min-width: 60px;
+  }
+
+  &--scope {
+    min-width: 68px;
+  }
+
+  &--component-name {
+    min-width: 96px;
+  }
+
+  &--expiry-time {
+    width: 85px;
+  }
+
+  &--comments {
+    min-width: 119px;
+  }
+
+  &--delete {
+    width: 24px;
+  }
 }

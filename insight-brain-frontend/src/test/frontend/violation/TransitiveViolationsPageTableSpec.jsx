@@ -15,6 +15,7 @@ describe('TransitiveViolationsPageTable', function () {
     spySetFilteringParameters,
     spySetSelectedPolicyViolationId,
     spyToggleShowViolationsDetailPopover,
+    spySetViolationsDetailRowClicked,
     getMountedComponent,
     getShallowComponent;
 
@@ -23,6 +24,7 @@ describe('TransitiveViolationsPageTable', function () {
     spySetFilteringParameters = jasmine.createSpy('spySetFilteringParameters');
     spySetSelectedPolicyViolationId = jasmine.createSpy('spySetSelectedPolicyViolationId');
     spyToggleShowViolationsDetailPopover = jasmine.createSpy('spyToggleShowViolationsDetailPopover');
+    spySetViolationsDetailRowClicked = jasmine.createSpy('spySetViolationsDetailRowClicked');
     minimalProps = {
       stageTypeId: 'someStageTypeId',
       componentTransitivePolicyViolations: {
@@ -46,6 +48,7 @@ describe('TransitiveViolationsPageTable', function () {
       setFilteringParameters: spySetFilteringParameters,
       setSelectedPolicyViolationId: spySetSelectedPolicyViolationId,
       toggleShowViolationsDetailPopover: spyToggleShowViolationsDetailPopover,
+      setViolationsDetailRowClicked: spySetViolationsDetailRowClicked,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPageTable, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(TransitiveViolationsPageTable, minimalProps);
@@ -144,6 +147,7 @@ describe('TransitiveViolationsPageTable', function () {
       row.simulate('click');
       expect(spySetSelectedPolicyViolationId).toHaveBeenCalledWith('somePolicyViolationId');
       expect(spyToggleShowViolationsDetailPopover).toHaveBeenCalled();
+      expect(spySetViolationsDetailRowClicked).toHaveBeenCalled();
     });
   });
 

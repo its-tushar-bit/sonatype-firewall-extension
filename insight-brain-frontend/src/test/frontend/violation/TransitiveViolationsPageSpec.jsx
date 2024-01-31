@@ -12,7 +12,6 @@ import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import WaiveTransitiveViolationsPopoverContainer from 'MainRoot/violation/WaiveTransitiveViolationsPopoverContainer';
 import RequestWaiveTransitiveViolationsPopoverContainer from 'MainRoot/violation/RequestWaiveTransitiveViolationsPopoverContainer';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
-import PolicyViolationDetailsPopover from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('TransitiveViolationsPage', function () {
@@ -25,7 +24,6 @@ describe('TransitiveViolationsPage', function () {
     spyToggleRequestWaiveTransitiveViolations,
     spyToggleWaiveTransitiveViolations,
     spySetSelectedPolicyViolationId,
-    spyToggleShowViolationsDetailPopover,
     getShallowComponent;
 
   beforeEach(function () {
@@ -46,7 +44,6 @@ describe('TransitiveViolationsPage', function () {
     spyToggleRequestWaiveTransitiveViolations = jasmine.createSpy('spyToggleRequestWaiveTransitiveViolations');
     spyToggleWaiveTransitiveViolations = jasmine.createSpy('spyToggleWaiveTransitiveViolations');
     spySetSelectedPolicyViolationId = jasmine.createSpy('spySetSelectedPolicyViolationId');
-    spyToggleShowViolationsDetailPopover = jasmine.createSpy('spyToggleShowViolationsDetailPopover');
     minimalProps = {
       ownerType: 'someOwnerType',
       ownerId: 'someOwnerId',
@@ -99,7 +96,6 @@ describe('TransitiveViolationsPage', function () {
       toggleRequestWaiveTransitiveViolations: spyToggleRequestWaiveTransitiveViolations,
       toggleWaiveTransitiveViolations: spyToggleWaiveTransitiveViolations,
       setSelectedPolicyViolationId: spySetSelectedPolicyViolationId,
-      toggleShowViolationsDetailPopover: spyToggleShowViolationsDetailPopover,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPage, minimalProps);
   });
@@ -362,21 +358,5 @@ describe('TransitiveViolationsPage', function () {
     });
     const requestWaiveTransitiveViolationsButton = component.find('#transitive-violations-page-request-waive');
     expect(requestWaiveTransitiveViolationsButton).toHaveProp('disabled', false);
-  });
-
-  it('does not show the policy violation details popover when showViolationsDetailPopover is false', function () {
-    const wrapper = getShallowComponent();
-    const policyViolationDetailsPopover = wrapper.find(PolicyViolationDetailsPopover);
-    expect(policyViolationDetailsPopover).not.toExist();
-  });
-
-  it('shows the policy violation details popover when showViolationsDetailPopover is true', function () {
-    const wrapper = getShallowComponent({
-      ...minimalProps,
-      showViolationsDetailPopover: true,
-    });
-    const policyViolationDetailsPopover = wrapper.find(PolicyViolationDetailsPopover);
-    expect(policyViolationDetailsPopover).toExist();
-    expect(policyViolationDetailsPopover.prop('onClose')).toBe(spyToggleShowViolationsDetailPopover);
   });
 });

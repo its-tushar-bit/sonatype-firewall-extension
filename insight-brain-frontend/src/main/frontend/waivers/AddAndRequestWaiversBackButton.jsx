@@ -5,122 +5,121 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { isNil } from 'ramda';
 
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-export default function AddAndRequestWaiversBackButton(props) {
-  const { violationId, prevStateName, prevParams, isFirewall, isFirewallOrRepositoryComponent } = props;
-  const { hash, scanId, publicId, sidebarReference, type } = prevParams;
+const setValueForMultipleKeys = (keys, value) => keys.reduce((p, c) => ({ ...p, [c]: value }), {});
+const someParamValuesAreNil = (params) => Object.values(params).some(isNil);
 
+const appReportParamsExtractor = (props) => ({
+  hash: props?.prevParams?.hash,
+  scanId: props?.prevParams?.scanId,
+  publicId: props?.prevParams?.publicId,
+});
+
+const dashboardParamsExtractor = (props) => ({
+  id: props?.violationId,
+  type: props?.prevParams?.type,
+  sidebarReference: props?.prevParams?.sidebarReference,
+});
+
+const firewallParamsExtractor = (props) => ({
+  violationId: props?.violationId,
+  componentDisplayName: props?.prevParams?.componentDisplayName,
+  componentHash: props?.prevParams?.componentHash,
+  componentIdentifier: props?.prevParams?.componentIdentifier,
+  matchState: props?.prevParams?.matchState,
+  pathname: props?.prevParams?.pathname,
+  proprietary: props?.prevParams?.proprietary,
+  repositoryId: props?.prevParams?.repositoryId,
+  tabId: props?.prevParams?.tabId,
+});
+
+const getDefaultNavigationId = (props) =>
+  props?.isFirewallOrRepositoryComponent
+    ? originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS
+    : originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW;
+
+/**
+ * This rules define the navigation id (key), the back button title and a params
+ * extractor function (to extract the necesary information from the props)
+ *
+ * Some navigation ids share the same logic but the location where each navigate
+ * back to is controlled by the navigation id inside props.prevStateName
+ */
+const NAVIGATION_RULES = {
+  [originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW]: {
+    backButtonTitle: 'Back to Violation Details',
+    paramsExtractor: dashboardParamsExtractor,
+  },
+  ...setValueForMultipleKeys(
+    [
+      originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS,
+      originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY,
+      originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL,
+    ],
+    {
+      backButtonTitle: 'Back to Component Details',
+      paramsExtractor: appReportParamsExtractor,
+      requiredParams: true,
+    }
+  ),
+  ...setValueForMultipleKeys(
+    [
+      originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS,
+      originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_SECURITY,
+      originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_LEGAL,
+      originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS,
+      originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_SECURITY,
+      originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_LEGAL,
+    ],
+    {
+      backButtonTitle: 'Back to Component Details',
+      paramsExtractor: firewallParamsExtractor,
+    }
+  ),
+  ...setValueForMultipleKeys(
+    [
+      originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS,
+      originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS,
+    ],
+    {
+      backButtonTitle: 'Back to Component Details',
+      paramsExtractor: (props) => props,
+    }
+  ),
+};
+
+/**
+ * This function uses the rules and the props to set the necessary href with the props
+ * and the back button title.
+ *
+ * The default back route is defined by the getDefaultNavigationId function
+ */
+const getButtonHrefAndTitle = (uiRouterState, props, rules) => {
+  let navigationId = props?.prevStateName;
+  let rule = rules?.[navigationId];
+
+  if (!rule || (rule.requiredParams && someParamValuesAreNil(rule.paramsExtractor(props)))) {
+    navigationId = getDefaultNavigationId(props);
+    rule = rules[navigationId];
+  }
+
+  let params = rule.paramsExtractor(props);
+
+  return {
+    backButtonHref: uiRouterState.href(navigationId, params),
+    backButtonTitle: rule.backButtonTitle,
+  };
+};
+
+export default function AddAndRequestWaiversBackButton(props) {
   const uiRouterState = useRouterState();
 
-  let backButtonHref;
-  let backButtonTitle = 'Back to Waivers';
-
-  /*
-  The logic flow below describe where the back button on the Add/Request Waiver page will navigate to, 
-  and what the text of the back button will be.
-
-  Violation Details POPOVER (via an application report's Component Details Page)
-  The state will have a hash, scanId, publicId, and prevStateName. There are two possible routes to 
-  the Add/Request Waiver Page from the popover:
-    1. Click Manage Waivers to go to the Waivers for Violation Page, then Add/Request Waiver
-      The back button will say "Back to Waivers" and will navigate back to the Waivers 
-      for Violation Page, with a back button that navigates to the Component Details Page
-    2. Click the dropdown toggle on the Manage Waivers button, then Add or Request Waiver
-      The back button will say "Back to Component Details" and will navigate back to
-      the Component Details Page, with a back button that navigates to the Application Report
-
-  Violation Details PAGE (via the Dashboard's Violations tab),
-  The state will have a sidebarReference and type. There are two possible routes to the Add/Request 
-  Waiver Page via this route:
-    1. Click Manage Waivers to go to the Waivers for Violation Page, then Add/Request Waiver
-      The back button will say "Back to Waivers" and will navigate back to the Waivers 
-      for Violation Page, with a back button that navigates to the Violation Details Page
-    2. Click the dropdown toggle on the Manage Waivers button, then Add or Request Waiver
-      The back button will say "Back to Violation Details" and will navigate back to
-      the Violation Details Page, with a back button that navigates to the Dashboard's Violations tab
-
-  If a user navigates directly to the Add/Request Waiver URL, the the state will only have a
-  violationId, so the back button will navigate to the Waivers for Violation Page with a
-  back button that navigates to Violation Details Page (then back to the Dashboard's Violations tab).
-  */
-
-  // No previous state information
-  if (!prevStateName && !isFirewallOrRepositoryComponent) {
-    backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
-  }
-
-  // Navigated from app report
-  else if (hash && scanId && publicId) {
-    // Navigated from Waivers for Violation page
-    if (prevStateName === originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS) {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS, {
-        ...prevParams,
-      });
-    }
-    // Navigated from Violation Details page/popover
-    else if (prevStateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS) {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, {
-        hash,
-        scanId,
-        publicId,
-      });
-      backButtonTitle = 'Back to Component Details';
-    }
-    // Navigated from Security Details page/popover
-    else if (prevStateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY) {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY, {
-        hash,
-        scanId,
-        publicId,
-      });
-      backButtonTitle = 'Back to Component Details';
-    }
-    // Navigated from Legal Details page/popover
-    else if (prevStateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL) {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL, {
-        hash,
-        scanId,
-        publicId,
-      });
-      backButtonTitle = 'Back to Component Details';
-      // Navigated from any other page
-    } else {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
-    }
-  }
-  // Navigated from Firewall - Component Details Page or Repository Results View - Component Details Page
-  else if (isFirewallOrRepositoryComponent) {
-    backButtonHref = uiRouterState.href(
-      originNamesForAddRequestPages[`${isFirewall ? 'FIREWALL' : 'REPOSITORY'}_VIOLATION_WAIVERS`],
-      {
-        ...props,
-        violationId,
-      }
-    );
-    //Navigated from a shareable URL
-  }
-  // Navigated from Dashboard
-  else if (sidebarReference && type) {
-    // Navigated from Violation Details page/popover
-    if (prevStateName === originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW) {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, {
-        ...prevParams,
-      });
-      backButtonTitle = 'Back to Violation Details';
-      // Navigated from Waivers for Violation page
-    } else {
-      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { ...prevParams });
-    }
-  }
-
-  // Navigated from a shareable URL
-  else {
-    backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
-  }
+  const { backButtonHref, backButtonTitle } = getButtonHrefAndTitle(uiRouterState, props, NAVIGATION_RULES);
 
   return <MenuBarBackButton text={backButtonTitle} href={backButtonHref} />;
 }

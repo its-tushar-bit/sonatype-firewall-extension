@@ -221,6 +221,10 @@ export const reevaluateComponentRequested = noPayloadActionCreator(FIREWALL_REEV
 export const reevaluateComponentFulfilled = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FULFILLED);
 export const reevaluateComponentFailed = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FAILED);
 
+export const FIREWALL_SET_SELECTED_POLICY_ID = 'FIREWALL_SET_SELECTED_POLICY_ID';
+
+export const setFirewallSelectedPolicyId = payloadParamActionCreator(FIREWALL_SET_SELECTED_POLICY_ID);
+
 export function initializeWelcomeModal() {
   return (dispatch) => {
     dispatch(setShowWelcomeModal(getShowWelcomeModalFromStore()));
@@ -687,7 +691,6 @@ function checkEditIqPermission(repositoryId) {
 export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
   dispatch(loadViolationDetailRequested());
   const repositoryId = selectRepositoryId(getState());
-
   return axios
     .get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId))
     .then(({ data }) => {

@@ -11,12 +11,12 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/waivers/waiverActions';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { populateViolationsWithApplicableWaivers } from 'MainRoot/util/waiverUtils';
+import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
@@ -28,9 +28,11 @@ export const initialState = {
   showComponentWaiversPopover: false,
   reloadComponentWaivers: false,
   showViolationsDetailPopover: false,
+  violationsDetailRowClicked: false,
   hasPermissionToAddWaivers: false,
   innerSourceTransitiveWaiver: false,
   selectedPolicyViolationId: null,
+  selectedPolicyViolation: null,
   violationType: null,
 };
 
@@ -130,9 +132,13 @@ const componentDetailsViolationsSlice = createSlice({
   initialState,
   reducers: {
     toggleComponentWaiversPopover,
+    setSelectedPolicyViolation: propSet('selectedPolicyViolation'),
     setSelectedPolicyViolationId: propSet('selectedPolicyViolationId'),
     setViolationType: propSet('violationType'),
     toggleShowViolationsDetailPopover: toggleBooleanProp('showViolationsDetailPopover'),
+    unsetShowViolationsDetailPopover: propSetConst('showViolationsDetailPopover', false),
+    setViolationsDetailRowClicked: propSetConst('violationsDetailRowClicked', true),
+    unsetViolationsDetailRowClicked: propSetConst('violationsDetailRowClicked', false),
   },
   extraReducers: {
     [load.pending]: loadRequested,

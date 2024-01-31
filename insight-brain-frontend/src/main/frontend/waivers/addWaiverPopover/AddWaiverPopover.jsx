@@ -11,7 +11,7 @@ import IqPopover from '../../react/IqPopover/IqPopover';
 import { extractViolationDetails } from '../../util/violationDetailsUtil';
 import AddWaiverForm, { waiverScopePropTypes } from '../AddWaiverForm';
 import { violationDetailsPropTypes } from '../../violation/ViolationDetailsTile';
-import { constraintViolationsPropType } from '../../violation/PolicyViolationConstraintInfoTile';
+import { constraintViolationsPropType } from '../../violation/PolicyViolationConstraintInfo';
 import LoadWrapper from '../../react/LoadWrapper';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 

@@ -58,7 +58,7 @@ export const IqPopoverHeaderTitleText = ({ headerSize = 'h2', headerTitle }) => 
 
 IqPopoverHeaderTitleText.propTypes = {
   headerSize: PropTypes.oneOf(['h1', 'h2', 'h3']),
-  headerTitle: PropTypes.string.isRequired,
+  headerTitle: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
 };
 
 export const IqPopoverHeader = (props) => {

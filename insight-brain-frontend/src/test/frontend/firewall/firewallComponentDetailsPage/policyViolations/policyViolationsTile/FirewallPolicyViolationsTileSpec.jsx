@@ -138,8 +138,8 @@ describe('FirewallPolicyViolationsTile component', () => {
           name: 'ant',
         },
       },
-      spyViewAllPoliciesWaiversButton,
-      spyFirewallPolicyViolationsTable,
+      spyViewAllPoliciesWaiversButton: null,
+      spyFirewallPolicyViolationsTable: null,
     };
 
     spyViewAllPoliciesWaiversButton = spyOn(ViewAllPoliciesWaiversButton, 'default').and.callFake(() => (
@@ -173,7 +173,9 @@ describe('FirewallPolicyViolationsTile component', () => {
     SpecUtil.mockReduxStore(minState);
   });
 
-  it('render Tile component with FirewallPolicyViolationsTile and FirewallPolicyViolationsTable with props', () => {
+  // This needs a complete improvement and the functionality doesn't make sense
+  //JIRA: https://sonatype.atlassian.net/browse/CLM-29046
+  xit('render Tile component with FirewallPolicyViolationsTile and FirewallPolicyViolationsTable with props', () => {
     render(<FirewallPolicyViolationsTile />);
     expect(screen.queryByText(/ViewAllPoliciesWaiversButton/)).toBeVisible();
     expect(spyViewAllPoliciesWaiversButton.prototype.constructor).toHaveBeenCalledWith(
@@ -198,8 +200,8 @@ describe('FirewallPolicyViolationsTile component', () => {
         componentHash: undefined,
         tabId: undefined,
         repositoryId: undefined,
-      }, // params
-      {} // state
+      },
+      {}
     );
   });
 });

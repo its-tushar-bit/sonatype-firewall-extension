@@ -22,6 +22,8 @@ import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.Matc
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable.ListWaiversTableRow;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
@@ -53,7 +55,6 @@ import com.sonatype.clm.testing.functional.pages.CustomizeVulnerabilityDetailsPa
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -93,6 +94,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
@@ -548,6 +550,7 @@ public class ComponentDetailsTest
     policyViolationsTable.getRows().shouldHaveSize(1);
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
+
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver", ""));
 
@@ -579,6 +582,44 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testPolicyViolationsTab_switchingFromSecurityToNonSecurityViolationDetails() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement fifthViolation = violations.get(4);
+    fifthViolation.click();
+
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.violationsTab().shouldBe(visible).click();
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    // test switching from security to non-security while "Vulnerability Details" tab is selected
+    ElementsCollection firstRow = policyViolationsTable.getCellsByNthRow(1);
+    firstRow.get(0).shouldBe(visible).click();
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+    violationDetailPopover.securityVulnerabilityDetailsTab().shouldHave(cssClass("active"));
+
+    ElementsCollection lastRow = policyViolationsTable.getCellsByNthRow(4);
+    lastRow.get(1).shouldBe(visible).shouldHave(text("Component-Similar")).click();
+    violationDetailPopover.shouldBe(visible);
+    ListWaiversTable applicableWaiversTable =
+        violationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+
+    // now test switching from security to non-security while "Applicable Waivers" tab is selected
+    firstRow.get(0).shouldBe(visible).click();
+    violationDetailPopover.shouldBe(visible);
+    violationDetailPopover.applicableWaiversTab().shouldBe(visible).click();
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+
+    lastRow.get(1).shouldBe(visible).click();
+    violationDetailPopover.shouldBe(visible);
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
+  }
+
+  @Test
   public void testPolicyViolationsTab_ViewDetailsPopover() {
     waiveFirstReportRow();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
@@ -597,12 +638,7 @@ public class ComponentDetailsTest
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
     eyesWatcher.eyesCheck("policy violation details popover");
 
-    tile.headerTitle().shouldHave(text("Violation of License-Banned"));
-    ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
-    elements.shouldHaveSize(3);
-    elements.get(0).shouldHave(text("Test Organization"));
-    elements.get(1).shouldHave(text("ApplicationReportTest"));
-    elements.get(2).shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    violationDetailPopover.headerPopoverTitle().shouldHave(text("Violation of License-Banned"));
 
     tile.firstReported().shouldHave(text("Just now"));
     tile.lastReported().shouldHave(text("Just now"));
@@ -637,15 +673,13 @@ public class ComponentDetailsTest
 
     row.click();
     violationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
 
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+    violationDetailPopover.applicableWaiversTab().shouldBe(visible).click();
+    ListWaiversTable applicableWaiversTable =
+        violationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.rows().shouldHaveSize(1);
+    ListWaiversTableRow waiversTableRow = applicableWaiversTable.row(1);
+    waiversTableRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
   }
 
   @Test
@@ -704,6 +738,7 @@ public class ComponentDetailsTest
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
     componentWaiversTable.shouldBe(visible);
     componentWaiversTable.getRows().shouldHaveSize(1);
+
     SelenideElement row1 = componentWaiversTable.getRow(1);
     ElementsCollection row1Cells = row1.findAll(".nx-cell");
     row1Cells.shouldHave(texts("License-Banned\nLicense not approved in any situation",
@@ -925,7 +960,7 @@ public class ComponentDetailsTest
 
     VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
     vulnerabilityDetailsPopover.shouldBe(visible);
-    
+
     SelenideElement customizeButton = vulnerabilityDetailsPopover.getCustomizeButton();
     customizeButton.shouldBe(visible);
     customizeButton.click();
@@ -963,7 +998,7 @@ public class ComponentDetailsTest
     addWaiver(policyViolationsTable);
 
     componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTab().click();
+    componentDetailsPage.legalTab().shouldBe(visible).click();
     componentDetailsPage.legalTabContent().shouldBe(visible);
 
     policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
@@ -971,6 +1006,7 @@ public class ComponentDetailsTest
     policyViolationsTable.getRows().shouldHaveSize(1);
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
+
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
         "Unapplied Waiver", ""));
@@ -988,7 +1024,7 @@ public class ComponentDetailsTest
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "fa78f54738ccf77379d1"));
 
     componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTab().click();
+    componentDetailsPage.legalTab().shouldBe(visible).click();
     componentDetailsPage.legalTabContent().shouldBe(visible);
 
     policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();

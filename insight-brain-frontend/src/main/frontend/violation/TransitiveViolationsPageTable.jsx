@@ -28,6 +28,7 @@ export default function TransitiveViolationsPageTable(props) {
     setFilteringParameters,
     setSelectedPolicyViolationId,
     toggleShowViolationsDetailPopover,
+    setViolationsDetailRowClicked,
   } = props;
 
   const getThreatColorClass = (threatLevel) => {
@@ -65,6 +66,7 @@ export default function TransitiveViolationsPageTable(props) {
   const selectPolicyViolation = (policyViolationId) => {
     setSelectedPolicyViolationId(policyViolationId);
     toggleShowViolationsDetailPopover();
+    setViolationsDetailRowClicked();
   };
 
   const createRow = (transitivePolicyViolation) => {
@@ -164,4 +166,5 @@ TransitiveViolationsPageTable.propTypes = {
   setFilteringParameters: PropTypes.func.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  setViolationsDetailRowClicked: PropTypes.func.isRequired,
 };

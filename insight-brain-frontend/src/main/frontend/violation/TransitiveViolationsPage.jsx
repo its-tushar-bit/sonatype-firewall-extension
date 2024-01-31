@@ -38,8 +38,9 @@ export default function TransitiveViolationsPage(props) {
     isRequestWaiveTransitiveViolationsOpen,
     isWaiveTransitiveViolationsOpen,
     isViewTransitiveViolationWaiversOpen,
-    showViolationsDetailPopover,
     shouldGoBackToComponentDetails,
+    showViolationsDetailPopover,
+    violationsDetailRowClicked,
     loadAvailableScopes,
     loadTransitiveViolations,
     setSortingParameters,
@@ -51,6 +52,7 @@ export default function TransitiveViolationsPage(props) {
     toggleViewTransitiveViolationWaivers,
     setSelectedPolicyViolationId,
     toggleShowViolationsDetailPopover,
+    setViolationsDetailRowClicked,
     setWaiverToDelete,
   } = props;
 
@@ -83,89 +85,90 @@ export default function TransitiveViolationsPage(props) {
   };
 
   return (
-    <main id="transitive-violations-page" className="nx-page-main nx-viewport-sized__container">
-      <LoadWrapper
-        loading={availableScopes.loading || reportMetadata.loading || componentTransitivePolicyViolations.loading}
-        error={availableScopes.error || reportMetadata.error || componentTransitivePolicyViolations.error}
-        retryHandler={load}
-      >
-        {availableScopes.data && reportMetadata.data && componentTransitivePolicyViolations.data && (
-          <Fragment>
-            {ownerId && scanId && <MenuBarBackButton href={getBackHref()} />}
-            <ComponentDetailsHeader>
-              <Title id="transitive-violations-page-title">
-                {componentTransitivePolicyViolations.data.displayName}
-              </Title>
-              <ComponentDetailsReportInfo
-                applicationName={availableScopes.data[0].name}
-                organizationName={availableScopes.data[1].name}
-                reportTime={reportMetadata.data.reportTime}
-                reportTitle={reportMetadata.data.reportTitle}
-              />
-              <ComponentDetailsTags isInnerSource={componentTransitivePolicyViolations.data.isInnerSource} />
-            </ComponentDetailsHeader>
-            {isRequestWaiveTransitiveViolationsOpen && <RequestWaiveTransitiveViolationsPopoverContainer />}
-            {isWaiveTransitiveViolationsOpen && <WaiveTransitiveViolationsPopoverContainer />}
-            {isViewTransitiveViolationWaiversOpen && (
-              <ComponentWaiversPopover
-                title="Transitive Component Waivers"
-                toggleComponentWaiversPopover={toggleViewTransitiveViolationWaivers}
-                waivers={transitiveViolationWaivers.data.componentPolicyWaivers}
-                setWaiverToDelete={setWaiverToDelete}
-                waiverToDelete={waiverToDelete}
-              />
-            )}
-            <section className="nx-tile nx-viewport-sized__container">
-              <header className="nx-tile-header">
-                <div className="nx-tile-header__title">
-                  <h2 className="nx-h2">Transitive Violations</h2>
+    <>
+      {(showViolationsDetailPopover || violationsDetailRowClicked) && <PolicyViolationDetailsPopover />}
+      <main id="transitive-violations-page" className="nx-page-main nx-viewport-sized__container">
+        <LoadWrapper
+          loading={availableScopes.loading || reportMetadata.loading || componentTransitivePolicyViolations.loading}
+          error={availableScopes.error || reportMetadata.error || componentTransitivePolicyViolations.error}
+          retryHandler={load}
+        >
+          {availableScopes.data && reportMetadata.data && componentTransitivePolicyViolations.data && (
+            <Fragment>
+              {ownerId && scanId && <MenuBarBackButton href={getBackHref()} />}
+              <ComponentDetailsHeader>
+                <Title id="transitive-violations-page-title">
+                  {componentTransitivePolicyViolations.data.displayName}
+                </Title>
+                <ComponentDetailsReportInfo
+                  applicationName={availableScopes.data[0].name}
+                  organizationName={availableScopes.data[1].name}
+                  reportTime={reportMetadata.data.reportTime}
+                  reportTitle={reportMetadata.data.reportTitle}
+                />
+                <ComponentDetailsTags isInnerSource={componentTransitivePolicyViolations.data.isInnerSource} />
+              </ComponentDetailsHeader>
+              {isRequestWaiveTransitiveViolationsOpen && <RequestWaiveTransitiveViolationsPopoverContainer />}
+              {isWaiveTransitiveViolationsOpen && <WaiveTransitiveViolationsPopoverContainer />}
+              {isViewTransitiveViolationWaiversOpen && (
+                <ComponentWaiversPopover
+                  title="Transitive Component Waivers"
+                  toggleComponentWaiversPopover={toggleViewTransitiveViolationWaivers}
+                  waivers={transitiveViolationWaivers.data.componentPolicyWaivers}
+                  setWaiverToDelete={setWaiverToDelete}
+                  waiverToDelete={waiverToDelete}
+                />
+              )}
+              <section className="nx-tile nx-viewport-sized__container">
+                <header className="nx-tile-header">
+                  <div className="nx-tile-header__title">
+                    <h2 className="nx-h2">Transitive Violations</h2>
+                  </div>
+                  <div className="nx-tile__actions">
+                    <NxButton
+                      id="transitive-violations-page-request-waive"
+                      variant="tertiary"
+                      onClick={toggleRequestWaiveTransitiveViolations}
+                      disabled={componentTransitivePolicyViolations.data.violations.length === 0}
+                    >
+                      Request Waiver
+                    </NxButton>
+                    <NxButton
+                      id="transitive-violations-page-waive"
+                      variant="tertiary"
+                      onClick={toggleWaiveTransitiveViolations}
+                      disabled={componentTransitivePolicyViolations.data.violations.length === 0}
+                    >
+                      Waive Transitive Violations
+                    </NxButton>
+                    <NxButton
+                      id="transitive-violations-page-view-waivers"
+                      variant="tertiary"
+                      onClick={() => loadTransitiveViolationWaivers(ownerId, scanId, hash)}
+                    >
+                      View Existing Waivers
+                    </NxButton>
+                  </div>
+                </header>
+                <div className="nx-tile-content nx-viewport-sized__container">
+                  <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+                    <TransitiveViolationsPageTable
+                      stageTypeId={reportMetadata.data.stageId}
+                      componentTransitivePolicyViolations={componentTransitivePolicyViolations}
+                      setFilteringParameters={setFilteringParameters}
+                      setSortingParameters={setSortingParameters}
+                      setSelectedPolicyViolationId={setSelectedPolicyViolationId}
+                      toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
+                      setViolationsDetailRowClicked={setViolationsDetailRowClicked}
+                    />
+                  </div>
                 </div>
-                <div className="nx-tile__actions">
-                  <NxButton
-                    id="transitive-violations-page-request-waive"
-                    variant="tertiary"
-                    onClick={toggleRequestWaiveTransitiveViolations}
-                    disabled={componentTransitivePolicyViolations.data.violations.length === 0}
-                  >
-                    Request Waiver
-                  </NxButton>
-                  <NxButton
-                    id="transitive-violations-page-waive"
-                    variant="tertiary"
-                    onClick={toggleWaiveTransitiveViolations}
-                    disabled={componentTransitivePolicyViolations.data.violations.length === 0}
-                  >
-                    Waive Transitive Violations
-                  </NxButton>
-                  <NxButton
-                    id="transitive-violations-page-view-waivers"
-                    variant="tertiary"
-                    onClick={() => loadTransitiveViolationWaivers(ownerId, scanId, hash)}
-                  >
-                    View Existing Waivers
-                  </NxButton>
-                </div>
-              </header>
-              <div className="nx-tile-content nx-viewport-sized__container">
-                <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-                  <TransitiveViolationsPageTable
-                    stageTypeId={reportMetadata.data.stageId}
-                    componentTransitivePolicyViolations={componentTransitivePolicyViolations}
-                    setFilteringParameters={setFilteringParameters}
-                    setSortingParameters={setSortingParameters}
-                    setSelectedPolicyViolationId={setSelectedPolicyViolationId}
-                    toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
-                  />
-                </div>
-                {showViolationsDetailPopover && (
-                  <PolicyViolationDetailsPopover onClose={toggleShowViolationsDetailPopover} />
-                )}
-              </div>
-            </section>
-          </Fragment>
-        )}
-      </LoadWrapper>
-    </main>
+              </section>
+            </Fragment>
+          )}
+        </LoadWrapper>
+      </main>
+    </>
   );
 }
 
@@ -182,8 +185,9 @@ TransitiveViolationsPage.propTypes = {
   isRequestWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   isViewTransitiveViolationWaiversOpen: PropTypes.bool.isRequired,
-  showViolationsDetailPopover: PropTypes.bool.isRequired,
   shouldGoBackToComponentDetails: PropTypes.bool.isRequired,
+  showViolationsDetailPopover: PropTypes.bool.isRequired,
+  violationsDetailRowClicked: PropTypes.bool.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
@@ -195,5 +199,6 @@ TransitiveViolationsPage.propTypes = {
   toggleViewTransitiveViolationWaivers: PropTypes.func.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  setViolationsDetailRowClicked: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
 };

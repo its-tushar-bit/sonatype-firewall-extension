@@ -4,15 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import FirewallPolicyViolationsTableRow from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallPolicyViolationsTableRow';
 
 describe('FirewallPolicyViolationsTableRow component', () => {
-  let minimalProps, renderComponent, showPopoverSpy, savePolicyIdSpy;
+  let minimalProps, renderComponent, showPopoverSpy;
 
   beforeEach(() => {
     showPopoverSpy = jasmine.createSpy('showPopover');
-    savePolicyIdSpy = jasmine.createSpy('savePolicyId');
     minimalProps = {
       violation: {
         policyViolationId: '049d0649944148b0be20ab9d75b5ff7a',
@@ -54,7 +53,6 @@ describe('FirewallPolicyViolationsTableRow component', () => {
         applicableWaivers: [],
       },
       showPopover: showPopoverSpy,
-      savePolicyId: savePolicyIdSpy,
     };
     renderComponent = (minimalProps) => render(<FirewallPolicyViolationsTableRow {...minimalProps} />);
   });
@@ -99,14 +97,6 @@ describe('FirewallPolicyViolationsTableRow component', () => {
       const rows = screen.getAllByRole('row');
 
       expect(within(rows[0].childNodes[1]).getByText('Proxy Warning')).toBeVisible();
-    });
-
-    it('clicking on a row', () => {
-      renderComponent(minimalProps);
-      const rows = screen.getByRole('row');
-      fireEvent.click(rows);
-      expect(showPopoverSpy).toHaveBeenCalledWith(true);
-      expect(savePolicyIdSpy).toHaveBeenCalled();
     });
   });
 

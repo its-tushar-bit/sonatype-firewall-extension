@@ -33,12 +33,12 @@ import {
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
   selectIsFirewallOrRepository,
-  selectViolationId,
   selectRouterCurrentParams,
   selectCurrentRouteName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
+import { selectSelectedPolicyViolation } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -203,9 +203,6 @@ export function returnToAddWaiverOriginPage() {
 
     // If user canceled waiver creation, return to previous view
     switch (prevStateName) {
-      case originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS:
-        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS, prevParams));
-
       case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS:
         return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, prevParams));
 
@@ -214,9 +211,6 @@ export function returnToAddWaiverOriginPage() {
 
       case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY:
         return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY, prevParams));
-
-      case originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION:
-        return dispatch(stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, prevParams));
 
       case originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW:
         return dispatch(stateGo(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, prevParams));
@@ -229,6 +223,24 @@ export function returnToAddWaiverOriginPage() {
           })
         );
 
+      case originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS:
+        return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS, prevParams));
+
+      case originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_SECURITY:
+        return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_SECURITY, prevParams));
+
+      case originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_LEGAL:
+        return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_COMPONENT_DETAILS_LEGAL, prevParams));
+
+      case originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS:
+        return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS, prevParams));
+
+      case originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_SECURITY:
+        return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_SECURITY, prevParams));
+
+      case originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_LEGAL:
+        return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_COMPONENT_DETAILS_LEGAL, prevParams));
+
       case originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS:
         return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, prevParams));
 
@@ -238,8 +250,10 @@ export function returnToAddWaiverOriginPage() {
       // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(
-          stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
-            violationId: currentParams.violationId,
+          stateGo(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, {
+            id: currentParams.violationId,
+            type: prevParams.type,
+            sidebarReference: prevParams.sidebarReference,
           })
         );
     }
@@ -322,11 +336,12 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
     dispatch(deleteWaiverRequested());
 
     let policyViolationId;
-    const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = getState();
+    const state = getState();
+    const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = state;
     const { reloadComponentWaivers } = componentDetailsPolicyViolations;
 
-    if (selectIsFirewallOrRepository(getState())) {
-      policyViolationId = selectViolationId(getState());
+    if (selectIsFirewallOrRepository(state)) {
+      policyViolationId = selectSelectedPolicyViolation(state)?.policyViolationId;
     } else {
       policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
     }
@@ -348,6 +363,11 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const hash = selectHash(getState());
           const ownerId = selectRepositoryId(getState());
           dispatch(loadExistingWaiversData('repository', ownerId, hash));
+          if (!reloadComponentWaivers) {
+            dispatch(loadApplicableWaivers(policyViolationId));
+          } else {
+            dispatch(policyViolationsActions.load());
+          }
         } else {
           if (!reloadComponentWaivers) {
             dispatch(loadApplicableWaivers(policyViolationId));

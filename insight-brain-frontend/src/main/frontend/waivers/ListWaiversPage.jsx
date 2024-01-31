@@ -12,7 +12,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
-import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfo';
 import ListWaiversTable from './ListWaiversTable';
 import { waiverType } from '../util/waiverUtils';
 import DeleteWaiverModalContainer from './deleteWaiverModal/DeleteWaiverModalContainer';

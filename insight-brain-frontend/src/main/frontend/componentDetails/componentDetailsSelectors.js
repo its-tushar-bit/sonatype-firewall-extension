@@ -86,15 +86,15 @@ export const selectComponentPagination = createSelector(
   selectCurrentRouteName,
   // the second argument is passed to the selector and in this case is props
   // so we can access the uiRouterState instance from context
-  (_state, { uiRouterState }) => uiRouterState,
-  (index, components = [], routeName, uiRouterState) => {
+  (_state, uiRouterStateService) => uiRouterStateService,
+  (index, components = [], routeName, uiRouterStateService) => {
     let pagination = null;
 
     if (index !== -1) {
       const nextHash = components[index + 1] ? components[index + 1].hash : null;
       const prevHash = components[index - 1] ? components[index - 1].hash : null;
-      const nextHref = nextHash && uiRouterState.href(routeName, { hash: nextHash });
-      const prevHref = prevHash && uiRouterState.href(routeName, { hash: prevHash });
+      const nextHref = nextHash && uiRouterStateService.href(routeName, { hash: nextHash });
+      const prevHref = prevHash && uiRouterStateService.href(routeName, { hash: prevHash });
       pagination = {
         next: nextHref,
         prev: prevHref,

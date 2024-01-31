@@ -4,34 +4,47 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect } from 'react';
-import * as PropTypes from 'prop-types';
+import cx from 'classnames';
+import { useDispatch, useSelector } from 'react-redux';
 import { NxInfoAlert, NxLoadWrapper, NxTextLink } from '@sonatype/react-shared-components';
 import {
   ComponentDetailsHeader,
   ComponentDetailsReportInfo,
   ComponentDetailsTags,
-  componentDetailsTagsPropTypes,
   Title,
 } from './ComponentDetailsHeader';
-import { ComponentDetailsFooter, ComponentDetailsFooterPropTypes as footerPropTypes } from './ComponentDetailsFooter';
+import { ComponentDetailsFooter } from './ComponentDetailsFooter';
+import { actions } from './componentDetailsSlice';
 import AuditLogContainer from './auditLog/AuditLogContainer';
 import { OverviewContainer } from './overview';
 import PolicyViolations from './PolicyViolations/PolicyViolations';
 import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
 import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
 import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
+import PolicyViolationDetailsPopover from './ViolationsTableTile/PolicyViolationDetailsPopover';
 import { ClaimContainer } from './claim/ClaimContainer';
 
 import ComponentDetailsBackButton from './ComponentDetailsBackButton';
 import ComponentDetailsTabs from './ComponentDetailsTabs';
 import UnknownComponentAlert from './UnknownComponentAlert';
 import {
+  selectComponentDetails,
+  selectActiveTabId,
+  selectComponentPagination,
+  selectComponentDetailsLoadErrors,
+  selectComponentDetailsLoading,
+  selectIsProprietary,
+  selectFilteredPathnames,
+} from './componentDetailsSelectors';
+import { selectDependencyTreeRouterParams } from 'MainRoot/applicationReport/applicationReportSelectors';
+
+import {
   isUnknownComponent,
   createTabConfiguration,
   isExactComponent,
   isClaimedComponent,
 } from './componentDetailsUtils';
-import cx from 'classnames';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
   let tabsConfiguration = [
@@ -58,19 +71,21 @@ export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
 
   return tabsConfiguration;
 }
-export default function ComponentDetails({
-  componentDetails,
-  activeTabId,
-  onTabChange,
-  pagination,
-  loadComponentDetails,
-  loadError,
-  loading,
-  toggleShowMatchersPopover,
-  isProprietary,
-  pathnames,
-  dependencyTreeRouterParams,
-}) {
+export default function ComponentDetails() {
+  const dispatch = useDispatch();
+  const uiRouterStateService = useRouterState();
+  const componentDetails = useSelector(selectComponentDetails);
+  const activeTabId = useSelector(selectActiveTabId);
+  const pagination = useSelector((state) => selectComponentPagination(state, uiRouterStateService));
+  const loadError = useSelector(selectComponentDetailsLoadErrors);
+  const loading = useSelector(selectComponentDetailsLoading);
+  const isProprietary = useSelector(selectIsProprietary);
+  const pathnames = useSelector(selectFilteredPathnames);
+  const dependencyTreeRouterParams = useSelector(selectDependencyTreeRouterParams);
+  const loadComponentDetails = () => dispatch(actions.loadComponentDetails());
+  const onTabChange = (tabId) => dispatch(actions.onTabChange(tabId));
+  const toggleShowMatchersPopover = () => dispatch(actions.toggleShowMatchersPopover());
+
   useEffect(() => {
     loadComponentDetails();
   }, []);
@@ -100,81 +115,53 @@ export default function ComponentDetails({
     });
 
   return (
-    <main className={`nx-viewport-sized ${getClasses()}`}>
-      <ComponentDetailsBackButton {...dependencyTreeRouterParams} />
-      <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
-        <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
-          {() => (
-            <Fragment>
-              <ComponentDetailsHeader>
-                <Title id="component-details-title">{componentDetails.name}</Title>
-                <ComponentDetailsReportInfo {...componentDetails.metadata} />
-                <ComponentDetailsTags
-                  format={componentDetails.format}
-                  dependencyType={componentDetails.dependencyType}
-                  isInnerSource={componentDetails.isInnerSource}
-                  labels={componentDetails.labels}
-                />
-              </ComponentDetailsHeader>
-              {isUnknown && !isProprietary && (
-                <UnknownComponentAlert
-                  onClaimClick={() => handleTabChange('claim')}
-                  toggleShowMatchersPopover={toggleShowMatchersPopover}
-                  pathnames={pathnames}
-                />
-              )}
-              {isUnknown && isProprietary && (
-                <NxInfoAlert id="proprietary-component-matched-alert">
-                  This component has been matched as a Proprietary Component.{' '}
-                  <NxTextLink
-                    external
-                    href="http://links.sonatype.com/products/nxiq/doc/managing-proprietary-components"
-                  >
-                    Learn more here
-                  </NxTextLink>
-                </NxInfoAlert>
-              )}
-            </Fragment>
-          )}
-        </NxLoadWrapper>
-        <ComponentDetailsTabs
-          activeTabId={activeTabId}
-          onTabChange={handleTabChange}
-          tabsConfiguration={tabsConfiguration}
-        />
-      </div>
-      {!dependencyTreeRouterParams && pagination && <ComponentDetailsFooter {...pagination} />}
-    </main>
+    <>
+      <PolicyViolationDetailsPopover />
+      <main className={`nx-viewport-sized ${getClasses()}`}>
+        <ComponentDetailsBackButton {...dependencyTreeRouterParams} />
+        <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
+          <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
+            {() => (
+              <Fragment>
+                <ComponentDetailsHeader>
+                  <Title id="component-details-title">{componentDetails.name}</Title>
+                  <ComponentDetailsReportInfo {...componentDetails.metadata} />
+                  <ComponentDetailsTags
+                    format={componentDetails.format}
+                    dependencyType={componentDetails.dependencyType}
+                    isInnerSource={componentDetails.isInnerSource}
+                    labels={componentDetails.labels}
+                  />
+                </ComponentDetailsHeader>
+                {isUnknown && !isProprietary && (
+                  <UnknownComponentAlert
+                    onClaimClick={() => handleTabChange('claim')}
+                    toggleShowMatchersPopover={toggleShowMatchersPopover}
+                    pathnames={pathnames}
+                  />
+                )}
+                {isUnknown && isProprietary && (
+                  <NxInfoAlert id="proprietary-component-matched-alert" role="alert">
+                    This component has been matched as a Proprietary Component.{' '}
+                    <NxTextLink
+                      external
+                      href="http://links.sonatype.com/products/nxiq/doc/managing-proprietary-components"
+                    >
+                      Learn more here
+                    </NxTextLink>
+                  </NxInfoAlert>
+                )}
+              </Fragment>
+            )}
+          </NxLoadWrapper>
+          <ComponentDetailsTabs
+            activeTabId={activeTabId}
+            onTabChange={handleTabChange}
+            tabsConfiguration={tabsConfiguration}
+          />
+        </div>
+        {!dependencyTreeRouterParams && pagination && <ComponentDetailsFooter {...pagination} />}
+      </main>
+    </>
   );
 }
-
-ComponentDetails.propTypes = {
-  componentDetails: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    hash: PropTypes.string.isRequired,
-    format: componentDetailsTagsPropTypes.form,
-    dependencyType: componentDetailsTagsPropTypes.dependencyType,
-    isInnerSource: componentDetailsTagsPropTypes.isInnerSource,
-    labels: componentDetailsTagsPropTypes.label,
-    metadata: PropTypes.shape({
-      applicationName: PropTypes.string,
-      organizationName: PropTypes.string,
-      reportTime: PropTypes.number,
-      reportTitle: PropTypes.string,
-    }),
-    matchState: PropTypes.string,
-    identificationSource: PropTypes.string,
-  }),
-  loadComponentDetails: PropTypes.func.isRequired,
-
-  // activeTabId should be required but marking it as such causes proptype errors when navigating away
-  activeTabId: PropTypes.string,
-  onTabChange: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired,
-  loadError: PropTypes.string,
-  pagination: PropTypes.shape(footerPropTypes),
-  toggleShowMatchersPopover: PropTypes.func.isRequired,
-  isProprietary: PropTypes.bool,
-  pathnames: PropTypes.arrayOf(PropTypes.string),
-  dependencyTreeRouterParams: PropTypes.shape({ publicId: PropTypes.string, scanId: PropTypes.string }),
-};

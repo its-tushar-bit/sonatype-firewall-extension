@@ -22,10 +22,10 @@ export const rscColorMap = {
   'light-green': 'lime',
 };
 
-export function TagWithFontAwesomeIcon({ faIcon, color, children, tooltip }) {
+export function TagWithFontAwesomeIcon({ faIcon, color, children, tooltip, ...props }) {
   return (
     <NxTooltip title={tooltip}>
-      <NxTag color={color} aria-label={`Label ${children}`}>
+      <NxTag color={color} aria-label={`Label ${children}`} {...props}>
         <NxFontAwesomeIcon icon={faIcon} />
         <span>{children}</span>
       </NxTag>
@@ -33,10 +33,10 @@ export function TagWithFontAwesomeIcon({ faIcon, color, children, tooltip }) {
   );
 }
 
-export default function ComponentLabelTag({ children, color, description }) {
+export default function ComponentLabelTag({ children, color, description, ...props }) {
   const mappedColor = rscColorMap[color];
   return (
-    <TagWithFontAwesomeIcon faIcon={faTag} color={mappedColor} tooltip={description}>
+    <TagWithFontAwesomeIcon faIcon={faTag} color={mappedColor} tooltip={description} {...props}>
       {children}
     </TagWithFontAwesomeIcon>
   );

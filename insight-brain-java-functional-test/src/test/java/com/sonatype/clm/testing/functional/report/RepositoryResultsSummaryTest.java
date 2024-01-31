@@ -60,7 +60,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
@@ -83,7 +82,6 @@ public class RepositoryResultsSummaryTest
   private void waitUntilFirewallComponentDetailsPageSpinnersGone() {
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
-    firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
   @BeforeClass

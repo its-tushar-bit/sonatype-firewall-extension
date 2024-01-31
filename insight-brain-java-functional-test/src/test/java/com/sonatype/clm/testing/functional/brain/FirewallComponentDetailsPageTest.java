@@ -34,6 +34,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
+import com.sonatype.clm.testing.functional.elements.ListWaiversTable.ListWaiversTableRow;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
@@ -59,8 +61,6 @@ import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -113,7 +113,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -130,6 +129,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FirewallComponentDetailsPageTest
     extends AbstractFunctionalTest
 {
+  static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
+
+  static final String dateFormatMask = "yyyy-MM-dd";
+
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
@@ -139,6 +142,20 @@ public class FirewallComponentDetailsPageTest
   private RepositoryComponentDAO repositoryComponentDAO;
 
   private PolicyDAO policyDAO;
+  
+  // declared and observed licenses are not the same
+  private final String multiLicensed = "multiLicensed";
+
+  // declared and observed licenses are the same
+  private final String singleLicense = "singleLicense";
+
+  // no declared or observed licenses are provided
+  private final String nonLicensed = "nonLicensed";
+
+  // overriden licenses by the user in IQ
+  private final String overriddenLicense = "overriddenLicense";
+
+  private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3", "Label 4"};
 
   private Repository repository;
 
@@ -159,22 +176,6 @@ public class FirewallComponentDetailsPageTest
   private Policy unknownComponentPolicy;
 
   private Date date;
-
-  // declared and observed licenses are not the same
-  private final String multiLicensed = "multiLicensed";
-
-  // declared and observed licenses are the same
-  private final String singleLicense = "singleLicense";
-
-  // no declared or observed licenses are provided
-  private final String nonLicensed = "nonLicensed";
-
-  // overriden licenses by the user in IQ
-  private final String overriddenLicense = "overriddenLicense";
-
-  static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
-
-  static final String dateFormatMask = "yyyy-MM-dd";
 
   @BeforeClass
   public static void startup() {
@@ -202,7 +203,6 @@ public class FirewallComponentDetailsPageTest
   private void waitUntilSpinnersGone() {
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
-    firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
   private ComponentDetails createComponentDetail(
@@ -374,8 +374,8 @@ public class FirewallComponentDetailsPageTest
   }
 
   private void createUnknownComponentPolicy() {
-    unknownComponentPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "Component-Unknown", 
-    MatchStateConditionType.ID, "is", MatchState.UNKNOWN.toString());
+    unknownComponentPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "Component-Unknown",
+        MatchStateConditionType.ID, "is", MatchState.UNKNOWN.toString());
   }
 
   private ComponentIdentifier createComponentIdentifier(String version) {
@@ -664,7 +664,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryResultDetailPage.table().row(0).policy().shouldBe(text("Component-Unknown"));
     RepositoryResultDetailPage.table().row(0).quarantined().shouldBe(text(quarantinedDate));
     RepositoryResultDetailPage.table().row(0).component().shouldBe(text("unknownComponent (unknownComponent)"));
-    
+
     RepositoryResultDetailPage.table().row(0).component().click();
     waitUntilSpinnersGone();
 
@@ -718,7 +718,7 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallComponentDetailsPage.tabs();
     tabs.first().shouldHave(cssClass("active"));
-    
+
     assertThat(getWebDriver().getCurrentUrl()).contains("/" + component.getMatchStateId() + "?");
 
     tabs.get(1).click();
@@ -1101,7 +1101,7 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getComponentPolicyViolationsTable().shouldBe(visible);
     firewallComponentDetailsPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
     testComponentPolicyViolationsRowHeaders();
-    
+
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
@@ -1234,7 +1234,6 @@ public class FirewallComponentDetailsPageTest
 
     violationRow1Cells.get(3).click();
     violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
-    violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
     violationRow1Cells.get(2).shouldHave(text(policyViolationDetailPopover.policyViolationText().getText()));
     violationRow1Cells.get(3).shouldHave(text(policyViolationDetailPopover.popoverList().getText()));
     policyViolationDetailPopover.getCloseButton().click();
@@ -1263,39 +1262,9 @@ public class FirewallComponentDetailsPageTest
     PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
     violationRow1Cells.get(3).click();
     violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
-    violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
     violationRow1Cells.get(2).shouldHave(text(policyViolationDetailPopover.policyViolationText().getText()));
     violationRow1Cells.get(3).shouldHave(text(policyViolationDetailPopover.popoverList().getText()));
     policyViolationDetailPopover.getCloseButton().click();
-  }
-
-  @Test
-  public void testManageWaiversPage_backButtonClick() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
-    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
-        .getFirewallPolicyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-
-    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-
-    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
-
-    violationRow1Cells.get(3).click();
-
-    policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
-    waitUntilSpinnersGone();
-
-    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
@@ -1971,86 +1940,6 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testPolicyViolationTabManageWaiversButtonClick() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
-    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
-        .getFirewallPolicyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-
-    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-
-    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
-
-    violationRow1Cells.get(3).click();
-
-    policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
-    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
-  }
-
-  @Test
-  public void testPolicyViolationTabManageWaiversButtonClickForUnknownComponentFromFirewallDashboard() {
-    createUnknownComponentPolicy();
-    setupUnknownComponentTestDataWithWaivedViolation();
-    FirewallPage firewallPage = new FirewallPage();
-    refreshOrOpen(FirewallPage.url());
-    waitUntilSpinnersGone();
-    firewallPage.firewallQuarantineTable().getComponentDetailsPageLinkFromRow(0).click();
-    waitUntilSpinnersGone();
-    
-    testPolicyViolationTabManageWaiversButtonClickForUnknownComponent();
-  }
-
-  @Test
-  public void testPolicyViolationTabManageWaiversButtonClickForUnknownComponentFromRepositoryResults() {
-    createUnknownComponentPolicy();
-    RepositoryComponent component = setupUnknownComponentTestDataWithWaivedViolation();
-    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
-    RepositoryResultDetailPage.aggregateToggle().click();
-    RepositoryResultDetailPage.table().row(0).component().click();
-    waitUntilSpinnersGone();
-        
-    testPolicyViolationTabManageWaiversButtonClickForUnknownComponent();
-  }
-
-  private void testPolicyViolationTabManageWaiversButtonClickForUnknownComponent() {
-    
-    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
-    tabs.get(1).click();
-    
-    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
-        .getFirewallPolicyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-
-    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-
-    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
-
-    violationRow1Cells.get(3).click();
-
-    policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text("unknownComponent (unknownComponent)"));
-    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
-  }
-
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -2117,7 +2006,6 @@ public class FirewallComponentDetailsPageTest
     componentEvaluationData.securityVulnerabilities = componentDetails.getSecurityVulnerabilities();
 
     return componentEvaluationData;
-
   }
 
   @Test
@@ -2165,13 +2053,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.artifactName().shouldHave(text("abi.cli"));
@@ -2219,13 +2101,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.artifactName().shouldHave(text("unknownComponent (unknownComponent)"));
@@ -2264,13 +2140,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.comments().shouldHave(exactText(""));
@@ -2304,13 +2174,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(4);
@@ -2339,13 +2203,12 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    policyViolationDetailPopover.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTable =
+        policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTable.noWaiversMessage().shouldBe(visible);
 
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(4);
@@ -2360,14 +2223,23 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.submitError().shouldNotBe(visible);
 
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
-    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
-    listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Some comments"));
-    listWaiversPage.waiverListTable().row(1).createdBy().shouldHave(text("Admin BuiltIn"));
-    listWaiversPage.waiverListTable().row(1).waiverExpiration().shouldHave(text("Does not expire"));
-    listWaiversPage.waiverListTable().row(1).components().shouldHave(text("All"));
-    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository - repository"));
-    listWaiversPage.waiverListTable().row(1).dateCreated().shouldHave(text(dateCreated));
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationDetailPopover.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTableAfterSubmit =
+        policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTableAfterSubmit.rows().shouldHaveSize(1);
+    applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
+
+    ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
+    waiversTableRow.comments().shouldHave(text("Some comments"));
+    waiversTableRow.components().shouldHave(text("All"));
+    waiversTableRow.comments().shouldHave(text("Some comments"));
+    waiversTableRow.createdBy().shouldHave(text("Admin BuiltIn"));
+    waiversTableRow.waiverExpiration().shouldHave(text("Does not expire"));
+    waiversTableRow.components().shouldHave(text("All"));
+    waiversTableRow.scope().shouldHave(text("Repository - repository"));
+    waiversTableRow.dateCreated().shouldHave(text(dateCreated));
   }
 
   @Test
@@ -2388,13 +2260,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(4);
@@ -2409,7 +2275,6 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.submitError().shouldNotBe(visible);
 
-    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
     waitUntilSpinnersGone();
 
     firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
@@ -2442,8 +2307,6 @@ public class FirewallComponentDetailsPageTest
         componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
     componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
   }
-
-  private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3", "Label 4"};
 
   private ArrayList<Label> generateApplicableLabels() {
     ArrayList<Label> labelsList = new ArrayList<>();
@@ -2674,7 +2537,6 @@ public class FirewallComponentDetailsPageTest
 
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.detailsTile().shouldBe(visible);
-    violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("0 Active Waivers"));
   }
 
   @Test
@@ -2698,7 +2560,6 @@ public class FirewallComponentDetailsPageTest
 
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.detailsTile().shouldBe(visible);
-    violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("1 Active Waiver"));
   }
 
   @Test
@@ -2719,13 +2580,8 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(4);
@@ -2740,8 +2596,6 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.submitError().shouldNotBe(visible);
 
-    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
-
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
@@ -2755,42 +2609,6 @@ public class FirewallComponentDetailsPageTest
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
     securityViolationCells.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
     securityViolationCells.get(4).shouldHave(text("Unapplied Waiver"));
-  }
-
-  @Test
-  public void testBackButtonWorksWhenPageIsRefreshed() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
-    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
-        .getFirewallPolicyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-
-    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-
-    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
-
-    violationRow1Cells.get(3).click();
-
-    policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    // This refresh is added to test if the page gets broken when is refreshed.
-    // This issue was found doing manual testing.
-    refresh();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.backButton().click();
-
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-
-    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
@@ -2811,23 +2629,12 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.title().shouldHave(text("Waivers for Violation"));
-    listWaiversPage.backButton().shouldHave(text("Back to Component Details"));
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.artifactName().shouldHave(text("abi.cli"));
-    addWaiverPage.backButton().shouldBe(text("Back to Waivers"));
+    addWaiverPage.backButton().shouldBe(text("Back to Component Details"));
     addWaiverPage.backButton().click();
-
-    // Checks that Back Button text doesn't change
-    listWaiversPage.backButton().shouldHave(text("Back to Component Details"));
-    listWaiversPage.backButton().click();
 
     firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
@@ -2848,11 +2655,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
     policyViolationDetailPopover.shouldBe(visible);
 
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Repository Managers"));
@@ -2866,16 +2669,20 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.submitError().shouldNotBe(visible);
 
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
-    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
-    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository Managers"));
-    listWaiversPage.backButton().click();
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationDetailPopover.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTableAfterSubmit =
+        policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTableAfterSubmit.rows().shouldHaveSize(1);
+    applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
 
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
+    ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
+    waiversTableRow.scope().shouldHave(text("Repository Managers"));
+    policyViolationDetailPopover.getCloseButton().click();
 
     SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
-    viewAllComponentWaiversButton.click();
+    viewAllComponentWaiversButton.shouldBe(visible).click();
 
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
@@ -2900,11 +2707,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
     policyViolationDetailPopover.shouldBe(visible);
 
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.scope(1).click();
@@ -2914,7 +2717,8 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.saveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     addWaiverPage.scope(2).click();
     addWaiverPage.component(1).click();
@@ -2922,9 +2726,6 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.comments().setValue("test comments");
     addWaiverPage.saveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
-
-    listWaiversPage.backButton().click();
-    waitUntilSpinnersGone();
 
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
 
@@ -2940,7 +2741,7 @@ public class FirewallComponentDetailsPageTest
 
     componentWaiversTable.getRows().shouldHaveSize(2);
   }
-
+  
   @Test
   public void testDeletesWaiverAfterReevaluation() {
     createAllTypePolicies();
@@ -2956,11 +2757,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationsTable.getCellsByNthRow(1).get(3).click();
     policyViolationDetailPopover.shouldBe(visible);
 
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.scope(1).click();
@@ -2970,9 +2767,6 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.saveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    listWaiversPage.backButton().click();
-    waitUntilSpinnersGone();
-
     firewallComponentDetailsPage.reevaluateButton().click();
     waitUntilSpinnersGone();
 
@@ -2980,21 +2774,24 @@ public class FirewallComponentDetailsPageTest
 
     policyViolationsTable.getCellsByNthRow(1).get(3).click();
     policyViolationDetailPopover.shouldBe(visible);
-    manageWaiversButton.click();
+    policyViolationDetailPopover.applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTableAfterSubmit =
+        policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTableAfterSubmit.rows().shouldHaveSize(1);
+    applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
 
-    // Sanity Check
-    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
-
-    WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
-    waiverListTable.row(1).deleteButton().click();
+    ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
+    waiversTableRow.deleteButton().click();
 
     DeleteWaiverModal modal = new DeleteWaiverModal();
     modal.root().shouldBe(visible);
     modal.header().shouldHave(text("Delete Waiver"));
     modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));
     modal.yesButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
 
-    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable().noWaiversMessage()
+        .shouldBe(visible);
   }
 
   @Test
@@ -3013,11 +2810,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
     policyViolationDetailPopover.shouldBe(visible);
 
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.scope(1).click();
@@ -3027,7 +2820,8 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.saveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     addWaiverPage.scope(2).click();
     addWaiverPage.component(1).click();
@@ -3035,9 +2829,6 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.comments().setValue("test comments");
     addWaiverPage.saveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
-
-    listWaiversPage.backButton().click();
-    waitUntilSpinnersGone();
 
     refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
 
@@ -3174,31 +2965,16 @@ public class FirewallComponentDetailsPageTest
     PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
     policyViolationDetailPopover.shouldBe(visible);
     policyViolationDetailPopover.popoverHeaderTitle().shouldHave(text(policyName));
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
 
-    waitUntilSpinnersGone();
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.shouldBe(visible);
-    MainHeader.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text(componentName));
-    waiversForViolationPage.policyName().shouldHave(text(policyName));
-    waiversForViolationPage.addWaiverButton().click();
+    //waitUntilSpinnersGone();
+    policyViolationDetailPopover.getAddWaiversButton().click();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.shouldBe(visible);
     addWaiverPage.componentName().shouldBe(text(componentName));
     addWaiverPage.policyName().shouldBe(text(policyName));
     assertThat(getWebDriver().getCurrentUrl()).contains(stringToFindInUrl);
     assertThat(getWebDriver().getCurrentUrl()).contains("/addWaiver/");
-    MainHeader.backButton().shouldHave(text("Back to Waivers"));
-    MainHeader.backButton().click();
-
-    waitUntilSpinnersGone();
-    waiversForViolationPage.shouldBe(visible);
-    waiversForViolationPage.componentName().shouldHave(text(componentName));
-    waiversForViolationPage.policyName().shouldHave(text(policyName));
-    assertThat(getWebDriver().getCurrentUrl()).contains(stringToFindInUrl);
-    assertThat(getWebDriver().getCurrentUrl()).contains("/waivers/");
+    MainHeader.backButton().shouldHave(text("Back to Component Details"));
     MainHeader.backButton().click();
 
     waitUntilSpinnersGone();
@@ -3356,17 +3132,14 @@ public class FirewallComponentDetailsPageTest
     policyViolationsTable.shouldBe(visible);
 
     ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
-
     violationRow1Cells.get(1).click();
 
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationDetailPopover.shouldBe(visible).applicableWaiversTab().click();
+    ListWaiversTable applicableWaiversTableAfterSubmit =
+        policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
+    applicableWaiversTableAfterSubmit.rows().shouldHaveSize(1);
+    applicableWaiversTableAfterSubmit.noWaiversMessage().shouldBe(visible);
   }
 
   @Test

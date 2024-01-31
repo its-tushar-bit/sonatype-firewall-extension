@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
@@ -168,9 +169,11 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
+import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
+import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
@@ -441,6 +444,8 @@ public class TemporaryEntity
   private SuccessMetricsReportDAO successMetricsReportDAO;
 
   private SuccessMetricsReportDataDAO successMetricsReportDataDAO;
+
+  private CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO;
 
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -806,6 +811,7 @@ public class TemporaryEntity
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
       delete(deletedTenants, deletedTenantDAO);
+      delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
       persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -1589,6 +1595,16 @@ public class TemporaryEntity
     fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
     return waiver;
+  }
+
+  public CallFlowAnalysisConfig newCallFlowAnalysisConfig(String ownerId, int threadCount) {
+    CallFlowAnalysisConfig callFlowAnalysisConfig = new CallFlowAnalysisConfig(true,
+        Collections.singletonList("foo"),
+        CallFlowAlgorithm.CLASS_HIERARCHY_ANALYSIS,
+        threadCount,
+        ownerId);
+    callFlowAnalysisConfigDAO.insert(callFlowAnalysisConfig);
+    return callFlowAnalysisConfig;
   }
 
   private void fillAdditionalFixedData(final String hash, final PolicyWaiver waiver) {
@@ -4593,6 +4609,7 @@ public class TemporaryEntity
     licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
     waiverDAO = daoFactory.createPolicyWaiverDAO();
+    callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();
     ldapUserMappingDAO = daoFactory.createLdapUserMappingDAO();

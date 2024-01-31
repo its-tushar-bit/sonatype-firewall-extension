@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVul
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -41,6 +43,8 @@ public class OwnerDAOTest
 
   private PolicyWaiverDAO policyWaiverDAO;
 
+  private CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO;
+
   private VulnerabilityGroupDAO vulnerabilityGroupDAO;
 
   private VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
@@ -60,6 +64,7 @@ public class OwnerDAOTest
     vulnerabilityGroupVulnerabilityDAO = daoFactory.createVulnerabilityGroupVulnerabilityDAO();
     organizationDAO = daoFactory.createOrganizationDAO();
     repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
+    callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
   }
 
   @Test
@@ -330,6 +335,21 @@ public class OwnerDAOTest
       assertThat(vulnerabilityList).isEmpty();
       vulnerabilityList = vulnerabilityGroupVulnerabilityDAO.getByGroupId(vulnGroup2.getId());
       assertThat(vulnerabilityList).isEmpty();
+    }
+  }
+
+  @Test
+  public void testCascadeDelete_CallFlowAnalysisConfig() {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      Owner owner = ownerDAO.getById(organization.getId());
+      tempEntity.newCallFlowAnalysisConfig(owner.getId(), 2);
+      CallFlowAnalysisConfig callFlowAnalysisConfigs = callFlowAnalysisConfigDAO.getByOwnerId(owner.getId());
+      assertThat(callFlowAnalysisConfigs).isNotNull();
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      callFlowAnalysisConfigs = callFlowAnalysisConfigDAO.getByOwnerId(owner.getId());
+      assertThat(callFlowAnalysisConfigs).isNull();
     }
   }
 

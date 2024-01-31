@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -345,6 +346,8 @@ public interface DAOFactory
   VulnerabilityCustomRemediationTagDAO createVulnerabilityCustomRemediationTagDAO();
 
   VulnerabilityGroupDAO createVulnerabilityGroupDAO();
+
+  CallFlowAnalysisConfigDAO createCallFlowAnalysisConfigDAO();
 
   VulnerabilityGroupVulnerabilityDAO createVulnerabilityGroupVulnerabilityDAO();
 

@@ -19,6 +19,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
@@ -98,6 +100,8 @@ public class OwnerDAO
 
   private final Provider<VulnerabilityCustomCweDAO> vulnerabilityCustomCweDAOProvider;
 
+  private final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider;
+
   private final Provider<VulnerabilityCustomCvssVectorDAO> vulnerabilityCustomCvssVectorDAOProvider;
 
   private final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider;
@@ -122,7 +126,8 @@ public class OwnerDAO
       final Provider<VulnerabilityCustomRemediationDAO> vulnerabilityCustomRemediationDAOProvider,
       final Provider<VulnerabilityCustomCweDAO> vulnerabilityCustomCweDAOProvider,
       final Provider<VulnerabilityCustomCvssVectorDAO> vulnerabilityCustomCvssVectorDAOProvider,
-      final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider)
+      final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider,
+      final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -143,6 +148,7 @@ public class OwnerDAO
     this.vulnerabilityCustomCweDAOProvider = vulnerabilityCustomCweDAOProvider;
     this.vulnerabilityCustomCvssVectorDAOProvider = vulnerabilityCustomCvssVectorDAOProvider;
     this.vulnerabilityCustomCvssSeverityDAOProvider = vulnerabilityCustomCvssSeverityDAOProvider;
+    this.callFlowAnalysisConfigDAOProvider = callFlowAnalysisConfigDAOProvider;
   }
 
   public Owner getById(TransactionContext tx, String id) {
@@ -434,6 +440,11 @@ public class OwnerDAO
             owner.getId())) {
       vulnerabilityCustomCvssSeverityDAO.delete(tx, vulnerabilityCustomCvssSeverity);
     }
+
+    // Cascade to call flow config
+    CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAOProvider.get();
+    CallFlowAnalysisConfig callFlowAnalysisConfig = callFlowAnalysisConfigDAO.getByOwnerId(owner.getId());
+    callFlowAnalysisConfigDAO.delete(tx, callFlowAnalysisConfig);
   }
 
   /**

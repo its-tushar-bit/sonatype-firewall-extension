@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -548,6 +549,8 @@ public class TestDAOFactory
         this::createVulnerabilityCustomCvssVectorDAO;
     Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider =
         this::createVulnerabilityCustomCvssSeverityDAO;
+    Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider =
+        this::createCallFlowAnalysisConfigDAO;
     ApplicationDAO appDAO = createApplicationDAO();
     OrganizationDAO orgDAO = createOrganizationDAO();
     RepositoryDAO repoDAO = createRepositoryDAO();
@@ -561,7 +564,8 @@ public class TestDAOFactory
         componentCopyrightDAOProvider, componentLegalFileDAOProvider, componentObligationDAOProvider,
         componentObligationAttributionDAOProvider, vulnerabilityGroupDAOProvider,
         vulnerabilityCustomRemediationDAOProvider, vulnerabilityCustomCweDAOProvider,
-        vulnerabilityCustomCvssVectorDAOProvider, vulnerabilityCustomCvssSeverityDAOProvider);
+        vulnerabilityCustomCvssVectorDAOProvider, vulnerabilityCustomCvssSeverityDAOProvider,
+        callFlowAnalysisConfigDAOProvider);
   }
 
   @Override
@@ -936,6 +940,11 @@ public class TestDAOFactory
     VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO = createVulnerabilityGroupVulnerabilityDAO();
     return new VulnerabilityGroupDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO, orgDAO,
         vulnerabilityGroupVulnerabilityDAO);
+  }
+
+  @Override
+  public CallFlowAnalysisConfigDAO createCallFlowAnalysisConfigDAO() {
+    return new CallFlowAnalysisConfigDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

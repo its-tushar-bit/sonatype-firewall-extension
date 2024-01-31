@@ -100,11 +100,13 @@ export default angular
           type: 'repository_container',
           name: 'Repository Managers',
           id: 'repositoryContainerId',
+          hideOverflowY: true,
         },
         {
           type: 'repository_manager',
           name: 'Repository manager',
           id: 'repositoryManagerId',
+          hideOverflowY: true,
         },
       ];
 
@@ -135,6 +137,7 @@ export default angular
           data: {
             title: 'Repository Managers Management',
             viewportSized: true,
+            hideOverflowY: true,
           },
           component: 'repositoriesSummaryView',
         });
@@ -146,6 +149,7 @@ export default angular
             data: {
               title: ownerType.name + ' Management',
               viewportSized: true,
+              hideOverflowY: ownerType.hideOverflowY,
             },
             component: ownerType.type === 'repository_manager' ? 'repositoryManagerSummaryView' : 'ownerSummary',
           });

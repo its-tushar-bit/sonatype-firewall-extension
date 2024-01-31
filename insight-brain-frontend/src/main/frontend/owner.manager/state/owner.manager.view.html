@@ -4,7 +4,7 @@
 <div id="owner-manager-main"
      class="nx-page-main"
      ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }"
-     ng-style="{'overflow-y' : $state.is('management.view.repository_container') ? 'hidden' : ''}">
+     ng-style="{'overflow-y' : $state.$current.data.hideOverflowY ? 'hidden' : ''}">
   <root-organization-migrate></root-organization-migrate>
   <ui-view></ui-view>
 </div>

@@ -72,6 +72,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -164,10 +165,12 @@ public class ComponentLegalService
       final ComponentCopyrightDTO componentCopyrightDTO)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
-    validateComponentCopyrightDTO(componentCopyrightDTO);
+    ComponentIdentifier componentIdentifier = getComponentIdentifier(componentCopyrightDTO.getComponentIdentifier(),
+        componentCopyrightDTO.getPackageUrl());
+    validateComponentCopyrightDTO(componentCopyrightDTO,componentIdentifier);
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright = new ComponentCopyright(
-        componentCopyrightDTO.getComponentIdentifier().toComponentIdentifier(),
+        componentIdentifier,
         owner.getId(),
         NOT_IMPLEMENTED,
         currentUser.getUsername()
@@ -193,7 +196,7 @@ public class ComponentLegalService
           componentCopyright,
           componentCopyrightDAO.getById(tx, componentCopyright.getId()),
           componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(tx, componentCopyright.getOwnerId(),
-              componentCopyright.getComponentIdentifier()),
+              componentIdentifier),
           componentCopyrightDAO,
           copyrightOverrides,
           CopyrightOverride::setComponentCopyrightId);
@@ -269,10 +272,12 @@ public class ComponentLegalService
       ComponentLegalFileDTO componentLegalFileDTO)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
-    validateComponentLegalFileDTO(componentLegalFileDTO);
+    ComponentIdentifier componentIdentifier = getComponentIdentifier(componentLegalFileDTO.getComponentIdentifier(),
+        componentLegalFileDTO.getPackageUrl());
+    validateComponentLegalFileDTO(componentLegalFileDTO,componentIdentifier);
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentLegalFile componentLegalFile = new ComponentLegalFile(
-        componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(),
+        componentIdentifier,
         owner.getId(),
         componentLegalFileDTO.getLegalFileType(),
         NOT_IMPLEMENTED,
@@ -299,7 +304,7 @@ public class ComponentLegalService
           componentLegalFile,
           componentLegalFileDAO.getById(tx, componentLegalFile.getId()),
           componentLegalFileDAO.getByOwnerIdAndComponentIdentifierAndType(tx, componentLegalFile.getOwnerId(),
-              componentLegalFile.getComponentIdentifier(), componentLegalFile.getType()),
+              componentIdentifier, componentLegalFile.getType()),
           componentLegalFileDAO,
           legalFileOverrides,
           LegalFileOverride::setComponentLegalFileId);
@@ -370,7 +375,8 @@ public class ComponentLegalService
             null ? AuditEvent.CREATE_COMPONENT_OBLIGATION : AuditEvent.UPDATE_COMPONENT_OBLIGATION;
         try (AuditSession ignored = AuditData.get().recordSubEvent(auditEvent, false)) {
           ComponentIdentifier componentIdentifier =
-              componentObligationDTO.getComponentIdentifier().toComponentIdentifier();
+              getComponentIdentifier(componentObligationDTO.getComponentIdentifier(),
+                  componentObligationDTO.getPackageUrl());
           auditComponentObligation(owner, componentIdentifier, componentObligationDTO.getName(),
               componentObligationDTO.getStatus(), componentObligationDTO.getComment());
           ComponentObligation componentObligation = new ComponentObligation(
@@ -470,9 +476,10 @@ public class ComponentLegalService
       ComponentObligationAttributionDTO componentObligationAttributionDTO)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
-    validateComponentObligationAttributionDTO(componentObligationAttributionDTO);
-    ComponentIdentifier componentIdentifier =
-        componentObligationAttributionDTO.getComponentIdentifier().toComponentIdentifier();
+    ComponentIdentifier componentIdentifier = getComponentIdentifier(
+        componentObligationAttributionDTO.getComponentIdentifier(),componentObligationAttributionDTO.getPackageUrl());
+    validateComponentObligationAttributionDTO(componentObligationAttributionDTO,componentIdentifier);
+
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     auditComponentObligationAttribution(owner, componentIdentifier,
         componentObligationAttributionDTO.getObligationName(), componentObligationAttributionDTO.getContent());
@@ -570,10 +577,15 @@ public class ComponentLegalService
       final ComponentSourceLinkDTO componentSourceLinkDTO)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
-    validateComponentSourceLinkDTO(componentSourceLinkDTO);
+
+    ComponentIdentifier componentIdentifier =
+        getComponentIdentifier(componentSourceLinkDTO.getComponentIdentifier(),
+            componentSourceLinkDTO.getPackageUrl());
+    validateComponentSourceLinkDTO(componentSourceLinkDTO,componentIdentifier);
+
     // ownerType and ownerId from the params are meant to check for permissions, but the custom data is not scoped
     ComponentSourceLink componentSourceLink =
-        new ComponentSourceLink(componentSourceLinkDTO.getComponentIdentifier().toComponentIdentifier(),
+        new ComponentSourceLink(componentIdentifier,
             Organization.ROOT_ORGANIZATION_ID, currentUser.getUsername());
     componentSourceLink.setId(componentSourceLinkDTO.getId());
     List<SourceLinkOverride> sourceLinkOverrides = componentSourceLinkDTO.getSourceLinkOverrides().stream().map(dto -> {
@@ -590,7 +602,7 @@ public class ComponentLegalService
           componentSourceLink,
           componentSourceLinkDAO.getById(tx, componentSourceLink.getId()),
           componentSourceLinkDAO.getByOwnerIdAndComponentIdentifier(tx, componentSourceLink.getOwnerId(),
-              componentSourceLink.getComponentIdentifier()),
+              componentIdentifier),
           componentSourceLinkDAO,
           sourceLinkOverrides,
           SourceLinkOverride::setComponentSourceLinkId);
@@ -763,8 +775,10 @@ public class ComponentLegalService
     // actual work done by AOP interceptor
   }
 
-  private void validateComponentCopyrightDTO(final ComponentCopyrightDTO componentCopyrightDTO) {
-    validateApiComponentIdentifierDTOV2(componentCopyrightDTO.getComponentIdentifier());
+  private void validateComponentCopyrightDTO(final ComponentCopyrightDTO componentCopyrightDTO,
+                                             ComponentIdentifier componentIdentifier)
+  {
+    ComponentIdentifierValidator.validate(componentIdentifier);
 
     for (CopyrightOverrideDTO copyrightOverrideDTO : componentCopyrightDTO.getCopyrightOverrides()) {
       if (copyrightOverrideDTO.getStatus() == null) {
@@ -778,8 +792,10 @@ public class ComponentLegalService
     }
   }
 
-  private void validateComponentSourceLinkDTO(final ComponentSourceLinkDTO componentSourceLinkDTO) {
-    validateApiComponentIdentifierDTOV2(componentSourceLinkDTO.getComponentIdentifier());
+  private void validateComponentSourceLinkDTO(final ComponentSourceLinkDTO componentSourceLinkDTO,
+                                              ComponentIdentifier componentIdentifier)
+  {
+    ComponentIdentifierValidator.validate(componentIdentifier);
 
     for (SourceLinkOverrideDTO sourceLinkOverrideDTO : componentSourceLinkDTO.getSourceLinkOverrides()) {
       if (sourceLinkOverrideDTO.getStatus() == null) {
@@ -795,8 +811,10 @@ public class ComponentLegalService
     }
   }
 
-  private void validateComponentLegalFileDTO(ComponentLegalFileDTO componentLegalFileDTO) {
-    validateApiComponentIdentifierDTOV2(componentLegalFileDTO.getComponentIdentifier());
+  private void validateComponentLegalFileDTO(ComponentLegalFileDTO componentLegalFileDTO,
+                                             ComponentIdentifier componentIdentifier)
+  {
+    ComponentIdentifierValidator.validate(componentIdentifier);
 
     if (componentLegalFileDTO.getLegalFileType() == null) {
       throw new BadRequestException("ComponentLegalFileDTO must have a legal file type.");
@@ -810,7 +828,9 @@ public class ComponentLegalService
   }
 
   private void validateComponentObligationDTO(ApiLicenseLegalObligationDTO componentObligationDTO) {
-    validateApiComponentIdentifierDTOV2(componentObligationDTO.getComponentIdentifier());
+    ComponentIdentifier componentIdentifier = getComponentIdentifier(componentObligationDTO.getComponentIdentifier(),
+        componentObligationDTO.getPackageUrl());
+    ComponentIdentifierValidator.validate(componentIdentifier);
     if (StringUtils.isBlank(componentObligationDTO.getName())) {
       throw new BadRequestException("ComponentObligation must have a name.");
     }
@@ -820,9 +840,9 @@ public class ComponentLegalService
   }
 
   private void validateComponentObligationAttributionDTO(
-      ComponentObligationAttributionDTO componentObligationAttributionDTO)
+      ComponentObligationAttributionDTO componentObligationAttributionDTO, ComponentIdentifier componentIdentifier)
   {
-    validateApiComponentIdentifierDTOV2(componentObligationAttributionDTO.getComponentIdentifier());
+    ComponentIdentifierValidator.validate(componentIdentifier);
     if (StringUtils.isBlank(componentObligationAttributionDTO.getContent())) {
       throw new BadRequestException("ComponentObligationAttribution must have content.");
     }
@@ -833,9 +853,15 @@ public class ComponentLegalService
     }
   }
 
-  private void validateApiComponentIdentifierDTOV2(ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2) {
-    ComponentIdentifierValidator
-        .validate(apiComponentIdentifierDTOV2 == null ? null : apiComponentIdentifierDTOV2.toComponentIdentifier());
+  private ComponentIdentifier getComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier, String pkgUrl) {
+    if (componentIdentifier != null)
+    {
+      return componentIdentifier.toComponentIdentifier();
+    }
+    if (pkgUrl != null) {
+      return new PackageUrlIdentifier(pkgUrl).toComponentIdentifier();
+    }
+    throw new BadRequestException("The component identifier cannot be null.");
   }
 
   private void auditComponentCopyright(

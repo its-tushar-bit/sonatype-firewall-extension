@@ -11,6 +11,8 @@ public class SSOEmbedUrlRequest
 {
   public String requestId;
 
+  public String usernameAndRealm;
+
   public String userFirstName;
 
   public String userLastName;
@@ -27,6 +29,7 @@ public class SSOEmbedUrlRequest
 
   public SSOEmbedUrlRequest(
       String requestId,
+      String usernameAndRealm,
       String userFirstName,
       String userLastName,
       String dashboardKey,
@@ -34,6 +37,7 @@ public class SSOEmbedUrlRequest
       Set<String> applicationIds)
   {
     this.requestId = requestId;
+    this.usernameAndRealm = usernameAndRealm;
     this.userFirstName = userFirstName;
     this.userLastName = userLastName;
     this.dashboardKey = dashboardKey;

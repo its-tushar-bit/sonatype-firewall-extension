@@ -267,10 +267,14 @@ public class EnterpriseReportingService implements InsightJob
     Pair<String, String> names = getUserFirstAndLastnames();
     final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
-    return new SSOEmbedUrlRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard,
-        membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
+    return new SSOEmbedUrlRequest(requestId, getUsernameAndRealm(userPrincipal), names.getRight(), names.getLeft(),
+        lookerDashboard, membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
             userPrincipal.getMembership()),
         membershipMappingService.getApplicationIdsForUser(userPrincipal.getUsername(), userPrincipal.getMembership()));
+  }
+
+  private String getUsernameAndRealm(final UserPrincipal userPrincipal) {
+    return String.format("%s@%s", userPrincipal.getUsername(), userPrincipal.getRealmId());
   }
 
   private Pair<String, String> getUserFirstAndLastnames() {

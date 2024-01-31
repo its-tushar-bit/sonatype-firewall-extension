@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -126,19 +128,23 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_InternalRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
-    createSSOEmbedUrl_FeatureEnabled();
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(
+        new User("username", "password", "firstName", "lastName", "email"));
+    createSSOEmbedUrl_FeatureEnabled(InternalRealm.ID);
   }
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_SamlRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", SamlRealm.ID));
-    createSSOEmbedUrl_FeatureEnabled();
+    when(mockSamlUserDAO.getByUsernameNotNull("username")).thenReturn(
+        new SamlUser("username", "password", "firstName", "lastName", Collections.emptySet()));
+    createSSOEmbedUrl_FeatureEnabled(SamlRealm.ID);
   }
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_OtherRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", "other"));
-    createSSOEmbedUrl_FeatureEnabled();
+    createSSOEmbedUrl_FeatureEnabled("other");
   }
 
   @Test
@@ -378,15 +384,14 @@ public class EnterpriseReportingServiceTest
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
 
-  private void createSSOEmbedUrl_FeatureEnabled() {
+  private void createSSOEmbedUrl_FeatureEnabled(String realmId) {
     String expectedUrl = "looker.url.com";
     String expectedBaseUrl = "base.looker.com";
+    String expectedUsernameAndRealm = "username@" + realmId;
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
     when(hdsClientMock.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH))
         .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
-    when(currentUserMock.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
     final Set<String> permissionsForUserPrincipalMock = mockGetPermissionsForUserPrincipal();
     final Set<String> applicationIdsForUserMock = mockGetApplicationIdsForUser();
 
@@ -403,6 +408,7 @@ public class EnterpriseReportingServiceTest
     assertThat(actual).isNotNull();
     assertThat(actual.userPermissions).containsExactlyInAnyOrderElementsOf(permissionsForUserPrincipalMock);
     assertThat(actual.applicationIds).containsExactlyInAnyOrderElementsOf(applicationIdsForUserMock);
+    assertThat(actual.usernameAndRealm).isEqualTo(expectedUsernameAndRealm);
     assertThat(result).isNotNull();
     assertThat(result.url).isEqualTo(expectedUrl);
     assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);

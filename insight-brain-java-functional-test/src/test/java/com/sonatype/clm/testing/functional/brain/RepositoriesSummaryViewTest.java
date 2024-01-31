@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -492,6 +493,8 @@ public class RepositoriesSummaryViewTest
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
+
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -1311,6 +1314,32 @@ public class RepositoriesSummaryViewTest
   }
 
   @Test
+  public void testRepositoryManagerSummaryView_namespaceConfusionProtectionTile() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern namePattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, "test", null, true);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repoManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repoManager.getId()));
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+        .shouldHave(text(namePattern.getNamespacePattern()));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().isEmpty();
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repo.getPublicId()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
+
+    eyesWatcher.eyesCheck("repository manager namespace confusion protection tile");
+  }
+
+  @Test
   public void testRepositoryManagerSummaryView_rename() {
     // create a repository manager
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
@@ -1418,6 +1447,7 @@ public class RepositoriesSummaryViewTest
     testRepositorySummaryView_configurationTile_deleteRepository(configTable.repoManagerConfigTableRow(1), hostedRepo);
   }
 
+  @Test
   public void testRepositoryManagerSummaryView_accessTile() {
     RepositoryManager repositoryManager = tempEntity
         .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");

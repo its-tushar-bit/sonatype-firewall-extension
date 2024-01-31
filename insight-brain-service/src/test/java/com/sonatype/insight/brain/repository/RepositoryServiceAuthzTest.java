@@ -373,34 +373,6 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
-  public void testGetProprietaryComponentNamePatterns_Authorized() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo1 =
-        tempEntity.newRepository(repoManager, "testPublicId1", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
-    ProprietaryComponentNamePattern proprietaryComponentNamePattern1 =
-        tempEntity.newProprietaryComponentNamePattern(repo1, "namespacePattern1", null);
-    Repository repo2 =
-        tempEntity.newRepository(repoManager, "testPublicId2", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
-    ProprietaryComponentNamePattern proprietaryComponentNamePattern2 =
-        tempEntity.newProprietaryComponentNamePattern(repo2, "namespacePattern2", null);
-
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-    request.page = 1;
-    request.pageSize = 5;
-
-    grantReadPermission(repo1.getId());
-    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
-    assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
-    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(proprietaryComponentNamePattern1.getId());
-
-    grantReadPermission(repo2.getId());
-    result = repositoryService.getProprietaryComponentNamePatterns(request);
-    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
-    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(proprietaryComponentNamePattern1.getId());
-    assertThat(result.proprietaryComponentNamePatterns.get(1).id).isEqualTo(proprietaryComponentNamePattern2.getId());
-  }
-
-  @Test
   public void testUpdateProprietaryComponentNamePattern_Authorized() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =

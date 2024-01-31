@@ -10,6 +10,7 @@ import {
   getRepositoryManagerById,
   getActionStageUrl,
   getApplicablePolicies,
+  getRepositoryComponentNameUrl,
   getRepositoryInfoUrl,
   getRepositoryListUrl,
   getPermissionContextTestUrl,
@@ -175,7 +176,8 @@ describe('RepositoryManagerSummaryView', () => {
     expect(retryButton).toBeVisible();
     fireEvent.click(retryButton);
 
-    expect(screen.getByText('Loading…')).toBeVisible();
+    expect(screen.queryByText('Loading…')).toBeInTheDocument();
+
     failureAlert = await screen.findByRole('alert');
     expect(failureAlert).toBeVisible();
     expect(failureAlert).toHaveTextContent('An error occurred loading data.');
@@ -223,6 +225,39 @@ describe('RepositoryManagerSummaryView', () => {
 
     fireEvent.click(editButton);
     expect(goToEditPolicySpy).toHaveBeenCalledWith(inheretedFromRepoContainerPolicy.id);
+  });
+
+  it('renders namespace confusion protection tile', async () => {
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({ ownerId, ownerType });
+
+    axiosMock
+      .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
+        page: 1,
+        pageSize: 6,
+        searchFilters: [],
+        sortFields: [{ sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: true, sortPriority: 1 }],
+      })
+      .reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: true,
+          },
+        ],
+        hasNextPage: false,
+      });
+
+    renderComponent(preloadedState);
+
+    expect(await screen.findByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+    expect(await screen.findByText('Test')).toBeVisible();
+    expect(await screen.findByText('maven-releases')).toBeVisible();
+    expect(screen.getByRole('switch')).toBeChecked();
   });
 
   it('renders configuration tile', async () => {

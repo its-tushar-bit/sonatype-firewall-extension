@@ -9,6 +9,8 @@ import { fireEvent, waitFor } from '@testing-library/react';
 import NamespaceConfusionProtectionTile from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
 import { getRepositoryComponentNamePatternUpdateUrl, getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('NamespaceConfusionProtectionTile', () => {
   let renderComponent, mock;
@@ -74,13 +76,20 @@ describe('NamespaceConfusionProtectionTile', () => {
     },
   };
 
+  const ownerId = 'ownerId';
+  const ownerType = 'ownerType';
+
   beforeAll(() => {
     mock = axiosMockAdapter();
   });
 
   beforeEach(() => {
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({
+      ownerId: ownerId,
+      ownerType: ownerType,
+    });
     mock
-      .onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody)
+      .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody)
       .reply(200, successfulRepositoryComponentNameUrlResponse);
 
     renderComponent = () => render(<NamespaceConfusionProtectionTile />);
@@ -88,7 +97,7 @@ describe('NamespaceConfusionProtectionTile', () => {
 
   describe('when the page has a loading error', () => {
     beforeEach(() => {
-      mock.onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody).reply(500);
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(500);
     });
 
     it('renders error section', async () => {
@@ -101,7 +110,7 @@ describe('NamespaceConfusionProtectionTile', () => {
   describe('when there are no components', () => {
     beforeEach(() => {
       mock
-        .onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody)
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody)
         .reply(200, { ...repositoryComponentsDetails, proprietaryComponentNamePatterns: [] });
     });
 
@@ -139,7 +148,7 @@ describe('NamespaceConfusionProtectionTile', () => {
 
     it('filters components by the name or policy', async () => {
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [{ filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', value: 'su' }],
@@ -182,7 +191,7 @@ describe('NamespaceConfusionProtectionTile', () => {
       const { proprietaryComponentNamePatterns } = successfulRepositoryComponentNameUrlResponse;
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [],
@@ -198,7 +207,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [],
@@ -217,7 +226,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [],
@@ -237,7 +246,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [],
@@ -407,7 +416,7 @@ describe('NamespaceConfusionProtectionTile', () => {
       });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
           pageSize: 6,
           searchFilters: [],
@@ -426,7 +435,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 2,
           pageSize: 6,
           searchFilters: [],
@@ -445,7 +454,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         });
 
       mock
-        .onPost(getRepositoryComponentNameUrl(), {
+        .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 3,
           pageSize: 6,
           searchFilters: [],
@@ -475,8 +484,8 @@ describe('NamespaceConfusionProtectionTile', () => {
       expect(pagination).toBeVisible();
       nextButton = document.querySelector('[aria-label="next page"]');
       prevButton = document.querySelector('[aria-label="previous page"]');
-      expect(nextButton.classList.contains('hidden')).toBeFalse();
-      expect(prevButton.classList.contains('hidden')).toBeTrue();
+      expect(nextButton.classList.contains('hidden')).toBeFalsy();
+      expect(prevButton.classList.contains('hidden')).toBeTruthy();
 
       fireEvent.click(nextButton);
 
@@ -485,8 +494,8 @@ describe('NamespaceConfusionProtectionTile', () => {
       expect(pagination).toBeVisible();
       nextButton = document.querySelector('[aria-label="next page"]');
       prevButton = document.querySelector('[aria-label="previous page"]');
-      expect(nextButton.classList.contains('hidden')).toBeFalse();
-      expect(prevButton.classList.contains('hidden')).toBeFalse();
+      expect(nextButton.classList.contains('hidden')).toBeFalsy();
+      expect(prevButton.classList.contains('hidden')).toBeFalsy();
 
       fireEvent.click(nextButton);
 
@@ -495,17 +504,17 @@ describe('NamespaceConfusionProtectionTile', () => {
       expect(pagination).toBeVisible();
       nextButton = document.querySelector('[aria-label="next page"]');
       prevButton = document.querySelector('[aria-label="previous page"]');
-      expect(nextButton.classList.contains('hidden')).toBeTrue();
-      expect(prevButton.classList.contains('hidden')).toBeFalse();
+      expect(nextButton.classList.contains('hidden')).toBeTruthy();
+      expect(prevButton.classList.contains('hidden')).toBeFalsy();
     });
   });
 
   describe('when enabled toggle click is successful', () => {
     let spySetEnabledStatusAction, spyUpdateComponentNamePatternAction, spyGetComponentNamePatternsAction;
     beforeEach(() => {
-      spySetEnabledStatusAction = spyOn(actions, 'setEnabledStatus').and.callThrough();
-      spyUpdateComponentNamePatternAction = spyOn(actions, 'updateComponentNamePattern').and.callThrough();
-      spyGetComponentNamePatternsAction = spyOn(actions, 'getComponentNamePatterns').and.callThrough();
+      spySetEnabledStatusAction = jest.spyOn(actions, 'setEnabledStatus');
+      spyUpdateComponentNamePatternAction = jest.spyOn(actions, 'updateComponentNamePattern');
+      spyGetComponentNamePatternsAction = jest.spyOn(actions, 'getComponentNamePatterns');
       mock
         .onPost(getRepositoryComponentNamePatternUpdateUrl(), {
           component: {
@@ -520,7 +529,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         })
         .reply(200);
 
-      mock.onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody).reply(200, {
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(200, {
         proprietaryComponentNamePatterns: [
           {
             id: 'eb23d7dab5004c7496ba9195e5a4b862',
@@ -540,16 +549,29 @@ describe('NamespaceConfusionProtectionTile', () => {
       renderComponent();
       await waitFor(() => expect(screen.getByRole('switch')).toBeVisible());
       fireEvent.click(screen.getByRole('switch'));
-      await waitFor(() =>
-        expect(spySetEnabledStatusAction).toHaveBeenCalledOnceWith('eb23d7dab5004c7496ba9195e5a4b862')
-      );
-      expect(spyUpdateComponentNamePatternAction).toHaveBeenCalledOnceWith('eb23d7dab5004c7496ba9195e5a4b862');
+      await waitFor(() => expect(spySetEnabledStatusAction).toHaveBeenCalledWith('eb23d7dab5004c7496ba9195e5a4b862'));
+      expect(spyUpdateComponentNamePatternAction).toHaveBeenCalledWith('eb23d7dab5004c7496ba9195e5a4b862');
       expect(spyGetComponentNamePatternsAction).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('when enabled toggle click is failed', () => {
     beforeEach(() => {
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: true,
+          },
+        ],
+        hasNextPage: false,
+      });
+
       mock
         .onPost(getRepositoryComponentNamePatternUpdateUrl(), {
           component: {
@@ -563,13 +585,46 @@ describe('NamespaceConfusionProtectionTile', () => {
           },
         })
         .reply(500);
+    });
 
-      it('renders error message', async () => {
-        renderComponent();
-        await waitFor(() => expect(screen.getByRole('switch')).toBeVisible());
-        fireEvent.click(screen.getByRole('switch'));
-        await waitFor(() => expect(screen.getByText(/An error occurred loading data/)).toBeVisible());
+    it('renders error message', async () => {
+      renderComponent();
+      await waitFor(() => expect(screen.getByRole('switch')).toBeVisible());
+      fireEvent.click(screen.getByRole('switch'));
+      await waitFor(() => expect(screen.getByText(/An error occurred loading data/)).toBeVisible());
+    });
+  });
+
+  describe('when isRepositoryManager returns true', () => {
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: true,
+          },
+        ],
+        hasNextPage: false,
       });
+    });
+
+    it('hides Repository Manager column', async () => {
+      renderComponent();
+      expect(await screen.findByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+      expect(await screen.findByText('Component Namespace')).toBeVisible();
+      expect(await screen.findByText('Test')).toBeVisible();
+      expect(await screen.queryByText('Repository Manager')).not.toBeInTheDocument();
+      expect(await screen.queryByText('9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA')).not.toBeInTheDocument();
+      expect(await screen.findByText('Repository')).toBeVisible();
+      expect(await screen.findByText('maven-releases')).toBeVisible();
+      expect(await screen.findByText('Enabled')).toBeVisible();
+      expect(screen.getByRole('switch')).toBeChecked();
     });
   });
 });

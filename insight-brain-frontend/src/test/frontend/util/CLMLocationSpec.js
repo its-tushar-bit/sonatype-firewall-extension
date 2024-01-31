@@ -1360,4 +1360,20 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getRepositoryContainer()).toEqual(expectedUrl);
     });
   });
+
+  describe('getRepositoryComponentNameUrl', () => {
+    it('returns the url to get the proprietary component name patterns', () => {
+      const expectedUrl = '/rest/repositories/someOwnerType/someOwnerId/proprietaryComponentNamePatterns';
+
+      expect(clmLocation.getRepositoryComponentNameUrl('someOwnerType', 'someOwnerId')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getRepositoryComponentNamePatternUpdateUrl', () => {
+    it('returns the url to update the proprietary component name pattern', () => {
+      const expectedUrl = '/rest/repositories/proprietaryComponentNamePatterns/update';
+
+      expect(clmLocation.getRepositoryComponentNamePatternUpdateUrl()).toEqual(expectedUrl);
+    });
+  });
 });

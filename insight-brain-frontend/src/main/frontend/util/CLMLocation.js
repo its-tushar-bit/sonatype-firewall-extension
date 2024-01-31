@@ -1349,7 +1349,8 @@ export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
 
 export const getConfigureFirewallOnboardingUrl = () => uriTemplate`/rest/repositories/configureFirewallOnboarding`;
 
-export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
+export const getRepositoryComponentNameUrl = (ownerType, ownerId) =>
+  uriTemplate`/rest/repositories/${ownerType}/${ownerId}/proprietaryComponentNamePatterns`;
 
 export const getAppIntegrationsAndRisk = () => uriTemplate`/rest/integrations/statuses`;
 

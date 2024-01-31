@@ -20,7 +20,7 @@ const navList = [
   {
     label: 'Namespace Confusion Protection',
     target: 'namespace-confusion-protection-pill-configuration',
-    isDisplayed: false,
+    isDisplayed: true,
   },
   {
     label: 'Access',

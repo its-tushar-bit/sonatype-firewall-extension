@@ -252,45 +252,6 @@ public class RepositoryResourceTest
   }
 
   @Test
-  public void testGetProprietaryComponentNamePatterns() throws Exception {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo =
-        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
-    ProprietaryComponentNamePattern pattern1 =
-        tempEntity.newProprietaryComponentNamePattern(repo, "testNamespacePattern1", "testNamePattern1");
-    tempEntity.newProprietaryComponentNamePattern(repo, "testNamespacePattern2", "testNamePattern2");
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-    request.page = 1;
-    request.pageSize = 1;
-    request.searchFilters = Collections
-        .singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
-            ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-            "testNamePattern"));
-    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        true /* asc */, 1 /* sortPriority */));
-
-    HttpResponse response =
-        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_PATH)
-            .body(request).post();
-
-    assertResponseStatus(200, response);
-    ProprietaryComponentNamePatternsPage proprietaryComponentNamePatternsPage =
-        response.getBody(ProprietaryComponentNamePatternsPage.class);
-    assertThat(proprietaryComponentNamePatternsPage.hasNextPage).isTrue();
-    assertThat(proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns).hasSize(1);
-    ProprietaryComponentNamePatternDTO patternDTO =
-        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
-    assertThat(patternDTO.id).isEqualTo(pattern1.getId());
-    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo(repoManager.getInstanceId());
-    assertThat(patternDTO.repositoryPublicId).isEqualTo(repo.getPublicId());
-    assertThat(patternDTO.format).isEqualTo(pattern1.getFormat());
-    assertThat(patternDTO.namespacePattern).isEqualTo(pattern1.getNamespacePattern());
-    assertThat(patternDTO.namePattern).isEqualTo(pattern1.getNamePattern());
-    assertThat(patternDTO.enabled).isEqualTo(pattern1.isEnabled());
-  }
-
-  @Test
   public void testUpdateProprietaryComponentNamePattern() throws Exception {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =

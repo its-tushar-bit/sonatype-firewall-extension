@@ -48,6 +48,10 @@
       grid-template-columns: minmax(180px, 1.5fr) minmax(200px, 1.5fr) minmax(134px, 1fr) minmax(85px, max-content);
     }
 
+    .nx-table.iq-repository-component-name-table-rm-level {
+      grid-template-columns: minmax(180px, 1.5fr) minmax(134px, 1fr) minmax(85px, max-content);
+    }
+
     .nx-table-body,
     .nx-table-head,
     .nx-table-row {

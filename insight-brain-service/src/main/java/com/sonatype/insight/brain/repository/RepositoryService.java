@@ -457,13 +457,6 @@ public class RepositoryService
         repositoryPolicyViolation.getTime());
   }
 
-  ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
-      ProprietaryComponentNamePatternRequest request)
-  {
-    return getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, request);
-  }
-
   void updateProprietaryComponentNamePattern(ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO) {
     if (proprietaryComponentNamePatternDTO == null) {
       throw new BadRequestException("Missing request parameters");

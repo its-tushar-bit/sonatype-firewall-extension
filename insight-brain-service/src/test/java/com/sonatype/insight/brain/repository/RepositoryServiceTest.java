@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField.SortableField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -805,112 +804,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetProprietaryComponentNamePatterns_NullRequest() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(null))
-        .withMessage("Missing request parameters");
-  }
-
-  @Test
-  public void testGetProprietaryComponentNamePatterns_ValidatesPageNumber() {
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-
-    request.page = 0;
-    request.pageSize = 1;
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
-        .withMessage("Page and Page size must be greater than 0");
-
-    request.page = -1;
-    request.pageSize = 1;
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
-        .withMessage("Page and Page size must be greater than 0");
-  }
-
-  @Test
-  public void testGetProprietaryComponentNamePatterns_ValidatesPageSize() {
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-
-    request.page = 1;
-    request.pageSize = 0;
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
-        .withMessage("Page and Page size must be greater than 0");
-
-    request.page = 1;
-    request.pageSize = -1;
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
-        .withMessage("Page and Page size must be greater than 0");
-  }
-
-  @Test
-  public void testGetProprietaryComponentNamePatterns() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo =
-        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
-    ProprietaryComponentNamePattern pattern1 =
-        tempEntity.newProprietaryComponentNamePattern(repo, "testNamespacePattern1", "testNamePattern1");
-    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repo,
-        "testNamespacePattern2", "testNamePattern2", false /* enabled */);
-
-    // Result must indicate next page exists
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-    request.page = 1;
-    request.pageSize = 1;
-    request.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
-        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        "testNamePattern"));
-    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        true /* asc */, 1 /* sortPriority */));
-
-    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
-    assertThat(result.hasNextPage).isTrue();
-    assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
-    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
-
-    // Result must indicate next page doesn't exist
-    request.page = 1;
-    request.pageSize = 2;
-    request.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
-        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        "testNamePattern"));
-    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
-        true /* asc */, 1 /* sortPriority */));
-
-    result = repositoryService.getProprietaryComponentNamePatterns(request);
-    assertThat(result.hasNextPage).isFalse();
-    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
-    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
-    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
-  }
-
-  @Test
-  public void testGetProprietaryComponentNamePatterns_sortByEnabled() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo =
-        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
-    ProprietaryComponentNamePattern pattern1 =
-        tempEntity.newProprietaryComponentNamePattern(repo, "testNamespacePattern1", "testNamePattern1", true);
-    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repo,
-        "testNamespacePattern2", "testNamePattern2", false /* enabled */);
-
-    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
-    request.page = 1;
-    request.pageSize = 2;
-    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        SortableField.ENABLED, true /* asc */, 1 /* sortPriority */));
-
-    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
-    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
-    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern2);
-    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern1);
-  }
-
-  @Test
   public void testUpdateProprietaryComponentNamePattern() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =
@@ -1541,5 +1434,51 @@ public class RepositoryServiceTest extends AbstractComponentTest
             () -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, "invalid",
                 request))
         .withMessage("Repository with ID invalid does not exist.");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_NullRequest() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
+            "managerId", null))
+        .withMessage("Missing request parameters");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_ValidatesPageNumber() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+
+    request.page = 0;
+    request.pageSize = 1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
+            "managerId", request))
+        .withMessage("Page and Page size must be greater than 0");
+
+    request.page = -1;
+    request.pageSize = 1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
+            "managerId", request))
+        .withMessage("Page and Page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatternsByOwner_ValidatesPageSize() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+
+    request.page = 1;
+    request.pageSize = 0;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
+            "managerId", request))
+        .withMessage("Page and Page size must be greater than 0");
+
+    request.page = 1;
+    request.pageSize = -1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER,
+            "managerId", request))
+        .withMessage("Page and Page size must be greater than 0");
   }
 }

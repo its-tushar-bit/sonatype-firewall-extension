@@ -15,6 +15,7 @@ import {
   selectCurrentPage,
 } from './namespaceConfusionProtectionTileSelectors';
 import { changeMultiColumnSortCriteria } from 'MainRoot/util/jsUtil';
+import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 const REDUCER_NAME = 'namespaceConfusionProtectionTile';
 const PAGES = 1;
@@ -61,8 +62,9 @@ const getComponentNamePatterns = createAsyncThunk(
   `${REDUCER_NAME}/getComponentNamePatterns`,
   (_, { getState, rejectWithValue }) => {
     const namePatternsTableConfig = selectComponentsRequestBody(getState());
+    const { ownerType, ownerId } = selectOwnerProperties(getState());
     return axios
-      .post(getRepositoryComponentNameUrl(), namePatternsTableConfig)
+      .post(getRepositoryComponentNameUrl(ownerType, ownerId), namePatternsTableConfig)
       .then(({ data }) => data)
       .catch(rejectWithValue);
   }

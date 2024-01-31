@@ -346,7 +346,85 @@ use in each circumstance.
 These classes should provide in most cases. There may be cases where you need a more custom setup in which case take a 
 look inside the various support classes to see how they do their setup.
 
-## Admin Endpoints
+## Tenant Encryption Key
+
+The Tenant Encryption Key functionality means that each tenant will have an encryption key stored in the AWS secrets 
+manager, this key will be used to encrypt tokens and passwords for the tenant. When creating a new tenant the key will 
+be automatically created and stored in AWS, this is done by the Admin Service. 
+
+Design doc: https://sonatype.atlassian.net/wiki/spaces/MTIQ/pages/250380431/Tenant+Secret+Encryption+Key
+
+For development the shared key should be used when creating a new tenant, the keys are account wide: 
+* `mtiq-dev/tenant-encryption-key-shared-1702037294`
+* `mtiq-prod/tenant-encryption-key-shared-1702037294`
+
+For compatibility with existing tenants the legacy key can be used: 
+* `mtiq-dev/tenant-encryption-key-legacy`
+* `mtiq-prod/tenant-encryption-key-legacy`
+
+When creating a tenant with the Admin App the optional `encryptionKeyName` can be used to specify an existing key:
+```json
+{
+    "slug": "example",
+    "name": "example",
+    "adminEmails": [
+      "test@test.com"
+    ],
+    "clusterId": "dev-1",
+    "licenseId": "1234567890",
+    "encryptionKeyName": "mtiq-dev/tenant-encryption-key-shared-1702037294"
+}
+```
+
+### Local Tenant Encryption Key Development
+For local development you can update your Tenants metadata table using the MTIQ Admin API, this is used to look up the 
+encryption key by name in the AWS Secrets Manager.
+
+```shell
+curl --request PUT \
+    --url http://127.0.0.1:8071/api/admin/tenants/<TENANT_SLUG>/metadata \
+    --header 'Content-Type: application/json' \
+    --data '{
+        "applicationId": "",
+        "applicationName": "",
+        "connectionId": "",
+        "connectionName": "",
+        "encryptionKeyName": "mtiq-dev/tenant-encryption-key-legacy"
+    }'
+```
+
+### AWS Secrets Manager Authentication
+AWS Java v2 SDK Credentials Chain https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html
+
+MTIQ uses the AWS SDK DefaultCredentialsProvider for authentication, in the AWS EKS environments this delegates to the
+WebIdentityTokenFileCredentialsProvider, and locally the AWS SDK EnvironmentVariableCredentialsProvider is used.
+The EnvironmentVariableCredentialsProvider will be chosen automatically if the correct environment variables are 
+present.
+
+The environment variables required for the SDK EnvironmentVariableCredentialsProvider are:
+```shell
+AWS_REGION=us-east-2;
+AWS_ACCESS_KEY_ID=ASIAW...;
+AWS_SECRET_ACCESS_KEY=Kmo...;
+AWS_SESSION_TOKEN=IQoJb...
+```
+
+These can be easily generated and found using aws-vault:
+```shell
+aws-vault exec mtiq-non-prod
+env | grep AWS
+```
+
+### Local Tenant Encryption Key Development Without AWS
+Alternatively without the use of AWS for local MTIQ development you can switch to use the DefaultEncryptionKeyStore 
+class (the same class as self-hosted) using this config option: `usingDefaultEncryptionKeyStore: true`.
+
+**TLDR**: In development specify the shared key name when creating tenants via the Admin Service, and for local MTIQ
+Development use `usingDefaultEncryptionKeyStore: true`, unless you are testing encryption keys, then use the
+shared or legacy keys.
+
+
+# Admin Endpoints
 
 In a multi tenant environment, we need a mechanism to let us configure/manage the different tenants that may
 exist, and additionally the same mechanism should let us configure/manage, the multi tenant environment itself.

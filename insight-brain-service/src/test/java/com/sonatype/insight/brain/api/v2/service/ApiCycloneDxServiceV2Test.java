@@ -507,6 +507,7 @@ public class ApiCycloneDxServiceV2Test
   private void assertBom(Response response, Version version, boolean hasVulnerabilities, boolean isSageReport)
       throws Exception
   {
+    boolean hasOccurrences = version.compareTo(Version.VERSION_15) >= 0;
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
@@ -596,6 +597,16 @@ public class ApiCycloneDxServiceV2Test
     }
     else {
       assertThat(bom.getVulnerabilities()).isNull();
+    }
+
+    if ( hasOccurrences ) {
+      assertThat(bom.getComponents()).allMatch(component -> !component.getEvidence()
+          .getOccurrences().isEmpty());
+      assertThat(bom.getComponents().get(0).getEvidence().getOccurrences().get(0)
+          .getLocation()).isEqualTo("jquery.3.4.1.nupkg");
+    }
+    else {
+      assertThat(bom.getComponents()).allMatch(component -> component.getEvidence() == null);
     }
   }
 

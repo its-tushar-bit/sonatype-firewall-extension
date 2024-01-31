@@ -73,6 +73,7 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Dependency;
+import org.cyclonedx.model.Evidence;
 import org.cyclonedx.model.ExternalReference;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
@@ -80,6 +81,7 @@ import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Tool;
+import org.cyclonedx.model.component.evidence.Occurrence;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Analysis;
@@ -658,6 +660,20 @@ public class ApiCycloneDxServiceV2
         setSha256(reportComponent, bomComponent);
         bomComponent.setSwid(reportComponent.swid);
         bomComponent.setCpe(reportComponent.cpe);
+
+        if (version.compareTo(Version.VERSION_15) >= 0) {
+          List<Occurrence> occurrences = reportComponent.pathnames
+              .stream().map( p -> {
+                Occurrence o = new Occurrence();
+                o.setLocation(p);
+                return o;
+              })
+              .collect(Collectors.toList());
+
+          Evidence e = new Evidence();
+          e.setOccurrences(occurrences);
+          bomComponent.setEvidence(e);
+        }
       }
       return bomComponent;
     }

@@ -137,107 +137,109 @@ export default function ComponentLegalOverviewPage(props) {
       : getDefaultBackButtonUrl();
 
   return (
-    <main className="nx-page-main">
-      <LoadWrapper loading={loading} error={error} retryHandler={load}>
-        <MenuBarBackButton href={backHref} text="Back" />
-        {component && (
-          <React.Fragment>
-            <div className="nx-page-title">
-              <h1 className="nx-h1">{component.displayName}</h1>
-              {createSubtitle(availableScopes)}
-            </div>
-            {!isComponentEcosystemSupported() && isEcosystemSupportWarningOpen && (
-              <NxWarningAlert onClose={dismissEcosystemSupportWarning}>
-                {"This component's ecosystem is not currently supported by the Advanced Legal Pack."}
-              </NxWarningAlert>
-            )}
-          </React.Fragment>
-        )}
-        {component && (
-          <div id="component-legal-overview-details">
-            <ComponentOverviewTile applicationPublicId={applicationPublicId} component={component} $state={$state} />
-            <LicenseObligationsTileContainer
-              ownerType={ownerType}
-              ownerId={ownerId}
-              hash={hash}
-              stageTypeId={stageTypeId}
-              componentIdentifier={componentIdentifier}
-              $state={$state}
-              effectiveLicenses={effectiveLicenses}
-            />
-            <section id="attribution-summary-tile" className="nx-tile">
-              <header className="nx-tile-header">
-                <div className="nx-tile-header__title">
-                  <h2 className="nx-h2">Attribution Summary</h2>
-                </div>
-              </header>
-              <div className="nx-tile-content nx-tile-content--accordion-container">
-                <LicenseDetailsTile
-                  component={component}
-                  licenseLegalMetadata={licenseLegalMetadata}
-                  ownerType={ownerType}
-                  ownerId={ownerId}
-                  hash={hash}
-                  componentIdentifier={componentIdentifier}
-                  stageTypeId={stageTypeId}
-                  $state={$state}
-                  showLicensesModal={showLicensesModal}
-                  setShowLicensesModal={setShowLicensesModal}
-                />
-                <CopyrightStatementsTile
-                  component={component}
-                  availableScopes={availableScopes}
-                  ownerType={ownerType}
-                  ownerId={ownerId}
-                  hash={hash}
-                  componentIdentifier={componentIdentifier}
-                  stageTypeId={stageTypeId}
-                  $state={$state}
-                  showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
-                  setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
-                />
-                <NoticeTextsTile
-                  {...{
-                    noticeFiles,
-                    setShowNoticesModal,
-                    showNoticesModal,
-                    stageTypeId,
-                    $state,
-                    component,
-                    componentIdentifier,
-                    availableScopes,
-                    ownerType,
-                    ownerId,
-                    hash,
-                  }}
-                />
-                <LicenseFilesTile
-                  {...{
-                    licenseFiles,
-                    setShowLicenseFilesModal,
-                    showLicenseFilesModal,
-                    stageTypeId,
-                    $state,
-                    component,
-                    availableScopes,
-                    ownerType,
-                    ownerId,
-                    hash,
-                    componentIdentifier,
-                  }}
-                />
-                <OriginalSourcesTile
-                  sourceLinks={sourceLinks}
-                  showOriginalSourcesModal={showOriginalSourcesModal}
-                  setDisplayOriginalSourcesOverrideModal={setDisplayOriginalSourcesOverrideModal}
-                />
-                {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
-                <LicenseObligationAttributionTileContainer name={null} />
+    <main className="nx-page-main nx-viewport-sized iq-component-legal-overview-page">
+      <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-legal-overview-page__content">
+        <LoadWrapper loading={loading} error={error} retryHandler={load}>
+          <MenuBarBackButton href={backHref} text="Back" />
+          {component && (
+            <React.Fragment>
+              <div className="nx-page-title">
+                <h1 className="nx-h1">{component.displayName}</h1>
+                {createSubtitle(availableScopes)}
               </div>
-            </section>
-          </div>
-        )}
-      </LoadWrapper>
+              {!isComponentEcosystemSupported() && isEcosystemSupportWarningOpen && (
+                <NxWarningAlert onClose={dismissEcosystemSupportWarning}>
+                  {"This component's ecosystem is not currently supported by the Advanced Legal Pack."}
+                </NxWarningAlert>
+              )}
+            </React.Fragment>
+          )}
+          {component && (
+            <div id="component-legal-overview-details">
+              <ComponentOverviewTile applicationPublicId={applicationPublicId} component={component} $state={$state} />
+              <LicenseObligationsTileContainer
+                ownerType={ownerType}
+                ownerId={ownerId}
+                hash={hash}
+                stageTypeId={stageTypeId}
+                componentIdentifier={componentIdentifier}
+                $state={$state}
+                effectiveLicenses={effectiveLicenses}
+              />
+              <section id="attribution-summary-tile" className="nx-tile">
+                <header className="nx-tile-header">
+                  <div className="nx-tile-header__title">
+                    <h2 className="nx-h2">Attribution Summary</h2>
+                  </div>
+                </header>
+                <div className="nx-tile-content nx-tile-content--accordion-container">
+                  <LicenseDetailsTile
+                    component={component}
+                    licenseLegalMetadata={licenseLegalMetadata}
+                    ownerType={ownerType}
+                    ownerId={ownerId}
+                    hash={hash}
+                    componentIdentifier={componentIdentifier}
+                    stageTypeId={stageTypeId}
+                    $state={$state}
+                    showLicensesModal={showLicensesModal}
+                    setShowLicensesModal={setShowLicensesModal}
+                  />
+                  <CopyrightStatementsTile
+                    component={component}
+                    availableScopes={availableScopes}
+                    ownerType={ownerType}
+                    ownerId={ownerId}
+                    hash={hash}
+                    componentIdentifier={componentIdentifier}
+                    stageTypeId={stageTypeId}
+                    $state={$state}
+                    showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
+                    setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
+                  />
+                  <NoticeTextsTile
+                    {...{
+                      noticeFiles,
+                      setShowNoticesModal,
+                      showNoticesModal,
+                      stageTypeId,
+                      $state,
+                      component,
+                      componentIdentifier,
+                      availableScopes,
+                      ownerType,
+                      ownerId,
+                      hash,
+                    }}
+                  />
+                  <LicenseFilesTile
+                    {...{
+                      licenseFiles,
+                      setShowLicenseFilesModal,
+                      showLicenseFilesModal,
+                      stageTypeId,
+                      $state,
+                      component,
+                      availableScopes,
+                      ownerType,
+                      ownerId,
+                      hash,
+                      componentIdentifier,
+                    }}
+                  />
+                  <OriginalSourcesTile
+                    sourceLinks={sourceLinks}
+                    showOriginalSourcesModal={showOriginalSourcesModal}
+                    setDisplayOriginalSourcesOverrideModal={setDisplayOriginalSourcesOverrideModal}
+                  />
+                  {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
+                  <LicenseObligationAttributionTileContainer name={null} />
+                </div>
+              </section>
+            </div>
+          )}
+        </LoadWrapper>
+      </div>
     </main>
   );
 }

@@ -2680,6 +2680,7 @@ public class FirewallComponentDetailsPageTest
     ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
     waiversTableRow.scope().shouldHave(text("Repository Managers"));
     policyViolationDetailPopover.getCloseButton().click();
+    policyViolationDetailPopover.shouldNotBe(visible);
 
     SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
     viewAllComponentWaiversButton.shouldBe(visible).click();

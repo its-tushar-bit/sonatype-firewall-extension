@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { groupBy, prop } from 'ramda';
 import RepositoryManagerSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoryManagerSummaryView';
 import {
   getRepositoryManagerById,
@@ -11,6 +12,8 @@ import {
   getApplicablePolicies,
   getRepositoryInfoUrl,
   getRepositoryListUrl,
+  getPermissionContextTestUrl,
+  getAccessPageRolesUrl,
 } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actionStagesPayload } from 'TestRoot/OrgsAndPolicies/ownerSummary/policiesTile/policiesTileTestData';
@@ -19,7 +22,6 @@ import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/reposit
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { groupBy, prop } from 'ramda';
 
 const ownerType = 'repository_manager';
 const ownerId = 'c47da5d840b84eda8585381de5ebb189';
@@ -139,6 +141,8 @@ describe('RepositoryManagerSummaryView', () => {
       },
     };
 
+    axiosMock.onGet(getAccessPageRolesUrl(ownerType, ownerId)).reply(200, { membersByRole: [] });
+    axiosMock.onPut(getPermissionContextTestUrl(ownerType, ownerId)).reply(200, ['WRITE']);
     axiosMock.onGet(getRepositoryManagerById(ownerId)).reply(200, {
       id: 'c47da5d840b84eda8585381de5ebb189',
       name: 'repo-manager-name',
@@ -171,7 +175,7 @@ describe('RepositoryManagerSummaryView', () => {
     expect(retryButton).toBeVisible();
     fireEvent.click(retryButton);
 
-    expect(screen.queryByText('Loading…')).toBeInTheDocument();
+    expect(screen.getByText('Loading…')).toBeVisible();
     failureAlert = await screen.findByRole('alert');
     expect(failureAlert).toBeVisible();
     expect(failureAlert).toHaveTextContent('An error occurred loading data.');
@@ -194,14 +198,16 @@ describe('RepositoryManagerSummaryView', () => {
     axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { policiesByOwner });
     renderComponent(preloadedState);
 
+    const policiesTile = await screen.findByTestId('policies-tile');
+
     expect(await screen.findByText('repo-manager-name')).toBeVisible();
     expect(await screen.findByRole('button', { name: 'Policies' })).toBeVisible();
 
-    expect(await screen.findByText('Local to repo-manager-name')).toBeVisible();
-    expect(await screen.findByText('No local policies defined')).toBeVisible();
+    expect(await within(policiesTile).findByText('Local to repo-manager-name')).toBeVisible();
+    expect(await within(policiesTile).findByText('No local policies defined')).toBeVisible();
 
-    expect(await screen.findByText('Inherited from Repository Managers')).toBeVisible();
-    expect(await screen.findByText('repo-container-policy-1')).toBeVisible();
+    expect(await within(policiesTile).findByText('Inherited from Repository Managers')).toBeVisible();
+    expect(await within(policiesTile).findByText('repo-container-policy-1')).toBeVisible();
   });
 
   it('checks that the policy row is clickable', async () => {
@@ -240,5 +246,12 @@ describe('RepositoryManagerSummaryView', () => {
     expect(await screen.findByText('proxy')).toBeVisible();
     expect(await screen.findByText('Audit, Quarantine')).toBeVisible();
     expect(loadRepositoriesByManagerIdSpy).toHaveBeenCalled();
+  });
+
+  it('renders Access tile', async () => {
+    renderComponent(preloadedState);
+    const accessTile = await screen.findByTestId('repositories_access');
+
+    expect(accessTile).toBeVisible();
   });
 });

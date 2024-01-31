@@ -25,7 +25,7 @@ const navList = [
   {
     label: 'Access',
     target: 'access-tile-pill-access',
-    isDisplayed: false,
+    isDisplayed: true,
   },
 ];
 

@@ -7,7 +7,11 @@ import React from 'react';
 import { cleanup } from '@testing-library/react';
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
-import { getAccessPageRolesUrl, getRepositoryContainer, getRepositoryRoleMappingUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getAccessPageRolesUrl,
+  getRepositoryContainer,
+  getRepositoryContainerRoleMappingUrl,
+} from 'MainRoot/util/CLMLocation';
 import * as accessSelectors from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 
 describe('AccessTile', () => {
@@ -1076,7 +1080,7 @@ describe('AccessTile', () => {
 
   describe('Rendering inherited and local data', () => {
     it('renders component with local and inherited access', async () => {
-      mock.onGet(getRepositoryRoleMappingUrl()).reply(200, rolesMockDataRepositoryContainerInheritedAndLocal);
+      mock.onGet(getRepositoryContainerRoleMappingUrl()).reply(200, rolesMockDataRepositoryContainerInheritedAndLocal);
 
       mock.onGet(getRepositoryContainer()).reply(200, {
         id: 'REPOSITORY_CONTAINER_ID',

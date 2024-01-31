@@ -32,7 +32,8 @@ public class PermissionResource
 {
   public static final String RESOURCE_PATH = "rest/user/permissions";
 
-  public static final String OWNER_CONTEXT_PATH = "{ownerType: global|application|organization|repository}/{ownerId}";
+  public static final String OWNER_CONTEXT_PATH =
+      "{ownerType: global|application|organization|repository|repository_manager}/{ownerId}";
 
   public static final String PUBLIC_APPLICATION_ID_PATH = "application/publicId/{publicApplicationId}";
 

@@ -1417,4 +1417,107 @@ public class RepositoriesSummaryViewTest
 
     testRepositorySummaryView_configurationTile_deleteRepository(configTable.repoManagerConfigTableRow(1), hostedRepo);
   }
+
+  public void testRepositoryManagerSummaryView_accessTile() {
+    RepositoryManager repositoryManager = tempEntity
+        .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+
+    User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
+
+    Role readRole = tempEntity.newRole("Local Read Only", false, Permission.READ);
+    Role writeRole = tempEntity.newRole("Local Write Only", false, Permission.WRITE);
+    Role repoContainerReadRole = tempEntity.newRole("RC Read Only", false, Permission.READ);
+    Role repoContainerWriteRole = tempEntity.newRole("RC Write Only", false, Permission.WRITE);
+    Role rootOrgWriteRole = tempEntity.newRole("RO Write Only", false, Permission.WRITE);
+    Role rootOrgReadRole = tempEntity.newRole("RO Read Only", false, Permission.READ);
+    
+    tempEntity.newMembershipMapping(repositoryManager.getId(), writeRole.getId(), testUser.getUsername());
+    tempEntity.newMembershipMapping(repositoryManager.getId(), readRole.getId(), "Group", MemberType.GROUP);
+    tempEntity
+        .newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, rootOrgWriteRole.getId(), testUser.getUsername());
+    tempEntity
+        .newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, rootOrgReadRole.getId(), "Group", MemberType.GROUP);
+    tempEntity.newMembershipMapping(
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerWriteRole.getId(), testUser.getUsername()
+    );
+    tempEntity.newMembershipMapping(
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerReadRole.getId(), "Group", MemberType.GROUP
+    );
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    RepositoriesSummaryPage.accessPillButton().shouldBe(visible).click();
+
+    AccessTile accessTile = RepositoriesSummaryPage.accessTile();
+    accessTile.accessLists().shouldHaveSize(3);
+
+    AccessTileList localList = accessTile.accessList(0);
+    localList.emptyDescriptor().shouldBe(hidden);
+
+    localList.elements().shouldHaveSize(2);
+    localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
+
+    AccessTileListElement readOnly = localList.element(0);
+    readOnly.roleNoPermission().shouldBe(visible).shouldHave(text("Read Only"));
+
+    AccessTileListElement descriptionRead = readOnly.description();
+    descriptionRead.chevron().shouldBe(visible);
+    descriptionRead.groupIcon().shouldBe(visible);
+    descriptionRead.members().shouldBe(visible).shouldHave(text("Group"));
+
+    AccessTileListElement writeOnly = localList.element(1);
+    writeOnly.roleNoPermission().shouldBe(visible).shouldHave(text("Write Only"));
+
+    AccessTileListElement descriptionWrite = writeOnly.description();
+    descriptionWrite.chevron().shouldBe(visible);
+    descriptionWrite.userIcon().shouldBe(visible);
+    descriptionWrite.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+
+    InheritedAccessList inheritedAccessList =
+        accessTile.inheritedAccessList(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    accessTile.accessListSubheader(0).shouldBe(visible).shouldHave(AccessTile.inheritedText("Repository Managers"));
+    inheritedAccessList.elements().shouldHaveSize(2);
+
+    InheritedAccess repoContainerAccessListReadRole = inheritedAccessList.element(0);
+    repoContainerAccessListReadRole.label().shouldBe(visible).shouldHave(text("RC Read Only"));
+
+    AccessTileListElement repoContainerAccessListReadRoleDescription = repoContainerAccessListReadRole.description();
+    repoContainerAccessListReadRoleDescription.chevron().shouldBe(hidden);
+    repoContainerAccessListReadRoleDescription.groupIcon().shouldBe(visible);
+    repoContainerAccessListReadRoleDescription.members().shouldBe(visible).shouldHave(text("Group"));
+
+    InheritedAccess repoContainerAccessListWriteRole = inheritedAccessList.element(1);
+    repoContainerAccessListWriteRole.label().shouldBe(visible).shouldHave(text("RC Write Only"));
+
+    AccessTileListElement repoContainerAccessListWriteRoleDescription = repoContainerAccessListWriteRole.description();
+    repoContainerAccessListWriteRoleDescription.chevron().shouldBe(hidden);
+    repoContainerAccessListWriteRoleDescription.userIcon().shouldBe(visible);
+    repoContainerAccessListWriteRoleDescription.members()
+        .shouldBe(visible)
+        .shouldHave(text(testUser.calculateDisplayName()));
+
+    InheritedAccessList rootOrgAccessList = accessTile.inheritedAccessList("ROOT_ORGANIZATION_ID");
+
+    accessTile.accessListSubheader(1).shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
+    rootOrgAccessList.elements().shouldHaveSize(2);
+
+    InheritedAccess rootOrgAccessListReadRole = rootOrgAccessList.element(0);
+    rootOrgAccessListReadRole.label().shouldBe(visible).shouldHave(text("RO Read Only"));
+
+    AccessTileListElement rootOrgAccessListReadRoleDescription = rootOrgAccessListReadRole.description();
+    rootOrgAccessListReadRoleDescription.chevron().shouldBe(hidden);
+    rootOrgAccessListReadRoleDescription.groupIcon().shouldBe(visible);
+    rootOrgAccessListReadRoleDescription.members().shouldBe(visible).shouldHave(text("Group"));
+
+    InheritedAccess rootOrgAccessListWriteRole = rootOrgAccessList.element(1);
+    rootOrgAccessListWriteRole.label().shouldBe(visible).shouldHave(text("RO Write Only"));
+
+    AccessTileListElement rootOrgAccessListWriteRoleDescription = rootOrgAccessListWriteRole.description();
+    rootOrgAccessListWriteRoleDescription.chevron().shouldBe(hidden);
+    rootOrgAccessListWriteRoleDescription.userIcon().shouldBe(visible);
+    rootOrgAccessListWriteRoleDescription.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+
+    eyesWatcher.eyesCheck("repository manager access tile");
+  }
 }

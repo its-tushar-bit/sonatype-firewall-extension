@@ -10,7 +10,7 @@ import {
   getAccessPageRolesUrl,
   getUsersRoleMappingUrl,
   getCreateOrDeleteAccessUrl,
-  getRepositoryRoleMappingUrl,
+  getRepositoryContainerRoleMappingUrl,
   getUsersRepositoryRoleMappingUrl,
   getCreateOrDeleteAccessRepositoryUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -115,7 +115,7 @@ describe('access', () => {
   const roleMappingUrl = getAccessPageRolesUrl('application', 'application');
   const fetchUrlOrg = getUsersRoleMappingUrl('application', 'application', 'search');
   const fetchUrlRepository = getUsersRepositoryRoleMappingUrl('search');
-  const roleRepositoryMappingUrl = getRepositoryRoleMappingUrl();
+  const roleRepositoryMappingUrl = getRepositoryContainerRoleMappingUrl();
   const createOrUpdateRoleUrl = getCreateOrDeleteAccessUrl('application', 'application', role.roleId);
   const createOrUpdateRoleUrlRepository = getCreateOrDeleteAccessRepositoryUrl(role.roleId);
   const removeRoleUrl = getCreateOrDeleteAccessUrl('application', 'application', role.roleId);

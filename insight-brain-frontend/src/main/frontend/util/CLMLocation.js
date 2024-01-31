@@ -931,7 +931,7 @@ export function getAccessPageRolesUrl(ownerType, ownerId) {
   return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId}`;
 }
 
-export function getRepositoryRoleMappingUrl() {
+export function getRepositoryContainerRoleMappingUrl() {
   return uriTemplate`/rest/membershipMapping/repository_container`;
 }
 

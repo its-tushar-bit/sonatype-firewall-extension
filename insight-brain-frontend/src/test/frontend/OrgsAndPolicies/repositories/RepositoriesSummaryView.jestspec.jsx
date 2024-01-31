@@ -54,8 +54,8 @@ describe('RepositoriesSummaryView', () => {
 
     axiosMock
       .onPut(getPermissionContextTestUrl('repository_container', 'REPOSITORY_CONTAINER_ID'))
-      .reply(200, ['WRITE']),
-      (renderComponent = () => render(<RepositoriesSummaryView />, { preloadedState }));
+      .reply(200, ['WRITE']);
+    renderComponent = () => render(<RepositoriesSummaryView />, { preloadedState });
 
     axiosMock
       .onGet(getAccessPageRolesUrl('repository_container', 'REPOSITORY_CONTAINER_ID'))

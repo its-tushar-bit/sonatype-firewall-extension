@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -106,6 +107,19 @@ public class PermissionResourceTest
   public void testValidatePermission_RepositoryContainerContext() throws Exception {
     HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
+  }
+
+  @Test
+  public void testValidatePermission_RepositoryManagerContext() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+
+    HttpResponse response =
+        validateRequest(
+          OwnerType.REPOSITORY_MANAGER,
+          repoManager.getId()
+        ).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
     assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }

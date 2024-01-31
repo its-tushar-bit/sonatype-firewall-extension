@@ -12,13 +12,14 @@ import {
   getCreateOrDeleteAccessUrl,
   getUsersRoleMappingUrl,
   getCreateOrDeleteAccessRepositoryUrl,
-  getRepositoryRoleMappingUrl,
+  getRepositoryContainerRoleMappingUrl,
   getUsersRepositoryRoleMappingUrl,
 } from 'MainRoot/util/CLMLocation';
 import {
   selectRouterSlice,
   selectRouterCurrentParams,
   selectIsRepositoriesRelated,
+  selectIsRepositoryContainer,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { map, prepend, isEmpty, symmetricDifference, includes, pick, groupBy, reject } from 'ramda';
 import {
@@ -85,9 +86,10 @@ export const loadRoles = createAsyncThunk(`${REDUCER_NAME}/loadRoles`, (_, { get
   const state = getState();
   const { ownerType, ownerId } = selectOwnerProperties(state);
   const { roleId = '' } = selectRouterCurrentParams(state);
-  const isRepositories = selectIsRepositoriesRelated(state);
+  const isRepositoryContainer = selectIsRepositoryContainer(state);
+
   return axios
-    .get(isRepositories ? getRepositoryRoleMappingUrl() : getAccessPageRolesUrl(ownerType, ownerId))
+    .get(isRepositoryContainer ? getRepositoryContainerRoleMappingUrl() : getAccessPageRolesUrl(ownerType, ownerId))
     .then(({ data }) => {
       return { data, roleId };
     })
@@ -224,12 +226,13 @@ const setGroupName = (state, { payload }) => {
 export const removeRole = createAsyncThunk(
   `${REDUCER_NAME}/removeRole`,
   (_, { getState, rejectWithValue, dispatch }) => {
-    const { ownerType, ownerId } = selectOwnerProperties(getState());
-    const roleId = selectRouterCurrentParams(getState()).roleId ?? '';
-    const isRepositoriesRelated = selectIsRepositoriesRelated(getState());
+    const state = getState();
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+    const roleId = selectRouterCurrentParams(state).roleId ?? '';
+    const isRepositoryContainer = selectIsRepositoryContainer(state);
     return axios
       .put(
-        isRepositoriesRelated
+        isRepositoryContainer
           ? getCreateOrDeleteAccessRepositoryUrl(roleId)
           : getCreateOrDeleteAccessUrl(ownerType, ownerId, roleId),
         []
@@ -250,10 +253,11 @@ export const createOrUpdateRole = createAsyncThunk(
     const role = selectRole(state);
     const memberList = selectUnSortedAddedUsers(state);
     const formatedMemberList = compose(map(removeFormatGroupUsers), formatMembersForSaving)(memberList);
-    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
+    const isRepositoryContainer = selectIsRepositoryContainer(state);
+
     return axios
       .put(
-        isRepositoriesRelated
+        isRepositoryContainer
           ? getCreateOrDeleteAccessRepositoryUrl(role?.roleId)
           : getCreateOrDeleteAccessUrl(ownerType, ownerId, role?.roleId),
         formatedMemberList

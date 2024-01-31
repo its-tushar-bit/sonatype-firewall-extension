@@ -116,16 +116,23 @@ public class AccessEditorPage
     }
 
     public String confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {
-      return "You are about to remove the " + roleName + " role from " +
-          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repository managers" :
-              "this " + ownerType) +
+      return "You are about to remove the " + roleName + " role from " + getReadableOwnerType(ownerType) +
           ". Next time, consider using the \"Delete\" button; it will save you some clicks!";
     }
 
     public String confirmRemovalText(String roleName, OwnerType ownerType) {
-      return "You are about to remove the " + roleName + " role from " +
-          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repository managers" :
-              "this " + ownerType) + ".";
+      return "You are about to remove the " + roleName + " role from " + getReadableOwnerType(ownerType) + ".";
+    }
+
+    private String getReadableOwnerType(OwnerType ownerType) {
+      if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
+        return "all repository managers";
+      }
+      if (OwnerType.REPOSITORY_MANAGER.equals(ownerType)) {
+        return "this repository manager";
+      }
+
+      return "this " + ownerType;
     }
   }
 }

@@ -20,6 +20,7 @@ import RepositoryManagerPills from 'MainRoot/OrgsAndPolicies/repositories/Reposi
 import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
+import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 
 export default function RepositoryManagerSummaryView() {
   const dispatch = useDispatch();
@@ -64,7 +65,7 @@ export default function RepositoryManagerSummaryView() {
             <RepositoriesConfigurationTile />
             <PoliciesTile />
             {/* <NamespaceConfusionProtectionTile /> goes here*/}
-            {/* <AccessTile /> goes here*/}
+            <AccessTile />
           </div>
         </div>
       </div>

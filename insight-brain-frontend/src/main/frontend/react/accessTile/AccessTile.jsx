@@ -15,14 +15,9 @@ import {
   NxLoadWrapper,
   NxCollapsibleItems,
 } from '@sonatype/react-shared-components';
-import {
-  selectIsRepositoriesRelated,
-  selectRouterCurrentParams,
-  selectRouterState,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import classnames from 'classnames';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { reformatRouteStateParams } from './accessTileUtil';
 import {
   selectLoading,
   selectExtendedMembersByRole,
@@ -35,12 +30,12 @@ import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPolicie
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { isEmpty } from 'ramda';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 export default function AccessTile() {
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
-  const routerParams = useSelector(selectRouterCurrentParams);
-  const routerState = useSelector(selectRouterState);
+  const router = useSelector(selectRouterSlice);
   const loading = useSelector(selectLoading);
   const extMembersRoles = useSelector(selectExtendedMembersByRole);
   const rolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
@@ -63,8 +58,8 @@ export default function AccessTile() {
   }, []);
 
   const getAddRoleButtonUrl = () => {
-    const routerInfoRewritten = reformatRouteStateParams(routerState, routerParams);
-    return uiRouterState.href(routerInfoRewritten.to, { ...routerInfoRewritten.params });
+    const { to, params } = deriveEditRoute(router, 'add-access');
+    return uiRouterState.href(to, params);
   };
 
   const mapMembersData = (m, idx) => (
@@ -75,11 +70,8 @@ export default function AccessTile() {
   );
 
   const editRoleUrl = (roleId) => {
-    const routerInfoRewritten = reformatRouteStateParams(routerState, routerParams);
-    return uiRouterState.href(routerInfoRewritten.to.replace('add-access', 'edit-access'), {
-      ...routerInfoRewritten.params,
-      roleId,
-    });
+    const { to, params } = deriveEditRoute(router, 'edit-access', { roleId });
+    return uiRouterState.href(to, params);
   };
 
   const mapLocalAccessDataRow = (accessDataRow) => {

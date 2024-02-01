@@ -116,6 +116,7 @@ import org.openqa.selenium.support.ui.Wait;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
@@ -2680,7 +2681,7 @@ public class FirewallComponentDetailsPageTest
     ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
     waiversTableRow.scope().shouldHave(text("Repository Managers"));
     policyViolationDetailPopover.getCloseButton().click();
-    policyViolationDetailPopover.shouldNotBe(visible);
+    policyViolationDetailPopover.getElement().waitUntil(disappear, 500 ,50);
 
     SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
     viewAllComponentWaiversButton.shouldBe(visible).click();

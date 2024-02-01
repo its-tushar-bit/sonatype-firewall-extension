@@ -1315,7 +1315,7 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testRepositoryManagerSummaryView_namespaceConfusionProtectionTile() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
     Repository repo = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
         ComponentIdentifier.FORMAT_MAVEN);
     ProprietaryComponentNamePattern namePattern =

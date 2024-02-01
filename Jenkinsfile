@@ -95,10 +95,9 @@ void postBuild() {
 void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
-  boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
   boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_mtiq'))
   List params = [
-      booleanParam(defaultValue: applitoolsEnabledByDefault,
+      booleanParam(defaultValue: true,
           description: 'If checked will enable Applitools EyesCheck.',
           name: 'applitoolsEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
@@ -420,10 +419,6 @@ void captureResultsAndCleanup() {
  * @return true if enabled
  */
 boolean isEyesEnabled() {
-  // use the project name to determine the branch, a git checkout hasn't happened yet.  Multi-branch builds use
-  // the branch name as the last part of the project name.
-  def projName = currentBuild.fullProjectName
-  // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
-  return params.applitoolsEnabled == null ? (projName.toLowerCase().contains('master') || projName.endsWith('_ui')) :
-      params.applitoolsEnabled
+  // if the params value isn't set (or hasn't been added to the job yet), default to true
+  return params.applitoolsEnabled ?: true
 }

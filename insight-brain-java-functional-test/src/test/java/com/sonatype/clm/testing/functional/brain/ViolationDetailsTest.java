@@ -321,7 +321,7 @@ public class ViolationDetailsTest
     PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
 
     vulnerabilityTab.shouldNotBe(visible);
-    waiversTab.shouldBe(visible).shouldHave(text("Applicable Waivers"));;
+    waiversTab.shouldBe(visible).shouldHave(text("Applicable Waivers"));
 
     PolicyViolationApplicableWaiversInfoTile applicableWaiversTile =
             violationDetailsPage.applicableWaiversInfoTile();

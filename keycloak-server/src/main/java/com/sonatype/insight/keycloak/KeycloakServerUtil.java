@@ -32,24 +32,26 @@ import org.slf4j.LoggerFactory;
 // Exposes utility methods for a running Keycloak on a given url.
 // For using in tests, please see KeycloakTestUtilTest for reference which is responsible for
 // ignoring tests when -Dkeycloak.optional=true and stopping server / container gracefully
-// Call #clean whenever you need to reset the server to original state.
 public class KeycloakServerUtil
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   static final Integer ADMIN_TOKEN_LIFESPAN_IN_SECONDS = 600;
 
-  private final String url;
+  private String url;
 
-  private final String adminToken;
+  private String adminToken;
 
-  private final Set<String> createdClientIds = new HashSet<>();
+  private Set<String> createdClientIds;
 
-  private final Set<String> createdUserIds = new HashSet<>();
+  private Set<String> createdUserIds;
 
-  private final Set<String> createdGroupIds = new HashSet<>();
+  private Set<String> createdGroupIds;
 
-  public KeycloakServerUtil(String url) throws InterruptedException {
+  KeycloakServerUtil() {
+  }
+
+  void init(String url) throws InterruptedException {
     this.url = url;
     RealmRepresentation realmRepresentation = getMasterRealm();
     realmRepresentation.setAccessTokenLifespan(ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
@@ -57,6 +59,10 @@ public class KeycloakServerUtil
         .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .put(Entity.entity(realmRepresentation, MediaType.APPLICATION_JSON_TYPE));
     adminToken = getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD);
+
+    createdClientIds = new HashSet<>();
+    createdUserIds = new HashSet<>();
+    createdGroupIds = new HashSet<>();
   }
 
   /**
@@ -272,14 +278,16 @@ public class KeycloakServerUtil
     return Arrays.asList(firstNameMapping, lastNameMapping, groupsMapping);
   }
 
-  public void clean() {
+  /**
+   * Cleanup the test keycloak server.
+   */
+  void clean() {
     log.info("KeycloakServerUtil.clean() start");
 
     for (String clientId : createdClientIds) {
       log.info("KeycloakServerUtil.clean() deleting clientId:{}", clientId);
-      Response response =
-          ClientBuilder.newClient().target(url).path("admin/realms/master/clients").path(clientId).request()
-              .header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/clients").path(clientId)
+          .request().header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "Client clean failed with Status Code: " + response.getStatus() + " for clientId:" + clientId);
@@ -291,9 +299,8 @@ public class KeycloakServerUtil
 
     for (String userId : createdUserIds) {
       log.info("KeycloakServerUtil.clean() deleting userId:{}", userId);
-      Response response =
-          ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).request()
-              .header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).request()
+          .header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "User clean failed with Status Code: " + response.getStatus() + " for userId:" + userId);
@@ -305,9 +312,8 @@ public class KeycloakServerUtil
 
     for (String groupId : createdGroupIds) {
       log.info("KeycloakServerUtil.clean() deleting groupId:{}", groupId);
-      Response response =
-          ClientBuilder.newClient().target(url).path("admin/realms/master/groups").path(groupId).request()
-              .header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/groups").path(groupId)
+          .request().header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "Group clean failed with Status Code: " + response.getStatus() + " for groupId:" + groupId);

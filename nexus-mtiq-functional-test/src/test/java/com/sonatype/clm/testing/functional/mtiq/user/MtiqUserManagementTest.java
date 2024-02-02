@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -44,7 +45,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
-import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage.NewUserForm;
 
 public class MtiqUserManagementTest
     extends AbstractMtiqFunctionalTest
@@ -113,7 +113,7 @@ public class MtiqUserManagementTest
 
   @After
   public void cleanup() {
-    keycloak.clean();
+    keycloakServerRule.clean();
     tenantMetadataDAO.getAll().forEach(tenantMetadataDAO::delete);
   }
 

@@ -19,7 +19,9 @@ import com.github.javafaker.Internet;
 import com.github.javafaker.Name;
 import org.junit.After;
 import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -34,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class KeycloakServerUtilTest
 {
   @ClassRule
@@ -45,7 +48,7 @@ public class KeycloakServerUtilTest
 
   @After
   public void after() {
-    keycloak.clean();
+    rule.clean();
   }
 
   @Test

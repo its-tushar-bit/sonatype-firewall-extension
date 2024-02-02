@@ -63,7 +63,7 @@ public class SamlTest
 
   @After
   public void after() {
-    keycloak.clean();
+    keycloakServerRule.clean();
   }
 
   @Test

@@ -132,7 +132,6 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>secretsmanager</artifactId>
-      <version>${aws.java.sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>software.amazon.awssdk</groupId>
@@ -143,7 +142,6 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>ec2</artifactId>
-      <version>${aws.java.sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>software.amazon.awssdk</groupId>
@@ -154,7 +152,6 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>apache-client</artifactId>
-      <version>${aws.java.sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>software.amazon.awssdk</groupId>
@@ -165,7 +162,6 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sts</artifactId>
-      <version>${aws.java.sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>software.amazon.awssdk</groupId>

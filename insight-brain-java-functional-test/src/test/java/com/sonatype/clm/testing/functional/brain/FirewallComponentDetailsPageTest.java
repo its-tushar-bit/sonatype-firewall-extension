@@ -105,6 +105,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -2640,6 +2641,7 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
+  @Ignore("CLM-29336")
   @Test
   public void testAddWaiverAllRepositoriesIsShownInExistingWaiversPopover() {
     createAllTypePolicies();

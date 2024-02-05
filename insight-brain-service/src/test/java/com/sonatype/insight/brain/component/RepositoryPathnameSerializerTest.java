@@ -16,6 +16,10 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.utils.RepositoryPathnameSerializer.toPathname;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @deprecated The tested class is deprecated
+ */
+@Deprecated
 public class RepositoryPathnameSerializerTest
 {
   @Test

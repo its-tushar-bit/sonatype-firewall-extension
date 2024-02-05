@@ -79,7 +79,7 @@
      mockito 5.x requires Java 11 -->
     <mockito-core.version>4.11.0</mockito-core.version>
     <byte-buddy.version>1.12.19</byte-buddy.version>
-    <testcontainers.version>1.19.3</testcontainers.version>
+    <testcontainers.version>1.19.4</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.23.3</aws.java.sdk.version>
     <!--
@@ -829,7 +829,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.25.1</version>
+        <version>3.25.3</version>
         <scope>test</scope>
       </dependency>
       <dependency>

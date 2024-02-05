@@ -19,21 +19,25 @@ import com.sonatype.clm.testing.functional.pages.SastScanPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
-
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
@@ -534,40 +538,12 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(6)");
   }
 
-  private SelenideElement sastReportColumnHeader() {
-    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(7)");
-  }
-
   private SelenideElement licenseFeatureMissingAlert() {
     return $("[data-testid='iq-integrations__missing-license']");
   }
 
   private SelenideElement appIntegrationsAndRiskTable() {
     return $("#iq-developer-app-integrations-and-risk-table");
-  }
-
-  private SelenideElement appIntegrationsScmFilter() {
-    return $("#iq-developer-app-integrations-scm-filter");
-  }
-
-  private SelenideElement appIntegrationsScmFilterConfiguredInput() {
-    return appIntegrationsScmFilter().$(".nx-checkbox:nth-child(1)");
-  }
-
-  private SelenideElement appIntegrationsScmFilterNotConfiguredInput() {
-    return appIntegrationsScmFilter().$(".nx-checkbox:nth-child(2)");
-  }
-
-  private SelenideElement appIntegrationsCiCdFilter() {
-    return $("#iq-developer-app-integrations-cicd-filter");
-  }
-
-  private SelenideElement appIntegrationsCiCdFilterConfiguredInput() {
-    return appIntegrationsCiCdFilter().$(".nx-checkbox:nth-child(1)");
-  }
-
-  private SelenideElement appIntegrationsCiCdFilterNotConfiguredInput() {
-    return appIntegrationsCiCdFilter().$(".nx-checkbox:nth-child(2)");
   }
 
   private SelenideElement appIntegrationPageButton(int page) {

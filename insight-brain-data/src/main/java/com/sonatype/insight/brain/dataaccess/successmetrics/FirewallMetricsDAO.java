@@ -10,10 +10,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-
 import javax.persistence.EntityExistsException;
 import javax.persistence.LockModeType;
 import javax.persistence.RollbackException;
@@ -97,7 +97,7 @@ public class FirewallMetricsDAO
         " AND entity.metricsName=?2";
 
     Query<FirewallMetrics> query =
-        new Query<FirewallMetrics>(sQuery,
+        new Query<>(sQuery,
             newFirewallMetrics.getMetricsDate(), newFirewallMetrics.getMetricsName());
     // need a 'select for update' type query - this is how to do it in JPA
     query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);

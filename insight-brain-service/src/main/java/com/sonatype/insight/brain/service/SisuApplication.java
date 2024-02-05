@@ -134,7 +134,7 @@ public abstract class SisuApplication<T extends Configuration>
   }
 
   protected DropwizardAwareModule<T> wire(final List<Module> modules) {
-    return new DropwizardAwareWireModule<T>(modules);
+    return new DropwizardAwareWireModule<>(modules);
   }
 
   protected GuiceBundle.Builder customizeGuiceBundle(GuiceBundle.Builder builder) {

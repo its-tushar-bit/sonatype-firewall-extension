@@ -32,6 +32,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -937,7 +938,7 @@ public class ApiLicenseLegalService
             Function.identity(),
             m -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(m.licenseId),
             (prev, next) -> next,
-            () -> new TreeMap<ApiLicenseDTO, Set<License>>(Comparator.comparing(dto -> dto.licenseId))
+            () -> new TreeMap<>(Comparator.comparing(dto -> dto.licenseId))
         ));
   }
 

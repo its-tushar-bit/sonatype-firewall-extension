@@ -12,9 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -36,7 +34,6 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
-import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -568,7 +565,7 @@ public class SearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_ImprovedResultGrouping() throws Exception {
+  public void testSearchIndex_GroupsSequentialResultsIfPossible() throws Exception {
     Role role = tempEntity.newRole(false, Permission.READ);
 
     Organization org1 = tempEntity.newOrganization("org-01");
@@ -585,17 +582,97 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 10, 0, false);
-
-    // without improved grouping vulnerabilities for "CVE-2022-25857" would have appeared partially in
-    // the page 1 results and partially in the page 3 results
-
-    // with improved grouping all 4 vulnerabilities for "CVE-2022-25857" appear in the page 1 results
+    // Try all results on one page
+    // There are 4 results for CVE-2022-25857 but only 2 of these are sequential and should be grouped
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", Integer.MAX_VALUE, 0, false);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
-    Optional<GroupingByDTO> optionalGroupingByDTO =
-        searchResultDTO.groupingByDTOS.stream().filter(g -> g.groupBy.equals("CVE-2022-25857")).findFirst();
-    assertThat(optionalGroupingByDTO).isPresent();
-    assertThat(optionalGroupingByDTO.get().searchResultItemDTOS).hasSize(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(38);
+
+    // First result (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(1).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS.get(0).resultIndex).isEqualTo(2);
+
+    // Second result (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(16).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS.get(0).resultIndex).isEqualTo(17);
+
+    // Third and fourth results (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(35).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS).hasSize(2);
+    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(0).resultIndex).isEqualTo(36);
+    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(1).resultIndex).isEqualTo(37);
+
+    // Try splitting a group across pages
+    // There are 4 results for CVE-2022-25857 but the 2 sequential results are split across pages and so not grouped
+    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 0, false);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(36);
+
+    // First result (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(1).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS.get(0).resultIndex).isEqualTo(2);
+
+    // Second result (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(16).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS.get(0).resultIndex).isEqualTo(17);
+
+    // Third result (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(35).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(0).resultIndex).isEqualTo(36);
+
+    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 2, false);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(3);
+
+    // Fourth result (page 2)
+    assertThat(searchResultDTO.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(37);
+
+    // If we search specifically for CVE-2022-25857, then all results should be grouped (unless split across pages)
+    // since no matter the order they will have the same groupBy key
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", Integer.MAX_VALUE, 0, false);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+
+    // First, second, third, and fourth results (page 1)
+    assertThat(searchResultDTO.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(4);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(1).resultIndex).isEqualTo(2);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(2).resultIndex).isEqualTo(3);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(3).resultIndex).isEqualTo(4);
+
+    // Try splitting across pages
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 0, false);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+
+    // First and second results (page 1)
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(2);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(1).resultIndex).isEqualTo(2);
+
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 2, false);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+
+    // Third and fourth results (page 2)
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-2022-25857");
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(2);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(3);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(1).resultIndex).isEqualTo(4);
   }
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)

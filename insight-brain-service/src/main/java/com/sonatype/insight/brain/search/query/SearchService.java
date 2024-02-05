@@ -220,26 +220,15 @@ public class SearchService
 
       // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
       TopDocs topDocs = indexSearcher.search(queryWithPermissions, Math.max(1, indexReader.maxDoc()));
-      ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-
-      List<Document> documents = new ArrayList<>();
-
-      Map<Document, Integer> documentScores = new HashMap<>();
-      for (ScoreDoc scoreDoc : scoreDocs) {
-        Document document = indexSearcher.doc(scoreDoc.doc);
-        documents.add(document);
-        documentScores.put(document, scoreDoc.shardIndex);
-      }
-
-      Map<String, String> groupFieldNamesByItemType = getGroupFieldNamesByItemType(fieldNames);
-      groupAllDocuments(documents, searchResultDTO, groupFieldNamesByItemType);
+      groupDocuments(indexSearcher, topDocs.scoreDocs, page, pageSize, searchResultDTO,
+          getGroupFieldNamesByItemType(fieldNames));
 
       int resultRecordCount;
       if (isExportable) {
         resultRecordCount = (int) topDocs.totalHits.value;
       }
       else {
-        resultRecordCount = filterResultsByPage(searchResultDTO, page, pageSize);
+        resultRecordCount = countSearchResults(searchResultDTO);
       }
 
       searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
@@ -249,42 +238,43 @@ public class SearchService
     }
   }
 
-  /**
-   * Filter the returned documents based on a result index range corresponding to the page and pageSize values.
-   */
-  private int filterResultsByPage(final SearchResultDTO searchResultDTO, final int page, final int pageSize) {
-    int startIndex = (page - 1) * pageSize + 1;
-    int endIndex = page * pageSize;
+  private int countSearchResults(final SearchResultDTO searchResultDTO) {
     int resultRecordCount = 0;
-
-    // remove searchResultItemDTOs that done fit in the resultIndex range
     for (GroupingByDTO groupingByDTO : searchResultDTO.groupingByDTOS) {
-      groupingByDTO.searchResultItemDTOS.removeIf(e -> e.resultIndex < startIndex || e.resultIndex > endIndex);
       resultRecordCount += groupingByDTO.searchResultItemDTOS.size();
     }
-
-    // remove possible empty groupingByDTOs
-    searchResultDTO.groupingByDTOS.removeIf(e -> e.searchResultItemDTOS.isEmpty());
-
     return resultRecordCount;
   }
 
   /**
-   * Groups all returned documents by their groupBy field. The page and pageSize values play no role in this.
+   * Only group sequential items if possible. This maintains lucene order/ranking ensuring more relevant results appear
+   * earlier. This will also typically only iterate over the default pageSize number of documents which helps avoid too
+   * much memory usage. See CLM-29232 for more details.
    */
-  private void groupAllDocuments(
-      final List<Document> documents,
+  private void groupDocuments(
+      final IndexSearcher indexSearcher,
+      final ScoreDoc[] scoreDocs,
+      final int page,
+      final int pageSize,
       final SearchResultDTO searchResultDTO,
-      final Map<String, String> groupFieldNamesByItemType)
+      final Map<String, String> groupFieldNamesByItemType) throws IOException
   {
-    Map<String, GroupingByDTO> groupByDTOByGroupBy = new HashMap<>();
-    for (Document document : documents) {
+    int startIndex = (page - 1) * pageSize;
+    int endIndex = page * pageSize;
+    int resultIndex = startIndex + 1;
+    GroupingByDTO lastGroup = null;
+    for (int i = startIndex; i < endIndex && i < scoreDocs.length; i++) {
+      Document document = indexSearcher.doc(scoreDocs[i].doc);
       SearchResultItemDTO searchResultItemDTO = toDto(document);
       String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
       FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
       String groupBy = document.get(groupFieldName);
 
-      if (!groupByDTOByGroupBy.containsKey(groupBy)) {
+      GroupingByDTO targetGroup = null;
+      if (lastGroup != null && groupBy.equals(lastGroup.groupBy)) {
+        targetGroup = lastGroup;
+      }
+      if (targetGroup == null) {
         GroupingByDTO groupingByDTO = new GroupingByDTO();
         groupingByDTO.groupBy = groupBy;
         groupingByDTO.groupIdentifier = groupIdentifier;
@@ -292,20 +282,14 @@ public class SearchService
         if (groupIdentifier == VULNERABILITY_ID || groupIdentifier == VULNERABILITY_DESCRIPTION) {
           groupingByDTO.additionalInfo = document.get(VULNERABILITY_DESCRIPTION.label);
         }
-        searchResultDTO.groupingByDTOS.add(groupingByDTO);
-        groupByDTOByGroupBy.put(groupBy, groupingByDTO);
-      }
-      groupByDTOByGroupBy.get(groupBy).searchResultItemDTOS.add(searchResultItemDTO);
-    }
-    setResultIndexOnSearchResultItemDTOS(searchResultDTO);
-  }
 
-  private void setResultIndexOnSearchResultItemDTOS(final SearchResultDTO searchResultDTO) {
-    int resultIndex = 1;
-    for (GroupingByDTO groupingByDTO : searchResultDTO.groupingByDTOS) {
-      for (SearchResultItemDTO searchResultItemDTO : groupingByDTO.searchResultItemDTOS) {
-        searchResultItemDTO.resultIndex = resultIndex++;
+        searchResultDTO.groupingByDTOS.add(groupingByDTO);
+        targetGroup = groupingByDTO;
       }
+      targetGroup.searchResultItemDTOS.add(searchResultItemDTO);
+
+      searchResultItemDTO.resultIndex = resultIndex++;
+      lastGroup = targetGroup;
     }
   }
 

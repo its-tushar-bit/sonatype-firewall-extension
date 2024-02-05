@@ -6,11 +6,27 @@
 package com.sonatype.insight.brain.utils;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * This class is a stand-in to allow us to use the same IQ code paths and HDS endpoint as the Firewall plugins.
+ * <p>
+ * The HDS endpoint FirewallComponentDetailsResource.getComponentData requires (format, sha1, and pathname) to be
+ * specified for each repository component request.
+ * <p>
+ * The IQ endpoint ApiFirewallResource.evaluateComponents uses this to convert pURLs into pathnames to be compatible
+ * with the HDS endpoint.
+ * <p>
+ * Moving forward we should either update the existing HDS endpoint or add a new one to also accept pURLs instead of
+ * doing a double conversion.
+ * <p>
+ * This class is deprecated as it should not be further used.
+ **/
+@Deprecated
 public final class RepositoryPathnameSerializer
 {
   private RepositoryPathnameSerializer() {
@@ -21,6 +37,10 @@ public final class RepositoryPathnameSerializer
     return toPathname(new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier());
   }
 
+  // In general this method does the opposite of RepositoryPathnameParser in HDS
+  // see https://github.com/sonatype/hosted-data-services/blob/731f4e98105b272588c473e6a6ec18ccb30a8cf4/
+  // insight-portal-webapp/src/main/java/com/sonatype/insight/portal/rest/service/component/
+  // RepositoryPathnameParser.java
   public static String toPathname(ComponentIdentifier componentIdentifier) {
     switch (componentIdentifier.getFormat()) {
       case ComponentIdentifier.FORMAT_MAVEN: {
@@ -46,6 +66,13 @@ public final class RepositoryPathnameSerializer
         String version = componentIdentifier.get(ComponentIdentifier.VERSION);
         String filename = packageId + "-" + version + ".tgz";
         return String.join("/", scopeAndPackageId, "-", filename);
+      }
+      case ComponentIdentifier.FORMAT_PYPI: {
+        // pypi pathnames are ignored so this value can be anything
+        // see https://github.com/sonatype/hosted-data-services/blob/731f4e98105b272588c473e6a6ec18ccb30a8cf4/
+        // insight-portal-webapp/src/main/java/com/sonatype/insight/portal/rest/service/component/
+        // RepositoryPathnameParser.java#L111-L114
+        return "ignored";
       }
       case ComponentIdentifier.FORMAT_RUBYGEMS: {
         String name = componentIdentifier.get(ComponentIdentifier.RUBYGEMS_NAME);
@@ -94,7 +121,9 @@ public final class RepositoryPathnameSerializer
       case ComponentIdentifier.FORMAT_CRAN: {
         String name = componentIdentifier.get(ComponentIdentifier.CRAN_NAME);
         String version = componentIdentifier.get(ComponentIdentifier.VERSION);
-        // Type is unused by HDS
+        // type is unused by HDS
+        // see https://github.com/sonatype/hosted-data-services/blob/d38ddeef714f2eb9e2334abf63709119f04ab163/
+        // insight-scan-processor/src/main/java/com/sonatype/insight/scan/matcher/firewall/CranPathnameParser.java#L36
         // String type = componentIdentifier.get(ComponentIdentifier.CRAN_TYPE);
         String filename = name + "_" + version + ".tgz";
         return String.join("/", "bin", "os", filename);
@@ -120,7 +149,7 @@ public final class RepositoryPathnameSerializer
         return String.join("/", "path", filename);
       }
       default: {
-        throw new UnsupportedOperationException(
+        throw new BadRequestException(
             String.format("Unsupported format %s.", componentIdentifier.getFormat()));
       }
     }

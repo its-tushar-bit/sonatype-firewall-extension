@@ -43,6 +43,12 @@ public class RepositoryPathnameSerializerTest
   }
 
   @Test
+  public void testToPathname_Pypi() {
+    assertThat(toPathname(ComponentIdentifier.createPypiCoordinates("name", "version", "qualifier", "extension")))
+        .isEqualTo("ignored");
+  }
+
+  @Test
   public void testToPathname_RubyGems() {
     assertThat(toPathname(ComponentIdentifier.createRubyGemsCoordinates("name-with-hyphens", "1.2.3", null)))
         .isEqualTo("gems/name-with-hyphens-1.2.3.gem");

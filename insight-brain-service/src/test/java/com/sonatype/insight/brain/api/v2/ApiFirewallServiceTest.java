@@ -1027,6 +1027,19 @@ public class ApiFirewallServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_UnsupportedFormat() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = "f";
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(null, "someHash", "pkg:f/n@v"));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessage("Unsupported format f.");
+  }
+
+  @Test
   public void testEvaluateComponents_PackageUrlFormatMismatch() {
     Repository repository = tempEntity.newRepository();
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();

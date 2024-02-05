@@ -638,6 +638,21 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withVulnerabilities_xml_15_withCVSSv4() throws Exception {
+    testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_5_cvssv4.xml"),
+        "sbom-vulnerabilities-v1_5_cvssv4.xml", SbomFormat.XML);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_withVulnerabilities_xml_14_withCVSSv4_shouldFail() throws Exception {
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_4_cvssv4.xml"),
+            "sbom-vulnerabilities-v1_4_cvssv4.xml", SbomFormat.XML))
+        .withStackTraceContaining("cvc-enumeration-valid: Value 'CVSSv4' is not facet-valid with respect " +
+            "to enumeration '[CVSSv2, CVSSv3, CVSSv31, OWASP, other]'. It must be a value from the enumeration");
+  }
+
+  @Test
   public void testHandleAndFilterContents_withVulnerabilitiesRatings_json_14() throws Exception {
     testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-ratings-v1-4.json"),
         "sbom-vulnerabilities-ratings-v1-4.json", SbomFormat.JSON);
@@ -1573,7 +1588,7 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
     assertThat(coordinateSecurity.getRefId()).isEqualTo("CVE-2018-7489CVE-2018-7489");
     assertThat(coordinateSecurity.getVulnerabilitySource()).hasSize(VULNERABILITY_SOURCE_MAX_LENGTH);
-    assertThat(coordinateSecurity.getAttackVector()).hasSize(ATTACK_VECTOR_MAX_LENGTH);
+    assertThat(coordinateSecurity.getAttackVector()).hasSizeLessThanOrEqualTo(ATTACK_VECTOR_MAX_LENGTH);
     assertThat(coordinateSecurity.getRefId()).hasSize("CVE-2018-7489CVE-2018-7489".length());
   }
 
@@ -1905,7 +1920,8 @@ public class SbomResultHandlerTest
 
     if (optionalValuesPresent) {
       assertThat(coordinateSecurity.getSeverityDescription()).isEqualTo(rating.getSeverity().getSeverityName());
-      assertThat(Method.fromString(coordinateSecurity.getRatingMethod())).isIn(Method.CVSSV31, Method.CVSSV3);
+      assertThat(Method.fromString(coordinateSecurity.getRatingMethod())).isIn(Method.CVSSV31, Method.CVSSV3,
+          Method.CVSSV4);
       assertThat(coordinateSecurity.getAttackVector()).isEqualTo(rating.getVector());
 
       Vulnerability.Source source = vulnerability.getSource();

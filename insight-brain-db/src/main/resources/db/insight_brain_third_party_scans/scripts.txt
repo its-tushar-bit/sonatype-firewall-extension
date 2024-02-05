@@ -1,2 +1,3 @@
 schema.sql
 schema_incremental_0011.sql
+schema_incremental_0019.sql

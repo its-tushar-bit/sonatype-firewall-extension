@@ -719,7 +719,8 @@ public class SbomResultHandler
         if (source != null && StringUtils.isNotBlank(source.getName())) {
           validRating = rating;
           if (source.getName().toLowerCase(Locale.ROOT).equals("nvd") &&
-              (rating.getMethod() == Method.CVSSV31 || rating.getMethod() == Method.CVSSV3)) {
+              (rating.getMethod() == Method.CVSSV31 || rating.getMethod() == Method.CVSSV3 ||
+                  rating.getMethod() == Method.CVSSV4)) {
             break;
           }
         }

@@ -478,6 +478,8 @@ public class ThirdPartyComponentDAO
     result.url = securityRow.url;
     result.summary = securityRow.description;
     result.analysis = securityRow.analysis;
+    result.cvssVectorString = securityRow.cvssVectorString;
+    result.cvssVectorSource = securityRow.cvssVectorSource;
     return result;
   }
 

@@ -202,6 +202,7 @@ public class ThirdPartyDataService
     dto.source = coordinateSecurity.getVulnerabilitySource();
     dto.cwe = coordinateSecurity.getCwes();
     dto.cvssVectorString = coordinateSecurity.getAttackVector();
+    dto.cvssVectorSource = coordinateSecurity.getRatingMethod();
     dto.severity = coordinateSecurity.getSeverityDescription();
     dto.ratingMethod = coordinateSecurity.getRatingMethod();
     dto.recommendations = coordinateSecurity.getRecommendations();

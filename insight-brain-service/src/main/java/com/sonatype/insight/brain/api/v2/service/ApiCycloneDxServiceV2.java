@@ -210,7 +210,7 @@ public class ApiCycloneDxServiceV2
 
       //New vulnerability information is available from CycloneDx 1.4
       if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.compareTo(Version.VERSION_14) >= 0) {
-        bom.setVulnerabilities(getVulnerabilityInformation(data.components, components));
+        bom.setVulnerabilities(getVulnerabilityInformation(data.components, components, version));
       }
 
       if (version.compareTo(Version.VERSION_12) >= 0) {
@@ -409,7 +409,8 @@ public class ApiCycloneDxServiceV2
   //Visible for testing
   List<Vulnerability> getVulnerabilityInformation(
       final List<ApiReportComponentDTOV2> componentInfo,
-      final Map<String, Map<String, String>> componentIdentity)
+      final Map<String, Map<String, String>> componentIdentity,
+      final Version version)
   {
     Map<String, Vulnerability> vulnerabilities = new HashMap<>();
     for (ApiReportComponentDTOV2 component : componentInfo) {
@@ -426,7 +427,7 @@ public class ApiCycloneDxServiceV2
             Affect affect = new Affect();
             affect.setRef(componentIdentityInfo.get(component.hash));
             if (!vulnerabilities.containsKey(securityIssue.reference)) {
-              createVulnerabilityForSecurityIssue(securityIssue, affect, purl, vulnerabilities);
+              createVulnerabilityForSecurityIssue(securityIssue, affect, purl, vulnerabilities, version);
             }
             else {
               vulnerabilities.get(securityIssue.reference).getAffects().add(affect);
@@ -445,7 +446,8 @@ public class ApiCycloneDxServiceV2
       ApiSecurityIssueDTO securityIssue,
       Affect affect,
       String purl,
-      Map<String, Vulnerability> vulnerabilities)
+      Map<String, Vulnerability> vulnerabilities,
+      Version version)
   {
     try {
       Vulnerability vulnerability = new Vulnerability();
@@ -466,7 +468,7 @@ public class ApiCycloneDxServiceV2
       source.setUrl(securityIssue.url);
       vulnerability.setSource(source);
 
-      setMethod(securityIssue, rating);
+      setMethod(securityIssue, rating, version);
       setSeverity(securityIssue, rating);
 
       Source sourceVuln = new Source();
@@ -534,7 +536,7 @@ public class ApiCycloneDxServiceV2
     }
   }
 
-  private void setMethod(final ApiSecurityIssueDTO securityIssue, final Rating rating) {
+  private void setMethod(final ApiSecurityIssueDTO securityIssue, final Rating rating, final Version version) {
     if (StringUtils.isNotBlank(securityIssue.cvssVectorSource)) {
       Method method = Method.fromString(securityIssue.cvssVectorSource);
       if (method != null) {
@@ -557,6 +559,10 @@ public class ApiCycloneDxServiceV2
           default:
             rating.setMethod(Method.OTHER);
         }
+      }
+
+      if (version.compareTo(Version.VERSION_15) < 0 && rating.getMethod().equals(Method.CVSSV4)) {
+        rating.setMethod(Method.OTHER);
       }
     }
   }

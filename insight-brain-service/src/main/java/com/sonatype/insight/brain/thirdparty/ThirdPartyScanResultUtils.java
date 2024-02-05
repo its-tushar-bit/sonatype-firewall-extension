@@ -28,7 +28,7 @@ public class ThirdPartyScanResultUtils
 
   public static final int SEVERITY_DESCRIPTION_MAX_LENGTH = 15;
 
-  public static final int ATTACK_VECTOR_MAX_LENGTH = 100;
+  public static final int ATTACK_VECTOR_MAX_LENGTH = 255;
 
   public static final int RATING_METHOD_MAX_LENGTH = 10;
 

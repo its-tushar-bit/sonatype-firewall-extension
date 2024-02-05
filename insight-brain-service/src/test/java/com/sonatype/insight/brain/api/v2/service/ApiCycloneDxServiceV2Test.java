@@ -159,8 +159,18 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_xml_14_cvssv4() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_14, true, "report-1.5-cvssv4", Method.CVSSV4);
+  }
+
+  @Test
   public void testGetByScanId_xml_15() throws Exception {
     testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_15, true);
+  }
+
+  @Test
+  public void testGetByScanId_xml_15_cvssv4() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_15, true, "report-1.5-cvssv4", Method.CVSSV4);
   }
 
   @Test
@@ -189,14 +199,40 @@ public class ApiCycloneDxServiceV2Test
     testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_15, true);
   }
 
-  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
+  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities)
+      throws Exception
+  {
+    createReportAndPolicyEvaluation("report");
+    getScanByIdAndAssert(contentType, version, hasVulnerabilities, Method.CVSSV3);
+  }
+
+  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities, String folderName,
+                               final Method method)
+      throws Exception
+  {
+    createReportAndPolicyEvaluation(folderName);
+    getScanByIdAndAssert(contentType, version, hasVulnerabilities, method);
+  }
+
+  private void getScanByIdAndAssert(
+      String contentType, Version version, boolean hasVulnerabilities,
+      final Method method) throws Exception
+  {
     if (version != Version.VERSION_11) {
       when(versionService.getFullVersion()).thenReturn("1.0");
     }
 
-    createReportAndPolicyEvaluation("report");
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
-    assertBom(response, version, hasVulnerabilities, false);
+
+    switch (method) {
+      case CVSSV3:
+      default:
+        assertBom(response, version, hasVulnerabilities, false);
+        break;
+      case CVSSV4:
+        assertBomCVSSv4(response, version, hasVulnerabilities);
+        break;
+    }
   }
 
   @Test
@@ -610,6 +646,79 @@ public class ApiCycloneDxServiceV2Test
     }
   }
 
+  private void assertBomCVSSv4(Response response, Version version, boolean hasVulnerabilities)
+      throws Exception
+  {
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+
+    assertThat(parser.validate(bytes, version)).isEmpty();
+    assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+
+    assertMetadata(bom, application, scanId, version, null);
+
+    assertThat(bom.getExternalReferences()).hasSize(1);
+
+    Component component1 =
+        createComponent(version, "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+            "db6b61d995de714813ac", "exact", false, "Apache-2.0");
+    final Property identificationSource = component1.getProperties().stream()
+        .filter(p -> p.getName().equals(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME)).findFirst()
+        .orElse(new Property());
+    identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+    identificationSource.setValue("third-party-cvss4");
+
+    assertThat(bom.getComponents())
+        .usingRecursiveFieldByFieldElementComparator(
+            RecursiveComparisonConfiguration.builder()
+                .withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true)
+                .build())
+        .contains(component1)
+        .map(Component::getBomRef).allMatch(bomRef -> bomRef.matches(UUID_REGEX));
+
+    if (hasVulnerabilities) {
+      Vulnerability vulnerability = new Vulnerability();
+      vulnerability.setId("sonatype-2020-0926");
+
+      Rating rating = new Rating();
+      rating.setScore(8.1d);
+      rating.setSeverity(Severity.CRITICAL);
+      rating.setVector("CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:L/VA:L/SC:N/SI:N/SA:N/CR:H/IR:L/AR:L/MAV:N/MAC:H/" +
+          "MVC:H/MVI:L/MVA:L");
+      if (version.compareTo(Version.VERSION_15) < 0) {
+        rating.setMethod(Method.OTHER);
+      }
+      else {
+        rating.setMethod(Method.CVSSV4);
+      }
+
+      Source source = new Source();
+      source.setName("SONATYPE");
+      vulnerability.setSource(source);
+
+      Source sourceVuln = new Source();
+      sourceVuln.setName(source.getName());
+      rating.setSource(sourceVuln);
+
+      vulnerability.addRating(rating);
+
+      assertThat(bom.getVulnerabilities())
+          .usingRecursiveFieldByFieldElementComparator(
+              RecursiveComparisonConfiguration.builder()
+                  .withIgnoreCollectionOrder(true)
+                  .withIgnoreAllExpectedNullFields(true)
+                  .withIgnoredFields("affects.ref")
+                  .build())
+          .contains(vulnerability);
+    }
+    else {
+      assertThat(bom.getVulnerabilities()).isNull();
+    }
+  }
+
   private void assertMetadata(Bom bom, Application application, String scanId, Version version, String dataDate) {
     PolicyEvaluation policyEvaluation = null;
     if (version.getVersion() >= 1.2) {
@@ -755,7 +864,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@2", "f19ac613238ca6e4ae77", "cve",
         9.8f, "10", "CVSSv3", "www.test.com", "critical", "CVE-2022-1234", bomRef);
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     Vulnerability vulnerability = new Vulnerability();
     vulnerability.setId("CVE-2022-1234");
@@ -806,7 +916,8 @@ public class ApiCycloneDxServiceV2Test
     notMatchingComponent.packageUrl = "pkg:generic/test@1";
     componentReport.add(notMatchingComponent);
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
     assertThat(vulnerabilities).isEmpty();
   }
 
@@ -821,7 +932,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@3", "f19ac613238ca6e4ae78",
         "sonatype", 1.0f, "10", "CVSSv3", "www.test1.com", "critical", "CVE-2022-1235", "test2");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(2).extracting("source").extracting("name", "url")
         .containsExactlyInAnyOrder(tuple("NVD", "www.test.com"), tuple("SONATYPE", "www.test1.com"));
@@ -846,7 +958,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@7", "cve", "f19ac613238ca6e4ae79",
         9.8f, "10", "cve_cvss_31", "www.test.com", "critical", "CVE-2022-1236", "test3");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(3).extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
@@ -865,7 +978,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "cve", "f19ac613238ca6e4ae78",
         9.8f, "110,220", "sonatype_cve_cvss_2", "www.test.com", "critical", "CVE-2022-1235", "test2");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(2).extracting("cwes").flatExtracting(list -> (List<Integer>) list)
         .containsExactlyInAnyOrder(220, 110, 120);
@@ -885,7 +999,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@9", "cve", "f19ac613238ca6e4ae77",
         9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", null, "CVE-2022-1236", "test1");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(3).extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
@@ -904,7 +1019,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "f19ac613238ca6e4ae78", "cve",
         9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test2");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(1).extracting("affects")
         .flatExtracting(list -> (List<Rating>) list)
@@ -935,7 +1051,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@9", "cve", "f19ac613238ca6e4ae77",
         9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", null, "CVE-2022-1236", "test1");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(3).extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
@@ -972,7 +1089,8 @@ public class ApiCycloneDxServiceV2Test
     createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "f19ac613238ca6e4ae71", "cve",
         9.8f, "other", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1238", "test5");
 
-    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
 
     assertThat(vulnerabilities).hasSize(5)
         .flatExtracting(v -> v.getCwes() == null ? Collections.emptyList() : v.getCwes())
@@ -990,7 +1108,7 @@ public class ApiCycloneDxServiceV2Test
     matchingComponents.put(noScore.packageUrl, null);
     componentReport.add(noScore);
 
-    assertThat(service.getVulnerabilityInformation(componentReport, matchingComponents)).isEmpty();
+    assertThat(service.getVulnerabilityInformation(componentReport, matchingComponents, Version.VERSION_14)).isEmpty();
   }
 
   private ApiReportComponentDTOV2 createComponentReport(

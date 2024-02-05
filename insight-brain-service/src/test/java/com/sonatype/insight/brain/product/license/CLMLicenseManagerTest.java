@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -39,6 +40,7 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
+
 import org.sonatype.licensing.LicensingException;
 
 import com.google.inject.Binder;
@@ -444,6 +446,10 @@ public class CLMLicenseManagerTest
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
+  /**
+   * @deprecated This tested code is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetFeatures_LifecycleFirewallSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
@@ -590,6 +596,10 @@ public class CLMLicenseManagerTest
         StageTypes.PROXY);
   }
 
+  /**
+   * @deprecated This tested code is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetStageTypes_LifeCycleFirewallSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
@@ -1144,6 +1154,10 @@ public class CLMLicenseManagerTest
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
   }
 
+  /**
+   * @deprecated This tested code is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetLicenseSummary_ProductEditionLifecycleFirewallSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
@@ -1262,6 +1276,10 @@ public class CLMLicenseManagerTest
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
   }
 
+  /**
+   * @deprecated This tested code is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetLicenseInfo_ProductEditionLifecycleFirewallSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);

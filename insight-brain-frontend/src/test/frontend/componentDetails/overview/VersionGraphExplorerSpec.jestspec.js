@@ -3,8 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+jest.mock('@sonatype/version-graph', () => ({
+  renderVersionGraph: jest.fn(),
+  selectVersion: jest.fn(),
+}));
+
+import 'jest-enzyme';
 import * as enzymeUtils from '../../enzymeUtils';
-import * as versionGraph from '@sonatype/version-graph';
+import { renderVersionGraph, selectVersion } from '@sonatype/version-graph';
 import VersionGraphExplorer from '../../../../main/frontend/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
 
 describe('VersionGraphExplorer', () => {
@@ -16,8 +22,8 @@ describe('VersionGraphExplorer', () => {
       selectable: false,
       showDetails: true,
       showCurrentVersionLabel: true,
-      versionClick: jasmine.createSpy('versionClick'),
-      versionDblClick: jasmine.createSpy('versionDblClick'),
+      versionClick: jest.fn(),
+      versionDblClick: jest.fn(),
       selectedVersionError: null,
     };
 
@@ -37,10 +43,9 @@ describe('VersionGraphExplorer', () => {
   });
 
   it('calls the renderVersionGraph method when mounted', () => {
-    const renderVersionGraphSpy = spyOn(versionGraph, 'renderVersionGraph');
     getMounted();
-    expect(renderVersionGraphSpy).toHaveBeenCalledTimes(1);
-    expect(renderVersionGraphSpy).toHaveBeenCalledWith({
+    expect(renderVersionGraph).toHaveBeenCalledTimes(1);
+    expect(renderVersionGraph).toHaveBeenCalledWith({
       data: {
         versions: [],
         version: '2',
@@ -54,10 +59,9 @@ describe('VersionGraphExplorer', () => {
   });
 
   it('calls the selectVersion method when selectedVersionError exists', () => {
-    const selectVersionGraphSpy = spyOn(versionGraph, 'selectVersion');
     getMounted({ selectedVersionError: 'error' });
 
-    expect(selectVersionGraphSpy).toHaveBeenCalledTimes(1);
-    expect(selectVersionGraphSpy).toHaveBeenCalledWith(null);
+    expect(selectVersion).toHaveBeenCalledTimes(1);
+    expect(selectVersion).toHaveBeenCalledWith(null);
   });
 });

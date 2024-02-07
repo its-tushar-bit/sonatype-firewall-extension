@@ -4,14 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect } from 'react';
-import * as PropTypes from 'prop-types';
 import { NxButton } from '@sonatype/react-shared-components';
-import {
-  availableScopesPropType,
-  componentTransitivePolicyViolationsPropType,
-  reportMetadataPropType,
-  transitiveViolationWaiversPropType,
-} from './transitiveViolationsPropTypes';
+import * as actions from './transitiveViolationsActions';
+import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { setWaiverToDelete } from './../waivers/waiverActions';
 import LoadWrapper from '../react/LoadWrapper';
 import TransitiveViolationsPageTable from './TransitiveViolationsPageTable';
 import { ComponentDetailsReportInfo } from '../componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
@@ -20,41 +16,55 @@ import WaiveTransitiveViolationsPopoverContainer from './WaiveTransitiveViolatio
 import RequestWaiveTransitiveViolationsPopoverContainer from './RequestWaiveTransitiveViolationsPopoverContainer';
 import PolicyViolationDetailsPopover from '../componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 import { useRouterState } from '../react/RouterStateContext';
-import { waiverType } from '../util/waiverUtils';
 import ComponentWaiversPopover from '../componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectAvailableScopes,
+  selectComponentTransitivePolicyViolations,
+  selectIsRequestWaiveTransitiveViolationsOpen,
+  selectIsViewTransitiveViolationWaiversOpen,
+  selectIsWaiveTransitiveViolationsOpen,
+  selectReportMetadata,
+  selectShouldGoBackToComponentDetails,
+  selectTransitiveHash,
+  selectTransitiveOwnerId,
+  selectTransitiveOwnerType,
+  selectTransitiveScanId,
+  selectTransitiveViolationWaivers,
+} from 'MainRoot/violation/transitiveViolationsSelectors';
+import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
 
-export default function TransitiveViolationsPage(props) {
-  const {
-    ownerType,
-    ownerId,
-    hash,
-    scanId,
-    availableScopes,
-    reportMetadata,
-    componentTransitivePolicyViolations,
-    transitiveViolationWaivers,
-    waiverToDelete,
-    isRequestWaiveTransitiveViolationsOpen,
-    isWaiveTransitiveViolationsOpen,
-    isViewTransitiveViolationWaiversOpen,
-    shouldGoBackToComponentDetails,
-    showViolationsDetailPopover,
-    violationsDetailRowClicked,
-    loadAvailableScopes,
-    loadTransitiveViolations,
-    setSortingParameters,
-    setFilteringParameters,
-    loadReportMetadata,
-    toggleRequestWaiveTransitiveViolations,
-    toggleWaiveTransitiveViolations,
-    loadTransitiveViolationWaivers,
-    toggleViewTransitiveViolationWaivers,
-    setSelectedPolicyViolationId,
-    toggleShowViolationsDetailPopover,
-    setViolationsDetailRowClicked,
-    setWaiverToDelete,
-  } = props;
+export default function TransitiveViolationsPage() {
+  const dispatch = useDispatch();
+  const ownerType = useSelector(selectTransitiveOwnerType);
+  const ownerId = useSelector(selectTransitiveOwnerId);
+  const hash = useSelector(selectTransitiveHash);
+  const scanId = useSelector(selectTransitiveScanId);
+  const availableScopes = useSelector(selectAvailableScopes);
+  const reportMetadata = useSelector(selectReportMetadata);
+  const componentTransitivePolicyViolations = useSelector(selectComponentTransitivePolicyViolations);
+  const transitiveViolationWaivers = useSelector(selectTransitiveViolationWaivers);
+  const waiverToDelete = useSelector(selectWaiverToDelete);
+  const isRequestWaiveTransitiveViolationsOpen = useSelector(selectIsRequestWaiveTransitiveViolationsOpen);
+  const isWaiveTransitiveViolationsOpen = useSelector(selectIsWaiveTransitiveViolationsOpen);
+  const isViewTransitiveViolationWaiversOpen = useSelector(selectIsViewTransitiveViolationWaiversOpen);
+  const shouldGoBackToComponentDetails = useSelector(selectShouldGoBackToComponentDetails);
+  const loadAvailableScopes = (ownerType, ownerId) => dispatch(actions.loadAvailableScopes(ownerType, ownerId));
+  const loadReportMetadata = (ownerId, ScanId) => dispatch(actions.loadReportMetadata(ownerId, ScanId));
+  const loadTransitiveViolations = (ownerType, ownerId, scanId, hash) =>
+    dispatch(actions.loadTransitiveViolations(ownerType, ownerId, scanId, hash));
+  const loadTransitiveViolationWaivers = (ownerId, scanId, hash) =>
+    dispatch(actions.loadTransitiveViolationWaivers(ownerId, scanId, hash));
+  const setSortingParameters = (payload) => dispatch(actions.setSortingParameters(payload));
+  const setFilteringParameters = (payload) => dispatch(actions.setFilteringParameters(payload));
+  const toggleRequestWaiveTransitiveViolations = () => dispatch(actions.toggleRequestWaiveTransitiveViolations());
+  const toggleWaiveTransitiveViolations = () => dispatch(actions.toggleWaiveTransitiveViolations());
+  const toggleViewTransitiveViolationWaivers = () => dispatch(actions.toggleViewTransitiveViolationWaivers());
+  const setSelectedPolicyViolationId = (id) => dispatch(policyViolationsActions.setSelectedPolicyViolationId(id));
+  const toggleShowViolationsDetailPopover = () => dispatch(policyViolationsActions.toggleShowViolationsDetailPopover());
+  const setViolationsDetailRowClicked = () => dispatch(policyViolationsActions.setViolationsDetailRowClicked());
+  const setWaiverToDeleteBtn = (waiver) => dispatch(setWaiverToDelete(waiver));
 
   function load() {
     if (ownerType && ownerId && scanId && hash) {
@@ -86,7 +96,7 @@ export default function TransitiveViolationsPage(props) {
 
   return (
     <>
-      {(showViolationsDetailPopover || violationsDetailRowClicked) && <PolicyViolationDetailsPopover />}
+      <PolicyViolationDetailsPopover />
       <main id="transitive-violations-page" className="nx-page-main nx-viewport-sized__container">
         <LoadWrapper
           loading={availableScopes.loading || reportMetadata.loading || componentTransitivePolicyViolations.loading}
@@ -115,7 +125,7 @@ export default function TransitiveViolationsPage(props) {
                   title="Transitive Component Waivers"
                   toggleComponentWaiversPopover={toggleViewTransitiveViolationWaivers}
                   waivers={transitiveViolationWaivers.data.componentPolicyWaivers}
-                  setWaiverToDelete={setWaiverToDelete}
+                  setWaiverToDelete={setWaiverToDeleteBtn}
                   waiverToDelete={waiverToDelete}
                 />
               )}
@@ -171,34 +181,3 @@ export default function TransitiveViolationsPage(props) {
     </>
   );
 }
-
-TransitiveViolationsPage.propTypes = {
-  ownerType: PropTypes.string,
-  ownerId: PropTypes.string,
-  hash: PropTypes.string,
-  scanId: PropTypes.string,
-  availableScopes: availableScopesPropType.isRequired,
-  reportMetadata: reportMetadataPropType.isRequired,
-  componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
-  transitiveViolationWaivers: transitiveViolationWaiversPropType,
-  waiverToDelete: PropTypes.shape(waiverType),
-  isRequestWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
-  isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
-  isViewTransitiveViolationWaiversOpen: PropTypes.bool.isRequired,
-  shouldGoBackToComponentDetails: PropTypes.bool.isRequired,
-  showViolationsDetailPopover: PropTypes.bool.isRequired,
-  violationsDetailRowClicked: PropTypes.bool.isRequired,
-  loadAvailableScopes: PropTypes.func.isRequired,
-  loadTransitiveViolations: PropTypes.func.isRequired,
-  setSortingParameters: PropTypes.func.isRequired,
-  setFilteringParameters: PropTypes.func.isRequired,
-  loadReportMetadata: PropTypes.func.isRequired,
-  toggleRequestWaiveTransitiveViolations: PropTypes.func.isRequired,
-  toggleWaiveTransitiveViolations: PropTypes.func.isRequired,
-  loadTransitiveViolationWaivers: PropTypes.func.isRequired,
-  toggleViewTransitiveViolationWaivers: PropTypes.func.isRequired,
-  setSelectedPolicyViolationId: PropTypes.func.isRequired,
-  toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
-  setViolationsDetailRowClicked: PropTypes.func.isRequired,
-  setWaiverToDelete: PropTypes.func.isRequired,
-};

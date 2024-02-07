@@ -6,7 +6,7 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
-transitive-violations-page-container {
+transitive-violations-page {
   display: contents;
 
   .iq-transitive-violations-page-policy-name {

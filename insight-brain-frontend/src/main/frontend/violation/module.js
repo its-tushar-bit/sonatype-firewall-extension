@@ -7,17 +7,14 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ViolationPageContainer from './ViolationPageContainer';
 import sidebarView from '../sidebarNav/sidebarView';
 import SidebarNavListContainer from '../sidebarNav/SidebarNavListContainer';
-import TransitiveViolationsPageContainer from './TransitiveViolationsPageContainer';
+import TransitiveViolationsPage from 'MainRoot/violation/TransitiveViolationsPage';
 
 export default angular
   .module('violationPage', [])
   .component('sidebarView', sidebarView)
   .component('sidebarNavList', iqReact2Angular(SidebarNavListContainer, [], ['$ngRedux', '$state']))
   .component('violationPage', iqReact2Angular(ViolationPageContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'transitiveViolationsPageContainer',
-    iqReact2Angular(TransitiveViolationsPageContainer, [], ['$ngRedux', '$state'])
-  )
+  .component('transitiveViolationsPage', iqReact2Angular(TransitiveViolationsPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -35,7 +32,7 @@ function routes($stateProvider) {
       url: '/{id}?type&sidebarReference&sidebarId&page',
     })
     .state('transitiveViolations', {
-      component: 'transitiveViolationsPageContainer',
+      component: 'transitiveViolationsPage',
       data: {
         title: 'Transitive Policy Violations',
       },

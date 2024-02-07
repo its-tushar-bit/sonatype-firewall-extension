@@ -67,6 +67,22 @@ public class MultiTenantGlobalSchemaProtection
 
   private static final String LOOP = "    LOOP ";
 
+  private static final String EXECUTE_CREATE_OR_REPLACE_WRITE_PROTECT_TRIGGER = "EXECUTE 'create or replace trigger "
+      + WRITE_PROTECT_TRIGGER_NAME +
+      " before insert or update or delete on ' || quote_ident(r.tablename) || " +
+      "        ' for each row execute procedure write_protect()'; ";
+
+  private static final String IF_NOT_EXISTS = "IF NOT EXISTS";
+
+  private static final String SELECT_TABLE_WITH_WRITE_PROTECT_TRIGGER = "SELECT event_object_table AS table_name " +
+      "FROM information_schema.triggers WHERE event_object_table =r.tablename " +
+      "AND trigger_name = '" + WRITE_PROTECT_TRIGGER_NAME + "' " +
+      "GROUP BY table_name";
+
+  private static final String THEN = "THEN ";
+
+  private static final String END_IF = "END IF;";
+
   private static final String END_LOOP = "    END LOOP; ";
 
   private static final String END_LOOP_CONTROL = "END $loop$;";
@@ -99,7 +115,7 @@ public class MultiTenantGlobalSchemaProtection
     return stringBuilder.toString();
   }
 
-  private static String SQL_DROP_PROTECTION_QUERY =
+  private static final String SQL_DROP_PROTECTION_QUERY =
       "DO " +
           LOOP_CONTROL +
           DECLARE +
@@ -112,7 +128,7 @@ public class MultiTenantGlobalSchemaProtection
           END_LOOP +
           END_LOOP_CONTROL;
 
-  private static String SQL_CREATE_PROTECTION_QUERY =
+  private static final String SQL_CREATE_PROTECTION_QUERY =
       "DO " +
           LOOP_CONTROL +
           DECLARE +
@@ -122,13 +138,11 @@ public class MultiTenantGlobalSchemaProtection
           buildExemptTables() +
           ") " +
           LOOP +
-          "    EXECUTE 'create or replace trigger " + WRITE_PROTECT_TRIGGER_NAME +
-          " before insert or update or delete on ' || quote_ident(r.tablename) || " +
-          "        ' for each row execute procedure write_protect()'; " +
+          EXECUTE_CREATE_OR_REPLACE_WRITE_PROTECT_TRIGGER +
           END_LOOP +
           END_LOOP_CONTROL;
 
-  private static String SQL_ENABLE_PROTECTION_QUERY =
+  private static final String SQL_ENABLE_PROTECTION_QUERY =
       "DO " +
           LOOP_CONTROL +
           DECLARE +
@@ -138,12 +152,16 @@ public class MultiTenantGlobalSchemaProtection
           buildExemptTables() +
           ") " +
           LOOP +
-          "    EXECUTE 'alter table ' || quote_ident(r.tablename) || ' enable trigger  " +
+          IF_NOT_EXISTS + " (" + SELECT_TABLE_WITH_WRITE_PROTECT_TRIGGER + ") " +
+          THEN +
+          EXECUTE_CREATE_OR_REPLACE_WRITE_PROTECT_TRIGGER +
+          END_IF +
+          "    EXECUTE 'alter table ' || quote_ident(r.tablename) || ' enable trigger " +
           WRITE_PROTECT_TRIGGER_NAME + "'; " +
           END_LOOP +
           END_LOOP_CONTROL;
 
-  private static String SQL_DISABLE_PROTECTION_QUERY =
+  private static final String SQL_DISABLE_PROTECTION_QUERY =
       "DO " +
           LOOP_CONTROL +
           DECLARE +
@@ -153,7 +171,11 @@ public class MultiTenantGlobalSchemaProtection
           buildExemptTables() +
           ") " +
           LOOP +
-          "    EXECUTE 'alter table ' || quote_ident(r.tablename) || ' disable trigger  " +
+          IF_NOT_EXISTS + " (" + SELECT_TABLE_WITH_WRITE_PROTECT_TRIGGER + ") " +
+          THEN +
+          EXECUTE_CREATE_OR_REPLACE_WRITE_PROTECT_TRIGGER +
+          END_IF +
+          "    EXECUTE 'alter table ' || quote_ident(r.tablename) || ' disable trigger " +
           WRITE_PROTECT_TRIGGER_NAME + "'; " +
           END_LOOP +
           END_LOOP_CONTROL;

@@ -225,7 +225,11 @@ public class PullRequestPollingService
       // skip repositories for which PR commenting is disabled
       if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
         sourceControl.setPullRequestPollTime(new Date());
-        sourceControlDAO.update(sourceControl);
+
+        // This sourceControl might not be valid if it's for an app inheriting from an org that doesn't have SCM
+        // configured. In that case we still want to update its polling time so that the next call to
+        // pollingTracker.getNextRepositoryToPoll works, but we need to bypass validation to do so.
+        sourceControlDAO.updateWithoutValidation(sourceControl);
         continue;
       }
 

@@ -122,7 +122,9 @@ public class PullRequestPollingScheduler
         pullRequestDiscoveryIntervalSeconds, pullRequestDiscoveryDelaySeconds);
   }
 
-  private void discoverPullRequestsForCommenting() {
+  // Visible to tests so they can spy it and count the number of times it runs
+  @VisibleForTesting
+  void discoverPullRequestsForCommenting() {
     if (isLicensed()) {
       log.debug("Commencing pull request polling cycle");
       pullRequestPollingService.fetchAndSendPullRequestsForCommenting();

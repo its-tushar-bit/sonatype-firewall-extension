@@ -450,9 +450,15 @@ public class SourceControlDAO
     super.insert(tx, sourceControl);
   }
 
-  @Override
-  public void update(final TransactionContext tx, final SourceControl sourceControl) {
-    validate(tx, sourceControl);
+  public void updateWithoutValidation(final SourceControl sourceControl) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      updateWithoutValidation(tx, sourceControl);
+      tx.commit();
+    }
+  }
+
+  public void updateWithoutValidation(final TransactionContext tx, final SourceControl sourceControl) {
     setDefaultsAsNecessary(sourceControl);
 
     SourceControl existingSourceControl = getById(tx, sourceControl.getId());
@@ -471,6 +477,12 @@ public class SourceControlDAO
     }
 
     super.update(tx, sourceControl);
+  }
+
+  @Override
+  public void update(final TransactionContext tx, final SourceControl sourceControl) {
+    validate(tx, sourceControl);
+    updateWithoutValidation(tx, sourceControl);
   }
 
   /**

@@ -109,8 +109,8 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * <p>
@@ -227,7 +227,7 @@ public abstract class AbstractBaseIntegrationTest
     setUpTestLicenseThreatGroups();
 
     // This must get reset for every test because MockCleaner undoes it after every test
-    when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
+    lenient().when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
 
     // Re-inject classes that have static dependencies
     daoFactory = new TestDAOFactory(databaseContainerRule);

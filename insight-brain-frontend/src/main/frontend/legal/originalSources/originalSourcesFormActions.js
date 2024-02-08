@@ -45,19 +45,32 @@ export function saveOriginalSourcesOverride({ sources, existingObligation, areSo
         : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
       return axios
         .post(getSaveComponentOriginalSourcesOverrideUrl(ownerType, ownerId), payload)
+        .then(dispatch(componentPromise))
         .then(() => {
-          dispatch(saveFulfilled());
-          dispatch(componentPromise).then(
-            isObligationDirty
-              ? saveObligation(existingObligation.name)(dispatch, getState)
-              : startSaveOriginalSourcesOverrideSubmitMaskDoneTimer(dispatch)
-          );
+          if (isObligationDirty) {
+            return saveObligation(existingObligation.name, true)(dispatch, getState)
+              .then(() => {
+                dispatch(saveFulfilled());
+              })
+              .catch((error) => {
+                dispatch(saveFailed(error));
+              });
+          } else {
+            return startSaveOriginalSourcesOverrideSubmitMaskDoneTimer(dispatch);
+          }
         })
         .catch((error) => {
           dispatch(saveFailed(error));
         });
     } else if (isObligationDirty) {
-      return saveObligation(existingObligation.name)(dispatch, getState);
+      dispatch(saveRequested());
+      return saveObligation(existingObligation.name, true)(dispatch, getState)
+        .then(() => {
+          dispatch(saveFulfilled());
+        })
+        .catch((error) => {
+          dispatch(saveFailed(error));
+        });
     } else {
       return;
     }

@@ -207,7 +207,7 @@ const saveObligationFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIG
 
 const saveAllObligationsFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED);
 
-export function saveObligation(name) {
+export function saveObligation(name, throwError = false) {
   return (dispatch, getState) => {
     dispatch(saveObligationRequested({ name }));
 
@@ -240,6 +240,9 @@ export function saveObligation(name) {
               value: Messages.getHttpErrorMessage(error),
             })
           );
+          if (throwError) {
+            throw new Error(Messages.getHttpErrorMessage(error));
+          }
         });
     } else {
       const obligationPayload = getObligationPayload(advancedLegalState, obligationState);
@@ -255,6 +258,9 @@ export function saveObligation(name) {
               value: Messages.getHttpErrorMessage(error),
             })
           );
+          if (throwError) {
+            throw new Error(Messages.getHttpErrorMessage(error));
+          }
         });
     }
   };

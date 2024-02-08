@@ -441,6 +441,13 @@ describe('advancedLegalObligationActions', function () {
                   comment: 'comment',
                   ownerId: 'ROOT_ORGANIZATION_ID',
                 },
+                {
+                  id: 'id2',
+                  name: 'test',
+                  comment: '',
+                  status: OBLIGATION_STATUS_OPEN,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                },
               ],
             },
           },
@@ -457,6 +464,42 @@ describe('advancedLegalObligationActions', function () {
         },
       },
     };
+
+    it('throws an error when throwError is set to true', (done) => {
+      store = SpecUtil.mockReduxStore(initialState);
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+        },
+        get: {
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.resolve({
+            data: null,
+          }),
+        },
+      });
+      store.dispatch(saveObligation('name', true)).catch((error) => {
+        expect(error.message).toEqual('error');
+        done();
+      });
+    });
+
+    it('throws an error when throwError is set to true and obligation comment is an empty string', (done) => {
+      store = SpecUtil.mockReduxStore(initialState);
+      mockAxiosCalls({
+        del: {
+          [getDeleteComponentObligationsUrl(['id2'])]: Promise.reject('error'),
+        },
+        get: {
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'test')]: Promise.resolve({
+            data: null,
+          }),
+        },
+      });
+      store.dispatch(saveObligation('test', true)).catch((error) => {
+        expect(error.message).toEqual('error');
+        done();
+      });
+    });
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED action', function () {
       store = SpecUtil.mockReduxStore(initialState);
@@ -554,17 +597,20 @@ describe('advancedLegalObligationActions', function () {
           },
         });
 
-        store.dispatch(saveObligation('name')).then(() => {
-          const actions = store.getActions();
-          expect(axios.post).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
-            expectedPostBody
-          );
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
-          expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
-          done();
-        });
+        store
+          .dispatch(saveObligation('name'))
+          .then(() => {
+            const actions = store.getActions();
+            expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
+              expectedPostBody
+            );
+            expect(actions.length).toBe(2);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
+            expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
+            done();
+          })
+          .catch(() => done());
 
         const actions = store.getActions();
         expect(actions.length).toBe(1);
@@ -594,17 +640,20 @@ describe('advancedLegalObligationActions', function () {
           },
         });
 
-        store.dispatch(saveObligation('name')).then(() => {
-          const actions = store.getActions();
-          expect(axios.post).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
-            expectedPostBody
-          );
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
-          expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
-          done();
-        });
+        store
+          .dispatch(saveObligation('name'))
+          .then(() => {
+            const actions = store.getActions();
+            expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
+              expectedPostBody
+            );
+            expect(actions.length).toBe(2);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
+            expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
+            done();
+          })
+          .catch(() => done());
 
         const actions = store.getActions();
         expect(actions.length).toBe(1);

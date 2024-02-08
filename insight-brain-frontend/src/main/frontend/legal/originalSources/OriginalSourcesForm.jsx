@@ -30,6 +30,7 @@ export default function OriginalSourcesForm(props) {
     availableScopes,
     saveOriginalSourceError,
     existingObligation,
+    submitMaskState,
 
     //actions
     saveOriginalSourcesOverride,
@@ -175,6 +176,8 @@ export default function OriginalSourcesForm(props) {
     }
   };
 
+  const submitError = saveOriginalSourceError || existingObligation?.error;
+
   return (
     <NxModal
       id="edit-original-sources-attribution-modal"
@@ -190,10 +193,11 @@ export default function OriginalSourcesForm(props) {
           setDisplayOriginalSourcesOverrideModal(false);
           resetExistingObligation();
         }}
+        submitMaskState={submitMaskState}
         submitBtnText="Save"
-        submitError={saveOriginalSourceError || existingObligation?.error}
+        submitError={submitError}
         onSubmit={trySave}
-        validationErrors={areSourcesDirty() || isObligationDirty() ? null : 'No modifications'}
+        validationErrors={submitError ? null : areSourcesDirty() || isObligationDirty() ? null : 'No modifications'}
       >
         <header className="nx-modal-header">
           <h2 className="nx-h2" id="original-sources-modal-header">

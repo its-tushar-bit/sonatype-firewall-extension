@@ -265,9 +265,11 @@ public class EnterpriseReportingService implements InsightJob
   private SSOEmbedUrlRequest buildRequest(String requestId, String lookerDashboard) {
     log.debug("Submitting Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
     Pair<String, String> names = getUserFirstAndLastnames();
+    String userFirstName = names.getLeft();
+    String userLastName = names.getRight();
     final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
-    return new SSOEmbedUrlRequest(requestId, getUsernameAndRealm(userPrincipal), names.getRight(), names.getLeft(),
+    return new SSOEmbedUrlRequest(requestId, getUsernameAndRealm(userPrincipal), userFirstName, userLastName,
         lookerDashboard, membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
             userPrincipal.getMembership()),
         membershipMappingService.getApplicationIdsForUser(userPrincipal.getUsername(), userPrincipal.getMembership()));

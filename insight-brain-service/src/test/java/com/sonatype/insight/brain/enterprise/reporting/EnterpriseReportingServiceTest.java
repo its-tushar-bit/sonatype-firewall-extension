@@ -130,21 +130,21 @@ public class EnterpriseReportingServiceTest
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
     when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(
         new User("username", "password", "firstName", "lastName", "email"));
-    createSSOEmbedUrl_FeatureEnabled(InternalRealm.ID);
+    createSSOEmbedUrl_FeatureEnabled(InternalRealm.ID, "firstName", "lastName");
   }
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_SamlRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", SamlRealm.ID));
     when(mockSamlUserDAO.getByUsernameNotNull("username")).thenReturn(
-        new SamlUser("username", "password", "firstName", "lastName", Collections.emptySet()));
-    createSSOEmbedUrl_FeatureEnabled(SamlRealm.ID);
+        new SamlUser("username", "firstName", "lastName", "email", Collections.emptySet()));
+    createSSOEmbedUrl_FeatureEnabled(SamlRealm.ID, "firstName", "lastName");
   }
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_OtherRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", "other"));
-    createSSOEmbedUrl_FeatureEnabled("other");
+    createSSOEmbedUrl_FeatureEnabled("other", "displayName", "");
   }
 
   @Test
@@ -384,7 +384,11 @@ public class EnterpriseReportingServiceTest
     assertDashboardIconImage(expectedIconImageFile, expectedIconImageFileName);
   }
 
-  private void createSSOEmbedUrl_FeatureEnabled(String realmId) {
+  private void createSSOEmbedUrl_FeatureEnabled(
+      String realmId,
+      String expectedUserFirstName,
+      String expectedUserLastName)
+  {
     String expectedUrl = "looker.url.com";
     String expectedBaseUrl = "base.looker.com";
     String expectedUsernameAndRealm = "username@" + realmId;
@@ -408,6 +412,8 @@ public class EnterpriseReportingServiceTest
     assertThat(actual).isNotNull();
     assertThat(actual.userPermissions).containsExactlyInAnyOrderElementsOf(permissionsForUserPrincipalMock);
     assertThat(actual.applicationIds).containsExactlyInAnyOrderElementsOf(applicationIdsForUserMock);
+    assertThat(actual.userFirstName).isEqualTo(expectedUserFirstName);
+    assertThat(actual.userLastName).isEqualTo(expectedUserLastName);
     assertThat(actual.usernameAndRealm).isEqualTo(expectedUsernameAndRealm);
     assertThat(result).isNotNull();
     assertThat(result.url).isEqualTo(expectedUrl);

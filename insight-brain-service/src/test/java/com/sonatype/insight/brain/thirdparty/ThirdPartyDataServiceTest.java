@@ -9,8 +9,10 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -402,6 +404,41 @@ public class ThirdPartyDataServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.IAC_METRICS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
+  @Test
+  public void testGetScanData_ignoreComponentsWithDuplicatedHash() {
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1");
+    ThirdPartyFileCoordinate coord2 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f2", "n2", "v2", "hash2", null);
+    ThirdPartyFileCoordinate coord3 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1_duplicated");
+    ThirdPartyFileCoordinate coord4 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "nuget", "p", "v2", "hash4", "pkg:nuget/p@v2");
+    ThirdPartyFileCoordinate coord5 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "npm", "p", "v2", "hash5", "pkg:npm/p@v2");
+
+    final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    assertThat(scanData.billOfMaterials).hasSize(4);
+
+    LinkedHashSet<String> expectedPurlsForHash1 = new LinkedHashSet<>(Arrays
+        .asList("pkg:f1/n1@v1", "pkg:f1/n1@v1_duplicated"));
+    assertThat(scanData.billOfMaterials.stream().filter(component
+        -> component.hash.equals("hash1")).collect(Collectors.toList()))
+        .hasSize(1)
+        .extracting(thirdPartyBillOfMaterialsRowDTO -> thirdPartyBillOfMaterialsRowDTO.pathnames)
+        .containsOnly(expectedPurlsForHash1);
+
+    assertBomContains(scanData.billOfMaterials, coord1, file);
+    assertBomContains(scanData.billOfMaterials, coord2, file);
+    assertThat(scanData.billOfMaterials.stream().noneMatch(component
+        -> component.packageUrl.equals(coord3.getPackageUrl()))).isTrue();
+    assertBomContains(scanData.billOfMaterials, coord4, file);
+    assertBomContains(scanData.billOfMaterials, coord5, file);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {

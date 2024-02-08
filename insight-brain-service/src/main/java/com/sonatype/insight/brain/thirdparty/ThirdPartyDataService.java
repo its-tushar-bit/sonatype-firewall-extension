@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -53,7 +54,9 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
@@ -138,17 +141,19 @@ public class ThirdPartyDataService
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
 
     List<ThirdPartyFile> scanFiles = thirdPartyFileDAO.getByScanId(scanId);
-    Map<String, ThirdPartyFileCoordinate> coordinates = new HashMap<>(); //filters out any identical components
+
+    Multimap<String, ThirdPartyFileCoordinate> coordinates = ArrayListMultimap.create();
     for (ThirdPartyFile scanFile : scanFiles) {
-      coordinates.putAll(
-          thirdPartyFileCoordinateDAO.getByThirdPartyFileId(scanFile.getId()).stream()
-              .collect(Collectors.toMap(ThirdPartyFileCoordinate::getHash, coord -> coord)));
+      thirdPartyFileCoordinateDAO.getByThirdPartyFileId(scanFile.getId())
+          .forEach(coord -> coordinates.put(coord.getHash(), coord));
     }
 
-    for (ThirdPartyFileCoordinate coord : coordinates.values()) {
+    for (Entry<String,Collection<ThirdPartyFileCoordinate>> multimap : coordinates.asMap().entrySet()) {
       try {
+        List<ThirdPartyFileCoordinate> mapValues = (List<ThirdPartyFileCoordinate>) multimap.getValue();
+        ThirdPartyFileCoordinate coord = mapValues.get(0);
         ComponentIdentifier componentIdentifier = getComponentIdentifier(coord);
-        thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(coord, componentIdentifier, scanTime));
+        thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(mapValues, componentIdentifier, scanTime));
         populateSecurityVulnerabilities(coord, componentIdentifier, thirdPartyApplicationReportDTO);
         populateLicenseInformation(coord, componentIdentifier, thirdPartyApplicationReportDTO);
       }
@@ -229,15 +234,17 @@ public class ThirdPartyDataService
   }
 
   private ThirdPartyBillOfMaterialsRowDTO toBomRow(
-      final ThirdPartyFileCoordinate coordinate,
+      final List<ThirdPartyFileCoordinate> coordinates,
       final ComponentIdentifier componentIdentifier,
       final Date scanTime)
   {
+    ThirdPartyFileCoordinate coordinate = coordinates.get(0);
     final ThirdPartyBillOfMaterialsRowDTO dto
         = new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
     dto.createTime = scanTime.getTime();
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
+    dto.pathnames = coordinates.stream().parallel().map(c -> c.getPackageUrl()).collect(Collectors.toSet());
     dto.setPackageUrl(StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
         coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(componentIdentifier));
     dto.cpe = coordinate.getCpe();

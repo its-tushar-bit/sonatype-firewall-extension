@@ -13,7 +13,7 @@ function NoProductLicense() {
       <p className="nx-p" id="license-install-guideline">
         No product licenses to display. Please locate your license key and use the “Install License” button below to
         install it. This is a file with the extension “.lic”, which will have been emailed to one or more technical
-        contacts in your organization. If you have issued locating or installing your license key, please{' '}
+        contacts in your organization. If you have issues locating or installing your license key, please{' '}
         <NxTextLink href="mailto:support@sonatype.com">contact support</NxTextLink>.
       </p>
       <p className="nx-p" id="license-proxy-guideline">

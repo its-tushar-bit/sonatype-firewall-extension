@@ -216,8 +216,6 @@ export default function FirewallQuarantineTable(props) {
                         <div className="nx-truncate-ellipsis">
                           <NxTextLink
                             id="iq-firewall-quarantine-table--repo-view-link"
-                            newTab
-                            external
                             href={uiRouterState.href('repository-report', { repositoryId: row.repositoryId })}
                             truncate
                           >

@@ -21,7 +21,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDetailPage>
 {
   public static String url(String repositoryId) {
-    return BaseUrl.rootUriBuilder().fragment("repository/" + repositoryId) + "/result";
+    return BaseUrl.resolvePageUrl("/repository/{repositoryId}/result", repositoryId);
   }
 
   public static SelenideElement page() {

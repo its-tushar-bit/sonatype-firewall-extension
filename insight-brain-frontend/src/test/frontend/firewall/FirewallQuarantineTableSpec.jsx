@@ -284,8 +284,6 @@ describe('FirewallQuarantineTable', function () {
         repositoryId: minimalProps.quarantineList[0].repositoryId,
       });
       expect(link).toHaveProp('href', 'someHref');
-      expect(link).toHaveProp('newTab', true);
-      expect(link).toHaveProp('external', true);
       expect(link).toHaveProp('truncate', true);
       expect(link).toHaveText(minimalProps.quarantineList[0].repository);
     });

@@ -182,7 +182,6 @@ const RepositoriesConfigurationTile = () => {
           ) : (
             <NxTextLink
               data-testid="repositories_configuration-link"
-              newTab
               href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}
             >
               {repositoryData.publicId}

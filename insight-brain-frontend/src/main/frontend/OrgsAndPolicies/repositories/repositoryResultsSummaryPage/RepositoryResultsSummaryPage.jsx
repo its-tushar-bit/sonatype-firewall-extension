@@ -19,7 +19,12 @@ import {
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectPrevStateIsFirewallDashboard,
+  selectPrevStateIsRepositoryManagerView,
+  selectRouterCurrentParams,
+  selectRouterPrevParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { actions } from './repositoryResultsSummaryPageSlice';
@@ -33,12 +38,10 @@ import ReportStatusBar from 'MainRoot/applicationReport/ReportStatusBar';
 import RepositoryResultsComponentsTable from './repositoryResultsComponentsTable/RepositoryResultsComponentsTable';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
-import { selectOwnerSideNavSlice } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectOwnersMap } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 export default function RepositoryResultsSummaryPage() {
   const params = useSelector(selectRouterCurrentParams);
-  const { ownersMap } = useSelector(selectOwnerSideNavSlice);
-  const repositoryContainer = ownersMap['REPOSITORY_CONTAINER_ID'];
   const repositoryInfo = useSelector(selectRepositoryInformation);
   const repositorySummary = useSelector(selectRepositoryResultsSummaryPageSlice);
   const errorSummaryTile = repositorySummary.errorSummaryTile;
@@ -47,6 +50,10 @@ export default function RepositoryResultsSummaryPage() {
   const errorFound = errorSummaryTile || errorRepositoryInformation;
   const showReEvaluateMaskSuccess = useSelector(selectReEvaluateMaskSuccess);
   const showMaskSuccessDialog = useSelector(selectShowMaskSuccessDialog);
+  const ownersMap = useSelector(selectOwnersMap);
+  const prevParams = useSelector(selectRouterPrevParams);
+  const prevStateIsFirewall = useSelector(selectPrevStateIsFirewallDashboard);
+  const prevStateIsRepositoryManagerView = useSelector(selectPrevStateIsRepositoryManagerView);
 
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
@@ -67,16 +74,34 @@ export default function RepositoryResultsSummaryPage() {
     loadInitData();
   }, []);
 
+  const repositoryManagerName = prevStateIsRepositoryManagerView ? ownersMap[prevParams.repositoryManagerId].name : '';
+
+  const backButtonHref = () => {
+    if (prevStateIsFirewall) {
+      return uiRouterState.href('firewall.firewallPage');
+    }
+    if (prevStateIsRepositoryManagerView) {
+      return uiRouterState.href('management.view.repository_manager', {
+        repositoryManagerId: prevParams.repositoryManagerId,
+      });
+    } else {
+      return uiRouterState.href('management.view.repository_container', {
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      });
+    }
+  };
+
+  const backButtonText = prevStateIsFirewall
+    ? 'Firewall Dashboard'
+    : prevStateIsRepositoryManagerView
+    ? repositoryManagerName
+    : 'Repository Managers';
+
   return (
     <>
       <RepositoryResultsComponentsFilter repositoryId={params.repositoryId} />
       <NxPageMain>
-        <MenuBarBackButton
-          href={uiRouterState.href('management.view.repository_container', {
-            repositoryContainerId: repositoryContainer?.id,
-          })}
-          text={`Back to ${repositoryContainer?.name}`}
-        />
+        <MenuBarBackButton href={backButtonHref()} text={`Back to ${backButtonText}`} />
         {showMaskSuccessDialog && <NxStatefulSubmitMask success={showReEvaluateMaskSuccess} message="Re-Evaluating" />}
         <NxLoadWrapper
           retryHandler={() => {

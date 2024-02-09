@@ -172,3 +172,11 @@ export const selectIncludesManagementView = createSelector(
 export const selectPrevStateIsAppOwnerManagementView = createSelector(selectRouterPrevState, (prevState) =>
   prevState.name?.includes('management.view.application')
 );
+
+export const selectPrevStateIsFirewallDashboard = createSelector(selectRouterPrevState, (prevState) =>
+  prevState.name?.includes('firewall.firewallPage')
+);
+
+export const selectPrevStateIsRepositoryManagerView = createSelector(selectRouterPrevState, (prevState) =>
+  prevState.name?.includes('management.view.repository_manager')
+);

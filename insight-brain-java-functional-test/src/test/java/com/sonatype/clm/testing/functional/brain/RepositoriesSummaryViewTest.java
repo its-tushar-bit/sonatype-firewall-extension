@@ -60,7 +60,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
@@ -175,15 +174,11 @@ public class RepositoriesSummaryViewTest
     Repository firstRepo = repositories.get(0);
     configurationTable.row(1, 2).publicId().click();
 
-    try {
-      Selenide.switchTo().window(1);
-      waitUntilUrl(RepositoryReportContainerPage.url(firstRepo.getId()));
-      RepositoryReportContainerPage.title().shouldHave(text(firstRepo.getName() + " Repository Results"));
-    }
-    finally {
-      Selenide.switchTo().window(0);
-    }
+    waitUntilUrl(RepositoryReportContainerPage.url(firstRepo.getId()));
+    RepositoryReportContainerPage.title().shouldHave(text(firstRepo.getName() + " Repository Results"));
+    RepositoryReportContainerPage.backButton().click();
 
+    waitUntilUrl(RepositoriesSummaryPage.url());
     testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2, 2), repositories.get(1));
     testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(1, 2), repositories.get(0));
   }
@@ -1435,15 +1430,11 @@ public class RepositoriesSummaryViewTest
 
     configTable.repoManagerConfigTableRow(2).repoManagerConfigTableLink().click();
 
-    try {
-      Selenide.switchTo().window(1);
-      waitUntilUrl(RepositoryReportContainerPage.url(proxyRepo.getId()));
-      RepositoryReportContainerPage.title().shouldHave(text(proxyRepo.getName() + " Repository Results"));
-    }
-    finally {
-      Selenide.switchTo().window(0);
-    }
+    waitUntilUrl(RepositoryReportContainerPage.url(proxyRepo.getId()));
+    RepositoryReportContainerPage.title().shouldHave(text(proxyRepo.getName() + " Repository Results"));
+    RepositoryReportContainerPage.backButton().click();
 
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     testRepositorySummaryView_configurationTile_deleteRepository(configTable.repoManagerConfigTableRow(1), hostedRepo);
   }
 

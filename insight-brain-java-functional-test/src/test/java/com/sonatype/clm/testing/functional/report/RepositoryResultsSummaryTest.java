@@ -29,6 +29,7 @@ import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryFilterPopover;
@@ -72,6 +73,8 @@ public class RepositoryResultsSummaryTest
 
   private Repository repo;
 
+  private RepositoryManager repositoryManager;
+
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private Wait<WebDriver> getWebDriverAwait() {
@@ -94,8 +97,7 @@ public class RepositoryResultsSummaryTest
   public void before() {
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
 
-    RepositoryManager repositoryManager =
-        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+    repositoryManager = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     repo = tempEntity.newRepository(repositoryManager, "central");
     Instant instant = LocalDateTime.of(2020, 6, 1, 11, 0).atZone(ZoneId.systemDefault()).toInstant();
     Date june1st2020 = Date.from(instant);
@@ -1237,12 +1239,47 @@ public class RepositoryResultsSummaryTest
 
   @Test
   public void testRepositoryResultPageBackButton() {
-    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
+    // Firewall Dashboard
+    refreshOrOpen(FirewallPage.url());
+    FirewallPage page = new FirewallPage();
+    getWebDriverAwait().until(ExpectedConditions.invisibilityOf(page.getAllLoadingSpinners().get(0)));
+    page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
+
+    waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()));
+    RepositoryResultDetailPage.backButton()
+        .shouldBe(visible)
+        .shouldHave(text("Back to Firewall Dashboard"));
+    RepositoryResultDetailPage.backButton().click();
+
+    waitUntilUrl(FirewallPage.url());
+    page.firewallStatus().shouldBe(visible);
+
+    // Repository Manager Summary View
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    RepositoriesSummaryPage.configTile().configurationTable().repoManagerConfigTableRow(1).repoManagerConfigTableLink()
+        .click();
+
+    waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()));
+    RepositoryResultDetailPage.backButton()
+        .shouldBe(visible)
+        .shouldHave(text(repositoryManager.getName()));
+    RepositoryResultDetailPage.backButton().click();
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(repositoryManager.getName()));
+
+    // Repository Managers Summary View
+    refreshOrOpen(RepositoriesSummaryPage.url());
+    waitUntilUrl(RepositoriesSummaryPage.url());
+    RepositoriesSummaryPage.configTile().configurationTable().row(1, 2).publicId().click();
+
+    waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()));
     RepositoryResultDetailPage.backButton()
         .shouldBe(visible)
         .shouldHave(text(RepositoryContainer.SINGLETON.getName()));
-
     RepositoryResultDetailPage.backButton().click();
+
     waitUntilUrl(RepositoriesSummaryPage.url());
     RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repository Managers"));
   }

@@ -498,7 +498,6 @@ public class FirewallPageTest
     setupData();
     refreshOrOpen(FirewallPage.url());
     page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
-    Selenide.switchTo().window(1);
     RepositoryReportContainerPage.title().shouldHave(text("maven-central Repository Results"));
   }
 

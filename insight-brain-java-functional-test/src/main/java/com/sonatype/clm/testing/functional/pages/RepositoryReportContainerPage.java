@@ -29,6 +29,10 @@ public class RepositoryReportContainerPage
     return $("#report-title .last-eval");
   }
 
+  public static SelenideElement backButton() {
+    return $(".nx-back-button");
+  }
+
   public static class ReEvaluateModal
   {
     public static SelenideElement root() {

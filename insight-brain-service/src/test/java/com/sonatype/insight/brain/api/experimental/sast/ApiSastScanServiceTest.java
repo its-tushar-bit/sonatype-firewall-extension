@@ -10,9 +10,11 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
+import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -43,6 +45,9 @@ public class ApiSastScanServiceTest
 
   @Inject
   private SastScmScanContextDAO sastScmScanContextDAO;
+
+  @Inject
+  private SastPullRequestCommentDAO sastPullRequestCommentDAO;
 
   private SastTestUtil sastTestUtil;
 
@@ -128,7 +133,7 @@ public class ApiSastScanServiceTest
     // Expect getSastScan to throw an exception when an existing App public id
     // does not match the one associated with the sast scan
     assertThatThrownBy(() ->
-        apiSastScanService.getSastScan( "testApp2", createSastScanResult.sastScanId))
+        apiSastScanService.getSastScan("testApp2", createSastScanResult.sastScanId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find SastScan");
   }
@@ -245,5 +250,52 @@ public class ApiSastScanServiceTest
 
     // Assert that a SastScmScanContext record was not created
     assertThat(sastScmScanContextDAO.getCount()).isZero();
+  }
+
+  @Test
+  public void testGetSastScan_DoesNotIncludePullRequestUrl_WhenPullRequestCommentDoesNotExist() {
+    // Given an application
+    tempEntity.newApplicationWithParent("myApp");
+
+    // And a sast scan with a sastScanId
+    assertThat(sastScanDAO.getAll()).isEmpty();
+    final SastScanResponseDTO createdSastScanResult = apiSastScanService.createSastScan(
+        "myApp",
+        buildTestSastScanRequestDTO());
+
+    // And no PR comment exists
+    assertThat(sastPullRequestCommentDAO.getBySastScanId(createdSastScanResult.sastScanId)).isNull();
+
+    // Assert that no PR URL exists
+    final SastScanResponseDTO getSastScanResult = apiSastScanService.getSastScan("myApp",
+        createdSastScanResult.sastScanId);
+    assertThat(getSastScanResult.sastScmScanContext.sastPullRequestURL).isNull();
+  }
+
+  @Test
+  public void testGetSastScan_DoesIncludePullRequestUrl_WhenPullRequestCommentDoesExist() {
+    // Given an application
+    tempEntity.newApplicationWithParent("myApp");
+
+    // And a sast scan with a sastScanId
+    assertThat(sastScanDAO.getAll()).isEmpty();
+    final SastScanResponseDTO createdSastScanResult = apiSastScanService.createSastScan(
+        "myApp",
+        buildTestSastScanRequestDTO());
+
+    // With a PR comment available
+    final SastPullRequestComment sastPullRequestComment = tempEntity.createSastPullRequestCommentBySastScanId(
+        createdSastScanResult.sastScanId,
+        "https://github.com/sonatype/insight-brain/pull/10894",
+        "commit-hash",
+        "content-hash",
+        "discussion_r1450570374"
+    );
+
+    // Assert that PR URL exists
+    final SastScanResponseDTO getSastScanResult = apiSastScanService.getSastScan("myApp",
+        createdSastScanResult.sastScanId);
+    assertThat(getSastScanResult.sastScmScanContext.sastPullRequestURL)
+        .isEqualTo(sastPullRequestComment.getPullRequestUrl());
   }
 }

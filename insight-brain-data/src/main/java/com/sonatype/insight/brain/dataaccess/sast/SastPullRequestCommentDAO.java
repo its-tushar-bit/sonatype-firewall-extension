@@ -37,4 +37,10 @@ public class SastPullRequestCommentDAO
     final String sQuery = "SELECT entity FROM SastPullRequestComment entity WHERE entity.sastScanId=?1";
     return get(tx, sQuery, sastScanId);
   }
+
+  public SastPullRequestComment getBySastScanId(final String sastScanId) {
+    try (final TransactionContext tx = createTransactionContext()) {
+      return getBySastScanId(tx, sastScanId);
+    }
+  }
 }

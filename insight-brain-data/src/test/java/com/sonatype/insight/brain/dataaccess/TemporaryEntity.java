@@ -106,6 +106,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
@@ -241,6 +242,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.sast.SastFinding;
+import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -566,6 +568,8 @@ public class TemporaryEntity
   private SastFindingDAO sastFindingDAO;
 
   private SastScmScanContextDAO sastScmScanContextDAO;
+
+  private SastPullRequestCommentDAO sastPullRequestCommentDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -4577,6 +4581,21 @@ public class TemporaryEntity
         .collect(toList());
   }
 
+  public SastPullRequestComment createSastPullRequestCommentBySastScanId(
+      final String sastScanId,
+      final String pullRequestUrl,
+      final String commitHash,
+      final String contentHash,
+      final String pullRequestCommentId)
+  {
+
+    final SastPullRequestComment sastPullRequestComment = new SastPullRequestComment(
+        sastScanId, pullRequestUrl, commitHash, contentHash, pullRequestCommentId
+    );
+    sastPullRequestCommentDAO.insert(sastPullRequestComment);
+    return sastPullRequestComment;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -4688,6 +4707,7 @@ public class TemporaryEntity
     sastScanDAO = daoFactory.createSastScanDAO();
     sastFindingDAO = daoFactory.createSastFindingDAO();
     sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
+    sastPullRequestCommentDAO = daoFactory.createSastPullRequestCommentDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

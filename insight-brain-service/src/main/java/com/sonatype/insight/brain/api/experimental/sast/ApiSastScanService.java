@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
+import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -59,6 +61,8 @@ class ApiSastScanService
 
   private final SastScmScanContextDAO sastScmScanContextDAO;
 
+  private final SastPullRequestCommentDAO sastPullRequestCommentDAO;
+
   private final IdUtils idUtils;
 
   @Inject
@@ -67,12 +71,14 @@ class ApiSastScanService
       final SastFindingDAO sastFindingDAO,
       final SastRemediationDAO sastRemediationDAO,
       final SastScmScanContextDAO sastScmScanContextDAO,
+      final SastPullRequestCommentDAO sastPullRequestCommentDAO,
       final IdUtils idUtils)
   {
     this.sastScanDAO = sastScanDAO;
     this.sastFindingDAO = sastFindingDAO;
     this.sastRemediationDAO = sastRemediationDAO;
     this.sastScmScanContextDAO = sastScmScanContextDAO;
+    this.sastPullRequestCommentDAO = sastPullRequestCommentDAO;
     this.idUtils = idUtils;
   }
 
@@ -84,7 +90,10 @@ class ApiSastScanService
     final SastScan sastScan = sastScanDAO.getByIdNotNull(sastScanId);
     validateSastScanAssociatedWithApplication(applicationPublicId, sastScan);
     SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(sastScan.getSastScmScanContextId());
-    return toSastScanDTO(sastScan, sastScmScanContext);
+    final SastPullRequestComment sastPullRequestComment = sastPullRequestCommentDAO.getBySastScanId(sastScanId);
+    final String sastPullRequestUrl =
+        sastPullRequestComment != null ? sastPullRequestComment.getPullRequestUrl() : null;
+    return toSastScanDTO(sastScan, sastScmScanContext, sastPullRequestUrl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -177,7 +186,11 @@ class ApiSastScanService
             .build();
   }
 
-  private SastScanResponseDTO toSastScanDTO(final SastScan sastScan, final SastScmScanContext sastScmScanContext) {
+  private SastScanResponseDTO toSastScanDTO(
+      final SastScan sastScan,
+      final SastScmScanContext sastScmScanContext,
+      final String sastPullRequestUrl)
+  {
     SastScanResponseDTO.Builder builder = new SastScanResponseDTO.Builder()
             .setSastScanId(sastScan.getId())
             .setCreatedAt(sastScan.getCreatedAt())
@@ -186,7 +199,8 @@ class ApiSastScanService
             .map(scmContext -> builder.setSastScmScanContext(
                             new SastScanResponseDTO.SastScmScanContextResponseDTO(
                                     scmContext.getBranchName(),
-                                    scmContext.getCommitHash()))
+                                    scmContext.getCommitHash(),
+                                    sastPullRequestUrl))
                     .build()
             )
             .orElseGet(builder::build);

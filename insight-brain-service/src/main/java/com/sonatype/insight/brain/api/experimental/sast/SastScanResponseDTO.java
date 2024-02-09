@@ -109,12 +109,15 @@ public class SastScanResponseDTO
 
     public String commitHash;
 
+    public String sastPullRequestURL;
+
     public SastScmScanContextResponseDTO() {
     }
 
-    public SastScmScanContextResponseDTO(String branchName, String commitHash) {
+    public SastScmScanContextResponseDTO(String branchName, String commitHash, String sastPullRequestURL) {
       this.branchName = branchName;
       this.commitHash = commitHash;
+      this.sastPullRequestURL = sastPullRequestURL;
     }
   }
 }

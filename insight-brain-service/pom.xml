@@ -773,6 +773,7 @@
                   <excludes>
                     <exclude>META-INF/versions/17/**</exclude>
                     <exclude>META-INF/versions/19/**</exclude>
+                    <exclude>META-INF/versions/21/**</exclude>
                   </excludes>
                 </filter>
               </filters>

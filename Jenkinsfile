@@ -40,6 +40,7 @@ make(
     },
     releaseFromCommit: true,
     snapshotProjectName: 'insight/insight-brain/master-snapshot',
+    githubProjectUrl: 'git@github.com:sonatype/insight-brain.git',
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
@@ -89,7 +90,6 @@ make(
 void postBuild() {
   pushDockerImageIfDeployBranch()
   pushMTIQDockerImage()
-  saveGitCommitHashIfMainSnapshotBuild()
 }
 
 void configureBranchJob() {
@@ -234,15 +234,6 @@ void pushMTIQDockerImage() {
           wait: false,
           propagate: false)
     }
-}
-
-/*
- * For main snapshot builds only, store the git commit hash.
- */
-void saveGitCommitHashIfMainSnapshotBuild() {
-  if (isDeployBranch(env, 'main') && currentBuild.fullProjectName.contains('snapshot')) {
-    storeGitCommit(env.GIT_COMMIT)
-  }
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

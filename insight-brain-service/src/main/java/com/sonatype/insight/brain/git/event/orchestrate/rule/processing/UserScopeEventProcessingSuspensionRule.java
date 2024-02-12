@@ -40,7 +40,7 @@ public class UserScopeEventProcessingSuspensionRule
 
   public void onEventProcessingError(SourceControlEvent event, Exception e) {
     if (null != e && StringUtils.isNotBlank(e.getMessage()) && e.getMessage().contains("abuse detection")) {
-      suspendScmNotificationEventProcessingFoxXSeconds(event, defaultSuspensionTimeInSeconds);
+      suspendScmNotificationEventProcessingForXSeconds(event, defaultSuspensionTimeInSeconds);
       log.debug("Notification event processing suspended for {} seconds", defaultSuspensionTimeInSeconds);
     }
   }
@@ -55,7 +55,7 @@ public class UserScopeEventProcessingSuspensionRule
     return SCM_NOTIFICATION_EVENTS.contains(event.getEventType());
   }
 
-  private void suspendScmNotificationEventProcessingFoxXSeconds(SourceControlEvent event, int seconds) {
+  private void suspendScmNotificationEventProcessingForXSeconds(SourceControlEvent event, int seconds) {
     scmNotificationEventSuspensionExpiration = LocalDateTime.now().plusSeconds(seconds);
     log.debug("SCM notification event processing suspended for {} seconds due to rate abuse detected for '{}'", seconds,
         event.getEventType());

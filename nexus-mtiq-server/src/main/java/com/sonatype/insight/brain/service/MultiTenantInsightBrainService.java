@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -68,7 +69,6 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.users.MultiTenantUserDirectory;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
 import com.sonatype.insight.brain.version.VersionService;
@@ -323,7 +323,7 @@ public class MultiTenantInsightBrainService
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
 
-        bind(DatabaseProvisionUtils.class).toInstance(databaseContainer.getDatabaseProvisionUtils());
+        bind(DatabaseProvisioner.class).toInstance(databaseContainer.getDatabaseProvisioner());
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
 

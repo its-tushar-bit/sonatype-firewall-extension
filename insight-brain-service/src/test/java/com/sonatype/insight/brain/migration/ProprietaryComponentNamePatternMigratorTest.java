@@ -10,10 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
-import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
 
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ public class ProprietaryComponentNamePatternMigratorTest
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
 
-    new DataStoreMigrator(databaseRule.getOperationalDataStore())
+    new LegacyDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runScript("", scriptResource + ".sql");
   }
 

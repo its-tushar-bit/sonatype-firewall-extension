@@ -12,23 +12,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
-import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
+import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,6 +55,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -74,7 +74,9 @@ public class DbMigrationCommandTest
   @Mock
   private ClusterLockManager mockClusterLockManager;
 
-  private DatabaseProvisionUtils spyDatabaseProvisionUtils;
+  private DatabaseProvisioner spyDatabaseProvisioner;
+
+  private DatabaseMigrations spyDatabaseMigrations;
 
   private DbMigrationCommand dbMigrationCommand;
 
@@ -92,24 +94,16 @@ public class DbMigrationCommandTest
 
     when(mockClusterLockManager.createForSchemaMigration()).thenReturn(mock(ClusterLock.class));
 
-    spyDatabaseProvisionUtils = spy(new DatabaseProvisionUtils(
-        databaseContainerRule.getOperationalDataStore(),
-        databaseContainerRule.getAggregationDataStore(),
-        databaseContainerRule.getDataMartDataStore(),
-        databaseContainerRule.getThirdPartyScansDataStore(),
-        mockClusterLockManager
-    ));
+    spyDatabaseMigrations = spy(new DatabaseMigrations(databaseContainerRule, mockClusterLockManager));
+    spyDatabaseProvisioner = spy(new DatabaseProvisioner(databaseContainerRule, spyDatabaseMigrations));
 
     dbMigrationCommand = spy(new DbMigrationCommand()
     {
       @Override
       public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
         return new DefaultDatabaseContainer(databaseContainerRule.getDataSourceProvider(),
-            spyDatabaseProvisionUtils,
-            databaseContainerRule.getOperationalDataStore(),
-            databaseContainerRule.getAggregationDataStore(),
-            databaseContainerRule.getDataMartDataStore(),
-            databaseContainerRule.getThirdPartyScansDataStore());
+            databaseContainerRule,
+            spyDatabaseProvisioner);
       }
     });
   }
@@ -131,8 +125,8 @@ public class DbMigrationCommandTest
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner).migrateDatabase();
 
     databaseContainerRule.markDatabaseAsDirty();
   }
@@ -147,8 +141,8 @@ public class DbMigrationCommandTest
         () -> dbMigrationCommand.run(null, null, insightConfig));
 
     verify(dbMigrationCommand).trySleep(1);
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils, never()).migrateDatabasesIfNeeded();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner, never()).migrateDatabase();
   }
 
   @Test
@@ -160,8 +154,8 @@ public class DbMigrationCommandTest
     dbMigrationCommand.run(null, null, insightConfig);
 
     verify(dbMigrationCommand).trySleep(1);
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
@@ -173,8 +167,8 @@ public class DbMigrationCommandTest
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
@@ -183,51 +177,35 @@ public class DbMigrationCommandTest
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
   public void testRun_LockTableDoesNotExist() throws Exception {
-    new DataStoreMigrator(databaseContainerRule.getOperationalDataStore()).migrate();
+    new LegacyDataStoreMigrator(databaseContainerRule.getOperationalDataStore()).migrate();
 
     deleteLockTable();
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
-  }
-
-  @Test
-  @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
-  public void testRun_NoMigrationNeeded() {
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
-
-    reset(spyDatabaseProvisionUtils);
-
-    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
-
-    dbMigrationCommand.run(null, null, insightConfig);
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils, never()).doMigrateDatabases();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
   public void testRun_IgnoresMigrationDisabled_ByEnvironmentVariable() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
     verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
     verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
@@ -237,44 +215,46 @@ public class DbMigrationCommandTest
     initH2DatabaseToDesiredVersion(
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
-    spyDatabaseProvisionUtils.initializeDatabasesWithoutMigration();
-    reset(spyDatabaseProvisionUtils);
+    spyDatabaseProvisioner.initializeDatabaseWithoutMigration();
+    reset(spyDatabaseProvisioner);
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
     verify(mockClusterLockManager).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
     verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DbMigrationCommandTest/h2")
   public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_WithoutTables() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager, never()).createForSchemaMigration();
     verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils, never()).doMigrateDatabases();
+    // DatabaseProvisioner invoked, DatabaseMigrations invoked and checked but migration method not executed
+    verify(spyDatabaseProvisioner).migrateDatabase();
+    verify(spyDatabaseMigrations).isMigrationEnabled();
+    verify(spyDatabaseMigrations, never()).migrateDatabase();
     verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithoutTables() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager, never()).createForSchemaMigration();
     verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
     verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
   }
 
@@ -284,16 +264,16 @@ public class DbMigrationCommandTest
     initH2DatabaseToDesiredVersion(
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
-    verify(mockClusterLockManager).createForSchemaMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils, never()).doMigrateDatabases();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
+    // DatabaseProvisioner invoked, DatabaseMigrations invoked and checked but migration method not executed
+    verify(spyDatabaseProvisioner).migrateDatabase();
+    verify(spyDatabaseMigrations).isMigrationEnabled();
+    verify(spyDatabaseMigrations, never()).migrateDatabase();
+    verifyNoInteractions(mockClusterLockManager);
   }
 
   @Test
@@ -301,15 +281,14 @@ public class DbMigrationCommandTest
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager).createForSchemaMigration();
     verify(mockClusterLockManager).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
     verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
@@ -318,17 +297,17 @@ public class DbMigrationCommandTest
   public void testInitializeDatabases_MigrationDisabled_BySystemConfigurationProperty_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
-    spyDatabaseProvisionUtils.initializeDatabasesWithoutMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithoutMigration();
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
-    verify(mockClusterLockManager).createForSchemaMigration();
-    verify(mockClusterLockManager, never()).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils, never()).doMigrateDatabases();
-    verify(mockClusterLockManager, never()).deleteForSchemaMigrationInProgress();
+    // DatabaseProvisioner invoked, DatabaseMigrations invoked and checked but migration method not executed
+    verify(spyDatabaseProvisioner).migrateDatabase();
+    verify(spyDatabaseMigrations).isMigrationEnabled();
+    verify(spyDatabaseMigrations, never()).migrateDatabase();
+    verifyNoInteractions(mockClusterLockManager);
   }
 
   @Test
@@ -336,37 +315,36 @@ public class DbMigrationCommandTest
   public void testInitializeDatabases_MigrationEnabled_BySystemConfigurationProperty_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
-    spyDatabaseProvisionUtils.initializeDatabasesWithoutMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithoutMigration();
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "true");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
     verify(mockClusterLockManager).createForSchemaMigration();
     verify(mockClusterLockManager).createForSchemaMigrationInProgress();
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
     verify(mockClusterLockManager).deleteForSchemaMigrationInProgress();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
   public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_NewDataSource() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
   public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_NewDataSource() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
 
-    spyDatabaseProvisionUtils.initializeDatabasesWithMigration();
+    spyDatabaseProvisioner.initializeDatabaseWithMigration();
 
-    verify(spyDatabaseProvisionUtils).doMigrateDatabases();
+    verify(spyDatabaseProvisioner).migrateDatabase();
   }
 
   @Test
@@ -396,20 +374,16 @@ public class DbMigrationCommandTest
   public void testRun_H2_WithTables() {
     initH2DatabaseToDesiredVersion(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
         DatabaseName.ods,
-        OperationalDataStore.ID,
         databaseContainerRule.getOperationalDataStore().getDatabaseSchema());
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getAggregationDataStore()))).isEqualTo(
         String.valueOf(1));
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getDataMartDataStore()))).isEqualTo(
         String.valueOf(1));
 
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getOperationalDataStore().getDataSource(),
-        OperationalDataStore.ID, databaseContainerRule.getOperationalDataStore().getDatabaseSchema())).isEqualTo(
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getOperationalDataStore())).isEqualTo(
         OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
     assertThat(
-        DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore().getDataSource(),
-            ThirdPartyScansDataStore.ID,
-            databaseContainerRule.getThirdPartyScansDataStore().getDatabaseSchema())).isEqualTo(1);
+        DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore())).isEqualTo(1);
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     dbMigrationCommand.run(null, null, insightConfig);
@@ -470,20 +444,15 @@ public class DbMigrationCommandTest
   }
 
   private void assertMigrated() {
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getOperationalDataStore().getDataSource(),
-        OperationalDataStore.ID, databaseContainerRule.getOperationalDataStore().getDatabaseSchema())).isEqualTo(
-        DataStoreMigrator.determineDesiredVersion(OperationalDataStore.ID));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getAggregationDataStore().getDataSource(),
-        AggregationDataStore.ID, databaseContainerRule.getAggregationDataStore().getDatabaseSchema())).isEqualTo(
-        DataStoreMigrator.determineDesiredVersion(AggregationDataStore.ID));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getDataMartDataStore().getDataSource(),
-        DataMartDataStore.ID, databaseContainerRule.getDataMartDataStore().getDatabaseSchema())).isEqualTo(
-        DataStoreMigrator.determineDesiredVersion(DataMartDataStore.ID));
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getOperationalDataStore())).isEqualTo(
+        LegacyDataStoreMigrator.determineDesiredVersion(OperationalDataStore.ID));
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getAggregationDataStore())).isEqualTo(
+        LegacyDataStoreMigrator.determineDesiredVersion(AggregationDataStore.ID));
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getDataMartDataStore())).isEqualTo(
+        LegacyDataStoreMigrator.determineDesiredVersion(DataMartDataStore.ID));
     assertThat(
-        DatabaseUtil.getDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore().getDataSource(),
-            ThirdPartyScansDataStore.ID,
-            databaseContainerRule.getThirdPartyScansDataStore().getDatabaseSchema())).isEqualTo(
-        DataStoreMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
+        DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore())).isEqualTo(
+        LegacyDataStoreMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
   }
 
   private void createSchedulerStateRecord(long checkinTimestamp) throws Exception {
@@ -521,17 +490,15 @@ public class DbMigrationCommandTest
   private void initH2DatabaseToDesiredVersion(
       int desiredDbVersion,
       DatabaseName databaseName,
-      String dataStoreId,
       String databaseSchemaName)
   {
     databaseContainerRule.getDatabaseConfig(databaseName.name());
-    DataStoreMigrator spyDataStoreMigrator =
-        spy(new DataStoreMigrator(databaseContainerRule.getOperationalDataStore()));
-    when(spyDataStoreMigrator.getDesiredVersion(databaseSchemaName)).thenReturn(desiredDbVersion);
+    LegacyDataStoreMigrator spyLegacyDataStoreMigrator =
+        spy(new LegacyDataStoreMigrator(databaseContainerRule.getOperationalDataStore()));
+    when(spyLegacyDataStoreMigrator.getDesiredVersion(databaseSchemaName)).thenReturn(desiredDbVersion);
 
-    DataSource dataSource = databaseContainerRule.getOperationalDataStore().getDataSource();
-    spyDataStoreMigrator.migrate();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName)).isEqualTo(
+    spyLegacyDataStoreMigrator.migrate();
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getOperationalDataStore())).isEqualTo(
         desiredDbVersion);
   }
 
@@ -546,12 +513,11 @@ public class DbMigrationCommandTest
     try (Connection connection = dataStore.getDataSource().getConnection()) {
       resourceDatabasePopulator.populate(connection);
     }
-    DataStoreMigrator spyDataStoreMigrator = spy(new DataStoreMigrator(dataStore));
-    when(spyDataStoreMigrator.getDesiredVersion(dataStore.getDatabaseSchema())).thenReturn(desiredDbVersion);
+    LegacyDataStoreMigrator spyLegacyDataStoreMigrator = spy(new LegacyDataStoreMigrator(dataStore));
+    when(spyLegacyDataStoreMigrator.getDesiredVersion(dataStore.getDatabaseSchema())).thenReturn(desiredDbVersion);
 
-    spyDataStoreMigrator.migrate();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
-        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
+    spyLegacyDataStoreMigrator.migrate();
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(dataStore)).isEqualTo(desiredDbVersion);
   }
 
   private File getDatabaseVersionFile(DataStore dataStore) {

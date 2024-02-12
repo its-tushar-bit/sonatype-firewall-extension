@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseContainerSupport;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
@@ -43,20 +43,20 @@ public class DbMigrationCommand
   @Override
   protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
     try {
-      DatabaseMigrator.setForceEnableMigration(true);
+      DatabaseMigrations.setForceEnableMigration(true);
 
       DatabaseContainer databaseContainer = createDatabaseContainer(insightConfig);
 
-      DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-      databaseProvisionUtils.initializeDatabasesWithoutMigration();
+      DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
+      databaseProvisioner.initializeDatabaseWithoutMigration();
 
-      tryCheckLastCheckinTimeNotRecent(databaseProvisionUtils.getOperationalDataStore(),
+      tryCheckLastCheckinTimeNotRecent(databaseProvisioner.getOperationalDataStore(),
           getAttemptsToWaitForLastCheckinToNotBeRecent());
 
-      databaseProvisionUtils.migrateDatabasesIfNeeded();
+      databaseProvisioner.migrateDatabase();
     }
     finally {
-      DatabaseMigrator.setForceEnableMigration(false);
+      DatabaseMigrations.setForceEnableMigration(false);
     }
   }
 

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -25,7 +25,7 @@ public class DefaultDatabaseContainer
 {
   private final DataSourceProvider dataSourceProvider;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final OperationalDataStore operationalDataStore;
 
@@ -54,27 +54,22 @@ public class DefaultDatabaseContainer
     thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
         databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
 
-    this.databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-            thirdPartyScansDataStore);
+    this.databaseProvisioner = new DatabaseProvisioner(this);
   }
 
   @VisibleForTesting
   public DefaultDatabaseContainer(
       final DataSourceProvider dataSourceProvider,
-      final DatabaseProvisionUtils databaseProvisionUtils,
-      final OperationalDataStore operationalDataStore,
-      final AggregationDataStore aggregationDataStore,
-      final DataMartDataStore dataMartDataStore,
-      final ThirdPartyScansDataStore thirdPartyScansDataStore
+      final DataStoreProvider dataStoreProvider,
+      final DatabaseProvisioner databaseProvisioner
   )
   {
     this.dataSourceProvider = dataSourceProvider;
-    this.databaseProvisionUtils = databaseProvisionUtils;
-    this.operationalDataStore = operationalDataStore;
-    this.aggregationDataStore = aggregationDataStore;
-    this.dataMartDataStore = dataMartDataStore;
-    this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+    this.databaseProvisioner = databaseProvisioner;
+    this.operationalDataStore = dataStoreProvider.getOperationalDataStore();
+    this.aggregationDataStore = dataStoreProvider.getAggregationDataStore();
+    this.dataMartDataStore = dataStoreProvider.getDataMartDataStore();
+    this.thirdPartyScansDataStore = dataStoreProvider.getThirdPartyScansDataStore();
   }
 
   @Override
@@ -83,8 +78,8 @@ public class DefaultDatabaseContainer
   }
 
   @Override
-  public DatabaseProvisionUtils getDatabaseProvisionUtils() {
-    return databaseProvisionUtils;
+  public DatabaseProvisioner getDatabaseProvisioner() {
+    return databaseProvisioner;
   }
 
   @Override

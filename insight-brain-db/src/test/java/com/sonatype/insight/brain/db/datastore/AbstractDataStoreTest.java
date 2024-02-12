@@ -5,13 +5,16 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
+import com.sonatype.insight.brain.db.migrations.LiquibaseDataStoreMigrator;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -25,7 +28,8 @@ public abstract class AbstractDataStoreTest
   protected abstract DataStore getTestDataStore();
 
   protected void migrateDatabase() {
-    new DataStoreMigrator(getTestDataStore()).migrate();
+    new LegacyDataStoreMigrator(getTestDataStore()).migrate();
+    new LiquibaseDataStoreMigrator(getTestDataStore()).migrate();
   }
 
   @Test
@@ -45,8 +49,21 @@ public abstract class AbstractDataStoreTest
 
     migrateDatabase();
 
-    int desiredDbVersion = DataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(getTestDataStore().getDataSource(), getTestDataStore().getID(),
-        getTestDataStore().getDatabaseSchema())).isEqualTo(desiredDbVersion);
+    int desiredDbVersion = LegacyDataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(getTestDataStore())).isEqualTo(desiredDbVersion);
+
+    //TODO - liquibase assertions
+  }
+
+  public void testInit_Migrate() {
+    File databaseVersionFile = getDatabaseVersionFile(getDatabasePath(), getTestDataStore().getID());
+
+    migrateDatabase();
+
+    assertThat(databaseVersionFile).doesNotExist();
+
+    int desiredDbVersion = LegacyDataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(getTestDataStore())).isEqualTo(desiredDbVersion);
+    //TODO - liquibase assertions
   }
 }

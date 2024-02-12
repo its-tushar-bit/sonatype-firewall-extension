@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.db.datastore;
+package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.zip.Deflater;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.LegacyDataSourceProvider;
+import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -40,16 +42,18 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 /**
  * Migrate an individual {@link DataStore}
  */
-public class DataStoreMigrator
+public class LegacyDataStoreMigrator
+    implements DataStoreMigrator
 {
-  private static final Logger log = LoggerFactory.getLogger(DataStoreMigrator.class);
+  private static final Logger log = LoggerFactory.getLogger(LegacyDataStoreMigrator.class);
 
   private final DataStore dataStore;
 
-  public DataStoreMigrator(final DataStore dataStore) {
+  public LegacyDataStoreMigrator(final DataStore dataStore) {
     this.dataStore = dataStore;
   }
 
+  @Override
   public void migrate() {
     DataSource dataSource = dataStore.getDataSource();
     String dataStoreId = dataStore.getID();
@@ -61,7 +65,7 @@ public class DataStoreMigrator
 
       if (isNewDatabase(dataSource, DatabaseUtil.getDatabaseEngine(dataSource), dataStoreId, databaseSchema)) {
         // This is a new database, nothing to migrate here as the population (schema.sql) is the latest
-        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, desiredVersion);
+        updateLegacyDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, desiredVersion);
         return;
       }
 
@@ -69,8 +73,8 @@ public class DataStoreMigrator
 
       // The database exists and it may require migration.
       int currentVersion;
-      if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema);
+      if (DatabaseUtil.legacySchemaVersionTableExists(dataStore)) {
+        currentVersion = DatabaseUtil.getLegacyDatabaseSchemaVersion(dataStore);
       }
       else {
         File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
@@ -121,8 +125,8 @@ public class DataStoreMigrator
         runScript(setSchemaSql, scriptName);
         String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource, databaseSchema);
-        if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
+        if (DatabaseUtil.legacySchemaVersionTableExists(dataStore)) {
+          updateLegacyDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
         }
         else {
           FileUtils.writeStringToFile(databaseVersionFile, String.valueOf(i), StandardCharsets.UTF_8);
@@ -164,7 +168,7 @@ public class DataStoreMigrator
 
   // Visible for testing
   public int getDesiredVersion(String dataStoreId) {
-    return DataStoreMigrator.determineDesiredVersion(dataStoreId);
+    return LegacyDataStoreMigrator.determineDesiredVersion(dataStoreId);
   }
 
   private static String getIncrementalFileName(String dataStoreId, String extension, int scriptIndex) {
@@ -240,5 +244,36 @@ public class DataStoreMigrator
 
   private static Resource loadIncrementalScriptResource(String scriptName) {
     return new DefaultResourceLoader().getResource(scriptName);
+  }
+
+  private void updateLegacyDatabaseSchemaVersion(
+      DataSource dataSource,
+      String dataStoreId,
+      String databaseSchema,
+      int schemaVersion)
+  {
+    String sql = "UPDATE " + databaseSchema + ".schema_version SET schema_version = ?";
+    if (DatabaseUtil.tableExistsWithColumn(dataSource, databaseSchema, "schema_version", "data_store_id")) {
+      // as of migration 271 the schema_version has two columns: data_store_id, and schema_version
+      sql += " WHERE data_store_id = ?";
+    }
+
+    try (Connection connection = dataSource.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      connection.setAutoCommit(true);
+      preparedStatement.setInt(1, schemaVersion);
+      if (preparedStatement.getParameterMetaData().getParameterCount() == 2) {
+        preparedStatement.setString(2, dataStoreId);
+      }
+      int updated = preparedStatement.executeUpdate();
+      if (updated != 1) {
+        throw new IllegalStateException(
+            databaseSchema + " schema_version table should have 1 entry but has " + updated + ".");
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(
+          "Failed attempt to write " + schemaVersion + " to " + databaseSchema + " schema_version table.", e);
+    }
   }
 }

@@ -9,16 +9,8 @@ import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.util.Map;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
-import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
-import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
-import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
@@ -29,6 +21,14 @@ import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrators;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.rules.ExternalResource;
@@ -330,7 +330,7 @@ public class DatabaseRule
   }
 
   private void migrateDatabase() {
-    new DatabaseMigrator(this).migrate();
+    new DatabaseMigrators(this).runMigrators();
   }
 
   private void initializeNewDatabaseFixture() {

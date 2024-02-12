@@ -53,7 +53,7 @@ public abstract class AbstractMultiTenantDatabaseTest
     TenantService tenantService = new TenantService(new TenantUtil(), databaseContainer.getOperationalDataStore());
 
     tenantManager = new TenantManager(tenantManagedBeans, tenantLifecycleProvider,
-        databaseContainer.getDatabaseProvisionUtils(), tenantValidator, deletedTenantDAO, tenantService);
+        databaseContainer.getDatabaseProvisioner(), tenantValidator, deletedTenantDAO, tenantService);
 
     // Re-inject classes that have static dependencies
     StaticInjectionTestHelper.inject(daoFactory);

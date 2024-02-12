@@ -59,8 +59,7 @@ class DbDiagnostics
       }
     }
 
-    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
-        operationalDataStore.getDatabaseSchema());
+    final int version = DatabaseUtil.getLegacyDatabaseSchemaVersion(operationalDataStore);
     result.append("Schema version: ").append(version).append("\n");
     addLatencyInformation(result, dataSource);
     result.append("-- Database Settings --\n");

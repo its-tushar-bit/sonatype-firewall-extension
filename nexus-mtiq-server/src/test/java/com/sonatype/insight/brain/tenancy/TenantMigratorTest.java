@@ -10,9 +10,9 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
@@ -40,7 +40,7 @@ public class TenantMigratorTest
 
   private TenantMigrator underTest;
 
-  private DatabaseProvisionUtils spyDatabaseProvisionUtils;
+  private DatabaseProvisioner spyDatabaseProvisioner;
 
   private MultiTenantGlobalSchemaProtection spyMultiTenantGlobalSchemaProtection;
 
@@ -48,10 +48,10 @@ public class TenantMigratorTest
   @Override
   public void setup() {
     super.setup();
-    spyDatabaseProvisionUtils = databaseRule.getDatabaseContainer().getDatabaseProvisionUtils();
+    spyDatabaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();
     spyMultiTenantGlobalSchemaProtection =
         spy(new MultiTenantGlobalSchemaProtection(databaseRule.getOperationalDataStore()));
-    underTest = new TenantMigrator(spyDatabaseProvisionUtils, spyMultiTenantGlobalSchemaProtection);
+    underTest = new TenantMigrator(spyDatabaseProvisioner, spyMultiTenantGlobalSchemaProtection);
 
     spyMultiTenantGlobalSchemaProtection.createWriteProtection();
   }
@@ -68,13 +68,13 @@ public class TenantMigratorTest
 
     verify(spyMultiTenantGlobalSchemaProtection).disableWriteProtection();
     verify(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
-    verify(spyDatabaseProvisionUtils).initializeDatabasesWithMigration();
+    verify(spyDatabaseProvisioner).initializeDatabaseWithMigration();
   }
 
   @Test
   public void shouldThrowError_whenGlobalSchemaMigrationThrows() {
-    doThrow(new RuntimeException()).when(spyDatabaseProvisionUtils)
-        .initializeDatabasesWithMigration();
+    doThrow(new RuntimeException()).when(spyDatabaseProvisioner)
+        .initializeDatabaseWithMigration();
 
     assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
         RuntimeException.class).hasMessage("Error trying to migrate the database for Global Schema.");
@@ -130,7 +130,7 @@ public class TenantMigratorTest
       try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class, CALLS_REAL_METHODS)) {
         dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(any(DataSource.class))).thenReturn(expectedSchemaList);
 
-        doThrow(new RuntimeException()).when(spyDatabaseProvisionUtils).initializeDatabasesWithMigration();
+        doThrow(new RuntimeException()).when(spyDatabaseProvisioner).initializeDatabaseWithMigration();
 
         assertThatThrownBy(underTest::migrateAllSchemas).isInstanceOf(
             RuntimeException.class).hasMessage("Error trying to migrate the database for tenant: tenant-1.");
@@ -143,7 +143,7 @@ public class TenantMigratorTest
     testAsGlobalTenant(global -> {
       runMigrateAllSchemas(Arrays.asList("global", "public"));
 
-      verify(spyDatabaseProvisionUtils, never()).initializeDatabasesWithMigration();
+      verify(spyDatabaseProvisioner, never()).initializeDatabaseWithMigration();
     });
   }
 
@@ -155,7 +155,7 @@ public class TenantMigratorTest
   }
 
   private void assertMigrationExecutedForTheExpectedNumberOfTenants(int numberOfTenants) {
-    verify(spyDatabaseProvisionUtils, times(numberOfTenants)).initializeDatabasesWithoutMigration();
-    verify(spyDatabaseProvisionUtils, times(numberOfTenants)).initializeDatabasesWithMigration();
+    verify(spyDatabaseProvisioner, times(numberOfTenants)).initializeDatabaseWithoutMigration();
+    verify(spyDatabaseProvisioner, times(numberOfTenants)).initializeDatabaseWithMigration();
   }
 }

@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.db;
 
-import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -21,7 +20,7 @@ public class MultiTenantDatabaseContainer
 {
   private final MultiTenantPostgresDataSourceProvider multiTenantPostgresDataSourceProvider;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final OperationalDataStore operationalDataStore;
 
@@ -47,22 +46,20 @@ public class MultiTenantDatabaseContainer
     this.thirdPartyScansDataStore = new MultiTenantThirdPartyScansDataStore(multiTenantPostgresDataSourceProvider,
         multiTenantDatabaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
 
-    this.databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-            thirdPartyScansDataStore);
+    this.databaseProvisioner = new DatabaseProvisioner(this);
   }
 
   @VisibleForTesting
   public MultiTenantDatabaseContainer(
       final MultiTenantPostgresDataSourceProvider multiTenantPostgresDataSourceProvider,
-      final DatabaseProvisionUtils databaseProvisionUtils,
+      final DatabaseProvisioner databaseProvisioner,
       final OperationalDataStore operationalDataStore,
       final AggregationDataStore aggregationDataStore,
       final DataMartDataStore dataMartDataStore,
       final ThirdPartyScansDataStore thirdPartyScansDataStore)
   {
     this.multiTenantPostgresDataSourceProvider = multiTenantPostgresDataSourceProvider;
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseProvisioner = databaseProvisioner;
     this.operationalDataStore = operationalDataStore;
     this.aggregationDataStore = aggregationDataStore;
     this.dataMartDataStore = dataMartDataStore;
@@ -75,8 +72,8 @@ public class MultiTenantDatabaseContainer
   }
 
   @Override
-  public DatabaseProvisionUtils getDatabaseProvisionUtils() {
-    return databaseProvisionUtils;
+  public DatabaseProvisioner getDatabaseProvisioner() {
+    return databaseProvisioner;
   }
 
   @Override

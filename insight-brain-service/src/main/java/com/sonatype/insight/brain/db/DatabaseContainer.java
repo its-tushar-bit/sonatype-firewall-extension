@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.db;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 /**
  * <p>
@@ -24,5 +23,5 @@ public interface DatabaseContainer
 {
   DataSourceProvider getDataSourceProvider();
 
-  DatabaseProvisionUtils getDatabaseProvisionUtils();
+  DatabaseProvisioner getDatabaseProvisioner();
 }

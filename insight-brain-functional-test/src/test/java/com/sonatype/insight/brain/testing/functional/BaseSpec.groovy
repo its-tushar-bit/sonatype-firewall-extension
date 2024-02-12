@@ -16,16 +16,19 @@ import com.sonatype.insight.brain.dataaccess.TestDAOFactory
 import com.sonatype.insight.brain.db.DatabaseConfigProvider
 import com.sonatype.insight.brain.db.DatabaseContainer
 import com.sonatype.insight.brain.db.DatabaseName
+import com.sonatype.insight.brain.db.DatabaseProvisioner
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider
 import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore
 import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
@@ -37,7 +40,6 @@ import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils
 import com.sonatype.insight.test.networking.PortAllocator
 import com.sonatype.insight.test.networking.SslProperties
 import org.sonatype.licensing.product.ProductLicenseManager
@@ -57,7 +59,8 @@ import spock.lang.Shared
 
 @Slf4j
 abstract class BaseSpec
-extends GebReportingSpec {
+    extends GebReportingSpec
+{
   @Shared
   private int hdsPort = PortAllocator.nextFreePort()
 
@@ -108,16 +111,18 @@ extends GebReportingSpec {
     ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
         databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans))
 
-    DatabaseProvisionUtils databaseProvisionUtils = new DatabaseProvisionUtils(operationalDataStore,
-        aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore)
-    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
-        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore)
+    DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
+        dataMartDataStore, thirdPartyScansDataStore);
+
+    DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider)
+    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, dataStoreProvider,
+        databaseProvisioner)
     return databaseContainer
   }
 
   static def initDatabase() {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils()
-    databaseProvisionUtils.initializeDatabasesWithMigration()
+    DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner()
+    databaseProvisioner.initializeDatabaseWithMigration()
   }
 
   def getBrainModules() {
@@ -279,7 +284,8 @@ extends GebReportingSpec {
    * @return a reference to the newly loaded Page
    */
   public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage,
-      Object[] args) {
+                              Object[] args)
+  {
     via initialPage, args
     /*
      * Sadly, a module can't reliably wait for itself to appear. Once a function of the module is called, its base
@@ -303,7 +309,8 @@ extends GebReportingSpec {
     }
     if (ManagementPage.class.equals(initialPage)) {
       at(RootOrgManagementPage)
-    } else {
+    }
+    else {
       verifyAt()
     }
     return page
@@ -323,7 +330,8 @@ extends GebReportingSpec {
   }
 
   /**
-   * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations in a form.
+   * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations
+   * in a form.
    */
   def popoverViolations(element) {
     def name = element.attr('name');

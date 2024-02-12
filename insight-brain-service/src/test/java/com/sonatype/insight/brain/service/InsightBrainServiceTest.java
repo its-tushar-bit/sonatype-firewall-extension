@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -300,7 +299,7 @@ public class InsightBrainServiceTest
     Collection<TelemetryData> restEndpointUsageTelemetryData =
         allTelemetryData.stream().filter(t -> t.getPurpose().equals(TelemetryPurpose.REST_ENDPOINT_USAGE))
             .collect(Collectors.toList());
-    RestEndpointTelemetry[] expected = new RestEndpointTelemetry[] {
+    RestEndpointTelemetry[] expected = new RestEndpointTelemetry[]{
         new RestEndpointTelemetry("GET", "/api/v2/users/{username}", 2),
         new RestEndpointTelemetry("PUT",
             "/api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}", 1)
@@ -375,68 +374,6 @@ public class InsightBrainServiceTest
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
     startIqTestServer(config -> {
     });
-  }
-
-  @Test
-  @ManualIqServerInit
-  public void testDesiredSchemaVersionMet() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils =
-        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
-    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
-    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
-    when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(false);
-
-    startIqTestServer(config -> {
-    });
-
-    assertThat(logOutput).doesNotContain("Database migration is required.");
-  }
-
-  @Test
-  @ManualIqServerInit
-  public void testDesiredSchemaVersionUnmet() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils =
-        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
-    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
-    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
-    when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(true);
-
-    expectedExit.expectSystemExitWithStatus(1);
-
-    try {
-      startIqTestServer(config -> {
-      });
-    }
-    catch (IllegalStateException e) {
-      // do nothing
-    }
-
-    assertThat(logOutput).atErrorLevel()
-        .contains("\n\n\t\t\t***** Database migration is required. " +
-            "Please migrate the database before starting the application! *****\n");
-  }
-
-  @Test
-  @ManualIqServerInit
-  public void testDesiredSchemaVersionNoSchema() throws Exception {
-    DatabaseProvisionUtils databaseProvisionUtils =
-        databaseContainerRule.getDatabaseContainer().getDatabaseProvisionUtils();
-    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
-    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(false);
-
-    expectedExit.expectSystemExitWithStatus(1);
-
-    try {
-      startIqTestServer(config -> {
-      });
-    }
-    catch (IllegalStateException e) {
-      // do nothing
-    }
-
-    assertThat(logOutput).atErrorLevel()
-        .contains("\n\n\t\t\t***** Database migration is required. " +
-            "Please migrate the database before starting the application! *****\n");
   }
 
   @Test

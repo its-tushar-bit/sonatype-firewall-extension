@@ -14,7 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -459,7 +459,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -573,7 +573,7 @@ public class ApiConfigurationServiceTest
 
   @Test
   public void testGetConfiguration_SchemaMigrationEnabled_NullDb_Env() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
 
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
@@ -582,7 +582,7 @@ public class ApiConfigurationServiceTest
 
   @Test
   public void testGetConfiguration_SchemaMigrationEnabled_Db_Env() {
-    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
     service.setConfigurationNoAuthz(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
 
     assertThat(service.getConfigurationNoAuthz(
@@ -594,7 +594,7 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_waivedComponentUpgradeInspectionHour_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
-            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 1);
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 1);
   }
 
   @Test
@@ -916,7 +916,7 @@ public class ApiConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_AccessAllowlist() {
-    Map<String, String> values  = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
     values.put("ipAddress", "192.168.33.10");
     values.put("description", "Test IPv4 address");
     List<Map<String, String>> allowlist = Collections.singletonList(values);
@@ -927,7 +927,7 @@ public class ApiConfigurationServiceTest
         .isEqualTo("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}]");
 
     List<AllowedIp> allowlistIPs = (List<AllowedIp>) service.getConfigurationNoAuthz(
-        SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))
+            SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))
         .get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
 
     assertThat(allowlistIPs).extracting(AllowedIp::getIpAddress)
@@ -938,7 +938,7 @@ public class ApiConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_AccessAllowlistIsNotAllowedWithoutLicence() {
-    Map<String, String> values  = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
     values.put("ipAddress", "192.168.33.10");
     values.put("description", "Test IPv4 address");
     List<Map<String, String>> allowlist = Collections.singletonList(values);
@@ -1272,7 +1272,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1284,7 +1284,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
         SystemConfigurationProperty.DB_BACKUP_DIR,
-          new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
+        new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
 
     String absolutePath = tempDir.newFolder().getAbsolutePath();
     service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath));

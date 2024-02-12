@@ -8,13 +8,13 @@ package com.sonatype.insight.brain.migration;
 import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class MigrateTenantsCommandTest
   // system under test
   private MigrateTenantsCommand spyMigrateTenantsCommand;
 
-  private DatabaseProvisionUtils spyDatabaseProvisionUtils;
+  private DatabaseProvisioner spyDatabaseProvisioner;
 
   private TenantService tenantService;
 
@@ -49,14 +49,14 @@ public class MigrateTenantsCommandTest
     tenantService = new TenantService(new TenantUtil(), databaseRule.getOperationalDataStore());
 
     // get the spy out of TestDatabaseContainer
-    spyDatabaseProvisionUtils = databaseRule.getDatabaseContainer().getDatabaseProvisionUtils();
+    spyDatabaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();
 
     spyMigrateTenantsCommand = spy(new MigrateTenantsCommand()
     {
       @Override
       public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
         return new MultiTenantDatabaseContainer(
-            (MultiTenantPostgresDataSourceProvider) databaseRule.getDataSourceProvider(), spyDatabaseProvisionUtils,
+            (MultiTenantPostgresDataSourceProvider) databaseRule.getDataSourceProvider(), spyDatabaseProvisioner,
             databaseRule.getOperationalDataStore(), databaseRule.getAggregationDataStore(),
             databaseRule.getDataMartDataStore(), databaseRule.getThirdPartyScansDataStore());
       }
@@ -88,7 +88,7 @@ public class MigrateTenantsCommandTest
     provisionNewTenant();
 
     // Reset the counts after provisioning
-    Mockito.reset(spyDatabaseProvisionUtils);
+    Mockito.reset(spyDatabaseProvisioner);
 
     // Get current total tenant count
     int currentTenantCount = tenantService.getAllTenantsNames().size();
@@ -98,9 +98,9 @@ public class MigrateTenantsCommandTest
       spyMigrateTenantsCommand.run(null, null, insightConfig);
 
       // One for each tenant and +1 for the global one executed in TenantMigrate.migrateAllSchemas
-      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 2)).initializeDatabasesWithoutMigration();
-      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).initializeDatabasesWithMigration();
-      verify(spyDatabaseProvisionUtils, times(currentTenantCount + 1)).migrateDatabasesIfNeeded();
+      verify(spyDatabaseProvisioner, times(currentTenantCount + 2)).initializeDatabaseWithoutMigration();
+      verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).initializeDatabaseWithMigration();
+      verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).migrateDatabase();
     });
   }
 }

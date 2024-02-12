@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.db.datastore;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.DatabaseMigrator;
-
 /**
  * Contract for the operational data store, aka ODS. This is the primary data store for IQ and includes some special
  * methods that the other data stores do not have.

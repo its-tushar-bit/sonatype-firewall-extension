@@ -19,9 +19,9 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.TenantLifecycle;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
@@ -57,7 +57,7 @@ public class TenantManager
   // This is a provider to prevent circular dependencies between Guice beans
   private final Provider<TenantLifecycle> tenantLifecycle;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final TenantValidator tenantValidator;
 
@@ -69,14 +69,14 @@ public class TenantManager
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
       final Provider<TenantLifecycle> tenantLifecycle,
-      final DatabaseProvisionUtils databaseProvisionUtils,
+      final DatabaseProvisioner databaseProvisioner,
       final TenantValidator tenantValidator,
       final DeletedTenantDAO deletedTenantDAO,
       final TenantService tenantService)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.tenantLifecycle = tenantLifecycle;
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseProvisioner = databaseProvisioner;
     this.tenantValidator = tenantValidator;
     this.deletedTenantDAO = deletedTenantDAO;
     this.tenantService = tenantService;
@@ -186,7 +186,7 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration());
+        () -> databaseProvisioner.initializeDatabaseWithoutMigration());
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
@@ -217,7 +217,7 @@ public class TenantManager
       log.info("Registering DB for tenant {}", tenant.tenantSlug);
 
       try {
-        databaseProvisionUtils.initializeDatabasesWithoutMigration();
+        databaseProvisioner.initializeDatabaseWithoutMigration();
         return supplier.get();
       }
       finally {

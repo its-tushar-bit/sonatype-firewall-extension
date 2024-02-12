@@ -34,17 +34,21 @@ import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -67,7 +71,6 @@ import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -212,17 +215,17 @@ public abstract class AbstractFunctionalTest
     ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
         databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
 
-    DatabaseProvisionUtils databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-            thirdPartyScansDataStore);
-    DatabaseContainer databaseContainer = new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
-        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore);
-    return databaseContainer;
+    DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
+        dataMartDataStore, thirdPartyScansDataStore);
+
+    DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
+    DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);
+    return new DefaultDatabaseContainer(dataSourceProvider, dataStoreProvider, databaseProvisioner);
   }
 
   private static void initDatabase() {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration();
+    DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
+    databaseProvisioner.initializeDatabaseWithMigration();
   }
 
   @Rule

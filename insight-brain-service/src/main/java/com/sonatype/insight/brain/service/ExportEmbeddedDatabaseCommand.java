@@ -90,13 +90,11 @@ public class ExportEmbeddedDatabaseCommand
 
     operationalDataStore.initialize();
 
-    if (!DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
-        operationalDataStore.getDatabaseSchema())) {
+    if (!DatabaseUtil.legacySchemaVersionTableExists(operationalDataStore)) {
       throw new BadRequestException("The server needs to have been started normally once before"
           + " in order to complete the required upgrade steps.");
     }
-    if (DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), OperationalDataStore.ID,
-        operationalDataStore.getDatabaseSchema()) <= 0) {
+    if (DatabaseUtil.getLegacyDatabaseSchemaVersion(operationalDataStore) <= 0) {
       throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
           + " is empty. Please verify you specified the correct config.yml file.");
     }

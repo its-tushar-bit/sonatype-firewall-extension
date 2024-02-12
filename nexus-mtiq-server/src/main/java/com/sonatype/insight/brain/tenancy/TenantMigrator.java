@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,15 +23,15 @@ public class TenantMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(TenantMigrator.class);
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
 
   public TenantMigrator(
-      final DatabaseProvisionUtils databaseProvisionUtils,
+      final DatabaseProvisioner databaseProvisioner,
       final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
   {
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseProvisioner = databaseProvisioner;
     this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
   }
 
@@ -58,7 +58,7 @@ public class TenantMigrator
 
   public void migrateAllSchemas() {
     List<String> schemas =
-        DatabaseUtil.getSchemasList(databaseProvisionUtils.getOperationalDataStore().getDataSource());
+        DatabaseUtil.getSchemasList(databaseProvisioner.getOperationalDataStore().getDataSource());
 
     List<Tenant> tenants = schemas.stream()
         .filter(schema -> schema.startsWith("t_"))
@@ -92,12 +92,12 @@ public class TenantMigrator
 
   private void migrateSchema() {
     try {
-      DatabaseMigrator.setForceEnableMigration(true);
+      DatabaseMigrations.setForceEnableMigration(true);
 
-      databaseProvisionUtils.initializeDatabasesWithMigration();
+      databaseProvisioner.initializeDatabaseWithMigration();
     }
     finally {
-      DatabaseMigrator.setForceEnableMigration(false);
+      DatabaseMigrations.setForceEnableMigration(false);
     }
   }
 

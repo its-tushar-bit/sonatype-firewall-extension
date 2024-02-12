@@ -9,11 +9,11 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -30,19 +30,19 @@ public class TenantSchemaService
 
   private final TenantValidator tenantValidator;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   @Inject
   public TenantSchemaService(
       OperationalDataStore operationalDataStore,
       DataMartDataStore dataMartDataStore,
       TenantValidator tenantValidator,
-      DatabaseProvisionUtils databaseProvisionUtils)
+      DatabaseProvisioner databaseProvisioner)
   {
     this.operationalDataStore = operationalDataStore;
     this.tenantValidator = tenantValidator;
     this.dataMartDataStore = dataMartDataStore;
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseProvisioner = databaseProvisioner;
   }
 
   /**
@@ -55,8 +55,7 @@ public class TenantSchemaService
         DatabaseUtil.getDatabaseSchemaVersions(operationalDataStore.getDataSourceWithoutInit(),
             operationalDataStore.getDatabaseSchema());
 
-    int dataMartDSSchemaVersion = DatabaseUtil.getDatabaseSchemaVersion(
-        dataMartDataStore.getDataSource(), dataMartDataStore.getID(), dataMartDataStore.getDatabaseSchema());
+    int dataMartDSSchemaVersion = DatabaseUtil.getLegacyDatabaseSchemaVersion(dataMartDataStore);
     schemaVersions.put(dataMartDataStore.getID(), dataMartDSSchemaVersion);
 
     return schemaVersions;
@@ -70,7 +69,7 @@ public class TenantSchemaService
     validateCurrentTenant(tenantSlug);
 
     try {
-      databaseProvisionUtils.initializeDatabasesWithMigration();
+      databaseProvisioner.initializeDatabaseWithMigration();
     }
     catch (RuntimeException e) {
       //we are passing up any exception when migrating a Tenant schema

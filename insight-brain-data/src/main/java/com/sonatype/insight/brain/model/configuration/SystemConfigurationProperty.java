@@ -10,7 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrator;
 import com.sonatype.insight.model.HasStringId;
 
 /**

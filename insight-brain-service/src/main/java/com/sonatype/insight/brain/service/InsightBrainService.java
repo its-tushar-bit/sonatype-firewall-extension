@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -58,7 +59,6 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.version.DefaultVersionService;
@@ -81,7 +81,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
-
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.Command;
@@ -286,10 +285,9 @@ public class InsightBrainService
   private DatabaseContainer createAndInitDatabaseContainer(InsightConfig configuration) {
     DatabaseContainer databaseContainer = createDatabaseContainer(configuration);
 
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration();
-
-    validateMinimumSchemaVersion(databaseProvisionUtils);
+    DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
+    databaseProvisioner.initializeDatabaseWithMigration();
+    databaseProvisioner.validateMinimumSchemaVersion();
 
     return databaseContainer;
   }
@@ -321,16 +319,6 @@ public class InsightBrainService
     // Log to stdout first because the standard logging may not be operational at this point.
     System.out.println(message);
     log.info(message);
-  }
-
-  private void validateMinimumSchemaVersion(final DatabaseProvisionUtils databaseProvisionUtils) {
-    // Force exit if schema version table does not exist or if migration was needed but didn't happen.
-    if (!databaseProvisionUtils.isInMemoryDatabase() &&
-        (!databaseProvisionUtils.isSchemaVersionTableExists() || databaseProvisionUtils.isMigrationNeeded())) {
-      log.error("\n\n\t\t\t***** Database migration is required. " +
-          "Please migrate the database before starting the application! *****\n");
-      System.exit(1);
-    }
   }
 
   protected static boolean validateTempDir() {
@@ -385,7 +373,8 @@ public class InsightBrainService
     // Legacy support for old reports
     bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html", "policyAssets"));
 
-    bootstrap.addBundle(new WebBundle<InsightConfig>() {
+    bootstrap.addBundle(new WebBundle<InsightConfig>()
+    {
       @Override
       public WebConfiguration getWebConfiguration(final InsightConfig configuration) {
         return configuration.getWebConfiguration();
@@ -401,10 +390,11 @@ public class InsightBrainService
     bootstrap.setConfigurationFactoryFactory(new DefaultConfigurationFactoryFactory<InsightConfig>()
     {
       @Override
-      public ConfigurationFactory<InsightConfig> create(Class<InsightConfig> klass,
-                                                        Validator validator,
-                                                        ObjectMapper objectMapper,
-                                                        String propertyPrefix)
+      public ConfigurationFactory<InsightConfig> create(
+          Class<InsightConfig> klass,
+          Validator validator,
+          ObjectMapper objectMapper,
+          String propertyPrefix)
       {
         return new InsightConfigurationFactory(klass, validator, configureObjectMapper(objectMapper.copy()),
             propertyPrefix);

@@ -11,6 +11,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
@@ -18,7 +19,6 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
@@ -35,7 +35,7 @@ public class TenantProvisioningService
 {
   private static final Logger log = LoggerFactory.getLogger(TenantProvisioningService.class);
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final TenantUtil tenantUtil;
 
@@ -53,7 +53,7 @@ public class TenantProvisioningService
 
   @Inject
   public TenantProvisioningService(
-      DatabaseProvisionUtils databaseProvisionUtils,
+      DatabaseProvisioner databaseProvisioner,
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       TenantDeregistrationJob tenantDeregistrationJob,
@@ -62,7 +62,7 @@ public class TenantProvisioningService
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       MultiTenantInsightConfig config)
   {
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseProvisioner = databaseProvisioner;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
     this.tenantDeregistrationJob = tenantDeregistrationJob;
@@ -89,7 +89,7 @@ public class TenantProvisioningService
       throw new ConflictException("Tenant already exists");
     }
 
-    databaseProvisionUtils.initializeDatabasesWithMigration();
+    databaseProvisioner.initializeDatabaseWithMigration();
     log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();

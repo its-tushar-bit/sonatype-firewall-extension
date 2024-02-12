@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseException;
@@ -25,7 +26,11 @@ import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 public class DatabaseUtil
 {
-  public static boolean schemaVersionTableExists(DataSource dataSource, String databaseSchema) {
+  public static boolean legacySchemaVersionTableExists(final DataStore dataStore) {
+    return legacySchemaVersionTableExists(dataStore.getDataSource(), dataStore.getDatabaseSchema());
+  }
+
+  public static boolean legacySchemaVersionTableExists(final DataSource dataSource, final String databaseSchema) {
     return tableExists(dataSource, databaseSchema, "schema_version");
   }
 
@@ -84,7 +89,7 @@ public class DatabaseUtil
     }
   }
 
-  private static boolean tableExistsWithColumn(
+  public static boolean tableExistsWithColumn(
       final DataSource dataSource,
       final String databaseSchema,
       final String tableName,
@@ -105,7 +110,19 @@ public class DatabaseUtil
     return false;
   }
 
-  public static int getDatabaseSchemaVersion(DataSource dataSource, String dataStoreId, String databaseSchema) {
+  public static int getLegacyDatabaseSchemaVersion(final DataStore dataStore) {
+    return getLegacyDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(), dataStore.getDatabaseSchema());
+  }
+
+  public static int getLegacyDatabaseSchemaVersion(
+      final DataSource dataSource,
+      final String dataStoreId,
+      final String databaseSchema)
+  {
+    if (!legacySchemaVersionTableExists(dataSource, databaseSchema)) {
+      return -1;
+    }
+
     String sql = "SELECT * FROM " + databaseSchema + ".schema_version";
     if (tableExistsWithColumn(dataSource, databaseSchema, "schema_version", "data_store_id")) {
       // as of migration 271 the schema_version has two columns: data_store_id, and schema_version
@@ -132,37 +149,6 @@ public class DatabaseUtil
     }
   }
 
-  public static void updateDatabaseSchemaVersion(
-      DataSource dataSource,
-      String dataStoreId,
-      String databaseSchema,
-      int schemaVersion)
-  {
-    String sql = "UPDATE " + databaseSchema + ".schema_version SET schema_version = ?";
-    if (tableExistsWithColumn(dataSource, databaseSchema, "schema_version", "data_store_id")) {
-      // as of migration 271 the schema_version has two columns: data_store_id, and schema_version
-      sql += " WHERE data_store_id = ?";
-    }
-
-    try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      connection.setAutoCommit(true);
-      preparedStatement.setInt(1, schemaVersion);
-      if (preparedStatement.getParameterMetaData().getParameterCount() == 2) {
-        preparedStatement.setString(2, dataStoreId);
-      }
-      int updated = preparedStatement.executeUpdate();
-      if (updated != 1) {
-        throw new IllegalStateException(
-            databaseSchema + " schema_version table should have 1 entry but has " + updated + ".");
-      }
-    }
-    catch (Exception e) {
-      throw new IllegalStateException(
-          "Failed attempt to write " + schemaVersion + " to " + databaseSchema + " schema_version table.", e);
-    }
-  }
-
   public static Long getLastCheckinTime(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
@@ -171,22 +157,6 @@ public class DatabaseUtil
                  ".QRTZ_SCHEDULER_STATE")) {
       if (resultSet.next()) {
         return resultSet.getLong(1);
-      }
-    }
-    catch (Exception e) {
-      throw new IllegalStateException(e.getMessage(), e);
-    }
-    return null;
-  }
-
-  public static String getSchemaMigrationEnabledFromDatabase(final DataSource dataSource, final String databaseSchema) {
-    try (Connection connection = dataSource.getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet resultSet = statement.executeQuery(
-             "SELECT value FROM " + databaseSchema +
-                 ".system_configuration_property WHERE name = '" + DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
-      if (resultSet.next()) {
-        return resultSet.getString(1);
       }
     }
     catch (Exception e) {

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.db.rule;
 import java.lang.annotation.Annotation;
 
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
@@ -19,7 +20,6 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 public class MultiTenantDatabaseContainerRule
     extends DatabaseContainerRule
@@ -103,8 +103,8 @@ public class MultiTenantDatabaseContainerRule
     TenantTestHelper.testAs(tenant, t -> {
       cloneTenant(tenant.databaseSchema);
 
-      DatabaseProvisionUtils databaseProvisionUtils = getDatabaseContainer().getDatabaseProvisionUtils();
-      databaseProvisionUtils.initializeDatabasesWithMigration();
+      DatabaseProvisioner databaseProvisioner = getDatabaseContainer().getDatabaseProvisioner();
+      databaseProvisioner.initializeDatabaseWithMigration();
     });
   }
 

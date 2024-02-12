@@ -31,24 +31,27 @@ import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
@@ -184,16 +187,17 @@ public class ReleaseGraphPerformance
     ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
         databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
 
-    DatabaseProvisionUtils databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore,
-            dataMartDataStore, thirdPartyScansDataStore);
-    return new DefaultDatabaseContainer(dataSourceProvider, databaseProvisionUtils,
-        operationalDataStore, aggregationDataStore, dataMartDataStore, thirdPartyScansDataStore);
+    DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
+        dataMartDataStore, thirdPartyScansDataStore);
+    DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
+    DatabaseProvisioner databaseProvisionUtils = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);
+
+    return new DefaultDatabaseContainer(dataSourceProvider, dataStoreProvider, databaseProvisionUtils);
   }
 
   private void initDatabase() {
-    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
-    databaseProvisionUtils.initializeDatabasesWithMigration();
+    DatabaseProvisioner databaseProvisionUtils = databaseContainer.getDatabaseProvisioner();
+    databaseProvisionUtils.initializeDatabaseWithMigration();
   }
 
   void clearCache() {

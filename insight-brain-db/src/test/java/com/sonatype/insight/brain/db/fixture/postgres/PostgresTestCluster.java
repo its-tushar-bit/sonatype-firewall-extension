@@ -10,7 +10,6 @@ import java.util.StringJoiner;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.PostgresDataSourceProvider;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
@@ -18,7 +17,9 @@ import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrators;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -103,8 +104,8 @@ public class PostgresTestCluster
     dataMartDataStore.initialize();
     thirdPartyScansDataStore.initialize();
 
-    (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore)).migrate();
+    new DatabaseMigrators(new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore, dataMartDataStore,
+        thirdPartyScansDataStore)).runMigrators();
   }
 
   /**

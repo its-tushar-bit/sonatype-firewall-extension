@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.service.TenantLifecycle;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class TenantManagerTest
   TenantLifecycle lifecycle;
 
   @Mock
-  DatabaseProvisionUtils databaseProvisionUtils;
+  DatabaseProvisioner databaseProvisioner;
 
   @Mock
   TenantValidator tenantValidator;
@@ -75,7 +75,7 @@ public class TenantManagerTest
     tenantManagedBeans = new ArrayList<>();
     tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisionUtils,
+    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisioner,
         tenantValidator, deletedTenantDAO, tenantService);
 
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
@@ -138,8 +138,8 @@ public class TenantManagerTest
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNull() {
     assertThatThrownBy(() -> underTest.setTenant((Tenant) null))
-            .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
-            .isInstanceOf(IllegalArgumentException.class);
+        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -154,7 +154,7 @@ public class TenantManagerTest
   public void shouldNotRegister_allTenantsJobs() {
     tenantManagedBeans.add(allTenantsJob);
 
-    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisionUtils,
+    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisioner,
         tenantValidator, deletedTenantDAO, tenantService);
 
     testAsNewTenant(t -> {
@@ -215,7 +215,7 @@ public class TenantManagerTest
 
     // Call set tenant a second time
     assertThatThrownBy(() -> underTest.setTenant(tenant)).isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(TENANT_DOES_NOT_EXIST);
+        .hasMessage(TENANT_DOES_NOT_EXIST);
 
     verify(job, never()).register();
     verify(lifecycle, never()).bootTenant();
@@ -381,12 +381,12 @@ public class TenantManagerTest
     doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);
       return null;
-    }).when(databaseProvisionUtils).initializeDatabasesWithoutMigration();
+    }).when(databaseProvisioner).initializeDatabaseWithoutMigration();
 
     underTest.performDatabaseRegistrationAndRunAs(tenant.tenantSlug, supplier);
 
     verify(supplier, times(1)).get();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration();
+    verify(databaseProvisioner).initializeDatabaseWithoutMigration();
   }
 
   @Test
@@ -423,7 +423,7 @@ public class TenantManagerTest
 
     verify(job).register();
     verify(lifecycle).bootTenant();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration();
+    verify(databaseProvisioner).initializeDatabaseWithoutMigration();
   }
 
   private static class MockTenantManaged

@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
-import com.sonatype.insight.brain.db.datastore.DataStoreMigrator;
+import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
@@ -104,7 +104,7 @@ public class PolicyViolationMigratorTest
     else {
       scriptResource = getClass().getSimpleName() + '/' + scriptName;
     }
-    new DataStoreMigrator(databaseRule.getOperationalDataStore())
+    new LegacyDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runScript("", scriptResource + ".sql");
   }
 

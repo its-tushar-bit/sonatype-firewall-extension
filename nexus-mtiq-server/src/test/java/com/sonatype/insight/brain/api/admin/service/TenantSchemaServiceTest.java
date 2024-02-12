@@ -9,13 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -47,20 +47,17 @@ public class TenantSchemaServiceTest
   private DataSource operationalDataSource;
 
   @Mock
-  private DataSource dataMartDataSource;
-
-  @Mock
   private TenantValidator tenantValidator;
 
   @Mock
-  private DatabaseProvisionUtils databaseProvisionUtils;
+  private DatabaseProvisioner databaseProvisioner;
 
   private TenantSchemaService underTest;
 
   @Before
   public void setup() {
     underTest =
-        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, databaseProvisionUtils);
+        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, databaseProvisioner);
   }
 
   @Test
@@ -113,7 +110,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(tenant.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisioner).initializeDatabaseWithMigration();
     });
   }
 
@@ -124,7 +121,7 @@ public class TenantSchemaServiceTest
 
       underTest.migrateSchema(global.tenantSlug);
 
-      verify(databaseProvisionUtils).initializeDatabasesWithMigration();
+      verify(databaseProvisioner).initializeDatabaseWithMigration();
     });
   }
 
@@ -132,7 +129,7 @@ public class TenantSchemaServiceTest
   public void shouldPassUpExceptions_migrateSchema() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
-      doThrow(new RuntimeException()).when(databaseProvisionUtils).initializeDatabasesWithMigration();
+      doThrow(new RuntimeException()).when(databaseProvisioner).initializeDatabaseWithMigration();
 
       assertThatNoException().isThrownBy(() -> underTest.migrateSchema(tenant.tenantSlug));
     });
@@ -155,9 +152,7 @@ public class TenantSchemaServiceTest
     when(operationalDataStore.getDataSourceWithoutInit()).thenReturn(operationalDataSource);
     when(operationalDataStore.getDatabaseSchema()).thenReturn(tenant.databaseSchema);
 
-    when(dataMartDataStore.getDataSource()).thenReturn(dataMartDataSource);
     when(dataMartDataStore.getID()).thenReturn("insight_brain_dm");
-    when(dataMartDataStore.getDatabaseSchema()).thenReturn(Tenant.GLOBAL_TENANT.databaseSchema);
 
     Map<String, Integer> mockedSchemaVersions = new HashMap<>();
     {
@@ -169,8 +164,7 @@ public class TenantSchemaServiceTest
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
       dataBaseUtil.when(() -> DatabaseUtil.getDatabaseSchemaVersions(operationalDataSource, tenant.databaseSchema))
           .thenReturn(mockedSchemaVersions);
-      dataBaseUtil.when(() -> DatabaseUtil.getDatabaseSchemaVersion(dataMartDataSource, "insight_brain_dm",
-              Tenant.GLOBAL_TENANT.databaseSchema))
+      dataBaseUtil.when(() -> DatabaseUtil.getLegacyDatabaseSchemaVersion(dataMartDataStore))
           .thenReturn(12);
 
       return underTest.getSchemaVersions(tenant.tenantSlug);

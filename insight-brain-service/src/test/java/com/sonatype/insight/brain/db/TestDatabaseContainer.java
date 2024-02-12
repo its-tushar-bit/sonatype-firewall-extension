@@ -11,20 +11,20 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
 /**
- * Implementation of {@link DatabaseContainer} for testing. The encapsulated {@link DatabaseProvisionUtils} is a Mockito
- * @{@link Spy}
+ * Implementation of {@link DatabaseContainer} for testing. The encapsulated {@link DatabaseProvisioner} is a Mockito
+ * {@link Spy}
  */
 public class TestDatabaseContainer
     implements DatabaseContainer
 {
   private final DataSourceProvider dataSourceProvider;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseProvisioner databaseProvisioner;
 
   private final DataStoreProvider dataStoreProvider;
 
@@ -35,9 +35,7 @@ public class TestDatabaseContainer
     this.dataSourceProvider = dataSourceProvider;
     this.dataStoreProvider = dataStoreProvider;
 
-    this.databaseProvisionUtils = Mockito.spy(
-        new DatabaseProvisionUtils(getOperationalDataStore(), getAggregationDataStore(),
-            getDataMartDataStore(), getThirdPartyScansDataStore()));
+    this.databaseProvisioner = Mockito.spy(new DatabaseProvisioner(this));
   }
 
   @Override
@@ -46,8 +44,8 @@ public class TestDatabaseContainer
   }
 
   @Override
-  public DatabaseProvisionUtils getDatabaseProvisionUtils() {
-    return databaseProvisionUtils;
+  public DatabaseProvisioner getDatabaseProvisioner() {
+    return databaseProvisioner;
   }
 
   @Override
@@ -71,6 +69,6 @@ public class TestDatabaseContainer
   }
 
   public void resetMocks() {
-    Mockito.reset(databaseProvisionUtils);
+    Mockito.reset(databaseProvisioner);
   }
 }

@@ -22,7 +22,7 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -78,7 +78,7 @@ public class ConfigurationUtils
 
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private ConfigurationUtils() {}
+  private ConfigurationUtils() { }
 
   @Inject
   public static void injectDependencies(final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
@@ -270,7 +270,7 @@ public class ConfigurationUtils
   }
 
   public static boolean schemaMigrationEnabled(String schemaMigrationEnabledFromDatabase) {
-    Boolean migrationEnabled = DatabaseMigrator.isMigrationEnabledFromEnvironmentVariable();
+    Boolean migrationEnabled = DatabaseMigrations.isMigrationEnabledFromEnvironmentVariable();
     if (migrationEnabled != null) {
       return migrationEnabled;
     }

@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
@@ -126,7 +127,7 @@ public class CanonicalSchemaValidationTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       loadSQLDumpIntoSchema("canonical-schema-from-commit-3098e6.sql", tenant.databaseSchema);
 
-      migrateTenant(tenant);
+      migrateTenant();
 
       assertTenantsSchemasAreTheExpected(newTenant, tenant, (schema1, schema2) -> {
         assertThat(schema1).as("The database schemas did not exactly match. " +
@@ -147,7 +148,7 @@ public class CanonicalSchemaValidationTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       loadSQLDumpIntoSchema("modified-base-schema-with-differences.sql", tenant.databaseSchema);
 
-      migrateTenant(tenant);
+      migrateTenant();
 
       assertTenantsSchemasAreTheExpected(newTenant, tenant, (schema1, schema2) -> {
         assertThat(schema1).isNotEqualTo(schema2);
@@ -155,10 +156,10 @@ public class CanonicalSchemaValidationTest
     });
   }
 
-  private void migrateTenant(Tenant tenant) {
-    TenantTestHelper.testAs(tenant, t -> {
-      new DatabaseMigrator(databaseRule).migrate();
-    });
+  private void migrateTenant() {
+    DatabaseProvisioner databaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();
+    databaseProvisioner.initializeDatabaseWithoutMigration();
+    new DatabaseMigrations(databaseRule).migrateDatabase();
   }
 
   private void loadSQLDumpIntoSchema(String dumpFile, String schema) throws IOException {

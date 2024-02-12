@@ -48,8 +48,7 @@ public class TestTaskScheduler
       try {
         // sometimes the test db is shut down before Jetty/IQ calls the shutdown
         // so do a quick check to see if there is anything to clear
-        if (DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
-            operationalDataStore.getDatabaseSchema())) {
+        if (DatabaseUtil.legacySchemaVersionTableExists(operationalDataStore)) {
           scheduler.clear();
         }
       }

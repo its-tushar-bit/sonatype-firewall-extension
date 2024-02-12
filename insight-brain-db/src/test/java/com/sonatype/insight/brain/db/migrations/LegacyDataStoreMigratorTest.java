@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.db.datastore;
+package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
 import java.util.zip.ZipFile;
@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
+import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-public class DataStoreMigratorTest
+public class LegacyDataStoreMigratorTest
     extends AbstractDatabaseTest
 {
   @Rule
@@ -106,12 +107,12 @@ public class DataStoreMigratorTest
         .createDataSourceProvider(H2DatabaseEngine.INSTANCE)
         .getDataSource(databaseConfig, schemaName);
 
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(1);
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(1);
 
     // Should fail to upgrade to version 3 because it tries to drop a non-existing table
     assertThatThrownBy(() -> runDataStoreMigrator(new TestDataStore(databaseConfig, schemaName, schemaName)))
         .isInstanceOf(ScriptStatementFailedException.class);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(2);
+    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(2);
   }
 
   @Test
@@ -166,7 +167,7 @@ public class DataStoreMigratorTest
         .createDataSourceProvider(H2DatabaseEngine.INSTANCE)
         .getDataSource(databaseConfig, "MissingVersion");
 
-    assertThat(DatabaseUtil.schemaVersionTableExists(dataSource, "MissingVersion")).isFalse();
+    assertThat(DatabaseUtil.legacySchemaVersionTableExists(dataSource, "MissingVersion")).isFalse();
 
     assertThatThrownBy(
         () -> runDataStoreMigrator(new TestDataStore(databaseConfig, "MissingVersion", "MissingVersion")))
@@ -218,7 +219,7 @@ public class DataStoreMigratorTest
 
   @Test
   public void testDetermineDesiredVersion() {
-    assertThat(DataStoreMigrator.determineDesiredVersion("DetermineDesiredVersion")).isEqualTo(12);
+    assertThat(LegacyDataStoreMigrator.determineDesiredVersion("DetermineDesiredVersion")).isEqualTo(12);
   }
 
   @Test
@@ -253,17 +254,17 @@ public class DataStoreMigratorTest
 
     assertThat(DatabaseUtil.schemaExists(dataSource, dataStore.getDatabaseSchema())).isTrue();
     assertThat(
-        DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStore.getID(), dataStore.getDatabaseSchema())).isEqualTo(
-        DataStoreMigrator.determineDesiredVersion(dataStore.getDatabaseSchema()));
+        DatabaseUtil.getLegacyDatabaseSchemaVersion(dataStore)).isEqualTo(
+        LegacyDataStoreMigrator.determineDesiredVersion(dataStore.getDatabaseSchema()));
   }
 
-  private DataStoreMigrator newDataStoreMigrator(final DataStore dataStore) {
-    return new DataStoreMigrator(dataStore);
+  private LegacyDataStoreMigrator newDataStoreMigrator(final DataStore dataStore) {
+    return new LegacyDataStoreMigrator(dataStore);
   }
 
   private void runDataStoreMigrator(final DataStore dataStore) {
-    DataStoreMigrator dataStoreMigrator = new DataStoreMigrator(dataStore);
-    dataStoreMigrator.migrate();
+    LegacyDataStoreMigrator legacyDataStoreMigrator = new LegacyDataStoreMigrator(dataStore);
+    legacyDataStoreMigrator.migrate();
   }
 
   private class TestDataStore

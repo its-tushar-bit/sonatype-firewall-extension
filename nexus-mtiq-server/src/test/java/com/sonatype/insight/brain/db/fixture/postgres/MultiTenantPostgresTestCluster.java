@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.db.fixture.postgres;
 
-import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -62,8 +65,14 @@ public class MultiTenantPostgresTestCluster
     aggregationDataStore.initialize();
     dataMartDataStore.initialize();
     thirdPartyScansDataStore.initialize();
-    (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore)).migrate();
+
+    DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
+        dataMartDataStore, thirdPartyScansDataStore);
+
+    DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
+
+    DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);
+    databaseProvisioner.migrateDatabase();
 
     // now create a tenant to use as a template
     TenantTestHelper.testAsNewTenant(TEMPLATE_TENANT_NAME, x -> {
@@ -72,8 +81,7 @@ public class MultiTenantPostgresTestCluster
       dataMartDataStore.initialize();
       thirdPartyScansDataStore.initialize();
 
-      (new DatabaseMigrator(operationalDataStore, aggregationDataStore, dataMartDataStore,
-          thirdPartyScansDataStore)).migrate();
+      databaseProvisioner.migrateDatabase();
     });
   }
 

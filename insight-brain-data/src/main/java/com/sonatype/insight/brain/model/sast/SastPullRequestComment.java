@@ -44,6 +44,9 @@ public class SastPullRequestComment
   @Column(name = "pull_request_comment_id")
   private String pullRequestCommentId;
 
+  @Column(name = "pull_request_comment_version")
+  private Integer pullRequestCommentVersion;
+
   public SastPullRequestComment() {
   }
 
@@ -54,7 +57,8 @@ public class SastPullRequestComment
       final Date lastUpdatedAt,
       final String commitHash,
       final String contentHash,
-      final String pullRequestCommentId)
+      final String pullRequestCommentId,
+      final Integer pullRequestCommentVersion)
   {
     this.sastScanId = sastScanId;
     this.pullRequestUrl = pullRequestUrl;
@@ -63,6 +67,7 @@ public class SastPullRequestComment
     this.commitHash = commitHash;
     this.contentHash = contentHash;
     this.pullRequestCommentId = pullRequestCommentId;
+    this.pullRequestCommentVersion = pullRequestCommentVersion;
   }
 
   // Prefer this constructor which takes care of the initial createdAt and lastUpdatedAt timestamps.
@@ -71,9 +76,11 @@ public class SastPullRequestComment
       final String pullRequestUrl,
       final String commitHash,
       final String contentHash,
-      final String pullRequestCommentId)
+      final String pullRequestCommentId,
+      final Integer pullRequestCommentVersion)
   {
-    this(sastScanId, pullRequestUrl, new Date(), new Date(), commitHash, contentHash, pullRequestCommentId);
+    this(sastScanId, pullRequestUrl, new Date(), new Date(), commitHash, contentHash, pullRequestCommentId,
+        pullRequestCommentVersion);
   }
 
   @Override
@@ -142,6 +149,14 @@ public class SastPullRequestComment
     this.pullRequestCommentId = pullRequestCommentId;
   }
 
+  public Integer getPullRequestCommentVersion() {
+    return pullRequestCommentVersion;
+  }
+
+  public void setPullRequestCommentVersion(final Integer pullRequestCommentVersion) {
+    this.pullRequestCommentVersion = pullRequestCommentVersion;
+  }
+
   @Override
   public String toString() {
     return new StringJoiner(", ", SastPullRequestComment.class.getSimpleName() + "[", "]")
@@ -153,6 +168,7 @@ public class SastPullRequestComment
         .add("commitHash='" + commitHash + "'")
         .add("contentHash='" + contentHash + "'")
         .add("pullRequestCommentId='" + pullRequestCommentId + "'")
+        .add("pullRequestCommentVersion='" + pullRequestCommentVersion + "'")
         .toString();
   }
 }

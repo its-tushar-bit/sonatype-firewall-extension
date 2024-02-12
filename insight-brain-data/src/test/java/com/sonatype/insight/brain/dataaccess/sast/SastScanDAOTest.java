@@ -217,7 +217,8 @@ public class SastScanDAOTest
         "https://github.com/sonatype/insight-brain/pull/10894",
         "commit-hash",
         "content-hash",
-        "discussion_r1450570374"
+        "discussion_r1450570374",
+        0
     );
 
     sastPullRequestCommentDAO.insert(sastPullRequestComment);

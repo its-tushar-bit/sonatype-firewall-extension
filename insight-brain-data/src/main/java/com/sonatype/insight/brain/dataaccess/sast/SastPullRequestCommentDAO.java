@@ -24,23 +24,22 @@ public class SastPullRequestCommentDAO
     super(operationalDataStore);
   }
 
-  public SastPullRequestComment getByPullRequestUrl(final TransactionContext tx,
-                                                    final String pullRequestUrl)
-  {
+  public SastPullRequestComment getByPullRequestUrl(final String pullRequestUrl) {
     // Will only find zero or one row due to the column unique constraint.
     final String sQuery = "SELECT entity FROM SastPullRequestComment entity WHERE entity.pullRequestUrl=?1";
-    return get(tx, sQuery, pullRequestUrl);
+    return get(sQuery, pullRequestUrl);
+  }
+
+  public SastPullRequestComment getBySastScanId(final String sastScanId) {
+    // Will only find zero or one row due to the column unique constraint.
+    try (final TransactionContext tx = createTransactionContext()) {
+      return getBySastScanId(tx, sastScanId);
+    }
   }
 
   public SastPullRequestComment getBySastScanId(final TransactionContext tx, final String sastScanId) {
     // Will only find zero or one row due to the column unique constraint.
     final String sQuery = "SELECT entity FROM SastPullRequestComment entity WHERE entity.sastScanId=?1";
     return get(tx, sQuery, sastScanId);
-  }
-
-  public SastPullRequestComment getBySastScanId(final String sastScanId) {
-    try (final TransactionContext tx = createTransactionContext()) {
-      return getBySastScanId(tx, sastScanId);
-    }
   }
 }

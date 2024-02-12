@@ -4590,7 +4590,7 @@ public class TemporaryEntity
   {
 
     final SastPullRequestComment sastPullRequestComment = new SastPullRequestComment(
-        sastScanId, pullRequestUrl, commitHash, contentHash, pullRequestCommentId
+        sastScanId, pullRequestUrl, commitHash, contentHash, pullRequestCommentId, 0
     );
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
     return sastPullRequestComment;

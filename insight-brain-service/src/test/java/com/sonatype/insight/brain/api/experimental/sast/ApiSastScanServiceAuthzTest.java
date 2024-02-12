@@ -31,12 +31,12 @@ public class ApiSastScanServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testCreateSastScan_Unauthenticated() {
+  public void testCreateSastScan_Unauthenticated() throws Exception {
     apiSastScanService.createSastScan(app.getPublicId(), new SastScanRequestDTO());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testCreateSastScan_Unauthorized() {
+  public void testCreateSastScan_Unauthorized() throws Exception {
     login();
     apiSastScanService.createSastScan(app.getPublicId(), new SastScanRequestDTO());
   }
@@ -49,7 +49,7 @@ public class ApiSastScanServiceAuthzTest
   }
 
   @Test
-  public void testCreateSastScan_Authorized() {
+  public void testCreateSastScan_Authorized() throws Exception {
     grantWritePermission(app.getId());
     apiSastScanService.createSastScan(app.getPublicId(), new SastScanRequestDTO());
   }

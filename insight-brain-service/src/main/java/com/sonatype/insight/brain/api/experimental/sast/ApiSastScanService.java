@@ -65,6 +65,8 @@ class ApiSastScanService
 
   private final IdUtils idUtils;
 
+  private final SastPullRequestCommentingService sastPullRequestCommentingService;
+
   @Inject
   public ApiSastScanService(
       final SastScanDAO sastScanDAO,
@@ -72,7 +74,8 @@ class ApiSastScanService
       final SastRemediationDAO sastRemediationDAO,
       final SastScmScanContextDAO sastScmScanContextDAO,
       final SastPullRequestCommentDAO sastPullRequestCommentDAO,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      final SastPullRequestCommentingService sastPullRequestCommentingService)
   {
     this.sastScanDAO = sastScanDAO;
     this.sastFindingDAO = sastFindingDAO;
@@ -80,6 +83,7 @@ class ApiSastScanService
     this.sastScmScanContextDAO = sastScmScanContextDAO;
     this.sastPullRequestCommentDAO = sastPullRequestCommentDAO;
     this.idUtils = idUtils;
+    this.sastPullRequestCommentingService = sastPullRequestCommentingService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -117,6 +121,9 @@ class ApiSastScanService
       }
       tx.commit();
       auditSastScanId(sastScan.getId());
+      if (nonNull(sastScmContext)) {
+        sastPullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, sastScmContext.commitHash);
+      }
       return toSastScanDTO(sastScan);
     }
   }

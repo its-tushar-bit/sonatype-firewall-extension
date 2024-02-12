@@ -20,13 +20,18 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTOWith2Findings;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 public class ApiSastScanServiceTest
     extends AbstractComponentTest
@@ -49,11 +54,20 @@ public class ApiSastScanServiceTest
   @Inject
   private SastPullRequestCommentDAO sastPullRequestCommentDAO;
 
+  @Mock
+  private SastPullRequestCommentingService sastPullRequestCommentingService;
+
   private SastTestUtil sastTestUtil;
 
   @Before
   public void before() {
     sastTestUtil = new SastTestUtil(sastScanDAO, sastFindingDAO, sastRemediationDAO);
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(SastPullRequestCommentingService.class).toInstance(sastPullRequestCommentingService);
+    super.configure(binder);
   }
 
   @Test
@@ -82,7 +96,7 @@ public class ApiSastScanServiceTest
   }
 
   @Test
-  public void testCreateSastScan_FindingsOrderedByDescendingSeverity() throws Exception {
+  public void testCreateSastScan_FindingsOrderedByDescendingSeverity() {
     // Given an application
     tempEntity.newApplicationWithParent("myApp");
 
@@ -162,7 +176,7 @@ public class ApiSastScanServiceTest
   }
 
   @Test
-  public void testGetSastScan_FindingsOrderedByDescendingSeverity() throws Exception {
+  public void testGetSastScan_FindingsOrderedByDescendingSeverity() {
     // Given an application
     tempEntity.newApplicationWithParent("myApp");
 
@@ -250,6 +264,38 @@ public class ApiSastScanServiceTest
 
     // Assert that a SastScmScanContext record was not created
     assertThat(sastScmScanContextDAO.getCount()).isZero();
+  }
+
+  @Test
+  public void testCreateSastScan_HasScmContext_DoesPRComment() {
+    // Given an application
+    tempEntity.newApplicationWithParent("myApp");
+
+    // And a payload with SCM context
+    final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
+
+    // When a sast scan is created
+    apiSastScanService.createSastScan("myApp", sastScanRequestDTO);
+
+    // PR commenting is attempted
+    Mockito.verify(sastPullRequestCommentingService).createOrUpdateSastPullRequestComment(any(), anyString());
+  }
+
+  @Test
+  public void testCreateSastScan_MissingScmContext_DoesNotPRComment() {
+    // Given an application
+    tempEntity.newApplicationWithParent("myApp");
+
+    // And a payload and no SCM context
+    final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
+    sastScanRequestDTO.scmContext = null;
+
+    // When a sast scan is created
+    apiSastScanService.createSastScan("myApp", sastScanRequestDTO);
+
+    // PR commenting is not attempted
+    Mockito.verify(sastPullRequestCommentingService, Mockito.never())
+        .createOrUpdateSastPullRequestComment(any(), anyString());
   }
 
   @Test

@@ -68,24 +68,14 @@ public class SastPullRequestCommentDAOTest
 
   @Test
   public void testGetByPullRequestUrl_DoesNotExist() {
-    SastPullRequestComment byPullRequestUrl;
-    try (TransactionContext tx = sastPullRequestCommentDAO.createTransactionContext()) {
-      byPullRequestUrl =
-          sastPullRequestCommentDAO.getByPullRequestUrl(tx, "void");
-    }
-    assertThat(byPullRequestUrl).isNull();
+    assertThat(sastPullRequestCommentDAO.getByPullRequestUrl("void")).isNull();
   }
 
   @Test
   public void testGetByPullRequestUrl_Exist() {
     final SastPullRequestComment sastPullRequestComment = getSastPullRequestComment();
-
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
-    try (TransactionContext tx = sastPullRequestCommentDAO.createTransactionContext()) {
-      SastPullRequestComment byPullRequestUrl =
-          sastPullRequestCommentDAO.getByPullRequestUrl(tx, sastPullRequestComment.getPullRequestUrl());
-      assertThat(byPullRequestUrl).isNotNull();
-    }
+    assertThat(sastPullRequestCommentDAO.getByPullRequestUrl(sastPullRequestComment.getPullRequestUrl())).isNotNull();
   }
 
   @Test
@@ -115,13 +105,13 @@ public class SastPullRequestCommentDAOTest
     assertThat(sastScan.getId()).isNotNull();
     assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
 
-    final SastPullRequestComment sastPullRequestComment = new SastPullRequestComment(
+    return new SastPullRequestComment(
         sastScan.getId(),
         "https://github.com/sonatype/insight-brain/pull/10894",
         "commit-hash",
         "content-hash",
-        "discussion_r1450570374"
+        "discussion_r1450570374",
+        0
     );
-    return sastPullRequestComment;
   }
 }

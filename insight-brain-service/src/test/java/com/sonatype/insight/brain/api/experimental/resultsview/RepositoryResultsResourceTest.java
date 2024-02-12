@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -45,20 +44,20 @@ public class RepositoryResultsResourceTest
         .body(request).post();
 
     assertResponseStatus(200, response);
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
-        Arrays.asList(response.getBody(RepositoryResultsDetailsResponseDto[].class));
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(policyViolation.getThreatLevel());
-    assertThat(responseDtos.get(0).policyName).isEqualTo(policyViolation.getPolicyName());
-    assertThat(responseDtos.get(0).waived).isEqualTo(policyViolation.isWaived());
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g : a : v");
-    assertThat(responseDtos.get(0).pathname).isEqualTo(repositoryComponent.getPathname());
-    assertThat(responseDtos.get(0).hash).isEqualTo(repositoryComponent.getHash());
-    assertThat(responseDtos.get(0).matchStateId).isEqualTo(repositoryComponent.getMatchStateId());
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(
+    RepositoryResultsDetailsResponseDto responseDto = response.getBody(RepositoryResultsDetailsResponseDto.class);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(responseDto.repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(policyViolation.getThreatLevel());
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo(policyViolation.getPolicyName());
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(policyViolation.isWaived());
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : v");
+    assertThat(repositoryResultsDetails.get(0).pathname).isEqualTo(repositoryComponent.getPathname());
+    assertThat(repositoryResultsDetails.get(0).hash).isEqualTo(repositoryComponent.getHash());
+    assertThat(repositoryResultsDetails.get(0).matchStateId).isEqualTo(repositoryComponent.getMatchStateId());
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(
         repositoryComponent.isQuarantined() ? repositoryComponent.getQuarantineTime() : null);
 
-    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(responseDtos.get(0).componentIdentifier))
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(0).componentIdentifier))
         .isEqualTo(repositoryComponent.getComponentIdentifier());
   }
 }

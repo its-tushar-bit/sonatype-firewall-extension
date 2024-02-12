@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +52,7 @@ class RepositoryResultsService
   }
 
   @Authorize(permission = Permission.READ)
-  List<RepositoryResultsDetailsResponseDto> getDetails(
+  RepositoryResultsDetailsResponseDto getDetails(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final RepositoryResultsDetailsRequestDto detailsRequest)
   {
@@ -73,15 +72,24 @@ class RepositoryResultsService
     List<RepositoryResultsDetails> detailsList =
         repositoryPolicyViolationDAO.getRepositoryResultsDetails(repository.getId(), detailsFilter);
 
-    List<RepositoryResultsDetailsResponseDto> detailsResponseDtoList = new ArrayList<>();
+    RepositoryResultsDetailsResponseDto result = new RepositoryResultsDetailsResponseDto();
 
+    int iPattern = 1;
     for (RepositoryResultsDetails details : detailsList) {
-      detailsResponseDtoList.add(new RepositoryResultsDetailsResponseDto(details));
+      if (iPattern <= detailsRequest.pageSize) {
+        result.repositoryResultsDetails.add(new RepositoryResultsDetailsDto(details));
+      }
+      else {
+        result.hasNextPage = true;
+        break;
+      }
+
+      iPattern++;
     }
 
     log.info("Got repository results for {}:{} ({}) in {} ms", repository.getRepositoryManagerId(),
         repository.getPublicId(), repository.getId(), System.currentTimeMillis() - start);
-    return detailsResponseDtoList;
+    return result;
   }
 
   RepositoryResultsDetailsFilter validateAndInitializeDetailsFilter(

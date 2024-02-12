@@ -213,9 +213,9 @@ const getRepositoryComponentsPending = (state) => {
 const getRepositoryComponentsFulfilled = (state, { payload }) => {
   state.loadingRepositoryComponents = false;
   state.errorComponentsTable = null;
-  state.repositoryComponents = payload.slice(0, state.componentsRequestBody.pageSize);
+  state.repositoryComponents = payload.repositoryResultsDetails;
   state.unsortedComponents = state.repositoryComponents;
-  state.hasMoreResults = payload?.length > state.componentsRequestBody.pageSize;
+  state.hasMoreResults = payload.hasNextPage;
 };
 
 const getRepositoryComponentsRejected = (state, { payload }) => {

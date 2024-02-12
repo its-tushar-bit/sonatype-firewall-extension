@@ -178,22 +178,18 @@ describe('repositoryResultsSummaryPageSlice', () => {
         },
       });
 
-      const payload = [
-        {
-          threatLevel: 4,
-          policyName: 'Security-High',
-          quarantineTime: null,
-          componentDisplayText: 'Component name 1',
-          waived: false,
-        },
-        {
-          threatLevel: 5,
-          policyName: 'Security-High',
-          quarantineTime: null,
-          componentDisplayText: 'Component name 2',
-          waived: true,
-        },
-      ];
+      const payload = {
+        repositoryResultsDetails: [
+          {
+            threatLevel: 4,
+            policyName: 'Security-High',
+            quarantineTime: null,
+            componentDisplayText: 'Component name 1',
+            waived: false,
+          },
+        ],
+        hasNextPage: true,
+      };
 
       const expectedState = [
         {
@@ -255,7 +251,7 @@ describe('repositoryResultsSummaryPageSlice', () => {
         type: 'repositoryResultsSummaryPage/toggleAggregate',
       });
 
-      expect(aggregate).toBeFalse();
+      expect(aggregate).toBeFalsy();
       expect(page).toBe(1);
     });
 
@@ -272,7 +268,7 @@ describe('repositoryResultsSummaryPageSlice', () => {
         type: 'repositoryResultsSummaryPage/toggleAggregate',
       });
 
-      expect(aggregate).toBeTrue();
+      expect(aggregate).toBeTruthy();
       expect(page).toBe(1);
     });
   });

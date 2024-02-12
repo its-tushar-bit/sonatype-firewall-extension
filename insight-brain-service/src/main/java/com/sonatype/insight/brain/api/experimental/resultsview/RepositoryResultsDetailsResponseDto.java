@@ -5,48 +5,15 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
-
+/**
+ * @since 1.173
+ */
 public class RepositoryResultsDetailsResponseDto
 {
-  public Integer threatLevel;
+  public List<RepositoryResultsDetailsDto> repositoryResultsDetails = new ArrayList<>();
 
-  public String policyName;
-
-  public String componentDisplayText;
-
-  public String pathname;
-
-  public ApiComponentIdentifierDTOV2 componentIdentifier;
-
-  public String hash;
-
-  public String matchStateId;
-
-  public Date quarantineTime;
-
-  public Boolean waived;
-
-  public RepositoryResultsDetailsResponseDto() {
-  }
-
-  public RepositoryResultsDetailsResponseDto(final RepositoryResultsDetails details) {
-    ComponentIdentifier componentIdentifierFromJson = ComponentIdentifierAdapter
-        .formatAndJsonToComponentIdentifier(details.componentIdFormat, details.componentIdCoordinatesJson);
-
-    this.threatLevel = details.policyThreatLevel;
-    this.policyName = details.policyName;
-    this.componentDisplayText = details.componentDisplayName;
-    this.pathname = details.pathname;
-    this.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifierFromJson);
-    this.hash = details.hash;
-    this.matchStateId = details.matchStateId;
-    this.quarantineTime = details.quarantineTime;
-    this.waived = details.waived;
-  }
+  public boolean hasNextPage;
 }

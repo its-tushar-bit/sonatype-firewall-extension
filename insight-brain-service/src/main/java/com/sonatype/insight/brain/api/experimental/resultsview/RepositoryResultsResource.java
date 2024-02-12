@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -42,7 +40,7 @@ public class RepositoryResultsResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_REPOSITORY_RESULTS)
-  public List<RepositoryResultsDetailsResponseDto> getDetails(
+  public RepositoryResultsDetailsResponseDto getDetails(
       @PathParam("repositoryId") final String repositoryId,
       final RepositoryResultsDetailsRequestDto detailsRequest)
   {

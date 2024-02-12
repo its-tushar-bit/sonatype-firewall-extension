@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -89,40 +90,41 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(6);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isFalse();
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isTrue();
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(3).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(3).waived).isFalse();
-    assertThat(responseDtos.get(4).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(4).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(4).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(4).waived).isFalse();
-    assertThat(responseDtos.get(5).threatLevel).isNull();
-    assertThat(responseDtos.get(5).policyName).isNull();
-    assertThat(responseDtos.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(5).quarantineTime).isNull();
-    assertThat(responseDtos.get(5).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(5).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(5).waived).isEqualTo(null);
   }
 
   @Test
@@ -144,40 +146,41 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_ALL);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(6);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isFalse();
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isTrue();
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(3).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(3).waived).isFalse();
-    assertThat(responseDtos.get(4).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(4).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(4).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(4).waived).isFalse();
-    assertThat(responseDtos.get(5).threatLevel).isNull();
-    assertThat(responseDtos.get(5).policyName).isNull();
-    assertThat(responseDtos.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(5).quarantineTime).isNull();
-    assertThat(responseDtos.get(5).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(5).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(5).waived).isEqualTo(null);
   }
 
   @Test
@@ -200,40 +203,41 @@ public class RepositoryResultsServiceTest
     detailsRequest.matchStateFilters =
         ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT, MatchStateFilter.MATCH_STATE_UNKNOWN);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(6);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isFalse();
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isTrue();
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(3).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(3).waived).isFalse();
-    assertThat(responseDtos.get(4).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(4).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(4).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(4).waived).isFalse();
-    assertThat(responseDtos.get(5).threatLevel).isNull();
-    assertThat(responseDtos.get(5).policyName).isNull();
-    assertThat(responseDtos.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(5).quarantineTime).isNull();
-    assertThat(responseDtos.get(5).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(5).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(5).waived).isEqualTo(null);
   }
 
   @Test
@@ -255,25 +259,26 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(3);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isFalse();
-    assertThat(responseDtos.get(2).threatLevel).isNull();
-    assertThat(responseDtos.get(2).policyName).isNull();
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(2).quarantineTime).isNull();
-    assertThat(responseDtos.get(2).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(3);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(2).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(2).waived).isEqualTo(null);
   }
 
   @Test
@@ -295,25 +300,26 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_UNKNOWN);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(3);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isTrue();
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isFalse();
+    assertThat(repositoryResultsDetails).hasSize(3);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isFalse();
   }
 
   @Test
@@ -335,25 +341,26 @@ public class RepositoryResultsServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(3);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
-    assertThat(responseDtos.get(2).threatLevel).isNull();
-    assertThat(responseDtos.get(2).policyName).isNull();
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(2).quarantineTime).isNull();
-    assertThat(responseDtos.get(2).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(3);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(2).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(2).waived).isEqualTo(null);
   }
 
   @Test
@@ -376,20 +383,21 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
     detailsRequest.aggregate = true;
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isNull();
-    assertThat(responseDtos.get(1).threatLevel).isNull();
-    assertThat(responseDtos.get(1).policyName).isNull();
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(1).quarantineTime).isNull();
-    assertThat(responseDtos.get(1).waived).isNull();
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isNull();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(1).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(1).waived).isNull();
   }
 
   @Test
@@ -399,15 +407,16 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_NOT_VIOLATING);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(null);
-    assertThat(responseDtos.get(0).policyName).isEqualTo(null);
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(0).quarantineTime).isNull();
-    assertThat(responseDtos.get(0).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(null);
   }
 
   @Test
@@ -429,30 +438,31 @@ public class RepositoryResultsServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_OPEN);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(4);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isEqualTo(false);
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(3).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(3).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(4);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isEqualTo(false);
   }
 
   @Test
@@ -469,20 +479,21 @@ public class RepositoryResultsServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_QUARANTINED);
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(true);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(true);
   }
 
   @Test
@@ -497,15 +508,16 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_WAIVED);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(true);
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(true);
   }
 
   @Test
@@ -532,20 +544,21 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = ImmutableList.of(searchFilter);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
   }
 
   @Test
@@ -572,20 +585,21 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = ImmutableList.of(searchFilter);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
   }
 
   @Test
@@ -602,20 +616,21 @@ public class RepositoryResultsServiceTest
         ViolationStateFilter.VIOLATION_STATE_WAIVED);
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(true);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(null);
-    assertThat(responseDtos.get(1).policyName).isEqualTo(null);
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(1).quarantineTime).isNull();
-    assertThat(responseDtos.get(1).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(true);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(null);
   }
 
   @Test
@@ -633,20 +648,21 @@ public class RepositoryResultsServiceTest
         ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_OPEN, ViolationStateFilter.VIOLATION_STATE_QUARANTINED);
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
   }
 
   @Test
@@ -663,25 +679,26 @@ public class RepositoryResultsServiceTest
 
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
-    detailsRequest.pageSize = 1;
+    detailsRequest.pageSize = 2;
     detailsRequest.violationStateFilters =
         ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_OPEN, ViolationStateFilter.VIOLATION_STATE_WAIVED);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
   }
 
   @Test
@@ -708,15 +725,16 @@ public class RepositoryResultsServiceTest
         ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_QUARANTINED, ViolationStateFilter.VIOLATION_STATE_WAIVED);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
   }
 
   @Test
@@ -739,20 +757,21 @@ public class RepositoryResultsServiceTest
             ViolationStateFilter.VIOLATION_STATE_QUARANTINED);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(6);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(5).threatLevel).isEqualTo(null);
-    assertThat(responseDtos.get(5).policyName).isEqualTo(null);
-    assertThat(responseDtos.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(5).quarantineTime).isNull();
-    assertThat(responseDtos.get(5).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(5).policyName).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(5).waived).isEqualTo(null);
   }
 
   @Test
@@ -774,20 +793,21 @@ public class RepositoryResultsServiceTest
         ViolationStateFilter.VIOLATION_STATE_QUARANTINED, ViolationStateFilter.VIOLATION_STATE_WAIVED);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(4);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(true);
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(null);
-    assertThat(responseDtos.get(3).policyName).isEqualTo(null);
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(responseDtos.get(3).quarantineTime).isNull();
-    assertThat(responseDtos.get(3).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails).hasSize(4);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(true);
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(3).waived).isEqualTo(null);
   }
 
   @Test
@@ -881,20 +901,21 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = Collections.singletonList(searchFilter);
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
   }
 
   @Test
@@ -923,25 +944,26 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = Collections.singletonList(searchFilter);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(3);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v0");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isEqualTo(false);
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(3);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v0");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isEqualTo(false);
   }
 
   @Test
@@ -955,15 +977,16 @@ public class RepositoryResultsServiceTest
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policyName");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
-    assertThat(responseDtos.get(0).quarantineTime).isNull();
-    assertThat(responseDtos.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policyName");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
   }
 
   @Test
@@ -976,15 +999,16 @@ public class RepositoryResultsServiceTest
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(1);
-    assertThat(responseDtos.get(0).threatLevel).isNull();
-    assertThat(responseDtos.get(0).policyName).isNull();
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
-    assertThat(responseDtos.get(0).quarantineTime).isNull();
-    assertThat(responseDtos.get(0).waived).isNull();
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(0).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(0).waived).isNull();
   }
 
   @Test
@@ -1006,20 +1030,21 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.threatLevelFilters = Arrays.asList(5, 5);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(2);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isTrue();
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isTrue();
   }
 
   @Test
@@ -1045,34 +1070,51 @@ public class RepositoryResultsServiceTest
     searchFilter.value = simpleDateFormat.format(date);
     detailsRequest.searchFilters = Collections.singletonList(searchFilter);
 
-    List<RepositoryResultsDetailsResponseDto> responseDtos =
+    RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(responseDtos).hasSize(5);
-    assertThat(responseDtos.get(0).threatLevel).isEqualTo(1);
-    assertThat(responseDtos.get(0).policyName).isEqualTo("policy3");
-    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(0).waived).isFalse();
-    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(1).waived).isFalse();
-    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
-    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
-    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(2).waived).isTrue();
-    assertThat(responseDtos.get(3).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(3).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
-    assertThat(responseDtos.get(3).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(3).waived).isFalse();
-    assertThat(responseDtos.get(4).threatLevel).isEqualTo(10);
-    assertThat(responseDtos.get(4).policyName).isEqualTo("policy1");
-    assertThat(responseDtos.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
-    assertThat(responseDtos.get(4).quarantineTime).isEqualTo(date);
-    assertThat(responseDtos.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails).hasSize(5);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+  }
+
+  @Test
+  public void testGetDetails_hasNextPage() {
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 5;
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    assertThat(responseDto.hasNextPage).isTrue();
+
+    detailsRequest.pageSize = 10;
+
+    responseDto = repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    assertThat(responseDto.hasNextPage).isFalse();
   }
 }

@@ -18,7 +18,7 @@
 
   <properties>
     <test.forkCount>0.5C</test.forkCount>
-    <freemarker.version>2.3.31</freemarker.version>
+    <freemarker.version>2.3.32</freemarker.version>
     <truezipVersion>7.7.10</truezipVersion>
   </properties>
 

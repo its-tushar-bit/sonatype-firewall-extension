@@ -270,6 +270,7 @@ const RepositoriesConfigurationTile = () => {
                   placeholder="Repository name"
                   onChange={setRepositoryPublicIdFilter}
                   value={repositoryPublicIdFilter}
+                  className="iq-repositories-configuration-table-filter"
                 />
               </NxTable.Cell>
               <NxTable.Cell>
@@ -281,6 +282,7 @@ const RepositoriesConfigurationTile = () => {
                   selectedIds={repositoryFormatsFilter}
                   onChange={setRepositoryFormatsFilter}
                   showReset={true}
+                  className="iq-repositories-configuration-table-filter"
                 />
               </NxTable.Cell>
               <NxTable.Cell />

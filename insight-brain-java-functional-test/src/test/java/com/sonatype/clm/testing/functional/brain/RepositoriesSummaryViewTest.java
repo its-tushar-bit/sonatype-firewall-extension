@@ -187,8 +187,6 @@ public class RepositoriesSummaryViewTest
       ConfigurationTableRow repositoryRow,
       Repository repositoryToDelete)
   {
-    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(2000, 1000));
-
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
 
     NxDeleteModal deleteModal = new NxDeleteModal("#repositories-delete-modal");

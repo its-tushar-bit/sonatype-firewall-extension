@@ -6,10 +6,10 @@
 
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import javax.inject.Inject;
-
 import java.io.IOException;
 import java.util.Collections;
+
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -38,6 +38,7 @@ import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestImpl;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -94,7 +95,7 @@ public class SastPullRequestCommentingServiceTest
   private Application application;
 
   @Before
-  public void before() throws IOException {
+  public void before() {
     final Organization org = tempEntity.newOrganization();
     application = tempEntity.newApplication(org.getId());
 

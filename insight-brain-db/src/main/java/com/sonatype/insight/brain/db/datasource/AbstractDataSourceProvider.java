@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.db.datasource;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
@@ -37,7 +38,7 @@ public abstract class AbstractDataSourceProvider
     if (databaseConfig.getMaxConnections() != null) {
       maxConnections = databaseConfig.getMaxConnections();
     }
-    dataSource.setMaxConnLifetimeMillis(TimeUnit.SECONDS.toMillis(databaseConfig.getMaxConnectionLifetimeSeconds()));
+    dataSource.setMaxConn(Duration.ofSeconds(databaseConfig.getMaxConnectionLifetimeSeconds()));
     dataSource.setLogExpiredConnections(false);
     log.debug("Setting database connection pool max size to {}.", maxConnections);
     dataSource.setMaxTotal(maxConnections);
@@ -49,7 +50,7 @@ public abstract class AbstractDataSourceProvider
     dataSource.setDefaultReadOnly(databaseConfig.isReadOnly());
     dataSource.setAutoCommitOnReturn(databaseConfig.isAutoCommitOnReturnToPool());
     dataSource.setTestOnBorrow(true);
-    dataSource.setValidationQueryTimeout(databaseConfig.getConnectionValidationTimeoutSeconds());
+    dataSource.setValidationQueryTimeout(Duration.ofSeconds(databaseConfig.getConnectionValidationTimeoutSeconds()));
     dataSource.setAccessToUnderlyingConnectionAllowed(databaseConfig.isAccessToUnderlyingConnectionAllowed());
     if (databaseConfig.getSessionVariables() != null) {
       dataSource.addConnectionProperty("sessionVariables", databaseConfig.getSessionVariables());

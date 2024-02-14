@@ -11,15 +11,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.Feature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,17 +60,6 @@ public class ApiConfigFeaturesService
 
   public static final String FEATURE_SCM_UX_IMPROVEMENTS = "scmUxImprovements";
 
-  public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
-
-  public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";
-
-  private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
-  @Inject
-  public static void injectDependencies(final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
-    ApiConfigFeaturesService.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
-  }
-
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
       new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
   );
@@ -85,203 +71,6 @@ public class ApiConfigFeaturesService
       SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED
   );
 
-  /**
-   * This enumeration contains features that can be enabled/disabled by the {@link ApiConfigFeaturesResource}.
-   * <br/><br/> Each enum value has these properties:
-   * <ul>
-   *   <li>
-   *     {@code name} - this is returned to the frontend via {@link FeaturesResource#getFeatures()} after being
-   *     transformed according to {@link Feature#getId()}.
-   *   </li>
-   *   <li>
-   *     {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table.
-   *   </li>
-   *   <li>
-   *     {@code propertyValue} - this represents the value that will be stored in the
-   *     {@link SystemConfigurationProperty} table. Note that the value has no impact on whether or not the feature is
-   *     enabled/disabled (only the presence/absence of the row itself). However the value can be set to help
-   *     understanding. This defaults to the opposite of {@code enabledWhenAbsent}.
-   *   </li>
-   *   <li>
-   *     {@code enabledWhenAbsent} - if this is {@code true}, then the feature will be enabled even if its
-   *     {@code propertyName} is absent from the {@link SystemConfigurationProperty} table.
-   *   </li>
-   * </ul>
-   * Note that if you want the feature name passed to {@link ApiConfigFeaturesResource} to be different to the
-   * {@code name}, result of {@link Feature#getId()}, and {@code propertyName}, then you need to add a mapping to the
-   * {@link ApiConfigFeaturesService#getPropertyNameForFeature} method.
-   * <br/><br/>
-   * Typically, a feature would start with {@code enabledWhenAbsent} set to {@code false}, making it experimental.
-   * When it's production-ready {@code enabledWhenAbsent} can be changed to {@code true} alongside an incremental script
-   * to delete the feature from the {@link SystemConfigurationProperty} table.
-   */
-  public enum SystemConfigurationPropertyFeature
-      implements Feature
-  {
-    DASHBOARD_CAN_BE_ENABLED(SystemConfigurationProperty.DASHBOARD_DISABLED, true, true),
-    REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, true, true),
-    VULNERABILITY_SOURCE(
-        SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
-    BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
-    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
-    WEBHOOK_CONFIGURATION(SystemConfigurationProperty.WEBHOOK_CONFIGURATION, true),
-    PRODUCT_LICENSE_CONFIGURATION(SystemConfigurationProperty.PRODUCT_LICENSE_CONFIGURATION, true),
-    LDAP_CONFIGURATION(SystemConfigurationProperty.LDAP_CONFIGURATION, true),
-    EMAIL_CONFIGURATION(SystemConfigurationProperty.EMAIL_CONFIGURATION, true),
-    PROXY_CONFIGURATION(SystemConfigurationProperty.PROXY_CONFIGURATION, true),
-    SYSTEM_NOTICE_CONFIGURATION(SystemConfigurationProperty.SYSTEM_NOTICE_CONFIGURATION, true),
-    SUCCESS_METRICS_CONFIGURATION(SystemConfigurationProperty.SUCCESS_METRICS_CONFIGURATION, true),
-    AUTOMATIC_APPLICATION_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CONFIGURATION, true),
-    AUTOMATIC_SCM_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, true),
-    ADVANCED_SEARCH_CONFIGURATION(SystemConfigurationProperty.ADVANCED_SEARCH_CONFIGURATION, true),
-    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED, true),
-    CODE_INSIGHTS(SystemConfigurationProperty.CODE_INSIGHTS, true),
-    COMPONENT_SEARCH_API_WITH_INNERSOURCE(SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE, true),
-    DEFAULT_BRANCH_MONITORING(SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING, true),
-    DEPENDENCY_DATA_IN_API(SystemConfigurationProperty.DEPENDENCY_DATA_IN_API, true),
-    INNER_SOURCE_TRANSITIVE_WAIVER(SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER, true),
-    INNER_SOURCE_REPOSITORY_INTEGRATION(SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION, true),
-    PR_COMMENTING(SystemConfigurationProperty.PR_COMMENTING, true),
-    PR_LINE_COMMENTING(SystemConfigurationProperty.PR_LINE_COMMENTING, true),
-    ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true)
-    {
-      @Override
-      public boolean isEnabled() {
-        String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
-        return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
-      }
-    },
-    ENABLE_SSO_ONLY(SystemConfigurationProperty.ENABLE_SSO_ONLY, false)
-    {
-      @Override
-      public boolean isEnabled() {
-        String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
-        return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
-      }
-    },
-
-    API_PAGE(SystemConfigurationProperty.API_PAGE, false),
-
-    SCAN_POM_FILES_IN_META_INF_DIRECTORY(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY, false),
-
-    SCAN_NPM_DEV_AND_OPT_DEPENDENCIES(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES, false),
-
-    /**
-     * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}
-     */
-    @Deprecated
-    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS(
-        SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true),
-
-    /**
-     * Internal feature flag to enable Firewall Onboarding.
-     * It is enabled by default in IQ >= 167. Disabled by default in IQ < 167.
-     */
-    INTERNAL_FIREWALL_ONBOARDING_ENABLED(SystemConfigurationProperty.INTERNAL_FIREWALL_ONBOARDING_ENABLED,
-        true /* propertyValue */, true /* enabledWhenAbsent */),
-
-    /**
-     * If configured a logout request will be sent to Auth0 via a browser redirect when the application is logged out
-     */
-    LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false, false),
-
-    /**
-     * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
-     */
-    SSO_IDP_MANAGED_BY_SONATYPE(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, false, false),
-
-    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
-
-    /**
-     * Self-Hosted: SCM is not feature flagged for self-hosted, so it must always return true for self-hosted.
-     * SaaS: SAAS_LIFECYCLE_SCM_ENABLED is enabled by default.
-     */
-    SAAS_LIFECYCLE_SCM_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED, true)
-    {
-      @Override
-      public boolean isEnabled() {
-        if (tenantUtil.isSingleTenant()) {
-          return true;
-        }
-        return super.isEnabled();
-      }
-    },
-
-    /**
-     * If SAAS_PRE_REGISTER_ALL_TENANTS is set to true (the default), all SaaS tenants will be pre-registered during
-     * boot as opposed to tenant registration happening with the first access of tenant
-     */
-    SAAS_PRE_REGISTER_ALL_TENANTS(SystemConfigurationProperty.SAAS_PRE_REGISTER_ALL_TENANTS, true, true);
-
-    protected final TenantUtil tenantUtil;
-
-    private final String propertyName;
-
-    private final boolean propertyValue;
-
-    private final boolean enabledWhenAbsent;
-
-    SystemConfigurationPropertyFeature(final String propertyName, final boolean enabledWhenAbsent) {
-      this(propertyName, !enabledWhenAbsent, enabledWhenAbsent);
-    }
-
-    SystemConfigurationPropertyFeature(
-        final String propertyName,
-        final boolean propertyValue,
-        final boolean enabledWhenAbsent)
-    {
-      this(propertyName, propertyValue, enabledWhenAbsent, new TenantUtil());
-    }
-
-    SystemConfigurationPropertyFeature(
-        final String propertyName,
-        final boolean propertyValue,
-        final boolean enabledWhenAbsent,
-        final TenantUtil tenantUtil)
-    {
-      this.propertyName = propertyName;
-      this.propertyValue = propertyValue;
-      this.enabledWhenAbsent = enabledWhenAbsent;
-      this.tenantUtil = tenantUtil;
-    }
-
-    public String getPropertyName() {
-      return propertyName;
-    }
-
-    public boolean getPropertyValue() {
-      return propertyValue;
-    }
-
-    public boolean isEnabledWhenAbsent() {
-      return enabledWhenAbsent;
-    }
-
-    public boolean isEnabled() {
-      SystemConfigurationProperty systemConfigurationProperty = systemConfigurationPropertyDAO.getByName(propertyName);
-      return isEnabled(systemConfigurationProperty, enabledWhenAbsent);
-    }
-
-    public static boolean isEnabled(
-        SystemConfigurationProperty systemConfigurationProperty,
-        boolean enabledWhenAbsent)
-    {
-      return systemConfigurationProperty == null ? enabledWhenAbsent : !enabledWhenAbsent;
-    }
-
-    public void setEnabled(boolean enabled) {
-      if (isEnabled() == enabled) {
-        return;
-      }
-      if (enabled) {
-        ApiConfigFeaturesService.enableFeature(tenantUtil, this);
-      }
-      else {
-        ApiConfigFeaturesService.disableFeature(tenantUtil, this);
-      }
-    }
-  }
-
   private final TenantUtil tenantUtil;
 
   @Inject
@@ -290,8 +79,8 @@ public class ApiConfigFeaturesService
   }
 
   /**
-   * isFeatureEnabled this method is useful as it allows the use of features with injection rather than using the
-   * static {@link SystemConfigurationPropertyFeature#isEnabled()} method.
+   * isFeatureEnabled this method is useful as it allows the use of features with injection rather than using the static
+   * {@link SystemConfigurationPropertyFeature#isEnabled()} method.
    *
    * @return boolean true if the feature is enabled, else false
    */
@@ -316,37 +105,16 @@ public class ApiConfigFeaturesService
   }
 
   public void enableFeatureNoAuthz(String feature) {
-    throwErrorIfFeatureNoLongerSupported(feature);
+    SystemConfigurationPropertyFeature systemConfigurationPropertyFeature =
+        getSystemConfigurationPropertyFeature(feature);
 
-    String propertyName = getPropertyNameForFeature(feature);
-    throwErrorWhenSingleTenantAndPropertyNotSupported(tenantUtil, propertyName);
-
-    enableFeature(tenantUtil, getSystemConfigurationPropertyFeature(feature));
-    log.debug("Enabled feature '{}'", feature);
-  }
-
-  private static void enableFeature(
-      TenantUtil tenantUtil,
-      SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
-  {
-    String featureName = systemConfigurationPropertyFeature.getPropertyName();
-    boolean featureValue = systemConfigurationPropertyFeature.getPropertyValue();
-    boolean enabledWhenAbsent = systemConfigurationPropertyFeature.isEnabledWhenAbsent();
-
-    throwErrorWhenSingleTenantAndPropertyNotSupported(tenantUtil, featureName);
-
-    SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
-    if (SystemConfigurationPropertyFeature.isEnabled(systemConfiguration, enabledWhenAbsent)) {
+    if (systemConfigurationPropertyFeature.isEnabled()) {
       throw new FeatureAlreadyEnabledException("Feature is already enabled.");
     }
-    if (enabledWhenAbsent) {
-      AuditData.get().setData(featureName, "null");
-      systemConfigurationPropertyDAO.delete(systemConfiguration);
-    }
-    else {
-      AuditData.get().setData(featureName, String.valueOf(featureValue));
-      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
-    }
+
+    systemConfigurationPropertyFeature.setEnabled(true);
+    AuditData.get().setSystemConfigurationPropertyFeature(systemConfigurationPropertyFeature);
+    log.debug("Enabled feature '{}'", feature);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -355,50 +123,30 @@ public class ApiConfigFeaturesService
   }
 
   public void disableFeatureNoAuthz(String feature) {
-    throwErrorIfFeatureNoLongerSupported(feature);
+    SystemConfigurationPropertyFeature systemConfigurationPropertyFeature =
+        getSystemConfigurationPropertyFeature(feature);
 
-    disableFeature(tenantUtil, getSystemConfigurationPropertyFeature(feature));
+    if (!systemConfigurationPropertyFeature.isEnabled()) {
+      throw new FeatureAlreadyDisabledException("Feature is already disabled.");
+    }
+
+    systemConfigurationPropertyFeature.setEnabled(false);
+    AuditData.get().setSystemConfigurationPropertyFeature(systemConfigurationPropertyFeature);
     log.debug("Disabled feature '{}'", feature);
   }
 
-  private static void disableFeature(
-      TenantUtil tenantUtil,
-      SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
-  {
-    String featureName = systemConfigurationPropertyFeature.getPropertyName();
-    boolean featureValue = systemConfigurationPropertyFeature.getPropertyValue();
-    boolean enabledWhenAbsent = systemConfigurationPropertyFeature.isEnabledWhenAbsent();
-
-    throwErrorWhenSingleTenantAndPropertyNotSupported(tenantUtil, featureName);
-
-    SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
-
-    if (!SystemConfigurationPropertyFeature.isEnabled(systemConfiguration, enabledWhenAbsent)) {
-      throw new FeatureAlreadyDisabledException("Feature is already disabled.");
-    }
-    if (!enabledWhenAbsent) {
-      AuditData.get().setData(featureName, "null");
-      systemConfigurationPropertyDAO.delete(systemConfiguration);
-    }
-    else {
-      AuditData.get().setData(featureName, String.valueOf(featureValue));
-      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
-    }
-  }
-
-  private void throwErrorIfFeatureNoLongerSupported(final String feature) {
+  private static void throwErrorIfFeatureNoLongerSupported(final String feature) {
     NO_LONGER_SUPPORTED_FLAGS
         .stream()
         .filter(entry -> entry.getFeatureName().equals(feature))
         .findFirst()
         .ifPresent(unsupportedFeature -> {
           if (unsupportedFeature.hasReplacementFeatureName()) {
-            throw new javax.ws.rs.BadRequestException("'" + feature + "' is no longer supported. Instead you can " +
+            throw new BadRequestException("'" + feature + "' is no longer supported. Instead you can " +
                 "disable and enable the feature using '" + unsupportedFeature.getReplacementFeatureName() + "'");
           }
-          else
-          {
-            throw new javax.ws.rs.BadRequestException("'" + feature + "' is no longer supported.");
+          else {
+            throw new BadRequestException("'" + feature + "' is no longer supported.");
           }
         });
   }

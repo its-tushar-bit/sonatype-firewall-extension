@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -144,6 +145,7 @@ public class SearchService
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page, boolean allComponents)
       throws IOException
   {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     return searchIndex(searchQuery, pageSize, page, allComponents, false);
   }
 
@@ -294,6 +296,7 @@ public class SearchService
   }
 
   public Response exportSearch(String searchQuery, boolean allComponents) {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     try {
       List<SearchResultItemDTO> searchResultItemsDTO =
           searchIndex(searchQuery, 0, 0, allComponents, true)

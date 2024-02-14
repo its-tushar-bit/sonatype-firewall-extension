@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFi
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkAuth0Provider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkLocalProvider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -43,6 +42,7 @@ import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.report.Report;
@@ -319,7 +319,7 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(ConfigurationUtils.class);
         requestStaticInjection(Report.class);
         requestStaticInjection(ComponentDetailsLoader.class);
-        requestStaticInjection(ApiConfigFeaturesService.class);
+        requestStaticInjection(SystemConfigurationPropertyFeature.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
 

@@ -8,11 +8,9 @@ package com.sonatype.insight.brain.api.admin.service;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
@@ -47,8 +45,6 @@ public class TenantProvisioningService
 
   private final UserDAO userDAO;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   private final MultiTenantInsightConfig config;
 
   @Inject
@@ -59,7 +55,6 @@ public class TenantProvisioningService
       TenantDeregistrationJob tenantDeregistrationJob,
       DeletedTenantDAO deletedTenantDAO,
       UserDAO userDAO,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       MultiTenantInsightConfig config)
   {
     this.databaseProvisioner = databaseProvisioner;
@@ -68,7 +63,6 @@ public class TenantProvisioningService
     this.tenantDeregistrationJob = tenantDeregistrationJob;
     this.deletedTenantDAO = deletedTenantDAO;
     this.userDAO = userDAO;
-    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.config = config;
   }
 
@@ -105,10 +99,6 @@ public class TenantProvisioningService
     if (admin != null && config.isDeleteBuiltInAdmin()) {
       userDAO.delete(admin);
     }
-
-    // Disable advanced search. This configuration is not exposed via the Features REST API and so can't be
-    // controlled via MTIQFeatureService
-    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "false");
   }
 
   /**

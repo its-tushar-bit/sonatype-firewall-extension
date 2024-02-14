@@ -17,8 +17,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Application;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 

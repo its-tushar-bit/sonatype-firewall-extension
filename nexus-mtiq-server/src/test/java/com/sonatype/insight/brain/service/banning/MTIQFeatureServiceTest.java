@@ -11,11 +11,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -29,7 +31,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
@@ -41,8 +42,12 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MTIQFeatureServiceTest
@@ -71,7 +76,11 @@ public class MTIQFeatureServiceTest
   public void setup() {
     tenantUtil.setGlobalTenant();
     underTest = new TestableMTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
-    ApiConfigFeaturesService.injectDependencies(systemConfigurationPropertyDAO);
+    when(systemConfigurationPropertyDAO.getByName(any(),
+        eq(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getPropertyName()))).thenReturn(
+        new SystemConfigurationProperty());
+    when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(mock(TransactionContext.class));
+    SystemConfigurationPropertyFeature.injectDependencies(systemConfigurationPropertyDAO);
   }
 
   @Test
@@ -101,7 +110,7 @@ public class MTIQFeatureServiceTest
     Feature[] expectedFeatures = concat(ImmutableSet.of(
             MULTI_TENANT,
             DASHBOARD,
-            DASHBOARD_CAN_BE_ENABLED,
+            SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED,
             HYGIENE,
             WEBHOOKS_FOR_REPOSITORIES,
             FIREWALL,
@@ -115,7 +124,8 @@ public class MTIQFeatureServiceTest
             RELEASE_INTEGRITY,
             RM_STAGING_INTEGRATION,
             SAML_USER_TOKENS,
-            WEBHOOKS_FOR_APPLICATIONS).stream(),
+            WEBHOOKS_FOR_APPLICATIONS,
+            SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION).stream(),
 
         //Add all licensed Features
         stream(LicensedFeature.values())
@@ -180,27 +190,28 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_containsAuth0Logout() {
     underTest.register();
 
-    verify(service).enableFeatureNoAuthz(LOGOUT_AUTH0_ON_LOGOUT.getPropertyName());
+    verify(service).enableFeatureNoAuthz(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getPropertyName());
   }
 
   private String[] getDisabledSystemConfigurationPropertyFeatures() {
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(f -> !f.equals(DASHBOARD_CAN_BE_ENABLED))
-        .filter(f -> !f.equals(REPORTS_LIST_CAN_BE_ENABLED))
-        .filter(f -> !f.equals(EMAIL_CONFIGURATION))
-        .filter(f -> !f.equals(LOGOUT_AUTH0_ON_LOGOUT))
-        .filter(f -> !f.equals(WEBHOOK_CONFIGURATION))
-        .filter(f -> !f.equals(ENABLE_SSO_ONLY))
-        .filter(f -> !f.equals(AUTOMATIC_SCM_CONFIGURATION))
-        .filter(f -> !f.equals(DEFAULT_BRANCH_MONITORING))
-        .filter(f -> !f.equals(PR_COMMENTING))
-        .filter(f -> !f.equals(PR_LINE_COMMENTING))
-        .filter(f -> !f.equals(INTERNAL_FIREWALL_ONBOARDING_ENABLED))
-        .filter(f -> !f.equals(AUTOMATIC_APPLICATION_CONFIGURATION))
-        .filter(f -> !f.equals(INNER_SOURCE_REPOSITORY_INTEGRATION))
-        .filter(f -> !f.equals(INNER_SOURCE_TRANSITIVE_WAIVER))
-        .filter(f -> !f.equals(SAAS_PRE_REGISTER_ALL_TENANTS))
-        .filter(f -> !f.equals(SAAS_LIFECYCLE_SCM_ENABLED))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.PR_COMMENTING))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.PR_LINE_COMMENTING))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }
@@ -228,7 +239,8 @@ public class MTIQFeatureServiceTest
           .collect(toSet());
 
       features.add(SINGLE_TENANT);
-      features.add(DASHBOARD_CAN_BE_ENABLED);
+      features.add(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED);
+      features.add(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION);
 
       return features;
     }

@@ -10,6 +10,7 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -535,7 +536,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testFeature_EnableUnauthenticatedPages_EnvironmentalVariableOverridesWithFalse() {
-    environmentVariables.set(ApiConfigFeaturesService.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "false");
+    environmentVariables.set(SystemConfigurationPropertyFeature.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "false");
     // null in db indicating it is enabled since enabled by default
     assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES)).isNull();
     // env variable overrides and returns false
@@ -544,10 +545,9 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testFeature_EnableUnauthenticatedPages_EnvironmentalVariableOverridesWithTrue() {
-    environmentVariables.set(ApiConfigFeaturesService.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "true");
+    environmentVariables.set(SystemConfigurationPropertyFeature.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "true");
     // false in db:
-    SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
-    assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES).getValue()).isEqualTo("false");
+    systemConfigurationPropertyDAO.set(ENABLE_UNAUTHENTICATED_PAGES, "false");
     // env variable overrides and returns true
     assertThat(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.isEnabled()).isTrue();
   }
@@ -718,16 +718,6 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testEnableFeature_SaasLifecycleScmEnabled_disableForSingleTenant() {
     assertThatThrownBy(() -> service.disableFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testEnableFeature_SaasLifecycleScmEnabled_setEnabledFalseForSingleTenant() {
-    tempEntity.newSystemConfigurationProperty(SAAS_LIFECYCLE_SCM_ENABLED, "true");
-
-    assertThatThrownBy(() -> SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.setEnabled(false))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("'SAAS_LIFECYCLE_SCM_ENABLED' is not supported for self hosted.");
     assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.isEnabled()).isTrue();

@@ -59,6 +59,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.webhooks().shouldBe(visible);
     mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(visible);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }
 
@@ -79,6 +80,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.webhooks().shouldBe(visible);
     mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(visible);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }
 
@@ -101,6 +103,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.webhooks().shouldBe(visible);
     mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }
 
@@ -123,6 +126,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.webhooks().shouldBe(hidden);
     mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(hidden);
+    mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
     checkMtiqOmissions();
   }
 
@@ -134,6 +138,5 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.samlConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.systemNotice().shouldBe(hidden);
     mtiqSystemConfigMenu.successMetrics().shouldBe(hidden);
-    mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
   }
 }

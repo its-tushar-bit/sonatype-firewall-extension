@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.aop.AnnotationHandler;

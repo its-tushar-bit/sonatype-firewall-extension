@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;

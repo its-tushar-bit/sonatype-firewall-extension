@@ -10,13 +10,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.Feature;
@@ -68,7 +66,7 @@ public class FeaturesService
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
       features.addAll(
-          Arrays.stream(ApiConfigFeaturesService.SystemConfigurationPropertyFeature.values())
+          Arrays.stream(SystemConfigurationPropertyFeature.values())
               .filter(SystemConfigurationPropertyFeature::isEnabled)
               .collect(Collectors.toSet())
       );

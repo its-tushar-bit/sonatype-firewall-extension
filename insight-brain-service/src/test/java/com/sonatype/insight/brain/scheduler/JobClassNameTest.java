@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.scheduler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -71,6 +70,8 @@ public class JobClassNameTest
         "QuarantinedComponentAccessPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.search.index.IndexService",
         "SearchIndexUpdate");
+    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.search.index.IndexCreationScheduler",
+        "SearchIndexCreate");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.api.v2.service.ApiConfigurationService",
         "Configuration");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService",

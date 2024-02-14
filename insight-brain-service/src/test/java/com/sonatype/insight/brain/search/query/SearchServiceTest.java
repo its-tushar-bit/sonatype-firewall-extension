@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -84,6 +86,15 @@ public class SearchServiceTest
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
     super.configure(binder);
+  }
+
+  @Test
+  public void testSearchIndex_AdvancedSearchConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
+        .withMessage("advanced-search-configuration feature is disabled.");
   }
 
   @Test
@@ -481,6 +492,15 @@ public class SearchServiceTest
       configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
     }
+  }
+
+  @Test
+  public void testExportSearch_AdvancedSearchConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> searchService.exportSearch("itemType:*", true))
+        .withMessage("advanced-search-configuration feature is disabled.");
   }
 
   @Test

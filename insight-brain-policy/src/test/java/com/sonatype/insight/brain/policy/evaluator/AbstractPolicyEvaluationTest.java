@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -82,6 +83,8 @@ public abstract class AbstractPolicyEvaluationTest
     }
 
     daoFactory = new TestDAOFactory(databaseRule);
+
+    SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
 
     // Re-inject classes that have static dependencies
     ConditionTypesTestHelper.initConditionTypes(daoFactory);

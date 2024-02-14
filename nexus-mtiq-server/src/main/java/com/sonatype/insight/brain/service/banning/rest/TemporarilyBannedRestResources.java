@@ -9,14 +9,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiAdvancedSearchResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.labs.LabsResource;
-import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 
@@ -38,10 +36,6 @@ public class TemporarilyBannedRestResources
 
       // Integrations CLM-27720
       IdeResource.class,
-
-      // Advanced search CLM-27720
-      AdvancedSearchResource.class,
-      DefaultApiAdvancedSearchResourceV2.class,
 
       // Labs CLM-27720
       LabsResource.class,

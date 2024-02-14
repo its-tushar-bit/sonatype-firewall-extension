@@ -23,7 +23,6 @@ import javax.servlet.Filter;
 import javax.validation.Validator;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditFilter;
@@ -49,6 +48,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DbMigrationCommand;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.report.Report;
@@ -551,7 +551,7 @@ public class InsightBrainService
         requestStaticInjection(ConfigurationUtils.class);
         requestStaticInjection(Report.class);
         requestStaticInjection(ComponentDetailsLoader.class);
-        requestStaticInjection(ApiConfigFeaturesService.class);
+        requestStaticInjection(SystemConfigurationPropertyFeature.class);
 
         bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
 

@@ -17,7 +17,7 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 

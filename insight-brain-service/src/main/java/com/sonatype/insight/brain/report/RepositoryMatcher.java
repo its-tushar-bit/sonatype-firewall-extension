@@ -36,7 +36,6 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
@@ -55,6 +54,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;

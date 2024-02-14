@@ -9,7 +9,7 @@ import java.net.URI;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.BaseUrl;
 
 import org.keycloak.adapters.saml.SamlDeployment;

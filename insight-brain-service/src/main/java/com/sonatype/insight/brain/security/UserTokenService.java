@@ -17,7 +17,6 @@ import javax.inject.Named;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;

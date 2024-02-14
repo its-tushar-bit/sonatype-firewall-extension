@@ -11,11 +11,11 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -48,14 +49,10 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -82,11 +79,15 @@ public class IndexServiceTest
   @Mock
   private IndexWriter indexWriterMock;
 
+  @Mock
+  private IndexCreationScheduler mockIndexCreationScheduler;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    binder.bind(IndexCreationScheduler.class).toInstance(mockIndexCreationScheduler);
     super.configure(binder);
   }
 
@@ -323,6 +324,15 @@ public class IndexServiceTest
   }
 
   @Test
+  public void testCreateSearchIndexAsync_AdvancedSearchConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> indexService.createSearchIndexAsync())
+        .withMessage("advanced-search-configuration feature is disabled.");
+  }
+
+  @Test
   public void testCreateSearchIndex_Telemetry() throws Exception {
     long start = System.currentTimeMillis();
     indexService.createSearchIndex();
@@ -352,30 +362,10 @@ public class IndexServiceTest
     IndexService indexServiceSpy = spy(indexService);
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
-      JobExecutionContext jobExecutionContext = mock(JobExecutionContext.class);
-      when(jobExecutionContext.getMergedJobDataMap()).thenReturn(new JobDataMap());
-      indexServiceSpy.execute(jobExecutionContext);
+      indexServiceSpy.execute(null);
     }
 
     verify(indexServiceSpy).updateIndex();
-  }
-
-  @Test
-  public void testExecute_FullIndexing() throws Exception {
-    IndexService indexServiceSpy = spy(indexService);
-    doAnswer(invocationOnMock -> {
-      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
-      return null;
-    }).when(indexServiceSpy).createSearchIndex();
-
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
-      JobExecutionContext jobExecutionContext = mock(JobExecutionContext.class);
-      when(jobExecutionContext.getMergedJobDataMap())
-          .thenReturn(new JobDataMap(Collections.singletonMap(IndexService.TASK_PARAM_INDEX_ALL, "true")));
-      indexServiceSpy.execute(jobExecutionContext);
-    }
-
-    verify(indexServiceSpy).createSearchIndex();
   }
 
   @Test
@@ -383,5 +373,19 @@ public class IndexServiceTest
     indexService.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(indexService, Duration.ofSeconds(3));
+  }
+
+  @Test
+  public void testCreateSearchIndexAsync() {
+    indexService.createSearchIndexAsync();
+
+    verify(taskSchedulerMock).scheduleOneTimeTask(mockIndexCreationScheduler);
+  }
+
+  @Test
+  public void testIsFullIndexTriggered() {
+    indexService.isFullIndexTriggered();
+
+    verify(taskSchedulerMock).isJobTriggered(mockIndexCreationScheduler, Collections.emptyMap());
   }
 }

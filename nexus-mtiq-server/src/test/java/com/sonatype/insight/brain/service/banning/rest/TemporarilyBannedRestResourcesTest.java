@@ -33,8 +33,8 @@ public class TemporarilyBannedRestResourcesTest
 
     assertThat(underTest.isBanned(IdeResource.class)).isTrue();
 
-    assertThat(underTest.isBanned(AdvancedSearchResource.class)).isTrue();
-    assertThat(underTest.isBanned(DefaultApiAdvancedSearchResourceV2.class)).isTrue();
+    assertThat(underTest.isBanned(AdvancedSearchResource.class)).isFalse();
+    assertThat(underTest.isBanned(DefaultApiAdvancedSearchResourceV2.class)).isFalse();
 
     assertThat(underTest.isBanned(LabsResource.class)).isTrue();
 

@@ -13,11 +13,11 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
@@ -28,7 +28,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
@@ -58,11 +57,11 @@ public class MTIQFeatureService
    * This is the list of features that are always enabled in MTIQ.
    */
   private static final List<SystemConfigurationPropertyFeature> MTIQ_ENABLED_FEATURES = Arrays.asList(
-      ENABLE_SSO_ONLY,
-      AUTOMATIC_APPLICATION_CONFIGURATION,
-      INNER_SOURCE_REPOSITORY_INTEGRATION,
-      INNER_SOURCE_TRANSITIVE_WAIVER,
-      LOGOUT_AUTH0_ON_LOGOUT);
+      SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
+      SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
+      SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
+      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
+      SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT);
 
   /**
    * This is the list of features that are never enabled in MTIQ.
@@ -70,23 +69,22 @@ public class MTIQFeatureService
   private static final List<Feature> MTIQ_BANNED_FEATURES = Arrays.asList(
       LicensedFeature.DATA_INSIGHTS,
       SystemConfigurationPropertyFeature.API_PAGE,
-      SUCCESS_METRICS_CONFIGURATION,
-      PRODUCT_LICENSE_CONFIGURATION,
-      SYSTEM_NOTICE_CONFIGURATION,
-      ENABLE_UNAUTHENTICATED_PAGES,
-      PROXY_CONFIGURATION,
-      DEPENDENCY_DATA_IN_API,
-      CROWD_INTEGRATION,
-      COMPONENT_SEARCH_API_WITH_INNERSOURCE,
-      CODE_INSIGHTS,
-      LDAP_CONFIGURATION,
-      SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
-      TRANSITIVE_SOLVER,
-      SCAN_POM_FILES_IN_META_INF_DIRECTORY,
-      VULNERABILITY_SOURCE,
-      BUILT_FROM_SOURCE,
-      INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
-      ADVANCED_SEARCH_CONFIGURATION,
+      SystemConfigurationPropertyFeature.SUCCESS_METRICS_CONFIGURATION,
+      SystemConfigurationPropertyFeature.PRODUCT_LICENSE_CONFIGURATION,
+      SystemConfigurationPropertyFeature.SYSTEM_NOTICE_CONFIGURATION,
+      SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES,
+      SystemConfigurationPropertyFeature.PROXY_CONFIGURATION,
+      SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API,
+      SystemConfigurationPropertyFeature.CROWD_INTEGRATION,
+      SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE,
+      SystemConfigurationPropertyFeature.CODE_INSIGHTS,
+      SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
+      SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
+      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER,
+      SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
+      SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
+      SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
+      SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
       LicensedFeature.ADVANCED_LEGAL_PACK
   );
 
@@ -111,9 +109,7 @@ public class MTIQFeatureService
     features.remove(SINGLE_TENANT);
     features.add(MULTI_TENANT);
 
-    MTIQ_BANNED_FEATURES.forEach(feature -> {
-      features.remove(feature);
-    });
+    MTIQ_BANNED_FEATURES.forEach(features::remove);
 
     return features;
   }

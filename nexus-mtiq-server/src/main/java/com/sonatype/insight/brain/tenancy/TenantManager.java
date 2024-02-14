@@ -17,7 +17,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;

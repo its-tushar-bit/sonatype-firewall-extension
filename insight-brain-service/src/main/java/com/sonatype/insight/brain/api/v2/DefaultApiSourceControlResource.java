@@ -25,11 +25,10 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Hidden;
-
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
 
 /**
  * @since 1.66
@@ -57,7 +56,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO getSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId)
@@ -71,7 +70,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
   @Path(BY_OWNER)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO addSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
@@ -86,7 +85,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
   @Path(BY_OWNER)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlDTO updateSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
@@ -99,7 +98,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @DELETE
   @Path(BY_OWNER)
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public void deleteSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId)
@@ -112,7 +111,7 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.AUTO_CREATE_SOURCE_CONTROL)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   @Hidden
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @QueryParam("publicId") final String publicId,

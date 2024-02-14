@@ -22,6 +22,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.IdentificationSource;
@@ -41,6 +42,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -102,8 +104,6 @@ public class IndexService
 {
   static final String TASK_NAME = "SearchIndexUpdate";
 
-  static final String TASK_PARAM_INDEX_ALL = "indexAll";
-
   static final String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
   public static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
@@ -153,6 +153,8 @@ public class IndexService
   private final ForkJoinPool searchIndexPool;
 
   private final ComponentLoaderFactory componentLoaderFactory;
+
+  private final Provider<IndexCreationScheduler> indexCreationScheduler;
 
   @Override
   public String getJobName() {
@@ -206,7 +208,8 @@ public class IndexService
       TaskScheduler taskScheduler,
       LuceneComponents luceneComponents,
       ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
-      ComponentLoaderFactory componentLoaderFactory)
+      ComponentLoaderFactory componentLoaderFactory,
+      Provider<IndexCreationScheduler> indexCreationScheduler)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -223,10 +226,11 @@ public class IndexService
     this.luceneComponents = luceneComponents;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
     this.componentLoaderFactory = componentLoaderFactory;
+    this.indexCreationScheduler = indexCreationScheduler;
 
     searchIndexPool = ExecutorThreadPools.getInstance()
-      .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT,
-          SEARCH_INDEX_CONFIG_PROPS);
+        .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT,
+            SEARCH_INDEX_CONFIG_PROPS);
   }
 
   @Override
@@ -244,19 +248,14 @@ public class IndexService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createSearchIndexAsync() {
-    taskScheduler.triggerTaskNow(this, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
+    taskScheduler.scheduleOneTimeTask(indexCreationScheduler.get());
   }
 
   @Override
   public void executeForTenant(JobExecutionContext context, Tenant tenant) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      if (context.getMergedJobDataMap().containsKey(TASK_PARAM_INDEX_ALL)) {
-        createSearchIndex();
-      }
-      else {
-        updateIndex();
-      }
-
+      updateIndex();
       updateDatadogResourceName();
     }
     catch (Exception e) {
@@ -283,7 +282,7 @@ public class IndexService
   }
 
   public boolean isFullIndexTriggered() {
-    return taskScheduler.isJobTriggered(this, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
+    return taskScheduler.isJobTriggered(indexCreationScheduler.get(), Collections.emptyMap());
   }
 
   public void createSearchIndex() throws IOException {
@@ -692,13 +691,13 @@ public class IndexService
           .parallelStream()
           .map(new TenantAwareFunction<Component, List<Document>>(
               component -> buildApplicationComponentVulnerabilityDocuments(
-              indexingContext,
-              organization,
-              parentOrganizations,
-              application,
-              stageType,
-              scanId,
-              component))).flatMap(Collection::stream).collect(toList());
+                  indexingContext,
+                  organization,
+                  parentOrganizations,
+                  application,
+                  stageType,
+                  scanId,
+                  component))).flatMap(Collection::stream).collect(toList());
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);

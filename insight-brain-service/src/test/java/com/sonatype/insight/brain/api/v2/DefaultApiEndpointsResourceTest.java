@@ -9,9 +9,9 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.api.v2.service.ApiEndpointsService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import io.swagger.v3.core.util.Json;

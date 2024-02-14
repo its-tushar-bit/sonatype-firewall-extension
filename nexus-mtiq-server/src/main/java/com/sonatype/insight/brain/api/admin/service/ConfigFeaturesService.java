@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.PathParam;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.NotFoundException;

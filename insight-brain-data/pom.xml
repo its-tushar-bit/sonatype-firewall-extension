@@ -138,6 +138,10 @@
       <artifactId>insight-common-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-model</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.nexus</groupId>
       <artifactId>nexus-git-utils</artifactId>
     </dependency>

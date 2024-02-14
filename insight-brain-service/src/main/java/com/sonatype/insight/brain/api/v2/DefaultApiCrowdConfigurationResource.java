@@ -17,12 +17,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCrowdConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;

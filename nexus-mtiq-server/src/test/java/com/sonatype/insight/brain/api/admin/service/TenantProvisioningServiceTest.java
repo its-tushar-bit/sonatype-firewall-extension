@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
@@ -49,9 +48,6 @@ public class TenantProvisioningServiceTest
   @Mock
   private UserDAO userDAO;
 
-  @Mock
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   private TenantUtil tenantUtil;
 
   private MultiTenantInsightConfig config;
@@ -63,7 +59,7 @@ public class TenantProvisioningServiceTest
     tenantUtil = new TenantUtil();
     config = new MultiTenantInsightConfig();
     underTest = new TenantProvisioningService(databaseProvisioner, tenantUtil,
-        tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, systemConfigurationPropertyDAO, config);
+        tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, config);
   }
 
   @Test
@@ -96,21 +92,6 @@ public class TenantProvisioningServiceTest
       verify(databaseProvisioner).initializeDatabaseWithMigration();
       verify(userDAO).getById("ADMIN");
       verify(userDAO).delete(user);
-    });
-  }
-
-  @Test
-  public void shouldProvisionNewTenant_and_disableAdvancedSearch() {
-    testAsNewTenant(tenant -> {
-      User user = new User("ADMIN", "ADMIN", "ADMIN", "ADMIN",
-          "admin@local.com");
-      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
-      when(userDAO.getById(any(String.class))).thenReturn(user);
-
-      underTest.provisionTenant(tenant.tenantSlug);
-
-      verify(databaseProvisioner).initializeDatabaseWithMigration();
-      verify(systemConfigurationPropertyDAO).set("ADVANCED_SEARCH_ENABLED", "false");
     });
   }
 

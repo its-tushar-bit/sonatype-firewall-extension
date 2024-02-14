@@ -9,8 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 
 import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;

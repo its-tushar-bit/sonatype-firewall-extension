@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,6 +38,7 @@ public abstract class AbstractDataTest
   @Before
   public void initialize() {
     daoFactory = new TestDAOFactory(databaseRule);
+    SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
     clusterLockManager =
         (new ClusterLockManagerProvider(databaseRule.getOperationalDataStore(), daoFactory.createLockDAO())).get();
 

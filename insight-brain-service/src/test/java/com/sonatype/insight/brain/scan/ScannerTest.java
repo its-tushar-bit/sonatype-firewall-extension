@@ -12,7 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;

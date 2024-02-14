@@ -20,12 +20,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
 
 /**
  * @since 1.140
@@ -47,7 +46,7 @@ public class DefaultApiSourceControlConfigurationResource
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ApiSourceControlConfigurationDTO getConfiguration() {
     return service.getConfiguration();
   }
@@ -56,7 +55,7 @@ public class DefaultApiSourceControlConfigurationResource
   @PUT
   @Audited(AuditEvent.CONFIGURE_SOURCE_CONTROL_CONFIGURATION)
   @Consumes(MediaType.APPLICATION_JSON)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public void setConfiguration(JsonNode jsonNode) {
     service.setConfiguration(jsonNode);
   }
@@ -64,7 +63,7 @@ public class DefaultApiSourceControlConfigurationResource
   @Override
   @DELETE
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL_CONFIGURATION)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public void deleteConfiguration() {
     service.deleteConfiguration();
   }

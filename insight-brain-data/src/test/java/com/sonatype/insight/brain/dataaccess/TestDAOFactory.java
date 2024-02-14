@@ -704,8 +704,7 @@ public class TestDAOFactory
 
   @Override
   public SearchIndexChangeDAO createSearchIndexChangeDAO() {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = createSystemConfigurationPropertyDAO();
-    return new SearchIndexChangeDAO(dataStoreProvider.getOperationalDataStore(), systemConfigurationPropertyDAO);
+    return new SearchIndexChangeDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 
 import org.junit.Before;
@@ -21,10 +21,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_PARAMETER_CANNOT_BE_NULL;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
@@ -278,30 +276,22 @@ public class TenantManagerTest
 
   @Test
   public void shouldRegisterAllTenantsOnBootIfConfigIsTrue() {
-    try (MockedStatic<SystemConfigurationPropertyFeature> mockConfig = mockStatic(
-        SystemConfigurationPropertyFeature.class)) {
-      mockConfig.when(SAAS_PRE_REGISTER_ALL_TENANTS::isEnabled).thenReturn(true);
+    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(true);
+    TenantManager spyUnderTest = spy(underTest);
 
-      TenantManager spyUnderTest = spy(underTest);
+    spyUnderTest.start();
 
-      spyUnderTest.start();
-
-      verify(spyUnderTest, times(1)).preregisterAllTenants();
-    }
+    verify(spyUnderTest, times(1)).preregisterAllTenants();
   }
 
   @Test
   public void shouldNotRegisterAllTenantsOnBootIfConfigIsFalse() {
-    try (MockedStatic<SystemConfigurationPropertyFeature> mockConfig = mockStatic(
-        SystemConfigurationPropertyFeature.class)) {
-      mockConfig.when(() -> SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).thenReturn(false);
+    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(false);
+    TenantManager spyUnderTest = spy(underTest);
 
-      TenantManager spyUnderTest = spy(underTest);
+    spyUnderTest.start();
 
-      spyUnderTest.start();
-
-      verify(spyUnderTest, never()).preregisterAllTenants();
-    }
+    verify(spyUnderTest, never()).preregisterAllTenants();
   }
 
   @Test

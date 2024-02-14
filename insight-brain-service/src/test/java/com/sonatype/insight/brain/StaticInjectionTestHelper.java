@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesServiceTestHelper;
+import com.sonatype.insight.brain.api.v2.SystemConfigurationPropertyFeatureTestHelper;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtilsTestHelper;
 import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
@@ -43,7 +43,7 @@ public class StaticInjectionTestHelper
     ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
     ReportTestHelper.inject(daoFactory);
     ComponentDetailsLoaderTestHelper.inject(daoFactory);
-    ApiConfigFeaturesServiceTestHelper.inject(daoFactory);
+    SystemConfigurationPropertyFeatureTestHelper.inject(daoFactory);
     ConfigurationUtilsTestHelper.inject(daoFactory);
   }
 }

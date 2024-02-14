@@ -29,7 +29,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.HygieneRating;
 import com.sonatype.clm.dto.model.component.IntegrityRating;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;

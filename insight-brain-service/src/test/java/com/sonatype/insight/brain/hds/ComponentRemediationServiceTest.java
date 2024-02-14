@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -357,7 +357,7 @@ public class ComponentRemediationServiceTest
   }
 
   private void setTransitiveSolverValue(boolean turnOffTransitiveSolver) {
-    boolean status = SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyValue();
+    boolean status = SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
     if (turnOffTransitiveSolver && !status) {
       SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.setEnabled(true);
     }

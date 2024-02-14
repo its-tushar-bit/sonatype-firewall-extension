@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.Arrays;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -16,12 +17,14 @@ import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class AdvancedSearchServiceTest
     extends AbstractComponentTest
@@ -51,6 +54,15 @@ public class AdvancedSearchServiceTest
   }
 
   @Test
+  public void testSetStatus_AdvancedSearchConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> advancedSearchService.setStatus(new AdvancedSearchStatusDTO()))
+        .withMessage("advanced-search-configuration feature is disabled.");
+  }
+
+  @Test
   public void testSetStatus_EnableSearch() {
     AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
     statusDTO.isEnabled = true;
@@ -68,6 +80,15 @@ public class AdvancedSearchServiceTest
 
     advancedSearchService.setStatus(statusDTO);
     assertThat(isAdvancedSearchEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetStatus_AdvancedSearchConfigurationDisabled() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> advancedSearchService.getStatus())
+        .withMessage("advanced-search-configuration feature is disabled.");
   }
 
   @Test

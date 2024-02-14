@@ -9,10 +9,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
@@ -20,25 +19,15 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SearchIndexChangeDAO
     extends AbstractOperationalSqlDAO<SearchIndexChange>
 {
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   @Inject
-  public SearchIndexChangeDAO(
-      final OperationalDataStore operationalDataStore,
-      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
-  {
+  public SearchIndexChangeDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
-  }
-
-  private boolean isAdvancedSearchEnabled(TransactionContext tx) {
-    return Boolean.parseBoolean(systemConfigurationPropertyDAO
-        .getByName(tx, SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue());
   }
 
   @Override
   public void insert(TransactionContext tx, SearchIndexChange entity) {
-    if (isAdvancedSearchEnabled(tx)) {
+    if (SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.isEnabled(tx) &&
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled(tx)) {
       super.insert(tx, entity);
     }
   }

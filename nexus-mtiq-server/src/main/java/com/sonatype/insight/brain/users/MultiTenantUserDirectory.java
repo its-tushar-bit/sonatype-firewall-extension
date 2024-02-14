@@ -9,10 +9,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.SamlUserGroupHelper;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -38,8 +38,7 @@ public class MultiTenantUserDirectory
    */
   @Override
   public boolean isGroupSearchDisabled() {
-    boolean idpManagedBySonatype =
-        ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.isEnabled();
+    boolean idpManagedBySonatype = SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.isEnabled();
 
     return !idpManagedBySonatype;
   }

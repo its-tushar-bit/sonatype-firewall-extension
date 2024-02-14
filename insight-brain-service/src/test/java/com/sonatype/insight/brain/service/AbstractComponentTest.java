@@ -17,13 +17,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
@@ -36,6 +34,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -52,7 +51,6 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -256,7 +254,7 @@ public class AbstractComponentTest
     binder.requestStaticInjection(ConfigurationUtils.class);
     binder.requestStaticInjection(Report.class);
     binder.requestStaticInjection(ComponentDetailsLoader.class);
-    binder.requestStaticInjection(ApiConfigFeaturesService.class);
+    binder.requestStaticInjection(SystemConfigurationPropertyFeature.class);
 
     super.configure(binder);
   }

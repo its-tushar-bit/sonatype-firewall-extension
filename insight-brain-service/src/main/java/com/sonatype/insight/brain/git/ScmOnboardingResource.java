@@ -25,11 +25,10 @@ import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.dto.ValidationResponse;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
-
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED;
 
 /**
  * This resource supports bulk onboarding of Source Config Management repositories
@@ -63,7 +62,7 @@ public class ScmOnboardingResource
   @Path(LOAD_REPO_PATH)
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public SCMRepositories loadRepositories(
       @QueryParam("orgId") String orgId,
       @QueryParam("defaultHostUrl") String defaultHostUrl)
@@ -75,7 +74,7 @@ public class ScmOnboardingResource
   @Path(DEFAULT_HOST_URL)
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public Map<String, String> getDefaultHostUrl(
       @QueryParam("provider") String provider,
       @QueryParam("orgId") String orgId)
@@ -87,7 +86,7 @@ public class ScmOnboardingResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ImportResults importRepositories(
       @PathParam("orgId") String orgId,
       final ImportRepositoriesRequest importReposRequest)
@@ -98,7 +97,7 @@ public class ScmOnboardingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(VALIDATE_SCM_HOST_URL)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public ValidationResponse validateScmHostUrl(
       @PathParam("scmProvider") String scmProvider,
       @QueryParam("scmHostUrl") String scmHostUrl)
@@ -109,7 +108,7 @@ public class ScmOnboardingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(ORGANIZATIONS)
-  @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)
+  @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public List<OnboardingOrganization> getOrgsForOnboarding() {
     return scmOnboardingService.getOrgsForOnboarding();
   }

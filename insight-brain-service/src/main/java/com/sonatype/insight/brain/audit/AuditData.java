@@ -12,11 +12,12 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardRequestDTO;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -455,6 +456,19 @@ public abstract class AuditData
   public AuditData setLookerDashboard(final DashboardRequestDTO dashboardRequestDTO) {
     if (dashboardRequestDTO != null) {
       setData("dashboard", dashboardRequestDTO.dashboard);
+    }
+    return this;
+  }
+
+  public AuditData setSystemConfigurationPropertyFeature(
+      final SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
+  {
+    if (systemConfigurationPropertyFeature.isStored()) {
+      AuditData.get().setData(systemConfigurationPropertyFeature.getPropertyName(),
+          systemConfigurationPropertyFeature.getPropertyValue());
+    }
+    else {
+      AuditData.get().setData(systemConfigurationPropertyFeature.getPropertyName(), "null");
     }
     return this;
   }

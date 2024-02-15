@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.db.datastore;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
@@ -115,6 +116,11 @@ public class DefaultOperationalDataStore
   @Override
   public EntityManagerFactory getEntityManagerFactoryForLocks() {
     return entityManagerFactoryForLocks;
+  }
+
+  @Override
+  public DataSource getDataSourceForLocks() {
+    return dataSource;
   }
 
   @Override

@@ -108,8 +108,6 @@ public interface DataStore
    */
   EntityManagerFactory getJPAEntityManagerFactory();
 
-  // Should disappear with LegacyDataSourceProvider
-  @Deprecated
   DataSourceProvider getDataSourceProvider();
 
   /**

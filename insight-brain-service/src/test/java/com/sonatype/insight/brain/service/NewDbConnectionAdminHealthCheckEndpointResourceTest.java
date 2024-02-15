@@ -10,14 +10,14 @@ import com.sonatype.insight.brain.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-public class DatabaseAdminHealthCheckEndpointResourceTest
+public class NewDbConnectionAdminHealthCheckEndpointResourceTest
     extends AbstractResourceTest
 {
   @Test
-  public void testDatabaseConnection() throws Exception {
+  public void testGetHealthCheckResponse() throws Exception {
     HttpResponse httpResponse =
         adminRequest()
-            .path(getCLMServer().getInstance(DatabaseAdminHealthCheckEndpoint.class).getPath())
+            .path(getCLMServer().getInstance(NewDbConnectionAdminHealthCheckEndpoint.class).getPath())
             .anon()
             .get();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, httpResponse);

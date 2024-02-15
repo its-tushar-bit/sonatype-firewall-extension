@@ -31,6 +31,15 @@ public class H2InMemoryTestDataSourceProvider
     return createNewInMemoryDataSource(databaseConfig);
   }
 
+  /**
+   * This method should be used only to create the data source(s) at startup and in very limited case where a new
+   * DataSource is needed. For all other purposes, use getDataSource.
+   */
+  @Override
+  public DataSource createNewDataSource(DatabaseConfig databaseConfig) {
+    return createNewInMemoryDataSource(databaseConfig);
+  }
+
   private DataSource createNewInMemoryDataSource(DatabaseConfig databaseConfig) {
     EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
     // UGLY HACK: We need to specify DATABASE_TO_UPPER=FALSE for birt over H2, and we may need other settings

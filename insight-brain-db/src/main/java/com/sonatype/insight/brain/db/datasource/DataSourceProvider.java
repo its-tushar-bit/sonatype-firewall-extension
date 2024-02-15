@@ -15,4 +15,10 @@ import com.sonatype.insight.db.DatabaseConfig;
 public interface DataSourceProvider
 {
   DataSource getDataSource(final DatabaseConfig databaseConfig, final String dataStoreId);
+
+  /**
+   * This method should be used only to create the data source(s) at startup and in very limited case where a new
+   * DataSource is needed. For all other purposes, use getDataSource.
+   */
+  DataSource createNewDataSource(DatabaseConfig databaseConfig);
 }

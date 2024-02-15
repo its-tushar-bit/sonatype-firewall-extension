@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.db;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.cache.MultiTenantQueryCache;
+import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -31,6 +32,8 @@ public class MultiTenantOperationalDataStore
   private static final Logger log = LoggerFactory.getLogger(MultiTenantDataMartDataStore.class);
 
   private final Map<Tenant, EntityManagerFactory> entityManagerFactoryForLocks = new ConcurrentHashMap<>();
+
+  private DataSource locksDataSource;
 
   public MultiTenantOperationalDataStore(
       final MultiTenantPostgresDataSourceProvider dataSourceProvider,
@@ -50,7 +53,7 @@ public class MultiTenantOperationalDataStore
     // Create database items for locks
     MultiTenantPostgresDataSourceProvider multiTenantPostgresDataSourceProvider =
         (MultiTenantPostgresDataSourceProvider) dataSourceProvider;
-    DataSource locksDataSource = multiTenantPostgresDataSourceProvider.getLocksDataSource();
+    locksDataSource = multiTenantPostgresDataSourceProvider.getLocksDataSource();
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", locksDataSource);
     props.put("openjpa.jdbc.Schema", getDatabaseSchema());
@@ -92,6 +95,11 @@ public class MultiTenantOperationalDataStore
   @Override
   public EntityManagerFactory getEntityManagerFactoryForLocks() {
     return entityManagerFactoryForLocks.get(TenantThreadLocal.getTenant());
+  }
+
+  @Override
+  public DataSource getDataSourceForLocks() {
+    return locksDataSource;
   }
 
   @Override

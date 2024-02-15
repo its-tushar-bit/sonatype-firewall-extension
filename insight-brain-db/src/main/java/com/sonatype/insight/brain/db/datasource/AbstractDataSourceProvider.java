@@ -24,8 +24,12 @@ public abstract class AbstractDataSourceProvider
 
   /**
    * Produces an Apache DBCP2 {@link BasicDataSource} from the given config.
+   *
+   * This method should be used only to create the data source(s) at startup and in very limited case where a new
+   * DataSource is needed. For all other purposes, use getDataSource.
    */
-  protected DataSource createNewDataSource(final DatabaseConfig databaseConfig) {
+  @Override
+  public DataSource createNewDataSource(final DatabaseConfig databaseConfig) {
     long start = System.currentTimeMillis();
 
     log.debug("DB URL: '{}'", databaseConfig.getUrl());

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -42,7 +43,7 @@ public class PolicyValidator
   }
 
   public ValidationResult validate(final TransactionContext tx, final Policy policy, final String ownerId) {
-    log.debug("Validating {}", this);
+    log.debug("Validating {}", policy);
 
     ValidationResult validationResult = new ValidationResult();
     try {

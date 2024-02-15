@@ -181,7 +181,9 @@ public enum SystemConfigurationPropertyFeature
    * If SAAS_PRE_REGISTER_ALL_TENANTS is set to true (the default), all SaaS tenants will be pre-registered during boot
    * as opposed to tenant registration happening with the first access of tenant
    */
-  SAAS_PRE_REGISTER_ALL_TENANTS(SystemConfigurationProperty.SAAS_PRE_REGISTER_ALL_TENANTS, true);
+  SAAS_PRE_REGISTER_ALL_TENANTS(SystemConfigurationProperty.SAAS_PRE_REGISTER_ALL_TENANTS, true),
+
+  SBOM_MANAGER(SystemConfigurationProperty.SBOM_MANAGER, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

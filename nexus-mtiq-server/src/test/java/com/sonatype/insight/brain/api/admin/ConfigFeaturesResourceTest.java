@@ -100,6 +100,7 @@ public class ConfigFeaturesResourceTest
       new String[]{
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
+          SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
       }
   )).toArray(String[]::new);
 

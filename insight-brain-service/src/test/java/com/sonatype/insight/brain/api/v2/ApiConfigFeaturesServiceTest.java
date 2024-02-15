@@ -765,4 +765,21 @@ public class ApiConfigFeaturesServiceTest
     SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(false);
     assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isFalse();
   }
+
+  @Test
+  public void testEnableFeature_SbomManager_singleTenant() {
+    assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testEnableFeature_SbomManager_setEnabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEnableFeature_SbomManager_setDisabledForSingleTenant() {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(false);
+    assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isFalse();
+  }
 }

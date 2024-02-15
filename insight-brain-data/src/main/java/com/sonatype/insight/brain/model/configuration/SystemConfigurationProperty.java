@@ -213,6 +213,8 @@ public class SystemConfigurationProperty
 
   public static final String SAAS_POLICY_MONITOR_POOL_SIZE = "SAAS_POLICY_MONITOR_POOL_SIZE";
 
+  public static final String SBOM_MANAGER = "sbomManager";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

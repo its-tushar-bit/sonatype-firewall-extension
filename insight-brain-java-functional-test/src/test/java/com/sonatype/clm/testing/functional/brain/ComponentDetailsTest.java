@@ -710,7 +710,7 @@ public class ComponentDetailsTest
 
     NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
     backButton.shouldBe(visible);
-    backButton.shouldHave(text("Back to Vulnerability Details"));
+    backButton.shouldHave(text("Back to Violation Details"));
     backButton.click();
 
     waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, springSecurityWebComponentHash));
@@ -970,7 +970,7 @@ public class ComponentDetailsTest
 
     NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
     backButton.shouldBe(visible);
-    backButton.shouldHave(text("Back to Vulnerability Details"));
+    backButton.shouldHave(text("Back to Violation Details"));
     backButton.click();
 
     waitUntilUrl(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));

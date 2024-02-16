@@ -29,6 +29,8 @@ export const fakeRouterState = (url, params) => {
         return `#/management/view/repository_container/${params.repositoryContainerId}`;
       } else if (url.includes('repository_manager')) {
         return `#/management/view/repository_manager/${params.repositoryManagerId}`;
+      } else if (url.includes('repository')) {
+        return `#/management/view/repository/${params.repositoryId}`;
       } else {
         return '#';
       }

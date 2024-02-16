@@ -25,6 +25,9 @@ describe('EditPolicyInheritance', () => {
           ...initialState,
           isInherited: false,
           isOrgOwner: true,
+          isRepositoryContainerOwner: false,
+          isRepositoryManagerOwner: false,
+          isRepositoryOwner: false,
           hasEditIqPermission: true,
           categories: [],
           currentPolicy: {
@@ -122,6 +125,7 @@ describe('EditPolicyInheritance', () => {
   it('categories not rendered for repository container', () => {
     state.router.currentState.name = 'sidebarView.repository_container';
     state.orgsAndPolicies.policy.isOrgOwner = false;
+    state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
     renderComponent();
 
     expect(screen.queryByLabelText(/all applications/i)).toBeNull();
@@ -131,6 +135,7 @@ describe('EditPolicyInheritance', () => {
   it('categories not rendered for repository manager', () => {
     state.router.currentState.name = 'sidebarView.repository_manager';
     state.orgsAndPolicies.policy.isOrgOwner = false;
+    state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
     renderComponent();
 
     expect(screen.queryByLabelText(/all applications/i)).toBeNull();
@@ -152,6 +157,7 @@ describe('EditPolicyInheritance', () => {
     it('renders actions override checkbox for repository container', () => {
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -166,6 +172,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -179,6 +186,7 @@ describe('EditPolicyInheritance', () => {
     it('renders actions override checkbox for repository manager', () => {
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
@@ -191,6 +199,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
@@ -226,6 +235,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.isInherited = true;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -239,6 +249,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.hasEditIqPermission = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -252,6 +263,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.isInherited = true;
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
@@ -263,6 +275,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.hasEditIqPermission = false;
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
@@ -301,6 +314,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -320,6 +334,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at repository manager and repository levels/i
@@ -342,6 +357,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
       expect(actionsOverrideCheckbox).toBeChecked();
@@ -362,6 +378,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
@@ -475,6 +492,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at repository manager and repository levels/i
@@ -505,6 +523,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_manager';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryManagerOwner = true;
       renderComponent();
       const actionsOverrideCheckbox = screen.getByLabelText(/Allow action overrides at repository level/i);
       expect(actionsOverrideCheckbox).toBeChecked();
@@ -537,6 +556,7 @@ describe('EditPolicyInheritance', () => {
     it('renders checked notifications override checkbox when policy notifications override is allowed for repository container', () => {
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
@@ -563,6 +583,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.currentPolicy.policyNotificationsOverrideAllowed = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
@@ -588,6 +609,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.isInherited = true;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
@@ -612,6 +634,7 @@ describe('EditPolicyInheritance', () => {
       state.orgsAndPolicies.policy.hasEditIqPermission = false;
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
@@ -669,6 +692,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at repository manager and repository levels/i
@@ -783,6 +807,7 @@ describe('EditPolicyInheritance', () => {
       };
       state.router.currentState.name = 'sidebarView.repository_container';
       state.orgsAndPolicies.policy.isOrgOwner = false;
+      state.orgsAndPolicies.policy.isRepositoryContainerOwner = true;
       renderComponent();
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at repository manager and repository levels/i

@@ -41,10 +41,11 @@ export const fuzzyFilter = (input, term, searchField, resultField) => {
  * @returns separate flat lists of organizations and applications
  */
 export const flatEntries = (ownersMap, res) => {
-  res = res || { organizations: [], applications: [], repositoryManagers: [] };
+  res = res || { organizations: [], applications: [], repositories: [], repositoryManagers: [] };
 
   const isApplication = (owner) => owner.type === 'application';
   const isOrganization = (owner) => owner.type === 'organization';
+  const isRepository = (owner) => owner.type === 'repository';
   const isRepositoryManager = (owner) => owner.type === 'repository_manager';
 
   for (const ownerId in ownersMap) {
@@ -52,6 +53,7 @@ export const flatEntries = (ownersMap, res) => {
     if (isApplication(owner)) res.applications.push(owner);
     if (isRepositoryManager(owner)) res.repositoryManagers.push(owner);
     if (isOrganization(owner)) res.organizations.push(owner);
+    if (isRepository(owner)) res.repositories.push(owner);
   }
 
   return res;
@@ -60,6 +62,7 @@ export const flatEntries = (ownersMap, res) => {
 export const getOwnerInfo = (owner) => {
   const { id } = owner || {};
 
+  if (owner.type === 'repository') return ['parentId', { repositoryId: id }];
   if (owner.type === 'repository_manager') return ['parentId', { repositoryManagerId: id }];
   if (owner.type === 'repository_container') return ['parentId', { repositoryContainerId: id }];
   return ['parentOrganizationId', { organizationId: id }];

@@ -28,7 +28,7 @@ describe('OwnerTree', () => {
   beforeEach(() => {
     routerContext = { href: () => {} };
     jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
-    ownersMap = getOwnersMap(3, true);
+    ownersMap = getOwnersMap(3, false);
     state = {
       orgsAndPolicies: {
         ownerSideNav: {

@@ -51,7 +51,7 @@ const generateNLevelOrganizations = (
  * @param {number} depth - the number of organization levels and applications per organization
  * @returns {rootOrganization}
  */
-export const getOwnersMap = (depth = 1, forOwnerTreeMap = false) => {
+export const getOwnersMap = (depth = 1, includeRepositoriesHierarchy = true) => {
   const ownersMap = {
     ROOT_ORGANIZATION_ID: {
       id: 'ROOT_ORGANIZATION_ID',
@@ -63,11 +63,34 @@ export const getOwnersMap = (depth = 1, forOwnerTreeMap = false) => {
     },
   };
 
-  if (!forOwnerTreeMap) {
+  if (includeRepositoriesHierarchy) {
     ownersMap.REPOSITORY_CONTAINER_ID = {
       id: 'REPOSITORY_CONTAINER_ID',
+      parentId: 'ROOT_ORGANIZATION_ID',
       name: 'Repository Managers',
-      type: 'all_repositories',
+      type: 'repository_container',
+      repositoryManagers: ['repository manager 1', 'repository manager 2'],
+    };
+    ownersMap['repository manager 1'] = {
+      id: 'repository manager 1',
+      parentId: 'REPOSITORY_CONTAINER_ID',
+      name: 'repository manager 1',
+      type: 'repository_manager',
+      repositoryIds: ['repository 1'],
+    };
+    ownersMap['repository manager 2'] = {
+      id: 'repository manager 2',
+      parentId: 'REPOSITORY_CONTAINER_ID',
+      name: 'repository manager 2',
+      type: 'repository_manager',
+      repositoryIds: [],
+    };
+    ownersMap['repository 1'] = {
+      id: 'repository 1',
+      parentId: 'repository manager 1',
+      name: 'repository 1',
+      type: 'repository',
+      repositoryIds: [],
     };
   }
 

@@ -3,42 +3,40 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import {
   getApplicablePolicies,
   getRepositoryManagerById,
   getApplicationSummaryUrl,
   getOrganizationUrl,
+  getRepositoryInfoUrl,
 } from 'MainRoot/util/CLMLocation';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { axiosMockAdapter, mockInterceptionObserver } from 'TestRoot/SpecUtil';
 import { actions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('rootSlice actions', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let store, mockOwnerId, mockOwnerType, axiosMock;
 
-  let store, mockOwnerId, mockOwnerType;
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+    mockInterceptionObserver();
+  });
 
   beforeEach(function () {
     store = SpecUtil.mockReduxStore({});
     mockOwnerId = 'ownerId';
     mockOwnerType = 'ownerType';
-    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').mockReturnValue({
       ownerId: mockOwnerId,
       ownerType: mockOwnerType,
     });
   });
   describe('loadApplicablePoliciesByOwner', () => {
     it('loads policy tags successfully', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
-            data: 'content',
-          }),
-        },
-      });
+      axiosMock.onGet(getApplicablePolicies(mockOwnerType, mockOwnerId)).reply(200, { data: 'content' });
 
       store.dispatch(actions.loadApplicablePoliciesByOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 
@@ -53,14 +51,10 @@ describe('rootSlice actions', () => {
     });
 
     it('dispatches rejected action if loadApplicablePoliciesByOwner request fails', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerId)]: () => Promise.reject('something went wrong'),
-        },
-      });
+      axiosMock.onGet(getApplicablePolicies(mockOwnerId)).reply(500, 'something went wrong');
 
       store.dispatch(actions.loadApplicablePoliciesByOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 
@@ -77,6 +71,7 @@ describe('rootSlice actions', () => {
   describe('loadSelectedOwner', () => {
     const organizationId = 'orgId',
       applicationPublicId = 'appId',
+      repositoryId = 'repositoryId',
       repositoryManagerId = 'repoManagerId';
 
     let mockState;
@@ -96,6 +91,7 @@ describe('rootSlice actions', () => {
             organizationId,
             applicationPublicId,
             repositoryManagerId,
+            repositoryId,
           },
         },
       };
@@ -103,16 +99,33 @@ describe('rootSlice actions', () => {
     });
 
     it('loads selected repository manager owner successfully', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getRepositoryManagerById(repositoryManagerId)]: Promise.resolve({
-            data: 'repo manager info',
-          }),
-        },
+      axiosMock.onGet(getRepositoryManagerById(repositoryManagerId)).reply(200, {
+        data: 'repo manager info',
       });
 
       store.dispatch(actions.loadSelectedOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/loadSelectedOwner/fulfilled',
+        ]);
+
+        done();
+      });
+    });
+
+    it('loads selected repository owner successfully', (done) => {
+      mockState.router.currentState.name = 'management.view.repository';
+      axiosMock.onGet(getRepositoryInfoUrl(repositoryId)).reply(200, {
+        data: 'repository info',
+      });
+
+      store.dispatch(actions.loadSelectedOwner()).then(() => {
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 
@@ -129,16 +142,12 @@ describe('rootSlice actions', () => {
     it('loads selected application owner successfully', (done) => {
       mockState.router.currentState.name = 'management.view.application';
       store = SpecUtil.mockReduxStore(mockState);
-      mockAxiosCalls({
-        get: {
-          [getApplicationSummaryUrl(applicationPublicId)]: Promise.resolve({
-            data: 'application info',
-          }),
-        },
+      axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
+        data: 'application info',
       });
 
       store.dispatch(actions.loadSelectedOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 
@@ -155,16 +164,12 @@ describe('rootSlice actions', () => {
     it('loads selected organization owner successfully', (done) => {
       mockState.router.currentState.name = 'management.view.organization';
       store = SpecUtil.mockReduxStore(mockState);
-      mockAxiosCalls({
-        get: {
-          [getOrganizationUrl(organizationId)]: Promise.resolve({
-            data: 'org info',
-          }),
-        },
+      axiosMock.onGet(getOrganizationUrl(organizationId)).reply(200, {
+        data: 'org info',
       });
 
       store.dispatch(actions.loadSelectedOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 
@@ -179,14 +184,10 @@ describe('rootSlice actions', () => {
     });
 
     it('dispatches rejected action if loadApplicablePoliciesByOwner request fails', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getRepositoryManagerById(repositoryManagerId)]: () => Promise.reject('something went wrong'),
-        },
-      });
+      axiosMock.onGet(getRepositoryManagerById(repositoryManagerId)).reply(500, 'something went wrong');
 
       store.dispatch(actions.loadSelectedOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axiosMock.history.get.length).toBe(1);
 
         const actions = store.getActions();
 

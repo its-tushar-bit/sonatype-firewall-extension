@@ -13,6 +13,10 @@ import {
   selectApplicationId,
   selectCurrentRouteTitle,
   selectCurrentRouteName,
+  selectIsRepositoryContainer,
+  selectIsRepository,
+  selectRepositoryId,
+  selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -29,7 +33,9 @@ const getBreadcrumb = (
   ownersMap,
   displayedOrganization,
   isApplication,
+  isRepository,
   applicationPublicId,
+  repositoryId,
   pageTitle,
   currentRouteName
 ) => {
@@ -49,6 +55,14 @@ const getBreadcrumb = (
     breadcrumb.unshift({
       name: displayedApplication.name,
       href: uiRouterState.href(`management.view.application`, { applicationPublicId: displayedApplication.publicId }),
+    });
+  }
+
+  if (isRepository && ownersMap.hasOwnProperty(repositoryId)) {
+    const displayedRepository = ownersMap[repositoryId];
+    breadcrumb.unshift({
+      name: displayedRepository.name,
+      href: uiRouterState.href(`management.view.repository`, { repositoryId: repositoryId }),
     });
   }
 
@@ -77,7 +91,11 @@ const MenuBarStatefulBreadcrumb = () => {
   const ownersMap = useSelector(selectOwnersMap);
   const displayedOrganization = useSelector(selectDisplayedOrganization);
   const isApplication = useSelector(selectIsApplication);
+  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
+  const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isRepository = useSelector(selectIsRepository) && !isRepositoryContainer && !isRepositoryManager;
   const applicationPublicId = useSelector(selectApplicationId);
+  const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const routeName = useSelector(selectCurrentRouteName);
 
@@ -90,7 +108,9 @@ const MenuBarStatefulBreadcrumb = () => {
     ownersMap,
     displayedOrganization,
     isApplication,
+    isRepository,
     applicationPublicId,
+    repositoryId,
     pageTitle,
     routeName
   );

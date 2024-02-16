@@ -17,6 +17,7 @@ import {
   actionStagesPayload,
   repositoryContainerByOwnerPayload,
   repositoryManagerByOwnerPayload,
+  repositoryByOwnerPayload,
 } from './policiesTileTestData';
 import { getNumberOfTables } from '../utils/tileAndTableTestingUtils';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -427,8 +428,8 @@ describe('PoliciesTile', () => {
         rowgroups.forEach((row) => {
           const collapsibleHeader = within(row).getByRole('heading', { level: 3 });
           const index = rowgroups.indexOf(row);
-          let policy = ownersWithPolicies[index];
-          let title = !policy.inherited ? `Local to ${policy.ownerName}` : `Inherited from ${policy.ownerName}`;
+          const policy = ownersWithPolicies[index];
+          const title = !policy.inherited ? `Local to ${policy.ownerName}` : `Inherited from ${policy.ownerName}`;
 
           expect(collapsibleHeader).toHaveTextContent(title);
         });
@@ -518,10 +519,9 @@ describe('PoliciesTile', () => {
         for (const owner of ownersWithPolicies) {
           const index = ownersWithPolicies.indexOf(owner);
           if (index === 0) {
-            expect(await screen.findByText('Local to ' + owner.ownerName)).toBeVisible();
-            break;
+            expect(await screen.findByText(`Local to ${owner.ownerName}`)).toBeVisible();
           } else {
-            let title = `Inherited from ${owner.ownerName}`;
+            const title = `Inherited from ${owner.ownerName}`;
             expect(await screen.findByText(title)).toBeVisible();
           }
         }
@@ -611,10 +611,101 @@ describe('PoliciesTile', () => {
         for (const owner of ownersWithPolicies) {
           const index = ownersWithPolicies.indexOf(owner);
           if (index === 0) {
-            expect(await screen.findByText('Local to ' + owner.ownerName)).toBeVisible();
-            break;
+            expect(await screen.findByText(`Local to ${owner.ownerName}`)).toBeVisible();
           } else {
-            let title = `Inherited from ${owner.ownerName}`;
+            const title = `Inherited from ${owner.ownerName}`;
+            expect(await screen.findByText(title)).toBeVisible();
+          }
+        }
+      });
+    });
+  });
+
+  describe('Owner is Repository with inherited policies', () => {
+    beforeAll(() => {
+      ownerName = repositoryByOwnerPayload.ownerName;
+      ownerId = repositoryByOwnerPayload.ownerId;
+      ownerType = repositoryByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.repository',
+            url: '/repository/{repositoryId}',
+            data: {
+              title: 'Repository Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            repositoryId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: repositoryByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Tile Content', () => {
+      it('render all correct titles', async () => {
+        const ownersWithPolicies = repositoryByOwnerPayload.policiesByOwner.filter(
+          (owner) => !isNilOrEmpty(owner.policies)
+        );
+        for (const owner of ownersWithPolicies) {
+          const index = ownersWithPolicies.indexOf(owner);
+          if (index === 0) {
+            expect(await screen.findByText(`Local to ${owner.ownerName}`)).toBeVisible();
+          } else {
+            const title = `Inherited from ${owner.ownerName}`;
             expect(await screen.findByText(title)).toBeVisible();
           }
         }

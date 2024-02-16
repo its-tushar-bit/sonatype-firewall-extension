@@ -38,7 +38,8 @@ public class OwnerSummaryPage
   }
 
   public static String url(Owner owner) {
-    return url(owner.getType(), owner.getPublicId());
+    String ownerId = owner.getType().equals(OwnerType.REPOSITORY) ? owner.getId() : owner.getPublicId();
+    return url(owner.getType(), ownerId);
   }
 
   public static String url(OwnerType ownerType, String id) {

@@ -21,11 +21,11 @@ export default function PoliciesTable({
   isFirewallSupported,
   isEnforcementSupported,
   collapsibleSorting,
-  isRepositories,
+  isNavigationDisabled,
 }) {
   const dispatch = useDispatch();
 
-  const goToEditPolicy = (policyId) => !isRepositories && dispatch(actions.goToEditPolicy(policyId));
+  const goToEditPolicy = (policyId) => !isNavigationDisabled && dispatch(actions.goToEditPolicy(policyId));
   const changeSortField = (sorting) => dispatch(actions.changeCollapsibleSortField(sorting));
 
   const local = find(propEq('inherited', false), policiesByOwner ?? []);
@@ -92,7 +92,7 @@ export default function PoliciesTable({
     return (
       <NxTable.Row
         key={policy.id}
-        isClickable={!isRepositories}
+        isClickable={!isNavigationDisabled}
         onClick={() => goToEditPolicy(policy.id)}
         clickAccessibleLabel={accessibleLabel}
       >
@@ -125,7 +125,7 @@ export default function PoliciesTable({
             )}
           </NxTable.Cell>
         ))}
-        <NxTable.Cell chevron={!isRepositories} />
+        <NxTable.Cell chevron={!isNavigationDisabled} />
       </NxTable.Row>
     );
   }
@@ -191,7 +191,7 @@ PoliciesTable.propTypes = {
   stages: PropTypes.arrayOf(PropTypes.object),
   isFirewallSupported: PropTypes.bool,
   isEnforcementSupported: PropTypes.bool,
-  isRepositories: PropTypes.bool,
+  isNavigationDisabled: PropTypes.bool,
   sorting: PropTypes.object,
   collapsibleSorting: PropTypes.shape({
     key: PropTypes.string,

@@ -106,4 +106,52 @@ describe('MenuBarStatefulBreadcrumb', () => {
       });
     });
   });
+
+  describe('When displaying a repository', () => {
+    it('renders bread crumbs for repository page', async () => {
+      const displayedOrganization = {
+        parentId: 'REPOSITORY_CONTAINER_ID',
+        name: 'Repo Manager Name',
+        type: 'repository_manager',
+      };
+      const ownersMapWithRepoManagers = {
+        ...ownersMap,
+        repository: {
+          parentId: 'repositoryManagerOne',
+          name: 'Repository',
+          type: 'repository',
+        },
+        repositoryManagerOne: {
+          parentId: 'REPOSITORY_CONTAINER_ID',
+          name: 'Repo Manager Name',
+          type: 'repository_manager',
+        },
+        REPOSITORY_CONTAINER_ID: {
+          parentId: 'ROOT_ORGANIZATION_ID',
+          name: 'Repository Managers',
+          type: 'repository_container',
+        },
+      };
+      const stateWithRouterInRepoContainerPage = {
+        router: {
+          currentState: { name: 'management.view.repository' },
+          currentParams: { repositoryId: 'repository' },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            ownersMap: ownersMapWithRepoManagers,
+            displayedOrganization,
+          },
+        },
+      };
+
+      renderComponent(stateWithRouterInRepoContainerPage);
+
+      const expectedBreadCrumbs = ['ROOT_ORGANIZATION_NAME', 'Repository Managers', 'Repo Manager Name', 'Repository'];
+
+      expectedBreadCrumbs.forEach((breadCrumbName) => {
+        expect(screen.getByText(breadCrumbName)).toBeVisible();
+      });
+    });
+  });
 });

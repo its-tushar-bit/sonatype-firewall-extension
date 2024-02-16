@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codeborne.selenide.SelenideElement;
@@ -37,6 +38,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -94,14 +96,23 @@ public class OrgsAndPoliciesSidebarTest
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_repoManagersMenu() {
-    RepositoryManager repositoryA = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA");
-    tempEntity.newRepository(repositoryA, "a123", false);
-    RepositoryManager repositoryB = tempEntity.newRepositoryManager("P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    tempEntity.newRepository(repositoryB, "b123", true);
+    RepositoryManager repositoryManagerA = tempEntity.newRepositoryManager(
+        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA"
+    );
+    RepositoryManager repositoryManagerB = tempEntity.newRepositoryManager(
+        "P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
+    );
+    tempEntity.newRepository(repositoryManagerA, "a123", false);
+    tempEntity.newRepository(repositoryManagerB, "b123", true);
     tempEntity.newRepositoryManager("AB9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     tempEntity.newRepositoryManager("XY9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     RepositoryManager firstRepositoryManagerInSortedList = tempEntity.newRepositoryManager(
         "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
+    );
+    tempEntity.newHostedRepository(firstRepositoryManagerInSortedList, "npm-hosted", "npm", true);
+    tempEntity.newProxyRepository(firstRepositoryManagerInSortedList, "npm-proxy", "npm", true, true);
+    Repository mavenCentralRepository = tempEntity.newProxyRepository(
+        firstRepositoryManagerInSortedList, "maven-central-proxy", "maven", true, true
     );
     RepositoryManager namedRepositoryManager = tempEntity.newRepositoryManager(
         "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0"
@@ -123,6 +134,18 @@ public class OrgsAndPoliciesSidebarTest
     waitUntilUrl(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
 
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Manager level");
+
+    orgsAndPoliciesSidebar.getRepositoryLink(0).click();
+    waitUntilUrl(OwnerSummaryPage.url(mavenCentralRepository.getType(), mavenCentralRepository.getId()));
+
+    NxCollapsible repositoryList = orgsAndPoliciesSidebar.getRepositoryList();
+    repositoryList.children().shouldHaveSize(3);
+
+    repositoryList.children().get(0).shouldHave(attribute("href"));
+    repositoryList.children().get(1).shouldNotHave(attribute("href"));
+    repositoryList.children().get(2).shouldHave(attribute("href"));
+
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository level");
   }
 
   @Test

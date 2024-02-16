@@ -19,11 +19,14 @@ public class OrgsAndPoliciesSidebar
 
   private final NxCollapsible repoManagersList;
 
+  private final NxCollapsible repositoryList;
+
   public OrgsAndPoliciesSidebar() {
     super(".iq-orgs-and-policies-summary-sidebar");
     organizationList = new NxCollapsible(childSelector("#organizations-collapsible"));
     applicationList = new NxCollapsible(childSelector("#applications-collapsible"));
     repoManagersList = new NxCollapsible(childSelector("#repository-managers-collapsible"));
+    repositoryList = new NxCollapsible(childSelector("#repositories-collapsible"));
   }
 
   public SelenideElement selectedOrg() {
@@ -36,6 +39,10 @@ public class OrgsAndPoliciesSidebar
 
   public SelenideElement filterInput() {
     return child("#owner-sidebar-filter");
+  }
+
+  public NxCollapsible getRepositoryList() {
+    return repositoryList;
   }
 
   public NxCollapsible getRepoManagerList() {
@@ -80,6 +87,10 @@ public class OrgsAndPoliciesSidebar
 
   public OwnerItem getRepositoryManagerLink(int index) {
     return new OwnerItem(repoManagersList.children().get(index));
+  }
+
+  public OwnerItem getRepositoryLink(int index) {
+    return new OwnerItem(repositoryList.children().get(index));
   }
 
   public class OwnerItem

@@ -37,11 +37,15 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
   const isRepositoryManager =
     includes('management.view.repository_manager', currentState.name) ||
     includes('repository_manager', currentState.name);
+  const isRepository =
+    includes('management.view.repository', currentState.name) || includes('repository', currentState.name);
 
   const type = isRepositoryContainer
     ? 'repository_container'
     : isRepositoryManager
     ? 'repository_manager'
+    : isRepository
+    ? 'repository'
     : isApp
     ? 'application'
     : 'organization';
@@ -49,6 +53,8 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
     ? 'REPOSITORY_CONTAINER_ID'
     : isRepositoryManager
     ? 'repositoryManagerId'
+    : isRepository
+    ? 'repositoryId'
     : isApp
     ? 'applicationPublicId'
     : 'organizationId';

@@ -10,11 +10,7 @@ import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { propSet } from '../util/reduxToolkitUtil';
-import {
-  selectIsRepositoriesRelated,
-  selectOwnerInfo,
-  selectIsRepositoryManager,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
@@ -30,15 +26,9 @@ const checkEditIqPermission = createAsyncThunk(
   `${REDUCER_NAME}/checkEditIqPermission`,
   (_, { rejectWithValue, getState }) => {
     const state = getState();
-    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
-    const isRepositoryManager = selectIsRepositoryManager(state);
     const ownerInfo = selectOwnerInfo(state);
     const selectedOwner = selectSelectedOwner(state);
-    const ownerType = isRepositoriesRelated
-      ? isRepositoryManager
-        ? 'repository_manager'
-        : 'repository_container'
-      : ownerInfo.ownerType;
+    const ownerType = ownerInfo.ownerType;
     const ownerId = selectedOwner.id;
     return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
   }

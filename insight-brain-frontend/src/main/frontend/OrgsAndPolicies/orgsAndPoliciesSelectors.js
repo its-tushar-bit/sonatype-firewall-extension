@@ -14,6 +14,10 @@ import {
   selectIsRepositories,
   selectIsRepositoryManager,
   selectRepositoryManagerId,
+  selectIsRepository,
+  selectRepositoryId,
+  selectIsRepositoryContainer,
+  selectRepositoryContainerId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectOrgsAndPoliciesSlice = prop('orgsAndPolicies');
@@ -33,7 +37,7 @@ export const selectOwnerProperties = createSelector(
   selectIsRepositories,
   selectIsRepositoryManager,
   (
-    { applicationPublicId, organizationId, applicationId, repositoryContainerId, repositoryManagerId },
+    { applicationPublicId, organizationId, applicationId, repositoryContainerId, repositoryManagerId, repositoryId },
     isRepositories,
     isRepositoryManager
   ) => {
@@ -47,6 +51,11 @@ export const selectOwnerProperties = createSelector(
         ownerType: 'repository_manager',
         ownerId: repositoryManagerId,
       };
+    } else if (repositoryId) {
+      return {
+        ownerType: 'repository',
+        ownerId: repositoryId,
+      };
     } else {
       return {
         ownerType: organizationId ? 'organization' : 'application',
@@ -59,12 +68,33 @@ export const selectOwnerProperties = createSelector(
 export const selectEntityId = createSelector(
   selectIsOrganization,
   selectIsApplication,
+  selectIsRepositoryContainer,
   selectIsRepositoryManager,
+  selectIsRepository,
   selectOrganizationId,
   selectApplicationId,
+  selectRepositoryContainerId,
   selectRepositoryManagerId,
-  (isOrganization, isApplication, isRepositoryManager, orgId, appId, selectRepositoryManagerId) =>
-    isApplication ? appId : isOrganization ? orgId : isRepositoryManager ? selectRepositoryManagerId : 'global'
+  selectRepositoryId,
+  (
+    isOrganization,
+    isApplication,
+    isRepositoryContainer,
+    isRepositoryManager,
+    isRepository,
+    orgId,
+    appId,
+    repositoryContainerId,
+    repositoryManagerId,
+    repositoryId
+  ) => {
+    if (isApplication) return appId;
+    if (isOrganization) return orgId;
+    if (isRepositoryContainer) return repositoryContainerId;
+    if (isRepositoryManager) return repositoryManagerId;
+    if (isRepository) return repositoryId;
+    return 'global';
+  }
 );
 
 export const selectSelectedOwnerTypeAndId = createSelector(selectSelectedOwner, (owner) => ({

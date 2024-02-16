@@ -45,6 +45,7 @@ import {
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
   selectIsRepositoryManager,
+  selectIsRepository,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PolicyEditor() {
@@ -69,9 +70,11 @@ export default function PolicyEditor() {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isRepository = useSelector(selectIsRepository);
   const isLoading = ownerDetailTreeLoading || loading;
 
-  const showInheritedSection = isOrgOwner || isRepositoryContainer || isRepositoryManager;
+  const showInheretedForRepository = isInherited && isRepository;
+  const showInheritedSection = isOrgOwner || isRepositoryContainer || isRepositoryManager || showInheretedForRepository;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
   const savePolicy = () => dispatch(actions.savePolicy());
   const updateOverrides = () => dispatch(actions.updateOverrides());

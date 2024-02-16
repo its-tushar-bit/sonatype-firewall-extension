@@ -163,7 +163,7 @@ describe('PolicyEditorSpec', () => {
     renderComponent(initState);
     const updateButton = await screen.findByText('Update');
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
+    expect(updateButton).toHaveClass('disabled');
   });
 
   it('disables the Update button if there are no changes', async () => {
@@ -171,7 +171,7 @@ describe('PolicyEditorSpec', () => {
     renderComponent(initState);
     const updateButton = await screen.findByText('Update');
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
+    expect(updateButton).toHaveClass('disabled');
   });
 
   it('disables the Delete button when there is no permission', async () => {
@@ -201,7 +201,7 @@ describe('PolicyEditorSpec', () => {
           expect(alert).toBeVisible();
 
           expect(deleteButton).toBeVisible();
-          expect(deleteButton).not.toHaveClassName('disabled');
+          expect(deleteButton).not.toHaveClass('disabled');
         });
 
         it('enables the Update button with valid data', async () => {
@@ -218,7 +218,7 @@ describe('PolicyEditorSpec', () => {
           const deleteConstraintBtn = await screen.findAllByLabelText('Delete constraint');
           fireEvent.click(deleteConstraintBtn[0]);
           updateButton = screen.getByText('Update');
-          expect(updateButton).not.toHaveClassName('disabled');
+          expect(updateButton).not.toHaveClass('disabled');
         });
 
         it('disables the Update button for policy name duplicated', async () => {
@@ -289,7 +289,7 @@ describe('PolicyEditorSpec', () => {
           expect(updateButton).toBeVisible();
           fireEvent.change(policyNameInput, { target: { value: 'New Value' } });
           updateButton = screen.getByText('Update');
-          expect(updateButton).not.toHaveClassName('disabled');
+          expect(updateButton).not.toHaveClass('disabled');
           const addConstraintButton = screen.getByText('Add Constraint');
           fireEvent.click(addConstraintButton);
           updateButton = screen.getByText('Update');
@@ -335,7 +335,7 @@ describe('PolicyEditorSpec', () => {
           const savingMask = screen.getByText('Saving…');
           expect(savingMask).toBeVisible();
 
-          const error = await screen.findByText('An error occurred loading data. Error 404');
+          const error = screen.getByText('An error occurred loading data. Error 404');
           expect(error).toBeVisible();
         });
 
@@ -420,7 +420,7 @@ describe('PolicyEditorSpec', () => {
         const conditionAgeInput = screen.getByPlaceholderText('Age');
         fireEvent.change(conditionAgeInput, { target: { value: '2' } });
         updateButton = screen.getByText('Create');
-        expect(updateButton).not.toHaveClassName('disabled');
+        expect(updateButton).not.toHaveClass('disabled');
       });
     });
   });
@@ -473,7 +473,7 @@ describe('PolicyEditorSpec', () => {
       expect(overrideParentActionsInput).not.toBeDisabled();
       fireEvent.click(overrideParentActionsInput);
       updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
     });
 
     it('enables the update button when the notifications override status changes', async () => {
@@ -489,7 +489,7 @@ describe('PolicyEditorSpec', () => {
       expect(overrideParentNotificationsInput).not.toBeDisabled();
       fireEvent.click(overrideParentNotificationsInput);
       updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
     });
 
     it('saves a policy successfully when adding an action override, shows the save mask with the success message', async () => {
@@ -502,7 +502,7 @@ describe('PolicyEditorSpec', () => {
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       fireEvent.click(overrideParentActionsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -520,7 +520,7 @@ describe('PolicyEditorSpec', () => {
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       fireEvent.click(overrideParentNotificationsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -538,7 +538,7 @@ describe('PolicyEditorSpec', () => {
       const inheritParentActionsInput = await screen.findByLabelText('Inherit parent actions');
       fireEvent.click(inheritParentActionsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -556,7 +556,7 @@ describe('PolicyEditorSpec', () => {
       const inheritParentNotificationsInput = await screen.findByLabelText('Inherit parent notifications');
       fireEvent.click(inheritParentNotificationsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -579,7 +579,7 @@ describe('PolicyEditorSpec', () => {
       fireEvent.click(checkboxes[8]);
 
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -602,7 +602,7 @@ describe('PolicyEditorSpec', () => {
       fireEvent.click(removeButtons[0]);
 
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -641,7 +641,7 @@ describe('PolicyEditorSpec', () => {
       expect(overrideParentActionsInput).not.toBeDisabled();
       fireEvent.click(overrideParentActionsInput);
       updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
     });
 
     it('enables the update button when the notifications override status changes for repository container', async () => {
@@ -660,7 +660,7 @@ describe('PolicyEditorSpec', () => {
       expect(overrideParentNotificationsInput).not.toBeDisabled();
       fireEvent.click(overrideParentNotificationsInput);
       updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
     });
 
     it('saves a policy successfully when adding an action override from repository container, shows the save mask with the success message', async () => {
@@ -673,7 +673,7 @@ describe('PolicyEditorSpec', () => {
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       fireEvent.click(overrideParentActionsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();
@@ -694,7 +694,7 @@ describe('PolicyEditorSpec', () => {
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       fireEvent.click(overrideParentNotificationsInput);
       const updateButton = screen.getByText('Update');
-      expect(updateButton).not.toHaveClassName('disabled');
+      expect(updateButton).not.toHaveClass('disabled');
       fireEvent.click(updateButton);
       const savingMask = screen.getByText('Saving…');
       expect(savingMask).toBeVisible();

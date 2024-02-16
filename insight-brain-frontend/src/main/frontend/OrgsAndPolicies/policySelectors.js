@@ -37,6 +37,12 @@ export const selectValidationError = createSelector(selectPolicySlice, prop('val
 
 export const selectIsOrgOwner = createSelector(selectPolicySlice, prop('isOrgOwner'));
 
+export const selectIsRepositoryContainerOwner = createSelector(selectPolicySlice, prop('isRepositoryContainerOwner'));
+
+export const selectIsRepositoryManagerOwner = createSelector(selectPolicySlice, prop('isRepositoryManagerOwner'));
+
+export const selectIsRepositoryOwner = createSelector(selectPolicySlice, prop('isRepositoryOwner'));
+
 export const selectIsInherited = createSelector(selectPolicySlice, prop('isInherited'));
 
 export const selectSiblings = createSelector(selectPolicySlice, prop('siblings'));

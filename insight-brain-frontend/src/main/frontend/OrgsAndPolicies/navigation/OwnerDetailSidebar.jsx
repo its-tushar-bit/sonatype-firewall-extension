@@ -32,6 +32,7 @@ import {
   selectRouterCurrentParams,
   selectIsRepositoriesRelated,
   selectIsRepositoryManager,
+  selectIsRepository,
   selectIsCategory,
   selectIsPolicy,
   selectIsLegacyViolation,
@@ -78,6 +79,7 @@ export default function OwnerDetailSidebar() {
   const doesRolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isRepository = useSelector(selectIsRepository);
   const isCategory = useSelector(selectIsCategory);
   const isPolicy = useSelector(selectIsPolicy);
   const isLegacyViolations = useSelector(selectIsLegacyViolation);
@@ -106,6 +108,9 @@ export default function OwnerDetailSidebar() {
     if (isRepositoriesRelated) {
       if (isRepositoryManager) {
         return uiRouterState.href('management.edit.repository_manager', { repositoryManagerId: owner.id });
+      }
+      if (isRepository) {
+        return uiRouterState.href('management.edit.repository', { repositoryId: owner.id });
       }
       return uiRouterState.href('management.edit.repository_container', {
         repositoryContainerId: 'REPOSITORY_CONTAINER_ID',

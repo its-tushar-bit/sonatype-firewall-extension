@@ -37,7 +37,8 @@ public class AccessEditorPage
       "One or more LDAP servers have group search disabled, which will affect your results";
 
   public static String urlToEdit(Owner owner, String accessRoleId) {
-    return urlToEdit(owner.getType(), owner.getPublicId(), accessRoleId);
+    String ownerId = owner.getType().equals(OwnerType.REPOSITORY) ? owner.getId() : owner.getPublicId();
+    return urlToEdit(owner.getType(), ownerId, accessRoleId);
   }
 
   public static String urlToEdit(OwnerType ownerType, String ownerId, String accessRoleId) {
@@ -45,7 +46,8 @@ public class AccessEditorPage
   }
 
   public static String urlToCreate(Owner owner) {
-    return urlToCreate(owner.getType(), owner.getPublicId());
+    String ownerId = owner.getType().equals(OwnerType.REPOSITORY) ? owner.getId() : owner.getPublicId();
+    return urlToCreate(owner.getType(), ownerId);
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {

@@ -138,6 +138,15 @@ describe('orgsAndPoliciesSelectors', () => {
       });
     });
 
+    it('returns repository ownerType and ownerId', () => {
+      mockState.router.currentState.name = 'management.view.repository';
+      mockState.router.currentParams = { repositoryId: 'repositoryId' };
+      expect(selectOwnerProperties(mockState)).toEqual({
+        ownerType: 'repository',
+        ownerId: 'repositoryId',
+      });
+    });
+
     it('returns repository manager ownerType and ownerId', () => {
       mockState.router.currentState.name = 'management.view.repository_manager';
       mockState.router.currentParams = { repositoryManagerId: 'repoManagerId' };

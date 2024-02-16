@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Before;
@@ -36,6 +37,22 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
   @Before
   public void init() {
     repositoryManager = tempEntity.newRepositoryManager();
+  }
+
+  @Test
+  public void testOverrideAddAndEdit_Repository() {
+    Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm",
+            true, true);
+    goToRepositorySummaryPage(repository);
+    createTrivialPolicy(false);
+    PolicyEditorPage.savePolicy();
+
+    PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHaveSize(1);
+    OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
+
+    PolicyEditorPage.title().shouldHave(text("Edit Policy"));
+    PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
   }
 
   @Test
@@ -170,5 +187,10 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
   private void goToRepositoryManagerSummaryPage(RepositoryManager repositoryManager) {
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     RepositoriesSummaryPage.summaryTile().name().shouldHave(text(repositoryManager.getName()));
+  }
+
+  private void goToRepositorySummaryPage(Repository repository) {
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(repository.getName()));
   }
 }

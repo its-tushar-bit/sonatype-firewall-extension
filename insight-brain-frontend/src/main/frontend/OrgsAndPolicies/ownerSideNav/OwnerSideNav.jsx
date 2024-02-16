@@ -30,6 +30,7 @@ import { selectOwnerSideNavSlice, selectIsOrganizationTopOfHierarchyForUser } fr
 import Application from './Application';
 import Organization from './Organization';
 import RepositoryManager from './RepositoryManager';
+import Repository from './Repository';
 import {
   selectIsRootOrganization,
   selectIsOrganization,
@@ -40,12 +41,19 @@ import {
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
   selectIsRepositoryManager,
+  selectIsRepository,
+  selectRepositoryId,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { getOwnerInfo } from './utils';
+
+const getId = (repositoryOrId) => {
+  if (typeof repositoryOrId === 'string') return repositoryOrId;
+  return repositoryOrId.id;
+};
 
 export default function OwnerSideNav() {
   const dispatch = useDispatch();
@@ -58,6 +66,7 @@ export default function OwnerSideNav() {
     toggleOrganizationsCheck,
     toggleApplicationsCheck,
     toggleRepositoryManagersCheck,
+    toggleRepositoriesCheck,
     filterQuery,
     filteredEntries,
     filterLoading,
@@ -67,11 +76,13 @@ export default function OwnerSideNav() {
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isRepository = useSelector(selectIsRepository);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isApplication = useSelector(selectIsApplication);
   const showRepositoriesLink = showRepositories && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated;
   const selectedApplicationId = useSelector(selectApplicationId);
+  const selectedRepositoryId = useSelector(selectRepositoryId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
@@ -97,6 +108,9 @@ export default function OwnerSideNav() {
   };
   const onToggleRepositoryManagersCollapse = () => {
     dispatch(actions.toggleRepositoryManagersCollapse());
+  };
+  const onToggleRepositoriesCollapse = () => {
+    dispatch(actions.toggleRepositoresCollapse());
   };
 
   const load = () => {
@@ -177,8 +191,9 @@ export default function OwnerSideNav() {
     }
 
     if (
-      (!isRepositoryContainer && isNilOrEmpty(entries.organizations) && isNilOrEmpty(entries.applications)) ||
-      (isRepositoryContainer && isNilOrEmpty(entries.repositoryManagers))
+      (isRepositoryContainer && isNilOrEmpty(entries.repositoryManagers)) ||
+      (isRepositoryManager && isNilOrEmpty(entries.repositories)) ||
+      ((isOrganization || isApplication) && isNilOrEmpty(entries.organizations) && isNilOrEmpty(entries.applications))
     ) {
       return <div className="iq-orgs-and-policies-summary-sidebar__filtered-not-found">No Results Found</div>;
     }
@@ -188,6 +203,7 @@ export default function OwnerSideNav() {
         {renderFilteredRepositoryManagers(entries.repositoryManagers)}
         {renderFilteredOrganizations(entries.organizations)}
         {renderFilteredApplications(entries.applications)}
+        {renderRepositories(entries.repositories, { filtered: true })}
       </>
     );
   };
@@ -231,6 +247,33 @@ export default function OwnerSideNav() {
             <Application applicationPublicId={publicId} isFilteredResult />
           </NxCollapsibleItems.Child>
         ))}
+      </NxCollapsibleItems>
+    );
+  };
+
+  const renderRepositories = (repositories = [], options = {}) => {
+    if ((!isRepositoryManager && !isRepository) || isRepositoryContainer) return null;
+
+    const { filtered = false } = options;
+
+    return (
+      <NxCollapsibleItems
+        role="menu"
+        onToggleCollapse={onToggleRepositoriesCollapse}
+        isOpen={toggleRepositoriesCheck}
+        triggerContent="Repositories"
+        id="repositories-collapsible"
+      >
+        {repositories.map((repository) => {
+          const repositoryId = getId(repository);
+          const repositoryClassNames = filtered ? '' : classnames({ active: repositoryId === selectedRepositoryId });
+
+          return (
+            <NxCollapsibleItems.Child role="menuitem" key={repositoryId} className={repositoryClassNames}>
+              <Repository repositoryId={repositoryId} />
+            </NxCollapsibleItems.Child>
+          );
+        })}
       </NxCollapsibleItems>
     );
   };
@@ -307,7 +350,7 @@ export default function OwnerSideNav() {
   };
 
   const renderOrganizations = (organization) => {
-    if (isRepositoryContainer || isRepositoryManager) return null;
+    if (isRepositoriesRelated) return null;
 
     const childOrganizationIds = organization.organizationIds ?? [];
 
@@ -384,6 +427,7 @@ export default function OwnerSideNav() {
                     {isOrgsAndAppsEnabled && (
                       <>
                         {renderRepositoryManagers(displayedOrganization)}
+                        {renderRepositories(displayedOrganization.repositoryIds)}
                         {renderOrganizations(displayedOrganization)}
                         {renderApplications(displayedOrganization)}
                       </>

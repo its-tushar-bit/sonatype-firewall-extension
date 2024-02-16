@@ -38,10 +38,12 @@ export const initialState = {
   toggleOrganizationsCheck: true,
   toggleApplicationsCheck: true,
   toggleRepositoryManagersCheck: false,
+  toggleRepositoriesCheck: true,
   filteredEntries: {
     applications: [],
     organizations: [],
     repositoryManagers: [],
+    repositories: [],
   },
   filterQuery: rscInitialState(''),
   filterLoading: false,
@@ -138,11 +140,17 @@ const getDisplayedOrganization = (ownersMap, topParentOrganizationId = 'ROOT_ORG
   const {
     organizationId = '',
     applicationPublicId = '',
+    repositoryId = '',
     repositoryManagerId = '',
     repositoryContainerId = '',
   } = routerParams;
   if (organizationId) {
     displayedOrganization = ownersMap[organizationId];
+  }
+
+  if (repositoryId) {
+    const repository = ownersMap[repositoryId];
+    displayedOrganization = ownersMap[repository?.parentId];
   }
 
   if (repositoryManagerId) {
@@ -171,6 +179,7 @@ const onRouterFinish = (state, { payload }) => {
     state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
     state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
     state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+    state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
     resetFilter(state);
   }
 };
@@ -187,6 +196,7 @@ const loadFulfilled = (state, { payload }) => {
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
   state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+  state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
   state.flattenEntries = payload.flattenEntries;
 };
 
@@ -268,17 +278,20 @@ const filterEntries = (entries, term) => {
   let filteredOrganizations = [];
   let filteredApplications = [];
   let filteredRepositoryManagers = [];
+  let filteredRepositories = [];
 
   if (term && term.length >= 3) {
     filteredOrganizations = fuzzyFilter(entries.organizations, term, 'name');
     filteredApplications = fuzzyFilter(entries.applications, term, 'name');
     filteredRepositoryManagers = fuzzyFilter(entries.repositoryManagers, term, 'name');
+    filteredRepositories = fuzzyFilter(entries.repositories, term, 'name');
   }
 
   return {
     organizations: sortOwnerByName(filteredOrganizations),
     applications: sortOwnerByName(filteredApplications),
     repositoryManagers: sortOwnerByName(filteredRepositoryManagers),
+    repositories: sortOwnerByName(filteredRepositories),
   };
 };
 
@@ -398,6 +411,7 @@ const ownerSideNavSlice = createSlice({
     toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
     toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),
+    toggleRepositoresCollapse: toggleBooleanProp('toggleRepositoriesCheck'),
     setDisplayedOrganization: propSet('displayedOrganization'),
     setFilterQuery,
     setFilteredEntries,

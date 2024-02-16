@@ -22,11 +22,12 @@ export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('pr
 export const selectPreviousRouteName = createSelector(selectRouterPrevState, prop('name'));
 
 const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
+const includesNamePartSeparateByDot = (part) => (stringToSearch = '') => stringToSearch.split('.').includes(part);
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesTransitiveViolations = includesNamePart('transitiveViolations');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
-const nameIncludesRepository = includesNamePart('repository');
+const nameIncludesRepository = includesNamePartSeparateByDot('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
@@ -118,17 +119,21 @@ export const selectOwnerInfo = createSelector(
   selectIsApplication,
   selectIsRepositories,
   selectIsRepositoryManager,
+  selectIsRepository,
   selectOrganizationId,
   selectApplicationId,
   selectRepositoryManagerId,
+  selectRepositoryId,
   (
     isOrganization,
     isApplication,
     isRepositories,
     isRepositoryManager,
+    isRepository,
     organizationId,
     applicationId,
-    repositoryManagerId
+    repositoryManagerId,
+    repositoryId
   ) => {
     const ownerId = isApplication
       ? applicationId
@@ -136,6 +141,8 @@ export const selectOwnerInfo = createSelector(
       ? organizationId
       : isRepositoryManager
       ? repositoryManagerId
+      : isRepository
+      ? repositoryId
       : 'global';
     const ownerType = isApplication
       ? 'application'
@@ -147,6 +154,8 @@ export const selectOwnerInfo = createSelector(
       ? 'repository_container'
       : isRepositoryManager
       ? 'repository_manager'
+      : isRepository
+      ? 'repository'
       : 'global';
 
     if (isRepositories) {

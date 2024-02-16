@@ -21,6 +21,10 @@ public class NxBreadcrumb
     return children(".nx-breadcrumb__link");
   }
 
+  public ElementsCollection listItems() {
+    return children(".nx-breadcrumb__list-item");
+  }
+
   public SelenideElement current() {
     return child(".nx-breadcrumb__link--current");
   }

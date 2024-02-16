@@ -617,6 +617,7 @@ describe('OwnerSideNav', () => {
           name: 'repositoryManagerOne 1.0',
           type: 'repository_manager',
           parentId: 'REPOSITORY_CONTAINER_ID',
+          repositoryIds: ['repoOne', 'repoTwo'],
         },
         repositoryManagerTwo: {
           id: 'repositoryManagerTwo',
@@ -629,6 +630,20 @@ describe('OwnerSideNav', () => {
           name: '1.0 repositoryManagerThree',
           type: 'repository_manager',
           parentId: 'REPOSITORY_CONTAINER_ID',
+        },
+        repoOne: {
+          id: 'repoOne',
+          name: 'Repo One',
+          type: 'repository',
+          repositoryType: 'proxy',
+          parentId: 'repositoryManagerOne',
+        },
+        repoTwo: {
+          id: 'repoTwo',
+          name: 'Repo Two',
+          type: 'repository',
+          repositoryType: 'hosted',
+          parentId: 'repositoryManagerOne',
         },
       };
       selectedOrg = ownersMapWithRepositoryContainer.repositoryManagerOne;
@@ -709,6 +724,256 @@ describe('OwnerSideNav', () => {
           renderComponent();
           const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
           expect(goToRepositoriesLink).toHaveAttribute('href');
+        });
+      });
+
+      it('should not render repository managers menu item', async () => {
+        renderComponent(state);
+        const repoManagersMenu = await screen.queryByRole('button', { name: 'Repository Managers' });
+        expect(repoManagersMenu).toBeNull();
+      });
+
+      describe('children menu items', () => {
+        it('renders only repositories menu section', async () => {
+          renderComponent();
+          expect(await screen.findByRole('button', { name: 'Repositories' })).toBeVisible();
+          expect(screen.queryByRole('button', { name: /Repository Managers/ })).toBeNull();
+          expect(screen.queryByRole('button', { name: /Organizations/ })).toBeNull();
+        });
+
+        it('only proxy repositories are clickable', async () => {
+          renderComponent();
+          expect(await screen.findByRole('button', { name: 'Repositories' })).toBeVisible();
+          expect(screen.getByRole('menuitem', { name: /Repo One/ })).toBeVisible();
+          expect(screen.getByRole('menuitem', { name: /Repo One/ })).toHaveAttribute(
+            'href',
+            '#/management/view/repository/repoOne'
+          );
+          expect(screen.getByRole('menuitem', { name: /Repo Two/ })).toBeVisible();
+          expect(screen.getByRole('menuitem', { name: /Repo Two/ })).not.toHaveAttribute('href');
+        });
+      });
+
+      it('renders matching results when filter is active', async () => {
+        const rootOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
+        const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
+        const ownersMapWithRepositoryContainer = {
+          ...ownersMap,
+          [topParentOrganizationId]: rootOrg,
+          REPOSITORY_CONTAINER_ID: { repositoryManagerIds },
+          repositoryManagerOne: {
+            id: 'repositoryManagerOne',
+            name: 'repositoryManagerOne',
+            type: 'repository_manager',
+          },
+          repositoryManagerTwo: {
+            id: 'repositoryManagerTwo',
+            name: 'repositoryManagerTwo',
+            type: 'repository_manager',
+          },
+        };
+        state = {
+          productFeatures: {
+            productFeatures: {
+              'orgs-and-apps': true,
+            },
+          },
+          router: {
+            currentState: {
+              name: 'management.view.repository_container',
+            },
+            currentParams: {
+              repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+            },
+          },
+          orgsAndPolicies: {
+            ownerSideNav: {
+              filterQuery: rscInitialState(''),
+              filteredEntries: {
+                applications: [],
+                organizations: [],
+                repositoryManagers: [],
+              },
+              displayedOrganization: {
+                type: 'organization',
+                id: rootOrg.id,
+                name: rootOrg.name,
+              },
+            },
+          },
+        };
+        const ownerListPayload = { topParentOrganizationId, ownersMap: ownersMapWithRepositoryContainer };
+        mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
+        renderComponent();
+
+        const searchInput = await screen.findByRole('textbox');
+
+        fireEvent.change(searchInput, { target: { value: 'one' } });
+
+        const filteredHeader = screen.getByText('Filtered Results:');
+        expect(filteredHeader).toBeVisible();
+
+        const results = await screen.findAllByRole('menuitem');
+        expect(results).toHaveLength(1);
+
+        expect(results[0]).toHaveTextContent('repositoryManagerOne');
+
+        fireEvent.change(searchInput, { target: { value: 'empty' } });
+
+        expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
+        expect(await screen.findByText('No Results Found')).toBeVisible();
+
+        fireEvent.change(searchInput, { target: { value: 'name' } });
+
+        expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
+        expect(await screen.findByText('No Results Found')).toBeVisible();
+      });
+    });
+
+    describe('owner sidenav footer', () => {
+      it('renders tree view link', async () => {
+        renderComponent();
+        const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toBeVisible();
+      });
+
+      it('contains correct href to navigate to tree view page', async () => {
+        renderComponent();
+        const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
+        expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
+        expect(goToTreeViewLink).toHaveAttribute('href', '#/management/view/tree');
+      });
+    });
+  });
+
+  describe('Current owner is Repository', () => {
+    let selectedOrg;
+    const topParentOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
+    const repositoryManagerIds = ['repositoryManager'];
+
+    beforeEach(() => {
+      const ownersMapWithRepositoryContainer = {
+        ...ownersMap,
+        [topParentOrganizationId]: topParentOrg,
+        REPOSITORY_CONTAINER_ID: {
+          repositoryManagerIds,
+          name: 'Repository Managers',
+          type: 'repository_container',
+          id: 'REPOSITORY_CONTAINER_ID',
+          parentId: 'ROOT_ORGANIZATION_ID',
+        },
+        repositoryManager: {
+          id: 'repositoryManager',
+          name: 'repositoryManager',
+          type: 'repository_manager',
+          parentId: 'REPOSITORY_CONTAINER_ID',
+          repositoryIds: ['repositoryOne', 'repositoryTwo', 'repositoryThree'],
+        },
+        repositoryOne: {
+          id: 'repositoryOne',
+          name: 'repositoryOne',
+          type: 'repository',
+          parentId: 'repositoryManager',
+        },
+        repositoryTwo: {
+          id: 'repositoryTwo',
+          name: 'repositoryTwo',
+          type: 'repository',
+          parentId: 'repositoryManager',
+        },
+        repositoryThree: {
+          id: 'repositoryThree',
+          name: 'repositoryThree',
+          type: 'repository',
+          parentId: 'repositoryManager',
+        },
+      };
+      selectedOrg = ownersMapWithRepositoryContainer.repositoryManager;
+      state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.repository',
+          },
+          currentParams: { repositoryId: 'repositoryOne' },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: selectedOrg,
+          },
+        },
+      };
+      const ownerListPayload = { topParentOrganizationId, ownersMap: ownersMapWithRepositoryContainer };
+      mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
+      mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, permissionsPayload);
+    });
+
+    it('renders breadcrumb', async () => {
+      renderComponent();
+
+      const navigation = await screen.findByRole('navigation', {
+        name: /breadcrumbs/i,
+      });
+
+      const ancestorBreadcrumb = within(navigation).getByText('ROOT_ORGANIZATION_NAME');
+      expect(ancestorBreadcrumb).toBeVisible();
+      expect(ancestorBreadcrumb.closest('a')).toHaveAttribute(
+        'href',
+        '#/management/view/organization/ROOT_ORGANIZATION_ID'
+      );
+
+      const repositoryManagersBreadcrumb = within(navigation).getByText('Repository Managers');
+      expect(repositoryManagersBreadcrumb).toBeVisible();
+      expect(repositoryManagersBreadcrumb.closest('a')).toHaveAttribute(
+        'href',
+        '#/management/view/repository_container/REPOSITORY_CONTAINER_ID'
+      );
+
+      const repositoryManagerBreadcrumb = within(navigation).getByText('repositoryManager');
+      expect(repositoryManagerBreadcrumb).toBeVisible();
+      expect(repositoryManagerBreadcrumb.closest('a')).toHaveAttribute(
+        'href',
+        '#/management/view/repository_manager/repositoryManager'
+      );
+
+      const currentBreadcrumb = within(navigation).getByText('repositoryOne');
+      expect(currentBreadcrumb).toBeVisible();
+      expect(currentBreadcrumb.closest('a')).not.toHaveAttribute('href');
+    });
+
+    describe('owner sidenav header', () => {
+      it("renders current repository manager's name as a link", async () => {
+        renderComponent();
+        const navbarHeader = await screen.findByTestId('sidebar-header');
+        const currentOrgLink = within(navbarHeader).getByRole('link', { name: selectedOrg.name });
+        expect(currentOrgLink).toBeVisible();
+        expect(currentOrgLink).toHaveClass('iq-navbar-item iq-selected-org');
+        expect(currentOrgLink).toHaveAttribute('href', `#/management/view/repository_manager/${selectedOrg.id}`);
+      });
+    });
+
+    describe('owner sidenav content', () => {
+      describe('repositories menu item', () => {
+        it('does not render repositories link', async () => {
+          renderComponent();
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(All Repositories)/ });
+          expect(goToRepositoriesLink).toBeNull();
+        });
+
+        it('does not contains correct href to navigate to repository configuration', async () => {
+          renderComponent();
+          const goToRepositoriesLink = await screen.queryByRole('link', { name: /(Repository Managers)/ });
+          expect(goToRepositoriesLink).toBeNull();
         });
       });
 

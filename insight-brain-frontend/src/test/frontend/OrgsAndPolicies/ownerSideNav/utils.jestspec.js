@@ -37,8 +37,8 @@ describe('ownerSideNav utils', () => {
   });
 
   describe('flatEntries', () => {
-    it('flatten the list of organizations, applications and repo managers', () => {
-      const owners = getOwnersMap(4);
+    it('flatten the list of organizations, applications, repo managers and repositories', () => {
+      const owners = getOwnersMap(4, false);
       const rootOrg = owners.ROOT_ORGANIZATION_ID;
       const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
       const ownersMapWithRepositoryContainer = {
@@ -47,15 +47,20 @@ describe('ownerSideNav utils', () => {
         REPOSITORY_CONTAINER_ID: { repositoryManagerIds },
         repositoryManagerOne: { id: 'repositoryManagerOne', name: 'repositoryManagerOne', type: 'repository_manager' },
         repositoryManagerTwo: { id: 'repositoryManagerTwo', name: 'repositoryManagerTwo', type: 'repository_manager' },
+        repositoryOne: { id: 'repositoryOne', name: 'repositoryOne', type: 'repository' },
+        repositoryTwo: { id: 'repositoryTwo', name: 'repositoryTwo', type: 'repository' },
+        repositoryThree: { id: 'repositoryThree', name: 'repositoryThree', type: 'repository' },
       };
       const flatten = flatEntries(ownersMapWithRepositoryContainer, {
         applications: [],
         organizations: [],
+        repositories: [],
         repositoryManagers: [],
       });
       expect(flatten.applications.length).toBe(16);
       expect(flatten.organizations.length).toBe(5);
       expect(flatten.repositoryManagers.length).toBe(2);
+      expect(flatten.repositories.length).toBe(3);
     });
   });
 
@@ -96,6 +101,7 @@ describe('ownerSideNav utils', () => {
 
   describe('getOwnerInfo', () => {
     it('flatten the list of organizations, applications and repo managers', () => {
+      expect(getOwnerInfo({ type: 'repository', id: 'rid' })).toEqual(['parentId', { repositoryId: 'rid' }]);
       expect(getOwnerInfo({ type: 'repository_manager', id: 'rmid' })).toEqual([
         'parentId',
         { repositoryManagerId: 'rmid' },

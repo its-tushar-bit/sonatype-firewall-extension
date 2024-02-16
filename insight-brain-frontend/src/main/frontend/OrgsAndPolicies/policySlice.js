@@ -52,6 +52,8 @@ import {
   selectOwnerInfo,
   selectIsRepositoriesRelated,
   selectIsRepositoryManager,
+  selectIsRepositoryContainer,
+  selectIsRepository,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
@@ -184,6 +186,9 @@ export const initialState = {
   siblings: [],
   isInherited: undefined,
   isOrgOwner: false,
+  isRepositoryContainerOwner: false,
+  isRepositoryManagerOwner: false,
+  isRepositoryOwner: false,
   isRootOrg: false,
   originalProxyStageAction: null,
 
@@ -426,6 +431,9 @@ const loadPolicyEditor = createAsyncThunk(
         let currentPolicy = initialState.currentPolicy;
         let isInherited;
         let isOrgOwner;
+        let isRepositoryContainerOwner;
+        let isRepositoryManagerOwner;
+        let isRepositoryOwner;
         let originalProxyStageAction;
         let isRootOrg = selectIsRootOrganization(state);
 
@@ -448,6 +456,9 @@ const loadPolicyEditor = createAsyncThunk(
               currentPolicyOwner.name = ownerName;
 
               isOrgOwner = ownerType === 'organization';
+              isRepositoryContainerOwner = ownerType === 'repository_container';
+              isRepositoryManagerOwner = ownerType === 'repository_manager';
+              isRepositoryOwner = ownerType === 'repository';
               return true;
             }
           });
@@ -459,6 +470,9 @@ const loadPolicyEditor = createAsyncThunk(
           currentPolicyOwner.id = localOwner.ownerId; // remove id if not needed.
           currentPolicyOwner.name = localOwner.ownerName;
           isOrgOwner = selectIsOrganization(state);
+          isRepositoryContainerOwner = selectIsRepositoryContainer(state);
+          isRepositoryManagerOwner = selectIsRepositoryManager(state);
+          isRepositoryOwner = selectIsRepository(state);
         }
 
         dispatch(
@@ -481,6 +495,9 @@ const loadPolicyEditor = createAsyncThunk(
           currentPolicyOwner,
           isInherited,
           isOrgOwner,
+          isRepositoryContainerOwner,
+          isRepositoryManagerOwner,
+          isRepositoryOwner,
           isRootOrg,
           originalProxyStageAction,
           policiesByOwner,
@@ -508,6 +525,9 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
     currentPolicyOwner,
     isInherited,
     isOrgOwner,
+    isRepositoryContainerOwner,
+    isRepositoryManagerOwner,
+    isRepositoryOwner,
     isRootOrg,
     originalProxyStageAction,
     overrideActionsFlag,
@@ -519,6 +539,9 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.currentPolicyOwner = currentPolicyOwner;
   state.isInherited = isInherited;
   state.isOrgOwner = isOrgOwner;
+  state.isRepositoryContainerOwner = isRepositoryContainerOwner;
+  state.isRepositoryManagerOwner = isRepositoryManagerOwner;
+  state.isRepositoryOwner = isRepositoryOwner;
   state.isRootOrg = isRootOrg;
   state.originalProxyStageAction = originalProxyStageAction;
   state.overrideActionsFlag = overrideActionsFlag;

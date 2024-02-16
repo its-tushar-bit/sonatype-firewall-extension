@@ -13,12 +13,15 @@ import {
   getApplicationSummaryUrl,
   getOrganizationUrl,
   getRepositoryContainer,
+  getRepositoryInfoUrl,
   getRepositoryManagerById,
 } from '../util/CLMLocation';
 import { selectEntityId, selectOwnerProperties, selectSelectedOwner } from './orgsAndPoliciesSelectors';
 import {
   selectIsApplication,
   selectIsRepositoriesRelated,
+  selectIsRepository,
+  selectIsRepositoryContainer,
   selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -65,27 +68,35 @@ const loadSelectedOwner = createAsyncThunk(
     const state = getState();
     const isApp = selectIsApplication(state);
     const isRepositories = selectIsRepositoriesRelated(state);
+    const isRepository = selectIsRepository(state);
     const isRepositoryManager = selectIsRepositoryManager(state);
+    const isRepositoryContainer = selectIsRepositoryContainer(state);
     const entityId = selectEntityId(state);
     const selectedOwner = selectSelectedOwner(state);
     const shouldReloadOwner = forceReload || entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id);
-
     if (!shouldReloadOwner) {
       return Promise.resolve(selectedOwner);
     }
-
     if (isRepositories) {
       if (isRepositoryManager) {
         return axios.get(getRepositoryManagerById(entityId)).then(prop('data')).catch(rejectWithValue);
+      } else if (isRepositoryContainer) {
+        return axios.get(getRepositoryContainer()).then(prop('data')).catch(rejectWithValue);
+      } else if (isRepository) {
+        return axios
+          .get(getRepositoryInfoUrl(entityId))
+          .then((response) => {
+            const repository = path(['data', 'repository'], response) || {};
+            return { ...repository, name: repository?.publicId };
+          })
+          .catch(rejectWithValue);
+      } else {
+        return Promise.resolve({ id: entityId });
       }
-      // condition: isRepositoryContainer will be added when adding repositories
-      return axios.get(getRepositoryContainer()).then(prop('data')).catch(rejectWithValue);
     }
-
     const loadOwnerPromise = isApp
       ? axios.get(getApplicationSummaryUrl(entityId))
       : axios.get(getOrganizationUrl(entityId));
-
     return loadOwnerPromise.then(prop('data')).catch(rejectWithValue);
   }
 );

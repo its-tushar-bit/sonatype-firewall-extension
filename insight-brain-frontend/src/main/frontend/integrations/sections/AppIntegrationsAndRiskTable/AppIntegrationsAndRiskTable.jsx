@@ -32,23 +32,9 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-integrations-and-risk-enabled" />;
 export default function AppIntegrationsAndRiskTable() {
-  // SDEV-774: temporarily removing SCM filter from UI. Leaving filter options; will be needed again when filtering is re-implemented
-  const scmFilterOptions = [
-    { id: 'withScm', displayName: 'Configured apps' },
-    { id: 'withoutScm', displayName: 'Non-configured apps' },
-  ];
-
-  // SDEV-774: temporarily removing CI filter from UI. Leaving filter options; will be needed again when filtering is re-implemented
-  const ciCdFilterOptions = [
-    { id: 'withCiCd', displayName: 'Configured apps' },
-    { id: 'withoutCiCd', displayName: 'Non-configured apps' },
-  ];
-
   const appIntegrationsAndRiskSlice = useSelector(selectAppIntegrationsAndRiskSlice);
   const { tableData, loading, loadError, currentPage, pageCount, sort, nameFilter } = appIntegrationsAndRiskSlice;
   const dispatch = useDispatch();
-  const [scmFilterValues, setSCMFilters] = useState(new Set());
-  const [ciCdFilterValues, setCiCdFilters] = useState(new Set());
 
   const [selectedAppId, setSelectedAppId] = useState('');
   const [showScmModal, setScmShowModal] = useState(false);
@@ -233,30 +219,6 @@ export default function AppIntegrationsAndRiskTable() {
     return sort.includes('-') ? 'desc' : 'asc';
   }
 
-  // SDEV-774: temporarily removing SCM filter from UI. Leaving filter func; will be needed again when filtering is re-implemented
-  function onSCMFilterChange(filter) {
-    // Only none or one of the filter options can be selected at once
-    const newScmFilterValue =
-      scmFilterValues != null && filter.size > 1 ? new Set([...filter].filter((x) => !scmFilterValues.has(x))) : filter;
-
-    setSCMFilters(newScmFilterValue);
-    dispatch(actions.setSCMFilter(getBooleanFromFilterSet(newScmFilterValue)));
-    dispatch(actions.loadAppIntegrationsAndRisk());
-  }
-
-  // SDEV-774: temporarily removing CI filter from UI. Leaving filter func; will be needed again when filtering is re-implemented
-  function onCiCdFilterChange(filter) {
-    // Only none or one of the filter options can be selected at once
-    const newCiCdFilterValues =
-      ciCdFilterValues != null && filter.size > 1
-        ? new Set([...filter].filter((x) => !ciCdFilterValues.has(x)))
-        : filter;
-
-    setCiCdFilters(newCiCdFilterValues);
-    dispatch(actions.setCiCdFilter(getBooleanFromFilterSet(newCiCdFilterValues)));
-    dispatch(actions.loadAppIntegrationsAndRisk());
-  }
-
   function getCurrentPage() {
     if (pageCount === 0) {
       // NxPagination does not allow currentPage to numeric if pageCount is 0
@@ -269,16 +231,6 @@ export default function AppIntegrationsAndRiskTable() {
         return null;
       }
       return currentPage;
-    }
-  }
-
-  function getBooleanFromFilterSet(filterSet) {
-    if (filterSet === null || filterSet.size === 0) {
-      return null;
-    } else {
-      const [firstValue] = filterSet;
-      // If the set value contains the element 'without' then it should be false
-      return !firstValue.includes('without');
     }
   }
 }

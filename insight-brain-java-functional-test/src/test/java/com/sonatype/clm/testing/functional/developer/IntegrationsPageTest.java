@@ -546,6 +546,38 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return $("#iq-developer-app-integrations-and-risk-table");
   }
 
+  private SelenideElement filterToggle() {
+    return $("#filter-toggle");
+  }
+
+  private SelenideElement appIntegrationsScmFilterConfiguredInput() {
+    return $("#filter-scm-configured");
+  }
+
+  private SelenideElement appIntegrationsScmFilterNotConfiguredInput() {
+    return $("#filter-scm-not-configured");
+  }
+
+  private SelenideElement appIntegrationsScmFilterAllInput() {
+    return $("#scm-all");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilterConfiguredInput() {
+    return $("#filter-ci-configured");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilterNotConfiguredInput() {
+    return $("#filter-ci-not-configured");
+  }
+
+  private SelenideElement appIntegrationsCiCdFilterAllInput() {
+    return $("#ci-all");
+  }
+
+  private SelenideElement applyFilterButton() {
+    return $("#risk-table-filter-apply");
+  }
+
   private SelenideElement appIntegrationPageButton(int page) {
     return appIntegrationsAndRiskTable().$(String.format(".nx-btn--pagination:nth-child(%d)", page));
   }

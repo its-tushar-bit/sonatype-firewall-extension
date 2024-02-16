@@ -3,17 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import React, { useEffect } from 'react';
 import CiCard from 'MainRoot/integrations/sections/overview/CiCard';
 import IdeIntegrationsCard from './ideIntegrationsCard/IdeIntegrationsCard';
 import AppIntegrationsAndRiskTable from '../AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
-import { actions } from 'MainRoot/integrations/slices/chartVisibilitySlice';
+import { actions as chartActions } from 'MainRoot/integrations/slices/chartVisibilitySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUsageOverTimeChartVisibilitySlice } from 'MainRoot/integrations/selectors/chartVisibilitySelectors';
-import { NxCard, NxH2, NxTile, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { selectAppIntegrationsAndRiskSlice } from 'MainRoot/integrations/selectors/appIntegrationsAndRiskSelectors';
+import { NxCard, NxH2, NxTile, NxLoadWrapper, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import GraphsContainer from '../Graphs/GraphsContainer';
 import AutomatedSourceControlFeedbackCard from './AutomatedSourceControlFeedbackCard';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
+import RiskTableFilter from '../AppIntegrationsAndRiskTable/filter/RiskTableFilter';
+import { actions as filterActions } from 'MainRoot/integrations/slices/appIntegrationsAndRiskSlice';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -22,6 +25,8 @@ export default function Overview() {
     selectUsageOverTimeChartVisibilitySlice
   );
 
+  const { showFilterSideBar } = useSelector(selectAppIntegrationsAndRiskSlice);
+
   useEffect(() => {
     doLoad();
   }, []);
@@ -29,6 +34,7 @@ export default function Overview() {
   return (
     <div id="iq-integrations-overview-section">
       <NxLoadWrapper loading={loading || uninitialized} error={loadError} retryHandler={doLoad}>
+        {showFilterSideBar && <RiskTableFilter />}
         {usageOverTimeChartsShown ? (
           <NxTile>
             <NxTile.Content>
@@ -36,8 +42,16 @@ export default function Overview() {
             </NxTile.Content>
           </NxTile>
         ) : null}
+        <div className="nx-page-title nx-page-title__actions">
+          <NxH2>Applications Configuration Summary</NxH2>
+          <div className="nx-btn-bar">
+            <NxButton id="filter-toggle" variant="tertiary" className="btn" onClick={toggleFilterSideBar}>
+              <NxFontAwesomeIcon icon={faFilter} />
+              <span>Filter</span>
+            </NxButton>
+          </div>
+        </div>
 
-        <NxH2>Applications Configuration Summary</NxH2>
         <AppIntegrationsAndRiskTable />
 
         <NxCard.Container>
@@ -50,6 +64,10 @@ export default function Overview() {
   );
 
   function doLoad() {
-    dispatch(actions.loadChartVisiblity());
+    dispatch(chartActions.loadChartVisiblity());
+  }
+
+  function toggleFilterSideBar() {
+    dispatch(filterActions.toggleFilterSideBar(true));
   }
 }

@@ -59,13 +59,16 @@ const setNameFilter = (state, { payload }) => {
   state.nameFilter = payload;
 };
 
-// SDEV-774: temporarily removing SCM & CI filtering from UI. Leaving filter state, as filtering will be re-implemented shortly.
 const setCiCdFilter = (state, { payload }) => {
   state.ciCdFilter = payload;
 };
 
 const setSCMFilter = (state, { payload }) => {
   state.scmFilter = payload;
+};
+
+const toggleFilterSideBar = (state, { payload }) => {
+  state.showFilterSideBar = payload;
 };
 
 const loadAppIntegrationsAndRisk = createAsyncThunk(
@@ -92,7 +95,7 @@ const loadAppIntegrationsAndRisk = createAsyncThunk(
 const appIntegrationsAndRiskSlice = createSlice({
   name: APP_INTEGRATIONS_AND_RISK_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { setCurrentPage, setSort, setNameFilter, setCiCdFilter, setSCMFilter },
+  reducers: { setCurrentPage, setSort, setNameFilter, setCiCdFilter, setSCMFilter, toggleFilterSideBar },
   extraReducers: {
     [loadAppIntegrationsAndRisk.pending]: loadAppIntegrationsAndRiskRequested,
     [loadAppIntegrationsAndRisk.fulfilled]: loadAppIntegrationsAndRiskFulfilled,
@@ -112,6 +115,7 @@ function initialState() {
     nameFilter: '',
     scmFilter: null,
     ciCdFilter: null,
+    showFilterSideBar: false,
   };
 }
 

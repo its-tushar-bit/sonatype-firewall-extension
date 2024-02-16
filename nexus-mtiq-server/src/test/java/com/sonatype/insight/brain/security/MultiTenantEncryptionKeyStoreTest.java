@@ -21,6 +21,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -125,7 +129,7 @@ public class MultiTenantEncryptionKeyStoreTest
     testAsNewTenant(t1 -> {
       underTest.register();
 
-      Exception exception =  assertThrows(RuntimeException.class, () -> underTest.getKey());
+      Exception exception = assertThrows(RuntimeException.class, () -> underTest.getKey());
       String expectedMessage = String.format("Tenant %s encryption key not found.", t1.tenantSlug);
       String actualMessage = exception.getMessage();
       assertTrue(actualMessage.contains(expectedMessage));
@@ -149,5 +153,27 @@ public class MultiTenantEncryptionKeyStoreTest
       String actualMessage = exception.getMessage();
       assertTrue(actualMessage.contains(String.format("Tenant %s encryption key not found.", t1.tenantSlug)));
     });
+  }
+
+  @Test
+  public void testRegister_DoesInitializeTenantKey_WhenNotUsingDefaultEncryptionKeyStore() {
+    multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(false);
+    MultiTenantEncryptionKeyStore spyUnderTest = spy(underTest);
+    lenient().doNothing().when(spyUnderTest).initializeTenantKey();
+
+    spyUnderTest.register();
+
+    verify(spyUnderTest).initializeTenantKey();
+  }
+
+  @Test
+  public void testRegister_DoesNotInitializeTenantKey_WhenUsingDefaultEncryptionKeyStore() {
+    multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(true);
+    MultiTenantEncryptionKeyStore spyUnderTest = spy(underTest);
+    lenient().doNothing().when(spyUnderTest).initializeTenantKey();
+
+    spyUnderTest.register();
+
+    verify(spyUnderTest, never()).initializeTenantKey();
   }
 }

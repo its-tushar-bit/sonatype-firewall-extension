@@ -54,6 +54,7 @@ CREATE TABLE coordinate_security (
   cwes TEXT,
   recommendations TEXT,
   advisories TEXT,
+  identification_sources VARCHAR(100) NULL,
   CONSTRAINT coordinate_security_pk PRIMARY KEY (coordinate_security_id),
   CONSTRAINT coordinate_security_uk UNIQUE (file_coordinate_id, ref_id),
   CONSTRAINT coordinate_security_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
@@ -65,6 +66,7 @@ CREATE TABLE coordinate_license (
   license_id VARCHAR(1000) NOT NULL,
   name VARCHAR(1000) NULL,
   url VARCHAR(200) NULL,
+  identification_sources VARCHAR(100) NULL,
   CONSTRAINT license_coordinate_pk PRIMARY KEY (coordinate_license_id),
   CONSTRAINT license_coordinate_uk UNIQUE (license_id, file_coordinate_id),
   CONSTRAINT license_coordinate_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
@@ -85,7 +87,7 @@ CREATE TABLE third_party_vulnerability (
   cwes TEXT,
   recommendations TEXT,
   advisories TEXT,
-  update_time timestamp, -- when was this vulnerability information last updated
+  update_time TIMESTAMP, -- when was this vulnerability information last updated
   CONSTRAINT third_party_vulnerability_pk PRIMARY KEY (third_party_vulnerability_id),
   CONSTRAINT third_party_vulnerability_refid_uk UNIQUE (ref_id)
 );
@@ -98,10 +100,32 @@ CREATE TABLE vulnerability_exploitability (
   justification VARCHAR(200),
   response VARCHAR(50),
   detail TEXT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
   CONSTRAINT vulnerability_exploitability_pk PRIMARY KEY (vulnerability_exploitability_id),
   CONSTRAINT vulnerability_exploitability_coordinate_security_fk FOREIGN KEY (coordinate_security_id)
       REFERENCES coordinate_security (coordinate_security_id)
 );
+
+CREATE TABLE sbom_metadata (
+                               sbom_metadata_id VARCHAR(50) NOT NULL,
+                               third_party_file_id VARCHAR(50) NOT NULL,
+                               application_id VARCHAR(50) NOT NULL,
+                               file_name VARCHAR(200) NOT NULL,
+                               serial_number VARCHAR(2000) NULL,
+                               sbom_version VARCHAR(50) NOT NULL,
+                               application_version VARCHAR(200) NULL,
+                               spec VARCHAR(50) NOT NULL,
+                               spec_format VARCHAR(50) NOT NULL,
+                               spec_version VARCHAR(20) NOT NULL,
+                               status VARCHAR(20) NOT NULL,
+                               created_at TIMESTAMP NOT NULL,
+                               CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
+                               CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)
+                                   REFERENCES third_party_file (third_party_file_id),
+                               CONSTRAINT sbom_metadata_uk UNIQUE (application_id, sbom_version)
+);
+CREATE INDEX application_id_idx ON sbom_metadata(application_id);
 
 CREATE TABLE IF NOT EXISTS schema_version (
   data_store_id varchar(32) NOT NULL,

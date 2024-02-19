@@ -280,7 +280,9 @@ public enum AuditEvent
 
   VIEW_INTEGRATED_ENTERPRISE_REPORTING_DASHBOARD(Domain.REPORTING_DASHBOARD_INTEGRATED_ENTERPRISE_REPORTING, Type.VIEW),
 
-  CREATE_SAST_SCAN(Domain.GOVERNANCE_SAST_SCAN, Type.CREATE);
+  CREATE_SAST_SCAN(Domain.GOVERNANCE_SAST_SCAN, Type.CREATE),
+
+  DELETE_SBOM_VERSION(Domain.GOVERNANCE_SBOM, Type.DELETE);
 
   private final String domain;
 
@@ -405,6 +407,8 @@ public enum AuditEvent
     String GOVERNANCE_VULNERABILITY_CUSTOM_CVSS_VECTOR = join(GOVERNANCE, "vulnerability-custom-cvss-vector");
 
     String GOVERNANCE_VULNERABILITY_CUSTOM_CVSS_SEVERITY = join(GOVERNANCE, "vulnerability-custom-cvss-severity");
+
+    String GOVERNANCE_SBOM = join(GOVERNANCE, "sbom");
 
     String SECURITY = "security";
 

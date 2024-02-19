@@ -26,6 +26,8 @@ public class PublicApiPaths
 
   public static final String SPDX_RESOURCE_PATH = API_VERSION_PATH_V2 + "spdx";
 
+  public static final String SBOM_RESOURCE_PATH = API_VERSION_PATH_V2 + "sbom";
+
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
   public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";

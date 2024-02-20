@@ -215,7 +215,8 @@ public class RepositorySummaryViewTest
 
   @Test
   public void testRepositorySummaryView_accessTile() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager = tempEntity
+            .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm", true, true);
 
     User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");

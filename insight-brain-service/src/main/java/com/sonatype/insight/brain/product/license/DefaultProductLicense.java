@@ -49,6 +49,8 @@ public class DefaultProductLicense
 
     private final Integer maxFirewallUsers;
 
+    private final Integer maxSboms;
+
     public ProductLicenseData(
         String fingerprint,
         long expirationTimestamp,
@@ -61,7 +63,8 @@ public class DefaultProductLicense
         ProductLicensingModel licensingModel,
         Integer maxApplications,
         Integer maxUsers,
-        Integer maxFirewallUsers)
+        Integer maxFirewallUsers,
+        Integer maxSboms)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
@@ -75,6 +78,7 @@ public class DefaultProductLicense
       this.maxApplications = maxApplications;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
+      this.maxSboms = maxSboms;
     }
   }
 
@@ -95,13 +99,14 @@ public class DefaultProductLicense
       ProductLicensingModel licensingModel,
       Integer maxApplications,
       Integer maxUsers,
-      Integer maxFirewallUsers)
+      Integer maxFirewallUsers,
+      Integer maxSboms)
   {
     productLicenseData = new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
         Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
-        maxUsers, maxFirewallUsers);
+        maxUsers, maxFirewallUsers, maxSboms);
   }
 
   /**
@@ -219,6 +224,11 @@ public class DefaultProductLicense
     return getProductLicenseData().maxFirewallUsers;
   }
 
+  @Override
+  public Integer getMaxSboms() {
+    return getProductLicenseData().maxSboms;
+  }
+
   ProductLicenseData getProductLicenseData() {
     return productLicenseData;
   }
@@ -226,6 +236,6 @@ public class DefaultProductLicense
   @NotNull
   static ProductLicenseData initialProductLicenseData() {
     return new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(),
-        Collections.emptySet(), Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0);
+        Collections.emptySet(), Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0, 0);
   }
 }

@@ -26,6 +26,8 @@ public class LicenseInfo
 
   public Integer firewallUsersToDisplay;
 
+  public Integer sbomLimitToDisplay;
+
   public String contactName;
 
   public String contactCompany;
@@ -46,6 +48,7 @@ public class LicenseInfo
       Integer firewallUsersToDisplay,
       Integer applicationLimitToDisplay,
       Integer applicationCountToDisplay,
+      Integer sbomLimitToDisplay,
       String contactName,
       String contactCompany,
       String contactEmail,
@@ -61,6 +64,7 @@ public class LicenseInfo
     this.firewallUsersToDisplay = firewallUsersToDisplay;
     this.applicationLimitToDisplay = applicationLimitToDisplay;
     this.applicationCountToDisplay = applicationCountToDisplay;
+    this.sbomLimitToDisplay = sbomLimitToDisplay;
     this.contactName = contactName;
     this.contactCompany = contactCompany;
     this.contactEmail = contactEmail;

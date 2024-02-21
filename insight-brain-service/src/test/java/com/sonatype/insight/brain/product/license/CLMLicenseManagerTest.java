@@ -927,6 +927,14 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_BadMaxSboms() {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
+      licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, "Invalid");
+      installLicense();
+    }).withMessage("Invalid value for max sboms: Invalid");
+  }
+
+  @Test
   public void testInstallLicense_LicenseDetailsFromHds() throws Exception {
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CI_INTEGRATION, LicensedFeature.DASHBOARD)
         .andThen(withStages(StageTypes.BUILD, StageTypes.RELEASE).andThen(withMaxApplications(12345))));
@@ -1586,6 +1594,7 @@ public class CLMLicenseManagerTest
     licenseManager.setApplicationLimit(100);
     licenseManager.setMaxUsers(8765);
     licenseManager.setMaxFirewallUsers(4321);
+    licenseManager.setMaxSboms(1234);
     installLicense();
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
@@ -1593,6 +1602,7 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isEqualTo(0);
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isEqualTo(1234);
   }
 
   @Test
@@ -1602,6 +1612,7 @@ public class CLMLicenseManagerTest
     licenseManager.setApplicationLimit(100);
     licenseManager.setMaxUsers(8765);
     licenseManager.setMaxFirewallUsers(null);
+    licenseManager.setMaxSboms(1234);
     installLicense();
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
@@ -1609,6 +1620,7 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isNull();
     assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
     assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isNull();
 
     licenseManager.setMaxFirewallUsers(4321);
     installLicense();
@@ -1618,6 +1630,7 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isNull();
     assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
     assertThat(info.firewallUsersToDisplay).isEqualTo(4321);
+    assertThat(info.sbomLimitToDisplay).isNull();
   }
 
   @Test

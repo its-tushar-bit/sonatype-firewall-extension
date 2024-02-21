@@ -108,6 +108,11 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, maxFirewallUsers);
   }
 
+  public void setMaxSboms(Integer maxSboms) {
+    wasChanged = true;
+    mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, maxSboms);
+  }
+
   public void setFeatures(LicensedFeature... features) {
     wasChanged = true;
     mockProductLicenseManager.setFeatures(features);

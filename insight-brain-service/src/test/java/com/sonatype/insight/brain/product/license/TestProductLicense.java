@@ -61,7 +61,7 @@ public class TestProductLicense
                   ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY,
                   ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)),
           EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), ProductLicensingModel.LEGACY,
-          100, 50, 45);
+          100, 50, 45, 50);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

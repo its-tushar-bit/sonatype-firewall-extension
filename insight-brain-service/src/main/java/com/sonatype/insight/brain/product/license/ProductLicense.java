@@ -24,7 +24,8 @@ public interface ProductLicense
       ProductLicensingModel licensingModel,
       Integer maxApplications,
       Integer maxUsers,
-      Integer maxFirewallUsers);
+      Integer maxFirewallUsers,
+      Integer maxSboms);
 
   /**
    * Get whether the license is currently valid and not expired.
@@ -73,4 +74,6 @@ public interface ProductLicense
   Integer getMaxUsers();
 
   Integer getMaxFirewallUsers();
+
+  Integer getMaxSboms();
 }

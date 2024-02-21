@@ -45,13 +45,14 @@ public class MultiTenantProductLicense
       ProductLicensingModel licensingModel,
       Integer maxApplications,
       Integer maxUsers,
-      Integer maxFirewallUsers)
+      Integer maxFirewallUsers,
+      Integer maxSboms)
   {
     productLicenseData.set(new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
         Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
-        maxUsers, maxFirewallUsers));
+        maxUsers, maxFirewallUsers, maxSboms));
   }
 
   @Override

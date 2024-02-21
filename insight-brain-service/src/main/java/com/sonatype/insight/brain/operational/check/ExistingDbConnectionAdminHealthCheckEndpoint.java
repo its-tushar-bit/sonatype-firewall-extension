@@ -3,38 +3,36 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.operational.check;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.operational.check.NewDbConnectionOperationalCheck;
-
 import com.codahale.metrics.health.HealthCheck.Result;
 
 @Named
 @Singleton
-public class NewDbConnectionAdminHealthCheckEndpoint
+public class ExistingDbConnectionAdminHealthCheckEndpoint
     implements AdminHealthCheckEndpoint
 {
-  private final NewDbConnectionOperationalCheck databaseOperationalCheck;
+  private final ExistingDbConnectionOperationalCheck databaseOperationalCheck;
 
   @Inject
-  public NewDbConnectionAdminHealthCheckEndpoint(
-      final NewDbConnectionOperationalCheck databaseOperationalCheck)
+  public ExistingDbConnectionAdminHealthCheckEndpoint(
+      final ExistingDbConnectionOperationalCheck databaseOperationalCheck)
   {
     this.databaseOperationalCheck = databaseOperationalCheck;
   }
 
   @Override
   public String getName() {
-    return "NewDatabaseConnections";
+    return "Database";
   }
 
   @Override
   public String getPath() {
-    return "/healthcheck/newDatabaseConnections";
+    return "/healthcheck/database";
   }
 
   @Override

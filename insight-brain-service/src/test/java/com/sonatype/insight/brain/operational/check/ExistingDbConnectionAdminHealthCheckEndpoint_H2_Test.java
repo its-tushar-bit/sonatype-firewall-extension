@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.operational.check;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 
-@PostgresTest
+@H2DiskTest
 @SuppressWarnings("checkstyle:TypeName")
-public class ExistingDbConnectionAdminHealthCheckEndpoint_Postgres_Test
+public class ExistingDbConnectionAdminHealthCheckEndpoint_H2_Test
     extends AbstractExistingDbConnectionAdminHealthCheckEndpointTest
 {
   // All tests are in the super class

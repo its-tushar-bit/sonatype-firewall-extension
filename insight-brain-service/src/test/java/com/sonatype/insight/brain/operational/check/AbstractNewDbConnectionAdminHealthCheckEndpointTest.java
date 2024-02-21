@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.operational.check;
 
 import java.sql.Connection;
 
@@ -14,8 +14,7 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.operational.check.NewDbConnectionOperationalCheck;
-import com.sonatype.insight.brain.service.AdminHealthCheckEndpoint.HealthCheckResponse;
+import com.sonatype.insight.brain.operational.check.AdminHealthCheckEndpoint.HealthCheckResponse;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;

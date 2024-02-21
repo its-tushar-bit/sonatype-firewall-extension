@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.operational.check;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 @PostgresTest
 @SuppressWarnings("checkstyle:TypeName")
-public class NewDbConnectionAdminHealthCheckEndpoint_Postgres_Test
-    extends AbstractNewDbConnectionAdminHealthCheckEndpointTest
+public class ExistingDbConnectionAdminHealthCheckEndpoint_Postgres_Test
+    extends AbstractExistingDbConnectionAdminHealthCheckEndpointTest
 {
   // All tests are in the super class
 }

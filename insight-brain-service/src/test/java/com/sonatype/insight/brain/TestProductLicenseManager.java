@@ -192,7 +192,9 @@ public class TestProductLicenseManager
         ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD,
         ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS,
         ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS,
-        ProductLicenseDetails.PRODUCT_AUDITOR_SAAS
+        ProductLicenseDetails.PRODUCT_AUDITOR_SAAS,
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS
     };
 
     private Set<LicensedFeature> features;

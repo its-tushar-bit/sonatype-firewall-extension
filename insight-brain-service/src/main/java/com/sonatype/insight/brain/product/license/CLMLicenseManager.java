@@ -101,6 +101,10 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_AUDITOR_SAAS = "Auditor SaaS";
 
+  public static final String PRODUCT_SBOM_MANAGER = "Sbom Manager";
+
+  public static final String PRODUCT_SBOM_MANAGER_SAAS = "Sbom Manager SaaS";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -383,6 +387,12 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK:
         marketingNameSuffix = PRODUCT_ADVANCED_LEGAL_PACK;
         break;
+      case ProductLicenseDetails.PRODUCT_SBOM_MANAGER:
+        marketingNameSuffix = PRODUCT_SBOM_MANAGER;
+        break;
+      case ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS:
+        marketingNameSuffix = PRODUCT_SBOM_MANAGER_SAAS;
+        break;
       default:
         return null;
     }
@@ -429,6 +439,8 @@ public class CLMLicenseManager
           case PRODUCT_LIFECYCLE_FIREWALL_SAAS:
             firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
             break;
+          case PRODUCT_SBOM_MANAGER:
+          case PRODUCT_SBOM_MANAGER_SAAS:
           default:
             // no limits to display
         }
@@ -499,6 +511,12 @@ public class CLMLicenseManager
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS)) {
       return PRODUCT_LIFECYCLE_FIREWALL_SAAS;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER)) {
+      return PRODUCT_SBOM_MANAGER;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
+      return PRODUCT_SBOM_MANAGER_SAAS;
     }
 
     return "";
@@ -678,8 +696,23 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
+    if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
+        products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
+      features.add(LicensedFeature.SBOM_MANAGER);
+      features.add(LicensedFeature.POLICY_MONITORING);
+      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+      features.add(LicensedFeature.CLI_INTEGRATION);
+      features.add(LicensedFeature.NOTIFICATIONS);
+      features.add(LicensedFeature.DATA_RETENTION);
+      features.add(LicensedFeature.ORGS_AND_APPS);
+      features.add(LicensedFeature.ENFORCEMENT);
+      stageTypes.add(StageTypes.RELEASE);
+    }
 
-    stageTypes.add(StageTypes.PROXY);
+    if (!products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) &&
+        !products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
+      stageTypes.add(StageTypes.PROXY);
+    }
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //

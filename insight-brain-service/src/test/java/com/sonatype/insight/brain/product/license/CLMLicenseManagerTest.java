@@ -503,6 +503,38 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_SbomManager() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.SBOM_MANAGER,
+        LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        LicensedFeature.CLI_INTEGRATION,
+        LicensedFeature.NOTIFICATIONS,
+        LicensedFeature.DATA_RETENTION,
+        LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.ENFORCEMENT);
+  }
+
+  @Test
+  public void testGetFeatures_SbomManagerSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.SBOM_MANAGER,
+        LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        LicensedFeature.CLI_INTEGRATION,
+        LicensedFeature.NOTIFICATIONS,
+        LicensedFeature.DATA_RETENTION,
+        LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.ENFORCEMENT);
+  }
+
+  @Test
   public void testGetStageTypes_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     mockHdsProductLicenseDetails(withStages());
@@ -690,6 +722,24 @@ public class CLMLicenseManagerTest
         StageTypes.RELEASE, //
         StageTypes.OPERATE, //
         StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_SbomManager() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.RELEASE);
+  }
+
+  @Test
+  public void testGetStageTypes_SbomManagerSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.RELEASE);
   }
 
   @Test

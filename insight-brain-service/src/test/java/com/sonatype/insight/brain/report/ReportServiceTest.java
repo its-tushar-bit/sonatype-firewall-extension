@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -169,7 +170,6 @@ public class ReportServiceTest
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
     verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(2100), eq(5));
-    verify(thirdPartyDataServiceSpy).deleteByScanId(eq(scanId));
   }
 
   @Test
@@ -571,6 +571,36 @@ public class ReportServiceTest
     List<SecurityVulnerability> securityVulnerabilities = component.getSecurityVulnerabilities();
     assertSecurityVulnerability(securityVulnerabilities.get(0), "Sonatype", "CVE-2021-30139", 7.5F,
         "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139");
+  }
+
+  @Test
+  public void testProcessThirdPartyData_SBOMManagerEnabled_reportNotDeleted() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+
+    final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+
+    ComponentIdentifier coord = new ComponentIdentifier("sbom",
+        ImmutableMap.of("group", "group1", "artifactId", "existing1", "version", "1.0"));
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "existing1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
+
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    reportService.processThirdPartyData(scanId, reportZip, "app-id");
+
+    assertThat(dto.billOfMaterials).hasSize(3);
+    assertThat(dto.billOfMaterials.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
+    assertThat(dto.billOfMaterials.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
+
+    assertThat(dto.securityRows).hasSize(13);
+    assertThat(dto.securityRows.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
+    assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
+
+    verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
   }
 
   @Test

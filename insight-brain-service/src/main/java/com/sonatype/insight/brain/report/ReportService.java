@@ -167,7 +167,9 @@ public class ReportService
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
-      thirdPartyDataService.deleteByScanId(scanId);
+      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+        thirdPartyDataService.deleteByScanId(scanId);
+      }
     }
   }
 

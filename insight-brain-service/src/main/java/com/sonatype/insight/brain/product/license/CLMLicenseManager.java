@@ -205,6 +205,10 @@ public class CLMLicenseManager
       }
       recordSupportForExternalDatabase();
     }
+    if (config.isDatabaseEmbedded() && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      throw new ExternalDatabaseNotSupportedException(
+          "SBOM Manager feature requires use of an external database, please retry using an external database.");
+    }
   }
 
   //visible for testing
@@ -262,6 +266,10 @@ public class CLMLicenseManager
         && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
       throw new ExternalDatabaseNotSupportedException("The product license does not support use of an external database"
           + ", please reconfigure IQ Server to use the embedded database before installing the license.");
+    }
+    if (config.isDatabaseEmbedded() && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      throw new ExternalDatabaseNotSupportedException(
+          "SBOM Manager feature requires use of an external database, please retry using an external database.");
     }
     licenseManager.installLicense(new ByteArrayInputStream(licenseData));
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);

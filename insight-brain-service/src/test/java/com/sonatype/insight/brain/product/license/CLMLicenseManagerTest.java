@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -899,6 +900,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense_SbomManagerFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.SBOM_MANAGER));
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining(
+            "SBOM Manager feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
   public void testInstallLicense_LegacyVersion() {
     licenseManager.setVersion(0);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -1029,6 +1041,18 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(productLicense.isValid()).isTrue();
     assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_SbomManagerFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.SBOM_MANAGER));
+    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining(
+            "SBOM Manager feature requires use of an external database, please retry using an external database.");
+    assertThat(productLicense.isValid()).isFalse();
   }
 
   @Test

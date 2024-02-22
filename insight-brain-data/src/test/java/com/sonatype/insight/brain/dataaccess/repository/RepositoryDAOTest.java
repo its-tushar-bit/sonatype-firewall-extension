@@ -748,4 +748,16 @@ public class RepositoryDAOTest
     assertThat(proxyRepos).hasSize(1);
     assertThat(proxyRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(proxyRepo);
   }
+
+  @Test
+  public void testGetCountByRepositoryType() {
+    tempEntity.newProxyRepository(tempEntity.newRepositoryManager(), "proxyRepo1", "maven", true, true);
+    tempEntity.newProxyRepository(tempEntity.newRepositoryManager(), "proxyRepo2", "npm",true, false);
+    tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo2", "maven", false);
+    tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo1", "npm", true);
+
+    //AbstractDbDAOTest.setup() creates one proxy repo, so count should be 3
+    assertThat(dao.getCountByRepositoryType(RepositoryType.proxy)).isEqualTo(3);
+    assertThat(dao.getCountByRepositoryType(RepositoryType.hosted)).isEqualTo(2);
+  }
 }

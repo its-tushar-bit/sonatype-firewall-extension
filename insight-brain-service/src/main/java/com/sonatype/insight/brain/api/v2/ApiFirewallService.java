@@ -177,7 +177,7 @@ public class ApiFirewallService
     checkReadPermission(RepositoryContainer.SINGLETON);
 
     ApiFirewallQuarantineSummaryDTO summary = new ApiFirewallQuarantineSummaryDTO();
-    summary.repositoryCount = repositoryDAO.getCount();
+    summary.repositoryCount = repositoryDAO.getCountByRepositoryType(RepositoryType.proxy);
     summary.quarantineEnabledRepositoryCount = repositoryDAO.getQuarantineEnabledCount();
     summary.quarantineEnabled = summary.quarantineEnabledRepositoryCount > 0;
     summary.totalComponentCount = repositoryComponentDAO.getCount();

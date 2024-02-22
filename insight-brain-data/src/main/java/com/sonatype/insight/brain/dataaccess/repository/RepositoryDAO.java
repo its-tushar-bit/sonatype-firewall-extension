@@ -335,4 +335,14 @@ public class RepositoryDAO
         " WHERE entity.repositoryManagerId=?1 AND entity.repositoryType=?2";
     return getList(sQuery, repositoryManagerId, repositoryType);
   }
+
+  /**
+   * @since 1.174
+   */
+  public long getCountByRepositoryType(RepositoryType repositoryType) {
+    String sQuery = "SELECT COUNT(entity) FROM Repository entity" + //
+        " WHERE entity.repositoryType=?1";
+
+    return getSingle(Long.class, sQuery, repositoryType);
+  }
 }

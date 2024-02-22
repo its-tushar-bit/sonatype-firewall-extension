@@ -478,6 +478,8 @@ public class ApiFirewallServiceTest
     tempEntity.newRepositoryComponent(repo, "hash");
     tempEntity.newRepositoryComponent(repo.getId(), "path", new Date(), null);
     tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false);
+    tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo1", "npm", true);
+    tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo2", "maven", false);
 
     ApiFirewallQuarantineSummaryDTO summary = apiFirewallService.getQuarantineSummary();
 

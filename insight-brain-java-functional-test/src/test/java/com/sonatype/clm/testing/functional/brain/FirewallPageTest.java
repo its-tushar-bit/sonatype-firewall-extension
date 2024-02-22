@@ -535,4 +535,23 @@ public class FirewallPageTest
     policyDAO.insert(policy);
     return policy;
   }
+
+  @Test
+  public void testFirewallPage_QuarantineStatusCount() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
+    tempEntity.newProxyRepository(repositoryManager, "proxyRepo1", "maven", true, true);
+    tempEntity.newProxyRepository(repositoryManager, "proxyRepo2", "npm",true, false);
+    tempEntity.newHostedRepository(repositoryManager, "hostedRepo2", "maven", false);
+    tempEntity.newHostedRepository(repositoryManager, "hostedRepo1", "npm", true);
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.firewallStatus().shouldBe(visible);
+    page.firewallStatus().statusPartiallyProtected()
+        .shouldBe(Condition.text("1 of 2 repositories protected"))
+        .shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Firewall Status - Quarantine Status Count");
+  }
 }

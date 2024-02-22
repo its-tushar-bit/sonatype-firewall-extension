@@ -2061,10 +2061,10 @@
     prop-types "^15.8.1"
     ramda "^0.29.0"
 
-"@sonatype/version-graph@^1.0.7":
-  version "1.0.7"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.7.tgz#add97984da73253c8a6feb8ae49bc88d1691a096"
-  integrity sha512-bAoX9lg9Sm9Ova2+j3TF+BATTmRBxyDlWR6d9JXDT1otiiZKgfFfqYTgs8xu9hnrCZi5k9p9e2jy46GwoBO5lA==
+"@sonatype/version-graph@^1.0.8":
+  version "1.0.8"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.8.tgz#baddd1801aba9861934f9951e1c4da1891c26dce"
+  integrity sha512-t4gMh5dRY4TTUrDuqp600Ql1TzylkFsC8zE4UFKes0mRQ310tVM7XLNOFJe1ICB0aTxiRdblou6YSbJHQgY7gg==
 
 "@stylelint/postcss-css-in-js@^0.37.2":
   version "0.37.2"

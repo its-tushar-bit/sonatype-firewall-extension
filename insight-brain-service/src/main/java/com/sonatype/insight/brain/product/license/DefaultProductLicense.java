@@ -176,6 +176,7 @@ public class DefaultProductLicense
     if (LicensedFeature.SBOM_MANAGER.equals(feature)) {
       return SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled();
     }
+
     return getFeatures().contains(feature);
   }
 

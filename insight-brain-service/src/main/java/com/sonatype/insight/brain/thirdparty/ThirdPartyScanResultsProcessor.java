@@ -9,8 +9,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,8 +37,11 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.model.io.XStreamFactory;
@@ -43,6 +49,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
@@ -76,29 +83,39 @@ public class ThirdPartyScanResultsProcessor
 
   private final ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
 
+  private final InsightWork insightWork;
+
+  private final ProductLicense productLicense;
+
   @Inject
   public ThirdPartyScanResultsProcessor(
       ThirdPartyScanDAO thirdPartyScanDAO,
       ThirdPartyFileDAO thirdPartyFileDAO,
       TelemetrySender telemetrySender,
-      ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory)
+      ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory,
+      InsightWork insightWork,
+      ProductLicense productLicense)
   {
     this.telemetrySender = telemetrySender;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyResultHandlerFactory = thirdPartyResultHandlerFactory;
+    this.insightWork = insightWork;
+    this.productLicense = productLicense;
   }
 
   public String filterAndSaveData(
       File scanFile,
       File tempScanFile,
       File scanDir,
-      TelemetryData thirdPartyScanTelemetryData)
+      TelemetryData thirdPartyScanTelemetryData,
+      String applicationId)
   {
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
     try {
       File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
+      ThirdPartyScanContext scanContext = new ThirdPartyScanContext(scanRequestId, applicationId, scanFile);
       try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
            OutputStream out = new FileOutputStream(filteredFile)) {
 
@@ -110,7 +127,7 @@ public class ThirdPartyScanResultsProcessor
 
         parser.next();
         while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, scanFile, scanRequestId, thirdPartyScanTelemetryData);
+          processEvent(scanContext, parser, writer, thirdPartyScanTelemetryData);
         }
         writer.flush();
         writer.close();
@@ -135,10 +152,9 @@ public class ThirdPartyScanResultsProcessor
   }
 
   private void processEvent(
+      ThirdPartyScanContext scanContext,
       XmlPullParser parser,
       XMLEventWriter writer,
-      File scanFile,
-      String scanRequestId,
       TelemetryData thirdPartyScanTelemetryData)
   {
     try {
@@ -150,7 +166,7 @@ public class ThirdPartyScanResultsProcessor
           writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
           addElementAttributes(parser, writer);
           if ("item".equals(elementName)) {
-            processItemElement(parser, writer, scanFile, scanRequestId, thirdPartyScanTelemetryData);
+            processItemElement(scanContext, parser, writer, thirdPartyScanTelemetryData);
           }
         }
         else if (eventType == XmlPullParser.END_TAG) {
@@ -173,10 +189,9 @@ public class ThirdPartyScanResultsProcessor
   }
 
   private void processItemElement(
+      ThirdPartyScanContext scanContext,
       XmlPullParser parser,
       XMLEventWriter writer,
-      File scanFile,
-      String scanRequestId,
       TelemetryData thirdPartyScanTelemetryData) throws XMLStreamException, IOException, XmlPullParserException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
@@ -192,13 +207,14 @@ public class ThirdPartyScanResultsProcessor
         Xpp3Dom contentElement = itemElement.getChild("content");
         if (contentElement != null) {
           FilteredThirdPartyContent filteredContent =
-              handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
+              handleContent(itemElement, contentElement.getValue(), contentType, scanContext.getScanRequestId());
           writeFilteredInformation(writer, filteredContent.getContent());
           Optional.of(filteredContent.getModuleDependencies()).ifPresent(moduleDependencies::addAll);
+          storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
         }
         else {
-          log.error("scan file {} contained a third party scan item {} without any content", scanFile.getName(),
-              contentType);
+          log.error("scan file {} contained a third party scan item {} without any content",
+              scanContext.getScanFile().getName(), contentType);
         }
         writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
         writeDependencyGraph(writer, moduleDependencies);
@@ -306,5 +322,48 @@ public class ThirdPartyScanResultsProcessor
 
   ThirdPartyScanResultHandler createHandler(ItemContentType contentItemType) {
     return thirdPartyResultHandlerFactory.newHandler(contentItemType);
+  }
+
+  private void storeSbomFileIfApplicable(
+      String contentType,
+      Xpp3Dom itemElement,
+      Xpp3Dom contentElement,
+      ThirdPartyScanContext scanContext)
+  {
+    if (canStoreSbom(contentType, scanContext)) {
+      storeSbom(scanContext, itemElement, contentElement);
+    }
+  }
+
+  private boolean canStoreSbom(String contentType, ThirdPartyScanContext scanContext) {
+    ItemContentType contentItemType = ItemContentType.valueOf(contentType);
+
+    //for now we persist only the first sbom for sbom manager support when there are multiple sboms in the scan.
+    return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) &&
+               (ItemContentType.SBOM.equals(contentItemType) || ItemContentType.SPDX.equals(contentItemType)) &&
+               !scanContext.isSbomSavedForScan();
+  }
+
+  private void storeSbom(
+      ThirdPartyScanContext scanContext,
+      Xpp3Dom itemElement,
+      Xpp3Dom contentElement)
+  {
+    try {
+      File sbomDir = insightWork.getSbomDir(scanContext.getApplicationId());
+      Files.createDirectories(sbomDir.toPath().normalize());
+      final File tempFile =
+          FileUtils.createTempFile(UUID.randomUUID().toString().replace("-", "") + "-",
+              "." + FilenameUtils.getExtension(itemElement.getAttribute("path")) + ".gz", sbomDir);
+      try (InputStream sbomContent = IOUtils.toInputStream(contentElement.getValue(), Charset.defaultCharset());
+           GzipCompressorOutputStream outputStream = new GzipCompressorOutputStream(
+               Files.newOutputStream(tempFile.toPath()))) {
+        IOUtils.copy(sbomContent, outputStream);
+        scanContext.markSbomSavedForScan();
+      }
+    }
+    catch (IOException e) {
+      log.error("there was an error while trying to store sbom file {}", scanContext.getScanFile().getName(), e);
+    }
   }
 }

@@ -162,4 +162,13 @@ public class InsightWork
   public File getIerDashboardIconsDirectory() {
     return new File(insightConfig.getSonatypeWork(), "enterpriseReportingDashboardIcons");
   }
+
+  public File getSbomDir() {
+    return new File(insightConfig.getClusterDirectory(), "sboms");
+  }
+
+  public File getSbomDir(final String appId) {
+    IdValidationUtils.validate(appId);
+    return new File(getSbomDir(), appId);
+  }
 }

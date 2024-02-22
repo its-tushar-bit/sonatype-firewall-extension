@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -55,7 +54,8 @@ public class ThirdPartyScanService
     File scanDir = work.getScanDir(app.getId());
     File tempScanFile = FileUtils.createTempFile("tmp-", ".xml.gz", scanDir);
     String scanRequestId =
-        scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanTelemetryData);
+        scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanTelemetryData,
+            app.getId());
     ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
     scanResultsProcessor.postHandle(scanReceipt.getScanId(), scanRequestId);
     try {

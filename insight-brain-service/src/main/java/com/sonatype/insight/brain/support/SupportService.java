@@ -138,6 +138,7 @@ public class SupportService
         work.getCacheDir(),
         work.getDataDir(),
         work.getTrashDir(),
+        work.getSbomDir(),
         work.getScanDir());
     this.dbDiagnostics = dbDiagnostics;
     this.ldapServerDAO = ldapServerDAO;

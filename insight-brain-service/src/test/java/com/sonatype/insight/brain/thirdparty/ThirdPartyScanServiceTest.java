@@ -61,7 +61,8 @@ public class ThirdPartyScanServiceTest
     String scanRequestId = "scanRequestId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null)))
+    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null),
+        eq(app.getId())))
         .thenReturn(scanRequestId);
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     String testClientUserAgent = "client_user_agent";
@@ -71,7 +72,7 @@ public class ThirdPartyScanServiceTest
     service.filterAndUpload(scanFile, app, stage.getStageTypeId(), testClientUserAgent, null);
 
     verify(thirdPartyScanResultsProcessorMock, times(1))
-        .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null));
+        .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null), eq(app.getId()));
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .postHandle(scanId, scanRequestId);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
@@ -84,7 +85,8 @@ public class ThirdPartyScanServiceTest
     Stage stage = new Stage(ReleaseStageType.ID);
     String scanId = "ThirdPartyScanServiceTest_scanId";
     File scanFile = createScanFile(app, scanId);
-    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null)))
+    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null),
+        eq(app.getId())))
         .thenThrow(new IllegalArgumentException("error"));
 
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(

@@ -7,6 +7,50 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #iq-repositories-configuration-table {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1.5fr)
+    minmax(48px, max-content)
+    minmax(48px, max-content)
+    minmax(48px, max-content)
+    min-content;
+
+  tbody,
+  thead,
+  tr {
+    display: contents;
+  }
+
+  .nx-cell--header {
+    height: auto;
+  }
+
+  .nx-cell--meta-info,
+  .iq-collapsible-row__header {
+    grid-column: 1 / 5;
+  }
+
+  .nx-cell--meta-info {
+    align-items: center;
+    justify-content: center;
+    padding-top: 11px;
+    padding-bottom: 12px;
+  }
+
+  .iq-collapsible-row {
+    .nx-cell {
+      margin: 0;
+      background-color: var(--nx-swatch-indigo-95);
+    }
+  }
+
+  .nx-cell {
+    display: flex;
+    vertical-align: middle;
+    white-space: normal;
+    box-sizing: border-box;
+  }
+
   .iq-repositories-configuration-table-repository,
   .iq-repositories-configuration-table-repository-manager {
     @include nx-text-helpers.truncate-ellipsis;
@@ -27,11 +71,6 @@
         vertical-align: baseline;
       }
     }
-  }
-
-  .iq-repositories-configuration-table-filter {
-    width: 100%;
-    max-width: 250px;
   }
 
   #iq-owner-actions-dropdown {

@@ -20,6 +20,7 @@ import {
   NxButton,
   NxFilterInput,
   NxStatefulFilterDropdown,
+  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from './repositoriesConfigurationSlice';
@@ -178,23 +179,36 @@ const RepositoriesConfigurationTile = () => {
       <NxTable.Row key={repositoryData.id}>
         <NxTable.Cell className="iq-repositories-configuration-table-repository">
           {repositoryData.repositoryType === 'hosted' ? (
-            repositoryData.publicId
+            <NxOverflowTooltip>
+              <div className="nx-truncate-ellipsis">{repositoryData.publicId}</div>
+            </NxOverflowTooltip>
           ) : (
-            <NxTextLink
-              data-testid="repositories_configuration-link"
-              href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}
-            >
-              {repositoryData.publicId}
-            </NxTextLink>
+            <NxOverflowTooltip>
+              <NxTextLink
+                className="nx-truncate-ellipsis"
+                data-testid="repositories_configuration-link"
+                href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}
+              >
+                {repositoryData.publicId}
+              </NxTextLink>
+            </NxOverflowTooltip>
           )}
         </NxTable.Cell>
         <NxTable.Cell className="iq-repositories-configuration-table-repository-format">
-          {repositoryData.format}
+          <NxOverflowTooltip>
+            <div className="nx-truncate-ellipsis">{repositoryData.format}</div>
+          </NxOverflowTooltip>
         </NxTable.Cell>
         <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
-          {repositoryData.repositoryType}
+          <NxOverflowTooltip>
+            <div className="nx-truncate-ellipsis">{repositoryData.repositoryType}</div>
+          </NxOverflowTooltip>
         </NxTable.Cell>
-        <NxTable.Cell>{getEnablement(repositoryData)}</NxTable.Cell>
+        <NxTable.Cell>
+          <NxOverflowTooltip>
+            <div className="nx-truncate-ellipsis">{getEnablement(repositoryData)}</div>
+          </NxOverflowTooltip>
+        </NxTable.Cell>
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton
@@ -243,7 +257,9 @@ const RepositoriesConfigurationTile = () => {
                 sortDir={showHighlight('publicId')}
                 onClick={() => sortRepositories('publicId')}
               >
-                Repository
+                <NxOverflowTooltip>
+                  <span className="nx-truncate-ellipsis">Repository</span>
+                </NxOverflowTooltip>
               </NxTable.Cell>
               <NxTable.Cell
                 id="repository-format-column-header"
@@ -251,7 +267,9 @@ const RepositoriesConfigurationTile = () => {
                 sortDir={showHighlight('format')}
                 onClick={() => sortRepositories('format')}
               >
-                Format
+                <NxOverflowTooltip>
+                  <span className="nx-truncate-ellipsis">Format</span>
+                </NxOverflowTooltip>
               </NxTable.Cell>
               <NxTable.Cell
                 id="repository-type-column-header"
@@ -259,9 +277,15 @@ const RepositoriesConfigurationTile = () => {
                 sortDir={showHighlight('repositoryType')}
                 onClick={() => sortRepositories('repositoryType')}
               >
-                Type
+                <NxOverflowTooltip>
+                  <span className="nx-truncate-ellipsis">Type</span>
+                </NxOverflowTooltip>
               </NxTable.Cell>
-              <NxTable.Cell id="repository-enablement-column-header">Enablement</NxTable.Cell>
+              <NxTable.Cell id="repository-enablement-column-header">
+                <NxOverflowTooltip>
+                  <span className="nx-truncate-ellipsis">Enablement</span>
+                </NxOverflowTooltip>
+              </NxTable.Cell>
               <NxTable.Cell />
             </NxTable.Row>
             <NxTable.Row isFilterHeader>

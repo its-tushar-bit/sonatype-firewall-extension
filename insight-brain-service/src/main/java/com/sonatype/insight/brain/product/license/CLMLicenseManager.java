@@ -805,7 +805,9 @@ public class CLMLicenseManager
   private Integer getMaxSboms(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_SBOMS);
     try {
-      return prop != null ? Integer.decode(prop) : null;
+      // CLM-29492: Temporarily returning 50 as maxSboms here for testing until new sbom manager licenses are obtained
+      return 50;
+      // return prop != null ? Integer.decode(prop) : null;
     }
     catch (IllegalArgumentException e) {
       throw new LicensingException("Invalid value for max sboms: " + prop, e);

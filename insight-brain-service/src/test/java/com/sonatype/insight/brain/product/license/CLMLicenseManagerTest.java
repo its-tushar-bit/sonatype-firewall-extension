@@ -46,6 +46,7 @@ import org.sonatype.licensing.LicensingException;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -926,6 +927,8 @@ public class CLMLicenseManagerTest
     }).withMessage("Invalid value for max users: Invalid");
   }
 
+  // CLM-29492: Temporarily ignoring test as maxSboms is hardcoded
+  @Ignore
   @Test
   public void testInstallLicense_BadMaxSboms() {
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
@@ -1602,7 +1605,9 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isEqualTo(0);
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
-    assertThat(info.sbomLimitToDisplay).isEqualTo(1234);
+    // CLM-29492: Temporarily testing for maxSboms as 50, remove once new sbom manager licenses are obtained
+    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+    // assertThat(info.sbomLimitToDisplay).isEqualTo(1234);
   }
 
   @Test

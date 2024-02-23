@@ -24,15 +24,19 @@ public class ThirdPartyFileDAO
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public ThirdPartyFileDAO(
       final ThirdPartyScansDataStore thirdPartyScansDataStore,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
-      final ThirdPartyScanDAO thirdPartyScanDAO)
+      final ThirdPartyScanDAO thirdPartyScanDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     super(thirdPartyScansDataStore);
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   public List<ThirdPartyFile> getAll() {
@@ -61,6 +65,9 @@ public class ThirdPartyFileDAO
   public void delete(TransactionContext tx, ThirdPartyFile thirdPartyFile) {
     // cascade delete file coordinates
     thirdPartyFileCoordinateDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
+
+    // cascade delete sbom metadata
+    thirdPartySbomMetadataDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
 
     // cascade delete scanned files
     thirdPartyScanDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());

@@ -50,6 +50,9 @@ public class ThirdPartyCoordinateLicense
   @Column(name = "url")
   private String url;
 
+  @Column(name = "identification_sources")
+  private String identificationSources;
+
   @Override
   public String getId() {
     return id;
@@ -90,5 +93,13 @@ public class ThirdPartyCoordinateLicense
 
   public void setUrl(String url) {
     this.url = url;
+  }
+
+  public String getIdentificationSources() {
+    return identificationSources;
+  }
+
+  public void setIdentificationSources(String identificationSources) {
+    this.identificationSources = identificationSources;
   }
 }

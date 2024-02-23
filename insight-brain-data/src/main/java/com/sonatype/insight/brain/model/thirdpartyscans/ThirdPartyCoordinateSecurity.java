@@ -80,6 +80,9 @@ public class ThirdPartyCoordinateSecurity
   @Column(name = "advisories")
   private String advisories;
 
+  @Column(name = "identification_sources")
+  private String identificationSources;
+
   @Override
   public String getId() {
     return id;
@@ -192,5 +195,13 @@ public class ThirdPartyCoordinateSecurity
 
   public void setAdvisories(String advisories) {
     this.advisories = advisories;
+  }
+
+  public String getIdentificationSources() {
+    return identificationSources;
+  }
+
+  public void setIdentificationSources(String identificationSources) {
+    this.identificationSources = identificationSources;
   }
 }

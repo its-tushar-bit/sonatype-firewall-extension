@@ -114,6 +114,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -199,12 +200,13 @@ public class TestDAOFactory
     SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
         createSourceControlDefaultBranchCommitHistoryDAO();
     SastScanDAO sastScanDAO = createSastScanDAO();
+    ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sastScanDAO, clusterLockManager);
+        sastScanDAO, thirdPartySbomMetadataDAO, clusterLockManager);
   }
 
   @Override
@@ -1045,12 +1047,18 @@ public class TestDAOFactory
   public ThirdPartyFileDAO createThirdPartyFileDAO() {
     ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = createThirdPartyFileCoordinateDAO();
     ThirdPartyScanDAO thirdPartyScanDAO = createThirdPartyScanDAO();
+    ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
     return new ThirdPartyFileDAO(dataStoreProvider.getThirdPartyScansDataStore(), thirdPartyFileCoordinateDAO,
-        thirdPartyScanDAO);
+        thirdPartyScanDAO, thirdPartySbomMetadataDAO);
   }
 
   @Override
   public SastPullRequestCommentDAO createSastPullRequestCommentDAO() {
     return new SastPullRequestCommentDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ThirdPartySbomMetadataDAO createThirdPartySbomMetadataDAO() {
+    return new ThirdPartySbomMetadataDAO(dataStoreProvider.getThirdPartyScansDataStore());
   }
 }

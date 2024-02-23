@@ -142,6 +142,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -571,6 +572,8 @@ public class TemporaryEntity
 
   private SastPullRequestCommentDAO sastPullRequestCommentDAO;
 
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -811,6 +814,7 @@ public class TemporaryEntity
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
       delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
       delete(thirdPartyCoordinateSecurityDAO.getAll(), thirdPartyCoordinateSecurityDAO);
+      delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
       delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
@@ -4730,5 +4734,6 @@ public class TemporaryEntity
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+    thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
   }
 }

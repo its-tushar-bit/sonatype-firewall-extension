@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -106,6 +107,8 @@ public class ApplicationDAO
 
   private final SastScanDAO sastScanDAO;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -130,6 +133,7 @@ public class ApplicationDAO
       final RepositoryConnectionDAO repositoryConnectionDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SastScanDAO sastScanDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ClusterLockManager clusterLockManager)
   {
     super(operationalDataStore, searchIndexManager);
@@ -151,6 +155,7 @@ public class ApplicationDAO
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sastScanDAO = sastScanDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -568,13 +573,22 @@ public class ApplicationDAO
       membershipMappingDAO.delete(tx, membershipMapping);
     }
 
-    // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
+    // Cascade to aggregation tables. These are in a separate schema and therefore use a separate transaction.
     try (TransactionContext aggregationTx = policyViolationAggregationDAO.createTransactionContext()) {
       aggregationTx.begin();
 
       policyViolationAggregationDAO.deleteByApplicationId(aggregationTx, application.getId());
 
       aggregationTx.commit();
+    }
+
+    // Cascade to aggregation tables. These are in a separate schema and therefore use a separate transaction.
+    try (TransactionContext thirdPartyScansTx = thirdPartySbomMetadataDAO.createTransactionContext()) {
+      thirdPartyScansTx.begin();
+
+      thirdPartySbomMetadataDAO.deleteByApplicationId(thirdPartyScansTx, application.getId());
+
+      thirdPartyScansTx.commit();
     }
 
     // Cascade to repository connections

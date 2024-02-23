@@ -5,12 +5,12 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, flatten } from 'ramda';
+import { always, compose, flatten } from 'ramda';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { UI_ROUTER_ON_FINISH, stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/waivers/waiverActions';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -145,6 +145,10 @@ const componentDetailsViolationsSlice = createSlice({
     [load.fulfilled]: loadFulfilled,
     [load.rejected]: loadFailed,
     [SELECT_COMPONENT]: always(initialState),
+    [UI_ROUTER_ON_FINISH]: compose(
+      propSetConst('showViolationsDetailPopover', false),
+      propSetConst('violationsDetailRowClicked', false)
+    ),
   },
 });
 

@@ -5,6 +5,7 @@
  */
 import reducer, { initialState } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('componentDetailspolicyViolationsSlice', () => {
   const stateConstantObject = { value: 'test value' };
@@ -509,6 +510,21 @@ describe('componentDetailspolicyViolationsSlice', () => {
 
       const newState = reducer(state, { type: SELECT_COMPONENT });
       expect(newState).toEqual(initialState);
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH', () => {
+    it('resets popover variables on UI_ROUTER_ON_FINISH', () => {
+      const state = Object.freeze({
+        showViolationsDetailPopover: true,
+        violationsDetailRowClicked: true,
+      });
+
+      const newState = reducer(state, { type: UI_ROUTER_ON_FINISH });
+      expect(newState).toEqual({
+        showViolationsDetailPopover: false,
+        violationsDetailRowClicked: false,
+      });
     });
   });
 });

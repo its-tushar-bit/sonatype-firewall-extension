@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @since 1.9
@@ -96,6 +99,33 @@ public class ApplicationTagDAOTest
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
     assertAppTag(application.getId(), tag.getId(), appTag);
+  }
+
+  @Test
+  public void testGetByApplicationIds() {
+    ApplicationTag appTag = tempEntity.newApplicationTag(application.getId(), tag.getId());
+    Application application1 = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationTag(application1.getId(), tag.getId());
+    List<ApplicationTag> result = dao.getByApplicationIds(Collections.singletonList(application.getId()));
+    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactly(appTag);
+  }
+
+  @Test
+  public void testGetByApplicationIds_Batched() {
+    List<String> appIds = new ArrayList<>();
+    List<ApplicationTag> appTags = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      Application app = tempEntity.newApplicationWithParent();
+      appIds.add(app.getId());
+      appTags.add(tempEntity.newApplicationTag(app.getId(), tag.getId()));
+    }
+
+    dao = spy(dao);
+    when(dao.getInOperatorThreshold()).thenReturn(2);
+
+    List<ApplicationTag> result = dao.getByApplicationIds(appIds);
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(appTags.toArray(new ApplicationTag[0]));
   }
 
   private void assertAppTag(String appId, String tagId, ApplicationTag actual) {

@@ -8,8 +8,11 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -46,8 +49,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 @Named
 public class ApiApplicationService
 {
-  private final ApiApplicationAdapter apiApplicationAdapter;
-
   private final ApplicationTagDAO applicationTagDAO;
 
   private final ApplicationHelper applicationHelper;
@@ -62,7 +63,6 @@ public class ApiApplicationService
 
   @Inject
   public ApiApplicationService(
-      final ApiApplicationAdapter apiApplicationAdapter,
       final ApplicationTagDAO applicationTagDAO,
       final ApplicationDAO applicationDAO,
       final ApplicationHelper applicationHelper,
@@ -70,7 +70,6 @@ public class ApiApplicationService
       final OrganizationDAO organizationDAO,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
-    this.apiApplicationAdapter = apiApplicationAdapter;
     this.applicationTagDAO = applicationTagDAO;
     this.applicationDAO = applicationDAO;
     this.applicationHelper = applicationHelper;
@@ -84,7 +83,7 @@ public class ApiApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    return apiApplicationAdapter.convertToDTO(application);
+    return ApiApplicationAdapter.convertToDTO(application, applicationTagDAO.getByApplicationId(application.getId()));
   }
 
   /**
@@ -95,10 +94,16 @@ public class ApiApplicationService
    * @return The application DTO list found
    */
   public ApiApplicationListDTO getApplicationDTOs(final Set<String> publicIds) {
-    List<Application> applications = getApplications(publicIds);
+    List<Application> applications = getApplicationsWithReadPermission(publicIds);
     List<ApiApplicationDTO> applicationDTOs = new ArrayList<>(applications.size());
+
+    List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
+    Map<String, List<ApplicationTag>> applicationTagsByAppId = applicationTagDAO.getByApplicationIds(applicationIds)
+        .stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
+
     for (Application application : applications) {
-      ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
+      ApiApplicationDTO apiApplicationDTO =
+          ApiApplicationAdapter.convertToDTO(application, applicationTagsByAppId.get(application.getId()));
       applicationDTOs.add(apiApplicationDTO);
     }
     ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
@@ -114,15 +119,19 @@ public class ApiApplicationService
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
     ApiApplicationListDTO apiApplicationListDTO = new ApiApplicationListDTO();
-    apiApplicationListDTO.applications = applicationDAO.getByOrganizationId(organizationId).stream()
-        .map(apiApplicationAdapter::convertToDTO)
+    List<Application> applications = applicationDAO.getByOrganizationId(organizationId);
+    List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
+    Map<String, List<ApplicationTag>> applicationTagsByAppId = applicationTagDAO.getByApplicationIds(applicationIds)
+        .stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
+    apiApplicationListDTO.applications = applications.stream()
+        .map(app -> ApiApplicationAdapter.convertToDTO(app, applicationTagsByAppId.get(app.getId())))
         .collect(Collectors.toList());
     return apiApplicationListDTO;
   }
 
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
 
-    Application application = apiApplicationAdapter.convertFromDTO(applicationDTO);
+    Application application = ApiApplicationAdapter.convertFromDTO(applicationDTO);
 
     try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
       tx.begin();
@@ -137,11 +146,11 @@ public class ApiApplicationService
       AuditData.get().setApplicationWithDetails(application);
     }
 
-    return apiApplicationAdapter.convertToDTO(application);
+    return ApiApplicationAdapter.convertToDTO(application, applicationTagDAO.getByApplicationId(application.getId()));
   }
 
   public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO) {
-    Application application = apiApplicationAdapter.convertFromDTO(applicationDTO);
+    Application application = ApiApplicationAdapter.convertFromDTO(applicationDTO);
     try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
       tx.begin();
 
@@ -156,7 +165,7 @@ public class ApiApplicationService
       AuditData.get().setApplicationWithDetails(application);
     }
 
-    return apiApplicationAdapter.convertToDTO(application);
+    return ApiApplicationAdapter.convertToDTO(application, applicationTagDAO.getByApplicationId(application.getId()));
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -191,7 +200,7 @@ public class ApiApplicationService
    * @return The list of applications found
    */
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplications(final Set<String> publicIdsFilter) {
+  List<Application> getApplicationsWithReadPermission(final Set<String> publicIdsFilter) {
     List<Application> applications;
     if (publicIdsFilter.isEmpty()) {
       applications = applicationDAO.getAll();
@@ -253,11 +262,26 @@ public class ApiApplicationService
 
   public ApiApplicationCategoriesListDTO getApplicationsWithAppliedCategories(Set<String> publicIdsFilter) {
     ApiApplicationCategoriesListDTO results = new ApiApplicationCategoriesListDTO();
-    for (Application application : getApplications(publicIdsFilter)) {
+
+    List<Application> applications = getApplicationsWithReadPermission(publicIdsFilter);
+    List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
+    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationIds(applicationIds);
+    Map<String, List<ApplicationTag>> applicationTagsByAppId = 
+        appTags.stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
+    List<Tag> tags =
+        tagDAO.getByIds(appTags.stream().map(ApplicationTag::getTagId).distinct().collect(Collectors.toList()));
+    Map<String, Tag> tagsById = tags.stream().collect(Collectors.toMap(Tag::getId, Function.identity()));
+
+    for (Application application : applications) {
       ApiApplicationCategoriesDTO result = new ApiApplicationCategoriesDTO();
-      apiApplicationAdapter.populateDTO(result, application);
-      result.categories = tagDAO.getByApplicationId(application.getId()).stream()
-          .map(TagService::toDTO).collect(Collectors.toList());
+      ApiApplicationAdapter.populateDTO(result, application);
+      List<ApplicationTag> appTagsForCurrentApp = applicationTagsByAppId.get(application.getId());
+      if (appTagsForCurrentApp != null) {
+        result.categories = appTagsForCurrentApp.stream() //
+            .map(appTag -> tagsById.get(appTag.getTagId())) //
+            .map(TagService::toDTO) //
+            .collect(Collectors.toList());
+      }
       results.applications.add(result);
     }
     return results;

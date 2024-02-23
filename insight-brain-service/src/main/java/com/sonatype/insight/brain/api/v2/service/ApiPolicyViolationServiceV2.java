@@ -22,6 +22,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -40,10 +41,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -96,8 +97,6 @@ public class ApiPolicyViolationServiceV2
 
   private final ApplicationService applicationService;
 
-  private final ApiApplicationAdapter applicationAdapter;
-
   private final ApplicationComponentDAO applicationComponentDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
@@ -119,7 +118,6 @@ public class ApiPolicyViolationServiceV2
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
-      final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyViolationDAO policyViolationDAO,
@@ -131,7 +129,6 @@ public class ApiPolicyViolationServiceV2
       final IdUtils idUtils)
   {
     this.applicationService = applicationService;
-    this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
@@ -209,7 +206,7 @@ public class ApiPolicyViolationServiceV2
 
       ApiApplicationViolationDTOV2 apiApplicationViolationDTOV2 = new ApiApplicationViolationDTOV2();
       Application application = applicationsById.get(appId);
-      apiApplicationViolationDTOV2.application = applicationAdapter.convertToApplicationBaseDTO(application);
+      apiApplicationViolationDTOV2.application = ApiApplicationAdapter.convertToApplicationBaseDTO(application);
       apiApplicationViolationDTOV2.policyViolations = new ArrayList<>();
       for (PolicyViolation policyViolation : policyViolationsForApp) {
         PolicyEvaluation policyEvaluation = policyEvaluationsByAppIdAndStageId

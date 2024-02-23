@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -143,6 +144,16 @@ public class TagDAO
     else {
       return getList(sQuery, applicationIds);
     }
+  }
+
+  public List<Tag> getByIds(List<String> tagIds) {
+    if (tagIds == null || tagIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    String sQuery = "SELECT tag FROM Tag tag WHERE tag.id IN ?1";
+
+    return getListWithSqlInClause(tagIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 
   /**

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -45,8 +46,6 @@ public class ApiApplicationResourceV2Test
 {
   private ApplicationDAO applicationDAO;
 
-  private ApiApplicationAdapter apiApplicationAdapter;
-
   private Organization organization;
 
   private Application app;
@@ -65,7 +64,6 @@ public class ApiApplicationResourceV2Test
   @Before
   public void setUp() {
     applicationDAO = lookup(ApplicationDAO.class);
-    apiApplicationAdapter = getCLMServer().getInstance(ApiApplicationAdapter.class);
 
     organization = tempEntity.newOrganization("test-org");
     app = tempEntity.newApplication("test-app", "test-app", organization.getId());
@@ -141,7 +139,8 @@ public class ApiApplicationResourceV2Test
     assertThat(applicationListDTO).isNotNull();
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
-      ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
+      ApiApplicationDTO apiApplicationDTO =
+          ApiApplicationAdapter.convertToDTO(application, appTagMap.get(application.getId()));
       apiApplicationDTO.applicationTags = ApiApplicationTagAdapter.convertToDTO(appTagMap.get(apiApplicationDTO.id));
       expectedApplications.add(apiApplicationDTO);
     }
@@ -161,7 +160,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testUpdateApplication_NullId() throws Exception {
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     applicationDTO.id = null;
     addApplicationTagDTOs(applicationDTO);
 
@@ -174,7 +173,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testUpdateApplication_EmptyId() throws Exception {
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     applicationDTO.id = "  ";
     addApplicationTagDTOs(applicationDTO);
 
@@ -187,7 +186,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testUpdateApplication_ChangeOrganizationId() throws Exception {
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     applicationDTO.id = null;
     Organization anotherOrg = tempEntity.newOrganization("Another Org");
     applicationDTO.organizationId = anotherOrg.getId();
@@ -202,7 +201,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testUpdateApplication_ChangePublicId() throws Exception {
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     applicationDTO.id = null;
     applicationDTO.publicId = "NewPublicId";
     addApplicationTagDTOs(applicationDTO);
@@ -407,7 +406,8 @@ public class ApiApplicationResourceV2Test
     ApiApplicationListDTO apiApplicationListDTO = response.getBody(ApiApplicationListDTO.class);
     assertThat(apiApplicationListDTO).isNotNull();
     assertThat(apiApplicationListDTO.applications).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(apiApplicationAdapter.convertToDTO(app1), apiApplicationAdapter.convertToDTO(app2));
+        .containsExactlyInAnyOrder(ApiApplicationAdapter.convertToDTO(app1, Collections.emptyList()),
+            ApiApplicationAdapter.convertToDTO(app2, Collections.emptyList()));
   }
 
   @Test

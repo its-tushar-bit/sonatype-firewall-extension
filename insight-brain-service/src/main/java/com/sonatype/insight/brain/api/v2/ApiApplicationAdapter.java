@@ -7,29 +7,17 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiApplicationTagAdapter;
-import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 
 /**
  * @since 1.11.0
  */
-@Named
 public class ApiApplicationAdapter
 {
-  private final ApplicationTagDAO applicationTagDAO;
-
-  @Inject
-  public ApiApplicationAdapter(ApplicationTagDAO applicationTagDAO) {
-    this.applicationTagDAO = applicationTagDAO;
-  }
-
   /**
    * Converts an {@link Application} entity to an {@link ApiApplicationDTO} object, will return null if null is passed
    * in.
@@ -37,7 +25,7 @@ public class ApiApplicationAdapter
    * @param application the entity to convert
    * @return ApiApplicationDTO or null if null passed in
    */
-  public ApiApplicationDTO convertToDTO(final Application application) {
+  public static ApiApplicationDTO convertToDTO(final Application application, List<ApplicationTag> appTags) {
     if (application == null) {
       return null;
     }
@@ -45,8 +33,7 @@ public class ApiApplicationAdapter
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
     populateDTO(applicationDTO, application);
 
-    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
-    applicationDTO.applicationTags = ApiApplicationTagAdapter.convertToDTO(tags);
+    applicationDTO.applicationTags = ApiApplicationTagAdapter.convertToDTO(appTags);
 
     return applicationDTO;
   }
@@ -58,7 +45,7 @@ public class ApiApplicationAdapter
    * @param applicationDTO the application DTO object to convert
    * @return Application or null if null passed in
    */
-  public Application convertFromDTO(final ApiApplicationDTO applicationDTO) {
+  public static Application convertFromDTO(final ApiApplicationDTO applicationDTO) {
     if (applicationDTO == null) {
       return null;
     }
@@ -75,7 +62,7 @@ public class ApiApplicationAdapter
   /**
    * @since 1.13.0
    */
-  public ApiApplicationBaseDTO convertToApplicationBaseDTO(final Application application) {
+  public static ApiApplicationBaseDTO convertToApplicationBaseDTO(final Application application) {
     if (application == null) {
       return null;
     }
@@ -85,7 +72,7 @@ public class ApiApplicationAdapter
     return applicationDTO;
   }
 
-  public void populateDTO(ApiApplicationBaseDTO applicationDTO, Application application) {
+  public static void populateDTO(ApiApplicationBaseDTO applicationDTO, Application application) {
     applicationDTO.id = application.getId();
     applicationDTO.publicId = application.getPublicId();
     applicationDTO.name = application.getName();

@@ -86,7 +86,7 @@ public class ApiReportServiceV2
   }
 
   public List<ApiApplicationReportDTOV2> getAll() {
-    List<Application> apps = applicationService.getApplications(Collections.emptySet());
+    List<Application> apps = applicationService.getApplicationsWithReadPermission(Collections.emptySet());
 
     return getReports(apps);
   }

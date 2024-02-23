@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -108,8 +109,6 @@ public class ApplicationCloneService
 
   private final SourceControlDAO sourceControlDAO;
 
-  private final ApiApplicationAdapter apiAppAdapter;
-
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
   @Inject
@@ -130,7 +129,6 @@ public class ApplicationCloneService
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       final SourceControlDAO sourceControlDAO,
-      final ApiApplicationAdapter apiAppAdapter,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.orgDAO = orgDAO;
@@ -149,7 +147,6 @@ public class ApplicationCloneService
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.sourceControlDAO = sourceControlDAO;
-    this.apiAppAdapter = apiAppAdapter;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
@@ -216,7 +213,7 @@ public class ApplicationCloneService
 
       tx.commit();
 
-      return apiAppAdapter.convertToDTO(clonedApp);
+      return ApiApplicationAdapter.convertToDTO(clonedApp, appTagDAO.getByApplicationId(clonedApp.getId()));
     }
   }
 

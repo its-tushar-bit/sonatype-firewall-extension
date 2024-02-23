@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -66,11 +67,11 @@ public class ApiReportViolationsDiffService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApiApplicationAdapter applicationAdapter;
-
   private final ApplicationDAO applicationDAO;
 
   private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final ApplicationTagDAO applicationTagDAO;
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
@@ -85,16 +86,16 @@ public class ApiReportViolationsDiffService
   public ApiReportViolationsDiffService(
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
+      final ApplicationTagDAO applicationTagDAO,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final IqForScmLicenseChecker licenseChecker,
       final ReportService reportService)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
+    this.applicationTagDAO = applicationTagDAO;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.licenseChecker = licenseChecker;
     this.reportService = reportService;
@@ -231,7 +232,8 @@ public class ApiReportViolationsDiffService
         fromPolicyEvaluation.getStageTypeId(), fromEvaluationComponentNames);
     dto.fromCommit = buildEvaluationCommit(application.getPublicId(), fromPolicyEvaluation);
     dto.toCommit = buildEvaluationCommit(application.getPublicId(), toPolicyEvaluation);
-    dto.application = applicationAdapter.convertToDTO(application);
+    dto.application =
+        ApiApplicationAdapter.convertToDTO(application, applicationTagDAO.getByApplicationId(application.getId()));
     dto.diffTime = new Date();
     return dto;
   }

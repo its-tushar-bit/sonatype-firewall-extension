@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -46,6 +46,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @since 1.9
@@ -552,6 +554,28 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
+  }
+
+  @Test
+  public void testGetByIds() {
+    Tag tag = tempEntity.newTag(organization.getId());
+    tempEntity.newTag(organization.getId());
+
+    assertThat(dao.getByIds(Collections.singletonList(tag.getId()))).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(tag);
+  }
+
+  @Test
+  public void testGetByIds_Batched() {
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    Tag tag3 = tempEntity.newTag(organization.getId());
+
+    dao = spy(dao);
+    when(dao.getInOperatorThreshold()).thenReturn(2);
+
+    assertThat(dao.getByIds(Arrays.asList(tag1.getId(), tag2.getId(), tag3.getId())))
+        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(tag1, tag2, tag3);
   }
 
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {

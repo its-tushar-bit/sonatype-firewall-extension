@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.Collections;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -65,5 +67,16 @@ public class ApplicationTagDAO
     String sQuery = "SELECT appTag FROM ApplicationTag appTag, Tag tag" + //
         " WHERE appTag.tagId = tag.id AND tag.organizationId =?1";
     return getList(sQuery, organizationId);
+  }
+
+  public List<ApplicationTag> getByApplicationIds(List<String> applicationIds) {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    String sQuery = "SELECT entity FROM ApplicationTag entity" + //
+        " WHERE entity.applicationId IN ?1";
+
+    return getListWithSqlInClause(applicationIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 }

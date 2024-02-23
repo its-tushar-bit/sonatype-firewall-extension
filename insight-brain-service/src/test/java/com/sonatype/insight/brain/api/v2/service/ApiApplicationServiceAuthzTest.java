@@ -30,9 +30,6 @@ public class ApiApplicationServiceAuthzTest
   @Inject
   private ApiApplicationService apiApplicationService;
 
-  @Inject
-  private ApiApplicationAdapter apiApplicationAdapter;
-
   @Test
   public void testGetApplication_Authorized() {
     grantReadPermission(app.getId());
@@ -51,22 +48,22 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplications_Authorized() {
+  public void testGetApplicationsWithReadPermission_Authorized() {
     grantReadPermission(app.getId());
-    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
+    List<Application> applications = apiApplicationService.getApplicationsWithReadPermission(Collections.emptySet());
     assertThat(applications).hasSize(1);
   }
 
   @Test
-  public void testGetApplications_Unauthenticated() {
-    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
+  public void testGetApplicationsWithReadPermission_Unauthenticated() {
+    List<Application> applications = apiApplicationService.getApplicationsWithReadPermission(Collections.emptySet());
     assertThat(applications).isEmpty();
   }
 
   @Test
-  public void testGetApplications_Unauthorized() {
+  public void testGetApplicationsWithReadPermission_Unauthorized() {
     login();
-    List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
+    List<Application> applications = apiApplicationService.getApplicationsWithReadPermission(Collections.emptySet());
     assertThat(applications).isEmpty();
   }
 
@@ -94,20 +91,20 @@ public class ApiApplicationServiceAuthzTest
   @Test
   public void testUpdateApplication_Authorized() {
     grantWritePermission(app.getId());
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     apiApplicationService.updateApplication(applicationDTO);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateApplication_Unauthenticated() {
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     apiApplicationService.updateApplication(applicationDTO);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateApplication_Unauthorized() {
     login();
-    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    ApiApplicationDTO applicationDTO = ApiApplicationAdapter.convertToDTO(app, Collections.emptyList());
     apiApplicationService.updateApplication(applicationDTO);
   }
 

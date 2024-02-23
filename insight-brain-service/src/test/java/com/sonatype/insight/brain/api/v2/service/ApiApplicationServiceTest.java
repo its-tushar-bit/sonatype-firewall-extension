@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
@@ -60,9 +61,6 @@ public class ApiApplicationServiceTest
 
   @Inject
   private ApiApplicationService applicationService;
-
-  @Inject
-  private ApiApplicationAdapter apiApplicationAdapter;
 
   @Inject
   private MembershipMappingDAO membershipMappingDAO;
@@ -119,7 +117,7 @@ public class ApiApplicationServiceTest
   }
 
   @Test
-  public void testGetApplications() {
+  public void testGetApplicationsWithReadPermission() {
     Organization org = tempEntity.newOrganization();
     Application app1 = tempEntity.newApplication(org.getId());
     Application app2 = tempEntity.newApplication(org.getId());
@@ -128,7 +126,7 @@ public class ApiApplicationServiceTest
     Application app5 = tempEntity.newApplicationWithParent();
     tempEntity.newApplicationWithParent();
 
-    List<Application> applications = applicationService.getApplications(Sets.newHashSet(
+    List<Application> applications = applicationService.getApplicationsWithReadPermission(Sets.newHashSet(
         StringUtils.swapCase(app1.getPublicId()),
         app2.getPublicId(),
         StringUtils.swapCase(app4.getPublicId()),
@@ -149,7 +147,8 @@ public class ApiApplicationServiceTest
 
     assertThat(apiApplicationListDTO).isNotNull();
     assertThat(apiApplicationListDTO.applications).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(apiApplicationAdapter.convertToDTO(app1), apiApplicationAdapter.convertToDTO(app2));
+        .containsExactlyInAnyOrder(ApiApplicationAdapter.convertToDTO(app1, Collections.emptyList()),
+            ApiApplicationAdapter.convertToDTO(app2, Collections.emptyList()));
   }
 
   @Test
@@ -227,7 +226,7 @@ public class ApiApplicationServiceTest
 
     // When
     final ApiApplicationDTO updatedApp =
-        applicationService.updateApplication(apiApplicationAdapter.convertToDTO(app));
+        applicationService.updateApplication(ApiApplicationAdapter.convertToDTO(app, Collections.emptyList()));
 
     // Then
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);

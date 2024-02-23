@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -21,7 +22,10 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
@@ -209,6 +213,27 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   public long getCount() {
     String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
     return getSingle(Long.class, sQuery);
+  }
+
+  /**
+   * This method should be used for queries that use an "IN" clause.
+   * H2 and Postgres limit the number of elements in "IN" clauses. This method breaks the list of values into
+   * partitions, runs the given query on each partition and merges the results from all partitions.
+   * 
+   * @param <E> The type of the values in the list to be used in the "IN" clause.
+   * @param inClauseValues List of values to be used in the "IN" clause.
+   * @param getter Function to be used to query the values.
+   */
+  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
+    int inOperatorThreshold = getInOperatorThreshold();
+    if (inClauseValues.size() >= inOperatorThreshold) {
+      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValues, inOperatorThreshold);
+
+      return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
+    }
+    else {
+      return getter.apply(inClauseValues);
+    }
   }
 
   public String getEntityName() {

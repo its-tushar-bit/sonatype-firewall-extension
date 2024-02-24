@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -37,8 +37,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
@@ -49,7 +52,9 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
@@ -71,9 +76,13 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.repository.RepositoryType.proxy;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
 
 @Named
 @Timed
@@ -101,6 +110,10 @@ public class PolicyResource
 
   private final ApplicationDAO applicationDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   private final IdUtils idUtils;
 
   @Inject
@@ -113,6 +126,8 @@ public class PolicyResource
       final PolicyDAO policyDAO,
       final OrganizationDAO organizationDAO,
       final ApplicationDAO applicationDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO,
       final IdUtils idUtils)
   {
     this.policyImportExport = policyImportExport;
@@ -123,6 +138,8 @@ public class PolicyResource
     this.policyDAO = policyDAO;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
     this.idUtils = idUtils;
   }
 
@@ -154,10 +171,17 @@ public class PolicyResource
       getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
   {
     checkReadPermission(RepositoryContainer.SINGLETON);
-    List<Policy> policies = getApplicableByOwnerIdWithHierarchy(
-        OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
     List<Policy> proprietaryNameConflictPolicies = new ArrayList<>();
     List<Policy> securityVulnerabilityCategoryMaliciousCodePolicies = new ArrayList<>();
+
+    Stream<String> containerAndRootIds =
+        Stream.of(RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID);
+    Stream<String> repositoryIds = repositoryDAO.getByRepositoryType(proxy).stream().map(Repository::getId);
+    Stream<String> repositoryManagerIds = repositoryManagerDAO.getAll().stream().map(RepositoryManager::getId);
+
+    List<Policy> policies = concat(containerAndRootIds, concat(repositoryIds, repositoryManagerIds))
+        .collect(collectingAndThen(toList(), policyDAO::getByOwnerIds));
+
     for (Policy policy : policies) {
       boolean hasSecurityVulnerabilityCategoryMaliciousCode = false;
       boolean hasProprietaryNameConflict = false;

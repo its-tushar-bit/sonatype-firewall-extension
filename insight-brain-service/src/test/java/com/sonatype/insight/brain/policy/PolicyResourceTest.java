@@ -683,32 +683,44 @@ public class PolicyResourceTest
   public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
       throws Exception
   {
-    // Test policy with a condition that should not be included in the filter.
-    Policy policy = new Policy();
-    policy.setName("test-policy-0");
-    policy.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
 
-    createTestPolicyWithCondition("test-policy-1", false, false);
-    createTestPolicyWithCondition("test-policy-2", true, false);
-    createTestPolicyWithCondition("test-policy-3", false, true);
-    createTestPolicyWithCondition("test-policy-4", true, true);
+    // Given a test policy with a condition that should not be included in the filter.
+    createTestPolicyWithCondition("test-policy-a", RepositoryContainer.REPOSITORY_CONTAINER_ID, false, false, true);
+    createTestPolicyWithCondition("test-policy-b", repositoryManager.getId(), false, false, true);
+    createTestPolicyWithCondition("test-policy-c", repository.getId(), false, false, true);
+    // And test policies with conditions that should be included in the filter.
+    createTestPolicyWithCondition("test-policy-1", RepositoryContainer.REPOSITORY_CONTAINER_ID, false, false, true);
+    createTestPolicyWithCondition("test-policy-2", RepositoryContainer.REPOSITORY_CONTAINER_ID, true, false, true);
+    createTestPolicyWithCondition("test-policy-3", RepositoryContainer.REPOSITORY_CONTAINER_ID, false, true, true);
+    createTestPolicyWithCondition("test-policy-4", RepositoryContainer.REPOSITORY_CONTAINER_ID, true, true, true);
 
+    createTestPolicyWithCondition("test-policy-5", repositoryManager.getId(), false, false, true);
+    createTestPolicyWithCondition("test-policy-6", repositoryManager.getId(), true, false, true);
+    createTestPolicyWithCondition("test-policy-7", repositoryManager.getId(), false, true, true);
+    createTestPolicyWithCondition("test-policy-8", repositoryManager.getId(), true, true, true);
+
+    createTestPolicyWithCondition("test-policy-9", repository.getId(), false, false, true);
+    createTestPolicyWithCondition("test-policy-10", repository.getId(), true, false, true);
+    createTestPolicyWithCondition("test-policy-11", repository.getId(), false, true, true);
+    createTestPolicyWithCondition("test-policy-12", repository.getId(), true, true, true);
+
+    // when the policies are retrieved
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
         .path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode").get();
     assertResponseStatus(200, response);
     ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result
         = response.getBody(ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies.class);
-    assertThat(result.proprietaryNameConflictPolicies).hasSize(2);
-    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies).hasSize(2);
 
-    assertThat(result.proprietaryNameConflictPolicies.get(0).getName()).isEqualTo("test-policy-3");
-    assertThat(result.proprietaryNameConflictPolicies.get(1).getName()).isEqualTo("test-policy-4");
-    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies.get(0).getName()).isEqualTo("test-policy-2");
-    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies.get(1).getName()).isEqualTo("test-policy-4");
+    assertThat(result.proprietaryNameConflictPolicies).hasSize(6);
+    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies).hasSize(6);
+
+    assertThat(result.proprietaryNameConflictPolicies.stream().map(Policy::getName)).containsExactlyInAnyOrder(
+        "test-policy-3", "test-policy-4", "test-policy-7", "test-policy-8", "test-policy-11", "test-policy-12");
+    assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies.stream().map(Policy::getName))
+        .containsExactlyInAnyOrder(
+            "test-policy-2", "test-policy-4", "test-policy-6", "test-policy-8", "test-policy-10", "test-policy-12");
   }
 
   @Test
@@ -1271,14 +1283,19 @@ public class PolicyResourceTest
   }
 
   private void createTestPolicyWithCondition(
-        String name,
-        boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
-        boolean withProprietaryNameConflictCondition)
+      String name,
+      final String ownerId,
+      boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
+      boolean withProprietaryNameConflictCondition,
+      boolean withSecurityVulnerabilitySeverityCondition)
   {
     Policy policy = new Policy(name, name);
-    policy.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint("test-constraint", "Test Constraint", LogicalOperator.OR);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+
+    if (withSecurityVulnerabilitySeverityCondition) {
+      constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    }
     if (withSecurityVulnerabilityCategoryMaliciousCodeCondition) {
       constraint.addCondition(new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code"));
     }

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,11 +30,15 @@ public abstract class AbstractDbDAOTest
 
   protected Repository repository;
 
+  protected RepositoryManager repositoryManager;
+
   @Before
   public void setup() {
     organization = tempEntity.newOrganization("AbstractDbDAOTest");
     application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",
         organization.getId());
-    repository = tempEntity.newRepository();
+    repositoryManager = tempEntity.newRepositoryManager();
+    repository = tempEntity.newRepository(repositoryManager);
+
   }
 }

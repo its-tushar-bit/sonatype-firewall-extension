@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -80,6 +82,8 @@ public class PolicyResourceAuthzTest
   {
     HttpRequest request = restRequest().path(
         "withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode");
+
+    testAuthzGet(request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID), 403);
 
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
@@ -255,5 +259,29 @@ public class PolicyResourceAuthzTest
     policyDAO.update(policy);
     testAuthzPut(
         request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
+  }
+
+  private void createTestPolicyWithCondition(
+      String name,
+      final String ownerId,
+      boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
+      boolean withProprietaryNameConflictCondition,
+      boolean withSecurityVulnerabilitySeverityCondition)
+  {
+    Policy policy = new Policy(name, name);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint("test-constraint", "Test Constraint", LogicalOperator.OR);
+
+    if (withSecurityVulnerabilitySeverityCondition) {
+      constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    }
+    if (withSecurityVulnerabilityCategoryMaliciousCodeCondition) {
+      constraint.addCondition(new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code"));
+    }
+    if (withProprietaryNameConflictCondition) {
+      constraint.addCondition(new Condition(ProprietaryNameConflictConditionType.ID, "is present"));
+    }
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
   }
 }

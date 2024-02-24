@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -402,6 +403,12 @@ public class PolicyDAOTest
     tempEntity.newPolicy(organization.getId(), policyNameOrg);
     String policyNameApp = "ApplicationPolicy";
     tempEntity.newPolicy(application.getId(), policyNameApp);
+    String policyNameRepoContainer = "RepositoryContainerPolicy";
+    tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, policyNameRepoContainer);
+    String policyNameRepoManager = "RepositoryManagerPolicy";
+    tempEntity.newPolicy(repositoryManager.getId(), policyNameRepoManager);
+    String policyNameRepo = "RepositoryPolicy";
+    tempEntity.newPolicy(repository.getId(), policyNameRepo);
 
     // Check app level
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(application.getId());
@@ -409,7 +416,13 @@ public class PolicyDAOTest
 
     // Check repo level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
-    assertThat(policies).extracting(Policy::getName).containsExactly(policyNameRootOrg);
+    assertThat(policies).extracting(Policy::getName)
+        .containsExactly(policyNameRepo, policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
+
+    // Check repo manager level
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repositoryManager.getId());
+    assertThat(policies).extracting(Policy::getName)
+        .containsExactly(policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
 
     // Check org level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());

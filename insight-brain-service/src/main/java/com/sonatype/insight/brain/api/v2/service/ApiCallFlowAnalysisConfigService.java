@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+@Named
+public class ApiCallFlowAnalysisConfigService
+{
+  private final CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  @Inject
+  public ApiCallFlowAnalysisConfigService(
+      final CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO,
+      final OwnerDAO ownerDAO)
+  {
+    this.callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAO;
+    this.ownerDAO = ownerDAO;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public ApiCallFlowAnalysisConfigDTO upsertCallFlowAnalysisConfig(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      final ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO)
+  {
+    validateCallFlowAnalysisConfigDTO(apiCallFlowAnalysisConfigDTO, ownerId);
+    CallFlowAnalysisConfig existingConfigByOwner = callFlowAnalysisConfigDAO.getByOwnerId(ownerId);
+    CallFlowAnalysisConfig modelToPersist = buildCallFlowConfigModel(apiCallFlowAnalysisConfigDTO);
+    if (existingConfigByOwner == null) {
+      callFlowAnalysisConfigDAO.insert(modelToPersist);
+    }
+    else {
+      modelToPersist.setId(existingConfigByOwner.getId());
+      callFlowAnalysisConfigDAO.update(modelToPersist);
+    }
+    auditCallFlowAnalysisConfigUpdates(apiCallFlowAnalysisConfigDTO);
+    return buildApiCallFlowConfigDTO(modelToPersist);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId) throws NotFoundException
+  {
+    Iterable<Owner> ownersParents = ownerDAO.walkHierarchy(ownerId);
+    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false);
+    Optional<ApiCallFlowAnalysisConfigDTO> optionalConfigDTO = ownerStream
+        .map(owner -> callFlowAnalysisConfigDAO.getByOwnerId(owner.getId()))
+        .filter(Objects::nonNull)
+        .map(this::buildApiCallFlowConfigDTO)
+        .findFirst();
+
+    return optionalConfigDTO.orElseThrow(
+        () -> new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId));
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deleteCallFlowAnalysisConfig(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+  {
+    CallFlowAnalysisConfig existingConfigByOwner = callFlowAnalysisConfigDAO.getByOwnerId(ownerId);
+    if (existingConfigByOwner == null) {
+      throw new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId);
+    }
+    callFlowAnalysisConfigDAO.delete(existingConfigByOwner);
+  }
+
+  private void auditCallFlowAnalysisConfigUpdates(final ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig) {
+    AuditData.get().setData("namespaces", callFlowAnalysisConfig.namespaces);
+  }
+
+  private void validateCallFlowAnalysisConfigDTO(ApiCallFlowAnalysisConfigDTO dto, String ownerId) {
+    if (dto.ownerId == null) {
+      throw new BadRequestException("ownerId cannot be null");
+    }
+    if (dto.enabled == null) {
+      throw new BadRequestException("enabled cannot be null");
+    }
+    if (!dto.ownerId.equals(ownerId)) {
+      throw new BadRequestException("ownerId does not match");
+    }
+  }
+
+  private CallFlowAnalysisConfig buildCallFlowConfigModel(ApiCallFlowAnalysisConfigDTO dto) {
+    return new CallFlowAnalysisConfig(
+        dto.enabled, dto.namespaces, dto.algorithm, dto.threadCount, dto.ownerId);
+  }
+
+  private ApiCallFlowAnalysisConfigDTO buildApiCallFlowConfigDTO(CallFlowAnalysisConfig callFlowAnalysisConfig) {
+    ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
+    apiCallFlowAnalysisConfigDTO.id = callFlowAnalysisConfig.getId();
+    apiCallFlowAnalysisConfigDTO.algorithm = callFlowAnalysisConfig.getAlgorithm();
+    apiCallFlowAnalysisConfigDTO.enabled = callFlowAnalysisConfig.isEnabled();
+    apiCallFlowAnalysisConfigDTO.namespaces = callFlowAnalysisConfig.getNamespaces();
+    apiCallFlowAnalysisConfigDTO.threadCount = callFlowAnalysisConfig.getThreadCount();
+    apiCallFlowAnalysisConfigDTO.ownerId = callFlowAnalysisConfig.getOwnerId();
+    return apiCallFlowAnalysisConfigDTO;
+  }
+}

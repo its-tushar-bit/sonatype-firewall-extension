@@ -153,4 +153,7 @@ public class PublicApiPaths
 
   public static final String EXPERIMENTAL_SAST_PATH =
       EXPERIMENTAL_PATH + "application/sast";
+
+  public static final String CALL_FLOW_ANALYSIS_CONFIG = API_VERSION_PATH_V2 +
+      "callFlowAnalysis/configuration/{ownerType: application|organization}/{ownerId}";
 }

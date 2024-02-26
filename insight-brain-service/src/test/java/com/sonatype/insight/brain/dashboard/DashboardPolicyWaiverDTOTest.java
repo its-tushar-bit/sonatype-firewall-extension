@@ -18,12 +18,14 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardPolicyWaiverDTOTest
+    extends BrainInjectedTest
 {
   private final DateTimeFormatter csvDateFormatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(TimeZone.getTimeZone("UTC").toZoneId());

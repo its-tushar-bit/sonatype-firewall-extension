@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
@@ -24,6 +26,17 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class EnterpriseReportingResourceTest
     extends AbstractResourceTest
 {
+  @Before
+  @After
+  public void clearLookerConfigCache() {
+    getCLMServer().getInstance(EnterpriseReportingService.class).clearLookerConfigCacheForTests();
+  }
+
+  @Before
+  public void init() {
+    hdsMockServer.respondWith("{\"baseUrl\":null}").atUri("rest/enterpriseReporting/config");
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);

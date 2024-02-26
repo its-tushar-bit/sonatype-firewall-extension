@@ -10,11 +10,19 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class EnterpriseReportingResourceAuditTest
     extends AbstractAuditTest
 {
+  @Before
+  @After
+  public void clearLookerConfigCache() {
+    getCLMServer().getInstance(EnterpriseReportingService.class).clearLookerConfigCacheForTests();
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);

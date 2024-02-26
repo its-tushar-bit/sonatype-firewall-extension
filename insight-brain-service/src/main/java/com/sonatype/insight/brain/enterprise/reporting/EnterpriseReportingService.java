@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -36,8 +37,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SamlRealm;
-import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -381,6 +382,12 @@ public class EnterpriseReportingService implements InsightJob
         this.currentVersion.set(latestVersion);
         cacheDashboardMetadata();
       }
+    }
+  }
+
+  public void clearLookerConfigCacheForTests() {
+    if (lookerConfigCache != null && lookerConfigCache.get() != null) {
+      lookerConfigCache.get().invalidateAll();
     }
   }
 }

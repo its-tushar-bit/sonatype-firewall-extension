@@ -17,5 +17,5 @@ export default function SastScanTitle({ title, description }) {
 }
 SastScanTitle.propTypes = {
   title: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
+  description: PropTypes.node.isRequired,
 };

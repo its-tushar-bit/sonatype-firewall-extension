@@ -9,9 +9,10 @@ import SastScanFindings from 'MainRoot/sastScan/SastScanFindings';
 import * as PropTypes from 'prop-types';
 
 export default function SastScanContent({ sastScan }) {
+  const { findings, sastScmScanContext } = sastScan;
   return (
     <NxTile>
-      <SastScanFindings findings={sastScan.findings} />
+      <SastScanFindings findings={findings} sastPullRequestURL={sastScmScanContext?.sastPullRequestURL} />
     </NxTile>
   );
 }

@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react';
 import {
+  NxFontAwesomeIcon,
   NxH2,
   NxTable,
   NxTableBody,
@@ -12,10 +13,13 @@ import {
   NxTableContainer,
   NxTableHead,
   NxTableRow,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import SastFinding from 'MainRoot/sastScan/SastFinding';
 import SastScanFindingsFilter from 'MainRoot/sastScan/SastScanFindingsFilter';
 import * as PropTypes from 'prop-types';
+import { faGithub, faGitlab, faMicrosoft } from '@fortawesome/free-brands-svg-icons';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 const severities = {
   CRITICAL: 4,
@@ -25,7 +29,7 @@ const severities = {
   NONE: 0,
 };
 
-export default function SastScanFindings({ findings }) {
+export default function SastScanFindings({ findings, sastPullRequestURL }) {
   const [filter, onFilterChange] = useState(new Set());
   const filterDisabled = filter.size === 0;
   const [rows, setRows] = useState(findings);
@@ -35,13 +39,21 @@ export default function SastScanFindings({ findings }) {
     <div className="iq_sast_scan_findings__container">
       <div className="iq_sast_scan_findings_header_section">
         <NxH2>SAST Findings</NxH2>
-        <SastScanFindingsFilter
-          data-analytics-id="sonatype-developer-sast-filter-dropdown"
-          className="iq_sast_scan_finding_header_section__filter"
-          options={getCurrentOptions()}
-          selectedIds={filter}
-          onChange={onFilterChange}
-        />
+        <div className="iq_sast_scan_findings_header_actions_section">
+          {sastPullRequestURL && (
+            <NxTextLink className="nx-btn nx-btn--tertiary" href={sastPullRequestURL} external>
+              <NxFontAwesomeIcon icon={getScmIcon(sastPullRequestURL)} />
+              View PR
+            </NxTextLink>
+          )}
+          <SastScanFindingsFilter
+            data-analytics-id="sonatype-developer-sast-filter-dropdown"
+            className="iq_sast_scan_finding_header_section__filter"
+            options={getCurrentOptions()}
+            selectedIds={filter}
+            onChange={onFilterChange}
+          />
+        </div>
       </div>
       <NxTableContainer>
         <NxTable>
@@ -96,6 +108,18 @@ export default function SastScanFindings({ findings }) {
     });
 
     setRows(sortedRows);
+  }
+
+  function getScmIcon(sastPullRequestUrl) {
+    const hostname = new URL(sastPullRequestUrl).hostname;
+    if (hostname.includes('github')) {
+      return faGithub;
+    } else if (hostname.includes('gitlab')) {
+      return faGitlab;
+    } else if (hostname.includes('azure')) {
+      return faMicrosoft;
+    }
+    return faExternalLinkAlt;
   }
 }
 

@@ -10,10 +10,10 @@ import SastScanFindings from 'MainRoot/sastScan/SastScanFindings';
 import { faker } from '@faker-js/faker';
 
 describe('SastScanFindings', () => {
-  it('should render filter dropdown', () => {
+  it('should render filter dropdown & View PR button', () => {
     const highFinding = generateFinding('HIGH');
     const lowFinding = generateFinding('LOW');
-    renderComponent([highFinding, lowFinding]);
+    renderComponent([highFinding, lowFinding], 'http://myurl.com');
 
     const filter = screen.getByRole('button', { name: 'Filter' });
     expect(filter).toBeInTheDocument();
@@ -22,6 +22,9 @@ describe('SastScanFindings', () => {
     expect(highOption).toBeInTheDocument();
     const lowOption = screen.getByRole('checkbox', { name: 'LOW' });
     expect(lowOption).toBeInTheDocument();
+
+    const viewPRButton = screen.getByRole('link', { name: 'View PR' });
+    expect(viewPRButton).toBeInTheDocument();
   });
 
   it('should render findings and its default sorting is descending', () => {
@@ -41,6 +44,7 @@ describe('SastScanFindings', () => {
     expect(mediumRow.getAllByText(mediumFinding.ruleName)[0]).toBeInTheDocument();
     const lowRow = within(rows[3]);
     expect(lowRow.getAllByText(lowFinding.ruleName)[0]).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'View PR' })).not.toBeInTheDocument();
   });
 
   it('should only show the selected severity finding when filter is applied', () => {
@@ -55,6 +59,7 @@ describe('SastScanFindings', () => {
     expect(highOption).toBeInTheDocument();
     fireEvent.click(highOption);
     expect(highOption.checked).toEqual(true);
+    expect(screen.queryByRole('link', { name: 'View PR' })).not.toBeInTheDocument();
 
     expect(screen.getAllByRole('row').length).toEqual(2); // +1 for header row
 
@@ -73,8 +78,8 @@ describe('SastScanFindings', () => {
     expect(screen.getAllByRole('row').length).toEqual(2);
   });
 
-  function renderComponent(findings) {
-    return render(<SastScanFindings findings={findings} />);
+  function renderComponent(findings, sastPullRequestURL) {
+    return render(<SastScanFindings findings={findings} sastPullRequestURL={sastPullRequestURL} />);
   }
 
   function generateFinding(severity) {

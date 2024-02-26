@@ -21,6 +21,19 @@ sast-scan-page {
     justify-content: space-between;
     align-items: center;
   }
+
+  &_header_actions_section {
+    display: flex;
+    color: var(--nx-color-tertiary-button-text);
+
+    .nx-text-link .nx-icon {
+      margin-left: 0;
+    }
+
+    .nx-text-link .fa-external-link-alt {
+      display: none;
+    }
+  }
 }
 
 .iq_sast_scan_finding {

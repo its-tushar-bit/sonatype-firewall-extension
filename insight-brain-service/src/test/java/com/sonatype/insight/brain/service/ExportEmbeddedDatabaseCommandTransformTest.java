@@ -41,6 +41,11 @@ public class ExportEmbeddedDatabaseCommandTransformTest
   }
 
   @Test
+  public void testTransformInsertValues_Date() {
+    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("DATE '2024-02-23'")).isEqualTo("2024-02-23");
+  }
+
+  @Test
   public void testTransformInsertValues_String_Quoted() {
     assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("''")).isEqualTo("");
     assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("'abc \'\' \\N'")).isEqualTo("abc \' \\\\N");
@@ -60,8 +65,8 @@ public class ExportEmbeddedDatabaseCommandTransformTest
 
   @Test
   public void testTransformInsertValues_MultipleColumns() {
-    assertThat(ExportEmbeddedDatabaseCommand
-        .transformInsertValues("-1, NULL, TRUE, 2.0, 'abc', STRINGDECODE('xyz'), TIMESTAMP '2019-06-14 19:25:51.334'"))
-        .isEqualTo("-1\t\\N\tTRUE\t2.0\tabc\txyz\t2019-06-14 19:25:51.334");
+    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues(
+        "-1, NULL, TRUE, 2.0, 'abc', STRINGDECODE('xyz'), TIMESTAMP '2019-06-14 19:25:51.334', DATE '2024-02-23'"))
+            .isEqualTo("-1\t\\N\tTRUE\t2.0\tabc\txyz\t2019-06-14 19:25:51.334\t2024-02-23");
   }
 }

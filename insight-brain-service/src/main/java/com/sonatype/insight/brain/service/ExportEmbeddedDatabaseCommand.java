@@ -48,6 +48,8 @@ public class ExportEmbeddedDatabaseCommand
 
   private static final String TIMESTAMP_PREFIX = "TIMESTAMP ";
 
+  private static final String DATE_PREFIX = "DATE ";
+
   private static final String STRINGDECODE_PREFIX = "STRINGDECODE(";
 
   ExportEmbeddedDatabaseCommand() {
@@ -236,6 +238,13 @@ public class ExportEmbeddedDatabaseCommand
         i = skipOptionalWhitespace(values, i + TIMESTAMP_PREFIX.length());
         if (values.charAt(i) != '\'') {
           throw new IllegalStateException("Malformed TIMESTAMP: " + values.substring(i));
+        }
+        i = transformSingleQuotedString(builder, values, i, true);
+      }
+      else if (c == 'D' && values.regionMatches(i, DATE_PREFIX, 0, DATE_PREFIX.length())) {
+        i = skipOptionalWhitespace(values, i + DATE_PREFIX.length());
+        if (values.charAt(i) != '\'') {
+          throw new IllegalStateException("Malformed DATE: " + values.substring(i));
         }
         i = transformSingleQuotedString(builder, values, i, true);
       }

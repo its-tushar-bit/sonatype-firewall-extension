@@ -59,6 +59,8 @@ export default angular
         'isShowVersionEnabled',
         'isDeveloperDashboardEnabled',
         'isOrgsAndAppsEnabled',
+        'isSbomManagerEnabled',
+        'showSbomManagerSidebar',
       ],
       ['$state']
     )

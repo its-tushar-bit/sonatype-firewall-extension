@@ -39,6 +39,7 @@ import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceContro
 import integrationsModule from 'MainRoot/integrations/integrations.module';
 import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
+import sbomManagerModule from 'MainRoot/sbomManager/module';
 
 export default angular
   .module('managementApp', [
@@ -75,6 +76,7 @@ export default angular
     integrationsModule.name,
     enterpriseReportingModule.name,
     sastScanModule.name,
+    sbomManagerModule.name,
   ])
   .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))

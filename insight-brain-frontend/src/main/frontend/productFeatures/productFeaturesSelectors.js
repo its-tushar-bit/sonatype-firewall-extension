@@ -218,3 +218,5 @@ export const selectIsDeveloperDashboardEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'developer-dashboard')
 );
+
+export const selectIsSbomManagerEnabled = createSelector(selectProductFeatures, propOr(false, 'sbom-manager'));

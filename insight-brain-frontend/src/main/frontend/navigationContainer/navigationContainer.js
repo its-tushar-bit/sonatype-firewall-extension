@@ -20,7 +20,9 @@ import {
   selectIsShowVersionEnabled,
   selectIsDeveloperDashboardEnabled,
   selectIsOrgsAndAppsEnabled,
+  selectIsSbomManagerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectShowSbomManagerSidebar } from 'MainRoot/sbomManager/sbomManagerPageSelectors';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
@@ -40,6 +42,8 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isApiPageEnabled = false;
   vm.isDeveloperDashboardEnabled = false;
   vm.isOrgsAndAppsEnabled = false;
+  vm.isSbomManagerEnabled = false;
+  vm.showSbomManagerSidebar = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -107,6 +111,8 @@ function mapStateToThis(state) {
     isShowVersionEnabled: selectIsShowVersionEnabled(state),
     isDeveloperDashboardEnabled: selectIsDeveloperDashboardEnabled(state),
     isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
+    isSbomManagerEnabled: selectIsSbomManagerEnabled(state),
+    showSbomManagerSidebar: selectShowSbomManagerSidebar(state),
   };
 }
 

@@ -30,6 +30,7 @@ import IqSidebarNavFooter from './IqSidebarNavFooter';
 
 import { getProductLogo } from '../../util/productLogoUtils';
 import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
+import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
 
 function IqSidebarNav(props) {
   const uiRouterState = useRouterState();
@@ -51,6 +52,8 @@ function IqSidebarNav(props) {
     isShowVersionEnabled,
     isDeveloperDashboardEnabled,
     isOrgsAndAppsEnabled,
+    isSbomManagerEnabled,
+    showSbomManagerSidebar,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -88,7 +91,8 @@ function IqSidebarNav(props) {
     setLeftNavigationOpen(isOpen);
   }, [isOpen]);
 
-  return (
+  const sbomManagerSidebar = <SbomManagerSidebar isLoggedIn={isLoggedIn} isSbomManagerEnabled={isSbomManagerEnabled} />;
+  const iqSidebar = (
     <NxGlobalSidebar
       isOpen={isOpen}
       onToggleClick={toggleOpen}
@@ -228,6 +232,8 @@ function IqSidebarNav(props) {
       )}
     </NxGlobalSidebar>
   );
+
+  return isSbomManagerEnabled && showSbomManagerSidebar ? sbomManagerSidebar : iqSidebar;
 }
 
 IqSidebarNav.propTypes = {
@@ -247,5 +253,7 @@ IqSidebarNav.propTypes = {
   isShowVersionEnabled: PropTypes.bool,
   isDeveloperDashboardEnabled: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,
+  isSbomManagerEnabled: PropTypes.bool,
+  showSbomManagerSidebar: PropTypes.bool,
 };
 export default IqSidebarNav;

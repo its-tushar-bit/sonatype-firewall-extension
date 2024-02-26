@@ -30,7 +30,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Named
@@ -51,9 +50,7 @@ public class SbomResource
       tags = {"sbom"},
       description = "Deletes a specific sbom version including it's original contents and updates",
       responses = {
-          @ApiResponse(responseCode = "404", description = "Supplied application id or the sbomVersion not found"),
-          @ApiResponse(responseCode = "400",
-              description = "An invalid sbomVersion value. Must be a positive integer >= 1"),
+          @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
           @ApiResponse(responseCode = "204", description = "Delete successful")
       })
 
@@ -64,9 +61,8 @@ public class SbomResource
   public Response deleteSbomVersion(
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
-      @Parameter(description = "sbomVersion value of the sbom to be deleted",
-          schema = @Schema(type = "integer"), required = true)
-      @PathParam("sbomVersion") Integer version)
+      @Parameter(description = "URL Encoded version value of the sbom to be deleted", required = true)
+      @PathParam("sbomVersion") String sbomVersion)
   {
     //TODO: implement with CLM-29445
     return Response.noContent().build();
@@ -76,7 +72,7 @@ public class SbomResource
       tags = {"sbom"},
       description = "Downloads a specific sbom version in its original or current form",
       responses = {
-          @ApiResponse(responseCode = "404", description = "Supplied application id or the sbomVersion not found"),
+          @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
           @ApiResponse(responseCode = "200",
               description = "Content of the sbom",
               content = @Content(mediaType = "application/json|application/xml"))
@@ -90,9 +86,8 @@ public class SbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
 
-      @Parameter(description = "sbomVersion value of the sbom to be deleted",
-          schema = @Schema(type = "integer"), required = true)
-      @PathParam("sbomVersion") Integer version,
+      @Parameter(description = "URL Encoded version value of the sbom to be deleted", required = true)
+      @PathParam("sbomVersion") String sbomVersion,
 
       @Parameter(description = "The form of the sbom version. Allowed values [original|current]. default = current")
       @DefaultValue(DEFAULT_SBOM_FORM) @QueryParam("form") String sbomForm,

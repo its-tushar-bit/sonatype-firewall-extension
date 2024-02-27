@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service.banning;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,8 +25,15 @@ public class DefaultBannedImplementation
           VersionService.class
       );
 
+  private final List<Class<?>> bannedClasses;
+
+  public DefaultBannedImplementation(Class<?>... extraToBan) {
+    bannedClasses = new ArrayList<>(DEFAULT_BANNED_CLASSES);
+    bannedClasses.addAll(Arrays.asList(extraToBan));
+  }
+
   @Override
   public boolean isBanned(Class<?> clazz) {
-    return DEFAULT_BANNED_CLASSES.contains(clazz);
+    return bannedClasses.contains(clazz);
   }
 }

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
@@ -176,6 +177,10 @@ public class TestInsightBrainServiceRule
       return null;
     }
     return brain.getInstance(type);
+  }
+
+  public Injector getInjector() {
+    return brain.getInjector();
   }
 
   public int getPort() {

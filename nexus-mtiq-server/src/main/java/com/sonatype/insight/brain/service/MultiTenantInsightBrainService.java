@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
+import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -82,6 +83,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -345,7 +347,19 @@ public class MultiTenantInsightBrainService
 
         bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
 
-        bind(EncryptionKeyStore.class).to(getEncryptionKeyStoreClass(configuration()));
+        List<Class<?>> extraToBan = new ArrayList<>();
+        if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {
+          bind(EncryptionKeyStore.class).to(DefaultEncryptionKeyStore.class).in(Singleton.class);
+          bind(MultiTenantEncryptionKeyStore.class).toProvider(Providers.of(null));
+          bind(AwsSecretsManagerClient.class).toProvider(Providers.of(null));
+          extraToBan.add(MultiTenantEncryptionKeyStore.class);
+        }
+        else {
+          bind(EncryptionKeyStore.class).to(MultiTenantEncryptionKeyStore.class).in(Singleton.class);
+          bind(DefaultEncryptionKeyStore.class).toProvider(Providers.of(null));
+          extraToBan.add(DefaultEncryptionKeyStore.class);
+        }
+        bannedImplementationService.setupBannedClasses(extraToBan.toArray(new Class[0]));
       }
     };
   }
@@ -357,16 +371,6 @@ public class MultiTenantInsightBrainService
       return new MultiTenantJwkLocalProvider();
     }
     return new MultiTenantJwkAuth0Provider((MultiTenantInsightConfig) insightConfig);
-  }
-
-  private Class<? extends EncryptionKeyStore> getEncryptionKeyStoreClass(final InsightConfig config) {
-    if (((MultiTenantInsightConfig)config).isUsingDefaultEncryptionKeyStore()) {
-      log.info("Using DefaultEncryptionKeyStore for local development.");
-      return DefaultEncryptionKeyStore.class;
-    }
-    else {
-      return MultiTenantEncryptionKeyStore.class;
-    }
   }
 
   @Override

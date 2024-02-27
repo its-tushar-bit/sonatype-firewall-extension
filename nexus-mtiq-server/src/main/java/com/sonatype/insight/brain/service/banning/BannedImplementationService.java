@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.List;
 
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.DropwizardAwareWireModule;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.banning.rest.PermanentlyBannedRestResources;
 import com.sonatype.insight.brain.service.banning.rest.TemporarilyBannedRestResources;
 
@@ -19,16 +19,17 @@ import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
 public class BannedImplementationService
 {
-  private static final List<BannedImplementation> DEFAULT_BANNED = Arrays.asList(
-      new DefaultBannedImplementation(),
-      new PermanentlyBannedRestResources(),
-      new TemporarilyBannedRestResources()
-  );
-
-  private final List<BannedImplementation> listOfBannedTypes;
+  private List<BannedImplementation> listOfBannedTypes;
 
   public BannedImplementationService() {
-    this(DEFAULT_BANNED);
+  }
+
+  public void setupBannedClasses(Class<?>... extraToBan) {
+    listOfBannedTypes = Arrays.asList(
+        new DefaultBannedImplementation(extraToBan),
+        new PermanentlyBannedRestResources(),
+        new TemporarilyBannedRestResources()
+    );
   }
 
   @VisibleForTesting

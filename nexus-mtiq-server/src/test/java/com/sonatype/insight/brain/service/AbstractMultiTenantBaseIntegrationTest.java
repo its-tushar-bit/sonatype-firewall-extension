@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 public abstract class AbstractMultiTenantBaseIntegrationTest
     extends AbstractBaseIntegrationTest
 {
-  private static final TestRestTenantUtil tenantUtil = new TestRestTenantUtil();
+  protected static final TestRestTenantUtil tenantUtil = new TestRestTenantUtil();
 
   private static final Logger log = LoggerFactory.getLogger(AbstractMultiTenantBaseIntegrationTest.class);
 
@@ -68,7 +68,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   // Not a @Rule - controlled below within the context of a tenant. MUST USE with `testAsTestTenant`
   protected TemporaryEntity tenantTemporaryEntity;
 
-  private static final Configurator MTIQ_DATABASE_CONFIGURATOR = new Configurator()
+  protected static final Configurator MTIQ_DATABASE_CONFIGURATOR = new Configurator()
   {
     @Override
     public void configure(final InsightConfig insightConfig) {
@@ -102,17 +102,6 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     super.initTest();
     log.info("@Before (AbstractMultiTenantBaseIntegrationTest.initTest): {}",
         testName.getMethodName());
-    systemConfigurationPropertyDAO = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
-
-    jwtSetup();
-
-    setupNewTestTenant();
-
-    // For MTIQ TemporaryEntity runs as the test tenant
-    testAsTestTenant(test -> {
-      tenantTemporaryEntity = new TemporaryEntity(databaseContainerRule);
-      tenantTemporaryEntity.before();
-    });
   }
 
   @Override
@@ -136,6 +125,18 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       configurator = MTIQ_DATABASE_CONFIGURATOR;
     }
     super.startIqTestServer(configurator);
+
+    systemConfigurationPropertyDAO = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
+
+    jwtSetup();
+
+    setupNewTestTenant();
+
+    // For MTIQ TemporaryEntity runs as the test tenant
+    testAsTestTenant(test -> {
+      tenantTemporaryEntity = new TemporaryEntity(databaseContainerRule);
+      tenantTemporaryEntity.before();
+    });
   }
 
   @Override

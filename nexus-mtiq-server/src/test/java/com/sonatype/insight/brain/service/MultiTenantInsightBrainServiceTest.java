@@ -5,9 +5,20 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
+import java.util.List;
+import java.util.Set;
 
+import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
+import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+
+import com.google.inject.AbstractModule;
 import com.google.inject.ConfigurationException;
+import com.google.inject.Inject;
+import com.google.inject.Module;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +27,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class MultiTenantInsightBrainServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
+  @Inject
+  private Set<TenantManaged> tenantLifecycles;
+
   @Test
   public void shouldExcludeDefaultTenantManagedInitializer() {
     assertThat(getCLMServer().getInstance(TenantManagedInitializer.class))
@@ -24,5 +38,53 @@ public class MultiTenantInsightBrainServiceTest
     assertThatExceptionOfType(ConfigurationException.class).isThrownBy(
         () -> getCLMServer().getInstance(DefaultTenantManagedInitializer.class)
     ).withMessageContaining("DefaultTenantManagedInitializer is not explicitly bound");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() throws Exception {
+    startIqTestServer(insightConfig -> {
+      MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) insightConfig;
+      MTIQ_DATABASE_CONFIGURATOR.configure(multiTenantInsightConfig);
+      multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(true);
+    });
+
+    assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(DefaultEncryptionKeyStore.class);
+    getCLMServer().getInjector().injectMembers(this);
+    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof Configuration)).isTrue();
+    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof MultiTenantEncryptionKeyStore)).isFalse();
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() throws Exception {
+    startIqTestServer(insightConfig -> {
+      MultiTenantInsightConfig multiTenantInsightConfig = (MultiTenantInsightConfig) insightConfig;
+      MTIQ_DATABASE_CONFIGURATOR.configure(multiTenantInsightConfig);
+      multiTenantInsightConfig.setUsingDefaultEncryptionKeyStore(false);
+    });
+
+    assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(MultiTenantEncryptionKeyStore.class);
+    getCLMServer().getInjector().injectMembers(this);
+    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof Configuration)).isTrue();
+    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof MultiTenantEncryptionKeyStore)).isTrue();
+  }
+
+  @Override
+  protected List<Module> getBrainModules() {
+    List<Module> modules = super.getBrainModules();
+    // Remove the last module added by AbstractMultiTenantBaseIntegrationTest.getBrainModules
+    // that module binds EncryptionKeyStore to TestMultiTenantEncryptionKeyStore
+    // some of the above tests need to do this to check EncryptionKeyStore is bound correctly in the original code
+    modules.remove(modules.size() - 1);
+    modules.add(new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(TenantUtil.class).toInstance(tenantUtil);
+        bind(MultiTenantInsightBrainServiceTest.class);
+      }
+    });
+    return modules;
   }
 }

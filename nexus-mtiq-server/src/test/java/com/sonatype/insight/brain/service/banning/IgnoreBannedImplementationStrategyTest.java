@@ -38,6 +38,7 @@ public class IgnoreBannedImplementationStrategyTest
   @Test
   public void test_WiringNotPerformedIfBanned() {
     BannedImplementationService banned = new BannedImplementationService();
+    banned.setupBannedClasses();
     underTest = new IgnoreBannedImplementationStrategy(banned);
 
     Wiring wiring = underTest.wiring(binder);
@@ -50,6 +51,7 @@ public class IgnoreBannedImplementationStrategyTest
   @Test
   public void test_WiringPerformedWhenNotBanned() {
     BannedImplementationService banned = new BannedImplementationService();
+    banned.setupBannedClasses();
     underTest = new IgnoreBannedImplementationStrategy(banned);
 
     Wiring wiring = underTest.wiring(binder);

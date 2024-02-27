@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -30,7 +31,7 @@ public class TenantMetadataConfigurationService
 
   @Inject
   public TenantMetadataConfigurationService(
-      MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore,
+      @Nullable MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore,
       TenantMetadataDAO tenantMetadataDAO,
       TenantUtil tenantUtil,
       TenantValidator tenantValidator
@@ -64,6 +65,8 @@ public class TenantMetadataConfigurationService
       this.tenantMetadataDAO.update(updateAuth0);
     }
 
-    multiTenantEncryptionKeyStore.initializeTenantKey();
+    if (multiTenantEncryptionKeyStore != null) {
+      multiTenantEncryptionKeyStore.initializeTenantKey();
+    }
   }
 }

@@ -64,9 +64,6 @@ public class MultiTenantEncryptionKeyStore
 
   @Override
   public void register() {
-    if (multiTenantInsightConfig.isUsingDefaultEncryptionKeyStore()) {
-      return;
-    }
     initializeTenantKey();
   }
 

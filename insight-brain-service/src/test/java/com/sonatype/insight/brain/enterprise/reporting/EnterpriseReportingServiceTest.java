@@ -64,8 +64,6 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -461,7 +459,7 @@ public class EnterpriseReportingServiceTest
     when(insightWork.getIerDashboardIconsDirectory()).thenReturn(new
         File(getClass().getResource("/EnterpriseReportingServiceTest/").toURI()));
     byte[] iconImage = enterpriseReportingService.getIcon(iconName);
-    assertNotNull(iconImage);
+    assertThat(iconImage).isNotNull();
   }
 
   @Test
@@ -491,7 +489,7 @@ public class EnterpriseReportingServiceTest
     spyEnterpriseReportingService.currentVersion.set(-1);
 
     spyEnterpriseReportingService.execute(mockJobExecutionContext);
-    assertEquals(1, spyEnterpriseReportingService.currentVersion.get());
+    assertThat(spyEnterpriseReportingService.currentVersion.get()).isEqualTo(1);
     verify(spyEnterpriseReportingService, times(1)).cacheDashboardMetadata();
   }
 

@@ -56,6 +56,9 @@ public class ThirdPartySbomMetadata
   @Column(name = "created_at")
   private Date createdAt;
 
+  @Column(name = "metadata_json")
+  private String metadataJson;
+
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
@@ -66,7 +69,8 @@ public class ThirdPartySbomMetadata
       String specFormat,
       String specVersion,
       String status,
-      Date createdAt)
+      Date createdAt,
+      String metadataJson)
   {
 
     this.thirdPartyFileId = thirdPartyFileId;
@@ -79,6 +83,7 @@ public class ThirdPartySbomMetadata
     this.specVersion = specVersion;
     this.status = status;
     this.createdAt = createdAt;
+    this.metadataJson = metadataJson;
   }
 
   @Override
@@ -169,5 +174,13 @@ public class ThirdPartySbomMetadata
 
   public void setCreatedAt(Date createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public String getMetadataJson() {
+    return metadataJson;
+  }
+
+  public void setMetadataJson(final String metadataJson) {
+    this.metadataJson = metadataJson;
   }
 }

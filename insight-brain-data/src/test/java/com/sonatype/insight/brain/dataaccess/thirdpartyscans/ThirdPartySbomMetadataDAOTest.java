@@ -78,15 +78,16 @@ public class ThirdPartySbomMetadataDAOTest
             ThirdPartySbomMetadata::getSerialNumber, ThirdPartySbomMetadata::getApplicationVersion,
             ThirdPartySbomMetadata::getSpec, ThirdPartySbomMetadata::getSpecFormat,
             ThirdPartySbomMetadata::getSpecVersion, ThirdPartySbomMetadata::getStatus,
-            ThirdPartySbomMetadata::getCreatedAt)
+            ThirdPartySbomMetadata::getCreatedAt, ThirdPartySbomMetadata::getMetadataJson)
         .contains(
             tuple(entity.getId(), entity.getThirdPartyFileId(), entity.getApplicationId(), entity.getFilename(),
                 entity.getSerialNumber(), entity.getApplicationVersion(), entity.getSpec(),
-                entity.getSpecFormat(), entity.getSpecVersion(), entity.getStatus(), entity.getCreatedAt()),
+                entity.getSpecFormat(), entity.getSpecVersion(), entity.getStatus(), entity.getCreatedAt(),
+                entity.getMetadataJson()),
             tuple(anotherEntity.getId(), anotherEntity.getThirdPartyFileId(), anotherEntity.getApplicationId(),
                 anotherEntity.getFilename(), anotherEntity.getSerialNumber(), anotherEntity.getApplicationVersion(),
                 anotherEntity.getSpec(), anotherEntity.getSpecFormat(), anotherEntity.getSpecVersion(),
-                anotherEntity.getStatus(), anotherEntity.getCreatedAt()));
+                anotherEntity.getStatus(), anotherEntity.getCreatedAt(), anotherEntity.getMetadataJson()));
   }
 
   @Test
@@ -161,6 +162,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getSpecFormat()).isEqualTo(expected.getSpecFormat());
     assertThat(actual.getSpecVersion()).isEqualTo(expected.getSpecVersion());
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+    assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save) {
@@ -177,6 +179,7 @@ public class ThirdPartySbomMetadataDAOTest
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10));
     thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10));
     thirdPartySbomMetadata.setStatus(RandomStringUtils.random(10));
+    thirdPartySbomMetadata.setMetadataJson(RandomStringUtils.random(1500));
 
     if (save) {
       dao.insert(thirdPartySbomMetadata);

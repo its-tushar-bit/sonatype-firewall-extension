@@ -19,6 +19,8 @@ import {
   selectEditRepositoryManagerNameModalInfo,
   selectOriginalRepositories,
 } from './repositoriesConfigurationSelectors';
+import { selectIsRepositoryManager, selectIncludesManagementView } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions as namespaceConfusionProtectionTileSliceActions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
 import { actions as ownerSideNavSliceActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { ascend, descend, path, pathOr, prop, sortWith, toLower } from 'ramda';
@@ -191,9 +193,21 @@ const deleteRepository = createAsyncThunk(
       .delete(getRepositoryInfoUrl(id))
       .then(() => {
         setTimeout(() => {
+          const isRepositoryManager = selectIsRepositoryManager(getState());
+          const { id } = selectSelectedOwner(getState());
+          const isManagementViewRoute = selectIncludesManagementView(getState());
+
           dispatch(actions.resetSubmitMaskState());
           dispatch(actions.setShowDeleteModal(false));
-          dispatch(loadRepositories());
+
+          if (isRepositoryManager) {
+            dispatch(loadRepositoriesByManagerId(id));
+            if (isManagementViewRoute) {
+              dispatch(ownerSideNavSliceActions.loadOwnerList());
+            }
+          } else {
+            dispatch(loadRepositories());
+          }
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch(rejectWithValue);

@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.utils;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+import org.junit.Test;
+import org.spdx.jacksonstore.MultiFormatStore;
+import org.spdx.jacksonstore.MultiFormatStore.Format;
+import org.spdx.jacksonstore.MultiFormatStore.Verbose;
+import org.spdx.library.DefaultModelStore;
+import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.model.ExternalRef;
+import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxPackage;
+import org.spdx.storage.IModelStore;
+import org.spdx.storage.simple.InMemSpdxStore;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class SbomSpdxUtilsTest
+{
+  @Test
+  public void testGetRootPackage_json() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.json", Format.JSON);
+    SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(spdxDocument);
+    assertThat(rootPackage.getName()).contains("sonatype:iq_application_SCM Test 1");
+    assertThat(rootPackage.getVersionInfo()).contains("76b10b862e7b42009f2415097620928c");
+  }
+
+  @Test
+  public void testGetRootPackage_xml() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.xml", Format.XML);
+    SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(spdxDocument);
+    assertThat(rootPackage.getName()).contains("sonatype:iq_application_SCM Test 1");
+    assertThat(rootPackage.getVersionInfo()).contains("76b10b862e7b42009f2415097620928c");
+  }
+
+  @Test
+  public void testGetRootPackage_noRoot() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-no-rootPackage.json", Format.JSON);
+    assertThat(SbomSpdxUtils.getRootPackage(spdxDocument)).isNull();
+  }
+
+  @Test
+  public void testGetRootPackage_null() throws Exception {
+    assertThat(SbomSpdxUtils.getRootPackage(null)).isNull();
+  }
+
+  @Test
+  public void testGetAllPackages_json() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.json", Format.JSON);
+    List<SpdxPackage> allPackages = SbomSpdxUtils.getAllPackages(spdxDocument);
+    assertThat(allPackages).hasSize(6);
+  }
+
+  @Test
+  public void testGetAllPackages_xml() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.xml", Format.XML);
+    List<SpdxPackage> allPackages = SbomSpdxUtils.getAllPackages(spdxDocument);
+    assertThat(allPackages).hasSize(6);
+  }
+
+  @Test
+  public void testGetAllPackages_noRoot() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-no-rootPackage.json", Format.JSON);
+    List<SpdxPackage> allPackages = SbomSpdxUtils.getAllPackages(spdxDocument);
+    assertThat(allPackages).hasSize(6);
+  }
+
+  @Test
+  public void testGetAllPackages_null() throws Exception {
+    assertThat(SbomSpdxUtils.getAllPackages(null)).isNull();
+  }
+
+  @Test
+  public void testGetAllVulnerabilities_json() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.json", Format.JSON);
+    List<ExternalRef> vulnerabilities = SbomSpdxUtils.getAllVulnerabilities(spdxDocument);
+    assertThat(vulnerabilities).hasSize(5);
+  }
+
+  @Test
+  public void testGetAllVulnerabilities_xml() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.xml", Format.XML);
+    List<ExternalRef> vulnerabilities = SbomSpdxUtils.getAllVulnerabilities(spdxDocument);
+    assertThat(vulnerabilities).hasSize(13);
+  }
+
+  @Test
+  public void testGetAllVulnerabilities_null() throws Exception {
+    assertThat(SbomSpdxUtils.getAllVulnerabilities(null)).isNull();
+  }
+
+  private static SpdxDocument getSpdxDocument(final String fileName, Format format)
+      throws IOException, InvalidSPDXAnalysisException, URISyntaxException
+  {
+    URL resource = SbomSpdxUtilsTest.class.getResource("/SbomSpdxUtilsTest/" + fileName);
+    String content = new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+
+    DefaultModelStore.reset();
+    IModelStore modelStore = new InMemSpdxStore();
+    String uri;
+    try (MultiFormatStore multiFormatStore = new MultiFormatStore(modelStore, format, Verbose.COMPACT);
+         InputStream in = new BufferedInputStream(new ByteArrayInputStream(content.getBytes()))) {
+      uri = multiFormatStore.deSerialize(in, true);
+    }
+    catch (Exception e) {
+      throw new IOException("SPDX content cannot be parsed", e);
+    }
+    return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);
+  }
+}

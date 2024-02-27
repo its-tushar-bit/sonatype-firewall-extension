@@ -1,0 +1,166 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.Set;
+import javax.inject.Named;
+
+import com.sonatype.insight.scan.file.InvalidSbomException;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
+import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
+
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.Tika;
+import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.Bom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxPackage;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+
+@Named
+public class SbomFileDetector
+{
+  private static final Logger log = LoggerFactory.getLogger(SbomFileDetector.class);
+
+  public static final String SPEC_CYCLONEDX = "CycloneDx";
+
+  public static final String SPEC_SPDX = "SPDX";
+
+  public static final String SPDX_VERSION_PREFIX = "SPDX-";
+
+  private final Set<String> supportedSbomMimeTypes = ImmutableSet.of(APPLICATION_XML, APPLICATION_JSON);
+
+  private final Tika tika = new Tika();
+
+  public SbomDetectionResult getSbomMetadata(File sbomFile) {
+    SbomDetectionResult result = new SbomDetectionResult();
+    try {
+      result.mimeType = tika.detect(sbomFile);
+      if (supportedSbomMimeTypes.contains(result.mimeType)) {
+        return attemptDetectingSbomFromFile(sbomFile, result);
+      }
+      result.errorMessage = "provided file type is not a supported SBOM file type";
+      return result;
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private SbomDetectionResult attemptDetectingSbomFromFile(final File sbomFile, final SbomDetectionResult sbomResult)
+      throws IOException
+  {
+    String sbom = FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
+    if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
+      return tryDetectingAsCycloneDx(sbom, sbomResult);
+    }
+    else {
+      try {
+        return tryDetectingAsSpdx(sbom, sbomResult);
+      }
+      catch (IOException | InvalidSPDXAnalysisException e) {
+        log.error("Not a valid/supported sbom file", e);
+        sbomResult.errorMessage = "Not a valid/supported sbom file";
+      }
+    }
+    return sbomResult;
+  }
+
+  private SbomDetectionResult tryDetectingAsSpdx(final String sbom, final SbomDetectionResult sbomResult)
+      throws IOException, InvalidSPDXAnalysisException
+  {
+    try {
+      SbomFormat sbomFormat = detectSbomFormat(sbomResult.mimeType);
+      SpdxDocument spdxDocument =
+          ThirdPartyUtils.parseAndValidateSpdx(sbom, Objects.requireNonNull(sbomFormat));
+      sbomResult.isSbom = true;
+      populateSpdxResult(sbomResult, sbomFormat, spdxDocument);
+    }
+    catch (UnsupportedSbomException e) {
+      sbomResult.errorMessage = e.getMessage();
+    }
+    catch (InvalidSbomException e) {
+      log.debug("error parsing content as sbom", e);
+      sbomResult.errorMessage = "not a valid SPDX SBOM file";
+    }
+    return sbomResult;
+  }
+
+  private SbomDetectionResult tryDetectingAsCycloneDx(final String fileContent, final SbomDetectionResult sbomResult) {
+    try {
+      SbomFormat sbomFormat = detectSbomFormat(sbomResult.mimeType);
+      Bom bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
+          Objects.requireNonNull(sbomFormat));
+      sbomResult.isSbom = true;
+      populateCycloneDxResult(sbomResult, sbomFormat, bom);
+    }
+    catch (UnsupportedSbomException e) {
+      sbomResult.errorMessage = e.getMessage();
+    }
+    catch (IOException | ParseException e) {
+      log.debug("error parsing content as sbom", e);
+      sbomResult.errorMessage = "not a valid CycloneDx SBOM file";
+    }
+    return sbomResult;
+  }
+
+  private void populateSpdxResult(
+      final SbomDetectionResult sbomResult,
+      final SbomFormat sbomFormat,
+      final SpdxDocument document)
+      throws InvalidSPDXAnalysisException
+  {
+    sbomResult.summary = new SbomSummary();
+    sbomResult.summary.specification = SPEC_SPDX;
+    sbomResult.summary.version = StringUtils.replace(document.getSpecVersion(), SPDX_VERSION_PREFIX, "");
+    sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());
+    sbomResult.summary.componentCount = CollectionUtils.size(SbomSpdxUtils.getAllPackages(document));
+    sbomResult.summary.vulnerabilityCount = CollectionUtils.size(SbomSpdxUtils.getAllVulnerabilities(document));
+    SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(document);
+    if (rootPackage != null) {
+      sbomResult.summary.applicationName = rootPackage.getName().orElse(null);
+      sbomResult.summary.applicationVersion = rootPackage.getVersionInfo().orElse(null);
+    }
+  }
+
+  private static void populateCycloneDxResult(
+      final SbomDetectionResult sbomResult,
+      final SbomFormat sbomFormat,
+      final Bom bom)
+  {
+    sbomResult.summary = new SbomSummary();
+    sbomResult.summary.specification = SPEC_CYCLONEDX;
+    sbomResult.summary.version = bom.getSpecVersion();
+    sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());
+    sbomResult.summary.componentCount = CollectionUtils.size(bom.getComponents());
+    sbomResult.summary.vulnerabilityCount = CollectionUtils.size(bom.getVulnerabilities());
+    sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
+    sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
+  }
+
+  private SbomFormat detectSbomFormat(final String mimeType) {
+    if (APPLICATION_JSON.equals(mimeType)) {
+      return SbomFormat.JSON;
+    }
+    if (APPLICATION_XML.equals(mimeType)) {
+      return SbomFormat.XML;
+    }
+    return null;
+  }
+}

@@ -15,9 +15,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
-import com.sonatype.insight.brain.api.experimental.doc.ApiComponentNearestFixedVersionsResourceDoc;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
 
 /**
  * @since 1.144.0
@@ -26,7 +26,6 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(ApiComponentNearestFixedVersionsResource.RESOURCE_PATH)
 public class ApiComponentNearestFixedVersionsResource
-    implements ApiComponentNearestFixedVersionsResourceDoc
 {
   static final String RESOURCE_PATH = "/api/experimental/components/vulnerabilities/nearestFixedVersions";
 
@@ -37,10 +36,10 @@ public class ApiComponentNearestFixedVersionsResource
     this.service = service;
   }
 
-  @Override
   @POST
   @Consumes({MediaType.APPLICATION_JSON})
   @Produces({MediaType.APPLICATION_JSON})
+  @Operation(hidden = true)
   public List<ComponentNearestFixedVersions> getNearestFixedVersions(
       ApiComponentNearestFixedVersionsRequestListDto listDto)
   {

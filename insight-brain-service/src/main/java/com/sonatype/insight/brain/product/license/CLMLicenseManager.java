@@ -299,6 +299,11 @@ public class CLMLicenseManager
       }
       signature.update((licenseDetails.maxApplications == null ? "0" : licenseDetails.maxApplications.toString())
           .getBytes(StandardCharsets.UTF_8));
+
+      if (licenseDetails.maxSboms != null) {
+        signature.update(licenseDetails.maxSboms.toString().getBytes(StandardCharsets.UTF_8));
+      }
+
       signature.update(licenseFingerprint.getBytes(StandardCharsets.UTF_8));
       if (!signature.verify(licenseDetails.signature)) {
         throw new Exception("Signature mismatch");
@@ -458,6 +463,8 @@ public class CLMLicenseManager
         break;
       case APP_BASED:
         applicationLimitToDisplay = productLicense.getMaxApplications();
+        break;
+      case SBOM_BASED:
         sbomLimitToDisplay = productLicense.getMaxSboms();
         break;
       case USER_BASED:
@@ -783,6 +790,9 @@ public class CLMLicenseManager
     }
     else if (ProductLicenseDetails.LICENSING_USER_BASED.equals(prop)) {
       return ProductLicensingModel.USER_BASED;
+    }
+    else if (ProductLicenseDetails.LICENSING_SBOM_BASED.equals(prop)) {
+      return ProductLicensingModel.SBOM_BASED;
     }
     else if (prop == null) {
       return ProductLicensingModel.LEGACY;

@@ -132,6 +132,10 @@ public class CLMLicenseManagerTest
     return licenseDetails -> licenseDetails.maxApplications = maxApplications;
   }
 
+  private Consumer<SignedProductLicenseDetailsDTO> withMaxSboms(Integer maxSboms) {
+    return licenseDetails -> licenseDetails.maxSboms = maxSboms;
+  }
+
   private Consumer<SignedProductLicenseDetailsDTO> withStages(StageType... stages) {
     return licenseDetails -> Stream.of(stages).forEach(stage -> licenseDetails.stageIds.add(stage.getId()));
   }
@@ -750,12 +754,14 @@ public class CLMLicenseManagerTest
 
     //before
     assertThat(productLicense.getMaxApplications()).isEqualTo(100);
+    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
 
     //set database license
     SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
     licenseDetails.features = new TreeSet<>();
     licenseDetails.stageIds = new TreeSet<>();
     licenseDetails.maxApplications = 12345;
+    licenseDetails.maxSboms = 50;
     productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
 
@@ -763,6 +769,7 @@ public class CLMLicenseManagerTest
 
     //after
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
+    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
     verify(clmLicenseManagerSpy, never()).loadLicense();
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
@@ -774,6 +781,7 @@ public class CLMLicenseManagerTest
     //before
     assertThat(productLicense.isValid()).isTrue();
     assertThat(productLicense.getMaxApplications()).isEqualTo(100);
+    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
 
     productLicenseDetailsCache.saveJson(null);
     clmLicenseManagerSpy.updateLicenseCacheFromDatabase();
@@ -781,6 +789,7 @@ public class CLMLicenseManagerTest
     //after
     assertThat(productLicense.isValid()).isFalse();
     assertThat(productLicense.getMaxApplications()).isZero();
+    assertThat(productLicense.getMaxSboms()).isZero();
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
 
@@ -792,13 +801,31 @@ public class CLMLicenseManagerTest
 
     clmLicenseManagerSpy.loadLicense();
 
-    assertThat(productLicense.isValid());
+    assertThat(productLicense.isValid()).isTrue();
     SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
     assertThat(licenseDetails).isNotNull();
     assertThat(licenseDetails.features).containsExactly(LicensedFeature.CI_INTEGRATION.name(),
         LicensedFeature.DASHBOARD.name());
     assertThat(licenseDetails.stageIds).contains(StageTypes.BUILD.getId(), StageTypes.RELEASE.getId());
     assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+    verify(clmLicenseManagerSpy, times(1)).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testLoadLicense_MaxSboms() {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CLI_INTEGRATION, LicensedFeature.SBOM_MANAGER)
+        .andThen(withStages(StageTypes.RELEASE).andThen(withMaxSboms(50))));
+
+    clmLicenseManagerSpy.loadLicense();
+
+    assertThat(productLicense.isValid()).isTrue();
+    SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CLI_INTEGRATION.name(),
+        LicensedFeature.SBOM_MANAGER.name());
+    assertThat(licenseDetails.stageIds).contains(StageTypes.RELEASE.getId());
+    assertThat(licenseDetails.maxSboms).isEqualTo(50);
     verify(clmLicenseManagerSpy, times(1)).loadProductLicenseOnAllOtherClusterNodes();
   }
 
@@ -831,6 +858,7 @@ public class CLMLicenseManagerTest
     licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
     licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
     licenseDetails.maxApplications = 12345;
+    licenseDetails.maxSboms = 50;
     productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
 
@@ -842,6 +870,7 @@ public class CLMLicenseManagerTest
     assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
     assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
     assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+    assertThat(licenseDetails.maxSboms).isEqualTo(50);
   }
 
   @Test
@@ -963,6 +992,19 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_LicenseDetailsFromHds_MaxSboms() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CLI_INTEGRATION, LicensedFeature.SBOM_MANAGER)
+        .andThen(withStages(StageTypes.RELEASE).andThen(withMaxSboms(50))));
+    installLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CLI_INTEGRATION.name(),
+        LicensedFeature.SBOM_MANAGER.name());
+    assertThat(licenseDetails.stageIds).contains(StageTypes.RELEASE.getId());
+    assertThat(licenseDetails.maxSboms).isEqualTo(50);
+  }
+
+  @Test
   public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() {
     clmLicenseManager.uninstallLicense();
     mockHdsProductLicenseDetails(withInvalidSignature());
@@ -988,6 +1030,14 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withMaxApplications(12345));
     installLicense();
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testInstallLicense_MaxSbomsFromHdsAndNotLicenseKey() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, "100");
+    mockHdsProductLicenseDetails(withMaxSboms(50));
+    installLicense();
+    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
   }
 
   @Test
@@ -1630,8 +1680,26 @@ public class CLMLicenseManagerTest
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
     // CLM-29492: Temporarily testing for maxSboms as 50, remove once new sbom manager licenses are obtained
-    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+    assertThat(info.sbomLimitToDisplay).isNull();
     // assertThat(info.sbomLimitToDisplay).isEqualTo(1234);
+  }
+
+  @Test
+  public void testGetLicenseInfo_LimitsToDisplay_SbomBasedLicensing() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_SBOM_BASED);
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxUsers(8765);
+    licenseManager.setMaxFirewallUsers(4321);
+    licenseManager.setMaxSboms(50);
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
+    assertThat(info.licensedUsersToDisplay).isNull();
+    assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
   }
 
   @Test

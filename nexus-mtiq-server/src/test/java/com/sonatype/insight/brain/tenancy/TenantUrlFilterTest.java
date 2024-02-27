@@ -10,6 +10,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.tenancy.Tenant.InvalidTenantSlugException;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
 import org.apache.http.entity.ContentType;
@@ -117,6 +118,21 @@ public class TenantUrlFilterTest
     verify(response).setContentType(ContentType.TEXT_PLAIN.getMimeType());
     verify(response).getWriter();
     verify(printWriter).print("Not Found");
+  }
+
+  @Test
+  public void shouldCreateErrorResponse_whenInvalidTenantSlugExceptionRegisteringTenant() throws Exception {
+    doThrow(new InvalidTenantSlugException("Slug name must be at least 3 characters")).when(tenantManager)
+        .setTenant(TENANT_NAME);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    underTest.doFilter(request, response, chain);
+
+    verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    verify(response).setContentType(ContentType.TEXT_PLAIN.getMimeType());
+    verify(response).getWriter();
+    verify(printWriter).print("Invalid Tenant Slug");
+    verify(chain, never()).doFilter(request, response);
   }
 
   @Test

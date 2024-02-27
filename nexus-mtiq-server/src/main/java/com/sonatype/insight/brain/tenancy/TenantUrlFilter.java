@@ -16,6 +16,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.tenancy.Tenant.InvalidTenantSlugException;
+
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +68,10 @@ public class TenantUrlFilter
 
       chain.doFilter(request, response);
     }
+    catch (InvalidTenantSlugException exception) {
+      createTenantInvalidSlugResponse(response);
+      log.debug("Error registering tenant: {} Error: {}", serverName, exception.getMessage());
+    }
     catch (IllegalArgumentException exception) {
       createTenantNotFoundResponse(response);
       log.debug("Error registering tenant: {} Error: {}", serverName, exception.getMessage());
@@ -80,6 +86,13 @@ public class TenantUrlFilter
     httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
     httpResponse.setContentType(ContentType.TEXT_PLAIN.getMimeType());
     httpResponse.getWriter().print("Not Found");
+  }
+
+  private void createTenantInvalidSlugResponse(final ServletResponse response) throws IOException {
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+    httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    httpResponse.setContentType(ContentType.TEXT_PLAIN.getMimeType());
+    httpResponse.getWriter().print("Invalid Tenant Slug");
   }
 
   @Override

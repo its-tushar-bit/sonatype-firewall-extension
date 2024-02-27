@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -650,7 +651,7 @@ public class InsightConfig
   /**
    * @since 1.44
    */
-  public void setImportRefrencePoliciesFromHDS(boolean importReferencePoliciesFromHDS) {
+  public void setImportReferencePoliciesFromHDS(boolean importReferencePoliciesFromHDS) {
     this.importReferencePoliciesFromHDS = importReferencePoliciesFromHDS;
   }
 

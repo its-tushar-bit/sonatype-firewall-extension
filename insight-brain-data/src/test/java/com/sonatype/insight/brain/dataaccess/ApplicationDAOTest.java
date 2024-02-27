@@ -869,7 +869,7 @@ public class ApplicationDAOTest
   @Test
   public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        application.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        application.getId(), "hash", "source", "referenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     applicationDAO.delete(application);
 

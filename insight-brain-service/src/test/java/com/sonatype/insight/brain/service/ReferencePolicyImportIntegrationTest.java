@@ -81,7 +81,7 @@ public class ReferencePolicyImportIntegrationTest
     assertThat(tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
     assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
 
-    Configurator configurator = config -> config.setImportRefrencePoliciesFromHDS(true);
+    Configurator configurator = config -> config.setImportReferencePoliciesFromHDS(true);
 
     hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 

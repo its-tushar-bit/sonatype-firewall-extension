@@ -204,7 +204,7 @@ public class RepositoryDAOTest
   @Test
   public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        repository.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        repository.getId(), "hash", "source", "referenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     dao.delete(repository);
 

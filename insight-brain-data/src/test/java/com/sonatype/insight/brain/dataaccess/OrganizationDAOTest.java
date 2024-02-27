@@ -455,7 +455,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   public void testDelete_CascadeToSecurityVulnerabilityOverrides() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToSecurityVulnerabilityOverrides");
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        organization.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        organization.getId(), "hash", "source", "referenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     dao.delete(organization);
 

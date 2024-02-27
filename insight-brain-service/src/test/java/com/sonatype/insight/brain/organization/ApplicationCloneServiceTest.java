@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.organization;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -339,7 +340,7 @@ public class ApplicationCloneServiceTest
   @Test
   public void testCloneApplication_SecurityVulnerabilityOverride() {
     SecurityVulnerabilityOverride sourceSecurityVulnerabilityOverride =
-        tempEntity.newSecurityVulnerabilityOverride(sourceApp.getId(), "hash", "source", "refrenceId",
+        tempEntity.newSecurityVulnerabilityOverride(sourceApp.getId(), "hash", "source", "referenceId",
             SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE, "comment");
 
     ApiApplicationDTO clonedAppDTO =

@@ -194,7 +194,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_PolicyImportRetriedAfterInitialHdsFailure() throws Exception {
     Configurator configurator = config -> {
       config.setCreateSampleData(true);
-      config.setImportRefrencePoliciesFromHDS(true);
+      config.setImportReferencePoliciesFromHDS(true);
     };
 
     hdsRespondWith("Maintenance, come back later").andStatus(503).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
@@ -212,7 +212,7 @@ public class NewInstancePopulatorTest
   private void initServer(boolean createSampleData, boolean importReferencePoliciesFromHDS) throws Exception {
     Configurator configurator = config -> {
       config.setCreateSampleData(createSampleData);
-      config.setImportRefrencePoliciesFromHDS(importReferencePoliciesFromHDS);
+      config.setImportReferencePoliciesFromHDS(importReferencePoliciesFromHDS);
     };
 
     hdsRespondWith(getClass().getResource("/NewInstancePopulatorTest/referencePolicies.json"))

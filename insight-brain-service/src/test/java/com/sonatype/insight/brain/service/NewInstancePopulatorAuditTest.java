@@ -64,6 +64,6 @@ public class NewInstancePopulatorAuditTest
 
   @Override
   protected void startIqTestServer() throws Exception {
-    startIqTestServer(config -> config.setImportRefrencePoliciesFromHDS(true));
+    startIqTestServer(config -> config.setImportReferencePoliciesFromHDS(true));
   }
 }

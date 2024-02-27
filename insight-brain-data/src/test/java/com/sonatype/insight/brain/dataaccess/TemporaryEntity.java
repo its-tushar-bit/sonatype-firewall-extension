@@ -171,10 +171,10 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
+import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
@@ -3066,21 +3066,22 @@ public class TemporaryEntity
       String ownerId,
       String hash,
       String source,
-      String refrenceId,
+      String referenceId,
       SecurityVulnerabilityOverrideStatus status)
   {
-    return newSecurityVulnerabilityOverride(ownerId, hash, source, refrenceId, status, null /* comment */);
+    return newSecurityVulnerabilityOverride(ownerId, hash, source, referenceId, status, null /* comment */);
   }
 
   public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(
       String ownerId,
       String hash,
       String source,
-      String refrenceId,
+      String referenceId,
       SecurityVulnerabilityOverrideStatus status,
       String comment)
   {
-    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, hash, source, refrenceId,
+    SecurityVulnerabilityOverride override =
+        new SecurityVulnerabilityOverride(ownerId, hash, source, referenceId,
         status, comment);
     securityVulnerabilityOverrideDAO.insert(override);
     return override;

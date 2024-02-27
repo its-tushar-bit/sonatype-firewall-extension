@@ -24,9 +24,9 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -54,7 +54,6 @@ import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
@@ -67,7 +66,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -492,12 +490,7 @@ public class EnterpriseReportingServiceTest
     // Set the current version to an older version
     spyEnterpriseReportingService.currentVersion.set(-1);
 
-    try {
-      spyEnterpriseReportingService.execute(mockJobExecutionContext);
-    }
-    catch (JobExecutionException e) {
-      fail("Unexpected exception thrown: " + e.getMessage());
-    }
+    spyEnterpriseReportingService.execute(mockJobExecutionContext);
     assertEquals(1, spyEnterpriseReportingService.currentVersion.get());
     verify(spyEnterpriseReportingService, times(1)).cacheDashboardMetadata();
   }

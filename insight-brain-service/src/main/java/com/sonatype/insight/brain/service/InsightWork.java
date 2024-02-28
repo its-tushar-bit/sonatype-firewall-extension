@@ -107,6 +107,10 @@ public class InsightWork
     return new File(getDataDir(), "organization");
   }
 
+  public File getRepositoryManagerIconDir() {
+    return new File(getDataDir(), "repositoryManager");
+  }
+
   public File getDataDir() {
     return new File(insightConfig.getClusterDirectory(), "data");
   }

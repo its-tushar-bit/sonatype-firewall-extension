@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.organization.IconUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -220,7 +221,8 @@ public class RepositoryResourceAuditTest
     for (AuditDTO auditDTO : auditDTOs) {
       assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
       assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
-      if (auditDTO.data.size() > 2) {
+      assertCustomData(auditDTO, "repositoryManagerName", repositoryManager.getName());
+      if (auditDTO.data.size() > 3) {
         assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Error updating repository "
             + existingRepository1.getName() + " (" + existingRepository1.getId() +
             "): There is already a repository with public ID '"
@@ -241,7 +243,8 @@ public class RepositoryResourceAuditTest
     for (AuditDTO auditDTO : auditDTOs) {
       assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
       assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
-      if (auditDTO.data.size() > 2) {
+      assertCustomData(auditDTO, "repositoryManagerName", repositoryManager.getName());
+      if (auditDTO.data.size() > 3) {
         foundRepositoryAuditData = true;
         repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             repository.getPublicId());
@@ -405,5 +408,58 @@ public class RepositoryResourceAuditTest
 
     assertResponseStatus(403, response);
     assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, "unauthorized");
+  }
+
+  @Test
+  public void testSetIcon_Robot() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repositoryManager.getId()).part("hasRobotSource", "true").part("hashcode", "").post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+    assertCustomData(auditDTO, "iconType", "robot");
+  }
+
+  @Test
+  public void testSetIcon_File() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String iconFilename = "defaulticon_repository_manager.png";
+
+    restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repositoryManager.getId())
+        .part("hasRobotSource", "false")
+        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png")).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+    assertCustomData(auditDTO, "iconType", "file");
+    assertCustomData(auditDTO, "iconFilename", iconFilename);
+  }
+
+  @Test
+  public void testSetIcon_Default() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repositoryManager.getId())
+        .part("hasRobotSource", "false").post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+    assertCustomData(auditDTO, "iconType", "default");
+  }
+
+  @Test
+  public void testSetIcon_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repositoryManager.getId())
+        .part("hasRobotSource", "false").with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, "unauthorized");
+    assertRepositoryManagerData(auditDTO, repositoryManager);
   }
 }

@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class IconUtils
+public class IconUtils
 {
   private static byte[] loadImage(String resource) throws IOException {
     try (InputStream iconStream = IconUtils.class.getResourceAsStream(resource)) {

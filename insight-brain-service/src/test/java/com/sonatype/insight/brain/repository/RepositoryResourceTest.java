@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -39,6 +43,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.organization.IconUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -489,5 +494,74 @@ public class RepositoryResourceTest
     assertThat(patternDTO2.namespacePattern).isEqualTo(pattern2.getNamespacePattern());
     assertThat(patternDTO2.namePattern).isEqualTo(pattern2.getNamePattern());
     assertThat(patternDTO2.enabled).isEqualTo(pattern2.isEnabled());
+  }
+
+  @Test
+  public void testGetAndSetRepositoryManagerIcon() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+
+    // Add invalid icon
+    byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+            .parameter(repoManager.getId())
+            .part("hasRobotSource", "false").part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
+            .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("defaulticon_repository_manager.png is not a valid image."
+        + " Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
+
+    // Get icon (default icon)
+    HttpResponse iconResponse =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+            .parameter(repoManager.getId()).get();
+    assertResponseStatus(307, iconResponse);
+    assertThat(iconResponse.getHeader("Location"))
+        .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_repository_manager.png");
+
+    // Add icon
+    defaultIconByteArray = IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png");
+    response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repoManager.getId())
+        .part("hasRobotSource", "false").part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
+        .post();
+    assertResponseStatus(200, response);
+
+    // Get icon
+    iconResponse =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+            .parameter(repoManager.getId()).get();
+    assertResponseStatus(200, iconResponse);
+    BufferedImage icon;
+    try (InputStream iconStream = iconResponse.getBodyStream()) {
+      icon = ImageIO.read(iconStream);
+    }
+    assertThat(icon).isNotNull();
+    assertThat(icon.getHeight()).isEqualTo(420);
+    assertThat(icon.getWidth()).isEqualTo(420);
+
+    // Update icon
+    response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+        .parameter(repoManager.getId())
+        .part("hasRobotSource", "false").post();
+    assertResponseStatus(200, response);
+
+    // Get icon when repo manager does not exist
+    repositoryManagerDAO.delete(repoManager);
+    assertThat(repositoryManagerDAO.getById(repoManager.getId())).isNull();
+
+    iconResponse =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+            .parameter(repoManager.getId()).get();
+    assertResponseStatus(404, iconResponse);
+  }
+
+  @Test
+  public void testGenerateIcon() throws Exception {
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.GENERATE_ICON_PATH).parameter("hash")
+            .get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyBytes()).isNotNull();
   }
 }

@@ -275,6 +275,29 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
+  public void testFilter_RepositoryManagerId_SetsRepositoryManager() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("repositoryManagerId", repositoryManager.getId());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setRepositoryManagerId(repositoryManager.getId());
+    verify(mockAuditData).setRepositoryManager((RepositoryManager) ownerArgumentCaptor.capture());
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repositoryManager.getId());
+  }
+
+  @Test
+  public void testFilter_BadRepositoryManagerId_SetsRepositoryManagerId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("repositoryManagerId", BAD_ID);
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setRepositoryManagerId(BAD_ID);
+    verify(mockAuditData).setRepositoryManager(null);
+  }
+
+  @Test
   public void testFilter_ApplicationOwnerIdAndType_SetsApplicationFromPublicId() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
     pathParameters.add("ownerId", application.getPublicId());

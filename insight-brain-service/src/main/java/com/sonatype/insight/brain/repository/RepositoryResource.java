@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -20,7 +22,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -32,8 +36,20 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.AbstractResourceWithIcon;
+import com.sonatype.insight.brain.organization.RobotImageService;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.codahale.metrics.annotation.Timed;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 /**
  * @since 1.18.0
@@ -42,6 +58,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(RepositoryResource.RESOURCE_PATH)
 public class RepositoryResource
+    extends AbstractResourceWithIcon
 {
   public static final String RESOURCE_PATH = "rest/repositories";
 
@@ -74,11 +91,23 @@ public class RepositoryResource
   static final String PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH =
       "{ownerType: repository_container|repository_manager|repository}/{ownerId}/proprietaryComponentNamePatterns";
 
+  public static final String REPOSITORY_MANAGER_ICON_PATH = ICON_PATH + "/repositoryManager/{repositoryManagerId}";
+
+  private final InsightWork work;
+
   private RepositoryService repositoryService;
 
   @Inject
-  public RepositoryResource(RepositoryService repositoryService) {
+  public RepositoryResource(
+      final RepositoryService repositoryService,
+      final BaseUrl baseUrl,
+      final RobotImageService robotImageService,
+      final NgUploadResponseGenerator ngUploadResponseGenerator,
+      final InsightWork work)
+  {
+    super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.repositoryService = repositoryService;
+    this.work = work;
   }
 
   /**
@@ -271,5 +300,59 @@ public class RepositoryResource
       ProprietaryComponentNamePatternRequest request)
   {
     return repositoryService.getProprietaryComponentNamePatternsByOwner(ownerType, ownerId, request);
+  }
+
+  /**
+   * @since 1.174
+   */
+  @Override
+  @GET
+  @Path(GENERATE_ICON_PATH)
+  @Produces("image/png")
+  public Response generateIcon(@PathParam("hashcode") final String hashcode) {
+    return super.generateIcon(hashcode);
+  }
+
+  /**
+   * @since 1.174
+   */
+  @GET
+  @Path(REPOSITORY_MANAGER_ICON_PATH)
+  @Produces("image/png")
+  @Authorize(permission = Permission.READ)
+  public Response getIcon(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) @PathParam("repositoryManagerId")
+          String repositoryManagerId) throws IOException
+  {
+    return super.getIcon(repositoryManagerId, work.getRepositoryManagerIconDir());
+  }
+
+  /**
+   * @since 1.174
+   */
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+  @Path(REPOSITORY_MANAGER_ICON_PATH)
+  @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON)
+  public Response setIcon(
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+      @Context HttpHeaders headers,
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) @PathParam("repositoryManagerId") String repositoryManagerId,
+      @FormDataParam("hasRobotSource") boolean hasRobotSource,
+      @FormDataParam("hashcode") String hashcode,
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("noFormData") boolean noFormData) throws Exception
+  {
+    return super.setIcon(repositoryManagerId, work.getRepositoryManagerIconDir(), hasRobotSource, hashcode,
+        uploadedInputStream,
+        fileDetail, csrfToken, headers, noFormData);
+  }
+
+  @Override
+  protected String getDefaultIconFilename(String ownerId) {
+    return "defaulticon_repository_manager.png";
   }
 }

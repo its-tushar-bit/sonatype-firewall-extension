@@ -25,7 +25,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
-abstract class AbstractResourceWithIcon
+public abstract class AbstractResourceWithIcon
 {
   public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
 

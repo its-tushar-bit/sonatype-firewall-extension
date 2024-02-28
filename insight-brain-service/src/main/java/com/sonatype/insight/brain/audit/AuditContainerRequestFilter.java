@@ -140,6 +140,11 @@ public class AuditContainerRequestFilter
           }
           setByOwnerIdAndType(ownerId, internalId, ownerType);
         }
+        String repositoryManagerId = pathParameters.getFirst("repositoryManagerId");
+        if (repositoryManagerId != null) {
+          setByRepositoryManagerId(repositoryManagerId);
+          return;
+        }
       }
     }
   }

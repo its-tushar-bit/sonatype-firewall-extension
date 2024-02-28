@@ -7,7 +7,7 @@ import axios from 'axios';
 import { compose } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getIsHdsReachable, getLicenseSummaryUrl } from '../../util/CLMLocation';
+import { getIsHdsReachable, getLicenseDetailsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../utilAngular/CommonServices';
 import { getPermissions } from '../../util/authorizationUtil';
 
@@ -30,7 +30,7 @@ export function load() {
       .then((validPermissions) => {
         const payload = {};
         const loadIsHdsReachable = axios.get(getIsHdsReachable());
-        const loadLicenseSummaryUrl = axios.get(getLicenseSummaryUrl());
+        const loadLicenseSummaryUrl = axios.get(getLicenseDetailsUrl());
 
         const promises = [loadIsHdsReachable];
 

@@ -414,7 +414,7 @@ public class CLMLicenseManager
   }
 
   public LicenseSummary getLicenseSummary() {
-    return new LicenseSummary(getProductEdition());
+    return new LicenseSummary(getProductEdition(), productLicense.getProducts());
   }
 
   public LicenseInfo getLicenseInfo() {

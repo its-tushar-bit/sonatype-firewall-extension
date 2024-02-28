@@ -79,7 +79,7 @@ describe('mainModuleSpec', function () {
       $state
     ) {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -101,7 +101,7 @@ describe('mainModuleSpec', function () {
       $state
     ) {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -121,7 +121,7 @@ describe('mainModuleSpec', function () {
       $rootScope
     ) {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
 
       $rootScope.error = undefined;
@@ -139,7 +139,7 @@ describe('mainModuleSpec', function () {
       $rootScope
     ) {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       $rootScope.error = undefined;
@@ -157,7 +157,7 @@ describe('mainModuleSpec', function () {
       $rootScope
     ) {
       const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(403, errorMsg);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(403, errorMsg);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       $rootScope.error = undefined;
@@ -173,7 +173,7 @@ describe('mainModuleSpec', function () {
       $rootScope
     ) {
       const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(403, errorMsg);
 
       $rootScope.error = undefined;
@@ -190,7 +190,7 @@ describe('mainModuleSpec', function () {
       $window
     ) {
       $rootScope.isAllowExternalHyperlinks = false;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -226,7 +226,7 @@ describe('mainModuleSpec', function () {
         },
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -264,7 +264,7 @@ describe('mainModuleSpec', function () {
         },
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -303,7 +303,7 @@ describe('mainModuleSpec', function () {
         },
       });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -326,7 +326,7 @@ describe('mainModuleSpec', function () {
     ) {
       $rootScope.isAllowExternalHyperlinks = false;
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -366,7 +366,7 @@ describe('mainModuleSpec', function () {
         });
 
         $rootScope.isAllowExternalHyperlinks = true;
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       });
     });
@@ -404,7 +404,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService.start before login', function () {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -416,7 +416,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService a second time after login and license fetch', function () {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -429,7 +429,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService a second time after login if the license is not installed', function () {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
 
       initService.start();
@@ -442,7 +442,7 @@ describe('mainModuleSpec', function () {
 
     it('does not call pendoService a second time after failed login', function () {
       $rootScope.isAllowExternalHyperlinks = true;
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
 
       initService.start();

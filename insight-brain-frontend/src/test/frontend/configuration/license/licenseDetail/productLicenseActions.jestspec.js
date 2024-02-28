@@ -17,35 +17,33 @@ import {
   PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED,
   PRODUCT_LICENSE_UNINSTALL_MASK_TIMER_DONE,
 } from '../../../../../main/frontend/configuration/license/productLicenseActions';
-import axios from 'axios';
-import { getLicenseSummaryUrl, getLicenseUploadUrl } from '../../../../../main/frontend/util/CLMLocation';
+import * as authorizationUtil from '../../../../../main/frontend/util/authorizationUtil';
+import * as actionsModule from '../../../../../main/frontend/configuration/license/productLicenseActions';
+import * as jsUtil from '../../../../../main/frontend/util/jsUtil';
+import {
+  getLicenseDetailsUrl,
+  getLicenseSummaryUrl,
+  getLicenseUploadUrl,
+} from '../../../../../main/frontend/util/CLMLocation';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
 describe('productLicenseActions', () => {
-  let checkPermissionsSpy, load, store, updateLicense, uninstallLicense;
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let load, store, updateLicense, uninstallLicense;
+  const axiosMock = axiosMockAdapter();
   const licenseSummaryUrl = getLicenseSummaryUrl();
+  const licenseDetailsUrl = getLicenseDetailsUrl();
   const licenseUploadUrl = getLicenseUploadUrl();
 
   beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const actionsModule = require('inject-loader!../../../../../../src/main/frontend/configuration/license/productLicenseActions')(
-      {
-        '../../util/authorizationUtil': {
-          checkPermissions: checkPermissionsSpy,
-        },
-        '../../util/jsUtil': {
-          getDaysFromNow: () => 1,
-        },
-      }
-    );
-
+    jest.spyOn(authorizationUtil, 'getPermissions');
+    jest.spyOn(jsUtil, 'getDaysFromNow').mockReturnValue(1);
     ({ load: load, updateLicense: updateLicense, uninstallLicense: uninstallLicense } = actionsModule);
   });
 
   describe('load', () => {
     describe('success', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
+        authorizationUtil.getPermissions.mockReturnValue({ length: 0 });
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
@@ -58,17 +56,41 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_FULFILLED} action`, (done) => {
-        const mockResponse = { data: { expiryTimestamp: '' } };
-        mockAxiosCalls({
-          get: {
-            [licenseSummaryUrl]: Promise.resolve(mockResponse),
-          },
-        });
+        const mockResponse = {};
+        axiosMock.onGet(licenseSummaryUrl).reply(200, mockResponse);
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type, payload }] = store.getActions();
           expect(type).toBe(PRODUCT_LICENSE_LOAD_FULFILLED);
-          expect(payload).toEqual({ ...mockResponse.data, daysToExpiration: 1 });
+          expect(payload).toEqual({ ...mockResponse });
+          done();
+        });
+      });
+    });
+
+    describe('success as admin', () => {
+      beforeEach(() => {
+        authorizationUtil.getPermissions.mockReturnValue({ length: 1 });
+      });
+
+      it(`dispatches a PRODUCT_LICENSE_LOAD_REQUESTED action`, () => {
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load());
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
+          type: PRODUCT_LICENSE_LOAD_REQUESTED,
+        });
+      });
+
+      it(`dispatches a PRODUCT_LICENSE_LOAD_FULFILLED action`, (done) => {
+        const mockResponse = { expiryTimestamp: 1 };
+
+        axiosMock.onGet(licenseDetailsUrl).reply(200, mockResponse);
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load()).then(() => {
+          const [, { type, payload }] = store.getActions();
+          expect(type).toBe(PRODUCT_LICENSE_LOAD_FULFILLED);
+          expect(payload).toEqual({ ...mockResponse, daysToExpiration: 1 });
           done();
         });
       });
@@ -76,17 +98,7 @@ describe('productLicenseActions', () => {
 
     describe('fail', () => {
       beforeEach(() => {
-        const actionsModule = require('inject-loader!../../../../../../src/main/frontend/configuration/license/productLicenseActions')(
-          {
-            '../../util/authorizationUtil': {
-              checkPermissions: () => Promise.reject('some error'),
-            },
-            '../../util/jsUtil': {
-              getDaysFromNow: () => 1,
-            },
-          }
-        );
-        ({ load: load, updateLicense: updateLicense, uninstallLicense: uninstallLicense } = actionsModule);
+        authorizationUtil.getPermissions.mockReturnValue({ length: 0 });
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
@@ -108,12 +120,7 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of service failures`, (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
-        mockAxiosCalls({
-          get: {
-            [licenseSummaryUrl]: () => Promise.reject({ response: {} }),
-          },
-        });
+        axiosMock.onGet(licenseSummaryUrl).reply(500);
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();
@@ -123,22 +130,52 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_INVALID} action`, (done) => {
-        const actionsModule = require('inject-loader!../../../../../../src/main/frontend/configuration/license/productLicenseActions')(
-          {
-            '../../util/authorizationUtil': {
-              checkPermissions: () => Promise.resolve(),
-            },
-            '../../util/jsUtil': {
-              getDaysFromNow: () => 1,
-            },
-          }
-        );
-        ({ load: load, updateLicense: updateLicense, uninstallLicense: uninstallLicense } = actionsModule);
-        mockAxiosCalls({
-          get: {
-            [licenseSummaryUrl]: () => Promise.reject({ response: { status: 402 } }),
-          },
+        axiosMock.onGet(licenseSummaryUrl).reply(402);
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load()).then(() => {
+          const [, { type }] = store.getActions();
+          expect(type).toBe(PRODUCT_LICENSE_INVALID);
+          done();
         });
+      });
+    });
+
+    describe('fail as admin', () => {
+      beforeEach(() => {
+        authorizationUtil.getPermissions.mockImplementation(() => Promise.reject('some error'));
+      });
+
+      it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load());
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
+          type: PRODUCT_LICENSE_LOAD_REQUESTED,
+        });
+      });
+
+      it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of insufficient permissions`, (done) => {
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load()).then(() => {
+          const [, { type }] = store.getActions();
+          expect(type).toBe(PRODUCT_LICENSE_LOAD_FAILED);
+          done();
+        });
+      });
+
+      it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of service failures`, (done) => {
+        axiosMock.onGet(licenseSummaryUrl).reply(500);
+        store = SpecUtil.mockReduxStore();
+        store.dispatch(load()).then(() => {
+          const [, { type }] = store.getActions();
+          expect(type).toBe(PRODUCT_LICENSE_LOAD_FAILED);
+          done();
+        });
+      });
+
+      it(`dispatches a ${PRODUCT_LICENSE_INVALID} action`, (done) => {
+        axiosMock.onGet(licenseDetailsUrl).reply(402);
+        authorizationUtil.getPermissions.mockReturnValue({ length: 1 });
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();
@@ -152,7 +189,6 @@ describe('productLicenseActions', () => {
   describe('updateLicense', () => {
     describe('success', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
         store = SpecUtil.mockReduxStore();
       });
 
@@ -166,15 +202,16 @@ describe('productLicenseActions', () => {
         const license = {};
         const form = new FormData();
         form.append('file', license);
-        const spy = spyOn(axios, 'post').and.returnValue(Promise.resolve({}));
+        axiosMock.onPost(licenseUploadUrl, expect.objectContaining(form)).reply(200);
         store.dispatch(updateLicense(license)).then(() => {
-          expect(spy).toHaveBeenCalledWith(getLicenseUploadUrl(), form);
+          const [, { type }] = store.getActions();
+          expect(type).toBe(PRODUCT_LICENSE_UPDATE_LICENSE_FULFILLED);
           done();
         });
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_UPDATE_LICENSE_FULFILLED} action`, (done) => {
-        spyOn(axios, 'post').and.returnValue(Promise.resolve());
+        axiosMock.onPost(licenseUploadUrl).reply(200);
         store.dispatch(updateLicense()).then(() => {
           const [, { type }] = store.getActions();
           expect(type).toBe(PRODUCT_LICENSE_UPDATE_LICENSE_FULFILLED);
@@ -196,11 +233,7 @@ describe('productLicenseActions', () => {
 
       it(`dispatches a ${PRODUCT_LICENSE_UPDATE_LICENSE_FAILED} because of service failures`, (done) => {
         const error = 'some error happened';
-        mockAxiosCalls({
-          post: {
-            [licenseUploadUrl]: () => Promise.reject(error),
-          },
-        });
+        axiosMock.onPost(licenseUploadUrl).reply(500, error);
         store.dispatch(updateLicense()).then(() => {
           const [, { type, payload }] = store.getActions();
           expect(type).toBe(PRODUCT_LICENSE_UPDATE_LICENSE_FAILED);
@@ -215,22 +248,18 @@ describe('productLicenseActions', () => {
     describe('success', () => {
       let actions;
       beforeEach(() => {
-        mockAxiosCalls({
-          del: {
-            [licenseUploadUrl]: Promise.resolve({}),
-          },
-        });
+        axiosMock.onDelete(licenseUploadUrl).reply(200);
 
         store = SpecUtil.mockReduxStore();
         actions = store.getActions();
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED} action`, () => {
+      it(`dispatches a PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED action`, () => {
         store.dispatch(uninstallLicense());
         expect(actions[0].type).toBe(PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED);
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UNINSTALL_LICENSE_FULFILLED} action`, (done) => {
+      it(`dispatches a PRODUCT_LICENSE_UNINSTALL_LICENSE_FULFILLED action`, (done) => {
         store.dispatch(uninstallLicense()).then(() => {
           const [, { type: actionType }] = actions;
           expect(actionType).toBe(PRODUCT_LICENSE_UNINSTALL_LICENSE_FULFILLED);
@@ -238,7 +267,7 @@ describe('productLicenseActions', () => {
         });
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UNINSTALL_MASK_TIMER_DONE} action`, (done) => {
+      it(`dispatches a PRODUCT_LICENSE_UNINSTALL_MASK_TIMER_DONE action`, (done) => {
         store.dispatch(uninstallLicense()).then(() => {
           const [, , { type: actionType }] = actions;
           expect(actionType).toBe(PRODUCT_LICENSE_UNINSTALL_MASK_TIMER_DONE);
@@ -252,21 +281,17 @@ describe('productLicenseActions', () => {
       const error = 'some error happened';
 
       beforeEach(() => {
-        mockAxiosCalls({
-          del: {
-            [licenseUploadUrl]: () => Promise.reject(error),
-          },
-        });
+        axiosMock.onDelete(licenseUploadUrl).reply(500, error);
         store = SpecUtil.mockReduxStore();
         actions = store.getActions();
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED} action`, () => {
+      it(`dispatches a PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED action`, () => {
         store.dispatch(uninstallLicense());
         expect(actions[0].type).toBe(PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED);
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UNINSTALL_LICENSE_FAIL} action`, () => {
+      it(`dispatches a PRODUCT_LICENSE_UNINSTALL_LICENSE_FAIL action`, () => {
         store.dispatch(uninstallLicense()).then(() => {
           const [, { type: actionType, payload: actionPayload }] = actions;
           expect(actionType).toBe(PRODUCT_LICENSE_UNINSTALL_LICENSE_FAIL);

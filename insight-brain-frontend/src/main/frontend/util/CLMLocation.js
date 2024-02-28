@@ -288,10 +288,6 @@ export function getApplicationReportsUrl(applicationId) {
   return uriTemplate`/api/v2/reports/applications/${applicationId}`;
 }
 
-export function getValidateLicenseUrl() {
-  return uriTemplate`/rest/product/license/validate`;
-}
-
 function getBaseReportUrl(applicationPublicId, scanId) {
   return uriTemplate`/rest/report/${applicationPublicId}/${scanId}`;
 }
@@ -1121,6 +1117,10 @@ export const getSuccessMetricsReportUrl = (successMetricsId) =>
   uriTemplate`/rest/successMetrics/report/${successMetricsId}`;
 
 export function getLicenseSummaryUrl() {
+  return uriTemplate`/rest/product/license/validate`;
+}
+
+export function getLicenseDetailsUrl() {
   return uriTemplate`/rest/product/license`;
 }
 
@@ -1417,9 +1417,8 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getApplicationReportsUrl,
 
-      getValidateLicenseUrl,
-
       getLicenseSummaryUrl,
+      getLicenseDetailsUrl,
 
       getLicenseUploadUrl,
 

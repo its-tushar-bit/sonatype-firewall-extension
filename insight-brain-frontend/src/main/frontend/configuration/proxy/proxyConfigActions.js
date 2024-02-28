@@ -8,7 +8,7 @@ import { map, pick, compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { Messages } from '../../utilAngular/CommonServices';
 
-import { getProxyConfigUrl, getValidateLicenseUrl } from '../../util/CLMLocation';
+import { getProxyConfigUrl, getLicenseSummaryUrl } from '../../util/CLMLocation';
 import { checkPermissions } from '../../util/authorizationUtil';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
@@ -70,7 +70,7 @@ export function loadLicenced() {
     dispatch(loadLicensedRequested());
 
     return axios
-      .get(getValidateLicenseUrl())
+      .get(getLicenseSummaryUrl())
       .then(() => {
         dispatch(loadLicensedFulfilled());
       })

@@ -335,6 +335,24 @@ public class SidebarNavigationTest
   }
 
   @Test
+  public void testNavigation_FirewallV2License_NonAdminUser() {
+    try {
+      User user = tempEntity.newUser();
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
+
+      testNavigation_FirewallV2License();
+    }
+    finally {
+      logout();
+      refreshOrOpen(DashboardPage.url());
+      loginAsAdmin();
+    }
+    refresh();
+  }
+
+  @Test
   public void testNavigation_FoundationLicense() {
     uninstallLicense();
     testProductLicense.reset();
@@ -406,6 +424,24 @@ public class SidebarNavigationTest
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testNavigation_FirewallForArtifactoryV2License_NonAdminUser() {
+    try {
+      User user = tempEntity.newUser();
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
+
+      testNavigation_FirewallForArtifactoryV2License();
+    }
+    finally {
+      logout();
+      refreshOrOpen(DashboardPage.url());
+      loginAsAdmin();
+    }
+    refresh();
   }
 
   @Test

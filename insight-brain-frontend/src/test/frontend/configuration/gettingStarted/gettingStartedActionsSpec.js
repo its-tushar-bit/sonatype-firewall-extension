@@ -10,12 +10,12 @@ import {
   GETTING_STARTED_LOAD_FAILED,
 } from '../../../../main/frontend/configuration/gettingStarted/gettingStartedActions';
 import axios from 'axios';
-import { getLicenseSummaryUrl, getIsHdsReachable } from '../../../../main/frontend/util/CLMLocation';
+import { getIsHdsReachable, getLicenseDetailsUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('gettingStartedReducerActions', () => {
   let getPermissionsSpy, load, store;
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  const licenseSummaryUrl = getLicenseSummaryUrl();
+  const licenseDetailsUrl = getLicenseDetailsUrl();
   const isHdsReachable = getIsHdsReachable();
 
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe('gettingStartedReducerActions', () => {
         const mockResponse = { data: { expiryTimestamp: '' } };
         mockAxiosCalls({
           get: {
-            [licenseSummaryUrl]: Promise.resolve(mockResponse),
+            [licenseDetailsUrl]: Promise.resolve(mockResponse),
             [isHdsReachable]: Promise.resolve(mockResponse),
           },
         });
@@ -96,7 +96,7 @@ describe('gettingStartedReducerActions', () => {
         getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
         mockAxiosCalls({
           get: {
-            [licenseSummaryUrl]: () => Promise.reject({ response: {} }),
+            [licenseDetailsUrl]: () => Promise.reject({ response: {} }),
           },
         });
         store = SpecUtil.mockReduxStore();

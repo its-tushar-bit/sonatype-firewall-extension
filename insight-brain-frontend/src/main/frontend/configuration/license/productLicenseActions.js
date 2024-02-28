@@ -7,8 +7,8 @@
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
 import { compose } from 'ramda';
-import { checkPermissions } from '../../util/authorizationUtil';
-import { getLicenseSummaryUrl, getLicenseUploadUrl } from '../../util/CLMLocation';
+import { getPermissions } from '../../util/authorizationUtil';
+import { getLicenseSummaryUrl, getLicenseDetailsUrl, getLicenseUploadUrl } from '../../util/CLMLocation';
 import { Messages } from '../../utilAngular/CommonServices';
 import { getDaysFromNow } from '../../util/jsUtil';
 
@@ -50,26 +50,30 @@ function startSubmitMaskSuccessTimer(dispatch) {
 }
 
 export function load() {
-  return (dispatch) => {
+  return async (dispatch) => {
     dispatch(loadRequested());
-    return checkPermissions(['CONFIGURE_SYSTEM'])
-      .then(() => axios.get(getLicenseSummaryUrl()))
-      .then(({ data }) => {
-        dispatch(
-          loadFulfilled({
-            ...data,
-            daysToExpiration: getDaysFromNow(data.expiryTimestamp),
-          })
-        );
-      })
-      .catch((error) => {
-        const licenseIsInvalid = (error.response || {}).status === 402;
-        if (licenseIsInvalid) {
-          dispatch(invalidLicense());
-        } else {
-          dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
-        }
-      });
+
+    try {
+      const hasConfigureSystemPermission = (await getPermissions(['CONFIGURE_SYSTEM'])).length;
+
+      const { data: licenseInfo } = await axios.get(
+        hasConfigureSystemPermission ? getLicenseDetailsUrl() : getLicenseSummaryUrl()
+      );
+
+      dispatch(
+        loadFulfilled({
+          ...licenseInfo,
+          ...(licenseInfo.expiryTimestamp && { daysToExpiration: getDaysFromNow(licenseInfo.expiryTimestamp) }),
+        })
+      );
+    } catch (error) {
+      const licenseIsInvalid = (error.response || {}).status === 402;
+      if (licenseIsInvalid) {
+        dispatch(invalidLicense());
+      } else {
+        dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
+      }
+    }
   };
 }
 

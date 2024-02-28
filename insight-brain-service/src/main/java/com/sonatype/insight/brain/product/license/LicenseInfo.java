@@ -56,7 +56,7 @@ public class LicenseInfo
       Properties properties,
       String productEdition)
   {
-    super(productEdition);
+    super(productEdition, products);
 
     this.fingerprint = fingerprint;
     this.expiryTimestamp = expiryTimestamp;

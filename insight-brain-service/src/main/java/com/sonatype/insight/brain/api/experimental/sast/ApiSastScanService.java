@@ -18,18 +18,18 @@ import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.Sast
 import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.SastRemediationResponseDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
-import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
+import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
-import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
+import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -224,7 +224,7 @@ class ApiSastScanService
     final SastFindingResponseDTO findingDTO = new SastFindingResponseDTO();
     findingDTO.sastFindingId = finding.getId();
     findingDTO.confidence = finding.getConfidenceEnum().name();
-    findingDTO.severity = finding.getSeverity().getName();
+    findingDTO.severity = finding.getSeverityEnum().name();
 
     try {
       findingDTO.coordinate = jsonStringToMap(finding.getCoordinate());
@@ -282,17 +282,12 @@ class ApiSastScanService
     return new SastRemediation(sastFindingId, sastRemediationRequestDTO.content);
   }
 
-  private SastFindingSeverity validateSastFindingSeverityText(final String sastFindingSeverityName) {
-    return validateSeverityName(sastFindingSeverityName);
+  private SastFindingSeverity validateSastFindingSeverityText(final String sastFindingSeverity) {
+    return validateEnumValue(SastFindingSeverity.class, sastFindingSeverity);
   }
 
   private SastFindingConfidence validateSastFindingConfidenceText(final String sastFindingConfidence) {
     return validateEnumValue(SastFindingConfidence.class, sastFindingConfidence);
-  }
-
-  private SastFindingSeverity validateSeverityName(final String severityName) {
-    return Optional.ofNullable(SastFindingSeverity.getByName(severityName))
-        .orElseThrow(() -> new BadRequestException("Invalid name for SastFindingSeverity: " + severityName));
   }
 
   private <E extends Enum<E>> E validateEnumValue(final Class<E> enumClass, final String text) {

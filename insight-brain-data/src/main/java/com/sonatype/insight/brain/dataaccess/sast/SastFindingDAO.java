@@ -12,9 +12,9 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -38,7 +38,7 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
   @Override
   public void insert(final TransactionContext tx, final SastFinding entity) {
     validateEnumOrdinalValue(SastFindingConfidence.class, entity.getConfidence());
-    validateSeverityId(entity.getSeverityId());
+    validateEnumOrdinalValue(SastFindingSeverity.class, entity.getSeverity());
     super.insert(tx, entity);
   }
 
@@ -75,7 +75,7 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
 
   public List<SastFinding> getBySastScanIdOrderBySeverityDesc(final TransactionContext tx, final String sastScanId) {
     final String sQuery =
-        "SELECT entity FROM SastFinding entity WHERE entity.sastScanId=?1 ORDER BY entity.severityId DESC";
+        "SELECT entity FROM SastFinding entity WHERE entity.sastScanId=?1 ORDER BY entity.severity DESC";
     return getList(tx, sQuery, sastScanId);
   }
 
@@ -103,12 +103,6 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
       throw new BadRequestException(format("The ordinal value '%s' is outside the range [0, %d) for '%s'",
           ordinal, numEnumValues, enumClass.getSimpleName()));
 
-    }
-  }
-
-  private void validateSeverityId(final int severityId) {
-    if (SastFindingSeverity.getById(severityId) == null) {
-      throw new BadRequestException("Invalid id for SastFindingSeverity: " + severityId);
     }
   }
 }

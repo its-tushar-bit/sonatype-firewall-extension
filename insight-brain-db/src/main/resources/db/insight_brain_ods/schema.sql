@@ -1516,7 +1516,7 @@ CREATE TABLE sast_finding
     coordinate                     varchar(2000) NOT NULL,
     line_number                    integer,
     cwe                            varchar(50) NOT NULL,
-    severity_id                    smallint NOT NULL,
+    severity                       smallint NOT NULL,
     confidence                     smallint NOT NULL,
     rule_name                      varchar(200) NOT NULL,
     description                    text NOT NULL,

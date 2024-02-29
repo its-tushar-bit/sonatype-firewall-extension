@@ -874,12 +874,12 @@ public class SastPullRequestCommentingServiceTest
     return pullRequest;
   }
 
-  private void addSastFinding(final SastScan sastScan, final int severityId) {
+  private void addSastFinding(final SastScan sastScan, final int severity) {
     final SastFinding sastFinding = new SastFinding();
     sastFinding.setSastScanId(sastScan.getId());
     sastFinding.setCwe("cwe");
     sastFinding.setConfidence(0);
-    sastFinding.setSeverityId(severityId);
+    sastFinding.setSeverity(severity);
     sastFinding.setDescription("someDescription");
     sastFinding.setCoordinate("someCoordinate");
     sastFinding.setLineNumber(null);

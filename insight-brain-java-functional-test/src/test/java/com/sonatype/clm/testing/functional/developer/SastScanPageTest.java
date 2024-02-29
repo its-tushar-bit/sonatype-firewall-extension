@@ -93,7 +93,7 @@ public class SastScanPageTest
       sastFinding.setSastScanId(sastScan.getId());
       sastFinding.setCwe("CWE");
       sastFinding.setConfidence(SastFindingConfidence.MEDIUM);
-      sastFinding.setSeverityId(i);
+      sastFinding.setSeverity(i);
       sastFinding.setDescription("someDescription");
       sastFinding.setCoordinate("{\"namespace\":\"namespace\",\"name\":\"CWE\",\"methodName\":\"method\"}");
       sastFinding.setLineNumber(null);

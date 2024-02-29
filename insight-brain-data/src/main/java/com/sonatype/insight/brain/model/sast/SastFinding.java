@@ -10,8 +10,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
 import com.sonatype.insight.model.HasStringId;
+
+import static com.sonatype.insight.brain.model.sast.SastFindingSeverity.UNKNOWN;
 
 @Entity
 @Table(name = "sast_finding")
@@ -34,8 +35,8 @@ public class SastFinding
   @Column(name = "cwe")
   private String cwe;
 
-  @Column(name = "severity_id")
-  private int severityId = SastFindingSeverity.NONE.getId();
+  @Column(name = "severity")
+  private int severity = UNKNOWN.ordinal();
 
   @Column(name = "confidence")
   private int confidence = SastFindingConfidence.LOW.ordinal();
@@ -88,20 +89,20 @@ public class SastFinding
     this.cwe = cwe;
   }
 
-  public int getSeverityId() {
-    return severityId;
+  public int getSeverity() {
+    return severity;
   }
 
-  public void setSeverityId(final int severityId) {
-    this.severityId = severityId;
+  public void setSeverity(final int severity) {
+    this.severity = severity;
   }
 
-  public SastFindingSeverity getSeverity() {
-    return SastFindingSeverity.getById(severityId);
+  public SastFindingSeverity getSeverityEnum() {
+    return SastFindingSeverity.values()[severity];
   }
 
   public void setSeverity(final SastFindingSeverity severity) {
-    setSeverityId(severity.getId());
+    setSeverity(severity.ordinal());
   }
 
   public int getConfidence() {
@@ -144,7 +145,7 @@ public class SastFinding
         ", coordinate='" + coordinate + '\'' +
         ", lineNumber=" + lineNumber +
         ", cwe='" + cwe + '\'' +
-        ", severityId='" + severityId + '\'' +
+        ", severity='" + severity + '\'' +
         ", confidence='" + confidence + '\'' +
         ", ruleName='" + ruleName + '\'' +
         ", description='" + description + '\'' +

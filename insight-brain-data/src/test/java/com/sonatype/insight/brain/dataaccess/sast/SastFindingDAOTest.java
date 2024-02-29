@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -44,14 +44,14 @@ public class SastFindingDAOTest
   public void testInsert_invalidSeverityValue() {
     final SastScan sastScan = new SastScan(application.getId());
     sastScanDAO.insert(sastScan);
-    IntStream.of(-1, SastFindingSeverity.getAll().size())
+    IntStream.of(-1, SastFindingSeverity.values().length)
         .boxed()
-        .map(severityId -> {
+        .map(severity -> {
           final SastFinding sastFinding = new SastFinding();
           sastFinding.setSastScanId(sastScan.getId());
           sastFinding.setCwe("cwe");
           sastFinding.setConfidence(0);
-          sastFinding.setSeverityId(severityId);
+          sastFinding.setSeverity(severity);
           sastFinding.setDescription("someDescription");
           sastFinding.setCoordinate("someCoordinate");
           sastFinding.setLineNumber(null);
@@ -61,7 +61,8 @@ public class SastFindingDAOTest
         .forEach(sastFinding -> {
           assertThatThrownBy(() -> sastFindingDAO.insert(sastFinding))
               .isInstanceOf(BadRequestException.class)
-              .hasMessage("Invalid id for SastFindingSeverity: " + sastFinding.getSeverityId());
+              .hasMessage("The ordinal value '" + sastFinding.getSeverity()
+                  + "' is outside the range [0, 6) for 'SastFindingSeverity'");
         });
   }
 
@@ -76,7 +77,7 @@ public class SastFindingDAOTest
           sastFinding.setSastScanId(sastScan.getId());
           sastFinding.setCwe("cwe");
           sastFinding.setConfidence(confidence);
-          sastFinding.setSeverityId(0);
+          sastFinding.setSeverity(0);
           sastFinding.setDescription("someDescription");
           sastFinding.setCoordinate("someCoordinate");
           sastFinding.setLineNumber(null);
@@ -211,8 +212,8 @@ public class SastFindingDAOTest
     // Then the findings should be sorted by descending severity
     assertThat(results).hasSize(2);
     assertThat(results.get(0).getId()).isEqualTo(sastFinding2.getId());
-    assertThat(results.get(0).getSeverityId()).isEqualTo(sastFinding2.getSeverityId());
+    assertThat(results.get(0).getSeverity()).isEqualTo(sastFinding2.getSeverity());
     assertThat(results.get(1).getId()).isEqualTo(sastFinding1.getId());
-    assertThat(results.get(1).getSeverityId()).isEqualTo(sastFinding1.getSeverityId());
+    assertThat(results.get(1).getSeverity()).isEqualTo(sastFinding1.getSeverity());
   }
 }

@@ -120,6 +120,7 @@ CREATE TABLE sbom_metadata (
     status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     metadata_json TEXT,
+    sbom_version VARCHAR(200) NULL,
     CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
     CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)
        REFERENCES third_party_file (third_party_file_id),

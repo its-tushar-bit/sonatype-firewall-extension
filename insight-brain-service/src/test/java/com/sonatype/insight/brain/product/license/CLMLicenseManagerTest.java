@@ -47,7 +47,6 @@ import org.sonatype.licensing.LicensingException;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -769,7 +768,7 @@ public class CLMLicenseManagerTest
 
     //after
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
-    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
+    assertThat(productLicense.getMaxSboms()).isNull();
     verify(clmLicenseManagerSpy, never()).loadLicense();
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
@@ -968,8 +967,6 @@ public class CLMLicenseManagerTest
     }).withMessage("Invalid value for max users: Invalid");
   }
 
-  // CLM-29492: Temporarily ignoring test as maxSboms is hardcoded
-  @Ignore
   @Test
   public void testInstallLicense_BadMaxSboms() {
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
@@ -1030,14 +1027,6 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withMaxApplications(12345));
     installLicense();
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
-  }
-
-  @Test
-  public void testInstallLicense_MaxSbomsFromHdsAndNotLicenseKey() throws Exception {
-    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, "100");
-    mockHdsProductLicenseDetails(withMaxSboms(50));
-    installLicense();
-    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
   }
 
   @Test
@@ -1679,9 +1668,7 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isEqualTo(0);
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
-    // CLM-29492: Temporarily testing for maxSboms as 50, remove once new sbom manager licenses are obtained
     assertThat(info.sbomLimitToDisplay).isNull();
-    // assertThat(info.sbomLimitToDisplay).isEqualTo(1234);
   }
 
   @Test

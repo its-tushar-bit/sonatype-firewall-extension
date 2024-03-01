@@ -103,9 +103,9 @@ public class ApiSastScanServiceTest
     // And a SastScanRequestDTO with 2 findings with different severities
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTOWith2Findings();
     assertThat(sastScanRequestDTO.findings).hasSize(2);
-    assertThat(sastScanRequestDTO.findings.get(0).severity).isEqualTo("LOW");
+    assertThat(sastScanRequestDTO.findings.get(0).severity).isEqualTo("Low");
     assertThat(sastScanRequestDTO.findings.get(0).ruleName).isEqualTo("myRuleName");
-    assertThat(sastScanRequestDTO.findings.get(1).severity).isEqualTo("HIGH");
+    assertThat(sastScanRequestDTO.findings.get(1).severity).isEqualTo("High");
     assertThat(sastScanRequestDTO.findings.get(1).ruleName).isEqualTo("myRuleName2");
 
     // When a sast scan is created
@@ -115,9 +115,9 @@ public class ApiSastScanServiceTest
 
     // Then assert the findings are ordered by severity in descending order
     assertThat(sastScanResponseDTO.findings).hasSize(2);
-    assertThat(sastScanResponseDTO.findings.get(0).severity).isEqualTo("HIGH");
+    assertThat(sastScanResponseDTO.findings.get(0).severity).isEqualTo("High");
     assertThat(sastScanResponseDTO.findings.get(0).ruleName).isEqualTo("myRuleName2");
-    assertThat(sastScanResponseDTO.findings.get(1).severity).isEqualTo("LOW");
+    assertThat(sastScanResponseDTO.findings.get(1).severity).isEqualTo("Low");
     assertThat(sastScanResponseDTO.findings.get(1).ruleName).isEqualTo("myRuleName");
   }
 
@@ -183,9 +183,9 @@ public class ApiSastScanServiceTest
     // And a SastScanRequestDTO with 2 findings with different severities
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTOWith2Findings();
     assertThat(sastScanRequestDTO.findings).hasSize(2);
-    assertThat(sastScanRequestDTO.findings.get(0).severity).isEqualTo("LOW");
+    assertThat(sastScanRequestDTO.findings.get(0).severity).isEqualTo("Low");
     assertThat(sastScanRequestDTO.findings.get(0).ruleName).isEqualTo("myRuleName");
-    assertThat(sastScanRequestDTO.findings.get(1).severity).isEqualTo("HIGH");
+    assertThat(sastScanRequestDTO.findings.get(1).severity).isEqualTo("High");
     assertThat(sastScanRequestDTO.findings.get(1).ruleName).isEqualTo("myRuleName2");
 
     // And a sast scan with a sastScanId
@@ -204,9 +204,9 @@ public class ApiSastScanServiceTest
 
     // Then assert the findings are ordered by severity in descending order
     assertThat(getSastScanResult.findings).hasSize(2);
-    assertThat(getSastScanResult.findings.get(0).severity).isEqualTo("HIGH");
+    assertThat(getSastScanResult.findings.get(0).severity).isEqualTo("High");
     assertThat(getSastScanResult.findings.get(0).ruleName).isEqualTo("myRuleName2");
-    assertThat(getSastScanResult.findings.get(1).severity).isEqualTo("LOW");
+    assertThat(getSastScanResult.findings.get(1).severity).isEqualTo("Low");
     assertThat(getSastScanResult.findings.get(1).ruleName).isEqualTo("myRuleName");
   }
 
@@ -217,12 +217,13 @@ public class ApiSastScanServiceTest
 
     // And a SastScanDTO with an invalid SastFindingSeverity text value
     final SastScanRequestDTO sastScanRequestDTO = buildTestSastScanRequestDTO();
-    sastScanRequestDTO.findings.get(0).severity = UUID.randomUUID().toString();
+    String uuid = UUID.randomUUID().toString();
+    sastScanRequestDTO.findings.get(0).severity = uuid;
 
     // Expect a BadRequestException to be thrown
     assertThatThrownBy(() -> apiSastScanService.createSastScan("myApp", sastScanRequestDTO))
         .isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid value for SastFindingSeverity");
+        .hasMessage("Invalid name for SastFindingSeverity: " + uuid);
   }
 
   @Test

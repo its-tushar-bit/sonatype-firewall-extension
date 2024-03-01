@@ -308,8 +308,8 @@ public class SastPullRequestCommentingService
       return null;
     }
     final long numCriticalFindings = sastFindings.stream()
-        // Enum ordinal 4 == SastFindingSeverity.CRITICAL
-        .filter(sastFinding -> sastFinding.getSeverity() == 4)
+        // Severity ID 4 == SastFindingSeverity.CRITICAL
+        .filter(sastFinding -> sastFinding.getSeverityId() == 4)
         .count();
 
     return getCommentText(numCriticalFindings, sastFindings.size(), sastReportUrl);

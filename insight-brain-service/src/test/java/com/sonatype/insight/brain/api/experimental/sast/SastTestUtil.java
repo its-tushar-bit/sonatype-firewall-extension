@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.Sast
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.model.component.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
-import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastRemediation;
 import com.sonatype.insight.brain.model.sast.SastScan;
 
@@ -52,9 +52,9 @@ class SastTestUtil
     scmContext.commitHash = "testCommitHash";
     sastScanRequestDTO.scmContext = scmContext;
 
-    sastScanRequestDTO.findings.get(0).severity = "LOW";
+    sastScanRequestDTO.findings.get(0).severity = "Low";
     final SastFindingRequestDTO sastFindingRequestDTO = new SastFindingRequestDTO();
-    sastFindingRequestDTO.severity = "HIGH";
+    sastFindingRequestDTO.severity = "High";
     sastFindingRequestDTO.ruleName = "myRuleName2";
     sastFindingRequestDTO.lineNumber = null;
     sastFindingRequestDTO.cwe = "myCwe2";
@@ -84,7 +84,7 @@ class SastTestUtil
     sastFindingRequestDTO.coordinate = ImmutableMap.of("myCoordinateKey", "myCoordinateValue");
     sastFindingRequestDTO.description = "myDescription";
     sastFindingRequestDTO.confidence = "HIGH";
-    sastFindingRequestDTO.severity = "CRITICAL";
+    sastFindingRequestDTO.severity = "Critical";
     sastFindingRequestDTO.lineNumber = 1970;
 
     sastRemediationRequestDTO.content = "myContent";
@@ -123,7 +123,7 @@ class SastTestUtil
     final SastFinding sastFinding = sastFindings.get(0);
     assertThat(sastFinding.getId()).isEqualTo(expectedSastFindingId);
     assertThat(sastFinding.getSastScanId()).isEqualTo(expectedSastScanId);
-    assertThat(sastFinding.getSeverityEnum()).isEqualTo(SastFindingSeverity.CRITICAL);
+    assertThat(sastFinding.getSeverity()).isEqualTo(SastFindingSeverity.CRITICAL);
     assertThat(sastFinding.getConfidenceEnum()).isEqualTo(SastFindingConfidence.HIGH);
     assertThat(sastFinding.getRuleName()).isEqualTo("myRuleName");
     assertThat(sastFinding.getCoordinate()).isEqualTo("{\"myCoordinateKey\":\"myCoordinateValue\"}");
@@ -155,7 +155,7 @@ class SastTestUtil
         .isEqualTo(ImmutableMap.of("myCoordinateKey", "myCoordinateValue"));
     assertThat(sastFindingResponseDTO.description).isEqualTo("myDescription");
     assertThat(sastFindingResponseDTO.confidence).isEqualTo("HIGH");
-    assertThat(sastFindingResponseDTO.severity).isEqualTo("CRITICAL");
+    assertThat(sastFindingResponseDTO.severity).isEqualTo("Critical");
     assertThat(sastFindingResponseDTO.lineNumber).isEqualTo(1970);
     assertThat(sastFindingResponseDTO.remediations).hasSize(1);
 

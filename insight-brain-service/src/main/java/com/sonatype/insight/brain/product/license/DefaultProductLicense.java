@@ -11,7 +11,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.licensing.product.ProductLicenseKey;
@@ -172,11 +171,6 @@ public class DefaultProductLicense
 
   @Override
   public boolean hasFeature(LicensedFeature feature) {
-    // relying on config property temporarily for Sbom Manager until test licenses are sorted. see CLM-29211
-    if (LicensedFeature.SBOM_MANAGER.equals(feature)) {
-      return SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled();
-    }
-
     return getFeatures().contains(feature);
   }
 

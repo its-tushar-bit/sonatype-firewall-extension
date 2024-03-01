@@ -164,11 +164,11 @@ public class CLMLicenseManager
   }
 
   public void loadLicense() {
+    SignedProductLicenseDetailsDTO licenseDetails;
     try {
       ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
       String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
       byte[] licenseData = licenseContent.raw();
-      SignedProductLicenseDetailsDTO licenseDetails;
       try {
         licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
         productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
@@ -205,7 +205,7 @@ public class CLMLicenseManager
       }
       recordSupportForExternalDatabase();
     }
-    if (config.isDatabaseEmbedded() && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+    if (config.isDatabaseEmbedded() && licenseDetails.features.contains(LicensedFeature.SBOM_MANAGER.name())) {
       throw new ExternalDatabaseNotSupportedException(
           "SBOM Manager feature requires use of an external database, please retry using an external database.");
     }
@@ -267,7 +267,7 @@ public class CLMLicenseManager
       throw new ExternalDatabaseNotSupportedException("The product license does not support use of an external database"
           + ", please reconfigure IQ Server to use the embedded database before installing the license.");
     }
-    if (config.isDatabaseEmbedded() && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+    if (config.isDatabaseEmbedded() && licenseDetails.features.contains(LicensedFeature.SBOM_MANAGER.name())) {
       throw new ExternalDatabaseNotSupportedException(
           "SBOM Manager feature requires use of an external database, please retry using an external database.");
     }

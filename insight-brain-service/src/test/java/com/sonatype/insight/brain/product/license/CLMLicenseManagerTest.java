@@ -17,14 +17,12 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -41,7 +39,6 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
-
 import org.sonatype.licensing.LicensingException;
 
 import com.google.inject.Binder;
@@ -813,7 +810,8 @@ public class CLMLicenseManagerTest
   @Test
   public void testLoadLicense_MaxSboms() {
     CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CLI_INTEGRATION, LicensedFeature.SBOM_MANAGER)
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE, LicensedFeature.SBOM_MANAGER)
         .andThen(withStages(StageTypes.RELEASE).andThen(withMaxSboms(50))));
 
     clmLicenseManagerSpy.loadLicense();
@@ -821,7 +819,7 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.isValid()).isTrue();
     SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
     assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CLI_INTEGRATION.name(),
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.EXTERNAL_DATABASE.name(),
         LicensedFeature.SBOM_MANAGER.name());
     assertThat(licenseDetails.stageIds).contains(StageTypes.RELEASE.getId());
     assertThat(licenseDetails.maxSboms).isEqualTo(50);
@@ -930,7 +928,6 @@ public class CLMLicenseManagerTest
   @Test
   public void testLoadLicense_SbomManagerFeature_ExternalDatabaseNotAllowed() {
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.SBOM_MANAGER));
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
 
     assertThatExceptionOfType(LicensingException.class)
         .isThrownBy(() -> clmLicenseManager.loadLicense())
@@ -969,6 +966,8 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testInstallLicense_BadMaxSboms() {
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE, LicensedFeature.SBOM_MANAGER));
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_SBOMS, "Invalid");
       installLicense();
@@ -990,12 +989,13 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testInstallLicense_LicenseDetailsFromHds_MaxSboms() throws Exception {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CLI_INTEGRATION, LicensedFeature.SBOM_MANAGER)
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE, LicensedFeature.SBOM_MANAGER)
         .andThen(withStages(StageTypes.RELEASE).andThen(withMaxSboms(50))));
     installLicense();
     SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
     assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CLI_INTEGRATION.name(),
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.EXTERNAL_DATABASE.name(),
         LicensedFeature.SBOM_MANAGER.name());
     assertThat(licenseDetails.stageIds).contains(StageTypes.RELEASE.getId());
     assertThat(licenseDetails.maxSboms).isEqualTo(50);
@@ -1085,7 +1085,6 @@ public class CLMLicenseManagerTest
   @Test
   public void testInstallLicense_SbomManagerFeature_ExternalDatabaseNotAllowed() {
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.SBOM_MANAGER));
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
     clmLicenseManager.uninstallLicense();
 
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)

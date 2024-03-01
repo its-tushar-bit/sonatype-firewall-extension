@@ -25,13 +25,13 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -69,6 +69,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ThirdPartyScanResultsProcessorTest
     extends AbstractComponentTest
@@ -98,7 +99,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Inject
   private InsightWork insightWork;
 
-  @Inject
+  @Mock
   private ProductLicense productLicense;
 
   private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessorSpy;
@@ -160,7 +161,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_spdx_api_sbomManagerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
@@ -219,7 +220,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
@@ -263,7 +264,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_sbom_cli_sbomManagerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-cli.xml");
@@ -354,7 +355,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_ClairScanner_sbomManagerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");

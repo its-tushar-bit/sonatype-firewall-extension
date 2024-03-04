@@ -79,7 +79,7 @@
      mockito 5.x requires Java 11 -->
     <mockito-core.version>4.11.0</mockito-core.version>
     <byte-buddy.version>1.12.19</byte-buddy.version>
-    <testcontainers.version>1.19.4</testcontainers.version>
+    <testcontainers.version>1.19.6</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.24.6</aws.java.sdk.version>
     <!--

@@ -44,7 +44,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThirdPartySbomMetadata(fetchedThirdPartySbomMetadata, entity);
 
     // Update
-    entity.setApplicationVersion("new version");
+    entity.setSbomVersion("new version");
     entity.setSerialNumber("new serial number");
     dao.update(entity);
 
@@ -75,17 +75,17 @@ public class ThirdPartySbomMetadataDAOTest
         .extracting(
             ThirdPartySbomMetadata::getId, ThirdPartySbomMetadata::getThirdPartyFileId,
             ThirdPartySbomMetadata::getApplicationId, ThirdPartySbomMetadata::getFilename,
-            ThirdPartySbomMetadata::getSerialNumber, ThirdPartySbomMetadata::getApplicationVersion,
+            ThirdPartySbomMetadata::getSerialNumber, ThirdPartySbomMetadata::getSbomVersion,
             ThirdPartySbomMetadata::getSpec, ThirdPartySbomMetadata::getSpecFormat,
             ThirdPartySbomMetadata::getSpecVersion, ThirdPartySbomMetadata::getStatus,
             ThirdPartySbomMetadata::getCreatedAt, ThirdPartySbomMetadata::getMetadataJson)
         .contains(
             tuple(entity.getId(), entity.getThirdPartyFileId(), entity.getApplicationId(), entity.getFilename(),
-                entity.getSerialNumber(), entity.getApplicationVersion(), entity.getSpec(),
+                entity.getSerialNumber(), entity.getSbomVersion(), entity.getSpec(),
                 entity.getSpecFormat(), entity.getSpecVersion(), entity.getStatus(), entity.getCreatedAt(),
                 entity.getMetadataJson()),
             tuple(anotherEntity.getId(), anotherEntity.getThirdPartyFileId(), anotherEntity.getApplicationId(),
-                anotherEntity.getFilename(), anotherEntity.getSerialNumber(), anotherEntity.getApplicationVersion(),
+                anotherEntity.getFilename(), anotherEntity.getSerialNumber(), anotherEntity.getSbomVersion(),
                 anotherEntity.getSpec(), anotherEntity.getSpecFormat(), anotherEntity.getSpecVersion(),
                 anotherEntity.getStatus(), anotherEntity.getCreatedAt(), anotherEntity.getMetadataJson()));
   }
@@ -154,7 +154,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getId()).isEqualTo(expected.getId());
     assertThat(actual.getCreatedAt()).isEqualTo(expected.getCreatedAt());
     assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());
-    assertThat(actual.getApplicationVersion()).isEqualTo(expected.getApplicationVersion());
+    assertThat(actual.getSbomVersion()).isEqualTo(expected.getSbomVersion());
     assertThat(actual.getThirdPartyFileId()).isEqualTo(expected.getThirdPartyFileId());
     assertThat(actual.getFilename()).isEqualTo(expected.getFilename());
     assertThat(actual.getSerialNumber()).isEqualTo(expected.getSerialNumber());
@@ -172,7 +172,7 @@ public class ThirdPartySbomMetadataDAOTest
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setApplicationId(application.getId());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
-    thirdPartySbomMetadata.setApplicationVersion(RandomStringUtils.random(10));
+    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10));
     thirdPartySbomMetadata.setFilename(RandomStringUtils.random(10));
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10));
     thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10));

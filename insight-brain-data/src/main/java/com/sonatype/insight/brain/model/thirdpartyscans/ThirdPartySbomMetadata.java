@@ -38,8 +38,8 @@ public class ThirdPartySbomMetadata
   @Column(name = "serial_number")
   private String serialNumber;
 
-  @Column(name = "application_version")
-  private String applicationVersion;
+  @Column(name = "sbom_version")
+  private String sbomVersion;
 
   @Column(name = "spec")
   private String spec;
@@ -62,7 +62,7 @@ public class ThirdPartySbomMetadata
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
-      String applicationVersion,
+      String sbomVersion,
       String filename,
       String serialNumber,
       String spec,
@@ -75,7 +75,7 @@ public class ThirdPartySbomMetadata
 
     this.thirdPartyFileId = thirdPartyFileId;
     this.applicationId = applicationId;
-    this.applicationVersion = applicationVersion;
+    this.sbomVersion = sbomVersion;
     this.filename = filename;
     this.serialNumber = serialNumber;
     this.spec = spec;
@@ -128,12 +128,12 @@ public class ThirdPartySbomMetadata
     this.serialNumber = serialNumber;
   }
 
-  public String getApplicationVersion() {
-    return applicationVersion;
+  public String getSbomVersion() {
+    return sbomVersion;
   }
 
-  public void setApplicationVersion(String applicationVersion) {
-    this.applicationVersion = applicationVersion;
+  public void setSbomVersion(String sbomVersion) {
+    this.sbomVersion = sbomVersion;
   }
 
   public String getSpec() {

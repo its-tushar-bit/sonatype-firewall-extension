@@ -113,7 +113,7 @@ CREATE TABLE sbom_metadata (
     application_id VARCHAR(50) NOT NULL,
     file_name VARCHAR(200) NOT NULL,
     serial_number VARCHAR(2000),
-    application_version VARCHAR(200) NOT NULL,
+    application_version VARCHAR(200) NULL,
     spec VARCHAR(50) NOT NULL,
     spec_format VARCHAR(50) NOT NULL,
     spec_version VARCHAR(20) NOT NULL,
@@ -123,8 +123,7 @@ CREATE TABLE sbom_metadata (
     sbom_version VARCHAR(200) NULL,
     CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
     CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)
-       REFERENCES third_party_file (third_party_file_id),
-    CONSTRAINT sbom_metadata_application_version_uk UNIQUE (application_id, application_version)
+       REFERENCES third_party_file (third_party_file_id)
 );
 CREATE INDEX application_id_idx ON sbom_metadata(application_id);
 

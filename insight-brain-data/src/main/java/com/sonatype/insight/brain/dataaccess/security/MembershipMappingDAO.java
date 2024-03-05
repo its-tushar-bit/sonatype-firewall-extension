@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +175,9 @@ public class MembershipMappingDAO
    * @since 1.15.0
    */
   public List<MembershipMapping> getByRoleIds(Set<String> roleIds) {
+    if (roleIds.isEmpty()) {
+      return Collections.emptyList();
+    }
     String sQuery = "SELECT entity FROM MembershipMapping entity" //
         + " WHERE entity.roleId IN ?1";
     return getList(sQuery, roleIds);

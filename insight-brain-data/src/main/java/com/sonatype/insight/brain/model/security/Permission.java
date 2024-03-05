@@ -21,6 +21,9 @@ public enum Permission
 
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
 
+  ACCESS_AUDIT_LOG("Access", PermissionCategory.ADMINISTRATOR, "Audit Log",
+          true /* global */, true /* allowedInCustomRoles */),
+
   WAIVE_POLICY_VIOLATIONS("Waive", PermissionCategory.REMEDIATION, "Policy Violations", false /* global */,
       true /* allowedInCustomRoles */),
 

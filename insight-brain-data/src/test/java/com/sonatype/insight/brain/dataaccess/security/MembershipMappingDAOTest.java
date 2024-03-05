@@ -154,6 +154,12 @@ public class MembershipMappingDAOTest
   }
 
   @Test
+  public void testGetByRoleIds_emptyRoleIds() {
+    List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.emptySet());
+    assertThat(memberships).isEmpty();
+  }
+
+  @Test
   public void testGetByUserAndGroups() {
     String username = "username";
     String groupName = "group";

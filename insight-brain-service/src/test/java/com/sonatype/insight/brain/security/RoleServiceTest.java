@@ -57,7 +57,8 @@ public class RoleServiceTest
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
     assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES);
+    assertListedPermissions(category,
+            Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
@@ -93,7 +94,7 @@ public class RoleServiceTest
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
     assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category, Permission.VIEW_ROLES);
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
@@ -127,7 +128,7 @@ public class RoleServiceTest
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
     assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category, Permission.VIEW_ROLES);
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());

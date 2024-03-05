@@ -98,7 +98,7 @@ public class RoleManagementTest
 
     // verify permissions under Administrator category, and that they are in right
     // order
-    roleEditorPage.permissions(adminDisplayName).shouldHaveSize(3);
+    roleEditorPage.permissions(adminDisplayName).shouldHaveSize(4);
 
     assertPermission(roleEditorPage.permission(adminDisplayName, 0, FIRST_COLUMN), !ON, !ENABLED,
         Permission.CONFIGURE_SYSTEM);
@@ -106,6 +106,8 @@ public class RoleManagementTest
         Permission.EDIT_ROLES);
     assertPermission(roleEditorPage.permission(adminDisplayName, 0, !FIRST_COLUMN), !ON, !ENABLED,
         Permission.VIEW_ROLES);
+    assertPermission(roleEditorPage.permission(adminDisplayName, 1, !FIRST_COLUMN), !ON, !ENABLED,
+            Permission.ACCESS_AUDIT_LOG);
 
     // IQ permission category
     String iqDisplayName = PermissionCategory.IQ.getDisplayName();

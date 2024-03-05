@@ -7,7 +7,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsDeveloperDashboardEnabled } from '../productFeatures/productFeaturesSelectors';
 import SastScanTitle from 'MainRoot/sastScan/SastScanTitle';
-import LicenseLockScreen from 'MainRoot/integrations/LicenseLockScreen';
+import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 import { NxLoadingSpinner, NxPageMain } from '@sonatype/react-shared-components';
 import SastScanContent from 'MainRoot/sastScan/SastScanContent';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';

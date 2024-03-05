@@ -10,7 +10,7 @@ import SastScanPage from 'MainRoot/sastScan/SastScanPage';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { getSastScanUrl } from 'MainRoot/util/CLMLocation';
-import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/integrations/LicenseLockScreen';
+import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 
 describe('SastScanPage', () => {
   let axiosMock, renderComponent;

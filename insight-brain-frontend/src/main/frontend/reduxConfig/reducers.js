@@ -92,7 +92,7 @@ import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnera
 import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
 import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
-import integrationsSlice from 'MainRoot/integrations/slices/integrationsSlice';
+import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/integrationsSlice';
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';

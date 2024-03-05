@@ -50,7 +50,7 @@
 @use 'dashboard';
 @use '../labs/labs';
 @use '../configuration/configuration';
-@use '../integrations/integrations';
+@use '../development/developmentDashboard/integrations';
 @use '../sastScan/sastScanPage';
 @use 'policy-editor';
 @use '../OrgsAndPolicies/repositories/repositoriesSummaryView';

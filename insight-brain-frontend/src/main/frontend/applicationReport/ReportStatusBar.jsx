@@ -10,13 +10,13 @@ import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import { isNil, propOr, toUpper } from 'ramda';
 import {
   NxBinaryDonutChart,
-  NxH3,
-  NxP,
+  NxButton,
+  NxH2,
+  NxModal,
   NxSmallThreatCounter,
-  NxTextLink,
   NxTile,
+  useToggle,
 } from '@sonatype/react-shared-components';
-import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
 export default function ReportStatusBar(props) {
   const getReportProp = (propName) => propOr(0, propName, props);
 
@@ -46,27 +46,10 @@ export default function ReportStatusBar(props) {
   };
 
   const pluralTermination = (components) => (components === 1 ? '' : 's');
-  const developerDashboardHref = useGetIntegrationsLink('overview');
-
+  const [showApplicationRiskScoreModal, toggleShowApplicationRiskScoreModal] = useToggle(false);
   return (
     <NxTile>
       <NxTile.Content>
-        {isDeveloperDashboardEnabled && (
-          <div className="iq-app-risk-score-container">
-            <NxH3>Application Total Risk Score</NxH3>
-            <div className="iq-app-risk-score-row">
-              <div className="iq-app-risk-score-row__risk" data-testid="iq-app-risk-score">
-                {risk}
-              </div>
-              <NxP className="iq-app-risk-score-row__description">
-                Application risk score is the aggregate threat score of your application&apos;s policy violations. It
-                indicates the total risk found in the latest scan. Sonatype integrations can help to lower your
-                application risk score by providing insights based on your application security.{' '}
-                <NxTextLink href={developerDashboardHref}>Learn more.</NxTextLink>
-              </NxP>
-            </div>
-          </div>
-        )}
         <div className="iq-indicator-row">
           <div className="iq-threat-indicators">
             <NxSmallThreatCounter
@@ -115,6 +98,41 @@ export default function ReportStatusBar(props) {
                 <h3 className="iq-caption__text">{quarantinedComponentCount} QUARANTINED</h3>
                 <p className="iq-caption__sub-text">component{pluralTermination(quarantinedComponentCount)}</p>
               </div>
+            </div>
+          )}
+          {isDeveloperDashboardEnabled && (
+            <div className="iq-application-risk-score--container">
+              <div className="iq-application-risk-score--content">
+                <div
+                  className="iq-application-risk-score--risk nx-small-threat-counter"
+                  data-testid="iq-app-risk-score"
+                >
+                  {risk}
+                </div>
+                <div className="iq-application-risk-score--desc">
+                  <div className="iq-application-risk-score--desc-title">APP RISK SCORE</div>
+                  <button className="nx-text-link" onClick={toggleShowApplicationRiskScoreModal}>
+                    Learn more
+                  </button>
+                </div>
+              </div>
+              {showApplicationRiskScoreModal && (
+                <NxModal onCancel={toggleShowApplicationRiskScoreModal}>
+                  <NxModal.Header>
+                    <NxH2>Application Risk Score</NxH2>
+                  </NxModal.Header>
+                  <NxModal.Content>
+                    Application risk score is the aggregate threat scores of your application's policy violations. It
+                    indicates the total risk found in the latest scan. Sonatype integrations can help lower your
+                    application risk score by providing insights based on your application security.
+                  </NxModal.Content>
+                  <footer className="nx-footer">
+                    <div className="nx-btn-bar">
+                      <NxButton onClick={toggleShowApplicationRiskScoreModal}>Close</NxButton>
+                    </div>
+                  </footer>
+                </NxModal>
+              )}
             </div>
           )}
         </div>

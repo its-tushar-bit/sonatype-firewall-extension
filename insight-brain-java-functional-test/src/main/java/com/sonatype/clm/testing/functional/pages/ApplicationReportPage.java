@@ -45,7 +45,7 @@ public class ApplicationReportPage
     return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(),
         scanId);
   }
-  
+
   public ApplicationReportPage() {
     super(ROOT);
   }
@@ -55,7 +55,7 @@ public class ApplicationReportPage
   }
 
   public SelenideElement reportApplicationRiskScore() {
-    return child(".iq-app-risk-score-row__risk");
+    return child(".iq-application-risk-score--risk");
   }
 
   public SelenideElement reportDescription() {

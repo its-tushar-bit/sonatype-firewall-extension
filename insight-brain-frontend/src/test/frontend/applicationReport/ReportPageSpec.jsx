@@ -6,7 +6,7 @@
 import React from 'react';
 import moment from 'moment-timezone';
 
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -239,10 +239,10 @@ describe('Report Page component', () => {
     expect(legacyPolicyViolationsCountText).toBeVisible();
   });
 
-  it('when developer-dashboard feature is disabled renders a ReportStatusBar without application total risk score', () => {
+  it('when developer-dashboard feature is disabled renders a ReportStatusBar without application risk score', () => {
     productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(false);
     renderComponent();
-    expect(screen.queryByRole('heading', { name: /application total risk score/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/application risk score/i)).not.toBeInTheDocument();
     expect(screen.queryByText(metadata.totalRisk)).not.toBeInTheDocument();
   });
 
@@ -251,24 +251,55 @@ describe('Report Page component', () => {
       productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(true);
     });
 
-    it('renders a ReportStatusBar with application total risk score', () => {
+    it('renders a ReportStatusBar with app risk score', () => {
       renderComponent();
-      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByText(/app risk score/i)).toBeInTheDocument();
       expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent(metadata.totalRisk);
     });
 
     it('renders a ReportStatusBar with "N/A" when developer-dashboard feature is enabled and risk is -1', () => {
       applicationReport.metadata = { ...metadata, totalRisk: -1 };
       renderComponent();
-      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByText(/app risk score/i)).toBeInTheDocument();
       expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent('N/A');
     });
 
-    it('renders a ReportStatusBar with application total risk score when risk is 0', () => {
+    it('renders a ReportStatusBar with app risk score when risk is 0', () => {
       applicationReport.metadata = { ...metadata, totalRisk: 0 };
       renderComponent();
-      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByText(/app risk score/i)).toBeInTheDocument();
       expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent('0');
+    });
+
+    it('renders a button "Learn more"', () => {
+      renderComponent();
+      expect(screen.getByRole('button', { name: /learn more/i })).toBeInTheDocument();
+    });
+
+    it('renders the "Application Risk Score" modal when the "Learn more" button is clicked', () => {
+      renderComponent();
+      const learnMoreBtn = screen.getByRole('button', { name: /learn more/i });
+      fireEvent.click(learnMoreBtn);
+
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByRole('heading', { name: /application risk score/i })).toBeInTheDocument();
+    });
+
+    it('closes the "Application Risk Score" modal when the modal close button is clicked', () => {
+      renderComponent();
+      const learnMoreBtn = screen.getByRole('button', { name: /learn more/i });
+      fireEvent.click(learnMoreBtn);
+
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByRole('heading', { name: /application risk score/i })).toBeInTheDocument();
+
+      const modalCloseBtn = within(modal).getByRole('button', { name: /close/i });
+      expect(modalCloseBtn).toBeInTheDocument();
+
+      fireEvent.click(modalCloseBtn);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 

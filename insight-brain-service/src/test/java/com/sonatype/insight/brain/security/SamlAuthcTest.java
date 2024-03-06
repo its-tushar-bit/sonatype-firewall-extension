@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.keycloak.saml.BaseSAML2BindingBuilder;
+import org.keycloak.saml.SignatureAlgorithm;
 import org.keycloak.saml.common.constants.JBossSAMLConstants;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.w3c.dom.Document;
@@ -123,6 +124,7 @@ public class SamlAuthcTest
     Set<String> flags = new HashSet<>(Arrays.asList(options));
     BaseSAML2BindingBuilder<BaseSAML2BindingBuilder<?>> builder = new BaseSAML2BindingBuilder<>();
     builder.signWith(null, idpSigningKeyPair);
+    builder.signatureAlgorithm(SignatureAlgorithm.RSA_SHA256);
     builder.encrypt(samlConfigurationDAO.get().getSigningKeyPair().getPublic());
 
     if (flags.contains(SIGN_ASSERTION)) {

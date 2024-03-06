@@ -173,7 +173,6 @@ public class SystemInfoTest
     assertThat(entry.getKey()).isEqualTo("system-properties");
 
     final SortedMap<String, Object> entries = entry.getValue();
-    assertThat(entries.get("awt.toolkit")).isNotNull();
     assertThat(entries.get("user.dir")).isNotNull();
     assertThat(entries.get("user.name")).isNotNull();
     assertThat(entries.get("user.timezone")).isNotNull();

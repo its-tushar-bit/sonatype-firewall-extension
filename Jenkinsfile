@@ -9,7 +9,7 @@ configureBranchJob()
 make(
     deployBranch: 'main',
     useEventSpy: false,
-    javaVersion: 'Java 8',
+    javaVersion: 'OpenJDK 17',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,
@@ -258,11 +258,11 @@ Map<String, Closure> getParallelTests() {
   testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 D', 'Java 8', '.*/[R-Z].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 A', 'OpenJDK 11', '.*/[A-C].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[D-K].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[L-P].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 D', 'OpenJDK 11', '.*/[R-Z].*Test.class')
-  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 11', 'OpenJDK 11')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A-C].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[D-K].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C', 'OpenJDK 17', '.*/[L-P].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D', 'OpenJDK 17', '.*/[R-Z].*Test.class')
+  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17')
 
   return testStages
 }
@@ -329,7 +329,7 @@ Map<String, Closure> createFrontendTests(String stageName) {
           Map<String, ?> testConfig = testConfig(
               "-pl 'com.sonatype.insight.brain:insight-brain-frontend' " +
                   "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
-              null,  'OpenJDK 11')
+              null,  'OpenJDK 17')
           mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jasmine " + 
               "com.github.eirslett:frontend-maven-plugin:yarn@jest"
         }
@@ -387,7 +387,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
   }]
 }
 
-Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
+Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
   return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }

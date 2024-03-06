@@ -18,6 +18,7 @@ import {
   selectIsSourceControlForSourceTileSupported,
   selectTenantMode,
   selectIsScmEnabled,
+  selectIsSbomManagerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -37,9 +38,24 @@ export default function OwnerSummaryPills() {
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
   const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const isScmEnabled = useSelector(selectIsScmEnabled);
+  const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
 
-  const navList = useMemo(
-    () => [
+  const navList = useMemo(() => {
+    if (isSbomManagerEnabled && isApp) {
+      return [
+        {
+          label: 'SBOMs',
+          target: 'owner-pill-sboms',
+          isDisplayed: true,
+        },
+        {
+          label: 'Access',
+          target: 'access-tile-pill-access',
+          isDisplayed: true,
+        },
+      ];
+    }
+    return [
       {
         label: 'App Categories',
         target: 'owner-pill-app-categories',
@@ -100,20 +116,20 @@ export default function OwnerSummaryPills() {
         target: 'access-tile-pill-access',
         isDisplayed: true,
       },
-    ],
-    [
-      isOrgsAndAppsEnabled,
-      isLegacyViolationSupported,
-      isMonitoringSupported,
-      isProprietaryComponentsEnabled,
-      isOrg,
-      isDataRetentionConfigEnabled,
-      isApp,
-      isSourceControlForSourceTileSupported,
-      isInnerSourceRepositorySupported,
-      isInnerSourceRepositoriesEnabled,
-      isArtifactoryRepositorySupported,
-    ]
-  );
+    ];
+  }, [
+    isOrgsAndAppsEnabled,
+    isLegacyViolationSupported,
+    isMonitoringSupported,
+    isProprietaryComponentsEnabled,
+    isOrg,
+    isDataRetentionConfigEnabled,
+    isApp,
+    isSourceControlForSourceTileSupported,
+    isInnerSourceRepositorySupported,
+    isInnerSourceRepositoriesEnabled,
+    isArtifactoryRepositorySupported,
+    isSbomManagerEnabled,
+  ]);
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

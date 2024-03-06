@@ -14,6 +14,7 @@ import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAn
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
+import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
@@ -28,6 +29,7 @@ import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/R
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
 import ArtifactoryRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ArtifactoryRepositoryTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
+import SBOMsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SBOMsTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 import LegacyViolationModal from 'MainRoot/OrgsAndPolicies/legacyViolationModal/LegacyViolationModal';
@@ -51,6 +53,7 @@ export default function OwnerSummary() {
   const scmProviderIcon = useSelector(selectScmProviderIcon);
   const entityId = useSelector(selectEntityId);
   const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
+  const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
 
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
 
@@ -96,17 +99,23 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        <ApplicationCategoriesTile />
-        <PoliciesTile />
-        <LegacyViolationsTile />
-        <ContinuousMonitoringSummaryTile />
-        <ProprietaryComponentConfigurationTile />
-        <LabelsTile />
-        <LicenseThreatGroupSummaryTile />
-        <RetentionTile />
-        <SourceControlTile />
-        <InnerSourceRepositoryTile />
-        <ArtifactoryRepositoryTile />
+        {isSbomManagerEnabled && isApp ? (
+          <SBOMsTile />
+        ) : (
+          <>
+            <ApplicationCategoriesTile />
+            <PoliciesTile />
+            <LegacyViolationsTile />
+            <ContinuousMonitoringSummaryTile />
+            <ProprietaryComponentConfigurationTile />
+            <LabelsTile />
+            <LicenseThreatGroupSummaryTile />
+            <RetentionTile />
+            <SourceControlTile />
+            <InnerSourceRepositoryTile />
+            <ArtifactoryRepositoryTile />
+          </>
+        )}
         <AccessTile />
       </div>
       <DeleteOwnerModal />

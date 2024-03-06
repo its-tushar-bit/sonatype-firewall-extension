@@ -518,8 +518,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Sonatype Lifecycle",
         "Sonatype Repository Firewall", "Sonatype Firewall for Artifactory", "Sonatype Lifecycle Cloud",
         "Sonatype Lifecycle Firewall Cloud", "Sonatype Lifecycle SaaS", "Sonatype Lifecycle Firewall SaaS",
-        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS", "Sonatype Sbom Manager",
-        "Sonatype Sbom Manager SaaS");
+        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;

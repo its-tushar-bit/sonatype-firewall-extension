@@ -12,6 +12,7 @@ import {
   getApplicablePolicies,
   getApplicationSummaryUrl,
 } from 'MainRoot/util/CLMLocation';
+import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 describe('OwnerSummary', () => {
@@ -134,13 +135,28 @@ describe('OwnerSummary', () => {
       expect(screen.queryByText('broadcast')).not.toBeInTheDocument();
       expect(screen.queryByText('Provided Contact Display Name')).not.toBeInTheDocument();
     });
+
+    it("does NOT render an SBOM tile because it's on the organization page", async () => {
+      const stateSBOMtrue = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+          },
+        },
+      };
+      renderComponent(stateSBOMtrue);
+
+      expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
+      expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
+    });
   });
 
   describe('if owner is an application', () => {
     const ownerType = 'application';
     const ownerId = 'be17ea5538de4679ba3a9220734ddbf7';
 
-    beforeEach(() => {
+    it('renders proper header with selected contact and publicId', async () => {
       preloadedState = {
         router: {
           currentState: {
@@ -205,14 +221,119 @@ describe('OwnerSummary', () => {
         policyEvaluations: {},
         policyEvaluationsResults: {},
       });
-    });
 
-    it('renders proper header with selected contact and publicId', async () => {
       renderComponent(preloadedState);
 
       expect(await screen.findByText('a-aws 4-lll app filter')).toBeVisible();
       expect(await screen.findByText('(a-aws-4-lll_app_filter)')).toBeVisible();
       expect(await screen.findByText('Provided Contact Display Name')).toBeVisible();
+    });
+  });
+
+  describe('and selectIsSbomManagerEnabled is', () => {
+    beforeEach(() => {
+      const ownerId = '12345';
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.application',
+            url: '/application/{applicationPublicId}',
+            data: {
+              title: 'Application Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            applicationPublicId: 'sbom_test',
+          },
+        },
+        orgsAndPolicies: {
+          labels: {
+            applicableLabels: [],
+            inheritedLabelsOpen: {},
+            loadError: null,
+            loading: false,
+            ownerId: ownerId,
+          },
+          ownerSummary: {
+            hasEditIqPermission: false,
+          },
+          sourceControl: {
+            data: {
+              repositoryUrl: null,
+              provider: {
+                value: null,
+                parentValue: 'github',
+              },
+              token: {
+                value: null,
+              },
+            },
+          },
+          root: {
+            selectedOwner: {
+              name: 'Owner name',
+            },
+          },
+        },
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+          },
+        },
+      };
+      axiosMock.onGet(getApplicationSummaryUrl('sbom_test')).reply(200, {
+        contact: {
+          displayName: 'Provided Contact Display Name',
+        },
+        id: ownerId,
+        name: 'sbom_test',
+        organizationId: '1b3066fd0c6f4f4785a5bcb27a9652e4',
+        organizationName: '4-level-org',
+        publicId: 'sbom_test',
+        policyEvaluations: {},
+        policyEvaluationsResults: {},
+      });
+      componentLabelSetup();
+    });
+
+    const componentLabelSetup = () => {
+      spyOn(actions, 'loadApplicableLabels').and.returnValue({
+        type: 'labels/loadApplicableLabels/fulfilled',
+        payload: [],
+      });
+    };
+
+    it('true, then SBOMs and Access tiles are visible and no other tiles are', async () => {
+      const stateSBOMtrue = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+          },
+        },
+      };
+      renderComponent(stateSBOMtrue);
+
+      expect(await screen.findByRole('heading', { name: 'SBOMs' })).toBeVisible();
+      expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
+      expect(await screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
+    });
+
+    it('false, then SBOMs and Access tiles are NOT visible but other tiles are', async () => {
+      const stateSBOMfalse = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': false,
+          },
+        },
+      };
+      renderComponent(stateSBOMfalse);
+
+      expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
+      expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Component Labels' })).toBeVisible();
     });
   });
 });

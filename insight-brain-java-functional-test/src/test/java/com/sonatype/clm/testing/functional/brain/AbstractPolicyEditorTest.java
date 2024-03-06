@@ -738,7 +738,7 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testDisabledHygieneRatingPolicyConditions() {
-    setMissingFeature(LicensedFeature.HYGIENE);
+    setMissingFeatures(LicensedFeature.HYGIENE, LicensedFeature.SBOM_MANAGER);
     String ownerId = currentOwner.getId();
     Policy policy = createDisabledHygieneRatingPolicyConditions(ownerId);
     refresh();
@@ -758,7 +758,7 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testDisabledIntegrityRatingPolicyConditions() {
-    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
+    setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY, LicensedFeature.SBOM_MANAGER);
     String ownerId = currentOwner.getId();
     Policy policy = createDisabledIntegrityRatingPolicyConditions(ownerId);
     refresh();

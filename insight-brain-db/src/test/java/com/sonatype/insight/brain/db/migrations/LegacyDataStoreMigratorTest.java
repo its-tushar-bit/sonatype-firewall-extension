@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
 import java.util.zip.ZipFile;
+
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -174,21 +175,6 @@ public class LegacyDataStoreMigratorTest
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Missing the database schema version either in the database itself or in the database version " +
             "file " + databaseVersionFile + ".");
-  }
-
-  @Test
-  @H2DiskTest(
-      suppressMigrations = true,
-      copyExistingDatabase = "DataStoreMigratorTest/testMigrate_CurrentVersionHigherThanDesiredVersion"
-  )
-  public void testMigrate_ThrowsExceptionWhenCurrentVersionIsHigherThanDesiredVersion() throws Exception {
-    File databaseDir = getDatabasePath();
-    File databaseVersionFile = new File(databaseDir, "dm.ver");
-
-    assertThatThrownBy(
-        () -> runDataStoreMigrator(databaseRule.getDataMartDataStore())).isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("was created by a newer product version");
-    assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("9999");
   }
 
   @Test

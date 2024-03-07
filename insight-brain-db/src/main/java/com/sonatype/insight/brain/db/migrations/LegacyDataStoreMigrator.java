@@ -18,6 +18,7 @@ import java.sql.Statement;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -91,13 +92,7 @@ public class LegacyDataStoreMigrator
       }
 
       log.info("Current version of database schema {}/{}: {}", dataStoreId, databaseSchema, currentVersion);
-      if (currentVersion > desiredVersion) {
-        throw new IllegalStateException(
-            "Database schema " + databaseSchema + " was created by a newer product version. "
-                + "Please upgrade your IQ Server or restore a database backup taken by your current version.");
-      }
-
-      if (currentVersion == desiredVersion) {
+      if (currentVersion >= desiredVersion) {
         return;
       }
 

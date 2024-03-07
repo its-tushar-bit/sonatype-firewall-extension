@@ -51,8 +51,15 @@ public class MultiTenantQuartzJobStoreTX
     return doSuperCheckIn();
   }
 
-  // This is a separate method so that it can be overriden during testing.
+  // This is a separate method so that it can be overridden during testing.
   protected boolean doSuperCheckIn() throws JobPersistenceException {
     return super.doCheckin();
+  }
+
+  @Override
+  protected boolean shouldExitDueToSchemaMigration() {
+    // For MTIQ our deployment explicitly requires that a new deployment pod/container coming online runs migrations so
+    // existing pods/containers should NEVER exit when a migration happens
+    return false;
   }
 }

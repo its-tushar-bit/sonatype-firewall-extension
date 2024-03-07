@@ -25,6 +25,7 @@ import org.quartz.utils.ConnectionProvider;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzJobStoreTXTest
@@ -71,6 +72,17 @@ public class MultiTenantQuartzJobStoreTXTest
 
       assertThat(underTest.lastUsedTenant).isEqualTo(GLOBAL_TENANT);
     });
+  }
+
+  @Test
+  public void schemaMigrationShouldNotExitOnCheckIn() {
+    // pretend that a schema migration is in progress
+    // Note `lenient` is used as the code is never actually hit due to the override
+    lenient().when(clusterLockManager.lockExists(ClusterLockManager.getLockIdForSchemaMigrationInProgress()))
+        .thenReturn(true);
+
+    // the MTIQ implementation still always returns false
+    assertThat(underTest.shouldExitDueToSchemaMigration()).isFalse();
   }
 
   private static class TestMultiTenantQuartzJobStoreTX

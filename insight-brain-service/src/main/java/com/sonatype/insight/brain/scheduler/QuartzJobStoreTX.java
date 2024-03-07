@@ -151,7 +151,7 @@ public class QuartzJobStoreTX
     return super.doCheckin();
   }
 
-  private boolean shouldExitDueToSchemaMigration() {
+  protected boolean shouldExitDueToSchemaMigration() {
     boolean schemaMigrationUnfinished =
         clusterLockManager.lockExists(ClusterLockManager.getLockIdForSchemaMigrationInProgress());
     if (schemaMigrationUnfinished) {

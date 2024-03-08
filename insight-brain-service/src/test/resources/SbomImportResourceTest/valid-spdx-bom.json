@@ -1,0 +1,48 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-02-29T23:42:28Z",
+    "creators" : [ "Tool: Sonatype IQ Server - 1.174.0-SNAPSHOT" ]
+  },
+  "name" : "pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-com.h2database-h2-2.2.224",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.2.224?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "(EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND BSD-3-Clause)",
+    "licenseDeclared" : "(EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND BSD-3-Clause)",
+    "name" : "com.h2database:h2",
+    "versionInfo" : "2.2.224"
+  }, {
+    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-vuln-a140fd3c3ded4bb0a640dc31e2904dc9",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_vuln",
+    "versionInfo" : "a140fd3c3ded4bb0a640dc31e2904dc9"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-vuln-a140fd3c3ded4bb0a640dc31e2904dc9"
+  } ]
+}

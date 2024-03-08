@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -174,5 +177,18 @@ public class InsightWork
   public File getSbomDir(final String appId) {
     IdValidationUtils.validate(appId);
     return new File(getSbomDir(), appId);
+  }
+  
+  public File getSbomTempDir() {
+    File sbomTempDir = new File(getSbomDir(), "temp");
+    if (!sbomTempDir.exists()) {
+      try {
+        Files.createDirectories(sbomTempDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed creating SBOM temporary directory", e);
+      }
+    }
+    return sbomTempDir;
   }
 }

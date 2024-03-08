@@ -27,6 +27,8 @@ public class SearchIndexChangeDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createSearchIndexChangeDAO();
+    // Sanity check
+    assertThat(dao.getAll()).isEmpty();
   }
 
   @Test
@@ -39,8 +41,6 @@ public class SearchIndexChangeDAOTest
   public void testInsert_AdvancedSearchConfigurationEnabled_AdvancedSearchDisabled() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(false);
-    dao.getAll().forEach(dao::delete);
-    assertThat(dao.getAll()).isEmpty();
 
     dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
     assertThat(dao.getAll()).isEmpty();
@@ -50,8 +50,6 @@ public class SearchIndexChangeDAOTest
   public void testInsert_AdvancedSearchConfigurationEnabled_AdvancedSearchEnabled() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
-    dao.getAll().forEach(dao::delete);
-    assertThat(dao.getAll()).isEmpty();
 
     SearchIndexChange change = new SearchIndexChange(ChangeType.APPLICATION, "appId");
     dao.insert(change);
@@ -62,8 +60,6 @@ public class SearchIndexChangeDAOTest
   public void testInsert_AdvancedSearchConfigurationDisabled_AdvancedSearchDisabled() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(false);
-    dao.getAll().forEach(dao::delete);
-    assertThat(dao.getAll()).isEmpty();
 
     dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
     assertThat(dao.getAll()).isEmpty();
@@ -73,8 +69,6 @@ public class SearchIndexChangeDAOTest
   public void testInsert_AdvancedSearchConfigurationDisabled_AdvancedSearchEnabled() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
-    dao.getAll().forEach(dao::delete);
-    assertThat(dao.getAll()).isEmpty();
 
     dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
     assertThat(dao.getAll()).isEmpty();
@@ -84,8 +78,6 @@ public class SearchIndexChangeDAOTest
   public void testGetBatch() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
-    dao.getAll().forEach(dao::delete);
-    assertThat(dao.getAll()).isEmpty();
 
     for (int i = 0; i < 10; i++) {
       dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));

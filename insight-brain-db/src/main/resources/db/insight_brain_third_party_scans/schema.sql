@@ -126,6 +126,7 @@ CREATE TABLE sbom_metadata (
     CONSTRAINT sbom_metadata_sbom_version_uk UNIQUE (application_id, sbom_version)
 );
 CREATE INDEX application_id_idx ON sbom_metadata(application_id);
+CREATE INDEX sbom_metadata_status_idx ON sbom_metadata (status);
 
 CREATE TABLE IF NOT EXISTS schema_version (
   data_store_id varchar(32) NOT NULL,

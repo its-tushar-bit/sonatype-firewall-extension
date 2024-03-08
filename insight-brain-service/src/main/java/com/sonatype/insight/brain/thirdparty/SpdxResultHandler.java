@@ -41,6 +41,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.IdentificationSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
@@ -319,6 +320,7 @@ public class SpdxResultHandler
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null, link, 0.0f, null);
     coordinateSecurity.setVulnerabilitySource(source);
+    coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     return coordinateSecurity;
   }
 
@@ -345,6 +347,7 @@ public class SpdxResultHandler
         for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
           ThirdPartyCoordinateLicense coordinateLicense =
               new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
+          coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
           thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
         }
       }

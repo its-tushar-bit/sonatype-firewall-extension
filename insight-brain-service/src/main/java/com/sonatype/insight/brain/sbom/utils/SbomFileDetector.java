@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.sbom.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Set;
@@ -17,9 +18,11 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.cyclonedx.exception.ParseException;
@@ -32,6 +35,7 @@ import org.spdx.library.model.SpdxPackage;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 
 @Named
 public class SbomFileDetector
@@ -48,12 +52,34 @@ public class SbomFileDetector
 
   private final Tika tika = new Tika();
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  public SbomDetectionResult getSbomMetadata(InputStream sbomContent, String sbomName) {
+    return getSbomMetadata(null, sbomContent, sbomName);
+  }
+
   public SbomDetectionResult getSbomMetadata(File sbomFile) {
-    SbomDetectionResult result = new SbomDetectionResult();
+    return getSbomMetadata(sbomFile, null, null);
+  }
+
+  private SbomDetectionResult getSbomMetadata(File sbomFile, InputStream sbomContent, String sbomName) {
     try {
-      result.mimeType = tika.detect(sbomFile);
+      String sbomStringContent;
+      String detectedMimeType;
+      if (sbomFile != null) {
+        detectedMimeType = tika.detect(sbomFile);
+        sbomStringContent = getSbomStringContent(sbomFile);
+      }
+      else {
+        detectedMimeType = tika.detect(sbomContent, sbomName);
+        sbomStringContent = getSbomStringContent(sbomContent);
+      }
+      SbomDetectionResult result = new SbomDetectionResult();
+      result.mimeType = detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidJson(sbomStringContent) ?
+          APPLICATION_JSON : detectedMimeType;
+
       if (supportedSbomMimeTypes.contains(result.mimeType)) {
-        return attemptDetectingSbomFromFile(sbomFile, result);
+        return attemptDetectingSbomFromContent(sbomStringContent, result);
       }
       result.errorMessage = "provided file type is not a supported SBOM file type";
       return result;
@@ -63,10 +89,7 @@ public class SbomFileDetector
     }
   }
 
-  private SbomDetectionResult attemptDetectingSbomFromFile(final File sbomFile, final SbomDetectionResult sbomResult)
-      throws IOException
-  {
-    String sbom = FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
+  private SbomDetectionResult attemptDetectingSbomFromContent(final String sbom, final SbomDetectionResult sbomResult) {
     if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
       return tryDetectingAsCycloneDx(sbom, sbomResult);
     }
@@ -152,6 +175,7 @@ public class SbomFileDetector
     sbomResult.summary.vulnerabilityCount = CollectionUtils.size(bom.getVulnerabilities());
     sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
     sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
+    sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
   }
 
   private SbomFormat detectSbomFormat(final String mimeType) {
@@ -162,5 +186,23 @@ public class SbomFileDetector
       return SbomFormat.XML;
     }
     return null;
+  }
+
+  private boolean isPlainTextValidJson(String sbomContent) {
+    try {
+      return objectMapper.readTree(sbomContent) != null;
+    }
+    catch (IOException e) {
+      log.debug("Error when parsing sbom file from JSON content");
+    }
+    return false;
+  }
+
+  public static String getSbomStringContent(File sbomFile) throws IOException {
+    return FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
+  }
+
+  public static String getSbomStringContent(InputStream sbomContent) throws IOException {
+    return IOUtils.toString(sbomContent, StandardCharsets.UTF_8);
   }
 }

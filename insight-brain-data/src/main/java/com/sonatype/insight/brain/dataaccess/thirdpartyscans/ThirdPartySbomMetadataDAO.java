@@ -59,4 +59,10 @@ public class ThirdPartySbomMetadataDAO
         + " WHERE entity.applicationId=?1";
     createQuery(sQuery, applicationId).executeUpdate(tx);
   }
+
+  public long getActiveSbomCount() {
+    String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity " //
+        + "WHERE entity.status='ACTIVE'";
+    return getSingle(Long.class, sQuery);
+  }
 }

@@ -17,6 +17,10 @@ public class ThirdPartyScanContext
 
   private boolean sbomSavedForScan;
 
+  private String sbomFileName;
+
+  private String thirdPartyFileId;
+
   public ThirdPartyScanContext(final String scanRequestId, final String applicationId, final File scanFile) {
     this.scanRequestId = scanRequestId;
     this.applicationId = applicationId;
@@ -41,5 +45,21 @@ public class ThirdPartyScanContext
 
   public void markSbomSavedForScan() {
     this.sbomSavedForScan = true;
+  }
+
+  public String getSbomFileName() {
+    return sbomFileName;
+  }
+
+  public void setSbomFileName(final String sbomFileName) {
+    this.sbomFileName = sbomFileName;
+  }
+
+  public String getThirdPartyFileId() {
+    return thirdPartyFileId;
+  }
+
+  public void setThirdPartyFileId(final String thirdPartyFileId) {
+    this.thirdPartyFileId = thirdPartyFileId;
   }
 }

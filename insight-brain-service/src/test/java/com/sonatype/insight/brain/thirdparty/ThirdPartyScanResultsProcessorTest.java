@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
@@ -23,14 +25,18 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
@@ -91,6 +97,9 @@ public class ThirdPartyScanResultsProcessorTest
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
   private ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
 
   @Mock
@@ -98,6 +107,9 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private SbomFileDetector sbomFileDetector;
 
   @Mock
   private ProductLicense productLicense;
@@ -109,8 +121,8 @@ public class ThirdPartyScanResultsProcessorTest
   @Before
   public void before() {
     thirdPartyScanResultsProcessorSpy =
-        spy(new ThirdPartyScanResultsProcessor(thirdPartyScanDAO, thirdPartyFileDAO, telemetrySender,
-            thirdPartyResultHandlerFactory, insightWork, productLicense));
+        spy(new ThirdPartyScanResultsProcessor(thirdPartyScanDAO, thirdPartyFileDAO, thirdPartySbomMetadataDAO,
+            telemetrySender, thirdPartyResultHandlerFactory, insightWork, productLicense, sbomFileDetector));
   }
 
   @Test
@@ -162,6 +174,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_spdx_api_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
@@ -216,20 +229,27 @@ public class ThirdPartyScanResultsProcessorTest
 
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).doesNotExist();
+    verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
+    String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        application.getId());
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+
+    List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).exists();
@@ -239,6 +259,18 @@ public class ThirdPartyScanResultsProcessorTest
         .isNotEmpty()
         .hasSize(1);
     assertThat(sboms[0].getName()).endsWith("xml.gz");
+    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileList.get(0).getId(),
+        application.getId(),
+        "",
+        sboms[0].getName(),
+        "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+        "CycloneDx",
+        "xml",
+        "1.1",
+        SbomStatus.PENDING.name(),
+        new Date(), "");
+    assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
@@ -265,16 +297,22 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_sbom_cli_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-cli.xml");
+    String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        application.getId());
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(ItemContentType.SBOM);
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+
+    List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).exists();
@@ -284,6 +322,18 @@ public class ThirdPartyScanResultsProcessorTest
         .isNotEmpty()
         .hasSize(1);
     assertThat(sboms[0].getName()).endsWith("xml.gz");
+    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileList.get(0).getId(),
+        application.getId(),
+        "",
+        sboms[0].getName(),
+        "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+        "CycloneDx",
+        "xml",
+        "1.1",
+        SbomStatus.PENDING.name(),
+        new Date(), "");
+    assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
@@ -356,6 +406,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScanner_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
@@ -376,6 +427,8 @@ public class ThirdPartyScanResultsProcessorTest
 
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).doesNotExist();
+    thirdPartyFileList.forEach(thirdPartyFile -> assertThirdPartySbomMetadata(thirdPartyFile, false, null));
+    verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
@@ -557,6 +610,25 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 
+  @Test
+  public void testHandle_cyclonedx_api_sbomManagerEnabled_maxSbom_reached() throws Exception {
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
+    IntStream.rangeClosed(1, 2).forEach(i -> createSbomMetadata());
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
+    File tempScan = tempDir.newFile();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScan, tempDir.getRoot(), null,
+        application.getId());
+
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
+
+    File sbomDir = insightWork.getSbomDir(application.getId());
+    assertThat(sbomDir).doesNotExist();
+    verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
+  }
+
   private void assertLogOutput(final String message) {
     assertThat(logOutput.getErrorMessages(loggerName)).containsOnly(message);
   }
@@ -713,6 +785,31 @@ public class ThirdPartyScanResultsProcessorTest
     }
   }
 
+  private void assertThirdPartySbomMetadata(
+      ThirdPartyFile thirdPartyFile,
+      boolean expectRecord,
+      ThirdPartySbomMetadata expectedSbomMetadata)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    if (expectRecord) {
+      assertThat(thirdPartySbomMetadata).isNotNull();
+      assertThat(thirdPartySbomMetadata.getId()).isNotNull();
+      assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
+      assertThat(thirdPartySbomMetadata.getSbomVersion()).isNotNull();
+      assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(expectedSbomMetadata.getStatus());
+      assertThat(thirdPartySbomMetadata.getThirdPartyFileId()).isEqualTo(expectedSbomMetadata.getThirdPartyFileId());
+      assertThat(thirdPartySbomMetadata.getFilename()).isEqualTo(expectedSbomMetadata.getFilename());
+      assertThat(thirdPartySbomMetadata.getApplicationId()).isEqualTo(expectedSbomMetadata.getApplicationId());
+      assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(expectedSbomMetadata.getSpec());
+      assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(expectedSbomMetadata.getSpecFormat());
+      assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(expectedSbomMetadata.getSpecVersion());
+    }
+    else {
+      assertThat(thirdPartySbomMetadata).isNull();
+    }
+  }
+
   private void assertTelemetryData(TelemetryData telemetryData, String contentType) {
     assertThat(telemetryData.getAttributes()).hasSize(5);
     assertThat(telemetryData.getAttributes())
@@ -730,5 +827,15 @@ public class ThirdPartyScanResultsProcessorTest
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
     telemetryData.setAttributes(attributes);
     return telemetryData;
+  }
+
+  private void createSbomMetadata() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata metadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(SbomStatus.ACTIVE.name(), application.getId(),
+            thirdPartyFile.getId());
+
+    thirdPartySbomMetadataDAO.insert(metadata);
   }
 }

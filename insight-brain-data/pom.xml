@@ -271,6 +271,7 @@
                 <include>**/AbstractDataTest*</include>
                 <include>**/TestDAOFactory*</include>
                 <include>**/ConditionTypesTestHelper*</include>
+                <include>**/ThirdPartySbomMetadataTestUtil*</include>
               </includes>
             </configuration>
           </execution>

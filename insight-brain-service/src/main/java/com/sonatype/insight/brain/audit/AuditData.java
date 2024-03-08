@@ -26,10 +26,12 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
+import com.sonatype.insight.brain.thirdparty.SbomAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -470,6 +472,14 @@ public abstract class AuditData
     else {
       AuditData.get().setData(systemConfigurationPropertyFeature.getPropertyName(), "null");
     }
+    return this;
+  }
+
+  public AuditData setSbomVersion(final ThirdPartySbomMetadata sbomMetadata, final SbomAction action) {
+    setData("applicationId", sbomMetadata.getApplicationId());
+    setData("sbomVersion", sbomMetadata.getSbomVersion());
+    setData("status", sbomMetadata.getStatus());
+    setData("operation", action);
     return this;
   }
 }

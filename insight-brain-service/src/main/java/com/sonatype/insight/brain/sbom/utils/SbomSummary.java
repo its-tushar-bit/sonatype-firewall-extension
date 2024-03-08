@@ -20,4 +20,6 @@ public class SbomSummary
   public String applicationName;
 
   public String applicationVersion;
+
+  public String serialNumber;
 }

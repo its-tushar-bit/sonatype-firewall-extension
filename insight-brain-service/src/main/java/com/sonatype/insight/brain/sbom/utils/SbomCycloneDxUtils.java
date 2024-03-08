@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.util.UUID;
+
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Metadata;
 
@@ -28,6 +30,14 @@ public class SbomCycloneDxUtils
       return metadata.getComponent().getVersion();
     }
     return null;
+  }
+
+  public static String getOrGenerateSerialNumber(Bom bomDocument) {
+    final String serialNumber = bomDocument.getSerialNumber();
+    if (serialNumber != null) {
+      return serialNumber;
+    }
+    return "urn:uuid:" + UUID.randomUUID();
   }
 
   private static Metadata getMetadata(Bom bomDocument) {

@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
-import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -16,7 +16,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -150,6 +149,27 @@ public class ThirdPartySbomMetadataDAOTest
     }
   }
 
+  @Test
+  public void testGetActiveSbomCount() {
+    IntStream.rangeClosed(1, 3).forEach(i -> createSbomMetadata(true, "ACTIVE"));
+    long sbomCount = dao.getActiveSbomCount();
+    assertThat(sbomCount).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetActiveSbomCount_Different_Statuses() {
+    IntStream.rangeClosed(1, 3).forEach(i -> createSbomMetadata(true, "ACTIVE"));
+    IntStream.rangeClosed(1, 4).forEach(i -> createSbomMetadata(true, "PENDING"));
+    long sbomCount = dao.getActiveSbomCount();
+    assertThat(sbomCount).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetActiveSbomCount_Empty_Table() {
+    long sbomCount = dao.getActiveSbomCount();
+    assertThat(sbomCount).isZero();
+  }
+
   void assertThirdPartySbomMetadata(ThirdPartySbomMetadata actual, ThirdPartySbomMetadata expected) {
     assertThat(actual.getId()).isEqualTo(expected.getId());
     assertThat(actual.getCreatedAt()).isEqualTo(expected.getCreatedAt());
@@ -166,24 +186,18 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save) {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    return createSbomMetadata(save, "ACTIVE");
+  }
+
+  ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {
     Application application = tempEntity.newApplicationWithParent();
-    thirdPartySbomMetadata.setCreatedAt(new Date());
-    thirdPartySbomMetadata.setApplicationId(application.getId());
-    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
-    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setFilename(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setStatus(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setMetadataJson(RandomStringUtils.random(1500));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata metadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(status, application.getId(), thirdPartyFile.getId());
 
     if (save) {
-      dao.insert(thirdPartySbomMetadata);
+      dao.insert(metadata);
     }
-    return thirdPartySbomMetadata;
+    return metadata;
   }
 }

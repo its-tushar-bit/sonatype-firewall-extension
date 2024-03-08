@@ -43,6 +43,7 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.util.SbomUtils;
+import com.sonatype.insight.IdentificationSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
@@ -666,6 +667,7 @@ public class SbomResultHandler
           }
           coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
           coordinateSecurity.setDescription(vulnerability.getDescription());
+          coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
           return coordinateSecurity;
         }
       }
@@ -797,6 +799,7 @@ public class SbomResultHandler
         for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
           ThirdPartyCoordinateLicense coordinateLicense =
               new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
+          coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
           thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
         }
       }
@@ -822,10 +825,10 @@ public class SbomResultHandler
   {
     ThirdPartyCoordinateLicense coordinateLicense = new ThirdPartyCoordinateLicense();
     coordinateLicense.setFileCoordinateId(fileCoordinateId);
-
     coordinateLicense.setLicenseId(licenseId);
     coordinateLicense.setName(licenseName);
     coordinateLicense.setUrl(licenseUrl);
+    coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 

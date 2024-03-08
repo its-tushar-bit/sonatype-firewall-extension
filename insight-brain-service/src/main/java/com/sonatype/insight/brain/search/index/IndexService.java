@@ -120,6 +120,10 @@ public class IndexService
 
   private static final Logger log = LoggerFactory.getLogger(IndexService.class);
 
+  private static final int QUEUE_POP_AMOUNT = 64_000;
+
+  private static final int JOB_EXECUTION_INTERVAL_IN_SECONDS = 3;
+
   private final OrganizationDAO organizationDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -238,7 +242,7 @@ public class IndexService
     if (disableForTesting) {
       return;
     }
-    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(3));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(JOB_EXECUTION_INTERVAL_IN_SECONDS));
   }
 
   @Override
@@ -377,7 +381,9 @@ public class IndexService
   }
 
   public void updateIndex() throws IOException {
-    List<SearchIndexChange> changes = searchIndexChangeDAO.getAll();
+    // Note: this pops a limited amount of records off the 'queue' as there are cases of large amounts of rows
+    // accumulating. See CLM-29339. TODO Future enhancements will further improve this code - CLM-29618
+    List<SearchIndexChange> changes = searchIndexChangeDAO.getBatch(QUEUE_POP_AMOUNT);
     if (changes.isEmpty()) {
       return;
     }

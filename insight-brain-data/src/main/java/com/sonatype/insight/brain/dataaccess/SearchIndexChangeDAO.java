@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,5 +36,11 @@ public class SearchIndexChangeDAO
   @Override
   public void update(TransactionContext tx, SearchIndexChange entity) {
     throw new UnsupportedOperationException();
+  }
+
+  public List<SearchIndexChange> getBatch(final int limit) {
+    Query<SearchIndexChange> query = new Query<>("SELECT entity FROM SearchIndexChange entity");
+    query.setMaxResults(limit);
+    return query.getList();
   }
 }

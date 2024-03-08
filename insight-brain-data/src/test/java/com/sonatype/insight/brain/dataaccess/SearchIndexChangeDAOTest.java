@@ -79,4 +79,19 @@ public class SearchIndexChangeDAOTest
     dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
     assertThat(dao.getAll()).isEmpty();
   }
+
+  @Test
+  public void testGetBatch() {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
+    dao.getAll().forEach(dao::delete);
+    assertThat(dao.getAll()).isEmpty();
+
+    for (int i = 0; i < 10; i++) {
+      dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
+    }
+    assertThat(dao.getBatch(5)).hasSize(5);
+    assertThat(dao.getBatch(11)).hasSize(10);
+    assertThat(dao.getAll()).hasSize(10);
+  }
 }

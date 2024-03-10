@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
+import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -38,7 +39,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -109,7 +109,9 @@ public class OrgsAndPoliciesSidebarTest
     RepositoryManager firstRepositoryManagerInSortedList = tempEntity.newRepositoryManager(
         "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
     );
-    tempEntity.newHostedRepository(firstRepositoryManagerInSortedList, "npm-hosted", "npm", true);
+    Repository npmHostedRepository = tempEntity.newHostedRepository(
+        firstRepositoryManagerInSortedList, "npm-hosted", "npm", true
+    );
     tempEntity.newProxyRepository(firstRepositoryManagerInSortedList, "npm-proxy", "npm", true, true);
     Repository mavenCentralRepository = tempEntity.newProxyRepository(
         firstRepositoryManagerInSortedList, "maven-central-proxy", "maven", true, true
@@ -132,20 +134,25 @@ public class OrgsAndPoliciesSidebarTest
 
     orgsAndPoliciesSidebar.getRepositoryManagerLink(0).click();
     waitUntilUrl(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
+    NxCollapsible repositoryList = orgsAndPoliciesSidebar.getRepositoryList();
+    repositoryList.children().shouldHaveSize(3);
 
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Manager level");
 
     orgsAndPoliciesSidebar.getRepositoryLink(0).click();
     waitUntilUrl(OwnerSummaryPage.url(mavenCentralRepository.getType(), mavenCentralRepository.getId()));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(mavenCentralRepository.getName()));
 
-    NxCollapsible repositoryList = orgsAndPoliciesSidebar.getRepositoryList();
-    repositoryList.children().shouldHaveSize(3);
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Proxy Repository level");
 
-    repositoryList.children().get(0).shouldHave(attribute("href"));
-    repositoryList.children().get(1).shouldNotHave(attribute("href"));
-    repositoryList.children().get(2).shouldHave(attribute("href"));
+    refreshOrOpen(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(firstRepositoryManagerInSortedList.getName()));
 
-    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository level");
+    orgsAndPoliciesSidebar.getRepositoryLink(1).click();
+    waitUntilUrl(OwnerSummaryPage.url(npmHostedRepository.getType(), npmHostedRepository.getId()));
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(npmHostedRepository.getName()));
+
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Hosted Repository level");
   }
 
   @Test

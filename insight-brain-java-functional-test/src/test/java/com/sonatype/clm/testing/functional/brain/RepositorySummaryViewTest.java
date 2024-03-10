@@ -81,6 +81,34 @@ public class RepositorySummaryViewTest
   }
 
   @Test
+  public void testBreadcrumbs() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository proxyRepository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy",
+        "npm", true, true);
+    Repository hostedRepository = tempEntity.newHostedRepository(repositoryManager, "npm-hosted",
+        "npm", true);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(proxyRepository.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(proxyRepository.getId()));
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+    breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-proxy"));
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
+
+    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
+    breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
+    breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
+    breadcrumb.listItems().get(3).shouldHave(text("npm-hosted"));
+  }
+
+  @Test
   public void testRepositorySummaryView_policyTile() {
     RepositoryManager repositoryManager = tempEntity
         .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");

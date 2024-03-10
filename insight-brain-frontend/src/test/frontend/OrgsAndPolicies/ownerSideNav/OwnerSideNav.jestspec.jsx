@@ -750,7 +750,10 @@ describe('OwnerSideNav', () => {
             '#/management/view/repository/repoOne'
           );
           expect(screen.getByRole('menuitem', { name: /Repo Two/ })).toBeVisible();
-          expect(screen.getByRole('menuitem', { name: /Repo Two/ })).not.toHaveAttribute('href');
+          expect(screen.getByRole('menuitem', { name: /Repo Two/ })).toHaveAttribute(
+            'href',
+            '#/management/view/repository/repoTwo'
+          );
         });
       });
 

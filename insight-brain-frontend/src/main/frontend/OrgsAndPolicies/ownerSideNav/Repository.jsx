@@ -15,10 +15,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 const Repository = memo(({ repositoryId, ...otherProps }) => {
   const uiRouterState = useRouterState();
   const repository = useSelector((state) => selectOwnerById(state, repositoryId));
-  const repositoryUrl =
-    repository.repositoryType === 'proxy'
-      ? uiRouterState.href('management.view.repository', { repositoryId })
-      : undefined;
+  const repositoryUrl = uiRouterState.href('management.view.repository', { repositoryId });
 
   return (
     <NxOverflowTooltip>

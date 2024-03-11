@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
@@ -29,6 +30,7 @@ import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SbomSpdxUtilsTest
 {
@@ -102,6 +104,28 @@ public class SbomSpdxUtilsTest
   @Test
   public void testGetAllVulnerabilities_null() throws Exception {
     assertThat(SbomSpdxUtils.getAllVulnerabilities(null)).isNull();
+  }
+
+  @Test
+  public void testGetOrGenerateSpdxSerialNumber() throws InvalidSPDXAnalysisException {
+    SpdxDocument doc = new SpdxDocument("docId");
+    assertThat(SbomSpdxUtils.getOrGenerateSpdxSerialNumber(doc)).isEqualTo(
+        "docId");
+  }
+
+  @Test
+  public void testGetOrGenerateSpdxSerialNumber_isEmpty() throws InvalidSPDXAnalysisException {
+    SpdxDocument doc = new SpdxDocument("" );
+    assertThat(SbomSpdxUtils.getOrGenerateSpdxSerialNumber(doc)).startsWith(
+        "sonatype/spdxdocs/uuid/");
+  }
+
+  @Test
+  public void testGetOrGenerateSpdxSerialNumber_isNull() {
+    SpdxDocument mockDoc = Mockito.mock(SpdxDocument.class);
+    when(mockDoc.getDocumentUri()).thenReturn(null);
+    assertThat(SbomSpdxUtils.getOrGenerateSpdxSerialNumber(mockDoc)).startsWith(
+        "sonatype/spdxdocs/uuid/");
   }
 
   private static SpdxDocument getSpdxDocument(final String fileName, Format format)

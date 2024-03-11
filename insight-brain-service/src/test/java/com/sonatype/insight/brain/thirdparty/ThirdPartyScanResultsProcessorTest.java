@@ -178,11 +178,16 @@ public class ThirdPartyScanResultsProcessorTest
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
+    String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        application.getId());
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SPDX);
+
+    List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 6);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
@@ -193,6 +198,24 @@ public class ThirdPartyScanResultsProcessorTest
         .isNotEmpty()
         .hasSize(1);
     assertThat(sboms[0].getName()).endsWith("json.gz");
+
+    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileList.get(0).getId(),
+        application.getId(),
+        "1.0-SNAPSHOT",
+        sboms[0].getName(),
+        "http://localhost:8070/ui/links/application/local-iq-app/report/d6ffc430f2594d2480c7af837eb2a5b6",
+        "SPDX",
+        "json",
+        "2.3",
+        "PENDING",
+        new Date(), "");
+    assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileList.get(0).getId());
+    assertThat(thirdPartySbomMetadata.getSerialNumber()).isEqualTo(sbomMetadata.getSerialNumber());
+    assertThat(thirdPartySbomMetadata.getSbomVersion()).isEqualTo(sbomMetadata.getSbomVersion());
+    verify(thirdPartyScanResultsProcessorSpy, times(1))
+        .getSbomMetadataEntity(any(), any());
   }
 
   @Test

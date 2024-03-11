@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -65,5 +66,11 @@ public final class SbomSpdxUtils
       return vulnerabilities;
     }
     return null;
+  }
+
+  public static String getOrGenerateSpdxSerialNumber(SpdxDocument spdxDocument) {
+    return spdxDocument.getDocumentUri() == null || spdxDocument.getDocumentUri().trim().isEmpty()
+        ? String.format("sonatype/spdxdocs/uuid/%s", UUID.randomUUID())
+        : spdxDocument.getDocumentUri();
   }
 }

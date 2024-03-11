@@ -150,6 +150,7 @@ public class SbomFileDetector
       throws InvalidSPDXAnalysisException
   {
     sbomResult.summary = new SbomSummary();
+    sbomResult.summary.serialNumber = SbomSpdxUtils.getOrGenerateSpdxSerialNumber(document);
     sbomResult.summary.specification = SPEC_SPDX;
     sbomResult.summary.version = StringUtils.replace(document.getSpecVersion(), SPDX_VERSION_PREFIX, "");
     sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());

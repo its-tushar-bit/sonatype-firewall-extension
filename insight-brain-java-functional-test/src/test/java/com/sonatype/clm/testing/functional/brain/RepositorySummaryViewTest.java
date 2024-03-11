@@ -247,6 +247,20 @@ public class RepositorySummaryViewTest
             .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm", true, true);
 
+    testRepositorySummaryViewAccessTile(repositoryManager, repository);
+  }
+
+  @Test
+  public void testRepositorySummaryView_accessTileForHostedRepositories() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(
+        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE"
+    );
+    Repository repository = tempEntity.newHostedRepository(repositoryManager, "npm-proxy", "npm", true);
+
+    testRepositorySummaryViewAccessTile(repositoryManager, repository);
+  }
+
+  public void testRepositorySummaryViewAccessTile(RepositoryManager repositoryManager, Repository repository) {
     User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
 
     Role readRole = tempEntity.newRole("Local Read Only", false, Permission.READ);

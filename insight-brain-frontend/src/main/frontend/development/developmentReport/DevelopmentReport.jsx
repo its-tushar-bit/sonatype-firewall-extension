@@ -6,16 +6,40 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxH1, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
+import { NxLoadingSpinner, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
-import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import DevelopmentReportHeader from 'MainRoot/development/developmentReport/DevelopmentReportHeader';
+import {
+  selectLoadingFeatures,
+  selectIsDeveloperDashboardEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { pick } from 'ramda';
 
 export default function DevelopmentReport() {
+  return (
+    <NxPageMain className="iq-development-report">
+      <PageContents />
+    </NxPageMain>
+  );
+}
+
+function PageContents() {
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const productFeaturesLoading = useSelector(selectLoadingFeatures);
+
+  if (productFeaturesLoading) {
+    return <NxLoadingSpinner />;
+  } else if (isDeveloperDashboardEnabled) {
+    return <DevelopmentReportContents />;
+  } else {
+    return <LicenseLockScreen />;
+  }
+}
+
+function DevelopmentReportContents() {
   const { appId, scanId } = useSelector(selectRouterCurrentParams);
   const applicationReport = useSelector(selectApplicationReportSlice);
   const loading =
@@ -33,21 +57,11 @@ export default function DevelopmentReport() {
     doLoad();
   }, [appId, scanId]);
 
-  if (!isDeveloperDashboardEnabled) {
-    return <LicenseLockScreen />;
-  }
-
   return (
-    <NxPageMain>
+    <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
       <NxPageTitle>
-        <NxH1>Sonatype Development Report</NxH1>
+        <DevelopmentReportHeader />
       </NxPageTitle>
-      <div>
-        <strong>appId:</strong> {appId} <strong>scanId:</strong> {scanId}
-      </div>
-      <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-        <div>Data Load Complete</div>
-      </NxLoadWrapper>
-    </NxPageMain>
+    </NxLoadWrapper>
   );
 }

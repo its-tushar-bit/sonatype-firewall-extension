@@ -3,3 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+.iq-development-report {
+  .iq-development-report-commit {
+    font-size: 16px;
+  }
+
+  .iq-development-report-copy-commit-btn {
+    cursor: pointer;
+  }
+
+  .iq-development-report-desc-details {
+    display: flex;
+    gap: var(--nx-spacing-3x);
+  }
+}
+
+.iq-development-report-copy-success.nx-icon {
+  color: var(--nx-swatch-green-40);
+  margin-right: 0;
+}
+
+.iq-development-report-copy-fail.nx-icon {
+  color: var(--nx-swatch-red-60);
+  margin-right: 0;
+}

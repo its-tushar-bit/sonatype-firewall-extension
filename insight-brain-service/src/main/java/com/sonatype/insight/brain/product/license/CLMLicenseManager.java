@@ -105,6 +105,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_SBOM_MANAGER_SAAS = "Sbom Manager SaaS";
 
+  public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Development";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -406,6 +408,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS:
         marketingNameSuffix = PRODUCT_SBOM_MANAGER_SAAS;
         break;
+      case ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT:
+        marketingNameSuffix = PRODUCT_SONATYPE_DEVELOPMENT;
+        break;
       default:
         return null;
     }
@@ -536,6 +541,9 @@ public class CLMLicenseManager
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
       return PRODUCT_SBOM_MANAGER_SAAS;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
+      return PRODUCT_SONATYPE_DEVELOPMENT;
     }
 
     return "";
@@ -732,6 +740,9 @@ public class CLMLicenseManager
     if (!products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) &&
         !products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
       stageTypes.add(StageTypes.PROXY);
+    }
+    if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
+      features.add(LicensedFeature.DEVELOPER_DASHBOARD);
     }
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //

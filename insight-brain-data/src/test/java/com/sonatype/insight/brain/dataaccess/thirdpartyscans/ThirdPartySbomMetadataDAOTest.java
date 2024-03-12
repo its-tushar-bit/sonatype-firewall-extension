@@ -35,7 +35,7 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   public void testCRUD() {
     // Create
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     // Read
@@ -59,7 +59,7 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   public void testGetAll() {
     // Create one entry
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     // Read all
@@ -67,7 +67,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(allSbomMetadata.size()).isOne();
 
     // Create another entry
-    ThirdPartySbomMetadata anotherEntity = createSbomMetadata(true);
+    ThirdPartySbomMetadata anotherEntity = tempEntity.createSbomMetadata();
     allSbomMetadata = dao.getAll();
     assertThat(allSbomMetadata)
         .hasSize(2)
@@ -91,7 +91,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetByThirdPartyFileId() {
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     final ThirdPartySbomMetadata sbomMetadata = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
@@ -101,7 +101,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testDeleteByThirdPartyFileId() {
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     ThirdPartySbomMetadata sbomMetadata = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
@@ -120,7 +120,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetByApplicationId() {
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     final List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(entity.getApplicationId());
@@ -130,8 +130,28 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  public void testGetByApplicationIdAndSbomVersion() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "version1", null);
+    assertThat(sbomMetadata.getId()).isNotNull();
+    ThirdPartySbomMetadata sbomMetadataSameAppDiffVersion =
+        tempEntity.createSbomMetadata(app.getId(), "version2", null);
+    assertThat(sbomMetadataSameAppDiffVersion.getId()).isNotNull();
+
+    Application anotherApp = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadataDiffAppSameVersion =
+        tempEntity.createSbomMetadata(anotherApp.getId(), "version1", null);
+    assertThat(sbomMetadataDiffAppSameVersion.getId()).isNotNull();
+
+    final ThirdPartySbomMetadata savedSbomMetadata =
+        dao.getByApplicationIdAndSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+    assertThat(savedSbomMetadata).isNotNull();
+    assertThirdPartySbomMetadata(savedSbomMetadata, sbomMetadata);
+  }
+
+  @Test
   public void testDeleteByApplicationId() {
-    ThirdPartySbomMetadata entity = createSbomMetadata(true);
+    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
     assertThat(entity.getId()).isNotNull();
 
     List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(entity.getApplicationId());
@@ -184,11 +204,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
   }
-
-  ThirdPartySbomMetadata createSbomMetadata(boolean save) {
-    return createSbomMetadata(save, "ACTIVE");
-  }
-
+  
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

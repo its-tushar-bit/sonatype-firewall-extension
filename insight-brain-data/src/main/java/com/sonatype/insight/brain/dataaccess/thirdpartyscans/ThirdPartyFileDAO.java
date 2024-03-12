@@ -60,6 +60,10 @@ public class ThirdPartyFileDAO
         " WHERE entity.id=?1";
     return get(sQuery, id);
   }
+  
+  public void delete(TransactionContext tx, String thirdPartyFileId) {
+    delete(tx, getById(thirdPartyFileId));
+  }
 
   @Override
   public void delete(TransactionContext tx, ThirdPartyFile thirdPartyFile) {

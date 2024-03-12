@@ -280,6 +280,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
@@ -305,6 +306,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -4599,6 +4601,50 @@ public class TemporaryEntity
     );
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
     return sastPullRequestComment;
+  }
+
+  public ThirdPartySbomMetadata createSbomMetadata() {
+    return createSbomMetadata(null, null, null);
+  }
+
+  public ThirdPartySbomMetadata createSbomMetadata(
+      final String applicationId, final String applicationVersion,
+      final String fileName)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
+    thirdPartySbomMetadata.setCreatedAt(new Date());
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setStatus("ACTIVE");
+
+    if (applicationId != null) {
+      thirdPartySbomMetadata.setApplicationId(applicationId);
+    }
+    else {
+      Application app = newApplicationWithParent();
+      thirdPartySbomMetadata.setApplicationId(app.getId());
+    }
+
+    if (applicationVersion != null) {
+      thirdPartySbomMetadata.setSbomVersion(applicationVersion);
+    }
+    else {
+      thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+    }
+
+    if (fileName != null) {
+      thirdPartySbomMetadata.setFilename(fileName);
+    }
+    else {
+      thirdPartySbomMetadata.setFilename(RandomStringUtils.random(10, true, true));
+    }
+
+    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    return thirdPartySbomMetadata;
   }
 
   private void initializeDAOs() {

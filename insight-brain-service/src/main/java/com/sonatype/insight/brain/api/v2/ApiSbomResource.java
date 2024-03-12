@@ -3,8 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.sbom.api;
+package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.DELETE;
@@ -20,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -36,15 +39,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Timed
 @Singleton
 @Path(PublicApiPaths.SBOM_RESOURCE_PATH)
-public class SbomResource
+public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_FORM = "current";
 
   static final String SBOM_APPLICATION_PATH = "{applicationId}";
 
-  static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/version";
+  static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/versions/{sbomVersion}";
 
-  static final String SBOM_VERSION_PATH = SBOM_VERSIONS_PATH + "/{sbomVersion}";
+  private final ApiSbomService apiSbomService;
+
+  @Inject
+  public ApiSbomResource(final ApiSbomService apiSbomService) {
+    this.apiSbomService = apiSbomService;
+  }
 
   @Operation(summary = "Delete sbom version",
       tags = {"sbom"},
@@ -55,17 +63,16 @@ public class SbomResource
       })
 
   @DELETE
-  @Path(SBOM_VERSION_PATH)
+  @Path(SBOM_VERSIONS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Audited(AuditEvent.DELETE_SBOM_VERSION)
-  public Response deleteSbomVersion(
+  public void deleteSbomVersion(
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
       @Parameter(description = "URL Encoded version value of the sbom to be deleted", required = true)
-      @PathParam("sbomVersion") String sbomVersion)
+      @PathParam("sbomVersion") String sbomVersion) throws IOException
   {
-    //TODO: implement with CLM-29445
-    return Response.noContent().build();
+    apiSbomService.deleteSbomVersion(applicationId, sbomVersion);
   }
 
   @Operation(summary = "Gets a sbom version",
@@ -79,7 +86,7 @@ public class SbomResource
       })
 
   @GET
-  @Path(SBOM_VERSION_PATH)
+  @Path(SBOM_VERSIONS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public Response getSbomVersion(

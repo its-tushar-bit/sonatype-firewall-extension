@@ -16,6 +16,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -37,29 +38,29 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.util.EventReaderDelegate;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
-import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
-import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.file.InvalidSbomException;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.model.io.XStreamFactory;
-import com.sonatype.insight.scan.file.InvalidSbomException;
-import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import com.thoughtworks.xstream.XStream;
+import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -381,15 +382,15 @@ public class ThirdPartyScanResultsProcessor
     try {
       File sbomDir = insightWork.getSbomDir(scanContext.getApplicationId());
       Files.createDirectories(sbomDir.toPath().normalize());
-      final File tempFile =
-          FileUtils.createTempFile(UUID.randomUUID().toString().replace("-", "") + "-",
-              "." + FilenameUtils.getExtension(itemElement.getAttribute("path")) + ".gz", sbomDir);
+      final Path tempFilePath =
+          Files.createTempFile(sbomDir.toPath().normalize(), UUID.randomUUID().toString().replace("-", ""),
+              "." + FilenameUtils.getExtension(itemElement.getAttribute("path")) + ".gz");
       try (InputStream sbomContent = IOUtils.toInputStream(contentElement.getValue(), Charset.defaultCharset());
            GzipCompressorOutputStream outputStream = new GzipCompressorOutputStream(
-               Files.newOutputStream(tempFile.toPath()))) {
+               Files.newOutputStream(tempFilePath))) {
         IOUtils.copy(sbomContent, outputStream);
         scanContext.markSbomSavedForScan();
-        scanContext.setSbomFileName(tempFile.getName());
+        scanContext.setSbomFileName(tempFilePath.getFileName().toString());
         sbomContent.reset();
         IOUtils.copy(sbomContent, stringWriter, StandardCharsets.UTF_8);
         return stringWriter.toString();

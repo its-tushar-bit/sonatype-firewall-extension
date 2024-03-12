@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -181,6 +182,47 @@ public class ThirdPartyFileDAOTest
     dao.deleteByScanId(scanId);
 
     assertThat(dao.getByScanId(scanId)).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeByThirdPartyFileId() {
+    //one scan, two coordinates with each having some sec issues
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
+    ThirdPartyFileCoordinate coord1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+    ThirdPartyFileCoordinate coord2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n2", "v2");
+    ThirdPartyCoordinateSecurity tpcs11 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 5.5f, "Medium", "f1");
+    ThirdPartyCoordinateSecurity tpcs12 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d2", "l2", 1.5f, "Low", null);
+    ThirdPartyCoordinateSecurity tpcs21 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "d1", "l1", 5.5f, "Medium", "f1");
+
+    ThirdPartyCoordinateLicense coordLic11 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense coordLic12 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l2", "n2", "u2");
+    ThirdPartyCoordinateLicense coordLic21 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense coordLic22 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.delete(tx, thirdPartyFile.getId());
+      tx.commit();
+    }
+
+    assertThat(dao.getById(thirdPartyFile.getId())).isNull();
+    assertThat(thirdPartyScanDAO.getById(scan.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(coord1.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(coord2.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs11.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs12.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs21.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs12.getId())).isNull();
+    assertThat(thirdPartyFileCoordinateDAO.getById(tpcs21.getId())).isNull();
+
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic11.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic12.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic21.getId())).isNull();
+    assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic22.getId())).isNull();
   }
 
   private void assertThirdPartyScannedFile(

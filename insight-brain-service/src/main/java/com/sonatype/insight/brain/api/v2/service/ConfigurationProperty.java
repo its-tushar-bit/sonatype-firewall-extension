@@ -199,6 +199,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE, Integer.class,
           (p, s) -> ConfigurationUtils.getSaasPolicyMonitorPoolSize(s, POLICY_MONITOR_THREADS_DEFAULT),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

@@ -87,6 +87,8 @@ public class ConfigurationInfoTest
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED, "true");
     tempEntity.newSystemConfigurationProperty(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, "48");
+    tempEntity.newSystemConfigurationProperty(
+            SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, "false");
 
     configuration.configurationChanged(Sets.newHashSet(
         SystemConfigurationProperty.PURGE_SCAN_FILES,
@@ -122,7 +124,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
-        SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS
+        SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -173,6 +176,8 @@ public class ConfigurationInfoTest
         "true");
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("48");
+    assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asText()).isEqualTo(
+            "false");
   }
 
   @Test
@@ -221,5 +226,7 @@ public class ConfigurationInfoTest
         "true");
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("12");
+    assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
+            .asText()).isEqualTo("true");
   }
 }

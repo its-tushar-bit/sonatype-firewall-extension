@@ -619,6 +619,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_advancedReportingInsightsEnabled_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+            SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)))
+            .containsEntry(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+  }
+
+  @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
@@ -1542,6 +1549,18 @@ public class ApiConfigurationServiceTest
         SetUtils.hashSet(
             SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))).containsEntry(
         SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, null);
+  }
+
+  @Test
+  public void testSetConfiguration_advancedReportingInsightsEnabled() {
+    service.setConfigurationNoAuthz(
+            Maps.newHashMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED))
+            .isEqualTo("false");
+    assertThat(service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED))).containsEntry(
+            SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
   }
 
   @Test

@@ -92,6 +92,8 @@ public class ConfigurationInfo
         configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes());
     entries.put(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         configuration.getWaivedComponentUpgradeMonitoringEnabled());
+    entries.put(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
+        configuration.getAdvanceReportingInsightsEnabled());
 
     return JsonUtils.format(entries);
   }

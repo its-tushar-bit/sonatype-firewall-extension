@@ -358,6 +358,8 @@ public abstract class AbstractBaseIntegrationTest
           getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
           getCLMServer().getConfiguration().setSystemAllowlist(Collections.emptyList());
         }
+        // TODO this reset is probably not needed anymore since the temporary entity rules in the child classes
+        // take care of this reset in a more general way
         resetProperties(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL,
             SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
             SystemConfigurationProperty.CSRF_PROTECTION, SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,

@@ -188,7 +188,8 @@ public class Configuration
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
-        SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES)
+        SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -578,6 +579,11 @@ public class Configuration
   public Integer getAutomaticQuarantineReleaseTimeIntervalInMinutes() {
     return configCache.get(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES);
   }
+
+  public boolean getAdvanceReportingInsightsEnabled() {
+    return configCache.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED);
+  }
+
 
   /**
    * Configuration map is encapsulated so that access can be controlled. As we can guarantee that config requests must

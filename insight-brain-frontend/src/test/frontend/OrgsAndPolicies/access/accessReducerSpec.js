@@ -221,12 +221,30 @@ describe('access reducer', () => {
       expect(newState.loading).toBeFalse();
       expect(newState.loadError).toBeNull();
       expect(newState.availableRoles).toEqual(payload.data.availableRoles);
-      expect(newState.addedUsers).toEqual(payload.addedUsers);
+      expect(newState.addedUsers).toEqual([
+        {
+          displayName: 'Admin BuiltIn (admin)',
+          email: 'admin@localhost',
+          id: 'adminUSER',
+          internalName: 'admin',
+          realm: 'IQ Server',
+          type: 'USER',
+        },
+      ]);
       expect(newState.isDirty).toBeFalse();
       expect(newState.isNew).toBeFalse();
       expect(newState.serverData).toEqual(payload.data);
       expect(newState.role).toEqual(payload.role);
-      expect(newState.serverAddedUsers).toEqual(payload.addedUsers);
+      expect(newState.serverAddedUsers).toEqual([
+        {
+          displayName: 'Admin BuiltIn (admin)',
+          email: 'admin@localhost',
+          id: 'adminUSER',
+          internalName: 'admin',
+          realm: 'IQ Server',
+          type: 'USER',
+        },
+      ]);
       expect(newState.siblings).toEqual([
         Object({
           roleId: '90c7c98683b4471cb77a916744540bcc',
@@ -391,7 +409,7 @@ describe('access reducer', () => {
           expect(loadError).toBeNull();
           expect(data).toEqual([
             {
-              displayName: 'Bohdan LastName',
+              displayName: 'Bohdan LastName (Bohdan)',
               email: 'amax9111@gmail.com',
               id: 'BohdanUSER',
               internalName: 'Bohdan',
@@ -449,7 +467,7 @@ describe('access reducer', () => {
           expect(loadError).toBe(null);
           expect(data).toEqual([
             {
-              displayName: 'Bohdan LastName',
+              displayName: 'Bohdan LastName (Bohdan)',
               email: 'amax9111@gmail.com',
               internalName: 'Bohdan',
               id: 'BohdanUSER',

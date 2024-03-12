@@ -7,7 +7,7 @@ import {
   formatGroupUsers,
   formatMembersForSaving,
   formatMembersForTransferList,
-  removeFormatGroupUsers,
+  removeFormatting,
   sortByDisplayName,
 } from 'MainRoot/util/formatGroupUsers';
 
@@ -31,7 +31,7 @@ describe('administrators utils', () => {
     {
       internalName: 'some other name',
       id: 'some other name',
-      displayName: 'a some other name (Group)',
+      displayName: 'a some other name (Group) (some other name)',
       type: 'USER',
     },
   ];
@@ -63,8 +63,8 @@ describe('administrators utils', () => {
     expect(formatGroupUsers(dataWithoutGroup)).toEqual(dataWithGroup);
   });
 
-  it('removeFormatGroupUsers', () => {
-    expect(removeFormatGroupUsers(dataWithGroup[0])).toEqual(dataWithoutGroup[0]);
+  it('removeFormatting', () => {
+    expect(removeFormatting(dataWithGroup[0])).toEqual(dataWithoutGroup[0]);
   });
 
   it('sortByDisplayName', () => {

@@ -26,7 +26,7 @@ import {
   formatGroupUsers,
   formatMembersForSaving,
   formatMembersForTransferList,
-  removeFormatGroupUsers,
+  removeFormatting,
 } from 'MainRoot/util/formatGroupUsers';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
@@ -252,7 +252,7 @@ export const createOrUpdateRole = createAsyncThunk(
     const { ownerType, ownerId } = selectOwnerProperties(state);
     const role = selectRole(state);
     const memberList = selectUnSortedAddedUsers(state);
-    const formatedMemberList = compose(map(removeFormatGroupUsers), formatMembersForSaving)(memberList);
+    const formatedMemberList = compose(map(removeFormatting), formatMembersForSaving)(memberList);
     const isRepositoryContainer = selectIsRepositoryContainer(state);
 
     return axios

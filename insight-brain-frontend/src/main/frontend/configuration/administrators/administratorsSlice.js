@@ -18,11 +18,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectAddedUsers, selectRoleToEdit } from './administratorsSelectors';
-import {
-  formatMembersForSaving,
-  formatMembersForTransferList,
-  removeFormatGroupUsers,
-} from 'MainRoot/util/formatGroupUsers';
+import { formatMembersForSaving, formatMembersForTransferList, removeFormatting } from 'MainRoot/util/formatGroupUsers';
 
 const REDUCER_NAME = 'administratorsConfig';
 
@@ -157,7 +153,7 @@ export const goToAdministrators = () => {
 };
 
 const addSelectedUser = (state, { payload }) => {
-  const formatedUsers = insert(0, removeFormatGroupUsers(payload), state.addedUsers);
+  const formatedUsers = insert(0, removeFormatting(payload), state.addedUsers);
   return computeIsDirty({ ...state, addedUsers: formatedUsers });
 };
 

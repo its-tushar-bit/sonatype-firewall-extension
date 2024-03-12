@@ -206,7 +206,7 @@ describe('administratorsSelectors', () => {
         {
           type: 'USER',
           internalName: 'addedadmin',
-          displayName: 'added Admin',
+          displayName: 'added Admin (addedadmin)',
           email: 'added@localhost',
           realm: 'IQ Server',
         },
@@ -285,7 +285,7 @@ describe('administratorsSelectors', () => {
         {
           type: 'USER',
           internalName: 'fetchadmin',
-          displayName: 'fetch Admin BuiltIn',
+          displayName: 'fetch Admin BuiltIn (fetchadmin)',
           email: 'fetch@localhost',
           realm: 'IQ Server',
         },

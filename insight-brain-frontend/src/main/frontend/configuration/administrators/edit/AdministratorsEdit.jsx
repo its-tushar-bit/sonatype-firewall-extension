@@ -43,7 +43,7 @@ import {
 } from '../administratorsSelectors';
 import { selectTenantMode } from '../../../productFeatures/productFeaturesSelectors';
 import { actions } from '../administratorsSlice';
-import { removeFormatGroupUsers } from 'MainRoot/util/formatGroupUsers';
+import { removeFormatting } from 'MainRoot/util/formatGroupUsers';
 import { allPass, compose, filter, map, not, propEq } from 'ramda';
 import classNames from 'classnames';
 
@@ -106,7 +106,7 @@ const AdministratorsEdit = () => {
 
   const onRemoveMembers = (_, id) => {
     const filterData = filter(compose(not, propEq('id', id)));
-    const formattedUsers = compose(map(removeFormatGroupUsers), filterData)(addedUsers);
+    const formattedUsers = compose(map(removeFormatting), filterData)(addedUsers);
     dispatch(actions.setAddedUsers(formattedUsers));
   };
 

@@ -34,6 +34,8 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -574,6 +576,7 @@ public class InsightBrainService
         bind(DataStoreProvider.class).toInstance(databaseContainer);
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
         bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+        bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);
       }
     });
 

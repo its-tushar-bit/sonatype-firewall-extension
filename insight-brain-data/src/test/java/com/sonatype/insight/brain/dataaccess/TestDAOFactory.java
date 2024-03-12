@@ -138,6 +138,7 @@ import com.sonatype.insight.brain.model.policy.notifications.NotificationsValida
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotificationValidator;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotificationValidator;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotificationValidator;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 
 public class TestDAOFactory
@@ -785,15 +786,20 @@ public class TestDAOFactory
   }
 
   @Override
-  public SourceControlDAO createSourceControlDAO() {
+  public SourceControlDAO createSourceControlDAO(final SourceControlSshValidator sourceControlSshValidator) {
     ApplicationDAO applicationDAO = createApplicationDAO();
     OrganizationDAO organizationDAO = createOrganizationDAO();
     OwnerDAO ownerDAO = createOwnerDAO();
     GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
     SourceControlPullRequestDAO sourceControlPullRequestDAO = createSourceControlPullRequestDAO();
     return new SourceControlDAO(dataStoreProvider.getOperationalDataStore(), applicationDAO, organizationDAO, ownerDAO,
-        gitApiClientFactory,
-        sourceControlPullRequestDAO);
+        gitApiClientFactory, sourceControlPullRequestDAO, sourceControlSshValidator);
+  }
+
+  @Override
+  public SourceControlDAO createSourceControlDAO() {
+    return createSourceControlDAO(sourceControl -> {
+    });
   }
 
   @Override

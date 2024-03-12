@@ -27,12 +27,16 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO.PULL_REQUEST_POLLING_INITIAL_OFFSET_MS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -41,7 +45,11 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
@@ -65,10 +73,14 @@ public class SourceControlDAOTest
 
   private Organization org;
 
+  @Mock
+  private SourceControlSshValidator sourceControlSshValidator;
+
   @Override
   @Before
   public void setup() {
     policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
+
     sourceControlDAO = daoFactory.createSourceControlDAO();
     sourceControlPullRequestDAO = daoFactory.createSourceControlPullRequestDAO();
 
@@ -431,6 +443,34 @@ public class SourceControlDAOTest
     sourceControl.setRepositoryUrl("https://not valid");
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("repositoryUrl is invalid");
+  }
+
+  @Test
+  public void testInsert_sshValidatorCalled() {
+    sourceControlDAO = daoFactory.createSourceControlDAO(sourceControlSshValidator);
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl(VALID_URL).setSshEnabled(true).build();
+
+    sourceControlDAO.insert(sourceControl);
+
+    assertThat(sourceControlDAO.getById(sourceControl.getId())).isNotNull();
+    verify(sourceControlSshValidator, times(1)).validate(any());
+  }
+
+  @Test
+  public void testUpdate_sshValidatorCalled() {
+    sourceControlDAO = daoFactory.createSourceControlDAO(sourceControlSshValidator);
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl(VALID_URL).setSshEnabled(true).build();
+
+    sourceControlDAO.insert(sourceControl);
+    sourceControl.setSshEnabled(false);
+    sourceControlDAO.update(sourceControl);
+
+    assertThat(sourceControlDAO.getById(sourceControl.getId()).getSshEnabled()).isFalse();
+    verify(sourceControlSshValidator, times(2)).validate(any());
   }
 
   @Test

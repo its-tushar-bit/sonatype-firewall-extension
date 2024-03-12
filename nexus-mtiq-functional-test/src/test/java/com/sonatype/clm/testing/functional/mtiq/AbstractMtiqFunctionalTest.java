@@ -186,6 +186,7 @@ public abstract class AbstractMtiqFunctionalTest
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       MultiTenantInsightConfig mtiqConfig = (MultiTenantInsightConfig) config;
       mtiqConfig.setDeleteBuiltInAdmin(false);
+      mtiqConfig.setUsingDefaultEncryptionKeyStore(true);
       // For MTIQ functional tests, the DB is initialized by the server using the provided config
       mtiqConfig.setMainDatabase(insightConfig.getMainDatabase());
       mtiqConfig.setLocksDatabase(insightConfig.getLocksDatabase());

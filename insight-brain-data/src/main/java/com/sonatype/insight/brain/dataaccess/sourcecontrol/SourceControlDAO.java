@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -61,6 +62,8 @@ public class SourceControlDAO
   private final GitApiClientFactory gitApiClientFactory;
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
+  private final SourceControlSshValidator sourceControlSshValidator;
 
   // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
@@ -138,7 +141,8 @@ public class SourceControlDAO
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
       final GitApiClientFactory gitApiClientFactory,
-      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO,
+      final SourceControlSshValidator sourceControlSshValidator)
   {
     super(operationalDataStore);
     this.applicationDAO = applicationDAO;
@@ -146,6 +150,7 @@ public class SourceControlDAO
     this.ownerDAO = ownerDAO;
     this.gitApiClientFactory = gitApiClientFactory;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+    this.sourceControlSshValidator = sourceControlSshValidator;
   }
 
   /**
@@ -599,6 +604,8 @@ public class SourceControlDAO
       throw new BadRequestException(
           "SourceControl ownerId '" + sourceControl.getOwnerId() + "' cannot be found");
     }
+
+    sourceControlSshValidator.validate(sourceControl);
 
     validateUsername(tx, sourceControl);
   }

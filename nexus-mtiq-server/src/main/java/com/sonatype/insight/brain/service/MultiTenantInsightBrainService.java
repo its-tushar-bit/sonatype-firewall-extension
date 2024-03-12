@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -71,6 +72,7 @@ import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.users.MultiTenantUserDirectory;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.validation.MtiqSourceControlSshValidator;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
@@ -346,6 +348,8 @@ public class MultiTenantInsightBrainService
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
 
         bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
+
+        bind(SourceControlSshValidator.class).to(MtiqSourceControlSshValidator.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

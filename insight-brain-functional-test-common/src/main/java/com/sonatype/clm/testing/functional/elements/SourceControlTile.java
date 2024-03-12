@@ -32,4 +32,8 @@ public class SourceControlTile
   public SelenideElement content() {
     return child(".nx-tile-content");
   }
+
+  public SelenideElement sourceControlLink() {
+    return child(".nx-list__link");
+  }
 }

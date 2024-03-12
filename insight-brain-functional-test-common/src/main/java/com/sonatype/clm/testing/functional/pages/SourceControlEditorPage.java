@@ -170,6 +170,10 @@ public class SourceControlEditorPage
       return this.getElement().$(".nx-toggle__input");
     }
 
+    public SelenideElement toggleControl() {
+      return child(".nx-toggle__control");
+    }
+
     public ElementsCollection radioInputs() {
       return this.getElement().$$(".nx-radio__input");
     }

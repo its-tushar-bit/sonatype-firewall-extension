@@ -123,6 +123,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 
 public interface DAOFactory
 {
@@ -303,6 +304,8 @@ public interface DAOFactory
   SourceControlConfigurationDAO createSourceControlConfigurationDAO();
 
   SourceControlDAO createSourceControlDAO();
+
+  SourceControlDAO createSourceControlDAO(final SourceControlSshValidator sourceControlSshValidator);
 
   SourceControlDefaultBranchCommitHistoryDAO createSourceControlDefaultBranchCommitHistoryDAO();
 

@@ -6,6 +6,13 @@
 
 -->
 # Functional tests
+
+This module runs functional tests using Selenium on MTIQ.
+
+If you are looking for IQ (Not Multi-tenant version) functional tests those are located on `insight-brain-java-functional-test` module.
+
+`insight-brain-functional-test-common` module contains common resources used in both IQ and MTIQ functional tests.
+
 ## Troubleshooting
 
 ### Can't run tests from intelliJ

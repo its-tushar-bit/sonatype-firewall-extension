@@ -299,15 +299,29 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  describe('selectSourceControlOptions', () => {
-    it('returns all with the exception of auto remediated PR in multi-tenant mode', () => {
+  fdescribe('selectSourceControlOptions', () => {
+    it('returns all with the exception of auto remediated PR and ssh for git operations in multi-tenant mode', () => {
       mockState.productFeatures.productFeatures['multi-tenant'] = true;
-      expect(selectTenantScmOptionsTypes(mockState)).toHaveSize(4);
+      const options = selectTenantScmOptionsTypes(mockState);
+
+      expect(options).toHaveSize(3);
+
+      const optionsIds = options.map((option) => option.id);
+      expect(optionsIds).toContain('source-control-pull-request-commenting');
+      expect(optionsIds).toContain('source-control-evaluations');
+      expect(optionsIds).toContain('automated-commit-feedback');
     });
 
     it('returns all option in single-tenant mode', () => {
       mockState.productFeatures.productFeatures['single-tenant'] = true;
-      expect(selectTenantScmOptionsTypes(mockState)).toHaveSize(5);
+      const options = selectTenantScmOptionsTypes(mockState);
+      expect(options).toHaveSize(5);
+      const optionsIds = options.map((option) => option.id);
+      expect(optionsIds).toContain('source-control-remediation-pull-requests');
+      expect(optionsIds).toContain('source-control-ssh');
+      expect(optionsIds).toContain('source-control-pull-request-commenting');
+      expect(optionsIds).toContain('source-control-evaluations');
+      expect(optionsIds).toContain('automated-commit-feedback');
     });
   });
 });

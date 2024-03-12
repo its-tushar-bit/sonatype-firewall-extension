@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.model.component;
+package com.sonatype.insight.brain.model.sast;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.experimental.sast.SastScanResponseDTO.Sast
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastRemediation;

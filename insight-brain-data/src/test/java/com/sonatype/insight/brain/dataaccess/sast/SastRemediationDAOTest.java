@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.dataaccess.sast;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastRemediation;

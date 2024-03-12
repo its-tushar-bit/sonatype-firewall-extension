@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.dataaccess.sast.SastRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.component.SastFindingSeverity;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastPullRequestComment;

@@ -5,11 +5,8 @@
  */
 import { omit } from 'ramda';
 
-import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
+import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
@@ -18,25 +15,10 @@ import {
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 export const initState = Object.freeze({
-  loadingManageWaiversData: false,
-  loadManageWaiversDataError: null,
   loadingApplicableWaivers: false,
   loadApplicableWaiversError: null,
   hasPermissionForAppWaivers: null,
   previousRouterStateNameForComponentDetails: null,
-});
-
-const setLoadError = (payload, state) => ({
-  ...state,
-  loadingManageWaiversData: false,
-  loadManageWaiversDataError: payload,
-});
-
-const setData = (payload, state) => ({
-  ...state,
-  loadingManageWaiversData: false,
-  loadManageWaiversDataError: null,
-  hasPermissionForAppWaivers: payload,
 });
 
 const loadApplicableWaiversRequested = (payload, state) => ({
@@ -68,9 +50,6 @@ const resetState = (_, { previousRouterStateNameForComponentDetails }) => ({
 });
 
 const reducerActionMap = {
-  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loadingManageWaiversData', true),
-  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED]: setLoadError,
-  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED]: setData,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,

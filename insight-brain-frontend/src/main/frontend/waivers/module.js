@@ -6,7 +6,6 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import AddWaiverPageContainer from './AddWaiverPageContainer';
 import RequestWaiverPage from './RequestWaiverPage';
-import ListWaiversPageContainer from './ListWaiversPageContainer';
 import sidebarView from 'MainRoot/sidebarNav/sidebarView';
 import WaiverDetails from './waiverDetails/WaiverDetails';
 
@@ -14,7 +13,6 @@ export default angular
   .module('waivers', [])
   .component('addWaiverPage', iqReact2Angular(AddWaiverPageContainer, [], ['$ngRedux', '$state']))
   .component('requestWaiverPage', iqReact2Angular(RequestWaiverPage, [], ['$ngRedux', '$state']))
-  .component('listWaiversPage', iqReact2Angular(ListWaiversPageContainer, [], ['$ngRedux', '$state']))
   .component('waiverSidebarView', sidebarView)
   .component('waiverDetails', iqReact2Angular(WaiverDetails, [], ['$ngRedux', '$state']))
   .config(routes);
@@ -36,13 +34,6 @@ function routes($stateProvider) {
         isDirty: ['requestWaiver', 'isDirty'],
       },
       url: '/requestWaiver/{violationId}',
-    })
-    .state('listWaivers', {
-      component: 'listWaiversPage',
-      data: {
-        title: 'Waivers',
-      },
-      url: '/waivers/{violationId}?type&sidebarReference',
     })
     .state('waiver', {
       abstract: true,

@@ -28,7 +28,6 @@ import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtil
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
 import {
-  selectPreviousRouteName,
   selectHash,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
@@ -76,12 +75,6 @@ const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
 const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
 const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
 const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
-const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
-const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
-const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
-const setManageWaiversBackButtonStateName = payloadParamActionCreator(
-  WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME
-);
 export const resetAddWaiverData = noPayloadActionCreator(WAIVERS_RESET_ADD_WAIVER_DATA);
 
 function startSubmitMaskTimer(dispatch) {
@@ -170,30 +163,6 @@ export function loadAddWaiverData(violationId) {
 const extractPreloadedCommentFromUrl = (state) => {
   return selectCurrentRouteName(state) === 'addWaiver' ? selectRouterCurrentParams(state)?.comments : undefined;
 };
-
-/**
- * @param { string } violationId
- */
-export function loadManageWaiversData(violationId) {
-  return (dispatch, getState) => {
-    dispatch(loadManageWaiversDataRequested());
-    dispatch(loadApplicableWaivers(violationId));
-
-    const routerPreviousStateName = selectPreviousRouteName(getState());
-    if (routerPreviousStateName?.includes('componentDetails')) {
-      dispatch(setManageWaiversBackButtonStateName(routerPreviousStateName));
-    }
-
-    return dispatch(fetchCrossStageViolation(violationId))
-      .then(() =>
-        selectIsFirewallOrRepository(getState())
-          ? getAddWaiverPermissionForRepository(selectRepositoryId(getState()))
-          : loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId)
-      )
-      .then(compose(dispatch, loadManageWaiversDataFulfilled))
-      .catch(compose(dispatch, loadManageWaiversDataFailed));
-  };
-}
 
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
@@ -286,11 +255,6 @@ export function loadPermissionForAppWaivers(applicationPublicId) {
 
 export const getAddWaiverPermissionForApplicationPromiseBuilder = (internalApplicationId) =>
   axios.put(getPermissionContextTestUrl('application', internalApplicationId), ['WAIVE_POLICY_VIOLATIONS']);
-
-const getAddWaiverPermissionForRepository = (repositoryId) =>
-  axios
-    .put(getPermissionContextTestUrl('repository', repositoryId), ['WAIVE_POLICY_VIOLATIONS'])
-    .then(({ data }) => data.length === 1);
 
 /**
  * Flattens the Org/Apps hierarchy

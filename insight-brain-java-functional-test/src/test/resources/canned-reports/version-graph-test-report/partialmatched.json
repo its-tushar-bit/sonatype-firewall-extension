@@ -1,0 +1,52 @@
+{
+  "aaData" : [ {
+    "hash" : "c4bcd12f8fa577009fbd",
+    "matchDetails" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "debug",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.webjars.npm",
+          "version" : "3.0.0"
+        }
+      },
+      "groupId" : "org.webjars.npm",
+      "artifactId" : "debug",
+      "version" : "3.0.0",
+      "hash" : "c4bcd12f8fa577009fbd",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 1,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : 0,
+      "matchState" : null,
+      "proprietary" : null,
+      "matchedByCoordinates" : false,
+      "securityThreatLevel" : 7.5,
+      "catalogDate" : 1502995230000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.webjars.npm"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "debug"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "3.0.0"
+        } ],
+        "name" : "debug"
+      }
+    } ]
+  } ]
+}

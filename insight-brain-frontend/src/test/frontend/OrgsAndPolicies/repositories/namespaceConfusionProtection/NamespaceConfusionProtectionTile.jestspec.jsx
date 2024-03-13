@@ -57,23 +57,32 @@ describe('NamespaceConfusionProtectionTile', () => {
   };
 
   let repositoryComponentsDetails = {
-    componentNamePatterns: [...successfulRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns],
+    componentNamePatterns: {
+      repository_managers: [...successfulRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns],
+    },
     loadingComponentNamePatterns: false,
     errorComponentsTable: null,
     namePatternsTableConfig: {
-      page: 1,
-      pageSize: 6,
-      searchFilters: [],
-      sortFields: [
-        {
-          sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
-          dir: 'asc',
+      repository_managers: {
+        page: 1,
+        pageSize: 6,
+        searchFilters: {
+          repository_managers: [],
         },
-      ],
+        sortFields: [
+          {
+            sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+            dir: 'asc',
+          },
+        ],
+      },
     },
     searchFiltersValues: {
-      PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+      repository_managers: {
+        PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+      },
     },
+    currentFilterKey: 'repository_managers',
   };
 
   const ownerId = 'ownerId';
@@ -123,30 +132,51 @@ describe('NamespaceConfusionProtectionTile', () => {
 
   describe('when components exist', () => {
     it('renders table with all components', async () => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryContainer').mockReturnValue(true);
       renderComponent();
       const { componentNamePatterns } = repositoryComponentsDetails;
-      await waitFor(() => expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible());
+      await waitFor(() =>
+        expect(
+          screen.getByText(componentNamePatterns['repository_managers'][0].repositoryManagerInstanceId)
+        ).toBeVisible()
+      );
       expect(
-        screen.getByText(componentNamePatterns[0].namespacePattern || componentNamePatterns[0].namePattern)
+        screen.getByText(
+          componentNamePatterns['repository_managers'][0].namespacePattern ||
+            componentNamePatterns['repository_managers'][0].namePattern
+        )
       ).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[0].repositoryPublicId)).toBeVisible();
+      expect(
+        screen.getByText(componentNamePatterns['repository_managers'][0].repositoryManagerInstanceId)
+      ).toBeVisible();
+      expect(screen.getByText(componentNamePatterns['repository_managers'][0].repositoryPublicId)).toBeVisible();
       expect(screen.getAllByRole('switch')[0]).toBeChecked();
       expect(
-        screen.getByText(componentNamePatterns[1].namespacePattern || componentNamePatterns[1].namePattern)
+        screen.getByText(
+          componentNamePatterns['repository_managers'][1].namespacePattern ||
+            componentNamePatterns['repository_managers'][1].namePattern
+        )
       ).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[1].repositoryPublicId)).toBeVisible();
+      expect(
+        screen.getByText(componentNamePatterns['repository_managers'][1].repositoryManagerInstanceId)
+      ).toBeVisible();
+      expect(screen.getByText(componentNamePatterns['repository_managers'][1].repositoryPublicId)).toBeVisible();
       expect(screen.getAllByRole('switch')[1]).not.toBeChecked();
       expect(
-        screen.getByText(componentNamePatterns[2].namespacePattern || componentNamePatterns[2].namePattern)
+        screen.getByText(
+          componentNamePatterns['repository_managers'][2].namespacePattern ||
+            componentNamePatterns['repository_managers'][2].namePattern
+        )
       ).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[2].repositoryManagerInstanceId)).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[2].repositoryPublicId)).toBeVisible();
+      expect(
+        screen.getByText(componentNamePatterns['repository_managers'][2].repositoryManagerInstanceId)
+      ).toBeVisible();
+      expect(screen.getByText(componentNamePatterns['repository_managers'][2].repositoryPublicId)).toBeVisible();
       expect(screen.getAllByRole('switch')[2]).toBeChecked();
     });
 
     it('filters components by the name or policy', async () => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryContainer').mockReturnValue(true);
       mock
         .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
           page: 1,
@@ -177,18 +207,26 @@ describe('NamespaceConfusionProtectionTile', () => {
       expect(searchByNameInput).toBeVisible();
       const { componentNamePatterns } = repositoryComponentsDetails;
       await waitFor(() => {
-        expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
         expect(
-          screen.getByText(componentNamePatterns[1].namespacePattern || componentNamePatterns[0].namePattern)
+          screen.getByText(componentNamePatterns['repository_managers'][1].repositoryManagerInstanceId)
         ).toBeVisible();
-        expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
-        expect(screen.getByText(componentNamePatterns[1].repositoryPublicId)).toBeVisible();
+        expect(
+          screen.getByText(
+            componentNamePatterns['repository_managers'][1].namespacePattern ||
+              componentNamePatterns['repository_managers'][0].namePattern
+          )
+        ).toBeVisible();
+        expect(
+          screen.getByText(componentNamePatterns['repository_managers'][1].repositoryManagerInstanceId)
+        ).toBeVisible();
+        expect(screen.getByText(componentNamePatterns['repository_managers'][1].repositoryPublicId)).toBeVisible();
         expect(screen.getByRole('switch')).not.toBeChecked();
       });
     });
 
     it('sorts components by the selected field', async () => {
       const { proprietaryComponentNamePatterns } = successfulRepositoryComponentNameUrlResponse;
+      jest.spyOn(routerSelectors, 'selectIsRepositoryContainer').mockReturnValue(true);
 
       mock
         .onPost(getRepositoryComponentNameUrl(ownerType, ownerId), {
@@ -297,6 +335,7 @@ describe('NamespaceConfusionProtectionTile', () => {
       const sortByManagerButton = screen.getByRole('button', { name: /Repository Manager unsorted/i });
       const sortByRepositoryButton = screen.getByRole('button', { name: /Repository unsorted/i });
       const sortByEnabledButton = screen.getByRole('button', { name: /Enabled unsorted/i });
+
       await waitFor(() => assertFirstRowColsValues(0));
 
       fireEvent.click(sortByNamespacesButton);
@@ -595,6 +634,39 @@ describe('NamespaceConfusionProtectionTile', () => {
     });
   });
 
+  describe('when isRepositoryContainer returns true', () => {
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryContainer').mockReturnValue(true);
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: true,
+          },
+        ],
+        hasNextPage: false,
+      });
+    });
+
+    it('shows all columns', async () => {
+      renderComponent();
+      expect(await screen.findByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+      expect(await screen.findByText('Component Namespace')).toBeVisible();
+      expect(await screen.findByText('Test')).toBeVisible();
+      expect(await screen.findByText('Repository Manager')).toBeVisible();
+      expect(await screen.findByText('9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA')).toBeVisible();
+      expect(await screen.findByText('Repository')).toBeVisible();
+      expect(await screen.findByText('maven-releases')).toBeVisible();
+      expect(await screen.findByText('Enabled')).toBeVisible();
+      expect(screen.getByRole('switch')).toBeChecked();
+    });
+  });
+
   describe('when isRepositoryManager returns true', () => {
     beforeEach(() => {
       jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
@@ -623,6 +695,39 @@ describe('NamespaceConfusionProtectionTile', () => {
       expect(await screen.queryByText('9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA')).not.toBeInTheDocument();
       expect(await screen.findByText('Repository')).toBeVisible();
       expect(await screen.findByText('maven-releases')).toBeVisible();
+      expect(await screen.findByText('Enabled')).toBeVisible();
+      expect(screen.getByRole('switch')).toBeChecked();
+    });
+  });
+
+  describe('when isRepository returns true', () => {
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepository').mockReturnValue(true);
+      mock.onPost(getRepositoryComponentNameUrl(ownerType, ownerId), repositoryComponentNameUrlRequestBody).reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: true,
+          },
+        ],
+        hasNextPage: false,
+      });
+    });
+
+    it('hides Repository Manager and repository column', async () => {
+      renderComponent();
+      expect(await screen.findByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+      expect(await screen.findByText('Component Namespace')).toBeVisible();
+      expect(await screen.findByText('Test')).toBeVisible();
+      expect(await screen.queryByText('Repository Manager')).not.toBeInTheDocument();
+      expect(await screen.queryByText('9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA')).not.toBeInTheDocument();
+      expect(await screen.queryByText('Repository')).not.toBeInTheDocument();
+      expect(await screen.queryByText('maven-releases')).not.toBeInTheDocument();
       expect(await screen.findByText('Enabled')).toBeVisible();
       expect(screen.getByRole('switch')).toBeChecked();
     });

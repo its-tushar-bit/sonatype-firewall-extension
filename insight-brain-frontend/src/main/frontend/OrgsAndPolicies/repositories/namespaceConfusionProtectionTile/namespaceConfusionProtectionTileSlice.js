@@ -22,26 +22,38 @@ const PAGES = 1;
 const PAGE_SIZE = 6;
 const FILTER_DEBOUNCE_TIME = 500;
 const DEFAULT_SORTED_FIELD_PROPRIETARY = 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME';
+export const DEFAULT_KEY_FILTER_SECTION = 'repository_managers';
+
+const initialNamePatternsTableConfig = {
+  page: PAGES,
+  pageSize: PAGE_SIZE,
+  searchFilters: [],
+  sortFields: [
+    {
+      columnName: DEFAULT_SORTED_FIELD_PROPRIETARY,
+      dir: 'asc',
+    },
+  ],
+};
 
 const initialState = {
-  componentNamePatterns: [],
-  hasNextPage: null,
+  componentNamePatterns: {
+    [DEFAULT_KEY_FILTER_SECTION]: [],
+  },
+  hasNextPage: {
+    [DEFAULT_KEY_FILTER_SECTION]: null,
+  },
   loadingComponentNamePatterns: false,
   errorComponentsTable: null,
   namePatternsTableConfig: {
-    page: PAGES,
-    pageSize: PAGE_SIZE,
-    searchFilters: [],
-    sortFields: [
-      {
-        columnName: DEFAULT_SORTED_FIELD_PROPRIETARY,
-        dir: 'asc',
-      },
-    ],
+    [DEFAULT_KEY_FILTER_SECTION]: initialNamePatternsTableConfig,
   },
   searchFiltersValues: {
-    PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+    [DEFAULT_KEY_FILTER_SECTION]: {
+      [DEFAULT_SORTED_FIELD_PROPRIETARY]: '',
+    },
   },
+  currentFilterKey: DEFAULT_KEY_FILTER_SECTION,
   updatingComponentNamePattern: false,
   errorUpdatingComponentNamePattern: null,
 };
@@ -52,9 +64,9 @@ const sortComponents = (sortData) => (dispatch) => {
 };
 
 const setSorting = (state, { payload }) => {
-  state.namePatternsTableConfig.sortFields = changeMultiColumnSortCriteria(
+  state.namePatternsTableConfig[state.currentFilterKey].sortFields = changeMultiColumnSortCriteria(
     payload,
-    state.namePatternsTableConfig.sortFields
+    state.namePatternsTableConfig[state.currentFilterKey].sortFields
   );
 };
 
@@ -83,8 +95,8 @@ const getComponentNamePatternsPending = (state) => {
 const getComponentNamePatternsFulfilled = (state, { payload }) => {
   state.loadingComponentNamePatterns = false;
   state.errorComponentsTable = null;
-  state.componentNamePatterns = payload.proprietaryComponentNamePatterns;
-  state.hasNextPage = payload.hasNextPage;
+  state.componentNamePatterns[state.currentFilterKey] = payload.proprietaryComponentNamePatterns;
+  state.hasNextPage[state.currentFilterKey] = payload.hasNextPage;
 };
 
 const getComponentNamePatternsRejected = (state, { payload }) => {
@@ -93,11 +105,11 @@ const getComponentNamePatternsRejected = (state, { payload }) => {
 };
 
 const increasePage = (state) => {
-  state.namePatternsTableConfig.page += 1;
+  state.namePatternsTableConfig[state.currentFilterKey].page += 1;
 };
 
 const decreasePage = (state) => {
-  state.namePatternsTableConfig.page -= 1;
+  state.namePatternsTableConfig[state.currentFilterKey].page -= 1;
 };
 
 const loadNextPage = () => (dispatch) => {
@@ -114,21 +126,47 @@ const loadPreviousPage = () => (dispatch, getState) => {
 };
 
 const setFilter = (state, { payload: { filterName, filterValue } }) => {
-  let searchFilter = state.namePatternsTableConfig.searchFilters.find(
+  let searchFilter = state.namePatternsTableConfig[state.currentFilterKey].searchFilters.find(
     (filter) => filter.filterableField === filterName
   );
+
   if (searchFilter) {
     searchFilter.value = filterValue;
-  } else
-    state.namePatternsTableConfig.searchFilters.push({
+  } else {
+    state.namePatternsTableConfig[state.currentFilterKey].searchFilters.push({
       filterableField: filterName,
       value: filterValue,
     });
+  }
 
-  state.searchFiltersValues[filterName] = filterValue;
-  state.namePatternsTableConfig.searchFilters = state.namePatternsTableConfig.searchFilters.filter(
-    (searchFilter) => searchFilter.value !== ''
-  );
+  state.searchFiltersValues[state.currentFilterKey] = state.searchFiltersValues[state.currentFilterKey] ?? {};
+  state.searchFiltersValues[state.currentFilterKey][filterName] = filterValue;
+
+  state.namePatternsTableConfig[state.currentFilterKey].searchFilters = state.namePatternsTableConfig[
+    state.currentFilterKey
+  ].searchFilters.filter((searchFilter) => searchFilter.value !== '');
+};
+
+const setCurrentFilterKey = (state, { payload }) => {
+  state.currentFilterKey = payload;
+
+  if (!state.namePatternsTableConfig[payload]) {
+    state.namePatternsTableConfig[payload] = initialNamePatternsTableConfig;
+  }
+
+  if (!state.componentNamePatterns[payload]) {
+    state.componentNamePatterns[payload] = [];
+  }
+
+  if (!state.searchFiltersValues[payload]) {
+    state.searchFiltersValues[payload] = {
+      [DEFAULT_SORTED_FIELD_PROPRIETARY]: '',
+    };
+  }
+
+  if (!state.hasNextPage[payload]) {
+    state.hasNextPage[payload] = null;
+  }
 };
 
 const filterComponentsDebounce = debounce((dispatch) => {
@@ -180,6 +218,7 @@ export const namespaceConfusionProtectionTileSlice = createSlice({
     applyFilters,
     decreasePage,
     increasePage,
+    setCurrentFilterKey,
   },
   extraReducers: {
     [getComponentNamePatterns.pending]: getComponentNamePatternsPending,

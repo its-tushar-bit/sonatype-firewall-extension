@@ -57,7 +57,6 @@ export default function RepositoryManagerSummaryView() {
           <RepositoryManagerPills />
         </header>
 
-        {/*Configuration / Access tabs to go here*/}
         <div
           className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
           id="repositories-summary-sections"
@@ -65,7 +64,7 @@ export default function RepositoryManagerSummaryView() {
           <div id="scrollable-content">
             <RepositoriesConfigurationTile />
             <PoliciesTile />
-            <NamespaceConfusionProtectionTile />
+            <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
             <AccessTile />
           </div>
         </div>

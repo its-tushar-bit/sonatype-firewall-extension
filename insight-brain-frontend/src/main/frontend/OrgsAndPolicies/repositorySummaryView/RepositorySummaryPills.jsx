@@ -6,7 +6,7 @@
 import React from 'react';
 import NavPills from 'MainRoot/navPills/NavPills';
 
-const navList = [
+const proxyNavList = [
   {
     label: 'Policies',
     target: 'owner-pill-policy',
@@ -19,6 +19,25 @@ const navList = [
   },
 ];
 
-export default function RepositorySummaryPills() {
+const hostedNavList = [
+  {
+    label: 'Policies',
+    target: 'owner-pill-policy',
+    isDisplayed: true,
+  },
+  {
+    label: 'Namespace Confusion Protection',
+    target: 'namespace-confusion-protection-pill-configuration',
+    isDisplayed: true,
+  },
+  {
+    label: 'Access',
+    target: 'access-tile-pill-access',
+    isDisplayed: true,
+  },
+];
+
+export default function RepositorySummaryPills({ isHosted = false }) {
+  const navList = isHosted ? hostedNavList : proxyNavList;
   return <NavPills list={navList} root="#repositories-summary-sections" />;
 }

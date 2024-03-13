@@ -46,7 +46,6 @@ export default function RepositoriesSummaryView() {
           <RepositoriesPills />
         </header>
 
-        {/*Configuration / Access tabs to go here*/}
         <div
           className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
           id="repositories-summary-sections"

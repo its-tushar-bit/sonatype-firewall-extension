@@ -15,6 +15,7 @@ import {
   selectEntityId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
+import NamespaceConfusionProtectionTile from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import RepositorySummaryPills from './RepositorySummaryPills';
 
@@ -25,6 +26,7 @@ export default function RepositorySummaryView() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const repositoryId = useSelector(selectEntityId);
   const repository = useSelector(selectSelectedOwner);
+  const isHostedRepository = repository.repositoryType === 'hosted';
 
   const loadOwnerSummary = () => dispatch(actions.loadOwnerSummary());
 
@@ -44,7 +46,7 @@ export default function RepositorySummaryView() {
               <span>{repository.publicId}</span>
             </NxH1>
           </NxPageTitle>
-          <RepositorySummaryPills />
+          <RepositorySummaryPills isHosted={isHostedRepository} />
         </header>
         <div
           className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
@@ -52,6 +54,9 @@ export default function RepositorySummaryView() {
         >
           <div id="scrollable-content">
             <PoliciesTile />
+            {isHostedRepository && (
+              <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository_${repository.publicId}`} />
+            )}
             <AccessTile />
           </div>
         </div>

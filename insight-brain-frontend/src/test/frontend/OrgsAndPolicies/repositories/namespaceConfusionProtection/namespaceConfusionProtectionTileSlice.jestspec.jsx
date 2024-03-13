@@ -26,14 +26,19 @@ describe('namespaceConfusionProtectionTileSlice', () => {
   describe('namespaceConfusionProtectionTile/getComponentNamePatterns/fulfilled action', () => {
     it('sets loading flag to false, unsets the error and fills in the repository components details', () => {
       const state = Object.freeze({
-        componentNamePatterns: [],
-        hasNextPage: null,
+        componentNamePatterns: {
+          repository_managers: [],
+        },
+        hasNextPage: {
+          repository_managers: null,
+        },
         loadingComponentNamePatterns: true,
         errorComponentsTable: 'Loading error',
         namePatternsTableConfig: {
           page: 1,
           pageSize: 2,
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const payload = {
@@ -57,28 +62,31 @@ describe('namespaceConfusionProtectionTileSlice', () => {
             enabled: true,
           },
         ],
+        currentFilterKey: 'repository_managers',
       };
 
-      const expectedState = [
-        {
-          id: 'ea481e4a1eb347b5b1ee5dbecce663df',
-          format: 'maven',
-          namespacePattern: 'test-org-names',
-          namePattern: 'intellij-dependencies',
-          repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
-          repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
-          enabled: true,
-        },
-        {
-          id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
-          format: 'maven',
-          namespacePattern: 'numberslist',
-          namePattern: 'maven-central',
-          repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
-          repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
-          enabled: true,
-        },
-      ];
+      const expectedState = {
+        repository_managers: [
+          {
+            id: 'ea481e4a1eb347b5b1ee5dbecce663df',
+            format: 'maven',
+            namespacePattern: 'test-org-names',
+            namePattern: 'intellij-dependencies',
+            repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
+            repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            enabled: true,
+          },
+          {
+            id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
+            format: 'maven',
+            namespacePattern: 'numberslist',
+            namePattern: 'maven-central',
+            repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
+            repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            enabled: true,
+          },
+        ],
+      };
 
       const { componentNamePatterns, loadingComponentNamePatterns, errorComponentsTable } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/getComponentNamePatterns/fulfilled',
@@ -112,13 +120,16 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     it('changes sorting direction to the opposite if we sort the same column', () => {
       const state = Object.freeze({
         namePatternsTableConfig: {
-          sortFields: [
-            {
-              columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
-              dir: 'asc',
-            },
-          ],
+          repository_managers: {
+            sortFields: [
+              {
+                columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+                dir: 'asc',
+              },
+            ],
+          },
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const expectedSortFields = [
@@ -129,7 +140,9 @@ describe('namespaceConfusionProtectionTileSlice', () => {
       ];
 
       const {
-        namePatternsTableConfig: { sortFields },
+        namePatternsTableConfig: {
+          repository_managers: { sortFields },
+        },
       } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/setSorting',
         payload: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
@@ -141,13 +154,16 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     it('changes direction to asc if we sort different columns', () => {
       const state = Object.freeze({
         namePatternsTableConfig: {
-          sortFields: [
-            {
-              columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
-              dir: 'asc',
-            },
-          ],
+          repository_managers: {
+            sortFields: [
+              {
+                columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+                dir: 'asc',
+              },
+            ],
+          },
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const expectedSortFields = [
@@ -162,7 +178,9 @@ describe('namespaceConfusionProtectionTileSlice', () => {
       ];
 
       const {
-        namePatternsTableConfig: { sortFields },
+        namePatternsTableConfig: {
+          repository_managers: { sortFields },
+        },
       } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/setSorting',
         payload: 'REPOSITORY_MANAGER_INSTANCE_ID',
@@ -176,12 +194,17 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     it('increases page counter', () => {
       const state = Object.freeze({
         namePatternsTableConfig: {
-          page: 1,
+          repository_managers: {
+            page: 1,
+          },
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const {
-        namePatternsTableConfig: { page },
+        namePatternsTableConfig: {
+          repository_managers: { page },
+        },
       } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/increasePage',
       });
@@ -194,12 +217,17 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     it('decrease page counter', () => {
       const state = Object.freeze({
         namePatternsTableConfig: {
-          page: 3,
+          repository_managers: {
+            page: 3,
+          },
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const {
-        namePatternsTableConfig: { page },
+        namePatternsTableConfig: {
+          repository_managers: { page },
+        },
       } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/decreasePage',
       });
@@ -212,16 +240,22 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     it('sets new search filter value if filter does not exist', () => {
       const state = Object.freeze({
         namePatternsTableConfig: {
-          searchFilters: [],
+          repository_managers: {
+            searchFilters: [],
+          },
         },
         searchFiltersValues: {
-          PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+          repository_managers: {
+            PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+          },
         },
+        currentFilterKey: 'repository_managers',
       });
 
       const payload = {
         filterName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
         filterValue: 'Filter',
+        filterSection: 'repository_managers',
       };
 
       const expectedFilters = [
@@ -232,7 +266,9 @@ describe('namespaceConfusionProtectionTileSlice', () => {
       ];
 
       const {
-        namePatternsTableConfig: { searchFilters },
+        namePatternsTableConfig: {
+          repository_managers: { searchFilters },
+        },
       } = reducer(state, {
         type: 'namespaceConfusionProtectionTile/setFilter',
         payload,
@@ -245,21 +281,33 @@ describe('namespaceConfusionProtectionTileSlice', () => {
   it('changes search filter value if filter already exist', () => {
     const state = Object.freeze({
       namePatternsTableConfig: {
-        searchFilters: [
-          {
-            filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
-            value: 'Old namespace value',
-          },
-        ],
+        repository_managers: {
+          searchFilters: [
+            {
+              filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+              value: 'Old namespace value',
+            },
+          ],
+          sortFields: [
+            {
+              columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+              dir: 'asc',
+            },
+          ],
+        },
       },
       searchFiltersValues: {
-        PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+        repository_managers: {
+          PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+        },
       },
+      currentFilterKey: 'repository_managers',
     });
 
     const payload = {
       filterName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
       filterValue: 'New namespace value',
+      filterSection: 'repository_managers',
     };
 
     const expectedFilters = [
@@ -270,7 +318,9 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     ];
 
     const {
-      namePatternsTableConfig: { searchFilters },
+      namePatternsTableConfig: {
+        repository_managers: { searchFilters },
+      },
     } = reducer(state, {
       type: 'namespaceConfusionProtectionTile/setFilter',
       payload,
@@ -282,16 +332,19 @@ describe('namespaceConfusionProtectionTileSlice', () => {
   it('removes search filter value if filter values is empty string', () => {
     const state = Object.freeze({
       namePatternsTableConfig: {
-        searchFilters: [
-          {
-            filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
-            value: 'namespace',
-          },
-        ],
+        repository_managers: {
+          searchFilters: [
+            {
+              filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+              value: 'namespace',
+            },
+          ],
+        },
       },
       searchFiltersValues: {
         PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
       },
+      currentFilterKey: 'repository_managers',
     });
 
     const payload = {
@@ -302,7 +355,9 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     const expectedFilters = [];
 
     const {
-      namePatternsTableConfig: { searchFilters },
+      namePatternsTableConfig: {
+        repository_managers: { searchFilters },
+      },
     } = reducer(state, {
       type: 'namespaceConfusionProtectionTile/setFilter',
       payload,
@@ -370,6 +425,55 @@ describe('namespaceConfusionProtectionTileSlice', () => {
 
       expect(updatingComponentNamePattern).toBe(false);
       expect(errorUpdatingComponentNamePattern).toBe('Loading error');
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/setCurrentFilterKey action', () => {
+    it('set current key and states for the new key', () => {
+      const state = Object.freeze({
+        componentNamePatterns: {},
+        hasNextPage: {},
+        namePatternsTableConfig: {},
+        searchFiltersValues: {},
+        currentFilterKey: 'repository_managers',
+      });
+
+      const setCurrentFilterkey = 'new_key';
+
+      const expectedState = {
+        componentNamePatterns: {
+          [setCurrentFilterkey]: [],
+        },
+        hasNextPage: {
+          [setCurrentFilterkey]: null,
+        },
+        namePatternsTableConfig: {
+          [setCurrentFilterkey]: {
+            page: 1,
+            pageSize: 6,
+            searchFilters: [],
+            sortFields: [
+              {
+                columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+                dir: 'asc',
+              },
+            ],
+          },
+        },
+        searchFiltersValues: {
+          [setCurrentFilterkey]: {
+            PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+          },
+        },
+        currentFilterKey: setCurrentFilterkey,
+      };
+
+      const newState = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/setCurrentFilterKey',
+        payload: 'new_key',
+      });
+
+      expect(newState).toEqual(expectedState);
     });
   });
 });

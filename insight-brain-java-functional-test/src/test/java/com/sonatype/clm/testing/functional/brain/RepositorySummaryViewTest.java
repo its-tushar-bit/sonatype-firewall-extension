@@ -8,8 +8,10 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
@@ -17,13 +19,14 @@ import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessLi
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -44,11 +48,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -386,5 +386,146 @@ public class RepositorySummaryViewTest
     rootOrgAccessListWriteRoleDescription.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
 
     eyesWatcher.eyesCheck("repository manager access tile");
+  }
+
+  @Test
+  public void testRepositorySummaryView_namespaceConfusionProtectionTileForHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+    Repository repo = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    ProprietaryComponentNamePattern namePattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, "test", null, true);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+        .shouldHave(text(namePattern.getNamespacePattern()));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().isEmpty();
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().isEmpty();
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
+
+    eyesWatcher.eyesCheck("hosted repository manager namespace confusion protection tile");
+  }
+
+  @Test
+  public void testRepositorySummaryView_namespaceConfusionProtectionTile_independentSortAndFilter() {
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+
+    Repository repo1 = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+
+    List<ProprietaryComponentNamePattern> namePatterns = new ArrayList<>();
+
+    ProprietaryComponentNamePattern namePattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "test-a", null, true);
+    ProprietaryComponentNamePattern namePattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "test-ab", null, false);
+    ProprietaryComponentNamePattern namePattern3 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "test-b", null, true);
+    ProprietaryComponentNamePattern namePattern4 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "test-bc", null, false);
+
+    namePatterns.add(namePattern1);
+    namePatterns.add(namePattern2);
+    namePatterns.add(namePattern3);
+    namePatterns.add(namePattern4);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo1.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo1.getId()));
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
+
+    checkDefaultSortForNamespaceConfusionTile(namespaceConfusionProtectionTile, namePatterns);
+
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+        .shouldHave(text(namePattern2.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
+        .shouldHave(text(namePattern4.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2)
+        .shouldHave(text(namePattern1.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3)
+        .shouldHave(text(namePattern3.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(3).shouldBe(enabled, selected);
+
+    eyesWatcher.eyesCheck("hosted repository namespace confusion protection tile sorted by enable column");
+
+    breadcrumb.listItems().get(2).click();
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repoManager.getId()));
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
+
+    checkDefaultSortForNamespaceConfusionTile(namespaceConfusionProtectionTile, namePatterns);
+
+    eyesWatcher.eyesCheck("hosted repository manager namespace confusion protection tile");
+
+    namespaceConfusionProtectionTile.namespaceFilterInput().setValue("a");
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(2);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+            .shouldHave(text(namePattern2.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
+            .shouldHave(text(namePattern1.getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled, selected);
+
+    eyesWatcher.eyesCheck("hosted repository manager namespace confusion protection tile sorted by enable column");
+
+    breadcrumb.listItems().get(1).click();
+    waitUntilUrl(RepositoriesSummaryPage.url());
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
+
+    checkDefaultSortForNamespaceConfusionTile(namespaceConfusionProtectionTile, namePatterns);
+  }
+
+  @Test
+  public void testRepositorySummaryView_namespaceConfusionProtectionTileForProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+    Repository repo = tempEntity.newRepository(repoManager, "maven-central", RepositoryType.proxy,
+        ComponentIdentifier.FORMAT_MAVEN);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+
+    RepositoriesSummaryPage.namespaceConfusionProtectionPillButton().shouldNotBe(visible);
+    RepositoriesSummaryPage.namespaceConfusionProtectionTile().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("proxy repository namespace confusion protection tile");
+  }
+
+  public void checkDefaultSortForNamespaceConfusionTile(
+      NamespaceConfusionProtectionTile namespaceConfusionProtectionTile,
+      List<ProprietaryComponentNamePattern> namePatterns
+  )
+  {
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+        .shouldHave(text(namePatterns.get(0).getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
+        .shouldHave(text(namePatterns.get(1).getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2)
+        .shouldHave(text(namePatterns.get(2).getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3)
+        .shouldHave(text(namePatterns.get(3).getNamespacePattern()));
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(3).shouldBe(enabled).shouldNotBe(selected);
   }
 }

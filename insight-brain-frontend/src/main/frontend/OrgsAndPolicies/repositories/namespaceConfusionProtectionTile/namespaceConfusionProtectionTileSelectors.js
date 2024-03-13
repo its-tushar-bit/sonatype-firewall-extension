@@ -5,36 +5,52 @@
  */
 
 import { createSelector } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { prop, path } from 'ramda';
 
 export const selectNamespaceConfusionProtectionTileSlice = prop('namespaceConfusionProtectionTile');
 
-export const selectComponentsRequestBody = createSelector(selectNamespaceConfusionProtectionTileSlice, (state) => {
-  // formats current table sortConfiguration to the structure required by backend
-  const formattedSortFields = state.namePatternsTableConfig.sortFields.map((columnObj, index) => ({
-    sortableField: columnObj.columnName,
-    asc: columnObj.dir === 'asc',
-    sortPriority: index + 1,
-  }));
-  return { ...state.namePatternsTableConfig, sortFields: formattedSortFields };
-});
+export const selectCurrentFilterKey = createSelector(
+  selectNamespaceConfusionProtectionTileSlice,
+  prop('currentFilterKey')
+);
 
+export const selectComponentsRequestBody = createSelector(
+  selectNamespaceConfusionProtectionTileSlice,
+  selectCurrentFilterKey,
+  (state, currentFilterKey) => {
+    // formats current table sortConfiguration to the structure required by backend
+    const formattedSortFields = state.namePatternsTableConfig[currentFilterKey].sortFields.map((columnObj, index) => ({
+      sortableField: columnObj.columnName,
+      asc: columnObj.dir === 'asc',
+      sortPriority: index + 1,
+    }));
+    return {
+      ...state.namePatternsTableConfig[currentFilterKey],
+      sortFields: formattedSortFields,
+    };
+  }
+);
 export const selectCurrentPage = createSelector(
   selectNamespaceConfusionProtectionTileSlice,
-  (state) => state.namePatternsTableConfig.page
+  (state) => state.namePatternsTableConfig[state.currentFilterKey].page
 );
 export const selectSortFields = createSelector(
   selectNamespaceConfusionProtectionTileSlice,
-  (state) => state.namePatternsTableConfig.sortFields
+  (state) => state.namePatternsTableConfig[state.currentFilterKey].sortFields
 );
 export const selectSearchFiltersValues = createSelector(
   selectNamespaceConfusionProtectionTileSlice,
-  prop('searchFiltersValues')
+  selectCurrentFilterKey,
+  (namespaceConfusionProtectionTile, currentFilterKey) =>
+    path(['searchFiltersValues', currentFilterKey], namespaceConfusionProtectionTile)
 );
 
 export const selectComponentNamePatterns = createSelector(
   selectNamespaceConfusionProtectionTileSlice,
-  prop('componentNamePatterns')
+  selectCurrentFilterKey,
+  (namespaceConfusionProtectionTile, currentFilterKey) => {
+    return namespaceConfusionProtectionTile.componentNamePatterns[currentFilterKey] ?? [];
+  }
 );
 
 export const selectLoadingComponentNamePatterns = createSelector(
@@ -47,7 +63,12 @@ export const selectErrorComponentsTable = createSelector(
   prop('errorComponentsTable')
 );
 
-export const selectHasNextPage = createSelector(selectNamespaceConfusionProtectionTileSlice, prop('hasNextPage'));
+export const selectHasNextPage = createSelector(
+  selectNamespaceConfusionProtectionTileSlice,
+  selectCurrentFilterKey,
+  (namespaceConfusionProtectionTile, currentFilterKey) =>
+    path(['hasNextPage', currentFilterKey], namespaceConfusionProtectionTile)
+);
 
 export const selectErrorUpdatingComponentNamePattern = createSelector(
   selectNamespaceConfusionProtectionTileSlice,

@@ -17,7 +17,7 @@ import {
   NxTile,
   NxToggle,
 } from '@sonatype/react-shared-components';
-import { actions } from './namespaceConfusionProtectionTileSlice';
+import { actions, DEFAULT_KEY_FILTER_SECTION } from './namespaceConfusionProtectionTileSlice';
 import {
   selectComponentNamePatterns,
   selectCurrentPage,
@@ -28,9 +28,13 @@ import {
   selectSortFields,
   selectUpdatingComponentNamePattern,
 } from './namespaceConfusionProtectionTileSelectors';
-import { selectIsRepositoryManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoryContainer,
+  selectIsRepositoryManager,
+  selectIsRepository,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const NamespaceConfusionProtectionTile = () => {
+const NamespaceConfusionProtectionTile = ({ sortFilterSectionValues = DEFAULT_KEY_FILTER_SECTION }) => {
   const dispatch = useDispatch();
 
   const sortFields = useSelector(selectSortFields);
@@ -42,6 +46,8 @@ const NamespaceConfusionProtectionTile = () => {
   const updatingComponentNamePattern = useSelector(selectUpdatingComponentNamePattern);
   const errorUpdatingComponentNamePattern = useSelector(selectErrorUpdatingComponentNamePattern);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
+  const isRepository = useSelector(selectIsRepository);
 
   const loadRepositories = () => dispatch(actions.getComponentNamePatterns());
   const searchComponents = (policyName) => dispatch(actions.searchComponents(policyName));
@@ -49,8 +55,10 @@ const NamespaceConfusionProtectionTile = () => {
   const loadNextPage = () => dispatch(actions.loadNextPage());
   const sortComponents = (columnName) => dispatch(actions.sortComponents(columnName));
   const setEnabledStatus = (componentId) => dispatch(actions.setEnabledStatus(componentId));
+  const setCurrentFilterKey = () => dispatch(actions.setCurrentFilterKey(sortFilterSectionValues));
 
   React.useEffect(() => {
+    setCurrentFilterKey();
     loadRepositories();
   }, []);
 
@@ -63,7 +71,7 @@ const NamespaceConfusionProtectionTile = () => {
           </div>
         </NxOverflowTooltip>
       </NxTable.Cell>
-      {!isRepositoryManager && (
+      {isRepositoryContainer && (
         <NxTable.Cell className="iq-repository-cell-manager">
           <NxOverflowTooltip title={row.repositoryManagerName || row.repositoryManagerInstanceId}>
             <div className="iq-repository-cell-manager--text nx-truncate-ellipsis">
@@ -72,11 +80,13 @@ const NamespaceConfusionProtectionTile = () => {
           </NxOverflowTooltip>
         </NxTable.Cell>
       )}
-      <NxTable.Cell className="iq-repository-cell-repository">
-        <NxOverflowTooltip title={row.repositoryPublicId}>
-          <div className="iq-repository-cell-repository--text nx-truncate-ellipsis">{row.repositoryPublicId}</div>
-        </NxOverflowTooltip>
-      </NxTable.Cell>
+      {!isRepository && (
+        <NxTable.Cell className="iq-repository-cell-repository">
+          <NxOverflowTooltip title={row.repositoryPublicId}>
+            <div className="iq-repository-cell-repository--text nx-truncate-ellipsis">{row.repositoryPublicId}</div>
+          </NxOverflowTooltip>
+        </NxTable.Cell>
+      )}
       <NxTable.Cell className="iq-repository-cell-enabled">
         <NxLoadWrapper retryHandler={setEnabledStatus} error={errorUpdatingComponentNamePattern}>
           <NxToggle
@@ -95,7 +105,11 @@ const NamespaceConfusionProtectionTile = () => {
     return currentHighligtedColumn.columnName === columnName ? currentHighligtedColumn.dir : null;
   };
 
-  const conditionalClassName = isRepositoryManager ? 'iq-repository-component-name-table-rm-level' : '';
+  const conditionalClassName = isRepositoryManager
+    ? 'iq-repository-component-name-table-rm-level'
+    : isRepository
+    ? 'iq-repository-component-name-table-repository-level'
+    : '';
 
   return (
     <NxTile
@@ -126,7 +140,7 @@ const NamespaceConfusionProtectionTile = () => {
                 >
                   <span className="nx-truncate-ellipsis">Component Namespace</span>
                 </NxTable.Cell>
-                {!isRepositoryManager && (
+                {isRepositoryContainer && (
                   <NxTable.Cell
                     isSortable
                     sortDir={getHighlightedArrowState('REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME')}
@@ -136,14 +150,16 @@ const NamespaceConfusionProtectionTile = () => {
                     <span className="nx-truncate-ellipsis">Repository Manager</span>
                   </NxTable.Cell>
                 )}
-                <NxTable.Cell
-                  isSortable
-                  sortDir={getHighlightedArrowState('REPOSITORY_PUBLIC_ID')}
-                  onClick={() => sortComponents('REPOSITORY_PUBLIC_ID')}
-                  className="iq-repository-column--repository"
-                >
-                  <span className="nx-truncate-ellipsis">Repository</span>
-                </NxTable.Cell>
+                {!isRepository && (
+                  <NxTable.Cell
+                    isSortable
+                    sortDir={getHighlightedArrowState('REPOSITORY_PUBLIC_ID')}
+                    onClick={() => sortComponents('REPOSITORY_PUBLIC_ID')}
+                    className="iq-repository-column--repository"
+                  >
+                    <span className="nx-truncate-ellipsis">Repository</span>
+                  </NxTable.Cell>
+                )}
                 <NxTable.Cell
                   isSortable
                   sortDir={getHighlightedArrowState('ENABLED')}

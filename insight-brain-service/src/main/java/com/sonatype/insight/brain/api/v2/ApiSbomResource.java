@@ -41,7 +41,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Path(PublicApiPaths.SBOM_RESOURCE_PATH)
 public class ApiSbomResource
 {
-  static final String DEFAULT_SBOM_FORM = "current";
+  static final String DEFAULT_SBOM_STATE = "current";
 
   static final String SBOM_APPLICATION_PATH = "{applicationId}";
 
@@ -93,11 +93,11 @@ public class ApiSbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
 
-      @Parameter(description = "URL Encoded version value of the sbom to be deleted", required = true)
+      @Parameter(description = "URL Encoded version value of the sbom", required = true)
       @PathParam("sbomVersion") String sbomVersion,
 
-      @Parameter(description = "The form of the sbom version. Allowed values [original|current]. default = current")
-      @DefaultValue(DEFAULT_SBOM_FORM) @QueryParam("form") String sbomForm,
+      @Parameter(description = "The state of the sbom version. Allowed values [original|current]. default = current")
+      @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
 
       @Parameter(in = ParameterIn.HEADER, name = "Accept", description = "Output format(json/xml) of the sbom. " +
           "Changing the output format only applicable when downloading the current form of the SBOM. " +
@@ -107,7 +107,6 @@ public class ApiSbomResource
           "Allowed values {'application/json'|'application/xml'}. default = null")
       @HeaderParam(HttpHeaders.ACCEPT) String acceptMediaType)
   {
-    //TODO: with CLM-29415
-    return Response.ok().build();
+    return apiSbomService.getSbomVersion(applicationId, sbomVersion, sbomState);
   }
 }

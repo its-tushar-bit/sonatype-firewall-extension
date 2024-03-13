@@ -59,6 +59,16 @@ public class ThirdPartySbomMetadataDAO
         " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2";
     return get(sQuery, applicationId, sbomVersion);
   }
+  
+  public ThirdPartySbomMetadata getByApplicationIdAndSbomVersionAndStatus(
+      String applicationId,
+      String sbomVersion,
+      String status)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
+        " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2 AND entity.status=?3";
+    return get(sQuery, applicationId, sbomVersion, status);
+  }
 
   public void deleteByApplicationId(TransactionContext tx, String applicationId) {
     String sQuery = "DELETE FROM ThirdPartySbomMetadata entity " //

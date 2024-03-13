@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -35,7 +36,7 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   public void testCRUD() {
     // Create
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     // Read
@@ -59,7 +60,7 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   public void testGetAll() {
     // Create one entry
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     // Read all
@@ -67,7 +68,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(allSbomMetadata.size()).isOne();
 
     // Create another entry
-    ThirdPartySbomMetadata anotherEntity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata anotherEntity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     allSbomMetadata = dao.getAll();
     assertThat(allSbomMetadata)
         .hasSize(2)
@@ -91,7 +92,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetByThirdPartyFileId() {
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     final ThirdPartySbomMetadata sbomMetadata = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
@@ -101,7 +102,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testDeleteByThirdPartyFileId() {
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     ThirdPartySbomMetadata sbomMetadata = dao.getByThirdPartyFileId(entity.getThirdPartyFileId());
@@ -120,7 +121,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testGetByApplicationId() {
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     final List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(entity.getApplicationId());
@@ -132,16 +133,21 @@ public class ThirdPartySbomMetadataDAOTest
   @Test
   public void testGetByApplicationIdAndSbomVersion() {
     Application app = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "version1", null);
-    assertThat(sbomMetadata.getId()).isNotNull();
-    ThirdPartySbomMetadata sbomMetadataSameAppDiffVersion =
-        tempEntity.createSbomMetadata(app.getId(), "version2", null);
-    assertThat(sbomMetadataSameAppDiffVersion.getId()).isNotNull();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("version1")
+        .build();
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("version2")
+        .build();
 
     Application anotherApp = tempEntity.newApplicationWithParent();
-    ThirdPartySbomMetadata sbomMetadataDiffAppSameVersion =
-        tempEntity.createSbomMetadata(anotherApp.getId(), "version1", null);
-    assertThat(sbomMetadataDiffAppSameVersion.getId()).isNotNull();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(anotherApp.getId())
+        .withSbomVersion("version1")
+        .build();
 
     final ThirdPartySbomMetadata savedSbomMetadata =
         dao.getByApplicationIdAndSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
@@ -151,7 +157,7 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   public void testDeleteByApplicationId() {
-    ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata();
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
     assertThat(entity.getId()).isNotNull();
 
     List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(entity.getApplicationId());

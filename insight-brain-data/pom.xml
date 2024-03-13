@@ -272,6 +272,7 @@
                 <include>**/TestDAOFactory*</include>
                 <include>**/ConditionTypesTestHelper*</include>
                 <include>**/ThirdPartySbomMetadataTestUtil*</include>
+                <include>**/SbomMetadataBuilder*</include>
               </includes>
             </configuration>
           </execution>

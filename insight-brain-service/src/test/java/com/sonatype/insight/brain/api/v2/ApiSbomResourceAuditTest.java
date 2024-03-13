@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -48,8 +49,10 @@ public class ApiSbomResourceAuditTest
     Path fileInWorkDirPath =
         SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
             getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"));
-    final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        tempEntity.createSbomMetadata(app.getId(), null, fileInWorkDirPath.getFileName().toString());
+    ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withFilename(fileInWorkDirPath.getFileName().toString())
+        .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
         .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
@@ -62,7 +65,10 @@ public class ApiSbomResourceAuditTest
 
   @Test
   public void testDeleteSbomVersion_Unauthorized() throws Exception {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.createSbomMetadata();
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .build();
     HttpResponse response = restRequest().with(unauthorizedUser()).path(ApiSbomResource.SBOM_VERSIONS_PATH)
         .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
     assertResponseStatus(403, response);

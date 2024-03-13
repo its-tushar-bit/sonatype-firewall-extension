@@ -1009,6 +1009,16 @@ export function getAddIconUrl(isApp, ownerId) {
   return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/icon/${encodeURIComponent(ownerId)}`;
 }
 
+export function getImportSbomUrl(applicationId) {
+  // placeholder URI
+  return uriTemplate`/rest/sbom/detection/${applicationId}`;
+}
+
+export function getCommitImportedSbomUrl() {
+  // placeholder URI
+  return uriTemplate`/rest/sbom/detection/commit/`;
+}
+
 export const getVersionGraphUrl = ({
   clientType,
   ownerType,

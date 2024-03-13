@@ -41,6 +41,7 @@ import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicati
 import MoveOwnerModal from 'MainRoot/OrgsAndPolicies/moveOwner/MoveOwnerModal';
 import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
+import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 
 export default function OwnerSummary() {
   const dispatch = useDispatch();
@@ -123,6 +124,7 @@ export default function OwnerSummary() {
       <ChangeApplicationIdModal />
       <RevokeLegacyViolationModal />
       <ImportPoliciesModal />
+      <ImportSbomModal />
       <MoveOwnerModal />
       <SelectContactModal />
       <EvaluateApplicationModal />

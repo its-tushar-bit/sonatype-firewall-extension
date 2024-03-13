@@ -33,6 +33,7 @@ import evaluateApplicationSlice from 'MainRoot/OrgsAndPolicies/evaluateApplicati
 import actionDropdownSlice from './actionDropdown/actionDropdownSlice';
 import sourceControlConfigurationSlice from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ownersTreeSlice from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
+import importSbomModalSlice from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -48,6 +49,7 @@ export default combineReducers({
   stages: stagesSlice,
   policy: policySlice,
   ownerActions: combineReducers({
+    importSbomModal: importSbomModalSlice,
     importPolicies: importPoliciesSlice,
     deleteOwner: deleteOwnerSlice,
     legacyViolations: legacyViolationModalSlice,

@@ -151,6 +151,10 @@ describe('CLMLocation.js', function () {
     });
   }
 
+  it('should return the all licenses url', function () {
+    expect(CLMLocation.getAllLicensesUrl()).toBe('/rest/license');
+  });
+
   describe('getVulnerabilityJsonDetailUrl', function () {
     let mockRefId, mockComponentIdentifier, mockExtraQueryParameters;
 
@@ -749,6 +753,18 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getLicenseOverrideLegalReviewerUrl('app', 'appId', stringComponentIdentifier)).toEqual(
         expectedUrl
       );
+    });
+  });
+
+  describe('getImportSbomUrl', function () {
+    it('should return the url for importing SBOM and appending the application id at the end', function () {
+      expect(CLMLocation.getImportSbomUrl('applicationId')).toBe('/rest/sbom/detection/applicationId');
+    });
+  });
+
+  describe('getCommitImportedSbomUrl', function () {
+    it('should return the url for committing SBOM import', function () {
+      expect(CLMLocation.getCommitImportedSbomUrl()).toBe('/rest/sbom/detection/commit/');
     });
   });
 

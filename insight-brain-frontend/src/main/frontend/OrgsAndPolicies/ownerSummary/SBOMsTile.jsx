@@ -4,11 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon, NxTile, NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
-import classnames from 'classnames';
+import { NxButton, NxFontAwesomeIcon, NxTile, NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
+
+import { actions } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 
 export default function SBOMsTile() {
+  const dispatch = useDispatch();
+  const openModal = () => dispatch(actions.setIsModalOpen(true));
+
   return (
     <NxTile id="owner-pill-sboms">
       <NxLoadWrapper retryHandler={() => {}} loading={false}>
@@ -18,10 +23,10 @@ export default function SBOMsTile() {
               <NxH2>SBOMs</NxH2>
             </NxTile.HeaderTitle>
             <NxTile.HeaderActions>
-              <a id="import-sboms-button" className={classnames('nx-btn', 'nx-btn--tertiary')}>
+              <NxButton id="import-sboms-button" variant="tertiary" onClick={openModal}>
                 <NxFontAwesomeIcon icon={faPlus} />
                 <span>Import SBOMs</span>
-              </a>
+              </NxButton>
             </NxTile.HeaderActions>
           </NxTile.Headings>
         </NxTile.Header>

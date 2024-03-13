@@ -33,7 +33,7 @@ pipeline {
           body: "<p>Dear Product Owners,</p>\
           <p>All the release binaries are up, and can be found by following the link below.</p>\
           <p><a href='https://links.sonatype.com/products/clm/download'>https://links.sonatype.com/products/clm/download</a></p>",
-          to: "jwhitehouse@sonatype.com, products@sonatype.com, dev@sonatype.com, sonatype-se-discussion-group@sonatype.com, success@sonatype.com, support-team-group@sonatype.com"
+          to: "jwhitehouse@sonatype.com, products@sonatype.com, dev@sonatype.com, sonatype-se-discussion-group@sonatype.com, success@sonatype.com, support-team-group@sonatype.com, design-studio-core-team-group@sonatype.com"
         )
       }
     }

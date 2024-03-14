@@ -49,8 +49,8 @@ public class ApplicationSummaryResourceAuditTest
   }
 
   private HttpRequest verifyOrCreateApplicationRequest() {
-    return restRequest().path(DefaultApplicationSummaryResource.RESOURCE_PATH)
-        .path(DefaultApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
+    return restRequest().path(ApplicationSummaryResource.RESOURCE_PATH)
+        .path(ApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
         .query("goal", Goal.EVALUATE_APPLICATION);
   }
 }

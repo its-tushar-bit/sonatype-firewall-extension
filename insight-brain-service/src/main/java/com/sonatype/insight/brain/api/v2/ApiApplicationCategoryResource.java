@@ -33,11 +33,11 @@ import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
-@Path(DefaultApiApplicationCategoryResource.RESOURCE_PATH)
+@Path(ApiApplicationCategoryResource.RESOURCE_PATH)
 /**
  * @since 1.9
  */
-public class DefaultApiApplicationCategoryResource implements ApiApplicationCategoryResource
+public class ApiApplicationCategoryResource
 {
   public static final String RESOURCE_PATH = PublicApiPaths.APPLICATION_CATEGORY_RESOURCE_PATH;
 
@@ -52,11 +52,10 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
   private final TagService service;
 
   @Inject
-  public DefaultApiApplicationCategoryResource(TagService service) {
+  public ApiApplicationCategoryResource(TagService service) {
     this.service = service;
   }
 
-  @Override
   @GET
   @Path(USED_BY_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -64,7 +63,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getTagsUsedByApplications();
   }
 
-  @Override
   @GET
   @Path(APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -72,7 +70,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getApplicableTags(OwnerType.APPLICATION, applicationPublicId);
   }
 
-  @Override
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -82,7 +79,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getTags(organizationId);
   }
 
-  @Override
   @GET
   @Path(ORGANIZATION_APPLICABLE_TAGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -90,7 +86,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getApplicableTags(OwnerType.ORGANIZATION, organizationId);
   }
 
-  @Override
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
@@ -100,7 +95,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
   }
 
-  @Override
   @GET
   @Path(ORGANIZATION_PATH + "/applied")
   @Produces(MediaType.APPLICATION_JSON)
@@ -108,7 +102,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getAppliedTags(organizationId);
   }
 
-  @Override
   @GET
   @Path(ORGANIZATION_PATH + "/policy")
   @Produces(MediaType.APPLICATION_JSON)
@@ -116,7 +109,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.getAppliedPolicyTags(organizationId);
   }
 
-  @Override
   @POST
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -129,7 +121,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.addTag(organizationId, tag);
   }
 
-  @Override
   @PUT
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -142,7 +133,6 @@ public class DefaultApiApplicationCategoryResource implements ApiApplicationCate
     return service.updateTag(organizationId, tag);
   }
 
-  @Override
   @DELETE
   @Path(ORGANIZATION_PATH + "/{tagId}")
   @Audited(AuditEvent.DELETE_APPLICATION_CATEGORY)

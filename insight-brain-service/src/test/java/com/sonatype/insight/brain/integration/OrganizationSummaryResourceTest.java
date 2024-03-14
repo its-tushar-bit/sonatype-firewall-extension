@@ -21,11 +21,11 @@ public class OrganizationSummaryResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(DefaultOrganizationSummaryResource.RESOURCE_PATH);
+    return super.restRequest().path(OrganizationSummaryResource.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest(Goal goal) {
-    return restRequest().query(DefaultOrganizationSummaryResource.GOAL_PARAM, goal);
+    return restRequest().query(OrganizationSummaryResource.GOAL_PARAM, goal);
   }
 
   @Test

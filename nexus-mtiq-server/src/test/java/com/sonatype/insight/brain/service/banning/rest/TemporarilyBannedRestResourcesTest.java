@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service.banning.rest;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiAdvancedSearchResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiAdvancedSearchResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2;
@@ -34,7 +34,7 @@ public class TemporarilyBannedRestResourcesTest
     assertThat(underTest.isBanned(IdeResource.class)).isTrue();
 
     assertThat(underTest.isBanned(AdvancedSearchResource.class)).isFalse();
-    assertThat(underTest.isBanned(DefaultApiAdvancedSearchResourceV2.class)).isFalse();
+    assertThat(underTest.isBanned(ApiAdvancedSearchResourceV2.class)).isFalse();
 
     assertThat(underTest.isBanned(LabsResource.class)).isTrue();
 

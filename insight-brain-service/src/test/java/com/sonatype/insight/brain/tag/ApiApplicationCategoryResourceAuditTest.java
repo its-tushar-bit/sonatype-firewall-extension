@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.tag;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.api.v2.DefaultApiApplicationCategoryResource;
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -102,8 +102,8 @@ public class ApiApplicationCategoryResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest()
-        .path(DefaultApiApplicationCategoryResource.RESOURCE_PATH,
-            DefaultApiApplicationCategoryResource.ORGANIZATION_PATH)
+        .path(ApiApplicationCategoryResource.RESOURCE_PATH,
+            ApiApplicationCategoryResource.ORGANIZATION_PATH)
         .parameter(organization.getId());
   }
 

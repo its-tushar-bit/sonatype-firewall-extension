@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DefaultValue;
@@ -32,8 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2)
-public class DefaultApiAdvancedSearchResourceV2
-    implements ApiAdvancedSearchResourceV2
+public class ApiAdvancedSearchResourceV2
 {
   private final SearchService searchService;
 
@@ -44,12 +44,20 @@ public class DefaultApiAdvancedSearchResourceV2
   static final String EXPORT_CSV_REPORT_PATH = "export/csv";
 
   @Inject
-  public DefaultApiAdvancedSearchResourceV2(SearchService searchService, IndexService indexService) {
+  public ApiAdvancedSearchResourceV2(SearchService searchService, IndexService indexService) {
     this.searchService = searchService;
     this.indexService = indexService;
   }
 
-  @Override
+  /**
+   * Search request to search the index.
+   *
+   * @param searchQuery - String holding a query to search for.
+   * @param pageSize - the amount of results per page
+   * @param page - the current page to start from, 0 indexed.
+   * @return SearchResultDTO
+   * @throws IOException on failing to search the index
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.PERFORM_ADVANCED_SEARCH)
@@ -62,7 +70,9 @@ public class DefaultApiAdvancedSearchResourceV2
     return searchService.searchIndex(searchQuery, pageSize, page, allComponents);
   }
 
-  @Override
+  /**
+   * Request a Search Index to be created asynchronously.
+   */
   @POST
   @Path(INDEX_PATH)
   public void createSearchIndexAsync() {

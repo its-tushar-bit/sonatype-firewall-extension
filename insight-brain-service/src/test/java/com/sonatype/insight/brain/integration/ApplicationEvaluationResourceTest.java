@@ -51,13 +51,13 @@ public class ApplicationEvaluationResourceTest
                                                  String stageId)
   {
     return restRequest()
-        .path(DefaultApplicationEvaluationResource.RESOURCE_PATH, DefaultApplicationEvaluationResource.EVALUATE_PATH)
+        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
         .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, integrationType, stageId);
   }
 
   private HttpRequest pollEvaluationResultRequest(String appId, String statusId) {
     return restRequest()
-        .path(DefaultApplicationEvaluationResource.RESOURCE_PATH, DefaultApplicationEvaluationResource.STATUS_PATH)
+        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.STATUS_PATH)
         .parameter(appId, statusId);
   }
 

@@ -31,26 +31,34 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Timed
-@Path(DefaultApplicationSummaryResource.RESOURCE_PATH)
-public class DefaultApplicationSummaryResource
-    implements ApplicationSummaryResource
+@Path(ApplicationSummaryResource.RESOURCE_PATH)
+public class ApplicationSummaryResource
 {
   public static final String RESOURCE_PATH = "rest/integration/applications";
 
   static final String VERIFY_OR_CREATE_APPLICATION_PATH = "verifyOrCreate/{applicationPublicId}";
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultApplicationSummaryResource.class);
+  private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
 
   private final ApplicationSummaryService applicationSummaryService;
 
   @Inject
-  public DefaultApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
+  public ApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
     this.applicationSummaryService = applicationSummaryService;
   }
 
+  /**
+   * Gets all applications for which the current user has permissions required for the specified goal, sorted
+   * by (case-insensitive) name and filtered by the given organization Id.
+   *
+   * @param goal The goal for getting the list of applications. Defaults to READ permission for backward compatibility
+   *          (Jenkins/Hudson plugin <= 2.12.1, Bamboo plugin <=1.0.0, Eclipse plugin <= 2.8.0, SonarQube plugin <=
+   *          1.0.2, Nexus plugins <= 3.0.0).
+   * @param organizationId The organization Id for getting the list of applications. If null or empty, no filtering
+   *          is applied
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Override
   public ApplicationSummaryList getApplications(
       @QueryParam("goal") Goal goal,
       @QueryParam("organizationId") String organizationId)
@@ -59,10 +67,21 @@ public class DefaultApplicationSummaryResource
     return applicationSummaryService.getApplications(goal, organizationId);
   }
 
+  /**
+   * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
+   * If an application with the specified applicationPublicId already exists, then the method checks access for the
+   * current user and the specified goal to that application.
+   * If such an application does not exist and automatic application creation is enabled, then the method creates the
+   * new application and returns true to indicate the application will now be available.
+   *
+   * @param applicationPublicId public shared id
+   * @param goal {@link Goal}
+   * @param request {@link HttpServletRequest}
+   * @return true if false otherwise.
+   */
   @POST
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
   @Produces("text/plain")
-  @Override
   public boolean verifyOrCreateApplication(
       @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("goal") Goal goal,

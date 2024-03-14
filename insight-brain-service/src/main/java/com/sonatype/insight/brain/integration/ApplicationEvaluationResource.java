@@ -30,13 +30,14 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.codahale.metrics.annotation.Timed;
 
 /**
+ * Resource for integrations points to conform to Application Evaluation.
+ * 
  * @since 1.69
  */
-@Path(DefaultApplicationEvaluationResource.RESOURCE_PATH)
+@Path(ApplicationEvaluationResource.RESOURCE_PATH)
 @Named
 @Timed
-public class DefaultApplicationEvaluationResource
-    implements ApplicationEvaluationResource
+public class ApplicationEvaluationResource
 {
   static final String RESOURCE_PATH = "rest/integration/applications/{applicationPublicId}/evaluations";
 
@@ -47,15 +48,27 @@ public class DefaultApplicationEvaluationResource
   private final PolicyEvaluateService policyEvaluateService;
 
   @Inject
-  public DefaultApplicationEvaluationResource(PolicyEvaluateService policyEvaluateService) {
+  public ApplicationEvaluationResource(PolicyEvaluateService policyEvaluateService) {
     this.policyEvaluateService = policyEvaluateService;
   }
 
+  /**
+   * Starts the evaluation of an scanned file for an application, integration, type and stage. After
+   * starting will return a {@link PolicyEvaluationReceipt} for requester to use to check on results
+   * via {@link #pollEvaluationResult(String, String)}
+   *
+   * @param applicationPublicId public shared id
+   * @param integrationType {@link IntegrationType}
+   * @param stage {@link Stage}
+   * @param clientScanType {@link ClientScanType}
+   * @param req {@link HttpServletRequest}
+   * @return PolicyEvaluationReceipt
+   * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
+   */
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(EVALUATE_PATH)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
-  @Override
   public PolicyEvaluationReceipt evaluateWithPolling(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("integrationType") final IntegrationType integrationType,
@@ -67,10 +80,17 @@ public class DefaultApplicationEvaluationResource
         .evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
   }
 
+  /**
+   * Retrieve the {@link PolicyEvaluationPollingResult} for an existing request, made
+   * through the {@link #evaluateWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)}.
+   *
+   * @param applicationPublicId public shared id
+   * @param statusId id from status, normally gotten from {@link PolicyEvaluationReceipt}
+   * @return PolicyEvaluationReceipt
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(STATUS_PATH)
-  @Override
   public PolicyEvaluationPollingResult pollEvaluationResult(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("statusId") final String statusId)

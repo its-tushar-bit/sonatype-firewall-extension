@@ -21,7 +21,7 @@ public class ApplicationSummaryResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(DefaultApplicationSummaryResource.RESOURCE_PATH);
+    return super.restRequest().path(ApplicationSummaryResource.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest(Goal goal) {
@@ -116,7 +116,7 @@ public class ApplicationSummaryResourceTest
     Application app = tempEntity.newApplicationWithParent();
 
     HttpResponse response = restRequest()
-        .path(DefaultApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
+        .path(ApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
         .parameter(app.getPublicId())
         .query("goal", Goal.EVALUATE_APPLICATION)
         .post();

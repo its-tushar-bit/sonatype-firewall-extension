@@ -26,26 +26,30 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Timed
-@Path(DefaultOrganizationSummaryResource.RESOURCE_PATH)
-public class DefaultOrganizationSummaryResource
-    implements OrganizationSummaryResource
+@Path(OrganizationSummaryResource.RESOURCE_PATH)
+public class OrganizationSummaryResource
 {
   public static final String RESOURCE_PATH = "rest/integration/organizations";
 
   public static final String GOAL_PARAM = "goal";
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultOrganizationSummaryResource.class);
+  private static final Logger log = LoggerFactory.getLogger(OrganizationSummaryResource.class);
 
   private final OrganizationSummaryService organizationSummaryService;
 
   @Inject
-  public DefaultOrganizationSummaryResource(final OrganizationSummaryService organizationSummaryService) {
+  public OrganizationSummaryResource(final OrganizationSummaryService organizationSummaryService) {
     this.organizationSummaryService = organizationSummaryService;
   }
 
+  /**
+   * Gets all organizations for which the current user has permissions required for the specified goal, sorted by
+   * (case-insensitive) name.
+   *
+   * @param goal The goal for getting the list of organizations.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Override
   public OrganizationSummaryList getOrganizations(@QueryParam("goal") Goal goal) {
     log.debug("Received request to get organizations for goal {}", goal);
     return organizationSummaryService.getOrganizations(goal);

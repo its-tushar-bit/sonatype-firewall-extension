@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.label.ApplicableLabels;
+import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
@@ -38,16 +38,19 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.LABEL_RESOURCE_PATH)
-public class DefaultApiLabelResource implements ApiLabelResource
+public class ApiLabelResource
 {
   private final LabelService labelService;
 
   @Inject
-  public DefaultApiLabelResource(final LabelService labelService) {
+  public ApiLabelResource(final LabelService labelService) {
     this.labelService = labelService;
   }
 
-  @Override
+  /**
+   * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
+   *          hierarchy, default is {@code false}
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiLabelDTO> getLabels(
@@ -58,7 +61,10 @@ public class DefaultApiLabelResource implements ApiLabelResource
     return labelService.getLabels(ownerType, ownerId, inherit);
   }
 
-  @Override
+  /**
+   * Returns all the labels associated with an ownerId. The labels are grouped by ownerId and the owner name and type
+   * are returned.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
@@ -68,7 +74,9 @@ public class DefaultApiLabelResource implements ApiLabelResource
     return labelService.getApplicableLabels(ownerType, ownerId);
   }
 
-  @Override
+  /**
+   * Enumerates the contexts (org/app) in which the given label could be applied.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable/context/{labelId}")
@@ -79,7 +87,6 @@ public class DefaultApiLabelResource implements ApiLabelResource
     return labelService.getApplicableContexts(ownerType, ownerId, labelId);
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -92,7 +99,6 @@ public class DefaultApiLabelResource implements ApiLabelResource
     return labelService.addLabel(ownerType, ownerId, labelDTO);
   }
 
-  @Override
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -105,7 +111,6 @@ public class DefaultApiLabelResource implements ApiLabelResource
     return labelService.updateLabel(ownerType, ownerId, labelDTO);
   }
 
-  @Override
   @DELETE
   @Path("{labelId}")
   @Audited(AuditEvent.DELETE_LABEL)

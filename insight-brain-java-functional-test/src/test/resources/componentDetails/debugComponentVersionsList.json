@@ -4252,7 +4252,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1506453231492,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4326,7 +4342,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536646754567,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4397,7 +4429,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536647333798,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4467,7 +4515,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536652229987,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4541,7 +4605,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536654638788,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4616,7 +4696,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536657150102,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4687,7 +4783,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1536707541584,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,
@@ -4761,7 +4873,23 @@
       "effectiveLicenseStatus": null,
       "catalogDate": 1539154080226,
       "relativePopularity": null,
-      "securityVulnerabilities": [],
+      "securityVulnerabilities": [
+        {
+          "refId": "sonatype-2017-0519",
+          "severity": 7.5,
+          "source": "sonatype",
+          "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+          "status": null,
+          "url": null,
+          "vulnerabilityCategories": [
+            "data"
+          ],
+          "aliases": [],
+          "cwe": "400",
+          "cvssVectorSource": "sonatype_cvss_3",
+          "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
       "website": null,
       "policyAlerts": null,
       "licenseThreatLevel": null,

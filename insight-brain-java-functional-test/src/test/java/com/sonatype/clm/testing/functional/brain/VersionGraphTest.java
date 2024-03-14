@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -71,8 +71,7 @@ public class VersionGraphTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
 
-    // add Age policy for components "older than 5 years"
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 10, "AgePolicy", AgeInDaysConditionType.ID, "older than", "1825");
+    createPolicy(app.getId(), 10, "SecurityPolicy", SecurityVulnerabilitySeverityConditionType.ID, ">", "7");
 
     evaluator.evaluatePolicy();
 
@@ -150,7 +149,7 @@ public class VersionGraphTest
     CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("42.2.2"));
-    table.versionRow().get(2).shouldHave(text("42.2.6.jre6"));
+    table.versionRow().get(2).shouldHave(text("42.2.15.jre6"));
 
     eyesWatcher.eyesCheck("Version Graph - postgresql component - recommended version selected");
   }
@@ -215,7 +214,7 @@ public class VersionGraphTest
 
   private void mockHdsResponseForSecondComponentRecommendedVersion() {
     testCLMServer.getHdsServer()
-        .respondWith(getClass().getResource("/componentDetails/postgresqlComponentDetails-42.2.6.jre6.json"))
+        .respondWith(getClass().getResource("/componentDetails/postgresqlComponentDetails-42.2.15.jre6.json"))
         .atUri("rest/ci/componentDetails");
   }
 

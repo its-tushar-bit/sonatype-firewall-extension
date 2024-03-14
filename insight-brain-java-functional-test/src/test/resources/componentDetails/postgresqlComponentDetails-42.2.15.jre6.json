@@ -34,7 +34,7 @@
       "classifier": "",
       "extension": "jar",
       "groupId": "org.postgresql",
-      "version": "42.2.6.jre6"
+      "version": "42.2.15.jre6"
     }
   },
   "componentCategories": [
@@ -61,7 +61,7 @@
   "violatedPolicyCount": null,
   "highestSecurityVulnerabilitySeverity": null,
   "securityVulnerabilityCount": null,
-  "version": "42.2.6.jre6",
+  "version": "42.2.15.jre6",
   "groupId": "org.postgresql",
   "artifactId": "postgresql",
   "declaredLicenseIds": [

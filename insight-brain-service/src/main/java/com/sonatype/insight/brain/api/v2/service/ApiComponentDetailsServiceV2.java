@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
@@ -18,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -25,18 +31,41 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractApiComponentDetailsServiceV2
-    implements ApiComponentDetailsServiceV2
+/**
+ * @since 1.16.0
+ */
+@Named
+@Singleton
+public class ApiComponentDetailsServiceV2
 {
-  private static final Logger log = LoggerFactory.getLogger(AbstractApiComponentDetailsServiceV2.class);
+  private static final Logger log = LoggerFactory.getLogger(ApiComponentDetailsServiceV2.class);
+
+  public static final String HDS_COMPONENT_DETAILS_PATH = "rest/component/details/{purpose: evaluation|integration}";
 
   public static final String PURPOSE_INTEGRATION = "integration";
 
   public static final String PURPOSE_EVALUATION = "evaluation";
 
+  private final ApiComponentDetailsAdapter componentDetailsAdapter;
+
+  private final HdsClient client;
+
   private int chunkSize = 100;
 
-  @Override
+  @Inject
+  public ApiComponentDetailsServiceV2(ApiComponentDetailsAdapter componentDetailsAdapter, HdsClient client) {
+    this.componentDetailsAdapter = componentDetailsAdapter;
+    this.client = client;
+  }
+
+  protected ApiComponentDetailsDTOV2 convertToDTO(ComponentEvaluationData componentDetailsFromHds) {
+    return componentDetailsAdapter.convertToDTO(componentDetailsFromHds);
+  }
+
+  protected ComponentEvaluationDataList post(ComponentEvaluationDataRequestList requestList, String purpose) {
+    return client.post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, requestList, purpose);
+  }
+
   public ApiComponentDetailsResultDTOV2 getComponentDetails(ApiComponentDetailsRequestDTOV2 componentDetailsRequest) {
     long start = System.currentTimeMillis();
 
@@ -44,8 +73,7 @@ public abstract class AbstractApiComponentDetailsServiceV2
 
     ApiComponentDetailsResultDTOV2 result = new ApiComponentDetailsResultDTOV2();
     List<ComponentEvaluationDataList.ComponentEvaluationData> componentDetailsFromHdsList =
-        getComponentDetailsListFromHds(componentDetailsRequest,
-            PURPOSE_INTEGRATION);
+        getComponentDetailsListFromHds(componentDetailsRequest, PURPOSE_INTEGRATION);
     for (ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds : componentDetailsFromHdsList) {
       ApiComponentDetailsDTOV2 componentDetails = convertToDTO(componentDetailsFromHds);
       clearUnapplicableData(componentDetails);
@@ -56,11 +84,6 @@ public abstract class AbstractApiComponentDetailsServiceV2
         componentDetailsRequest.components.size(), PURPOSE_INTEGRATION, System.currentTimeMillis() - start);
     return result;
   }
-
-  protected abstract ApiComponentDetailsDTOV2 convertToDTO(
-      ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds);
-
-  protected abstract ComponentEvaluationDataList post(ComponentEvaluationDataRequestList requestList, String purpose);
 
   private void clearUnapplicableData(ApiComponentDetailsDTOV2 componentDetails) {
     componentDetails.component.proprietary = null;
@@ -74,15 +97,13 @@ public abstract class AbstractApiComponentDetailsServiceV2
   }
 
   // For testing
-  @Override
   public void setChunkSize(int chunkSize) {
     this.chunkSize = chunkSize;
   }
 
   private void validateRequest(ApiComponentDetailsRequestDTOV2 componentDetailsRequest) {
     if (componentDetailsRequest == null || componentDetailsRequest.components == null
-        || componentDetailsRequest.components.isEmpty())
-    {
+        || componentDetailsRequest.components.isEmpty()) {
       throw new BadRequestException("No components provided in the request");
     }
     for (ApiComponentDTOV2 componentDTO : componentDetailsRequest.components) {
@@ -112,7 +133,6 @@ public abstract class AbstractApiComponentDetailsServiceV2
     }
   }
 
-  @Override
   public List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
       ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO,
       String purpose)
@@ -125,7 +145,6 @@ public abstract class AbstractApiComponentDetailsServiceV2
     return getComponentDetailsListFromHds(componentDetailsRequestDTO.components, this::convert, purpose);
   }
 
-  @Override
   public List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
       List<ComponentIdentifier> componentIdentifiers,
       String purpose)
@@ -148,7 +167,7 @@ public abstract class AbstractApiComponentDetailsServiceV2
       ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk, convert);
       ComponentEvaluationDataList componentEvaluationDataList;
       componentEvaluationDataList = post(componentEvaluationDataRequestList, purpose);
-      for (ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData :
+      for (ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData : 
           componentEvaluationDataList.components) {
         componentEvaluationData.requestIndex += indexAdjust * chunkSize;
         returnList.components.add(componentEvaluationData);
@@ -156,8 +175,8 @@ public abstract class AbstractApiComponentDetailsServiceV2
       indexAdjust++;
     }
 
-    log.debug("Got component details from HDS for {} components and {} purpose in {} ms.",
-        components.size(), purpose, System.currentTimeMillis() - start);
+    log.debug("Got component details from HDS for {} components and {} purpose in {} ms.", components.size(), purpose,
+        System.currentTimeMillis() - start);
     return returnList.components;
   }
 
@@ -189,8 +208,8 @@ public abstract class AbstractApiComponentDetailsServiceV2
   private ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest convert(
       final ApiComponentDTOV2 componentDTO)
   {
-    ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest
-        componentEvaluationDataRequest = new ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest();
+    ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest componentEvaluationDataRequest =
+        new ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest();
     componentEvaluationDataRequest.hash = componentDTO.hash;
     if (componentDTO.packageUrl != null) {
       componentEvaluationDataRequest.componentIdentifier =

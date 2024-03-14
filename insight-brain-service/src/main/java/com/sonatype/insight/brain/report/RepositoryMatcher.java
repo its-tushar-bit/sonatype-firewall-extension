@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -37,9 +38,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
-import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
-import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
@@ -178,7 +178,7 @@ public class RepositoryMatcher
 
   private final PasswordHandler passwordHandler;
 
-  private final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2;
+  private final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
 
   private final ApiArtifactoryConnectionService artifactoryConnectionService;
 
@@ -196,7 +196,7 @@ public class RepositoryMatcher
       final ArtifactoryClientFactory artifactoryClientFactory,
       final ApiArtifactoryConnectionService artifactoryConnectionService,
       final PasswordHandler passwordHandler,
-      final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2,
+      final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
       final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache,
       final Configuration configuration,
       final InsightMail insightMail,
@@ -206,7 +206,7 @@ public class RepositoryMatcher
     this.artifactoryClientFactory = artifactoryClientFactory;
     this.artifactoryConnectionService = artifactoryConnectionService;
     this.passwordHandler = passwordHandler;
-    this.defaultApiComponentDetailsServiceV2 = defaultApiComponentDetailsServiceV2;
+    this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
     this.repositoryIdentifiedComponentCache = repositoryIdentifiedComponentCache;
     this.configuration = configuration;
     this.insightMail = insightMail;
@@ -577,8 +577,8 @@ public class RepositoryMatcher
     Map<ComponentIdentifier, ComponentEvaluationData> result = new HashMap<>();
     try {
       List<ComponentEvaluationData> componentDetailsListFromHds =
-          defaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(componentIdentifiers,
-              AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+          apiComponentDetailsServiceV2.getComponentDetailsListFromHds(componentIdentifiers,
+              ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
       for (ComponentEvaluationData componentEvaluationData : componentDetailsListFromHds) {
         result.put(componentIdentifiers.get(componentEvaluationData.requestIndex), componentEvaluationData);
       }

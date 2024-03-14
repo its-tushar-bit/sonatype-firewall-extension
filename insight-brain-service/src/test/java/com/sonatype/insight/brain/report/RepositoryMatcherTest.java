@@ -16,6 +16,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -29,10 +30,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.HygieneRating;
 import com.sonatype.clm.dto.model.component.IntegrityRating;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightMail;
@@ -126,7 +126,7 @@ public class RepositoryMatcherTest
   private ApiConfigurationService apiConfigurationService;
 
   @Mock
-  private DefaultApiComponentDetailsServiceV2 mockDefaultApiComponentDetailsServiceV2;
+  private ApiComponentDetailsServiceV2 mockApiComponentDetailsServiceV2;
 
   @Mock
   private InsightMail mockInsightMail;
@@ -139,7 +139,7 @@ public class RepositoryMatcherTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(DefaultApiComponentDetailsServiceV2.class).toInstance(mockDefaultApiComponentDetailsServiceV2);
+    binder.bind(ApiComponentDetailsServiceV2.class).toInstance(mockApiComponentDetailsServiceV2);
     binder.bind(InsightMail.class).toInstance(mockInsightMail);
     super.configure(binder);
   }
@@ -175,8 +175,8 @@ public class RepositoryMatcherTest
     List<ComponentEvaluationData> mockResult = new ArrayList<>();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     mockResult.add(componentEvaluationData);
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
     ObjectNode bomJson = (ObjectNode) readJsonFile("match-sha256/bom.json");
     ObjectNode dataJson = objectMapper.createObjectNode();
     ObjectNode summaryJson = objectMapper.createObjectNode();
@@ -195,8 +195,8 @@ public class RepositoryMatcherTest
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
         urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
-    verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
-        Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+    verify(mockApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
+        Collections.singletonList(identifier), ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
     verify(spyRepositoryMatcher).updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
             eq(licensesJson), eq(securityJson), any(), any());
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
@@ -269,16 +269,16 @@ public class RepositoryMatcherTest
     List<ComponentEvaluationData> mockResult = new ArrayList<>();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     mockResult.add(componentEvaluationData);
-    lenient().when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
+    lenient().when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
 
     matcher.match(application, readJsonFile("match-sha256/bom.json"), objectMapper.createObjectNode(),
         objectMapper.createObjectNode(), createObjectNodeWithAaData(), createObjectNodeWithAaData());
 
     artifactoryMockServer.getWireMockServer()
         .verify(0, anyRequestedFor(urlPathEqualTo(ArtifactoryClient.CHECKSUM_SEARCH_PATH)));
-    verify(mockDefaultApiComponentDetailsServiceV2, never()).getComponentDetailsListFromHds(
-        Collections.singletonList(identifier), AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+    verify(mockApiComponentDetailsServiceV2, never()).getComponentDetailsListFromHds(
+        Collections.singletonList(identifier), ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
   }
 
   @Test
@@ -324,8 +324,8 @@ public class RepositoryMatcherTest
     exact.catalogDate = 1135095471000L;
     mockResultHds.add(exact);
 
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResultHds);
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResultHds);
 
     ObjectNode bomJson = (ObjectNode) readJsonFile("sbom/bom.json");
     ObjectNode securityJson = (ObjectNode) readJsonFile("sbom/security.json");
@@ -853,14 +853,14 @@ public class RepositoryMatcherTest
     componentEvaluationData2.requestIndex = 1;
     mockResult.add(componentEvaluationData2);
     mockResult.add(componentEvaluationData1);
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResult);
 
     Map<ComponentIdentifier, ComponentEvaluationData> evaluationByIdentifier =
         matcher.getEvaluationByIdentifier(componentIdentifiers);
 
-    verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(componentIdentifiers,
-        AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+    verify(mockApiComponentDetailsServiceV2).getComponentDetailsListFromHds(componentIdentifiers,
+        ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
     assertThat(evaluationByIdentifier).hasSize(2);
     assertThat(evaluationByIdentifier).containsEntry(componentIdentifier1, componentEvaluationData1);
     assertThat(evaluationByIdentifier).containsEntry(componentIdentifier2, componentEvaluationData2);
@@ -868,8 +868,8 @@ public class RepositoryMatcherTest
 
   @Test
   public void testGetEvaluationByIdentifier_NoComponents() {
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenCallRealMethod();
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenCallRealMethod();
 
     Map<ComponentIdentifier, ComponentEvaluationData> evaluationByIdentifier =
         matcher.getEvaluationByIdentifier(Collections.emptyList());
@@ -882,14 +882,14 @@ public class RepositoryMatcherTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
     List<ComponentIdentifier> componentIdentifiers = Arrays.asList(componentIdentifier1, componentIdentifier2);
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenThrow(new BadGatewayException("Error"));
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenThrow(new BadGatewayException("Error"));
 
     Map<ComponentIdentifier, ComponentEvaluationData> evaluationByIdentifier =
         matcher.getEvaluationByIdentifier(componentIdentifiers);
 
-    verify(mockDefaultApiComponentDetailsServiceV2).getComponentDetailsListFromHds(componentIdentifiers,
-        AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+    verify(mockApiComponentDetailsServiceV2).getComponentDetailsListFromHds(componentIdentifiers,
+        ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
     assertThat(evaluationByIdentifier).isEmpty();
   }
 
@@ -1116,8 +1116,8 @@ public class RepositoryMatcherTest
     exact.catalogDate = 1135095471000L;
     evaluation.add(exact);
 
-    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(Arrays.asList(ci2, ci1),
-        AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION)).thenReturn(evaluation);
+    when(mockApiComponentDetailsServiceV2.getComponentDetailsListFromHds(Arrays.asList(ci2, ci1),
+        ApiComponentDetailsServiceV2.PURPOSE_EVALUATION)).thenReturn(evaluation);
 
     repositoryIdentifiedComponentCache.put("70fda5d53b25ec6535178cb557d46de37575d336e89ae1ea080e12c67d10811f", ci1);
     repositoryIdentifiedComponentCache.put("44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6418", ci2);

@@ -26,7 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.COMPOSITE_SOURCE_CONTROL_PATH_V2)
-public class DefaultApiCompositeSourceControlResource implements ApiCompositeSourceControlResource
+public class ApiCompositeSourceControlResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
@@ -38,13 +38,12 @@ public class DefaultApiCompositeSourceControlResource implements ApiCompositeSou
   private final ApiCompositeSourceControlService apiCompositeSourceControlService;
 
   @Inject
-  public DefaultApiCompositeSourceControlResource(
+  public ApiCompositeSourceControlResource(
       final ApiCompositeSourceControlService apiCompositeSourceControlService)
   {
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)

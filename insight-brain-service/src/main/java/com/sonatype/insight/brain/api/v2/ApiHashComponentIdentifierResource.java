@@ -31,18 +31,17 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.CLAIM_PATH_V2)
-public class DefaultApiHashComponentIdentifierResource implements ApiHashComponentIdentifierResource
+public class ApiHashComponentIdentifierResource
 {
   private final ApiHashComponentIdentifierService apiHashComponentIdentifierService;
 
   @Inject
-  public DefaultApiHashComponentIdentifierResource(
+  public ApiHashComponentIdentifierResource(
       ApiHashComponentIdentifierService apiHashComponentIdentifierService)
   {
     this.apiHashComponentIdentifierService = apiHashComponentIdentifierService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{hash}")
@@ -50,14 +49,12 @@ public class DefaultApiHashComponentIdentifierResource implements ApiHashCompone
     return apiHashComponentIdentifierService.get(hash);
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiHashComponentIdentifiersDTO getAll() {
     return apiHashComponentIdentifierService.getAll();
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -66,7 +63,6 @@ public class DefaultApiHashComponentIdentifierResource implements ApiHashCompone
     return apiHashComponentIdentifierService.set(hashComponentIdentifier);
   }
 
-  @Override
   @DELETE
   @Path("{hash}")
   @Audited(AuditEvent.UNSET_COMPONENT_IDENTITY)

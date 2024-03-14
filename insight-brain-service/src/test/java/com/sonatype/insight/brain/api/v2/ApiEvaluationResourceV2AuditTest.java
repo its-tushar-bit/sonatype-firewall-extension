@@ -20,9 +20,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
-import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
-import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -96,8 +95,8 @@ public class ApiEvaluationResourceV2AuditTest
   @Test
   public void testEvaluateComponents() throws Exception {
     hdsRespondWith(new ComponentEvaluationDataList())
-        .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
+        .atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+            .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
     int componentCount = 3;
 
     ApiComponentEvaluationTicketDTOV2 result = evaluateComponents(createEvaluateRequest(componentCount)).post()
@@ -112,8 +111,8 @@ public class ApiEvaluationResourceV2AuditTest
   @Test
   public void testEvaluateComponents_ErrorDuringAsyncComponentEvaluationTask() throws Exception {
     hdsRespondWith("Service Unavailable").andStatus(503)
-        .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
+        .atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+            .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
 
     evaluateComponents(createEvaluateRequest(1)).post();
 

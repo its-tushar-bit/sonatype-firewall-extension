@@ -26,8 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.SOURCE_CONTROL_PATH_EXPERIMENTAL_PATH)
-public class DefaultApiSourceControlResource
-    implements ApiSourceControlResource
+public class ApiSourceControlResource
 {
   static final String OWNER_TYPE = "{ownerType:application|organization}";
 
@@ -40,11 +39,10 @@ public class DefaultApiSourceControlResource
   private final ApiSourceControlService service;
 
   @Inject
-  public DefaultApiSourceControlResource(ApiSourceControlService service) {
+  public ApiSourceControlResource(ApiSourceControlService service) {
     this.service = service;
   }
 
-  @Override
   @GET
   @Path(RATE_LIMITS_PATH)
   @Produces(MediaType.APPLICATION_JSON)

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -83,8 +84,8 @@ public class ApiComponentEvaluationServiceV2Test
 
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
-        eq(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
-        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
+        eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
+        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
   }
 
   @Test

@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
-import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -77,8 +77,8 @@ public class ApiComponentDetailsResourceV2Test
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    hdsRespondWith(componentEvaluationDataList).atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", DefaultApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
+    hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
    
   private void assertGetComponentDetails(

@@ -217,7 +217,7 @@ public class ApiComponentEvaluationServiceV2
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(application);
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
             .getComponentDetailsListFromHds(evaluationRequestDTO,
-                AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+                ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           // use the claimed component data if found

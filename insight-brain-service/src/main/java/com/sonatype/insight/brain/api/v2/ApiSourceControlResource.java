@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @Named
 @Timed
 @Path(value = PublicApiPaths.SOURCE_CONTROL_PATH_V2)
-public class DefaultApiSourceControlResource implements ApiSourceControlResource
+public class ApiSourceControlResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
@@ -48,11 +48,10 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
   private final ApiSourceControlService sourceControlService;
 
   @Inject
-  public DefaultApiSourceControlResource(final ApiSourceControlService apiSourceControlService) {
+  public ApiSourceControlResource(final ApiSourceControlService apiSourceControlService) {
     this.sourceControlService = apiSourceControlService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
@@ -64,7 +63,6 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
     return sourceControlService.getSourceControlByOwner(ownerType, internalOwnerId);
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -79,7 +77,6 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
     return sourceControlService.addSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
 
-  @Override
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -94,7 +91,6 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
     return sourceControlService.updateSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
 
-  @Override
   @DELETE
   @Path(BY_OWNER)
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
@@ -106,7 +102,6 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
     sourceControlService.deleteSourceControlByOwner(ownerType, internalOwnerId);
   }
 
-  @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)

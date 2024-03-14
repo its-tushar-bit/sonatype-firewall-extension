@@ -28,19 +28,17 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2)
-public class DefaultApiCompositeSourceControlConfigValidatorResource implements
-    ApiCompositeSourceControlConfigValidatorResource
+public class ApiCompositeSourceControlConfigValidatorResource
 {
   private final ApiCompositeSourceControlConfigValidatorService service;
 
   @Inject
-  public DefaultApiCompositeSourceControlConfigValidatorResource(
+  public ApiCompositeSourceControlConfigValidatorResource(
       ApiCompositeSourceControlConfigValidatorService service)
   {
     this.service = service;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)

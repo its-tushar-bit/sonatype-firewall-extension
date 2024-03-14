@@ -63,7 +63,7 @@ public class ApiCompositeSourceControlResourceTest
   @Test
   public void testGetCompositeSourceControlByOwner_RootOrg() throws Exception {
     final HttpResponse response = restRequest()
-        .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
+        .path(ApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)
         .get();
     assertResponseStatus(200, response);
@@ -104,7 +104,7 @@ public class ApiCompositeSourceControlResourceTest
     sourceControlDAO.delete(rootOrgSourceControl);
 
     final HttpResponse response = restRequest()
-        .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
+        .path(ApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)
         .get();
     assertResponseStatus(200, response);
@@ -147,7 +147,7 @@ public class ApiCompositeSourceControlResourceTest
         tempEntity.newSourceControl(org.getId(), null, null, "TOKEN", null, false,
             null, null, null, false, false, null);
     final HttpResponse response = restRequest()
-        .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
+        .path(ApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .get();
     assertResponseStatus(200, response);
@@ -192,7 +192,7 @@ public class ApiCompositeSourceControlResourceTest
             true, null, null, false, false, null);
 
     final HttpResponse response = restRequest()
-        .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
+        .path(ApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .get();
     assertResponseStatus(200, response);
@@ -231,7 +231,7 @@ public class ApiCompositeSourceControlResourceTest
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNotConfigured() throws Exception {
     final HttpResponse response = restRequest()
-        .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
+        .path(ApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .get();
     assertResponseStatus(200, response);

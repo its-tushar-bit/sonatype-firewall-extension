@@ -34,7 +34,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultApiSourceControlResourceTest
+public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
   @Rule
@@ -71,7 +71,7 @@ public class DefaultApiSourceControlResourceTest
     tempEntity.newSourceControl(application.getId(), mockScmServer.baseUrl() + "/orgName/repoName",
         new DefaultPlexusCipher().encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
 
-    HttpResponse response = restRequest().path(DefaultApiSourceControlResource.RATE_LIMITS_PATH)
+    HttpResponse response = restRequest().path(ApiSourceControlResource.RATE_LIMITS_PATH)
         .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).get();
 
     assertResponseStatus(200, response);

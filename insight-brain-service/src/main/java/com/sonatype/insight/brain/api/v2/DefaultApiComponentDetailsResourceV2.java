@@ -26,7 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_DETAILS_PATH_V2)
-public class DefaultApiComponentDetailsResourceV2 implements ApiComponentDetailsResourceV2
+public class DefaultApiComponentDetailsResourceV2
 {
   private final ApiComponentDetailsServiceV2 componentDetailsService;
 
@@ -35,7 +35,6 @@ public class DefaultApiComponentDetailsResourceV2 implements ApiComponentDetails
     this.componentDetailsService = componentDetailsService;
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

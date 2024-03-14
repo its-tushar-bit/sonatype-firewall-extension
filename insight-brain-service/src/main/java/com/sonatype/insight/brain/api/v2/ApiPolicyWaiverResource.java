@@ -39,8 +39,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_WAIVER_PATH)
-public class DefaultApiPolicyWaiverResource
-    implements ApiPolicyWaiverResource
+public class ApiPolicyWaiverResource
 {
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
@@ -61,7 +60,7 @@ public class DefaultApiPolicyWaiverResource
   static final String REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH = "/waiverRequests/{policyViolationId}";
 
   @Inject
-  public DefaultApiPolicyWaiverResource(
+  public ApiPolicyWaiverResource(
       ApiPolicyWaiverService apiPolicyWaiverService,
       RequestPolicyWaiverEventService requestPolicyWaiverEventService)
   {
@@ -69,7 +68,6 @@ public class DefaultApiPolicyWaiverResource
     this.requestPolicyWaiverEventService = requestPolicyWaiverEventService;
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_WAIVER)
@@ -86,7 +84,6 @@ public class DefaultApiPolicyWaiverResource
   /**
    * @since 1.147
    */
-  @Override
   @GET
   @Audited(AuditEvent.VIEW_WAIVER)
   @Path(BY_POLICY_WAIVER_ID_PATH)
@@ -99,7 +96,6 @@ public class DefaultApiPolicyWaiverResource
     return apiPolicyWaiverService.getPolicyWaiver(ownerType, ownerId, policyWaiverId);
   }
 
-  @Override
   @DELETE
   @Audited(AuditEvent.DELETE_WAIVER)
   @Path(BY_POLICY_WAIVER_ID_PATH)
@@ -111,7 +107,6 @@ public class DefaultApiPolicyWaiverResource
     apiPolicyWaiverService.deletePolicyWaiver(ownerType, ownerId, policyWaiverId);
   }
 
-  @Override
   @GET
   @Path(OWNERS_PATH)
   @Audited(AuditEvent.VIEW_WAIVER)
@@ -123,7 +118,6 @@ public class DefaultApiPolicyWaiverResource
     return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId);
   }
 
-  @Override
   @POST
   @Path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
   @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
@@ -141,7 +135,6 @@ public class DefaultApiPolicyWaiverResource
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
   }
 
-  @Override
   @POST
   @Path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)
   @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
@@ -159,7 +152,6 @@ public class DefaultApiPolicyWaiverResource
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
   }
 
-  @Override
   @GET
   @Path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
   @Audited(AuditEvent.VIEW_WAIVER)
@@ -179,7 +171,6 @@ public class DefaultApiPolicyWaiverResource
   /**
    * @since 1.164
    */
-  @Override
   @POST
   @Path(REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
   @Consumes(MediaType.APPLICATION_JSON)

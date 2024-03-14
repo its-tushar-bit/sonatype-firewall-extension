@@ -37,7 +37,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationResourceV2
+public class ApiPolicyViolationResourceV2
 {
   public static final String CROSS_STAGE_POLICY_VIOLATION_SUBPATH = "crossStage";
 
@@ -58,7 +58,7 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
   @Inject
-  public DefaultApiPolicyViolationResourceV2(
+  public ApiPolicyViolationResourceV2(
       final ApiPolicyViolationServiceV2 apiPolicyViolationService,
       final ApiCrossStageViolationService apiCrossStageViolationService,
       final ApiPolicyWaiverService apiPolicyWaiverService)
@@ -68,7 +68,6 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
     this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -81,7 +80,9 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
     return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore);
   }
 
-  @Override
+  /**
+   * @since 1.86.0
+   */
   @GET
   @Path(CROSS_STAGE_POLICY_VIOLATION_SUBPATH + VIOLATIONID)
   @Produces(MediaType.APPLICATION_JSON)
@@ -93,7 +94,6 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
     return apiCrossStageViolationService.getCrossStageViolationById(violationId);
   }
 
-  @Override
   @GET
   @Path(CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -105,7 +105,9 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
     return apiCrossStageViolationService.getCrossStageViolationByConstituentId(constituentId);
   }
 
-  @Override
+  /**
+   * @since 1.98
+   */
   @GET
   @Path(VIOLATIONID + APPLICABLE_WAIVERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -117,7 +119,9 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
     return apiPolicyWaiverService.getApplicableWaivers(violationId);
   }
 
-  @Override
+  /**
+   * @since 1.115
+   */
   @GET
   @Path(TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -135,7 +139,9 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
         componentIdentifier, packageUrl, hash);
   }
 
-  @Override
+  /**
+   * @since 1.117
+   */
   @GET
   @Path(TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)

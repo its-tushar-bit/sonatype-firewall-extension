@@ -133,8 +133,8 @@ public class ApiPolicyViolationResourceV2Test
     PolicyEvaluation pe1App1 = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, false, date);
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
-    String fullPath = DefaultApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH
-        + DefaultApiPolicyViolationResourceV2.VIOLATIONID;
+    String fullPath = ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH
+        + ApiPolicyViolationResourceV2.VIOLATIONID;
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -172,7 +172,7 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .path(DefaultApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+        .path(ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
         .query("constituentId", violation1.getId())
         .get();
 
@@ -240,8 +240,8 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .path(DefaultApiPolicyViolationResourceV2.VIOLATIONID +
-            DefaultApiPolicyViolationResourceV2.APPLICABLE_WAIVERS_PATH)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+            ApiPolicyViolationResourceV2.APPLICABLE_WAIVERS_PATH)
         .parameter(violation.getId())
         .get();
 
@@ -287,7 +287,7 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
         .query("componentIdentifier", direct)
         .get();
@@ -327,7 +327,7 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), scanId)
         .query("componentIdentifier", direct)
         .get();
@@ -356,7 +356,7 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(OwnerType.APPLICATION.name().toLowerCase(Locale.ROOT), "doesNotExist", "doesNotExist")
         .query("hash", "doesNotExist")
         .get();
@@ -372,7 +372,7 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
         .parameter(OwnerType.APPLICATION.name().toLowerCase(Locale.ROOT), "doesNotExist", "doesNotExist")
         .query("hash", "doesNotExist")
         .get();

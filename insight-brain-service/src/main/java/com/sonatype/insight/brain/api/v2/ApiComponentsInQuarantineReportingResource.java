@@ -25,19 +25,18 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiComponentsInQuarantineReportingResource.PATH)
-public class DefaultApiComponentsInQuarantineReportingResource implements ApiComponentsInQuarantineReportingResource
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsInQuarantineReportingResource.PATH)
+public class ApiComponentsInQuarantineReportingResource
 {
   public static final String PATH = "/components/quarantined";
 
   private final ApiComponentsInQuarantineReportingService service;
 
   @Inject
-  public DefaultApiComponentsInQuarantineReportingResource(final ApiComponentsInQuarantineReportingService service) {
+  public ApiComponentsInQuarantineReportingResource(final ApiComponentsInQuarantineReportingService service) {
     this.service = service;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_QUARANTINED_COMPONENTS)

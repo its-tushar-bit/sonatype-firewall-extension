@@ -28,18 +28,17 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-public class DefaultApiComponentReleaseQuarantineResource implements ApiComponentReleaseQuarantineResource
+public class ApiComponentReleaseQuarantineResource
 {
   private final ApiComponentReleaseQuarantineService componentReleaseQuarantineServiceV2;
 
   @Inject
-  public DefaultApiComponentReleaseQuarantineResource(
+  public ApiComponentReleaseQuarantineResource(
       final ApiComponentReleaseQuarantineService componentReleaseQuarantineServiceV2)
   {
     this.componentReleaseQuarantineServiceV2 = componentReleaseQuarantineServiceV2;
   }
 
-  @Override
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_JSON)

@@ -17,10 +17,10 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultApiPolicyWaiverResourceAuthzTest
+public class ApiPolicyWaiverResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
   @Test

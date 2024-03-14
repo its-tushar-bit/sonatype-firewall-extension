@@ -27,16 +27,21 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_VIOLATION_WAIVER_PATH)
-public class DefaultApiPolicyViolationWaiverResource implements ApiPolicyViolationWaiverResource
+public class ApiPolicyViolationWaiverResource
 {
   private ApiPolicyWaiverService apiPolicyWaiverService;
 
   @Inject
-  public DefaultApiPolicyViolationWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
+  public ApiPolicyViolationWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 
-  @Override
+  /**
+   * This is currently used in "request waiver"
+   *
+   * @deprecated Use
+   * {@link ApiPolicyWaiverResource#addPolicyWaiverByPolicyViolationId(OwnerType, String, String, ApiWaiverOptionsDTO)}
+   */
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)

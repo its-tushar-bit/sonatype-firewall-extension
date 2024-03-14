@@ -27,22 +27,21 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiComponentsWithWaiversReportingResource.PATH)
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsWithWaiversReportingResource.PATH)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DefaultApiComponentsWithWaiversReportingResource implements ApiComponentsWithWaiversReportingResource
+public class ApiComponentsWithWaiversReportingResource
 {
   public static final String PATH = "/components/waivers";
 
   private final ApiComponentsWithWaiversReportingService componentsWithWaiversReportingService;
 
   @Inject
-  public DefaultApiComponentsWithWaiversReportingResource(
+  public ApiComponentsWithWaiversReportingResource(
       ApiComponentsWithWaiversReportingService componentsWithWaiversReportingService)
   {
     this.componentsWithWaiversReportingService = componentsWithWaiversReportingService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)

@@ -53,11 +53,11 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.OWNERS_PATH;
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
@@ -832,7 +832,7 @@ public class ApiPolicyWaiverResourceTest
     dto.addWaiverLink = "addWaiverLink";
     dto.policyViolationLink = "policyViolationLink";
     HttpResponse post = restRequest()
-        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
         .parameter(policyViolation.getId())
         .body(dto, MediaType.APPLICATION_JSON)
         .post();
@@ -846,7 +846,7 @@ public class ApiPolicyWaiverResourceTest
     dto.policyViolationLink = "policyViolationLink";
 
     HttpResponse post = restRequest()
-        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
         .parameter("InvalidPolicyViolationId")
         .body(dto, MediaType.APPLICATION_JSON)
         .post();
@@ -858,7 +858,7 @@ public class ApiPolicyWaiverResourceTest
         repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), Date.from(Instant.now()));
     post = restRequest()
-        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
         .parameter(repositoryPolicyViolation.getId())
         .body(dto, MediaType.APPLICATION_JSON)
         .post();

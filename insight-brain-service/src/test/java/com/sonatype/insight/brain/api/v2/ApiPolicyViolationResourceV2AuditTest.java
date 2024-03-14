@@ -63,7 +63,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
         .query("componentIdentifier", direct)
         .get();
@@ -89,7 +89,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(organization.getType().name().toLowerCase(Locale.ROOT), organization.getPublicId(),
             BuildStageType.ID)
         .query("componentIdentifier", direct)
@@ -110,7 +110,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
         .query("componentIdentifier", direct)
         .with(unauthorizedUser())
@@ -133,7 +133,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), scanId)
         .query("componentIdentifier", direct)
         .get();
@@ -154,7 +154,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+            ApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), "scanId")
         .query("componentIdentifier", direct)
         .with(unauthorizedUser())

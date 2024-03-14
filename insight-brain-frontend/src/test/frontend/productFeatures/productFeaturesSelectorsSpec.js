@@ -299,7 +299,7 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  fdescribe('selectSourceControlOptions', () => {
+  describe('selectSourceControlOptions', () => {
     it('returns all with the exception of auto remediated PR and ssh for git operations in multi-tenant mode', () => {
       mockState.productFeatures.productFeatures['multi-tenant'] = true;
       const options = selectTenantScmOptionsTypes(mockState);

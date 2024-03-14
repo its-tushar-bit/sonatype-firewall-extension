@@ -98,6 +98,12 @@ logging:
     org.zeroturnaround.exec: INFO
     com.networknt.schema: OFF
     org.eclipse.jgit: INFO
+    com.sonatype.insight.audit:
+      appenders:
+        - type: console
+        # Uncomment these lines to send the audit logs to files
+        #- type: mtiq-audit-log
+        #  auditLogBasePath: "./sonatype-work/clm-cluster"
   appenders:
   - type: console
     threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}

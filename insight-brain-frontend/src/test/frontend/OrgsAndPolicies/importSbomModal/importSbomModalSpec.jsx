@@ -179,7 +179,7 @@ describe('ImportSbomModal', () => {
         expect(await screen.findByRole('textbox', { name: 'Application Name' })).toBeVisible();
         expect(await screen.findByRole('textbox', { name: 'Version Id' })).toBeVisible();
         expect(screen.getByTestId('import-sbom-modal-info-alert').textContent).toBe(
-          '123 components and 456 vulnerabilitieswill be included with uploaded file.'
+          '123 components and 456 vulnerabilities will be included with uploaded file.'
         );
       });
     });

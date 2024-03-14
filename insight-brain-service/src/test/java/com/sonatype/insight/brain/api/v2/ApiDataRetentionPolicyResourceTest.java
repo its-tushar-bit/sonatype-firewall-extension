@@ -38,7 +38,7 @@ public class ApiDataRetentionPolicyResourceTest
   private HttpRequest restRequest(String organizationId) {
     return restRequest()
         .path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
-            DefaultApiDataRetentionPolicyResource.ORGANIZATION_PATH)
+            ApiDataRetentionPolicyResource.ORGANIZATION_PATH)
         .parameter(organizationId);
   }
 
@@ -68,7 +68,7 @@ public class ApiDataRetentionPolicyResourceTest
     Organization organization = tempEntity.newOrganization();
 
     HttpResponse response = restRequest().path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
-        DefaultApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(organization.getId()).get();
+        ApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(organization.getId()).get();
 
     assertResponseStatus(200, response);
     ApiDataRetentionPoliciesDTO dto = response.getBody(ApiDataRetentionPoliciesDTO.class);
@@ -91,7 +91,7 @@ public class ApiDataRetentionPolicyResourceTest
   @Test
   public void testGetParentDataRetentionPolicies_BadRequest() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
-            DefaultApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(Organization.ROOT_ORGANIZATION_ID)
+            ApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(Organization.ROOT_ORGANIZATION_ID)
         .get();
 
     assertResponseStatus(400, response);

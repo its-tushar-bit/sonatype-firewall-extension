@@ -198,7 +198,7 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testCloneApplication() throws Exception {
-    ApiApplicationDTO applicationDTO = applicationRequest().path(DefaultApiApplicationResourceV2.CLONE_PATH)
+    ApiApplicationDTO applicationDTO = applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH)
         .parameter(application.getId()).query("clonedApplicationName", "newAppName")
         .query("clonedApplicationPublicId", "newAppId").post().getBody(ApiApplicationDTO.class);
 
@@ -209,7 +209,7 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testCloneApplication_Unauthorized() throws Exception {
-    applicationRequest().path(DefaultApiApplicationResourceV2.CLONE_PATH).parameter(application.getId())
+    applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(application.getId())
         .with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, "unauthorized");
@@ -255,6 +255,6 @@ public class ApiApplicationResourceV2AuditTest
 
   private HttpRequest moveRequest(String applicationId, String targetOrganizationId) {
     return restRequest().path(PublicApiPaths.APP_RESOURCE_PATH)
-        .path(DefaultApiApplicationResourceV2.MOVE_PATH).parameter(applicationId, targetOrganizationId);
+        .path(ApiApplicationResourceV2.MOVE_PATH).parameter(applicationId, targetOrganizationId);
   }
 }

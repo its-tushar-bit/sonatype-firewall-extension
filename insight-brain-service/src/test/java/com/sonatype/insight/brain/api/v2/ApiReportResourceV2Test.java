@@ -51,7 +51,7 @@ public class ApiReportResourceV2Test
     //when fetching reports
     response =
         restRequest()
-            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2, DefaultApiReportResourceV2.PATH, "{applicationId}/history")
+            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2, ApiReportResourceV2.PATH, "{applicationId}/history")
             .parameter(app.getId()).get();
 
     //then assert application with the 3 correct reports are returned

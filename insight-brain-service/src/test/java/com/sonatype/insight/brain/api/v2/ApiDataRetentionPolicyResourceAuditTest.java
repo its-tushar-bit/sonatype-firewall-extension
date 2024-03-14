@@ -26,7 +26,7 @@ public class ApiDataRetentionPolicyResourceAuditTest
   private HttpRequest restRequest(String organizationId) {
     return restRequest()
         .path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
-            DefaultApiDataRetentionPolicyResource.ORGANIZATION_PATH)
+            ApiDataRetentionPolicyResource.ORGANIZATION_PATH)
         .parameter(organizationId);
   }
 

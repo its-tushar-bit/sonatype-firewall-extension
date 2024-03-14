@@ -515,7 +515,7 @@ public class ApiEvaluationResourceV2Test
         .fromScan(SCAN_ID, Stage.ID_OPERATE);
 
     HttpResponse response = restRequest()
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
 
     assertResponseStatus(200, response);
@@ -529,7 +529,7 @@ public class ApiEvaluationResourceV2Test
     createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
@@ -565,7 +565,7 @@ public class ApiEvaluationResourceV2Test
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
     HttpResponse response = restRequest() //
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
         .parameter(app.getId()) //
         .body(apiSourceControlEvaluationRequestDTO).post();
 
@@ -610,7 +610,7 @@ public class ApiEvaluationResourceV2Test
             Collections.singletonList("testScanTarget"));
     System.err.println(JsonUtils.writeUnformatted(apiSourceControlEvaluationRequestDTO));
     HttpResponse response = restRequest() //
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
         .parameter(app.getId()) //
         .body(apiSourceControlEvaluationRequestDTO).post();
 

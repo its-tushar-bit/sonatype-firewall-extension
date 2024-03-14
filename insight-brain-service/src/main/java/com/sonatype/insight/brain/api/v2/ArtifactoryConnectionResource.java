@@ -22,9 +22,9 @@ import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiArtifactoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -42,8 +42,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Timed
 @Path(value = PublicApiPaths.ARTIFACTORY_CONNECTION_CONFIG_PATH_V2)
 @Tag(name = "Config Artifactory Connection")
-public class DefaultArtifactoryConnectionResource
-    implements ApiArtifactoryConnectionResourceV2
+public class ArtifactoryConnectionResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
@@ -62,12 +61,11 @@ public class DefaultArtifactoryConnectionResource
   private final ApiArtifactoryConnectionService artifactoryConnectionService;
 
   @Inject
-  public DefaultArtifactoryConnectionResource(final ApiArtifactoryConnectionService artifactoryConnectionService) {
+  public ArtifactoryConnectionResource(final ApiArtifactoryConnectionService artifactoryConnectionService) {
     this.artifactoryConnectionService = artifactoryConnectionService;
   }
 
   @POST
-  @Override
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_ARTIFACTORY_CONNECTION)
@@ -81,7 +79,6 @@ public class DefaultArtifactoryConnectionResource
     return artifactoryConnectionService.addArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnection);
   }
 
-  @Override
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -98,7 +95,6 @@ public class DefaultArtifactoryConnectionResource
         artifactoryConnection);
   }
 
-  @Override
   @DELETE
   @Path(BY_ARTIFACTORY)
   @Audited(AuditEvent.DELETE_ARTIFACTORY_CONNECTION)
@@ -111,7 +107,6 @@ public class DefaultArtifactoryConnectionResource
     artifactoryConnectionService.deleteArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_ARTIFACTORY)
@@ -124,7 +119,6 @@ public class DefaultArtifactoryConnectionResource
     return artifactoryConnectionService.getArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
@@ -137,7 +131,6 @@ public class DefaultArtifactoryConnectionResource
     return artifactoryConnectionService.getOwnerArtifactoryConnection(ownerType, internalOwnerId, inherit);
   }
 
-  @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER_TEST_PATH)
@@ -152,7 +145,6 @@ public class DefaultArtifactoryConnectionResource
     return ApiStatusDTO.fromStatusType(status);
   }
 
-  @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_ARTIFACTORY_TEST_PATH)
@@ -174,7 +166,6 @@ public class DefaultArtifactoryConnectionResource
     }
   }
 
-  @Override
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

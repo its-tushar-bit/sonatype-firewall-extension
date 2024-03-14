@@ -40,9 +40,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2.REPORT_FORM_FOOTER;
-import static com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2.REPORT_FORM_HEADER;
-import static com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2.REPORT_FORM_TITLE;
+import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_FORM_FOOTER;
+import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_FORM_HEADER;
+import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_FORM_TITLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiLegalReportResourceV2Test
@@ -67,7 +67,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_PATH)
             .parameter(application.getId())
             .get();
 
@@ -97,7 +97,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
             .parameter(application.getId(), BuildStageType.ID)
             .get();
 
@@ -121,7 +121,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
             .parameter(application.getId(), ReleaseStageType.ID)
             .get();
 
@@ -133,7 +133,7 @@ public class ApiLegalReportResourceV2Test
     String applicationPublicId = "doesNotExist";
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_PATH_STAGE)
             .parameter(applicationPublicId, ReleaseStageType.ID)
             .get();
 
@@ -154,7 +154,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
             .parameter(application.getId(), BuildStageType.ID)
             .get();
 
@@ -177,7 +177,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
         .post();
@@ -196,7 +196,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID).post();
 
@@ -223,7 +223,7 @@ public class ApiLegalReportResourceV2Test
     
     File noticeFile = createNoticeFile();
     
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.CUSTOM_MULTI_APPLICATION_REPORT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.CUSTOM_MULTI_APPLICATION_REPORT_PATH)
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
         .part("title", "Report title")
@@ -256,7 +256,7 @@ public class ApiLegalReportResourceV2Test
     File noticeFile = createNoticeFile();
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
             .parameter(application.getId(), BuildStageType.ID)
             .part("title", "Report title")
             .part("header", "Report header")
@@ -288,7 +288,7 @@ public class ApiLegalReportResourceV2Test
     File noticeFile = createNoticeFile();
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
             .parameter(application.getId(), BuildStageType.ID)
             .part("title", "Report title")
             .part("header", "Report header")
@@ -315,7 +315,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
             .parameter(application.getId(), ReleaseStageType.ID)
             .get();
 
@@ -327,7 +327,7 @@ public class ApiLegalReportResourceV2Test
     String applicationPublicId = "doesNotExist";
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_PATH)
             .parameter(applicationPublicId)
             .get();
 
@@ -345,7 +345,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.COMPONENT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.COMPONENT_PATH)
         .parameter(owner.getType().toString(), owner.getPublicId())
         .query("componentIdentifier", componentIdentifier)
         .get();
@@ -367,7 +367,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.COMPONENT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.COMPONENT_PATH)
         .parameter(owner.getType().toString(), owner.getPublicId())
         .query("packageUrl", PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl())
         .get();
@@ -391,7 +391,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.COMPONENT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.COMPONENT_PATH)
         .parameter(owner.getType().toString(), owner.getPublicId())
         .query("hash", hash)
         .get();
@@ -418,7 +418,7 @@ public class ApiLegalReportResourceV2Test
     String scanId = "scanId";
     mockThirdPartyReport(owner.getId(), scanId);
 
-    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.COMPONENT_PATH)
+    HttpResponse response = restRequest().path(ApiLegalReportResourceV2.COMPONENT_PATH)
         .parameter(owner.getType().toString(), owner.getPublicId())
         .query("componentIdentifier", componentIdentifier)
         .query("identificationSource", IdentificationSource.CLAIR.getId())
@@ -437,7 +437,7 @@ public class ApiLegalReportResourceV2Test
   public void testPostCustomLicenseLegalApplicationReport_NoTitle() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_PATH)
             .parameter(application.getId(), BuildStageType.ID)
             .part(REPORT_FORM_HEADER, "header")
             .part(REPORT_FORM_FOOTER, "footer")
@@ -469,7 +469,7 @@ public class ApiLegalReportResourceV2Test
             false);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, template.getId())
             .post();
 
@@ -501,7 +501,7 @@ public class ApiLegalReportResourceV2Test
             true);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, template.getId())
             .post();
 
@@ -536,7 +536,7 @@ public class ApiLegalReportResourceV2Test
     File file = createNoticeFile();
 
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
+        .path(ApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
         .parameter(template.getId()).part("noticeFiles", file)
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
@@ -571,7 +571,7 @@ public class ApiLegalReportResourceV2Test
         false, false, false, false);
 
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
+        .path(ApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
         .parameter(template.getId())
         .post();
 
@@ -605,7 +605,7 @@ public class ApiLegalReportResourceV2Test
     File file = createNoticeFile();
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, template.getId())
             .part("noticeFiles", file)
             .post();
@@ -637,7 +637,7 @@ public class ApiLegalReportResourceV2Test
     File file = createNoticeFile();
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, template.getId())
             .part("noticeFiles", "notice.txt", file, "image/png")
             .post();
@@ -659,7 +659,7 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, "INVALID")
             .post();
 

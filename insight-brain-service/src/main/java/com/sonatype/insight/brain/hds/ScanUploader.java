@@ -16,7 +16,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -82,7 +82,7 @@ public class ScanUploader
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
     receipt.setReportUrl(UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId()));
     receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setDataUrl(DefaultApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
+    receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
     receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
   }
 }

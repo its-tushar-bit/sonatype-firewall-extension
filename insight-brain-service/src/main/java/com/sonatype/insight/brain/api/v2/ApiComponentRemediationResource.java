@@ -29,16 +29,15 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
-public class DefaultApiComponentRemediationResource implements ApiComponentRemediationResource
+public class ApiComponentRemediationResource
 {
   private final ApiComponentRemediationService remediationService;
 
   @Inject
-  public DefaultApiComponentRemediationResource(ApiComponentRemediationService remediationService) {
+  public ApiComponentRemediationResource(ApiComponentRemediationService remediationService) {
     this.remediationService = remediationService;
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

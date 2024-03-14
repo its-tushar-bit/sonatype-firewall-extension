@@ -26,20 +26,19 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH)
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DefaultApiStaleWaiversReportingResource implements ApiStaleWaiversReportingResource
+public class ApiStaleWaiversReportingResource
 {
   public static final String PATH = "/waivers/stale";
 
   private final ApiStaleWaiverService staleWaiverService;
 
   @Inject
-  public DefaultApiStaleWaiversReportingResource(final ApiStaleWaiverService staleWaiverService) {
+  public ApiStaleWaiversReportingResource(final ApiStaleWaiverService staleWaiverService) {
     this.staleWaiverService = staleWaiverService;
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_STALE_WAIVERS)

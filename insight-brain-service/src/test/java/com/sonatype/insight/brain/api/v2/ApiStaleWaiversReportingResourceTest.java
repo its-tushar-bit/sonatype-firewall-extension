@@ -37,7 +37,7 @@ public class ApiStaleWaiversReportingResourceTest
 
     HttpResponse response =
         restRequest()
-            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH)
+            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH)
             .get();
 
     assertResponseStatus(200, response);
@@ -70,7 +70,7 @@ public class ApiStaleWaiversReportingResourceTest
 
     HttpResponse response =
         restRequest()
-            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH)
+            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH)
             .get();
 
     assertResponseStatus(409, response);

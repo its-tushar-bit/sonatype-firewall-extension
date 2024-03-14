@@ -44,7 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Timed
 @Path(PublicApiPaths.APP_RESOURCE_PATH)
-public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
+public class ApiApplicationResourceV2
 {
   /**
    * Internal application Id
@@ -65,7 +65,7 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
   private final ApplicationMoveService applicationMoveService;
 
   @Inject
-  public DefaultApiApplicationResourceV2(
+  public ApiApplicationResourceV2(
       final ApiApplicationService apiApplicationService,
       final ApplicationCloneService applicationCloneService,
       final ApplicationMoveService applicationMoveService)
@@ -75,7 +75,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     this.applicationMoveService = applicationMoveService;
   }
 
-  @Override
   @GET
   @Path(APPLICATION_ID)
   @Produces(MediaType.APPLICATION_JSON)
@@ -83,7 +82,13 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     return apiApplicationService.getApplicationById(applicationId);
   }
 
-  @Override
+  /**
+   * Get the application DTO list filtered by the set of publicIds.
+   * If the publicIds is empty then all applications are returned.
+   *
+   * @param publicIds The set of public ids to filter on (cannot be null)
+   * @return The application DTO list found
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getApplications(
@@ -99,7 +104,9 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     }
   }
 
-  @Override
+  /**
+   * @since 1.102
+   */
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -107,7 +114,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     return apiApplicationService.getApplicationsByOrganizationId(organizationId);
   }
 
-  @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -116,7 +122,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     return apiApplicationService.addApplication(applicationDTO);
   }
 
-  @Override
   @PUT
   @Path(APPLICATION_ID)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -136,7 +141,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     return apiApplicationService.updateApplication(applicationDTO);
   }
 
-  @Override
   @DELETE
   @Path(APPLICATION_ID)
   @Audited(AuditEvent.DELETE_APPLICATION)
@@ -144,7 +148,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
     apiApplicationService.deleteApplication(applicationId);
   }
 
-  @Override
   @POST
   @Path(CLONE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -158,7 +161,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
         clonedApplicationPublicId);
   }
 
-  @Override
   @POST
   @Path(MOVE_PATH)
   @Produces(MediaType.APPLICATION_JSON)

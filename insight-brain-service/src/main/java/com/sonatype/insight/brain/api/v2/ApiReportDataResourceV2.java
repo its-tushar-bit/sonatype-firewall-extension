@@ -19,10 +19,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -40,7 +40,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
-public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
+public class ApiReportDataResourceV2
 {
   public static final String SCAN_PATH = "{scanId}";
 
@@ -59,7 +59,7 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
   private final ApiReportViolationsDiffService apiReportViolationsDiffService;
 
   @Inject
-  public DefaultApiReportDataResourceV2(
+  public ApiReportDataResourceV2(
       final ApiReportDataServiceV2 reportDataService,
       final BaseUrl baseUrl,
       final ApiReportViolationsDiffService apiReportViolationsDiffService)
@@ -81,7 +81,11 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
     return Response.temporaryRedirect(new URI(baseUrl.get()).resolve(getDataUrl(applicationPublicId, scanId))).build();
   }
 
-  @Override
+  /**
+   * Gets the JSON data for the report of the given application and scan.
+   *
+   * @since 1.63
+   */
   @GET
   @Path(SCAN_PATH + "/" + RAW_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -93,7 +97,11 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
     return reportDataService.getRawData(applicationPublicId, scanId);
   }
 
-  @Override
+  /**
+   * Gets the JSON data for the policy violations in the report of the given application and scan.
+   *
+   * @since 1.64
+   */
   @GET
   @Path(SCAN_PATH + "/" + POLICY_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -122,12 +130,11 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
    */
   public static String getDataUrl(String applicationPublicId, String scanId) {
     return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
-        .path(DefaultApiReportDataResourceV2.SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.RAW_DATA_PATH)
+        .path(ApiReportDataResourceV2.SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 
-  @Override
   @GET
   @Path(VIOLATION_DIFF_PATH)
   @Produces(MediaType.APPLICATION_JSON)

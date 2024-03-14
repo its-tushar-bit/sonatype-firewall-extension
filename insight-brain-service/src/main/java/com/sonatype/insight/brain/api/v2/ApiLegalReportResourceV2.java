@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -52,8 +53,7 @@ import org.glassfish.jersey.server.ContainerRequest;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
-public class DefaultApiLegalReportResourceV2
-    implements ApiLegalReportResourceV2
+public class ApiLegalReportResourceV2
 {
   public static final String APPLICATION_PATH = "application/{applicationId}";
 
@@ -118,7 +118,7 @@ public class DefaultApiLegalReportResourceV2
   private HttpServletRequest httpRequest;
 
   @Inject
-  public DefaultApiLegalReportResourceV2(
+  public ApiLegalReportResourceV2(
       final ApiLicenseLegalService apiLicenseLegalService,
       final AttributionReportService attributionReportService,
       final ApplicationAttributionReportBuilder applicationAttributionReportBuilder,
@@ -130,7 +130,6 @@ public class DefaultApiLegalReportResourceV2
     this.idUtils = idUtils;
   }
 
-  @Override
   @GET
   @Path(APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -141,7 +140,6 @@ public class DefaultApiLegalReportResourceV2
         .getLicenseLegalApplicationReport(idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId));
   }
 
-  @Override
   @GET
   @Path(APPLICATION_PATH_STAGE)
   @Produces(MediaType.APPLICATION_JSON)
@@ -153,7 +151,6 @@ public class DefaultApiLegalReportResourceV2
         false);
   }
 
-  @Override
   @GET
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
@@ -168,7 +165,6 @@ public class DefaultApiLegalReportResourceV2
         .generateCustomLegalApplicationAttributionReport(app, stageId, reportParameters);
   }
 
-  @Override
   @POST
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
@@ -197,7 +193,6 @@ public class DefaultApiLegalReportResourceV2
             reportParametersBuilder.build());
   }
 
-  @Override
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(CUSTOM_MULTI_APPLICATION_REPORT_PATH)
@@ -222,7 +217,6 @@ public class DefaultApiLegalReportResourceV2
         .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParametersBuilder.build());
   }
 
-  @Override
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
@@ -246,7 +240,6 @@ public class DefaultApiLegalReportResourceV2
         .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParameters);
   }
 
-  @Override
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_PATH)
@@ -268,7 +261,6 @@ public class DefaultApiLegalReportResourceV2
         .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStagesSet, reportParameters);
   }
 
-  @Override
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
@@ -291,7 +283,6 @@ public class DefaultApiLegalReportResourceV2
             .builder().fromAttributionReportTemplateDTO(templateDTO).withNoticeFiles(noticeFiles).build());
   }
 
-  @Override
   @POST
   @Path(APPLICATION_REPORT_FROM_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
@@ -396,7 +387,6 @@ public class DefaultApiLegalReportResourceV2
     return legalReportResourceApplicationDTO;
   }
 
-  @Override
   @GET
   @Path(COMPONENT_PATH)
   @Produces(MediaType.APPLICATION_JSON)

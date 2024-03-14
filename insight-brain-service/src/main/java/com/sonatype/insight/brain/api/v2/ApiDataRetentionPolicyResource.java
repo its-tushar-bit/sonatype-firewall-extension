@@ -30,7 +30,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH)
-public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPolicyResource
+public class ApiDataRetentionPolicyResource
 {
   static final String ORGANIZATION_PATH = "organizations/{organizationId}";
 
@@ -39,11 +39,10 @@ public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPo
   private final ApiDataRetentionPolicyService dataRetentionService;
 
   @Inject
-  public DefaultApiDataRetentionPolicyResource(ApiDataRetentionPolicyService dataRetentionService) {
+  public ApiDataRetentionPolicyResource(ApiDataRetentionPolicyService dataRetentionService) {
     this.dataRetentionService = dataRetentionService;
   }
 
-  @Override
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -51,7 +50,6 @@ public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPo
     return dataRetentionService.getDataRetentionPolicies(organizationId);
   }
 
-  @Override
   @GET
   @Path(PARENT_ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -61,7 +59,6 @@ public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPo
     return dataRetentionService.getParentDataRetentionPolicies(organizationId);
   }
 
-  @Override
   @PUT
   @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)

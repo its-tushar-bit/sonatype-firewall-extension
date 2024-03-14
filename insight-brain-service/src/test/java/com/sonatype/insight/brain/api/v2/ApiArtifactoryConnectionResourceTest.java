@@ -11,10 +11,10 @@ import java.util.Collections;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiArtifactoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
@@ -102,7 +102,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -120,7 +120,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -145,7 +145,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.ownerId = app.getId();
     dto.baseUrl = "http://baseurl1.com";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(OwnerType.APPLICATION, app.getId(), "someOtherId")
         .body(dto)
         .put();
@@ -168,7 +168,7 @@ public class ApiArtifactoryConnectionResourceTest
   public void testDeleteArtifactoryConnection_FeatureDisabled() throws Exception {
     ArtifactoryConnection existingConnection =
         tempEntity.newArtifactoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .delete();
 
@@ -180,7 +180,7 @@ public class ApiArtifactoryConnectionResourceTest
   @Test
   public void testDeleteArtifactoryConnection_NotFound() throws Exception {
     feature(true);
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(OwnerType.APPLICATION, app.getId(), "nonExistentId")
         .delete();
     assertThat(response.getStatusCode()).isEqualTo(404);
@@ -199,7 +199,7 @@ public class ApiArtifactoryConnectionResourceTest
   @Test
   public void testGetArtifactoryConnectionByOwner_FeatureDisabled() throws Exception {
     tempEntity.newArtifactoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .get();
 
@@ -211,7 +211,7 @@ public class ApiArtifactoryConnectionResourceTest
   @Test
   public void testGetArtifactoryConnection_NotFound() throws Exception {
     feature(true);
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "nonExistentId")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(404);
@@ -222,7 +222,7 @@ public class ApiArtifactoryConnectionResourceTest
     ArtifactoryConnection conn =
         tempEntity.newArtifactoryConnection(id, "http://baseurl1.com", "user1", "pass1".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
         .get();
 
@@ -245,7 +245,7 @@ public class ApiArtifactoryConnectionResourceTest
         tempEntity.newArtifactoryConnection(
             organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .query("inherit", true)
         .get();
@@ -264,7 +264,7 @@ public class ApiArtifactoryConnectionResourceTest
     String orgId = application.getParentOwnerId();
     tempEntity.newArtifactoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .query("inherit", false)
         .get();
@@ -281,7 +281,7 @@ public class ApiArtifactoryConnectionResourceTest
     String orgId = application.getParentOwnerId();
     tempEntity.newArtifactoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .get();
 
@@ -297,7 +297,7 @@ public class ApiArtifactoryConnectionResourceTest
     ArtifactoryConnection artifactoryConnection =
         tempEntity.newArtifactoryConnection(org.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(org.getType(), org.getId(), artifactoryConnection.getId())
         .get();
 
@@ -308,7 +308,7 @@ public class ApiArtifactoryConnectionResourceTest
 
   @Test
   public void testGetArtifactoryConnectionByArtifactory_FeatureDisabled() throws Exception {
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter("application", "appId", "artifactoryConnectionId")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -321,7 +321,7 @@ public class ApiArtifactoryConnectionResourceTest
     ArtifactoryConnection existingConnection =
         tempEntity.newArtifactoryConnection(id, "http://baseurl.com", "user", "pass".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(ownerType, id, existingConnection.getId())
         .delete();
     assertThat(response.getStatusCode()).isEqualTo(204);
@@ -339,7 +339,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "updateduser";
     dto.password = "updatedpass";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(ownerType, id, existingConnection.getId())
         .body(dto)
         .put();
@@ -363,7 +363,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
         .body(dto)
         .post();
@@ -397,7 +397,7 @@ public class ApiArtifactoryConnectionResourceTest
                     Collections.emptySet())))
         .willReturn(aResponse().withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -414,7 +414,7 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryMockServer.stubFor(get(urlPathMatching(ArtifactoryClient.CHECKSUM_SEARCH_PATH))
         .willReturn(aResponse().withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -441,7 +441,7 @@ public class ApiArtifactoryConnectionResourceTest
         .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -456,7 +456,7 @@ public class ApiArtifactoryConnectionResourceTest
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
     dto.baseUrl = artifactoryMockServer.baseUrl();
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId")
         .body(dto)
         .post();
@@ -471,7 +471,7 @@ public class ApiArtifactoryConnectionResourceTest
     String appId = tempEntity.newApplicationWithParent().getId();
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -492,7 +492,7 @@ public class ApiArtifactoryConnectionResourceTest
         .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, artifactoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -523,7 +523,7 @@ public class ApiArtifactoryConnectionResourceTest
         .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, artifactoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -554,7 +554,7 @@ public class ApiArtifactoryConnectionResourceTest
         .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, artifactoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -565,7 +565,7 @@ public class ApiArtifactoryConnectionResourceTest
 
   @Test
   public void testTestArtifactoryConnection_ByArtifactoryConnectionId_FeatureDisabled() throws Exception {
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId", "artifactoryConnectionId")
         .post();
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -581,7 +581,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.allowOverride = false;
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .put();
@@ -596,7 +596,7 @@ public class ApiArtifactoryConnectionResourceTest
     dto.allowOverride = false;
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, orgId)
         .body(dto)
         .put();
@@ -607,7 +607,7 @@ public class ApiArtifactoryConnectionResourceTest
   public void testUpdateOwnerArtifactoryConnectionStatus_FeatureDisabled() throws Exception {
     ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "appId")
         .body(dto)
         .put();
@@ -621,7 +621,7 @@ public class ApiArtifactoryConnectionResourceTest
     feature(true);
     String appId = tempEntity.newApplicationWithParent().getId();
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, appId)
         .body(null)
         .put();

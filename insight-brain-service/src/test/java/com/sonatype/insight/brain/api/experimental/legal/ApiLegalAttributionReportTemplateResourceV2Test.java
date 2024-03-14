@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -43,7 +43,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     tempEntity.createNewAttributionReportTemplate("template two", "second title");
 
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(report.getId())
         .auth().get();
 
@@ -61,7 +61,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     AttributionReportTemplate report2 = tempEntity
         .createNewAttributionReportTemplate("template two", "title2");
     HttpResponse response =
-        restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).auth().get();
+        restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).auth().get();
     assertResponseStatus(200, response);
     AttributionReportTemplateDTO[] result = response.getBody(AttributionReportTemplateDTO[].class);
     assertThat(result).hasSize(2);
@@ -82,7 +82,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         false,
         false);
     HttpResponse savedResponse = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
         .post();
     AttributionReportTemplateDTO savedReportTemplateDTO = savedResponse.getBody(AttributionReportTemplateDTO.class);
@@ -93,13 +93,13 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     reportTemplate.setDocumentTitle("updated title");
     reportTemplate.setId(savedReportTemplateDTO.getId());
 
-    HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
         .post();
     assertResponseStatus(200, response);
 
     response = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(savedReportTemplateDTO.getId())
         .auth()
         .get();
@@ -123,7 +123,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
 
     persistedTemplate.setTemplateName("template one");
 
-    HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(persistedTemplate))
         .post();
 
@@ -135,7 +135,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   public void testSaveAttributionReportTemplateNullAndEmptyTitle() throws Exception {
     AttributionReportTemplate reportTemplate = new AttributionReportTemplate();
     HttpResponse savedResponse = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
         .post();
 
@@ -143,7 +143,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     assertThat(savedResponse.getBodyText()).isEqualTo("Report template title cannot be blank");
 
     reportTemplate.setDocumentTitle(" ");
-    savedResponse = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    savedResponse = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
         .post();
 
@@ -151,7 +151,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     assertThat(savedResponse.getBodyText()).isEqualTo("Report template title cannot be blank");
 
     reportTemplate.setDocumentTitle("title");
-    savedResponse = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    savedResponse = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
         .post();
 
@@ -162,7 +162,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   @Test
   public void testSaveAttributionReportTemplateMissingTemplate() throws Exception {
     HttpResponse savedResponse = restRequest().path(
-        DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).post();
+        ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).post();
 
     assertResponseStatus(400, savedResponse);
     assertThat(savedResponse.getBodyText()).isEqualTo("No report template provided");
@@ -171,7 +171,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   @Test
   public void testGetAttributionReportTemplateDoesNotExist() throws Exception {
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(NONEXISTENT_ID).get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("No report with id %s", NONEXISTENT_ID);
@@ -182,7 +182,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     AttributionReportTemplate template = new AttributionReportTemplate();
     template.setId("");
     template.setDocumentTitle("");
-    HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(AttributionReportTemplateDTO.fromReportTemplate(template)).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
@@ -194,11 +194,11 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     AttributionReportTemplate tempReport =
         tempEntity.createNewAttributionReportTemplate("template to be deleted", "to be deleted");
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(tempReport.getId()).delete();
     assertResponseStatus(204, response);
     assertThat(response.getBodyText()).isEmpty();
-    response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).get();
+    response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getBody(AttributionReportTemplateDTO[].class)).isEmpty();
   }
@@ -206,7 +206,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   @Test
   public void testDeleteAttributionReportTemplateDoesNotExist() throws Exception {
     HttpResponse response = restRequest()
-        .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(NONEXISTENT_ID).delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Template with id %s does not exist", NONEXISTENT_ID);
@@ -219,7 +219,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     toBeSaved.setTemplateName(DUPLICATE_TEMPLATE_NAME);
     toBeSaved.setDocumentTitle("other title");
 
-    HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(toBeSaved).post();
 
     assertResponseStatus(400, response);
@@ -237,7 +237,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         false, false, false, false,
         false
     );
-    HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+    HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(reportTemplateDTO).post();
     AttributionReportTemplateDTO savedDto = response.getBody(AttributionReportTemplateDTO.class);
     assertThat(savedDto.getTemplateName()).isEqualTo("<html>template name</html>");

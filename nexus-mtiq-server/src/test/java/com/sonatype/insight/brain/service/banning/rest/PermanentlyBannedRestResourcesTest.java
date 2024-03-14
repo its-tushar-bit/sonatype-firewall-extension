@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
 import com.sonatype.insight.brain.api.v2.ApiExternalTelemetryResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiCrowdConfigurationResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiDataRetentionPolicyResource;
+import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
 import com.sonatype.insight.brain.api.v2.DefaultExternalTelemetryResource;
 import com.sonatype.insight.brain.support.SupportResource;
 
@@ -28,7 +28,7 @@ public class PermanentlyBannedRestResourcesTest
     assertThat(underTest.isBanned(ApiCrowdConfigurationResourceV2.class)).isTrue();
     assertThat(underTest.isBanned(DefaultApiCrowdConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiDataRetentionPolicyResource.class)).isTrue();
-    assertThat(underTest.isBanned(DefaultApiDataRetentionPolicyResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiDataRetentionPolicyResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiExternalTelemetryResourceV2.class)).isTrue();
     assertThat(underTest.isBanned(DefaultExternalTelemetryResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiConfigFeaturesResource.class)).isTrue();

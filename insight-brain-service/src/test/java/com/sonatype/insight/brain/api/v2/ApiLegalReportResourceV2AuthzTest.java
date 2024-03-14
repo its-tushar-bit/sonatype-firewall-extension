@@ -44,7 +44,7 @@ public class ApiLegalReportResourceV2AuthzTest
         tempEntity.createNewAttributionReportTemplate("template name", "title");
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(app.getId(), BuildStageType.ID, template.getId())
             .post();
 
@@ -59,7 +59,7 @@ public class ApiLegalReportResourceV2AuthzTest
         tempEntity.createNewAttributionReportTemplate("template name", "title");
 
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        restRequest().path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(app.getId(), BuildStageType.ID, template.getId())
             .post();
 
@@ -75,7 +75,7 @@ public class ApiLegalReportResourceV2AuthzTest
         tempEntity.createNewAttributionReportTemplate("template name", "title");
 
     HttpRequest request = restRequest()
-        .path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+        .path(ApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
         .parameter(app.getId(), BuildStageType.ID, template.getId());
 
     HttpResponse response = request.auth(authorized).post();

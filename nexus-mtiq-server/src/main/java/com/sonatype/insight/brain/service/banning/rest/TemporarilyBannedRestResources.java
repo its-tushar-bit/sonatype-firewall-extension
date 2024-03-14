@@ -10,8 +10,8 @@ import java.util.List;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiJiraConfigurationResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
-import com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.labs.LabsResource;
@@ -45,8 +45,8 @@ public class TemporarilyBannedRestResources
 
       // Advanced legal pack CLM-27720
       ApiLicenseLegalResource.class,
-      DefaultApiLegalAttributionReportTemplateResourceV2.class,
-      DefaultApiLegalReportResourceV2.class
+      ApiLegalAttributionReportTemplateResourceV2.class,
+      ApiLegalReportResourceV2.class
   );
 
   @Override

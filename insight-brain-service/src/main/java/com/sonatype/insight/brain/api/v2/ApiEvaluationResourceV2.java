@@ -42,7 +42,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2)
-public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
+public class ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
 
@@ -55,7 +55,7 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
   private final ApiSourceControlEvaluationService sourceControlEvaluationService;
 
   @Inject
-  public DefaultApiEvaluationResourceV2(
+  public ApiEvaluationResourceV2(
       final ApiComponentEvaluationServiceV2 componentEvaluationService,
       final ApiPromoteScanServiceV2 apiPromoteScanServiceV2,
       ApiSourceControlEvaluationService sourceControlEvaluationService)
@@ -65,7 +65,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
     this.sourceControlEvaluationService = sourceControlEvaluationService;
   }
 
-  @Override
   @Path("{applicationId}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -78,7 +77,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
     return componentEvaluationService.evaluateComponents(applicationId, evaluationRequest);
   }
 
-  @Override
   @Path("{applicationId}/results/{resultId}")
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -90,7 +88,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
     return componentEvaluationService.getComponentEvaluation(applicationId, resultId);
   }
 
-  @Override
   @Path(PROMOTE_SCAN_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -106,7 +103,9 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
         HdsClient.getClientUserAgent(request));
   }
 
-  @Override
+  /**
+   * @since 1.101
+   */
   @Path(SOURCE_CONTROL_EVALUATION_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -121,7 +120,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
         HdsClient.getClientUserAgent(request));
   }
 
-  @Override
   @GET
   @Path("{applicationId}/status/{statusId}")
   @Produces(MediaType.APPLICATION_JSON)

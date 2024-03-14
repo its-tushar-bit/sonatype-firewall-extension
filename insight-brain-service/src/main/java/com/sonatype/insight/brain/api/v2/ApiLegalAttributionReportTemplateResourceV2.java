@@ -31,8 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
-public class DefaultApiLegalAttributionReportTemplateResourceV2
-    implements ApiLegalAttributionReportTemplateResourceV2
+public class ApiLegalAttributionReportTemplateResourceV2
 {
   public static final String REPORT_TEMPLATE_PATH = "report-template/";
 
@@ -41,13 +40,12 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
   private final AttributionReportService attributionReportService;
 
   @Inject
-  public DefaultApiLegalAttributionReportTemplateResourceV2(
+  public ApiLegalAttributionReportTemplateResourceV2(
       AttributionReportService attributionReportService)
   {
     this.attributionReportService = attributionReportService;
   }
 
-  @Override
   @GET
   @Path(REPORT_TEMPLATE_PATH_ID)
   @Produces(MediaType.APPLICATION_JSON)
@@ -57,7 +55,6 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
     );
   }
 
-  @Override
   @GET
   @Path(REPORT_TEMPLATE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -65,7 +62,6 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
     return attributionReportService.getAllAttributionReportTemplates();
   }
 
-  @Override
   @POST
   @Path(REPORT_TEMPLATE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -89,7 +85,6 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
     return attributionReportService.saveAttributionReportTemplate(reportTemplateDTO);
   }
 
-  @Override
   @DELETE
   @Path(REPORT_TEMPLATE_PATH_ID)
   public void deleteAttributionReportTemplate(@PathParam("id") String id) {

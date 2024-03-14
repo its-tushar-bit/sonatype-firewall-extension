@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.api.v2;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -52,7 +52,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
     dto.ownerId = app.getId();
     dto.baseUrl = "http://localrepo.com/";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -71,7 +71,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
     dto.ownerId = app.getId();
     dto.baseUrl = "http://updatedrepo.com/";
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .body(dto)
         .put();
@@ -87,7 +87,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
     ArtifactoryConnection existingConnection =
         tempEntity.newArtifactoryConnection(app.getId(), "http://baseurl.com", null, null);
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .delete();
     assertResponseStatus(204, response);
@@ -103,7 +103,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
     dto.enabled = true;
     dto.allowOverride = false;
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, organization.getId())
         .body(dto)
         .put();
@@ -120,7 +120,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
     ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .put();

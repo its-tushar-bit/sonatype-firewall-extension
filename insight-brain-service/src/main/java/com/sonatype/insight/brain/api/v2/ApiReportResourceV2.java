@@ -23,21 +23,20 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
 
-@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiReportResourceV2.PATH)
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiReportResourceV2.PATH)
 @Named
 @Timed
-public class DefaultApiReportResourceV2 implements ApiReportResourceV2
+public class ApiReportResourceV2
 {
   public static final String PATH = "/applications";
 
   private final ApiReportServiceV2 reportService;
 
   @Inject
-  public DefaultApiReportResourceV2(final ApiReportServiceV2 searchService) {
+  public ApiReportResourceV2(final ApiReportServiceV2 searchService) {
     this.reportService = searchService;
   }
 
-  @Override
   @GET
   @Path("{applicationId}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -45,14 +44,12 @@ public class DefaultApiReportResourceV2 implements ApiReportResourceV2
     return reportService.getByApplicationId(applicationId);
   }
 
-  @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiApplicationReportDTOV2> getAll() {
     return reportService.getAll();
   }
 
-  @Override
   @Path("{applicationId}/history")
   @GET
   @Produces(MediaType.APPLICATION_JSON)

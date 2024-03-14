@@ -35,7 +35,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.comparator.CustomComparator;
 
-import static com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2.SCAN_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2.SCAN_PATH;
 import static com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService.CANT_CALCULATE_DIFF_MESSAGE;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +90,7 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetDataUrl() {
-    assertThat(DefaultApiReportDataResourceV2.getDataUrl("testAppPublicId", "testScanId"))
+    assertThat(ApiReportDataResourceV2.getDataUrl("testAppPublicId", "testScanId"))
         .isEqualTo("api/v2/applications/testAppPublicId/reports/testScanId/raw");
   }
 
@@ -101,7 +101,7 @@ public class ApiReportDataResourceV2Test
     createReport(appPublicId, scanId, "report");
 
     HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.RAW_DATA_PATH).parameter(appPublicId, scanId).get();
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
     ApiReportRawDataDTOV2 dto = response.getBody(ApiReportRawDataDTOV2.class);
@@ -115,7 +115,7 @@ public class ApiReportDataResourceV2Test
     createReport(appPublicId, scanId, "report");
 
     HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
     ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
@@ -133,7 +133,7 @@ public class ApiReportDataResourceV2Test
     createReport(appPublicId, scanId, "report-no-counts");
 
     HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
     ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
@@ -147,7 +147,7 @@ public class ApiReportDataResourceV2Test
     setupValidReportsAndEvaluations();
 
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -162,7 +162,7 @@ public class ApiReportDataResourceV2Test
     setupValidReportsAndEvaluations();
 
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH.substring(0, 7),
             TO_COMMIT_HASH.substring(0, 7)))
@@ -176,7 +176,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_NoFromCommitSpecified() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("toCommit=%s", TO_COMMIT_HASH))
         .get();
@@ -188,7 +188,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_NoToCommitSpecified() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s", FROM_COMMIT_HASH))
         .get();
@@ -200,7 +200,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_SameCommitSpecified() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, FROM_COMMIT_HASH))
         .get();
@@ -211,7 +211,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_InvalidFromCommitSpecified() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", "aaa", TO_COMMIT_HASH))
         .get();
@@ -226,7 +226,7 @@ public class ApiReportDataResourceV2Test
         .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
             date, FROM_COMMIT_HASH);
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, "aaa"))
         .get();
@@ -237,7 +237,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_FromCommitNotFound() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -253,7 +253,7 @@ public class ApiReportDataResourceV2Test
         .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
             date, FROM_COMMIT_HASH);
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -265,7 +265,7 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetPolicyViolationDiff_AppNotFound() throws Exception {
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter("INVALID APP")
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -283,7 +283,7 @@ public class ApiReportDataResourceV2Test
         date, TO_COMMIT_HASH);
 
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -309,7 +309,7 @@ public class ApiReportDataResourceV2Test
         date, TO_COMMIT_HASH);
 
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -347,7 +347,7 @@ public class ApiReportDataResourceV2Test
 
     //when fetching diff with evaluation ids
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, toEvalId))
         .get();
@@ -361,7 +361,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_NoFromEvaluationSpecified() throws Exception {
     //when fetching diff without from eval specified
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("toPolicyEvaluationId=%s", toEvalId))
         .get();
@@ -376,7 +376,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_NoToEvaluationSpecified() throws Exception {
     //when fetching diff without to eval specified
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s", fromEvalId))
         .get();
@@ -391,7 +391,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_SameEvaluationSpecified() throws Exception {
     //when fetching diff with same from and to evals
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, fromEvalId))
         .get();
@@ -405,7 +405,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_FromEvaluationNotFound() throws Exception {
     //when fetching diff with non existing from eval id
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -426,7 +426,7 @@ public class ApiReportDataResourceV2Test
 
     //when fetching diff with non existing to eval id
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
@@ -441,7 +441,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_FromEvaluationAndCommitSpecified() throws Exception {
     //when fetching diff with from commit and eval id specified
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String
             .format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s&fromCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH,
@@ -458,7 +458,7 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_ToEvaluationAndCommitSpecified() throws Exception {
     //when fetching diff with to commit and eval id specified
     final HttpResponse response = restRequest()
-        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, DefaultApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String
             .format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH,
@@ -480,7 +480,7 @@ public class ApiReportDataResourceV2Test
     HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
         .path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
         .get();
 
@@ -501,7 +501,7 @@ public class ApiReportDataResourceV2Test
     HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
         .path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
         .get();
 
@@ -528,7 +528,7 @@ public class ApiReportDataResourceV2Test
     HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
         .path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
         .get();
 
@@ -558,7 +558,7 @@ public class ApiReportDataResourceV2Test
     HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
         .path(SCAN_PATH)
-        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, "FalseScanId")
         .get();
 

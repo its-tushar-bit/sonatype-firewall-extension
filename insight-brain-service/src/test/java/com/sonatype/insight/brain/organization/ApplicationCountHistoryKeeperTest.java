@@ -18,8 +18,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class ApplicationCountHistoryKeeperTest
@@ -41,11 +44,19 @@ public class ApplicationCountHistoryKeeperTest
   }
 
   @Test
-  public void testStart() {
+  public void testApplicationCountHistoryKeeper__shouldRegisterCountHistoryTaskWhenFeatureEnabled() {
     applicationCountHistoryKeeper.register();
 
     verify(mockTaskScheduler).scheduleDailyTask(eq(applicationCountHistoryKeeper), timeCaptor.capture());
     assertThat(timeCaptor.getValue().getHour()).isEqualTo(1);
     assertThat(timeCaptor.getValue().getMinute()).isBetween(30, 59); // (inclusive, inclusive)
+  }
+
+  @Test
+  public void testApplicationCountHistoryKeeper__shouldNotRegisterCountHistoryTaskWhenFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DEVELOPMENT_DASHBOARD_METRIC_COLLECTION, "false");
+    applicationCountHistoryKeeper.register();
+
+    verify(mockTaskScheduler, never()).scheduleDailyTask(any(), any());
   }
 }

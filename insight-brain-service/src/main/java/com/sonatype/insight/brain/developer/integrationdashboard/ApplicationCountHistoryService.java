@@ -23,14 +23,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-
-import org.apache.commons.collections4.CollectionUtils;
 
 @Named
 public class ApplicationCountHistoryService
@@ -79,7 +76,8 @@ public class ApplicationCountHistoryService
 
     final int waiversCount = policyViolationDAO.getCountActiveWaivers();
 
-    final long meanTimeToRemediateMillis = getMeanTimeToRemediate(policyViolationDAO.getWaivedFixed());
+    // we treat 3 months as 12 weeks/84 days. This maintains consistency with other metrics on the developer dashboard
+    final long meanTimeToRemediateMillis = policyViolationDAO.getMeanTimeToRemediate(84);
 
     final ApplicationCountHistory countHistory = new ApplicationCountHistory(
         dateTimeService.getCurrentDate(),
@@ -132,20 +130,6 @@ public class ApplicationCountHistoryService
     }
 
     return applicationCountHistoryDAO.getInitialApplicationCountHistory();
-  }
-
-  private long getMeanTimeToRemediate(final List<PolicyViolation> byFixOrWaiveTimes) {
-    if (CollectionUtils.isEmpty(byFixOrWaiveTimes)) {
-      return 0L;
-    }
-
-    final double average = byFixOrWaiveTimes.stream()
-        .map(policyViolation -> policyViolation.getFixOrWaiveTime().getTime() - policyViolation.getOpenTime().getTime())
-        .mapToLong(Long::longValue)
-        .average()
-        .orElse(0.0);
-
-    return Math.round(average);
   }
 
   @Authorize(permission = Permission.READ)

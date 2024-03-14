@@ -497,6 +497,43 @@ public class PolicyViolationDAO
     return getList(sQuery);
   }
 
+  public long getMeanTimeToRemediate(final int lookBackWindowMs) {
+    final String sQuery;
+
+    if (isDatabasePostgresql()) {
+      sQuery = "SELECT EXTRACT(EPOCH FROM AVG(LEAST(fix_time, waive_time) - open_time)) * 1000" +
+        "  FROM " + getDatabaseSchema() + ".policy_violation" +
+        "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
+        "  AND open_time > CURRENT_DATE - MAKE_INTERVAL(days => ?1)";
+    }
+    else {
+      // We support h2 1.4. This version does not support EXTRACT (epoch, it also does not correctly subtract two
+      // timestamps
+      // It does, however have the function TIMESTAMPDIFF (postgres does not), which gets us the same result
+      // Keep in mind
+      // SELECT DATEADD(mm,-1, '2024-03-29 18:47:52.69') -> 2024-02-29 18:47:52.69, but
+      // SELECT DATEADD(mm,-1, '2024-03-30 18:47:52.69') -> 2024-02-29 18:47:52.69
+      // TO DO CONSIDER TAKING THIS NUMBER IN DAYS, WEEKS or MS, FOR OTHER ENDPOINTS WE TREAT 3 months as 12 weeks
+      sQuery = "SELECT AVG(TIMESTAMPDIFF(MILLISECOND, open_time, LEAST(fix_time, waive_time)))" +
+        "  FROM " + getDatabaseSchema() + ".policy_violation" +
+        "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
+        "  AND policy_violation.open_time > DATEADD(dd, -?1, CURRENT_TIMESTAMP)";
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
+
+      query.setParameter(1, lookBackWindowMs);
+      Double result = (Double)query.getSingleResult();
+
+      if (result == null) {
+        return 0L;
+      }
+
+      return Math.round(result);
+    }
+  }
+
   private Collection<PolicyThreatCategory> getPolicyThreatCategoriesFilter(
       Collection<PolicyThreatCategory> policyThreatCategories)
   {

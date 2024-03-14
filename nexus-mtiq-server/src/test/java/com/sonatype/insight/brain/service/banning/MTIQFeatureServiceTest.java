@@ -212,6 +212,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS))
         .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED))
         .filter(f -> !f.equals(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION))
+        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

@@ -2313,6 +2313,10 @@ public class TemporaryEntity
         null /* version */, "hash");
   }
 
+  public void updatePolicyViolation(final PolicyViolation policyViolation) {
+    policyViolationDAO.update(policyViolation);
+  }
+
   public PolicyViolation newPolicyViolation(
       PolicyEvaluation evaluation,
       Policy policy,
@@ -4601,6 +4605,65 @@ public class TemporaryEntity
     );
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
     return sastPullRequestComment;
+  }
+
+  public PolicyViolation createFixedPolicyViolation(
+      PolicyEvaluation policyEvaluation,
+      Policy policy,
+      Date openTime,
+      final long durationToFixMs
+  )
+  {
+    final Date closeTime =  new Date(openTime.getTime() + durationToFixMs);
+    final PolicyViolation waivedPolicyViolation = this.newPolicyViolation(policyEvaluation, policy);
+
+    waivedPolicyViolation.setOpenTime(openTime);
+    waivedPolicyViolation.setFixTime(closeTime);
+
+    policyViolationDAO.update(waivedPolicyViolation);
+    this.updatePolicyViolation(waivedPolicyViolation);
+
+    return waivedPolicyViolation;
+  }
+
+  public PolicyViolation createWaivedAndFixedPolicyViolation(
+      PolicyEvaluation policyEvaluation,
+      Policy policy,
+      Date openTime,
+      final long durationToWaiveMs,
+      final long durationToFixMs
+  )
+  {
+    final PolicyViolation policyViolation = createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        openTime,
+        durationToWaiveMs);
+
+    final Date fixTime =  new Date(openTime.getTime() + durationToFixMs);
+    policyViolation.setFixTime(fixTime);
+
+    this.updatePolicyViolation(policyViolation);
+
+    return policyViolation;
+  }
+
+  public PolicyViolation createWaivedPolicyViolation(
+      PolicyEvaluation policyEvaluation,
+      Policy policy,
+      Date openTime,
+      final long durationToWaiveMs
+  )
+  {
+    final Date closeTime = new Date(openTime.getTime() + durationToWaiveMs);
+    final PolicyViolation waivedPolicyViolation = this.newPolicyViolation(policyEvaluation, policy);
+
+    waivedPolicyViolation.setOpenTime(openTime);
+    waivedPolicyViolation.setWaiveTime(closeTime);
+
+    this.updatePolicyViolation(waivedPolicyViolation);
+
+    return waivedPolicyViolation;
   }
 
   public ThirdPartySbomMetadata createSbomMetadata() {

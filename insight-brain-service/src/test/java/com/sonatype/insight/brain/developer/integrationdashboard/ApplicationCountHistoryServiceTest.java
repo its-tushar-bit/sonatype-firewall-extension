@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +27,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -292,6 +290,7 @@ public class ApplicationCountHistoryServiceTest
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
+
     // App2 has 2 new waived
     tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
@@ -321,21 +320,21 @@ public class ApplicationCountHistoryServiceTest
     when(dateTimeService.getCurrentDate()).thenReturn(firstRecording);
 
     // App has 3 waived or fixed violations
-    final PolicyViolation waivedPolicyViolation1 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    waivedPolicyViolation1.setOpenTime(new Date(1L));
-    waivedPolicyViolation1.setWaiveTime(new Date(12L));
-    final PolicyViolation waivedPolicyViolation2 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    waivedPolicyViolation2.setOpenTime(new Date(4L));
-    waivedPolicyViolation2.setFixTime(new Date(7L));
-    final PolicyViolation fixedPolicyViolation1 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    fixedPolicyViolation1.setOpenTime(new Date(5L));
-    fixedPolicyViolation1.setFixTime(new Date(10L));
-
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(Arrays.asList(waivedPolicyViolation1, waivedPolicyViolation2, fixedPolicyViolation1));
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        11L);
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        3L);
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        5L);
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -349,14 +348,11 @@ public class ApplicationCountHistoryServiceTest
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
 
     // App has 1 new fixed violations
-    final PolicyViolation fixedPolicyViolation2 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    fixedPolicyViolation2.setOpenTime(new Date(6L));
-    fixedPolicyViolation2.setFixTime(new Date(50L));
-
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(Arrays.asList(waivedPolicyViolation1, waivedPolicyViolation2, fixedPolicyViolation1,
-            fixedPolicyViolation2));
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        44L);
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -382,24 +378,25 @@ public class ApplicationCountHistoryServiceTest
     when(dateTimeService.getCurrentDate()).thenReturn(firstRecording);
 
     // App has 3 waived or fixed violations
-    final PolicyViolation waivedEarlierThanFixedPolicyViolation1 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    waivedEarlierThanFixedPolicyViolation1.setOpenTime(new Date(2L));
-    waivedEarlierThanFixedPolicyViolation1.setWaiveTime(new Date(10L));
-    waivedEarlierThanFixedPolicyViolation1.setFixTime(new Date(20L));
-    final PolicyViolation fixedEarlierThanWaivedPolicyViolation2 =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    fixedEarlierThanWaivedPolicyViolation2.setOpenTime(new Date(4L));
-    fixedEarlierThanWaivedPolicyViolation2.setWaiveTime(new Date(8L));
-    fixedEarlierThanWaivedPolicyViolation2.setFixTime(new Date(5L));
-    final PolicyViolation fixedPolicyViolation =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    fixedPolicyViolation.setOpenTime(new Date(5L));
-    fixedPolicyViolation.setFixTime(new Date(10L));
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        8L);
 
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(Arrays.asList(waivedEarlierThanFixedPolicyViolation1, fixedEarlierThanWaivedPolicyViolation2,
-            fixedPolicyViolation));
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        1L
+    );
+
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        5L
+    );
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -413,14 +410,11 @@ public class ApplicationCountHistoryServiceTest
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
 
     // App has 1 new fixed violations
-    final PolicyViolation waivedPolicyViolation =
-        tempEntity.newPolicyViolation(policyEvaluation, policy);
-    waivedPolicyViolation.setOpenTime(new Date(23L));
-    waivedPolicyViolation.setWaiveTime(new Date(60L));
-
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(Arrays.asList(waivedEarlierThanFixedPolicyViolation1, fixedEarlierThanWaivedPolicyViolation2,
-            fixedPolicyViolation, waivedPolicyViolation));
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        37L);
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -439,8 +433,6 @@ public class ApplicationCountHistoryServiceTest
 
     // === Then First Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(firstRecording);
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(null);
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -451,9 +443,6 @@ public class ApplicationCountHistoryServiceTest
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
-
-    when(policyViolationDAO.getWaivedFixed())
-        .thenReturn(Collections.emptyList());
 
     applicationCountHistoryService.recordApplicationCount();
 

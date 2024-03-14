@@ -65,6 +65,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       };
 
   /**
@@ -91,6 +92,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId()
       };
 
   /**

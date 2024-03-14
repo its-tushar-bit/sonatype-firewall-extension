@@ -94,6 +94,157 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation).isNull();
   }
 
+  @Test
+  @PostgresTest
+  public void testGetMeanTimeToRemediate_shouldCorrectlyComputeMeanTimeToRemediateMillisUsingPostgres() {
+    doGetMeanTimeToRemediateShouldCorrectlyComputeMeanTimeToRemediateMillisUsingTest();
+  }
+
+  @Test
+  public void testGetMeanTimeToRemediate_shouldCorrectlyComputeMeanTimeToRemediateMillisUsingH2() {
+    doGetMeanTimeToRemediateShouldCorrectlyComputeMeanTimeToRemediateMillisUsingTest();
+  }
+
+  public void doGetMeanTimeToRemediateShouldCorrectlyComputeMeanTimeToRemediateMillisUsingTest() {
+    // === Given ===
+    final Date now = new Date();
+    final Application application = tempEntity.newApplication(organization.getId());
+    final Policy policy = tempEntity.newPolicy(application);
+    final PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+
+    // App has 3 waived or fixed violations
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        11L);
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        3L);
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        5L);
+
+    // App has two waived or fixed violations outside the 3-month window
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(now.getTime() - (4L * 30L * 24L * 60L * 60L * 1000L)),
+        50000L
+    );
+    tempEntity.createWaivedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(now.getTime() - (5L * 30L * 24L * 60L * 60L * 1000L)),
+        90000L
+    );
+
+    final long firstExpectedMeanTimeToRemediate = Math.round((float) (11L + 3L + 5L) / 3);
+
+    long result = dao.getMeanTimeToRemediate(84);
+
+    assertThat(result).isEqualTo(firstExpectedMeanTimeToRemediate);
+
+    tempEntity.createFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        44L);
+
+    result = dao.getMeanTimeToRemediate(84);
+
+    final long secondExpectedMeanTimeToRemediate = Math.round((float) (11L + 3L + 5L + 44L) / 4);
+    assertThat(result).isEqualTo(secondExpectedMeanTimeToRemediate);
+
+    // with a larger look back window the other two waived violations affect the average
+    final long expectedValueWith121DayWindow = Math.round((float) (11L + 3L + 5L + 44L + 50000L) / 5);
+    final long expectedValueWith151DayWindow = Math.round((float) (11L + 3L + 5L + 44L + 50000L + 90000L) / 6);
+
+    result = dao.getMeanTimeToRemediate(121);
+    assertThat(result).isEqualTo(expectedValueWith121DayWindow);
+
+    result = dao.getMeanTimeToRemediate(151);
+    assertThat(result).isEqualTo(expectedValueWith151DayWindow);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixedUsingPostges() {
+    doGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixed();
+  }
+
+  @Test
+  public void testGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixedUsingH2() {
+    doGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixed();
+  }
+
+  private void doGetMeanTimeToRemediate_shouldUseLeastValueWhenWaivedAndFixed() {
+    // === Given ===
+    final Application application = tempEntity.newApplication(organization.getId());
+    final Policy policy = tempEntity.newPolicy(application);
+    final PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+
+    // App has 3 violations, they have been both waived and fixed
+    tempEntity.createWaivedAndFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        500L,
+        3L);
+
+    tempEntity.createWaivedAndFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        42L,
+        48L);
+    tempEntity.createWaivedAndFixedPolicyViolation(
+        policyEvaluation,
+        policy,
+        new Date(),
+        401L,
+        533L);
+
+    final long expectedMeanTimeToRemediate = Math.round((float) (3L + 42L + 401L) / 3);
+
+    long result = dao.getMeanTimeToRemediate(84);
+
+    assertThat(result).isEqualTo(expectedMeanTimeToRemediate);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetMeanTimeToRemediate_shouldHandleViolationsStillOpenUsingPostgres() {
+    doGetMeanTimeToRemediate_shouldHandleViolationsStillOpen();
+  }
+
+  @Test
+  public void testGetMeanTimeToRemediateWithThreeMonthSlidingWindow_shouldHandleViolationsStillUsingOpenH2() {
+    doGetMeanTimeToRemediate_shouldHandleViolationsStillOpen();
+  }
+
+  private void doGetMeanTimeToRemediate_shouldHandleViolationsStillOpen() {
+    // === Given wwe have 2 violations both still open
+    final Application application = tempEntity.newApplication(organization.getId());
+    final Policy policy = tempEntity.newPolicy(application);
+    final PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis()));
+
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    // === Then
+    long result = dao.getMeanTimeToRemediate(84);
+
+    assertThat(result).isEqualTo(0L);
+  }
+
   private void assertPolicyViolation(String applicationId,
                                      String stageTypeId,
                                      String policyId,

@@ -431,6 +431,7 @@ CREATE TABLE policy_violation (
 CREATE INDEX policy_violation_app_fix_time_stage_idx ON policy_violation(application_id, fix_time, stage_type_id);
 CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, application_id);
 CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
+CREATE INDEX policy_violation_open_time_idx ON policy_violation (open_time);
 
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,

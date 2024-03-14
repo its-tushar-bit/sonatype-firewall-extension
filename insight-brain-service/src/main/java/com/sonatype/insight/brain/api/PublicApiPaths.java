@@ -156,4 +156,6 @@ public class PublicApiPaths
 
   public static final String CALL_FLOW_ANALYSIS_CONFIG = API_VERSION_PATH_V2 +
       "callFlowAnalysis/configuration/{ownerType: application|organization}/{ownerId}";
+
+  public static final String AUDIT_LOGS_RESOURCE_PATH = API_VERSION_PATH_V2 + "auditLogs";
 }

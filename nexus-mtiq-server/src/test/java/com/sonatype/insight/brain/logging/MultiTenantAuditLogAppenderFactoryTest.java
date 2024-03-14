@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.logging;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,7 +30,7 @@ public class MultiTenantAuditLogAppenderFactoryTest
     String expectedSystemStartLogText = "\"username\":\"*SYSTEM\",\"domain\":\"server\",\"type\":\"start\"";
     assertLogContains(Tenant.GLOBAL_TENANT.tenantSlug, expectedSystemStartLogText);
     assertLogDoesNotContain(getTestTenant().tenantSlug, expectedSystemStartLogText);
-    
+
     String expectedTenantCreateLogText =
         "\"username\":\"test@test.com\",\"domain\":\"mtiq.tenant\",\"type\":\"create\"";
     // The audit log for the global tenant may contain this text or not from tests that were run before this test,
@@ -45,6 +47,22 @@ public class MultiTenantAuditLogAppenderFactoryTest
         + "\",\"organizationName\":\"orgName\"}";
     assertLogDoesNotContain(Tenant.GLOBAL_TENANT.tenantSlug, expectedOrgCreateLogText);
     assertLogContains(getTestTenant().tenantSlug, expectedOrgCreateLogText);
+  }
+
+  @Test
+  public void testGetAuditLogFiles_NoFilesForTheRange() throws Exception {
+    List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.of(2024, 2, 4),
+        LocalDate.of(2024, 2, 4));
+    assertThat(auditLogFiles).isEmpty();
+  }
+
+  @Test
+  public void testGetAuditLogFiles_WhenTheRangeIsToday() throws Exception {
+    List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.now(), LocalDate.now());
+
+    assertThat(auditLogFiles).hasSize(1);
+    assertThat(auditLogFiles.get(0).getAbsolutePath().replace('\\', '/'))
+        .endsWith("target/test-audit-logs/" + getTestTenant().tenantSlug + "/log/audit.log");
   }
 
   private HttpRequest organizationRequest() {

@@ -1084,9 +1084,9 @@ describe('CLMLocation.js', function () {
 
   describe('getRepositoryComponentsUrl', () => {
     it('returns url to get repository components details', () => {
-      const expectedUrl = '/api/experimental/repositories/repositoryId/results/details';
+      const expectedUrl = '/api/experimental/repositories/repository/repositoryId/results/details';
 
-      expect(clmLocation.getRepositoryComponentsUrl('repositoryId')).toEqual(expectedUrl);
+      expect(clmLocation.getRepositoryComponentsUrl('repository', 'repositoryId')).toEqual(expectedUrl);
     });
   });
 

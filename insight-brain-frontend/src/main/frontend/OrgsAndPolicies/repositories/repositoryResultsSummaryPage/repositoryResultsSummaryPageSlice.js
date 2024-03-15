@@ -180,7 +180,7 @@ const getRepositoryComponents = createAsyncThunk(
     source = CancelToken.source();
     const componentsRequestBody = selectComponentsRequestBody(getState());
     return axios
-      .post(getRepositoryComponentsUrl(repoId), componentsRequestBody, { cancelToken: source.token })
+      .post(getRepositoryComponentsUrl('repository', repoId), componentsRequestBody, { cancelToken: source.token })
       .then(prop('data'))
       .catch(rejectWithValue);
   }

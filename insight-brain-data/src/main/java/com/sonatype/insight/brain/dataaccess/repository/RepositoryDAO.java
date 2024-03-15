@@ -345,4 +345,11 @@ public class RepositoryDAO
 
     return getSingle(Long.class, sQuery, repositoryType);
   }
+
+  public Repository getByRepositoryIdAndManagerId(String repositoryManagerId, String repositoryId) {
+    String sQuery = "SELECT entity FROM Repository entity" + //
+        " WHERE entity.repositoryManagerId=?1 AND entity.id=?2";
+
+    return get(sQuery, repositoryManagerId, repositoryId);
+  }
 }

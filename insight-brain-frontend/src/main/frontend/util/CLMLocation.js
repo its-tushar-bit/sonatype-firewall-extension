@@ -261,8 +261,8 @@ export const getRepositoryManagerUrl = (managerId, managerName) =>
 
 export const getRepositoryEvaluateUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}/evaluate`;
 
-export const getRepositoryComponentsUrl = (repositoryId) =>
-  uriTemplate`/api/experimental/repositories/${repositoryId}/results/details`;
+export const getRepositoryComponentsUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/experimental/repositories/${ownerType}/${ownerId}/results/details`;
 
 export function getSourceControlMetricsUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;

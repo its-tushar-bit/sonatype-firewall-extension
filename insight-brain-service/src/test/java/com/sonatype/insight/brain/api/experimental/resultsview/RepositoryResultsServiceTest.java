@@ -24,9 +24,12 @@ import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResults
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -36,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RepositoryResultsServiceTest
@@ -44,13 +48,16 @@ public class RepositoryResultsServiceTest
   @Inject
   private RepositoryResultsService repositoryResultsService;
 
+  private RepositoryManager repositoryManager;
+
   private Repository repository;
 
   private final Date date = new Date();
 
   @Before
   public void setup() {
-    repository = tempEntity.newRepository();
+    repositoryManager = tempEntity.newRepositoryManager();
+    repository = tempEntity.newRepository(repositoryManager, "publicId");
 
     // Repository components
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path1", "hash1",
@@ -91,7 +98,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(6);
@@ -147,7 +154,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_ALL);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(6);
@@ -204,7 +211,7 @@ public class RepositoryResultsServiceTest
         ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT, MatchStateFilter.MATCH_STATE_UNKNOWN);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(6);
@@ -260,7 +267,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(3);
@@ -301,7 +308,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_UNKNOWN);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(3);
@@ -342,7 +349,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(3);
@@ -384,7 +391,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.aggregate = true;
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -408,7 +415,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_NOT_VIOLATING);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(1);
@@ -439,7 +446,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(4);
@@ -480,7 +487,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -509,7 +516,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_WAIVED);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(1);
@@ -545,7 +552,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -586,7 +593,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -617,7 +624,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -649,7 +656,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -685,7 +692,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -726,7 +733,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(1);
@@ -758,7 +765,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(6);
@@ -794,7 +801,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(4);
@@ -816,7 +823,8 @@ public class RepositoryResultsServiceTest
     detailsRequest.page = 1;
     detailsRequest.pageSize = -1;
 
-    assertThatThrownBy(() -> repositoryResultsService.getDetails(repository.getId(), detailsRequest))
+    assertThatThrownBy(
+        () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Page and Page size must be greater than 0");
   }
@@ -838,14 +846,15 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 1;
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    assertThatThrownBy(() -> repositoryResultsService.getDetails(repository.getId(), detailsRequest))
+    assertThatThrownBy(
+        () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("sort priority cannot be the same for different fields");
   }
 
   @Test
   public void testGetDetails_MissingRequestParameters() {
-    assertThatThrownBy(() -> repositoryResultsService.getDetails(repository.getId(), null))
+    assertThatThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), null))
         .isInstanceOf(BadRequestException.class).hasMessage("Missing request parameters");
   }
 
@@ -873,7 +882,8 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = Collections.singletonList(searchFilter);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    RepositoryResultsDetailsFilter filter = repositoryResultsService.validateAndInitializeDetailsFilter(detailsRequest);
+    RepositoryResultsDetailsFilter filter =
+        repositoryResultsService.validateAndInitializeDetailsFilter(OwnerType.REPOSITORY, detailsRequest);
     assertThat(filter.page).isEqualTo(1);
     assertThat(filter.pageSize).isEqualTo(1);
     assertThat(filter.matchStateFilter).isEmpty();
@@ -902,7 +912,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Collections.singletonList(sortField);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -945,7 +955,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(3);
@@ -978,7 +988,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(1);
@@ -1000,7 +1010,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(1);
@@ -1031,7 +1041,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.threatLevelFilters = Arrays.asList(5, 5);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
@@ -1071,7 +1081,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.searchFilters = Collections.singletonList(searchFilter);
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(5);
@@ -1109,12 +1119,330 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 5;
 
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     assertThat(responseDto.hasNextPage).isTrue();
 
     detailsRequest.pageSize = 10;
 
-    responseDto = repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+    responseDto = repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
     assertThat(responseDto.hasNextPage).isFalse();
+  }
+
+  @Test
+  public void testGetDetails_RepositoryContainer() {
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
+    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    // Repository Manager level: returns details of all repository managers
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(7);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(5).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(5).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(6).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(6).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(6).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(6).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(6).waived).isEqualTo(null);
+  }
+
+  @Test
+  public void testGetDetails_RepositoryManager() {
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
+    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy1",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 8, "path", false, Action.ID_FAIL, "2", "policy2",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+
+    SortField sortField = new SortField();
+    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField.sortPriority = 1;
+    sortField.asc = false;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField);
+
+    detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_ALL);
+
+    // Repository Manager level: returns only details of repositoryManager2
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(8);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(responseDto.hasNextPage).isFalse();
+  }
+
+  @Test
+  public void testGetDetailsRepositoryContainer_SearchIdFilters() {
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
+    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+
+    SearchFilter searchFilter1 = new SearchFilter();
+    searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter1.value = repository2.getId();
+
+    SearchFilter searchFilter2 = new SearchFilter();
+    searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter2.value = repositoryManager.getId();
+
+    SearchFilter searchFilter3 = new SearchFilter();
+    searchFilter3.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter3.value = repositoryManager2.getId();
+
+    SearchFilter searchFilter4 = new SearchFilter();
+    searchFilter4.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter4.value = "randomID";
+
+    SearchFilter searchFilter5 = new SearchFilter();
+    searchFilter5.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter5.value = "randomID";
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    // return details of only repository 2
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter2);
+
+    // return details of only repositories in repositoryManager and not in repositoryManager2
+    responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(5).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(5).waived).isEqualTo(null);
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter3);
+
+    // return details of repository 2 as it exists in repositoryManager2
+    responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2);
+
+    // returns empty list as repository2 does not exist in repositoryManager
+    responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).isEmpty();
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter4);
+
+    // returns empty list as repositoryManager does not exist
+    responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).isEmpty();
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter5);
+
+    // returns empty list as repository does not exist
+    responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).isEmpty();
+  }
+
+  @Test
+  public void testGetDetailsRepositoryManager_SearchIdFilters() {
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "publicId2");
+    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+
+    SearchFilter searchFilter1 = new SearchFilter();
+    searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter1.value = repository2.getId();
+
+    SearchFilter searchFilter2 = new SearchFilter();
+    searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter2.value = repositoryManager.getId();
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+
+    // return details of repository
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2);
+
+    // throws exception as repositoryManagerId is not a valid for the owner type Repository Manager
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+            detailsRequest))
+        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY_MANAGER.");
+  }
+
+  @Test
+  public void testGetDetailsRepository_SearchIdFilters() {
+    SearchFilter searchFilter1 = new SearchFilter();
+    searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter1.value = repository.getId();
+
+    SearchFilter searchFilter2 = new SearchFilter();
+    searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter2.value = repositoryManager.getId();
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+
+    // throws exception as repositoryId is not a valid for the owner type Repository
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
+        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter2);
+
+    // throws exception as repositoryManagerId is not a valid for the owner type Repository
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
+        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
   }
 }

@@ -210,13 +210,13 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryResultsDetails> getRepositoryResultsDetails(
-      String repositoryId, RepositoryResultsDetailsFilter detailsFilter)
+      Set<String> repositoryIds, RepositoryResultsDetailsFilter detailsFilter)
   {
     if (detailsFilter.aggregate) {
-      return getRepositoryResultsDetailsAggregate(repositoryId, detailsFilter);
+      return getRepositoryResultsDetailsAggregate(repositoryIds, detailsFilter);
     }
     else {
-      return getRepositoryResultsDetailsNonAggregate(repositoryId, detailsFilter);
+      return getRepositoryResultsDetailsNonAggregate(repositoryIds, detailsFilter);
     }
   }
 
@@ -224,7 +224,7 @@ public class RepositoryPolicyViolationDAO
    * @since 1.140.0
    */
   private List<RepositoryResultsDetails> getRepositoryResultsDetailsNonAggregate(
-      String repositoryId, RepositoryResultsDetailsFilter detailsFilter)
+      Set<String> repositoryIds, RepositoryResultsDetailsFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
       String baseQuery = "SELECT violation.threat_level," + //
@@ -242,7 +242,7 @@ public class RepositoryPolicyViolationDAO
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") + //
           " " + getDatabaseSchema() + ".repository_policy_violation violation" + //
           " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" + //
-          " WHERE component.repository_id = ?1";
+          " WHERE component.repository_id IN " + buildPositionalParameters(repositoryIds, 1);
 
       StringBuilder sQuery = new StringBuilder(baseQuery);
 
@@ -261,7 +261,7 @@ public class RepositoryPolicyViolationDAO
       int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
 
       javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
-      query.setParameter(1, repositoryId);
+      addPositionalParameters(query, repositoryIds, 1);
       if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
         query.setParameter(2, detailsFilter.threatLevelFilters.get(0));
         query.setParameter(3, detailsFilter.threatLevelFilters.get(1));
@@ -285,7 +285,7 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryResultsDetails> getRepositoryResultsDetailsAggregate(
-      String repositoryId,
+      Set<String> repositoryIds,
       RepositoryResultsDetailsFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
@@ -342,10 +342,10 @@ public class RepositoryPolicyViolationDAO
           " FROM " + getDatabaseSchema() + ".repository_component component" +
           " INNER JOIN (" + select2 + ") AS t2" +
           " ON t2.pathname = component.pathname" +
-          " AND component.repository_id = ?1";
+          " AND component.repository_id IN " + buildPositionalParameters(repositoryIds, 1);
 
       javax.persistence.Query query = tx.createNativeQuery(select3);
-      query.setParameter(1, repositoryId);
+      addPositionalParameters(query, repositoryIds, 1);
       if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
         query.setParameter(2, detailsFilter.threatLevelFilters.get(0));
         query.setParameter(3, detailsFilter.threatLevelFilters.get(1));

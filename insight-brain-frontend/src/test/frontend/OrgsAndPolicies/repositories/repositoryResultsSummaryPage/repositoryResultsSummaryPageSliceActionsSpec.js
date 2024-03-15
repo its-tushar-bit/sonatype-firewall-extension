@@ -24,7 +24,7 @@ describe('repositoryResultsSummaryPageSliceActions', () => {
 
   describe('toggleAggregateAndGetRepositoryComponents', () => {
     it('dispatches repositoryResultsSummaryPage/toggleAggregate and repositoryResultsSummaryPage/getRepositoryComponents/pending actions', () => {
-      axiosMock.onPost(getRepositoryComponentsUrl('someRepoId')).reply(200, []);
+      axiosMock.onPost(getRepositoryComponentsUrl('repository', 'someRepoId')).reply(200, []);
       store = SpecUtil.mockReduxStore(state);
 
       store.dispatch(actions.toggleAggregateAndGetRepositoryComponents());
@@ -35,7 +35,7 @@ describe('repositoryResultsSummaryPageSliceActions', () => {
         { type: 'repositoryResultsSummaryPage/getRepositoryComponents/pending' },
       ]);
       expect(axiosMock.history.post.length).toBe(1);
-      expect(axiosMock.history.post[0].url).toBe(getRepositoryComponentsUrl('someRepoId'));
+      expect(axiosMock.history.post[0].url).toBe(getRepositoryComponentsUrl('repository', 'someRepoId'));
     });
   });
 });

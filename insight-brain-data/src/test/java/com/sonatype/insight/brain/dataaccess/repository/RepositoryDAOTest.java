@@ -760,4 +760,16 @@ public class RepositoryDAOTest
     assertThat(dao.getCountByRepositoryType(RepositoryType.proxy)).isEqualTo(3);
     assertThat(dao.getCountByRepositoryType(RepositoryType.hosted)).isEqualTo(2);
   }
+
+  @Test
+  public void testGetByRepositoryIdAndManagerId() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    Repository repository1 = tempEntity.newRepository(repositoryManager1, "repo1");
+    tempEntity.newRepository(repositoryManager1, "repo2");
+
+    assertThat(dao.getByRepositoryIdAndManagerId(repositoryManager1.getId(), repository1.getId()).getId()).isEqualTo(
+        repository1.getId());
+    assertThat(dao.getByRepositoryIdAndManagerId(repositoryManager2.getId(), repository1.getId())).isNull();
+  }
 }

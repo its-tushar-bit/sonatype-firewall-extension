@@ -117,7 +117,7 @@ describe('RepositoryResultsComponentsTable', () => {
       'goToRepositoryComponentDetailsPage'
     ).and.callThrough();
 
-    mock.onPost(getRepositoryComponentsUrl(repoId)).reply(200, {});
+    mock.onPost(getRepositoryComponentsUrl('repository', repoId)).reply(200, {});
 
     renderComponent = () => render(<RepositoryResultsComponentsTable repoId={repoId} />);
   });

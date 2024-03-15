@@ -53,7 +53,9 @@ public class RepositoryResultsDetailsRequestDto
     {
       POLICY_NAME,
       QUARANTINE_TIME,
-      COMPONENT_COORDINATES
+      COMPONENT_COORDINATES,
+      REPOSITORY_ID,
+      REPOSITORY_MANAGER_ID
     }
   }
 }

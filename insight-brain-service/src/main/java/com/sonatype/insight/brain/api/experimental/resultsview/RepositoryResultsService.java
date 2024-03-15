@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,19 +14,21 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.ImmutableSet;
@@ -42,35 +45,83 @@ class RepositoryResultsService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   RepositoryResultsService(
       final RepositoryDAO repositoryDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO)
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
-  @Authorize(permission = Permission.READ)
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)
+  List<Repository> filterRepositoriesWithReadPermission(List<Repository> repositories) {
+    return repositories;
+  }
+
   RepositoryResultsDetailsResponseDto getDetails(
-      @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
+      OwnerType ownerType,
+      String ownerId,
       final RepositoryResultsDetailsRequestDto detailsRequest)
   {
     long start = System.currentTimeMillis();
 
-    final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-
-    log.info("Getting repository results for {}:{} ({})", repository.getRepositoryManagerId(), repository.getPublicId(),
-        repository.getId());
+    log.info("Getting repository results for {} id {}", ownerType, ownerId);
 
     if (detailsRequest == null) {
       throw new BadRequestException("Missing request parameters");
     }
 
-    RepositoryResultsDetailsFilter detailsFilter = validateAndInitializeDetailsFilter(detailsRequest);
+    RepositoryResultsDetailsFilter detailsFilter = validateAndInitializeDetailsFilter(ownerType, detailsRequest);
+
+    List<Repository> repositories;
+    String repositoryManagerId = detailsFilter.searchFilters.getOrDefault("REPOSITORY_MANAGER_ID", null);
+    String repositoryId = detailsFilter.searchFilters.getOrDefault("REPOSITORY_ID", null);
+
+    switch (ownerType) {
+      case REPOSITORY:
+        repositories = Collections.singletonList(repositoryDAO.getByIdNotNull(ownerId));
+        break;
+      case REPOSITORY_MANAGER:
+        ownerId = repositoryManagerDAO.getByIdNotNull(ownerId).getId();
+        if (repositoryId != null) {
+          repositories = convertToRepositoryList(repositoryDAO.getByRepositoryIdAndManagerId(ownerId, repositoryId));
+        }
+        else {
+          repositories = repositoryDAO.getByRepositoryManagerIdAndRepositoryType(ownerId, RepositoryType.proxy);
+        }
+        break;
+      case REPOSITORY_CONTAINER:
+        if (repositoryManagerId != null && repositoryId != null) {
+          repositories =
+              convertToRepositoryList(repositoryDAO.getByRepositoryIdAndManagerId(repositoryManagerId, repositoryId));
+        }
+        else if (repositoryManagerId != null) {
+          repositories = repositoryDAO.getByRepositoryManagerId(repositoryManagerId);
+        }
+        else if (repositoryId != null) {
+          repositories = convertToRepositoryList(repositoryDAO.getById(repositoryId));
+        }
+        else {
+          repositories = repositoryDAO.getByRepositoryType(RepositoryType.proxy);
+        }
+        break;
+      default:
+        throw new IllegalStateException("Invalid owner type: " + ownerType);
+    }
+
+    List<Repository> proxyRepositoriesWithReadPermission = filterRepositoriesWithReadPermission(repositories);
+
+    Set<String> repositoryIds =
+        proxyRepositoriesWithReadPermission.stream().map(Repository::getId).collect(Collectors.toSet());
 
     List<RepositoryResultsDetails> detailsList =
-        repositoryPolicyViolationDAO.getRepositoryResultsDetails(repository.getId(), detailsFilter);
+        repositoryIds.isEmpty() ? Collections.emptyList() : repositoryPolicyViolationDAO.getRepositoryResultsDetails(
+            repositoryIds, detailsFilter);
 
     RepositoryResultsDetailsResponseDto result = new RepositoryResultsDetailsResponseDto();
 
@@ -87,16 +138,24 @@ class RepositoryResultsService
       iPattern++;
     }
 
-    log.info("Got repository results for {}:{} ({}) in {} ms", repository.getRepositoryManagerId(),
-        repository.getPublicId(), repository.getId(), System.currentTimeMillis() - start);
+    log.info("Got repository results for {} id {} in {} ms", ownerType, ownerId, System.currentTimeMillis() - start);
+
     return result;
   }
 
+  private List<Repository> convertToRepositoryList(Repository repository) {
+    return repository != null ? Collections.singletonList(repository) : Collections.emptyList();
+  }
+
   RepositoryResultsDetailsFilter validateAndInitializeDetailsFilter(
-      RepositoryResultsDetailsRequestDto detailsRequest)
+      OwnerType ownerType, RepositoryResultsDetailsRequestDto detailsRequest)
   {
     if (detailsRequest.page <= 0 || detailsRequest.pageSize <= 0) {
       throw new BadRequestException("Page and Page size must be greater than 0");
+    }
+
+    if (!containsValidSearchFilter(ownerType, detailsRequest)) {
+      throw new BadRequestException("SearchFilter is not valid for the ownerType " + ownerType.name() + ".");
     }
 
     RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
@@ -110,6 +169,22 @@ class RepositoryResultsService
     filter.aggregate = detailsRequest.aggregate;
 
     return filter;
+  }
+
+  private boolean containsValidSearchFilter(OwnerType ownerType, RepositoryResultsDetailsRequestDto detailsRequest) {
+    if (CollectionUtils.isNotEmpty(detailsRequest.searchFilters) && ownerType.equals(OwnerType.REPOSITORY)) {
+      return detailsRequest.searchFilters.stream().map(searchFilter -> searchFilter.filterableField.name())
+          .noneMatch(field -> field.equals("REPOSITORY_ID") || field.equals("REPOSITORY_MANAGER_ID"));
+    }
+
+    if (CollectionUtils.isNotEmpty(detailsRequest.searchFilters) && ownerType.equals(OwnerType.REPOSITORY_MANAGER)) {
+      return detailsRequest.searchFilters.stream().map(searchFilter -> searchFilter.filterableField.name())
+          .noneMatch(field -> field.equals("REPOSITORY_MANAGER_ID"));
+    }
+
+    else {
+      return true;
+    }
   }
 
   private String initializeMatchStateFilter(final List<MatchStateFilter> matchStateFilters) {

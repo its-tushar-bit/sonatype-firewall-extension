@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -33,6 +34,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -217,6 +219,7 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
             p1.getId(), p1.getName(), c2.getComponentIdentifier());
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
     RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
     repositoryResultsDetailsFilter.page = 1;
     repositoryResultsDetailsFilter.pageSize = 12;
@@ -226,7 +229,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.aggregate = false;
 
     List<RepositoryResultsDetails> repositoryResultsDetails =
-        dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+        dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetails(c1, c1v1),
@@ -267,6 +270,7 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
             p1.getId(), p1.getName(), c2.getComponentIdentifier());
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
     RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
     repositoryResultsDetailsFilter.page = 1;
     repositoryResultsDetailsFilter.pageSize = 12;
@@ -276,7 +280,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.aggregate = true;
 
     List<RepositoryResultsDetails> repositoryResultsDetails =
-        dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+        dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetailsWithoutWaived(c1, c1v1),
@@ -326,6 +330,7 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c2.getPathname(), false,
             policy.getId(), policy.getName(), c2.getComponentIdentifier());
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
 
     RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
     repositoryResultsDetailsFilter.page = 1;
@@ -335,20 +340,20 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.matchStateFilter = "";
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetails(c1, c1v1),
         toRepositoryResultsDetails(c2, c2v1)
     );
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "19");
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactly(
         toRepositoryResultsDetails(c1, c1v1)
     );
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "18");
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactly(
         toRepositoryResultsDetails(c2, c2v1)
     );
@@ -392,6 +397,7 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryPolicyViolation c1v4 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p4.getThreatLevel(), c1.getPathname(), false,
             p4.getId(), p4.getName(), c1.getComponentIdentifier());
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
 
     RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
     repositoryResultsDetailsFilter.page = 1;
@@ -401,7 +407,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.matchStateFilter = "";
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetails(c1, c1v1),
         toRepositoryResultsDetails(c1, c1v2),
@@ -410,13 +416,13 @@ public class RepositoryPolicyViolationDAOTest
     );
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 5);
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetails(c1, c1v2)
     );
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 10);
-    repositoryResultsDetails = dao.getRepositoryResultsDetails(repository.getId(), repositoryResultsDetailsFilter);
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         toRepositoryResultsDetails(c1, c1v1),
         toRepositoryResultsDetails(c1, c1v2)

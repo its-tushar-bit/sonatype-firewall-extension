@@ -1970,6 +1970,8 @@ public class FirewallComponentDetailsPageTest
 
     policyDAO.delete(securityLowPolicy);
 
+    Thread.sleep(100);
+
     firewallComponentDetailsPage.reevaluateButton().click();
 
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));

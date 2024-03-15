@@ -18,6 +18,7 @@ import {
   selectIsRepositoryManager,
   selectIsRepositoryContainer,
   selectRouteParamsFromSecurityTab,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -206,6 +207,48 @@ describe('routerSelectors', function () {
         hash: currentRouterParams.componentHash,
         isRepositoryComponent: true,
       });
+    });
+  });
+
+  describe('selectIsSbomManager', function () {
+    it('returns true if the route state name starts with "sbomManager."', function () {
+      const state = {
+        router: {
+          currentState: {
+            name: 'sbomManager.foo',
+          },
+        },
+      };
+      const state2 = {
+        router: {
+          currentState: {
+            name: 'sbomManager',
+          },
+        },
+      };
+
+      expect(selectIsSbomManager(state)).toBe(true);
+      expect(selectIsSbomManager(state2)).toBe(true);
+    });
+
+    it('returns false if the route state name does not start with "sbomManager."', function () {
+      const state = {
+        router: {
+          currentState: {
+            name: 'asdf.foo',
+          },
+        },
+      };
+      const state2 = {
+        router: {
+          currentState: {
+            name: 'foo.sbomManager',
+          },
+        },
+      };
+
+      expect(selectIsSbomManager(state)).toBe(false);
+      expect(selectIsSbomManager(state2)).toBe(false);
     });
   });
 });

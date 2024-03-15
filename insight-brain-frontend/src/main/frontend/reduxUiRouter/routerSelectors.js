@@ -23,12 +23,14 @@ export const selectPreviousRouteName = createSelector(selectRouterPrevState, pro
 
 const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
 const includesNamePartSeparateByDot = (part) => (stringToSearch = '') => stringToSearch.split('.').includes(part);
+const startsWithNamePart = (part) => (stringToSearch = '') => stringToSearch.startsWith(part);
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesTransitiveViolations = includesNamePart('transitiveViolations');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePartSeparateByDot('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
+const nameStartsWithSbomManager = startsWithNamePart('sbomManager');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');
@@ -48,6 +50,7 @@ export const selectIsApplication = createSelector(selectCurrentRouteName, nameIn
 export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
 export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);
 export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
+export const selectIsSbomManager = createSelector(selectCurrentRouteName, nameStartsWithSbomManager);
 export const selectIsRepositoryContainer = createSelector(selectCurrentRouteName, nameIncludesRepositoryContainer);
 export const selectIsRepositoryManager = createSelector(selectCurrentRouteName, nameIncludesRepositoryManager);
 export const selectIsCategory = createSelector(selectRouterStateUrl, nameIncludesCategory);

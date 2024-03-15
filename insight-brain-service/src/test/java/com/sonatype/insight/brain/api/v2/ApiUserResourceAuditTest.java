@@ -59,7 +59,7 @@ public class ApiUserResourceAuditTest
   public void testUpdate() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
 
-    restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).body(inputUserDTO).put();
+    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).body(inputUserDTO).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_USER, null);
     assertUserData(auditDTO, userDAO.getByUsernameNotNull(inputUserDTO.username));
@@ -68,7 +68,7 @@ public class ApiUserResourceAuditTest
   @Test
   public void testUpdate_Unauthorized() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
-    restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).with(unauthorizedUser())
+    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).with(unauthorizedUser())
         .body(inputUserDTO).put();
 
     assertAuditLog(AuditEvent.UPDATE_USER, "unauthorized");
@@ -78,7 +78,7 @@ public class ApiUserResourceAuditTest
   public void testDelete_InternalUser() throws Exception {
     User user = tempEntity.newUser();
 
-    restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
+    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
     assertUserData(auditDTO, User.INTERNAL_REALM_ID, user);
@@ -88,7 +88,7 @@ public class ApiUserResourceAuditTest
   public void testDelete_SamlUser() throws Exception {
     SamlUser samlUser = tempEntity.newSamlUser();
 
-    restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(samlUser.getUsername())
+    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(samlUser.getUsername())
         .query("realm", SamlUser.SAML_REALM_ID).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
@@ -97,7 +97,7 @@ public class ApiUserResourceAuditTest
 
   @Test
   public void testDelete_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).path(DefaultApiUserResource.USERNAME_PATH)
+    restRequest().with(unauthorizedUser()).path(ApiUserResource.USERNAME_PATH)
         .parameter(tempEntity.newUser().getUsername()).delete();
 
     assertAuditLog(AuditEvent.DELETE_USER, "unauthorized");

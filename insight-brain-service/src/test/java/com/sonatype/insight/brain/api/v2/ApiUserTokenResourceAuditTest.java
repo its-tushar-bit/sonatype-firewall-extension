@@ -37,7 +37,7 @@ public class ApiUserTokenResourceAuditTest
     tempEntity.newUser(username);
 
     HttpResponse response = restRequest()
-        .path(DefaultApiUserTokenResource.CURRENT_USER)
+        .path(ApiUserTokenResource.CURRENT_USER)
         .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
         .post();
 
@@ -54,7 +54,7 @@ public class ApiUserTokenResourceAuditTest
     tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
-        .path(DefaultApiUserTokenResource.CURRENT_USER)
+        .path(ApiUserTokenResource.CURRENT_USER)
         .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
         .post();
 
@@ -69,7 +69,7 @@ public class ApiUserTokenResourceAuditTest
     UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
-        .path(DefaultApiUserTokenResource.CURRENT_USER)
+        .path(ApiUserTokenResource.CURRENT_USER)
         .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
         .delete();
 
@@ -85,7 +85,7 @@ public class ApiUserTokenResourceAuditTest
     tempEntity.newUser(username);
 
     restRequest()
-        .path(DefaultApiUserTokenResource.CURRENT_USER)
+        .path(ApiUserTokenResource.CURRENT_USER)
         .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
         .delete();
 
@@ -105,7 +105,7 @@ public class ApiUserTokenResourceAuditTest
     UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
 
     restRequest() //
-        .path(DefaultApiUserTokenResource.PURGE) //
+        .path(ApiUserTokenResource.PURGE) //
         .delete();
 
     assertAuditLog(AuditEvent.PURGE_USER_TOKENS, null, User.ADMIN_USERNAME);
@@ -117,7 +117,7 @@ public class ApiUserTokenResourceAuditTest
   @Test
   public void testPurgeUserTokens_Unauthorized() throws Exception {
     restRequest() //
-        .path(DefaultApiUserTokenResource.PURGE) //
+        .path(ApiUserTokenResource.PURGE) //
         .with(unauthorizedUser()).delete();
 
     assertAuditLog(AuditEvent.PURGE_USER_TOKENS, "unauthorized");
@@ -131,7 +131,7 @@ public class ApiUserTokenResourceAuditTest
     UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
-        .path(DefaultApiUserTokenResource.USER_CODE)
+        .path(ApiUserTokenResource.USER_CODE)
         .parameter(userToken.getUserCode())
         .delete();
 
@@ -143,7 +143,7 @@ public class ApiUserTokenResourceAuditTest
   @Test
   public void testDeleteUserTokenByUserCode_TokenDoesNotExist() throws Exception {
     restRequest()
-        .path(DefaultApiUserTokenResource.USER_CODE)
+        .path(ApiUserTokenResource.USER_CODE)
         .parameter("void-code")
         .delete();
 
@@ -158,7 +158,7 @@ public class ApiUserTokenResourceAuditTest
     UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
-        .path(DefaultApiUserTokenResource.USER_CODE)
+        .path(ApiUserTokenResource.USER_CODE)
         .parameter(userToken.getUserCode())
         .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
         .delete();

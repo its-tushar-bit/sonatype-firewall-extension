@@ -14,7 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.DefaultApiSamlConfigurationResource;
+import com.sonatype.insight.brain.api.v2.ApiSamlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -64,7 +64,7 @@ public class MultiTenantSamlConfigurationResourceTest
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 
-    HttpResponse response = restRequest().path(DefaultApiSamlConfigurationResource.METADATA).get();
+    HttpResponse response = restRequest().path(ApiSamlConfigurationResource.METADATA).get();
     assertResponseStatus(200, response);
 
     String xmlMetadata = response.getBodyText();

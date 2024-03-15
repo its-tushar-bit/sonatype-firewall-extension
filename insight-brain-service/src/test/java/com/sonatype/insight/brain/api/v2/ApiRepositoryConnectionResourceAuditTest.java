@@ -52,7 +52,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     dto.baseUrl = "http://localrepo.com/";
     dto.format = RepositoryFormat.MAVEN;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -73,7 +73,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     dto.baseUrl = "http://updatedrepo.com/";
     dto.format = RepositoryFormat.MAVEN;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .body(dto)
         .put();
@@ -90,7 +90,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     RepositoryConnection existingConnection =
         tempEntity.newRepositoryConnection(app.getId(), "http://baseurl.com", null, null);
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .delete();
     assertResponseStatus(204, response);
@@ -106,7 +106,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     dto.enabled = true;
     dto.allowOverride = false;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, organization.getId())
         .body(dto)
         .put();
@@ -123,7 +123,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .put();

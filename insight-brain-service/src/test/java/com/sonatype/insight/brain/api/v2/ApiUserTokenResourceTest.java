@@ -59,7 +59,7 @@ public class ApiUserTokenResourceTest
 
     HttpResponse response = HttpRequest.to(getRestBaseUrl())
         .auth("victor.wooten", "secret")
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2, DefaultApiUserTokenResource.CURRENT_USER)
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2, ApiUserTokenResource.CURRENT_USER)
         .post();
     assertResponseStatus(200, response);
 
@@ -84,7 +84,7 @@ public class ApiUserTokenResourceTest
     // Token for non-existing LDAP user, should be purged.
     UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
 
-    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.PURGE).delete();
+    HttpResponse response = restRequest().path(ApiUserTokenResource.PURGE).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userTokenInternalUser.getId())).isNotNull();
@@ -95,7 +95,7 @@ public class ApiUserTokenResourceTest
   @Test
   public void testDeleteCurrentUserToken() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
-    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER).delete();
+    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
@@ -178,7 +178,7 @@ public class ApiUserTokenResourceTest
   public void testDeleteUserTokenByUserCode() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
     HttpResponse response = restRequest()
-        .path(DefaultApiUserTokenResource.USER_CODE)
+        .path(ApiUserTokenResource.USER_CODE)
         .parameter(userToken.getUserCode())
         .delete();
 
@@ -188,7 +188,7 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenExistsForCurrentUser() throws Exception {
-    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
 
     assertResponseStatus(200, response);
     ApiUserTokenExistsDTO responseBody = response.getBody(ApiUserTokenExistsDTO.class);
@@ -196,7 +196,7 @@ public class ApiUserTokenResourceTest
 
     tempEntity.newUserToken(getUsername(), InternalRealm.ID);
 
-    response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+    response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
 
     assertResponseStatus(200, response);
     responseBody = response.getBody(ApiUserTokenExistsDTO.class);
@@ -205,7 +205,7 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_InternalUnknown() throws Exception {
-    HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
+    HttpResponse httpResponse = restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for Internal user unknown.");
@@ -214,7 +214,7 @@ public class ApiUserTokenResourceTest
   @Test
   public void testGetUserTokenByUsernameAndRealmId_SamlUnknown() throws Exception {
     HttpResponse httpResponse =
-        restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "SAML").get();
+        restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "SAML").get();
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for SAML user unknown.");
@@ -226,7 +226,7 @@ public class ApiUserTokenResourceTest
   {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
-    HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
+    HttpResponse httpResponse = restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for Internal user unknown.");
@@ -234,7 +234,7 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureEnabled_InternalUnknown() throws Exception {
-    HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
+    HttpResponse httpResponse = restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for Internal user unknown.");
@@ -243,7 +243,7 @@ public class ApiUserTokenResourceTest
   @Test
   public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureEnabled_CrowdUnknown() throws Exception {
     HttpResponse httpResponse =
-        restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "CROWD").get();
+        restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "CROWD").get();
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for Crowd user unknown.");
@@ -335,7 +335,7 @@ public class ApiUserTokenResourceTest
     UserToken crowdUserToken1 = tempEntity.newUserToken("username1", "userCode6", "passCode", CrowdRealm.ID);
     tempEntity.newUserToken("username2", "userCode7", "passCode", CrowdRealm.ID);
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(isCrowdIntegrationFeatureEnabled);
-    HttpRequest httpRequest = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("username1");
+    HttpRequest httpRequest = restRequest().path(ApiUserTokenResource.USERNAME).parameter("username1");
     if (realmId != null) {
       httpRequest.query("realm", realmId);
     }

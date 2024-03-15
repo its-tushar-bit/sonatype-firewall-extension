@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.Collections;
 
-import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -64,7 +64,7 @@ public class BannedImplementationServiceTest
 
   @Test
   public void test_PermanentlyBannedRestClassesAreBanned() {
-    assertThat(underTest.isBanned(ApiCrowdConfigurationResourceV2.class)).isTrue();
+    assertThat(underTest.isBanned(ApiCrowdConfigurationResource.class)).isTrue();
   }
 
   @Test

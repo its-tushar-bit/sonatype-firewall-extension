@@ -127,7 +127,7 @@ public class ApiCrowdConfigurationResourceTest
     tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "applicationName",
         getCLMServer().getInstance(PasswordHandler.class).encryptPassword("applicationPassword".toCharArray()));
 
-    HttpResponse response = restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).post();
+    HttpResponse response = restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).post();
 
     assertResponseStatus(200, response);
     ApiStatusDTO dto = response.getBody(ApiStatusDTO.class);
@@ -141,7 +141,7 @@ public class ApiCrowdConfigurationResourceTest
     tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "applicationName",
         getCLMServer().getInstance(PasswordHandler.class).encryptPassword("applicationPassword".toCharArray()));
 
-    HttpResponse response = restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).post();
+    HttpResponse response = restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).post();
 
     assertResponseStatus(200, response);
     ApiStatusDTO dto = response.getBody(ApiStatusDTO.class);
@@ -154,7 +154,7 @@ public class ApiCrowdConfigurationResourceTest
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response =
-        restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).post();
+        restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).post();
 
     assertResponseStatus(403, response);
     assertThat(response.getBodyText()).isEqualTo(EXPECTED_FEATURE_DISABLED_MESSAGE);
@@ -168,7 +168,7 @@ public class ApiCrowdConfigurationResourceTest
     dto.applicationName = "applicationName";
     dto.applicationPassword = "applicationPassword".toCharArray();
 
-    HttpResponse response = restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).body(dto).post();
+    HttpResponse response = restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).body(dto).post();
 
     assertResponseStatus(200, response);
     ApiStatusDTO result = response.getBody(ApiStatusDTO.class);
@@ -184,7 +184,7 @@ public class ApiCrowdConfigurationResourceTest
     dto.applicationName = "applicationName";
     dto.applicationPassword = "applicationPassword".toCharArray();
 
-    HttpResponse response = restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).body(dto).post();
+    HttpResponse response = restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).body(dto).post();
 
     assertResponseStatus(200, response);
     ApiStatusDTO result = response.getBody(ApiStatusDTO.class);
@@ -197,7 +197,7 @@ public class ApiCrowdConfigurationResourceTest
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response =
-        restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).body(new ApiCrowdConfigurationDTO()).post();
+        restRequest().path(ApiCrowdConfigurationResource.TEST_PATH).body(new ApiCrowdConfigurationDTO()).post();
 
     assertResponseStatus(403, response);
     assertThat(response.getBodyText()).isEqualTo(EXPECTED_FEATURE_DISABLED_MESSAGE);

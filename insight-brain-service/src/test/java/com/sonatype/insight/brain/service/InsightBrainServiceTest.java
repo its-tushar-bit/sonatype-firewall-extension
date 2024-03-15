@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiUserResource;
+import com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource;
+import com.sonatype.insight.brain.api.v2.ApiUserResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -278,13 +278,13 @@ public class InsightBrainServiceTest
         .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     assertResponseStatus(404,
-        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, DefaultApiUserResource.USERNAME_PATH)
+        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
             .parameter("sensitiveUsername").get());
     assertResponseStatus(404,
-        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, DefaultApiUserResource.USERNAME_PATH)
+        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
             .parameter("otherUsername").get());
     assertResponseStatus(404, restRequest()
-        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, DefaultApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
+        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
         .parameter("organization", "orgId", "roleId", "user", "sensitiveUsername")
         .put());
 

@@ -94,6 +94,6 @@ public class ApiOrganizationResourceV2AuditTest
   }
 
   private HttpRequest moveOrganizationApiRequest() {
-    return organizationApiRequest().path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH);
+    return organizationApiRequest().path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH);
   }
 }

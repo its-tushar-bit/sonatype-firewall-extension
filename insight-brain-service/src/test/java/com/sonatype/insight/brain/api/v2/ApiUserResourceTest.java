@@ -59,7 +59,7 @@ public class ApiUserResourceTest
     assertMatchingUser(inputUserDTO, user);
 
     // Read
-    response = restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();
+    response = restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();
 
     assertResponseStatus(200, response);
     ApiUserDTO outputUserDTO = response.getBody(ApiUserDTO.class);
@@ -70,7 +70,7 @@ public class ApiUserResourceTest
 
     response =
         restRequest()
-            .path(DefaultApiUserResource.USERNAME_PATH)
+            .path(ApiUserResource.USERNAME_PATH)
             .parameter(inputUserDTO.username)
             .body(inputUserDTO)
             .put();
@@ -82,7 +82,7 @@ public class ApiUserResourceTest
     assertEqualExceptNullDTOPassword(user, outputUserDTO);
 
     // Delete
-    response = restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
+    response = restRequest().path(ApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
 
     assertResponseStatus(204, response);
     assertThat(userDAO.getById(user.getId())).isNull();
@@ -204,7 +204,7 @@ public class ApiUserResourceTest
     User user = tempEntity.newUser(samlUser1.getUsername());
 
     HttpRequest httpRequest =
-        restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(samlUser1.getUsername());
+        restRequest().path(ApiUserResource.USERNAME_PATH).parameter(samlUser1.getUsername());
     if (realmId != null) {
       httpRequest.query("realm", realmId);
     }

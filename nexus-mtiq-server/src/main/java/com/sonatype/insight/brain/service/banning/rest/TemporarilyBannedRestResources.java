@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
-import com.sonatype.insight.brain.api.v2.DefaultApiJiraConfigurationResource;
+import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
@@ -41,7 +41,7 @@ public class TemporarilyBannedRestResources
       LabsResource.class,
 
       // Jira CLM-27720
-      DefaultApiJiraConfigurationResource.class,
+      ApiJiraConfigurationResource.class,
 
       // Advanced legal pack CLM-27720
       ApiLicenseLegalResource.class,

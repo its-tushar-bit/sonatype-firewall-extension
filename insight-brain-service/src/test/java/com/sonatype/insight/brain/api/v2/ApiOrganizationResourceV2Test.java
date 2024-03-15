@@ -101,7 +101,7 @@ public class ApiOrganizationResourceV2Test
     Tag tag = tempEntity.newTag(organization.getId());
 
     HttpResponse response =
-        restRequest().path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID).parameter(organization.getId()).get();
+        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter(organization.getId()).get();
 
     assertResponseStatus(200, response);
     ApiOrganizationDTO apiOrganizationDTO = response.getBody(ApiOrganizationDTO.class);
@@ -112,7 +112,7 @@ public class ApiOrganizationResourceV2Test
   @Test
   public void testGetOrganization_NotFound() throws Exception {
     HttpResponse response =
-        restRequest().path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
+        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Organization with ID doesNotExist does not exist.");
@@ -142,7 +142,7 @@ public class ApiOrganizationResourceV2Test
     List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
     Organization organization = tempEntity.newOrganization();
 
-    HttpResponse response = restRequest().path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+    HttpResponse response = restRequest().path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
         .parameter(organizations.get(0).getId(), organization.getId()).query("failEarlyOnError", true).put();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
@@ -161,7 +161,7 @@ public class ApiOrganizationResourceV2Test
     tempEntity.newApplicationTag(application.getId(), tag.getId());
 
     HttpResponse response = restRequest()
-        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
         .parameter(organizations.get(0).getId(), organization.getId())
         .query("failEarlyOnError", false)
         .put();
@@ -184,7 +184,7 @@ public class ApiOrganizationResourceV2Test
     tempEntity.newApplicationTag(application.getId(), tag.getId());
 
     HttpResponse response = restRequest()
-        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
         .parameter(organizations.get(0).getId(), organization.getId())
         .query("failEarlyOnError", true)
         .put();
@@ -200,7 +200,7 @@ public class ApiOrganizationResourceV2Test
     uninstallLicense();
 
     HttpResponse response = restRequest()
-        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
         .parameter("org-id-does-not-matter", "destination-org-id-does-not-matter")
         .query("failEarlyOnError", true)
         .put();
@@ -213,7 +213,7 @@ public class ApiOrganizationResourceV2Test
     Organization otherOrganization = tempEntity.newOrganization();
 
     HttpResponse response = restRequest()
-        .path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID)
+        .path(ApiOrganizationResourceV2.ORGANIZATION_ID)
         .parameter(organization.getId())
         .delete();
 

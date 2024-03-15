@@ -107,7 +107,7 @@ public class ApiMailConfigurationResourceTest
     configurationDTO.systemEmail = "nxiq@test";
 
     assertResponseStatus(204,
-        restRequest().path(DefaultApiMailConfigurationResource.TEST_CONFIGURATION).parameter("user@test")
+        restRequest().path(ApiMailConfigurationResource.TEST_CONFIGURATION).parameter("user@test")
             .body(configurationDTO).post());
   }
 }

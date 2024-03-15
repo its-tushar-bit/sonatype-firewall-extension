@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
-import static com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource.GLOBAL_OR_REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
+import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.GLOBAL_OR_REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.model.security.MemberType.GROUP;
 import static com.sonatype.insight.brain.model.security.MemberType.USER;

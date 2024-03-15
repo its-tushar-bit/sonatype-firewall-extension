@@ -98,7 +98,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -115,7 +115,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(dto)
         .post();
@@ -141,7 +141,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.ownerId = app.getId();
     dto.baseUrl = "http://baseurl1.com";
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), "someOtherId")
         .body(dto)
         .put();
@@ -164,7 +164,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.username = toUpdate.getUsername();
     dto.password = String.valueOf(toUpdate.getPassword());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), toUpdate.getId())
         .body(dto)
         .put();
@@ -190,7 +190,7 @@ public class ApiRepositoryConnectionResourceTest
 
     RepositoryConnection existingConnection =
         tempEntity.newRepositoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
         .delete();
 
@@ -201,7 +201,7 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testDeleteRepositoryConnection_NotFound() throws Exception {
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), "nonExistentId")
         .delete();
     assertThat(response.getStatusCode()).isEqualTo(404);
@@ -222,7 +222,7 @@ public class ApiRepositoryConnectionResourceTest
     SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
 
     tempEntity.newRepositoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .get();
 
@@ -233,7 +233,7 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testGetRepositoryConnections_NotFound() throws Exception {
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "nonExistentId")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(404);
@@ -246,7 +246,7 @@ public class ApiRepositoryConnectionResourceTest
         tempEntity.newRepositoryConnection(id, "http://baseurl2.com", RepositoryFormat.MAVEN, "user2",
             "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
         .get();
 
@@ -269,7 +269,7 @@ public class ApiRepositoryConnectionResourceTest
     RepositoryConnection orgRepositoryConnection =
         tempEntity.newRepositoryConnection(organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .query("inherit", true)
         .get();
@@ -287,7 +287,7 @@ public class ApiRepositoryConnectionResourceTest
     String orgId = application.getParentOwnerId();
     tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .query("inherit", false)
         .get();
@@ -303,7 +303,7 @@ public class ApiRepositoryConnectionResourceTest
     String orgId = application.getParentOwnerId();
     tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
         .get();
 
@@ -318,7 +318,7 @@ public class ApiRepositoryConnectionResourceTest
     RepositoryConnection repositoryConnection =
         tempEntity.newRepositoryConnection(org.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(org.getType(), org.getId(), repositoryConnection.getId())
         .get();
 
@@ -331,7 +331,7 @@ public class ApiRepositoryConnectionResourceTest
   public void testGetRepositoryConnection_FeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter("application", "appId", "repositoryConnectionId")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -343,7 +343,7 @@ public class ApiRepositoryConnectionResourceTest
     RepositoryConnection existingConnection =
         tempEntity.newRepositoryConnection(id, "http://baseurl.com", "user", "pass".toCharArray());
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(ownerType, id, existingConnection.getId())
         .delete();
     assertThat(response.getStatusCode()).isEqualTo(204);
@@ -360,7 +360,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.username = "updateduser";
     dto.password = "updatedpass";
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(ownerType, id, existingConnection.getId())
         .body(dto)
         .put();
@@ -384,7 +384,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.username = "user";
     dto.password = "pass";
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
         .body(dto)
         .post();
@@ -413,7 +413,7 @@ public class ApiRepositoryConnectionResourceTest
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -433,7 +433,7 @@ public class ApiRepositoryConnectionResourceTest
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -450,7 +450,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.baseUrl = nxrm3MockSever.baseUrl();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId")
         .body(dto)
         .post();
@@ -464,7 +464,7 @@ public class ApiRepositoryConnectionResourceTest
     String appId = tempEntity.newApplicationWithParent().getId();
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -485,7 +485,7 @@ public class ApiRepositoryConnectionResourceTest
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -508,7 +508,7 @@ public class ApiRepositoryConnectionResourceTest
         .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
             NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -521,7 +521,7 @@ public class ApiRepositoryConnectionResourceTest
   public void testTestRepositoryConnection_ByRepositoryConnectionId_FeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId", "repositoryConnectionId")
         .post();
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -536,7 +536,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.allowOverride = false;
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .put();
@@ -550,7 +550,7 @@ public class ApiRepositoryConnectionResourceTest
     dto.allowOverride = false;
     dto.enabled = true;
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, orgId)
         .body(dto)
         .put();
@@ -562,7 +562,7 @@ public class ApiRepositoryConnectionResourceTest
     SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
     ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "appId")
         .body(dto)
         .put();
@@ -575,7 +575,7 @@ public class ApiRepositoryConnectionResourceTest
   public void testUpdateOwnerRepositoryConnectionStatus_InvalidContent() throws Exception {
     String appId = tempEntity.newApplicationWithParent().getId();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+    HttpResponse response = restRequest().path(ApiRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, appId)
         .body(null)
         .put();

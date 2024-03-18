@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.ws.rs.Path;
@@ -21,10 +22,7 @@ import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJw
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
-import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
-import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -73,6 +71,7 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.users.MultiTenantUserDirectory;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.validation.MtiqSourceControlSshValidator;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
@@ -338,8 +337,6 @@ public class MultiTenantInsightBrainService
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
 
         bind(FeaturesService.class).to(MTIQFeatureService.class);
-
-        bind(AuditRecorder.class).to(MultiTenantAuditRecorder.class);
 
         bind(VersionService.class).to(MultiTenantVersionService.class);
 

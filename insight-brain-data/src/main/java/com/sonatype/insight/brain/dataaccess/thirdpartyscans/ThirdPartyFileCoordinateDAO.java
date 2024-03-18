@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -13,7 +15,15 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.HIGH;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.LOW;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.MEDIUM;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.NONE;
 
 @Named
 @Singleton
@@ -99,5 +109,49 @@ public class ThirdPartyFileCoordinateDAO
     thirdPartyCoordinateLicenseDAO.deleteByFileCoordinateId(tx, fileCoordinate.getId());
 
     super.delete(tx, fileCoordinate);
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<ThirdPartySbomMetadataSummaryDTO> getSbomApplicationVulnerabilities(String applicationId,
+                                                                                  final String sortByDate,
+                                                                                   final int limit,
+                                                                                   final int offset)
+  {
+    String sQuery = "" + //
+        "SELECT sm.sbom_version," + //
+        "       sm.spec," + //
+        "       sm.spec_version," + //
+        "       sm.created_at," + //
+        "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END)," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END)," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END)," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END)," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END)" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "    ON fc.third_party_file_id = sm.third_party_file_id" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " WHERE sm.application_id = ?10" + //
+        " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at" + //
+        " ORDER BY sm.created_at " + (sortByDate.equalsIgnoreCase("asc") ? "ASC " : "DESC ");
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, limit);
+      paginationQuery.setParameter(1, NONE.getStartScoreRange());
+      paginationQuery.setParameter(2, LOW.getStartScoreRange());
+      paginationQuery.setParameter(3, LOW.getEndScoreRange());
+      paginationQuery.setParameter(4, MEDIUM.getStartScoreRange());
+      paginationQuery.setParameter(5, MEDIUM.getEndScoreRange());
+      paginationQuery.setParameter(6, HIGH.getStartScoreRange());
+      paginationQuery.setParameter(7, HIGH.getEndScoreRange());
+      paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
+      paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
+      paginationQuery.setParameter(10, applicationId);
+
+      return ((Stream<Object[]>) paginationQuery.getResultStream())
+          .map(ThirdPartySbomMetadataSummaryDTO::new)
+          .collect(Collectors.toList());
+    }
   }
 }

@@ -6,6 +6,10 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -13,13 +17,19 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
+
 import com.sonatype.insight.license.model.LicensedFeature;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -115,5 +125,49 @@ public class ApiSbomResourceTest
     String contentHeader = response.getHeader("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
     assertThat(actualFilename).isEqualTo(app.getName() + "_" + thirdPartySbomMetadata.getSbomVersion() + ".json");
+  }
+
+  @Test
+  public void testGetVulnerabilities() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX -bom.xml");
+    ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX .spdx.json");
+
+    tempEntity.newThirdPartySbomMetadata(file1.getId(), app.getId(), "ACTIVE", file1.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), app.getId(),  "ACTIVE", file2.getFilename());
+
+    ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
+    ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
+
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
+                            .parameter(app.getId()).get();
+    assertResponseStatus(200, response);
+    List<ThirdPartySbomMetadataSummaryDTO> thirdPartySbomMetadataSummaryDTOList = response
+        .getBody(List.class);
+    assertThat(thirdPartySbomMetadataSummaryDTOList).hasSize(2);
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    ThirdPartySbomMetadataSummaryDTO thirdPartySbomMetadataSummaryDTO1 =
+        mapper.convertValue(thirdPartySbomMetadataSummaryDTOList.get(0), ThirdPartySbomMetadataSummaryDTO.class);
+    ThirdPartySbomMetadataSummaryDTO thirdPartySbomMetadataSummaryDTO2 =
+        mapper.convertValue(thirdPartySbomMetadataSummaryDTOList.get(1), ThirdPartySbomMetadataSummaryDTO.class);
+
+    List<ThirdPartySbomMetadataSummaryDTO> thirdPartySbomMetadataSummaryDTOListOrdered = new ArrayList<>();
+    thirdPartySbomMetadataSummaryDTOListOrdered.add(thirdPartySbomMetadataSummaryDTO1);
+    thirdPartySbomMetadataSummaryDTOListOrdered.add(thirdPartySbomMetadataSummaryDTO2);
+
+    Collections.sort(thirdPartySbomMetadataSummaryDTOListOrdered,
+        Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));
+
+    assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(0).getLow()).isEqualTo(2);
+    assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getLow()).isEqualTo(1);
+    assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getHigh()).isEqualTo(1);
   }
 }

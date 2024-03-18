@@ -3702,6 +3702,28 @@ public class TemporaryEntity
     return newThirdPartyScan(newThirdPartyFile());
   }
 
+  public void newThirdPartySbomMetadata(String thirdPartyFileId,
+                                        String applicationId,
+                                        String status,
+                                        String fileName)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
+    thirdPartySbomMetadata.setCreatedAt(new Date());
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setStatus(status);
+    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setApplicationId(applicationId);
+    thirdPartySbomMetadata.setFilename(fileName);
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
+
+    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+  }
+
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId) {
     ThirdPartyScan scan = new ThirdPartyScan(newThirdPartyFile().getId(), scanRequestId, new Date());
     scan.setScanId(scanId);

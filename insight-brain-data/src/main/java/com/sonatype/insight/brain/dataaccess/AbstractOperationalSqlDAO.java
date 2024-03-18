@@ -140,6 +140,17 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return query;
   }
 
+  public static javax.persistence.Query createPaginationNativeQuery(
+      TransactionContext tx,
+      String sQuery,
+      int offset,
+      int pageSize)
+  {
+    javax.persistence.Query query = tx.createNativeQuery(sQuery);
+    query.setFirstResult(offset).setMaxResults(pageSize);
+    return query;
+  }
+
   private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
     searchIndexManager.insert(tx, searchIndexChange);
   }

@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -164,6 +167,40 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(fileCoordinates).hasSize(3);
     assertThat(fileCoordinates.stream().map(ThirdPartyFileCoordinate::getSource))
         .containsExactlyInAnyOrder("s1", "s2", "s3");
+  }
+
+  @Test
+  public void testGetSbomApplicationVulnerabilities() {
+    Organization organization1 = tempEntity.newOrganization("org1");
+    Application application = tempEntity.newApplication(organization1.getId());
+
+    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
+    ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
+
+    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(),  "ACTIVE", file2.getFilename());
+
+    ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
+    ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
+
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", "d5", "l5", 4.7F, "sd5", "f5");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", "d6", "l6", 0F, "sd6", "f6");
+
+    List<ThirdPartySbomMetadataSummaryDTO> results = thirdPartyFileCoordinateDAO
+        .getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 0);
+
+    Collections.sort(results, Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getLow()).isEqualTo(2);
+    assertThat(results.get(0).getMedium()).isEqualTo(1);
+    assertThat(results.get(0).getNone()).isEqualTo(1);
+    assertThat(results.get(1).getLow()).isEqualTo(1);
+    assertThat(results.get(1).getHigh()).isEqualTo(1);
   }
 
   private void assertThirdPartyCoordinateFile(

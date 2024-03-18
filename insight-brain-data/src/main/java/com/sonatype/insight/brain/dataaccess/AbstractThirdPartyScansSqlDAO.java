@@ -22,4 +22,8 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
   public TransactionContext createTransactionContext() {
     return new TransactionContext(thirdPartyScansDataStore.getJPAEntityManagerFactory().createEntityManager());
   }
+
+  protected String getDatabaseSchema() {
+    return thirdPartyScansDataStore.getDatabaseSchema();
+  }
 }

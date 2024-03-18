@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -46,6 +48,8 @@ public class ApiSbomResource
   static final String SBOM_APPLICATION_PATH = "{applicationId}";
 
   static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/versions/{sbomVersion}";
+
+  static final String SBOMS_APPLICATION_PATH = "application/" + SBOM_APPLICATION_PATH;
 
   private final ApiSbomService apiSbomService;
 
@@ -108,5 +112,29 @@ public class ApiSbomResource
       @HeaderParam(HttpHeaders.ACCEPT) String acceptMediaType)
   {
     return apiSbomService.getSbomVersion(applicationId, sbomVersion, sbomState);
+  }
+
+  @Operation(summary = "Gets a paginated list of SBOMs for an application",
+      tags = {"sbom"},
+      description = "Gets a paginated list of SBOMs for an application",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "list of the sboms",
+              content = @Content(mediaType = "application/json"))
+      })
+
+  @GET
+  @Path(SBOMS_APPLICATION_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<ThirdPartySbomMetadataSummaryDTO> getListOfSbomsForApplicationId(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
+      @DefaultValue("asc") @QueryParam("sortByDate") String sortByDate,
+      @DefaultValue("10") @QueryParam("limit") int limit,
+      @DefaultValue("0") @QueryParam("offset") int offset
+  )
+  {
+    return apiSbomService.getSbomListForAppId(applicationId, sortByDate, limit, offset);
   }
 }

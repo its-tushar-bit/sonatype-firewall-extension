@@ -73,4 +73,23 @@ public class ApiSbomServiceAuthzTest
             () -> apiSbomService.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_ORIGINAL))
         .withMessage("Cannot find version some-version for application with ID " + app.getId() + ".");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSbomListForAppId_Unauthenticated() {
+    apiSbomService.getSbomListForAppId("app1", "asc", 1, 2);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSbomListForAppId_Unauthorized() {
+    login();
+    Application application = tempEntity.newApplicationWithParent();
+    apiSbomService.getSbomListForAppId(application.getId(), "asc", 1, 2);
+  }
+
+  @Test
+  public void testGetSbomListForAppId_Authorized() {
+    Application application = tempEntity.newApplicationWithParent();
+    grantReadPermission(application.getId());
+    apiSbomService.getSbomListForAppId(application.getId(), "asc",  1, 2);
+  }
 }

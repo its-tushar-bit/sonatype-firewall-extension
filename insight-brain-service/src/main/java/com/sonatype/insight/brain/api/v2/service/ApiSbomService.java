@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -17,8 +18,10 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.security.Authorize;
@@ -34,7 +37,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
 import org.apache.commons.io.IOUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,15 +62,18 @@ public class ApiSbomService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao, final ThirdPartyFileDAO thirdPartyFileDAO, final InsightWork insightWork,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO, final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.insightWork = insightWork;
     this.applicationDAO = applicationDAO;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -136,6 +144,20 @@ public class ApiSbomService
           String.format("Internal server error trying to retrieve the %s sbom for application %s version %s", sbomState,
               applicationId, sbomVersion));
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<ThirdPartySbomMetadataSummaryDTO> getSbomListForAppId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, String sortByDate, int limit, int offset)
+  {
+    if (offset < 0) {
+      throw new BadRequestException("Offset index must not be less than zero!");
+    }
+
+    if (limit < 1) {
+      throw new BadRequestException("Limit must not be less than one!");
+    }
+    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, limit, offset);
   }
 }
 

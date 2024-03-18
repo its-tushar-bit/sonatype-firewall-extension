@@ -10,17 +10,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
+
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -164,5 +171,34 @@ public class ApiSbomServiceTest
         .withMessage(
             "Cannot find version " + sbomMetadata.getSbomVersion() + " for application with ID " +
                 sbomMetadata.getApplicationId() + ".");
+  }
+
+  @Test
+  public void testGetVulnerabilities() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
+    ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
+
+    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(),  "ACTIVE", file2.getFilename());
+
+    ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
+    ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
+
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
+
+    List<ThirdPartySbomMetadataSummaryDTO> results = service.getSbomListForAppId(application.getId(), "asc",  5, 0);
+    assertThat(results).hasSize(2);
+
+    Collections.sort(results, Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getLow()).isEqualTo(2);
+    assertThat(results.get(1).getLow()).isEqualTo(1);
+    assertThat(results.get(1).getHigh()).isEqualTo(1);
   }
 }

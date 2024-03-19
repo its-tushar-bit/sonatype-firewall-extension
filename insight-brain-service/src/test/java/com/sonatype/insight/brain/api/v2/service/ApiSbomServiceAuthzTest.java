@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.util.UUID;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -91,5 +93,30 @@ public class ApiSbomServiceAuthzTest
     Application application = tempEntity.newApplicationWithParent();
     grantReadPermission(application.getId());
     apiSbomService.getSbomListForAppId(application.getId(), "asc",  1, 2);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSbomComponents_Unauthenticated() {
+    apiSbomService.getSbomComponents("test-app", "test-version");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSbomComponents_Unauthorized() {
+    login();
+    Application application = tempEntity.newApplicationWithParent();
+    apiSbomService.getSbomComponents(application.getId(), "test-version");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_Authorized() {
+    Application application = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withSbomVersion("test-version")
+        .build();
+
+    grantReadPermission(application.getId());
+    apiSbomService.getSbomComponents(application.getId(), "test-version");
   }
 }

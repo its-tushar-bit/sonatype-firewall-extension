@@ -12,13 +12,17 @@ import java.util.Comparator;
 import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -28,6 +32,7 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
 
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -169,5 +174,71 @@ public class ApiSbomResourceTest
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(0).getLow()).isEqualTo(2);
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getLow()).isEqualTo(1);
     assertThat(thirdPartySbomMetadataSummaryDTOListOrdered.get(1).getHigh()).isEqualTo(1);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
+    PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "source",
+        packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(), "hash",
+        packageUrlIdentifier.getPackageUrl());
+
+    HttpResponse response = restRequest()
+        .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(200, response);
+    SbomComponentDTO[] result = response.getBody(SbomComponentDTO[].class);
+
+    assertThat(result)
+        .hasOnlyOneElementSatisfying(component -> {
+          assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier.getPackageUrl());
+          assertThat(component.getDisplayName())
+              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+        });
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_VersionNotExists() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    HttpResponse response = restRequest()
+        .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(app.getId(), "fake-version")
+        .get();
+
+    assertResponseStatus(Status.NOT_FOUND.getStatusCode(), response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot find version fake-version for application with ID " + app.getId() + ".");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_EmptyResults() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .build();
+
+    HttpResponse response = restRequest()
+        .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(SbomComponentDTO[].class)).isEmpty();
   }
 }

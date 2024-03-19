@@ -38,6 +38,7 @@ CREATE TABLE file_coordinate (
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );
+CREATE INDEX file_coordinate_third_party_file_id_idx ON file_coordinate (third_party_file_id);
 
 CREATE TABLE coordinate_security (
   coordinate_security_id VARCHAR(50) NOT NULL,

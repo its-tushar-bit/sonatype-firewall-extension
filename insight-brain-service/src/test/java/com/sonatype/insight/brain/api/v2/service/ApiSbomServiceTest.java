@@ -13,12 +13,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -27,9 +34,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
-
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
@@ -200,5 +207,112 @@ public class ApiSbomServiceTest
     assertThat(results.get(0).getLow()).isEqualTo(2);
     assertThat(results.get(1).getLow()).isEqualTo(1);
     assertThat(results.get(1).getHigh()).isEqualTo(1);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_NoApplicationFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    Application applicationWithoutSbom = tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getSbomComponents(applicationWithoutSbom.getId(), sbomMetadata.getSbomVersion()))
+        .withMessage("Cannot find version " + sbomMetadata.getSbomVersion() + " for application with ID "
+            + applicationWithoutSbom.getId() + ".");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_NoSbomVersionFound() {
+    String fakeVersion = "fake.version";
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withSbomVersion("test-version")
+        .build();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getSbomComponents(sbomMetadata.getApplicationId(), fakeVersion))
+        .withMessage(
+            "Cannot find version " + fakeVersion + " for application with ID " + sbomMetadata.getApplicationId() + ".");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_NoResults() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    List<SbomComponentDTO> result =
+        service.getSbomComponents(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_WithResults() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1",
+        packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(), "h1",
+        packageUrlIdentifier1.getPackageUrl());
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2",
+        packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(), "h2",
+        packageUrlIdentifier2.getPackageUrl());
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
+
+    List<SbomComponentDTO> results =
+        service.getSbomComponents(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+
+    assertThat(results).isNotEmpty();
+    assertThat(results).extracting(SbomComponentDTO::getHash).containsExactlyInAnyOrder(coordinate1.getHash(),
+        coordinate2.getHash());
+
+    assertThat(results)
+        .filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
+        .allSatisfy(component -> {
+          assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier1.getPackageUrl());
+          assertThat(component.getDisplayName())
+              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1).toString());
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+          assertThat(component.getLicenses()).isNullOrEmpty();
+        });
+
+    assertThat(results)
+        .filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
+        .allSatisfy(component -> {
+          assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
+          assertThat(component.getDisplayName())
+              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2).toString());
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+          assertThat(component.getLicenses())
+              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+          assertThat(component.getLicenses())
+              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+        });
   }
 }

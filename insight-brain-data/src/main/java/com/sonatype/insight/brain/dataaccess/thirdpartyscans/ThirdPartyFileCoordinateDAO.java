@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -93,6 +94,41 @@ public class ThirdPartyFileCoordinateDAO
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
         " WHERE entity.thirdPartyFileId=?1";
     return getList(tx, sQuery, thirdPartyFileId);
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<SbomComponentDTO> getSbomComponentsByThirdPartyFileId(String thirdPartyFileId) {
+    String sQuery = "" + //
+        "SELECT fc.hash," + //
+        "       fc.package_url," + //
+        "       lic.licenses ::TEXT as licenses_json," + //
+        "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) AS severity_none," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS severity_low," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) AS severity_medium," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS severity_high," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical" + //
+        " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        "  LEFT JOIN LATERAL (" + //
+        "       SELECT cl.file_coordinate_id," + //
+        "              JSON_AGG(JSON_BUILD_OBJECT('licenseId', cl.license_id, 'licenseName', cl.name)) AS licenses" + //
+        "         FROM " + getDatabaseSchema() + ".coordinate_license cl" + //
+        "         WHERE cl.file_coordinate_id = fc.file_coordinate_id" + //
+        "         GROUP BY cl.file_coordinate_id) lic" + //
+        "    ON lic.file_coordinate_id = fc.file_coordinate_id" + //
+        " WHERE fc.third_party_file_id = ?10" + //
+        " GROUP BY fc.hash, fc.package_url, licenses_json";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(), LOW.getStartScoreRange(),
+          LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
+          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), thirdPartyFileId);
+
+      return ((Stream<Object[]>) query.getResultStream())
+          .map(SbomComponentDTO::new)
+          .collect(Collectors.toList());
+    }
   }
 
   public void deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {

@@ -3758,8 +3758,20 @@ public class TemporaryEntity
       String hash,
       String packageUrl)
   {
+    return newThirdPartyFileCoordinate(thirdPartyFile.getId(), source, format, name, version, hash, packageUrl);
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileId,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl)
+  {
     ThirdPartyFileCoordinate fileCoordinate =
-        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
     fileCoordinate.setPackageUrl(packageUrl);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;

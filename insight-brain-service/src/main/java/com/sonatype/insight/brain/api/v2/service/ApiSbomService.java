@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -81,11 +82,7 @@ public class ApiSbomService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion) throws IOException
   {
-    final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        dao.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
-    if (thirdPartySbomMetadata == null) {
-      throw new NotFoundException(String.format(cannotFindVersionError, sbomVersion, applicationId));
-    }
+    final ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, sbomVersion);
 
     AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.DELETE);
 
@@ -158,6 +155,24 @@ public class ApiSbomService
       throw new BadRequestException("Limit must not be less than one!");
     }
     return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, limit, offset);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<SbomComponentDTO> getSbomComponents(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String sbomVersion)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, sbomVersion);
+    return thirdPartyFileCoordinateDAO
+        .getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+  }
+
+  private ThirdPartySbomMetadata getThirdPartySbomMetadataNotNull(String applicationId, String sbomVersion) {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
+    if (thirdPartySbomMetadata == null) {
+      throw new NotFoundException(String.format(cannotFindVersionError, sbomVersion, applicationId));
+    }
+    return thirdPartySbomMetadata;
   }
 }
 

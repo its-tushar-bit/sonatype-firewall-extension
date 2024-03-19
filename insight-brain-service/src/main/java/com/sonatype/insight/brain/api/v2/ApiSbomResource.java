@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -50,6 +51,8 @@ public class ApiSbomResource
   static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/versions/{sbomVersion}";
 
   static final String SBOMS_APPLICATION_PATH = "application/" + SBOM_APPLICATION_PATH;
+
+  static final String SBOM_COMPONENTS_PATH = SBOM_VERSIONS_PATH + "/components";
 
   private final ApiSbomService apiSbomService;
 
@@ -136,5 +139,24 @@ public class ApiSbomResource
   )
   {
     return apiSbomService.getSbomListForAppId(applicationId, sortByDate, limit, offset);
+  }
+
+  @Operation(summary = "Gets the components found in a specific sbom version", tags = {"sbom"},
+      description = "Lists the components in a specific sbom version with data about vulnerabilities and licenses",
+      responses = {@ApiResponse(responseCode = "200", description = "List of components in the sbom",
+          content = @Content(mediaType = "application/json"))})
+
+  @GET
+  @Path(SBOM_COMPONENTS_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<SbomComponentDTO> getSbomComponents(
+      @Parameter(description = "The internal id of the application",
+          required = true) @PathParam("applicationId") String applicationId,
+
+      @Parameter(description = "URL Encoded version value of the sbom to query its components",
+          required = true) @PathParam("sbomVersion") String sbomVersion)
+  {
+    return apiSbomService.getSbomComponents(applicationId, sbomVersion);
   }
 }

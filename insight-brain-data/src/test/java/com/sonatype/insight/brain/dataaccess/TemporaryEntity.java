@@ -813,10 +813,10 @@ public class TemporaryEntity
       delete(sourceControlUserDAO.getAll(), sourceControlUserDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
       samlConfigurationDAO.delete();
+      delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
       delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
       delete(thirdPartyCoordinateSecurityDAO.getAll(), thirdPartyCoordinateSecurityDAO);
-      delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
       delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);

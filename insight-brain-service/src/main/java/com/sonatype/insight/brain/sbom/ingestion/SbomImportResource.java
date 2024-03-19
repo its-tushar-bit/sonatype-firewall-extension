@@ -9,15 +9,19 @@ import java.io.InputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -31,6 +35,8 @@ public class SbomImportResource
   public static final String RESOURCE_PATH = "rest/sbom";
 
   public static final String DETECT_PATH = "/detect/{applicationId}";
+
+  public static final String COMMIT_PATH = "/commit/{applicationId}/{requestId}";
 
   private final SbomImportService sbomImportService;
 
@@ -48,5 +54,17 @@ public class SbomImportResource
                                            @FormDataParam("file") InputStream sbom)
   {
     return sbomImportService.detectSbom(applicationId, sbom);
+  }
+
+  @POST
+  @Path(COMMIT_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  public Response importDetectedSbom(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("requestId") String requestId,
+      @Context HttpServletRequest req)
+  {
+    return sbomImportService.importDetectedSbom(applicationId, requestId, HdsClient.getClientUserAgent(req));
   }
 }

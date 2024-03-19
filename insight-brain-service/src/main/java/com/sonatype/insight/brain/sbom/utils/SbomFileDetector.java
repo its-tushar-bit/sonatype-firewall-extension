@@ -179,7 +179,7 @@ public class SbomFileDetector
     sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
   }
 
-  private SbomFormat detectSbomFormat(final String mimeType) {
+  public static SbomFormat detectSbomFormat(final String mimeType) {
     if (APPLICATION_JSON.equals(mimeType)) {
       return SbomFormat.JSON;
     }

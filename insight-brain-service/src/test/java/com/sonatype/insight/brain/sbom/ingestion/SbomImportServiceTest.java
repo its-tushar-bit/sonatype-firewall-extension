@@ -8,11 +8,18 @@ package com.sonatype.insight.brain.sbom.ingestion;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Base64;
 import java.util.Objects;
+import java.util.UUID;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
@@ -22,6 +29,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Inject;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,7 +80,7 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(expected.summary.vulnerabilityCount);
     assertThat(actual.getSbomSummary().applicationName).isEqualTo(expected.summary.applicationName);
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo(expected.summary.applicationVersion);
-    assertTempSbomFile(actual.getRequestId(), true);
+    assertTempSbomFile(actual.getRequestId().split("-")[0], true);
   }
 
   @Test
@@ -103,7 +111,7 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(expected.summary.vulnerabilityCount);
     assertThat(actual.getSbomSummary().applicationName).isEqualTo(expected.summary.applicationName);
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo(expected.summary.applicationVersion);
-    assertTempSbomFile(actual.getRequestId(), true);
+    assertTempSbomFile(actual.getRequestId().split("-")[0], true);
   }
 
   @Test
@@ -133,8 +141,62 @@ public class SbomImportServiceTest
             sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0])));
   }
 
+  @Test
+  public void testImportDetectedSbom_Success() {
+    InputStream sbom = SbomImportServiceTest.class
+        .getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
+    String fileName = UUID.randomUUID().toString().replace("-", "");
+    String mimeType = "application/xml";
+    String contentType = "CycloneDx";
+    String requestId =
+        Base64.getEncoder().encodeToString(String.format("%s-%s-%s", fileName, mimeType, contentType).getBytes());
+    File tempFile = createTemporarySbomFile(fileName, sbom);
+    Response actual = sbomImportService
+        .importDetectedSbom(application.getId(), requestId, "clientUserAgent");
+    assertThat(actual.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
+    assertThat(Files.exists(tempFile.toPath())).isFalse();
+  }
+
+  @Test
+  public void testImportDetectedSbom_Failure_InvalidApplicationId() {
+    assertThrows("Application with id applicationId does not exist", NotFoundException.class,
+        () ->
+            sbomImportService.importDetectedSbom("applicationId",
+                "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent"));
+  }
+
+  @Test
+  public void testImportDetectedSbom_Failure_RequestIdDoesNotExist() {
+    assertThrows("Request with id requestId does not exist", NotFoundException.class,
+        () ->
+            sbomImportService.importDetectedSbom(application.getId(),
+                "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent"));
+  }
+
+  @Test
+  public void testImportDetectedSbom_Failure_InvalidRequestId() {
+    String fileName = UUID.randomUUID().toString().replace("-", "");
+    String mimeType = "";
+    String requestId = Base64.getEncoder().encodeToString(String.format("%s-%s", fileName, mimeType).getBytes());
+    assertThrows("The provided requestId " + requestId + " is not valid.", BadRequestException.class,
+        () ->
+            sbomImportService.importDetectedSbom(application.getId(), requestId, "userAgent"));
+  }
+
   private void assertTempSbomFile(String requestId, boolean success) {
-    File tempSbomFile = new File(insightWork.getSbomTempDir(), requestId + ".tmp");
+    String[] decodedRequestId = new String(Base64.getDecoder().decode(requestId)).split("-");
+    File tempSbomFile = new File(insightWork.getSbomTempDir(), decodedRequestId[0] + ".tmp");
     assertThat(Files.exists(tempSbomFile.toPath())).isEqualTo(success);
+  }
+
+  private File createTemporarySbomFile(String fileName, InputStream sbom) {
+    File tempSbomFile = new File(insightWork.getSbomTempDir(), fileName + ".tmp");
+    try (OutputStream outputStream = Files.newOutputStream(tempSbomFile.toPath())) {
+      IOUtils.copy(sbom, outputStream);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return tempSbomFile;
   }
 }

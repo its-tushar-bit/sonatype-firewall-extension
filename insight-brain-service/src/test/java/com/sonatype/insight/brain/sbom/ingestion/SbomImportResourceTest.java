@@ -107,4 +107,43 @@ public class SbomImportResourceTest
         .post();
     assertResponseStatus(404, response);
   }
+
+  @Test
+  public void testImportDetectedSbom_InvalidApplicationId() throws Exception {
+    HttpResponse response = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter("applicationId", "requestId")
+        .post();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testImportDetectedSbom_InvalidRequestId() throws Exception {
+    HttpResponse response = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), "requestId")
+        .post();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testImportDetectedSbom_Success() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse responseDetect = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual = responseDetect.getBody(SbomDetectionResultDTO.class);
+
+    HttpResponse responseCommit = restRequest()
+        .path(SbomImportResource.COMMIT_PATH)
+        .parameter(application.getId(), actual.getRequestId())
+        .post();
+
+    assertResponseStatus(201, responseCommit);
+  }
 }

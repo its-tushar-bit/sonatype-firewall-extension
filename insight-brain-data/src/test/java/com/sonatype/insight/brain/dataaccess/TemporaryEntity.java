@@ -3734,6 +3734,7 @@ public class TemporaryEntity
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId, ThirdPartyFile thirdPartyFile) {
     ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
     scan.setScanId(scanId);
+    scan.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartyScanDAO.insert(scan);
     return scan;
   }
@@ -4688,23 +4689,19 @@ public class TemporaryEntity
     return waivedPolicyViolation;
   }
 
-  public ThirdPartySbomMetadata createSbomMetadata() {
-    return createSbomMetadata(null, null, null);
-  }
-
   public ThirdPartySbomMetadata createSbomMetadata(
-      final String applicationId, final String applicationVersion,
-      final String fileName)
+      final String applicationId, final String sbomVersion,
+      final ThirdPartyFile thirdPartyFile)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartySbomMetadata.setFilename(thirdPartyFile.getFilename());
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setStatus("ACTIVE");
+    thirdPartySbomMetadata.setStatus("PENDING");
 
     if (applicationId != null) {
       thirdPartySbomMetadata.setApplicationId(applicationId);
@@ -4714,18 +4711,11 @@ public class TemporaryEntity
       thirdPartySbomMetadata.setApplicationId(app.getId());
     }
 
-    if (applicationVersion != null) {
-      thirdPartySbomMetadata.setSbomVersion(applicationVersion);
+    if (sbomVersion != null) {
+      thirdPartySbomMetadata.setSbomVersion(sbomVersion);
     }
     else {
       thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
-    }
-
-    if (fileName != null) {
-      thirdPartySbomMetadata.setFilename(fileName);
-    }
-    else {
-      thirdPartySbomMetadata.setFilename(RandomStringUtils.random(10, true, true));
     }
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);

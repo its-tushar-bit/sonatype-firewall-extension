@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -88,6 +89,19 @@ public class ThirdPartySbomMetadataDAOTest
                 anotherEntity.getFilename(), anotherEntity.getSerialNumber(), anotherEntity.getSbomVersion(),
                 anotherEntity.getSpec(), anotherEntity.getSpecFormat(), anotherEntity.getSpecVersion(),
                 anotherEntity.getStatus(), anotherEntity.getCreatedAt(), anotherEntity.getMetadataJson()));
+  }
+
+  @Test
+  public void testGetByThirdPartyFileIds() {
+    ThirdPartySbomMetadata entity = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
+    assertThat(entity.getId()).isNotNull();
+
+    final List<ThirdPartySbomMetadata> sbomMetadataList =
+        dao.getByThirdPartyFileIds(Collections.singletonList(entity.getThirdPartyFileId()));
+    assertThat(sbomMetadataList).isNotEmpty();
+    for (ThirdPartySbomMetadata sbomMetadata : sbomMetadataList) {
+      assertThirdPartySbomMetadata(entity, sbomMetadata);
+    }
   }
 
   @Test

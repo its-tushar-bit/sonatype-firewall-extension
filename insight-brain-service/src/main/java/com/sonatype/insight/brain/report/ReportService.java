@@ -170,6 +170,9 @@ public class ReportService
       if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
         thirdPartyDataService.deleteByScanId(scanId);
       }
+      else {
+        thirdPartyDataService.mergeSonatypeDataWithThirdPartyData(scanId);
+      }
     }
   }
 

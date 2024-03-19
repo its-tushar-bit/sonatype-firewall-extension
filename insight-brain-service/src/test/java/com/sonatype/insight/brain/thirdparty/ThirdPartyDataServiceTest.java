@@ -21,6 +21,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -28,11 +29,14 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -61,6 +65,12 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
+  private TestProductLicense productLicense;
 
   private static final String SCAN_ID = "scanId";
 
@@ -372,6 +382,36 @@ public class ThirdPartyDataServiceTest
     assertThat(coordinateSecurities).hasSize(2);
     assertThat(coordinateSecurities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
         .containsExactlyInAnyOrder("r1", "r2");
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithThirdPartyData_SbomMetadataStatusIsUnchangedIfUnlicensed() {
+    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    handler.mergeSonatypeDataWithThirdPartyData(SCAN_ID);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithThirdPartyData_SbomMetadataStatusIsActiveIfLicensed() {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    handler.mergeSonatypeDataWithThirdPartyData(SCAN_ID);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test

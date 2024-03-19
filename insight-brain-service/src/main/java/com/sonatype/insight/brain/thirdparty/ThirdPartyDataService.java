@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
@@ -39,12 +40,15 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
@@ -57,6 +61,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
@@ -85,7 +90,11 @@ public class ThirdPartyDataService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   private final TelemetrySender telemetrySender;
+
+  private final ProductLicense productLicense;
 
   @Inject
   public ThirdPartyDataService(
@@ -98,7 +107,9 @@ public class ThirdPartyDataService
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
       final ThirdPartyComponentDAO thirdPartyComponentDAO,
-      final TelemetrySender telemetrySender)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final TelemetrySender telemetrySender,
+      final ProductLicense productLicense)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -109,7 +120,9 @@ public class ThirdPartyDataService
     this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.telemetrySender = telemetrySender;
+    this.productLicense = productLicense;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -357,6 +370,24 @@ public class ThirdPartyDataService
     }
 
     return thirdPartyApplicationReportDTO;
+  }
+
+  public void mergeSonatypeDataWithThirdPartyData(final String scanId) {
+    if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      // nothing to do if sbom manager feature is not enabled
+      return;
+    }
+    // TODO: merge sonatype security/license data with third party data
+    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
+    if (CollectionUtils.isNotEmpty(thirdPartyFiles)) {
+      List<ThirdPartySbomMetadata> thirdPartySbomMetadataRows =
+          thirdPartySbomMetadataDAO.getByThirdPartyFileIds(thirdPartyFiles.stream().map(ThirdPartyFile::getId).collect(
+              Collectors.toList()));
+      for (ThirdPartySbomMetadata thirdPartySbomMetadata : thirdPartySbomMetadataRows) {
+        thirdPartySbomMetadata.setStatus(SbomStatus.ACTIVE.name());
+        thirdPartySbomMetadataDAO.update(thirdPartySbomMetadata);
+      }
+    }
   }
 
   private void collectTelemetryData(

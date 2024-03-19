@@ -22,17 +22,16 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -77,6 +76,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -575,7 +575,7 @@ public class ReportServiceTest
 
   @Test
   public void testProcessThirdPartyData_SBOMManagerEnabled_reportNotDeleted() throws Exception {
-    SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(true);
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
     createReportFile(app.getId(), scanId, reportZip);
@@ -601,6 +601,30 @@ public class ReportServiceTest
     assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
 
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
+  }
+
+  @Test
+  public void testProcessThirdPartyData_SBOMManagerDisabled_mergeSonatypeDataWithThirdPartyData_NotCalled() {
+    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
+    verify(thirdPartyDataServiceSpy, never()).mergeSonatypeDataWithThirdPartyData(eq(scanId));
+  }
+
+  @Test
+  public void testProcessThirdPartyData_SBOMManagerEnabled_mergeSonatypeDataWithThirdPartyData_Called()
+      throws Exception
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    reportService.processThirdPartyData(scanId, reportZip, "app-id");
+
+    verify(thirdPartyDataServiceSpy, times(1)).mergeSonatypeDataWithThirdPartyData(eq(scanId));
   }
 
   @Test

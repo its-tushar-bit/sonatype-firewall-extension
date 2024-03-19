@@ -36,6 +36,12 @@ public class ThirdPartySbomMetadataDAO
     return getList("SELECT entity FROM ThirdPartySbomMetadata entity");
   }
 
+  public List<ThirdPartySbomMetadata> getByThirdPartyFileIds(List<String> thirdPartyFileIds) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
+        " WHERE entity.thirdPartyFileId IN ?1";
+    return getList(sQuery, thirdPartyFileIds);
+  }
+
   public ThirdPartySbomMetadata getByThirdPartyFileId(String thirdPartyFileId) {
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.thirdPartyFileId=?1";

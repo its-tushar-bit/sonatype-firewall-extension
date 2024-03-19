@@ -157,4 +157,4 @@ script to delete it from the `system_configuration_property` table.
 ## Working on Customer Support (zendesk) Tickets ##
 
 Some Customer Support tickets have support.zip files that include db dumps.
-To import the db dump, see insight-brain-service/src/test/java/com/sonatype/insight/brain/support/DbImportFromSupportZip
+To import the db dump, see insight-brain-service/src/test/java/com/sonatype/insight/brain/support/DbImportFromSupportZip.java

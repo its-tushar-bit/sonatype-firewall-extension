@@ -153,3 +153,8 @@ if you want the feature to only be enabled if it's not inside the database. Typi
 start with `enabledWhenAbsent` set to `false`. When it's production-ready, it would either be removed from the enum, or 
 have its `enabledWhenAbsent` changed to `true` (to still be able to disable it). This would be alongside an incremental 
 script to delete it from the `system_configuration_property` table.
+
+## Working on Customer Support (zendesk) Tickets ##
+
+Some Customer Support tickets have support.zip files that include db dumps.
+To import the db dump, see insight-brain-service/src/test/java/com/sonatype/insight/brain/support/DbImportFromSupportZip

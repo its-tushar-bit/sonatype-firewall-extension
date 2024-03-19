@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 
 import javax.ws.rs.core.MediaType;
 
@@ -30,7 +31,6 @@ import org.apache.http.HttpStatus;
 import org.jsoup.UncheckedIOException;
 import org.junit.After;
 import org.junit.Test;
-import org.threeten.bp.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

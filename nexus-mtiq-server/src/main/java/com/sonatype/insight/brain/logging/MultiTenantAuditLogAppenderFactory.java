@@ -104,6 +104,9 @@ public class MultiTenantAuditLogAppenderFactory
       final LevelFilterFactory<ILoggingEvent> levelFilterFactory,
       final AsyncAppenderFactory<ILoggingEvent> asyncAppenderFactory)
   {
+    // Only log the actual audit content followed by new line
+    setLogFormat("%msg%n");
+
     final SiftingAppender siftingAppender = new SiftingAppender();
     siftingAppender.setName("audit-log-sift-appender");
     siftingAppender.setContext(loggerContext);

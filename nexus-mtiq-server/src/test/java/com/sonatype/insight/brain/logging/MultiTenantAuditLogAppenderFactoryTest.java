@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.logging;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,12 +19,20 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
+ * WARNING:
+ * These tests run with an MTIQ test server that is not dedicated to these tests.
+ * This means the audit logs may contain stuff logged by previous tests, 
+ * so don't expect the audit logs to contain only the lines logged from the tests in this class.
+ */
 public class MultiTenantAuditLogAppenderFactoryTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {
@@ -50,6 +61,15 @@ public class MultiTenantAuditLogAppenderFactoryTest
   }
 
   @Test
+  public void testAuditLogLinesAreAllJson() throws Exception {
+    // Create an organization for the current tenant to ensure we have some content in the audit log for the tenant.
+    organizationRequest().body(new Organization("testOrgName")).post();
+
+    assertLogLinesAreJson(Tenant.GLOBAL_TENANT.tenantSlug);
+    assertLogLinesAreJson(getTestTenant().tenantSlug);
+  }
+
+  @Test
   public void testGetAuditLogFiles_NoFilesForTheRange() throws Exception {
     List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.of(2024, 2, 4),
         LocalDate.of(2024, 2, 4));
@@ -61,6 +81,7 @@ public class MultiTenantAuditLogAppenderFactoryTest
     List<File> auditLogFiles = MultiTenantAuditLogAppenderFactory.getAuditLogFiles(LocalDate.now(), LocalDate.now());
 
     assertThat(auditLogFiles).hasSize(1);
+    // The path for audit logs is configured in src/test/resources/config-test.yml
     assertThat(auditLogFiles.get(0).getAbsolutePath().replace('\\', '/'))
         .endsWith("target/test-audit-logs/" + getTestTenant().tenantSlug + "/log/audit.log");
   }
@@ -86,5 +107,21 @@ public class MultiTenantAuditLogAppenderFactoryTest
     }
     String tenantAuditLogContents = FileUtils.readFileToString(tenantAuditLogFile, StandardCharsets.UTF_8);
     assertThat(tenantAuditLogContents).doesNotContain(value);
+  }
+
+  private void assertLogLinesAreJson(String tenantSlug) throws IOException {
+    String tenantAuditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(tenantSlug);
+    assertThat(tenantAuditLogFileName).contains(tenantSlug);
+    Path tenantAuditLogFile = Paths.get(tenantAuditLogFileName);
+    List<String> tenantAuditLogLines = Files.readAllLines(tenantAuditLogFile, StandardCharsets.UTF_8);
+    assertThat(tenantAuditLogLines).isNotEmpty();
+    for (String line : tenantAuditLogLines) {
+      try {
+        JsonUtils.parse(line);
+      }
+      catch (JsonParseException e) {
+        throw new RuntimeException("Audit log line is not json: '" + line + "'. Error: " + e.getMessage(), e);
+      }
+    }
   }
 }

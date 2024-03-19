@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.metrics;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
@@ -20,7 +22,7 @@ public class OsMetrics
     SystemInfo si = new SystemInfo();
 
     HardwareAbstractionLayer hal = si.getHardware();
-    HWDiskStore[] diskStores = hal.getDiskStores();
+    List<HWDiskStore> diskStores = hal.getDiskStores();
     for (HWDiskStore disk : diskStores) {
       long readBytes = disk.getReadBytes();
       log.debug("Read bytes: {}: {} ", disk.getName(), readBytes);

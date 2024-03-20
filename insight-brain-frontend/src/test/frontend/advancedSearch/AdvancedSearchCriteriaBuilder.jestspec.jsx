@@ -77,7 +77,7 @@ describe('AdvancedSearchCriteriaBuilder', () => {
   };
 
   const checkCriteriaGroupTagsAreNotRendered = (criteriaGroups) => {
-    Object.entries(criteriaGroups).forEach(([criteriaName, componentGroupTags]) => {
+    Object.values(criteriaGroups).forEach((componentGroupTags) => {
       componentGroupTags.forEach((tagName) => {
         expect(screen.queryByText(tagName)).not.toBeInTheDocument();
       });

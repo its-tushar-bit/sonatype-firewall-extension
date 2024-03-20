@@ -1,2 +1,1 @@
-io.dropwizard.logging.ConsoleAppenderFactory
 com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory

@@ -150,10 +150,10 @@ public class PolicyResourceAuthzTest
 
     testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.ORGANIZATION, org.getId()));
 
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantWritePermission(repo.getId());
 
-    HttpResponse response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    HttpResponse response =
+        testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY, repo.getId()));
     assertResponseStatus(200, response);
 
     grantWritePermission(repositoryManager.getId());
@@ -162,10 +162,10 @@ public class PolicyResourceAuthzTest
         restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
     assertResponseStatus(200, response);
 
-    grantWritePermission(repo.getId());
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    response = testAuthzPost(
-        restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY, repo.getId()));
+    response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID));
     assertResponseStatus(200, response);
   }
 
@@ -181,21 +181,21 @@ public class PolicyResourceAuthzTest
     policy = tempEntity.newPolicy(org);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.ORGANIZATION, org.getId()));
 
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantWritePermission(repo.getId());
 
-    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    policy = tempEntity.newPolicy(repo);
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY, repo.getId()));
 
     grantWritePermission(repositoryManager.getId());
 
     policy = tempEntity.newPolicy(repositoryManager);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
 
-    grantWritePermission(repo.getId());
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    policy = tempEntity.newPolicy(repo);
-    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY, repo.getId()));
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -212,11 +212,11 @@ public class PolicyResourceAuthzTest
     policy = tempEntity.newPolicy(org);
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
 
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantWritePermission(repo.getId());
 
-    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    policy = tempEntity.newPolicy(repo);
     testAuthzDelete(
-        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
+        request.parameter(OwnerType.REPOSITORY, repo.getId(), policy.getId()));
 
     grantWritePermission(repositoryManager.getId());
 
@@ -224,11 +224,11 @@ public class PolicyResourceAuthzTest
     testAuthzDelete(
         request.parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policy.getId()));
 
-    grantWritePermission(repo.getId());
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    policy = tempEntity.newPolicy(repo);
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     testAuthzDelete(
-        request.parameter(OwnerType.REPOSITORY, repo.getId(), policy.getId()));
+        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }
 
   @Test

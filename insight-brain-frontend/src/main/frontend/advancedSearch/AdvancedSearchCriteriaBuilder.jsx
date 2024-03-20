@@ -7,9 +7,13 @@ import React, { Fragment } from 'react';
 import { NxButton, NxFontAwesomeIcon, NxSelectableTag } from '@sonatype/react-shared-components';
 import { faCaretDown, faCaretRight } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { useSelector } from 'react-redux';
+import { is } from 'ramda';
 
 export default function AdvancedSearchCriteriaBuilder(props) {
   const { setCurrentQuery, currentQuery, showCriteriaBuilder, setShowCriteriaBuilder, inputFieldId } = props;
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   function prefixTagOnClickHandler(prefix) {
     return () => {
@@ -40,9 +44,7 @@ export default function AdvancedSearchCriteriaBuilder(props) {
         role="group"
       >
         <h4 id={'iq-adv-search__query-group' + headerIdString}>{header}</h4>
-        {prefixList.map((prefix) => {
-          return prefixTag(prefix);
-        })}
+        {prefixList.filter(is(String)).map((prefix) => prefixTag(prefix))}
       </div>
     );
   }
@@ -69,15 +71,23 @@ export default function AdvancedSearchCriteriaBuilder(props) {
         >
           {queryBuilderGroup('Organization', 'organizationId', 'organizationName')}
 
-          {queryBuilderGroup('Application', 'applicationId', 'applicationName', 'applicationPublicId')}
-
           {queryBuilderGroup(
-            'Application Category',
-            'applicationCategoryId',
-            'applicationCategoryName',
-            'applicationCategoryColor',
-            'applicationCategoryDescription'
+            'Application',
+            'applicationId',
+            'applicationName',
+            !isSbomManager && 'applicationPublicId',
+            isSbomManager && 'applicationVersion',
+            isSbomManager && 'sbomFormat'
           )}
+
+          {!isSbomManager &&
+            queryBuilderGroup(
+              'Application Category',
+              'applicationCategoryId',
+              'applicationCategoryName',
+              'applicationCategoryColor',
+              'applicationCategoryDescription'
+            )}
 
           {queryBuilderGroup(
             'Component',
@@ -96,27 +106,29 @@ export default function AdvancedSearchCriteriaBuilder(props) {
             'componentCoordinatePlatform'
           )}
 
-          {queryBuilderGroup(
-            'Component Label',
-            'componentLabelId',
-            'componentLabelName',
-            'componentLabelColor',
-            'componentLabelDescription'
-          )}
+          {!isSbomManager &&
+            queryBuilderGroup(
+              'Component Label',
+              'componentLabelId',
+              'componentLabelName',
+              'componentLabelColor',
+              'componentLabelDescription'
+            )}
 
-          {queryBuilderGroup('Policy', 'policyId', 'policyName', 'policyThreatCategory', 'policyThreatLevel')}
+          {!isSbomManager &&
+            queryBuilderGroup('Policy', 'policyId', 'policyName', 'policyThreatCategory', 'policyThreatLevel')}
 
           {queryBuilderGroup(
             'Security Vulnerability',
-            'reportId',
-            'policyEvaluationStage',
+            !isSbomManager && 'reportId',
+            !isSbomManager && 'policyEvaluationStage',
             'vulnerabilityId',
-            'vulnerabilityStatus',
+            !isSbomManager && 'vulnerabilityStatus',
             'vulnerabilitySeverity',
             'vulnerabilityDescription'
           )}
 
-          {queryBuilderGroup('Other', 'itemType')}
+          {!isSbomManager && queryBuilderGroup('Other', 'itemType')}
         </div>
       )}
     </Fragment>

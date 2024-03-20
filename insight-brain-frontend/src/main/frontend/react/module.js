@@ -61,6 +61,7 @@ export default angular
         'isOrgsAndAppsEnabled',
         'isSbomManagerEnabled',
         'showSbomManagerSidebar',
+        'isProductFeaturesLoading',
       ],
       ['$state']
     )

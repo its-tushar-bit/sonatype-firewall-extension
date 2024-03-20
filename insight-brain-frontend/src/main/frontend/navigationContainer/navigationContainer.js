@@ -21,6 +21,7 @@ import {
   selectIsDeveloperDashboardEnabled,
   selectIsOrgsAndAppsEnabled,
   selectIsSbomManagerEnabled,
+  selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectShowSbomManagerSidebar } from 'MainRoot/sbomManager/sbomManagerPageSelectors';
 
@@ -44,6 +45,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isOrgsAndAppsEnabled = false;
   vm.isSbomManagerEnabled = false;
   vm.showSbomManagerSidebar = false;
+  vm.isProductFeaturesLoading = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -113,6 +115,7 @@ function mapStateToThis(state) {
     isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
     isSbomManagerEnabled: selectIsSbomManagerEnabled(state),
     showSbomManagerSidebar: selectShowSbomManagerSidebar(state),
+    isProductFeaturesLoading: selectLoadingFeatures(state),
   };
 }
 

@@ -31,6 +31,7 @@ import IqSidebarNavFooter from './IqSidebarNavFooter';
 import { getProductLogo } from '../../util/productLogoUtils';
 import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
 import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
+import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
 
 function IqSidebarNav(props) {
   const uiRouterState = useRouterState();
@@ -54,6 +55,7 @@ function IqSidebarNav(props) {
     isOrgsAndAppsEnabled,
     isSbomManagerEnabled,
     showSbomManagerSidebar,
+    isProductFeaturesLoading,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -233,6 +235,10 @@ function IqSidebarNav(props) {
     </NxGlobalSidebar>
   );
 
+  if (isProductFeaturesLoading) {
+    // Empty sidebar until product info is fully loaded
+    return <DefaultEmptyIqSidebar />;
+  }
   return isSbomManagerEnabled && showSbomManagerSidebar ? sbomManagerSidebar : iqSidebar;
 }
 
@@ -255,5 +261,6 @@ IqSidebarNav.propTypes = {
   isOrgsAndAppsEnabled: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
   showSbomManagerSidebar: PropTypes.bool,
+  isProductFeaturesLoading: PropTypes.bool,
 };
 export default IqSidebarNav;

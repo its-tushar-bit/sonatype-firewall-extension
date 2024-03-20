@@ -50,6 +50,7 @@ import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firew
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
+import { checkSbomManagerIsOnlyProductEnabled } from 'MainRoot/sbomManager/sbomManagerUtil';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -127,6 +128,10 @@ export const InitModule = angular
                   const unconfiguredRepoManager = selectUnconfiguredRepoManager(state);
                   const isFirewallAvailable = selectIsFirewallSupported(state);
                   const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer(state);
+
+                  if (checkSbomManagerIsOnlyProductEnabled(state)) {
+                    return 'sbomManager';
+                  }
 
                   if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {
                     return 'firewallOnboarding.firewallOnboardingPage';

@@ -22,14 +22,14 @@ public class ThirdPartySbomMetadataTestUtil
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setApplicationId(applicationId);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
-    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setFilename(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10));
-    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10));
+    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setFilename(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setSpec(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.randomAscii(10));
     thirdPartySbomMetadata.setStatus(status);
-    thirdPartySbomMetadata.setMetadataJson(RandomStringUtils.random(1500));
+    thirdPartySbomMetadata.setMetadataJson(RandomStringUtils.randomAscii(1500));
 
     return thirdPartySbomMetadata;
   }

@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -917,7 +918,7 @@ public class IndexService
       Map<Organization, Collection<Organization>> parentOrgsMap)
   {
     return sbomMetadataDAO.getByApplicationId(application.getId()).parallelStream()
-        .map(new TenantAwareFunction<>(
+        .map(new TenantAwareFunction<ThirdPartySbomMetadata, List<Document>>(
             sbomMetadata -> buildSbomVersionSVDocs(organization, application, sbomMetadata,
                 parentOrgsMap.get(organization))))
         .flatMap(Collection::stream).collect(toList());
@@ -930,7 +931,7 @@ public class IndexService
       Collection<Organization> parentOrganizations)
   {
     return thirdPartyFileCoordinateDAO.getBySbomMetadataId(sbomMetadata.getId()).parallelStream()
-        .map(new TenantAwareFunction<>(
+        .map(new TenantAwareFunction<ThirdPartyFileCoordinate, List<Document>>(
             fileCoord -> buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata,
                 parentOrganizations, fileCoord)))
         .flatMap(Collection::stream).collect(toList());
@@ -949,7 +950,7 @@ public class IndexService
 
     if (CollectionUtils.isNotEmpty(vulns)) {
       return vulns.parallelStream()
-          .map(new TenantAwareFunction<>(
+          .map(new TenantAwareFunction<ThirdPartyCoordinateSecurity, Document>(
               vuln -> buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, vuln,
                   parentOrganizations)))
           .collect(toList());

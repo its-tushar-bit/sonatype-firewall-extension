@@ -44,6 +44,69 @@ public class SbomCycloneDxUtilsTest
     assertThat(SbomCycloneDxUtils.getApplicationVersionSafely(bom)).isEqualTo("1.0.1");
   }
 
+  @Test
+  public void testGetSbomCreationDetails_ToolChoice_Xml() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedToolChoiceSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_Json_ToolChoice_Json() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedToolChoiceSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_LegacyTool_Xml() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-legacy-tools.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedLegacyToolSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_LegacyTool_Json() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-legacy-tools.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedLegacyToolSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_OnlyCreators() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_OnlyTools() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-tools.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedOnlyToolsSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_OnlyServiceTools() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-service-tools.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedOnlyServiceToolsSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_CompositeTools() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-composite-tools.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isEqualTo(expectedCompositeToolsSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_NoMetadata() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-no-metadata.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    assertThat(actual).isNullOrEmpty();
+  }
+
   private static Bom getCycloneDxDocument(final String fileName)
       throws IOException, ParseException, URISyntaxException
   {
@@ -53,5 +116,52 @@ public class SbomCycloneDxUtilsTest
     byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(contentBytes);
     return parser.parse(contentBytes);
+  }
+
+  private String expectedToolChoiceSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"," +
+        "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":" +
+        "\"Manufacturer\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+        "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\",\"name\":\"Jane Doe\"," +
+        "\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com,example2.com," +
+        "example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\"" +
+        ":\"1-800-111-1111\",\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\"" +
+        ":\"Jane Doe\",\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com," +
+        "example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\",\"name\":\"Tool\"," +
+        "\"version\":\"1.0-RELEASE\"}]}";
+  }
+
+  private String expectedLegacyToolSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
+        ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":" +
+        "\"Manufacturer\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+        "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\",\"name\":\"Jane Doe\"," +
+        "\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com,example2.com," +
+        "example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\"" +
+        ":\"1-800-111-1111\",\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":" +
+        "\"Jane Doe\",\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com," +
+        "example2.com,example3.com\"}],\"tools\":[{\"name\":\"Tool\",\"version\":\"1.0-RELEASE\"}]}";
+  }
+
+  private String expectedOnlyCreatorsSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
+        ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"}]}";
+  }
+
+  private String expectedOnlyToolsSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"tools\":[{\"type\":\"application\"" +
+        ",\"name\":\"Tool\",\"version\":\"1.0-RELEASE\"}]}";
+  }
+
+  private String expectedOnlyServiceToolsSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-03-14T19:06:34Z\",\"tools\":[{\"name\":" +
+        "\"insight-brain-service\",\"version\":\"2.36.79-01\"}]}";
+  }
+
+  private String expectedCompositeToolsSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-03-14T19:06:34Z\",\"tools\":[{\"type\":\"framework\"," +
+        "\"name\":\"framework\",\"version\":\"2.1.1-01\"},{\"type\":\"application\",\"name\":" +
+        "\"insight-brain-service\",\"version\":\"1.36.79-01\"},{\"name\":\"service\",\"version\":\"2.0.0\"}," +
+        "{\"name\":\"insight-brain-service\",\"version\":\"2.36.79-01\"}]}";
   }
 }

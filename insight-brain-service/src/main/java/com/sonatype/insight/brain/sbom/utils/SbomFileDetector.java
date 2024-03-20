@@ -161,6 +161,7 @@ public class SbomFileDetector
       sbomResult.summary.applicationName = rootPackage.getName().orElse(null);
       sbomResult.summary.applicationVersion = rootPackage.getVersionInfo().orElse(null);
     }
+    sbomResult.summary.creationDetails = SbomSpdxUtils.getSbomCreationDetailsJson(document);
   }
 
   private static void populateCycloneDxResult(
@@ -177,6 +178,7 @@ public class SbomFileDetector
     sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
     sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
     sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
+    sbomResult.summary.creationDetails = SbomCycloneDxUtils.getSbomCreationDetails(bom);
   }
 
   private boolean isPlainTextValidJson(String sbomContent) {

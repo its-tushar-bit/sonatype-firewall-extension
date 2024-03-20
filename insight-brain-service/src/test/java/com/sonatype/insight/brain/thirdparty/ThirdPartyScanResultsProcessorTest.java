@@ -208,7 +208,8 @@ public class ThirdPartyScanResultsProcessorTest
         "json",
         "2.3",
         "PENDING",
-        new Date(), "");
+        new Date(),
+        creationDetailsToolsOnlyJson());
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileList.get(0).getId());
@@ -291,7 +292,7 @@ public class ThirdPartyScanResultsProcessorTest
         "xml",
         "1.1",
         SbomStatus.PENDING.name(),
-        new Date(), "");
+        new Date(), null);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
@@ -354,7 +355,7 @@ public class ThirdPartyScanResultsProcessorTest
         "xml",
         "1.1",
         SbomStatus.PENDING.name(),
-        new Date(), "");
+        new Date(), null);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
@@ -563,6 +564,47 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_SbomDependencyTree_uuidRef_incomplete() throws Exception {
     testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-uuid-ref-incomplete.xml",
         "DependencyGraph/scan-sbom-dependencies-uuid-bom-ref-incomplete-expected.xml");
+  }
+
+  @Test
+  public void testHandle_cyclonedx_api_sbomManagerEnabled_creationDetails() throws Exception {
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(2);
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("sbom/scan-with-sbom-data-creation-details.xml");
+    String scanId = TemporaryEntity.uuid();
+    File tempScanFile = tempDir.newFile();
+
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+
+    List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
+
+    File sbomDir = insightWork.getSbomDir(application.getId());
+    assertThat(sbomDir).exists();
+
+    final File[] sboms = sbomDir.listFiles();
+    assertThat(sboms).isNotNull()
+        .isNotEmpty()
+        .hasSize(1);
+    assertThat(sboms[0].getName()).endsWith("xml.gz");
+    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileList.get(0).getId(),
+        application.getId(),
+        "",
+        sboms[0].getName(),
+        "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+        "CycloneDx",
+        "xml",
+        "1.5",
+        SbomStatus.PENDING.name(),
+        new Date(), creationDetailsJson());
+    assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
 
   private void testHandle_SbomDependencyTree(final String s, final String s2) throws Exception {
@@ -827,6 +869,7 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(expectedSbomMetadata.getSpec());
       assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(expectedSbomMetadata.getSpecFormat());
       assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(expectedSbomMetadata.getSpecVersion());
+      assertThat(thirdPartySbomMetadata.getMetadataJson()).isEqualTo(expectedSbomMetadata.getMetadataJson());
     }
     else {
       assertThat(thirdPartySbomMetadata).isNull();
@@ -860,5 +903,23 @@ public class ThirdPartyScanResultsProcessorTest
             thirdPartyFile.getId());
 
     thirdPartySbomMetadataDAO.insert(metadata);
+  }
+
+  private String creationDetailsToolsOnlyJson() {
+    return "{\"created\":\"2023-07-20T16:39:54Z\",\"tools\":[{\"name\":\"Sonatype IQ Server\",\"version\"" +
+        ":\"1.166.0-SNAPSHOT\"}]}";
+  }
+
+  private String creationDetailsJson() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"," +
+        "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":" +
+        "\"Manufacturer\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+        "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\",\"name\":\"Jane Doe\"," +
+        "\"email\":\"Jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com,example2.com," +
+        "example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\"" +
+        ":\"1-800-111-1111\",\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":" +
+        "\"Jane Doe\",\"email\":\"Jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com," +
+        "example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\",\"name\":\"Tool\",\"version\"" +
+        ":\"1.0-RELEASE\"}]}";
   }
 }

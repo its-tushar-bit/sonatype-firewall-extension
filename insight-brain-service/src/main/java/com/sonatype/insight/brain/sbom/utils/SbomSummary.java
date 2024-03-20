@@ -22,4 +22,6 @@ public class SbomSummary
   public String applicationVersion;
 
   public String serialNumber;
+
+  public String creationDetails;
 }

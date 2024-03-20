@@ -1,0 +1,84 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-02-29T23:41:22Z",
+    "authors": [
+      {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "1-800-111-1111"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "iq_application_vuln",
+      "version": "a140fd3c3ded4bb0a640dc31e2904dc9"
+    },
+    "manufacture": {
+      "bom-ref": "manufacturer-1",
+      "name": "manufacturer",
+      "url": [
+        "example.com",
+        "example2.com",
+        "example3.com"
+      ],
+      "contact": [
+        {
+          "bom-ref": "contact-1",
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "1-800-111-1111"
+        },
+        {
+          "bom-ref": "contact-2",
+          "name": "Jane Doe",
+          "email": "jane.doe@example.com",
+          "phone": "1-800-222-2222"
+        }
+      ]
+    },
+    "supplier": {
+      "bom-ref": "supplier-1",
+      "name": "supplier",
+      "url": [
+        "example.com",
+        "example2.com",
+        "example3.com"
+      ],
+      "contact": [
+        {
+          "bom-ref": "contact-1",
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "1-800-111-1111"
+        },
+        {
+          "bom-ref": "contact-2",
+          "name": "Jane Doe",
+          "email": "jane.doe@example.com",
+          "phone": "1-800-222-2222"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "vendor": "Vendor",
+        "name": "Tool",
+        "version": "1.0-RELEASE",
+        "hashes": [
+          {
+            "alg": "SHA-1",
+            "content": "25ed8e31b995bb927966616df2a42b979a2717f0"
+          },
+          {
+            "alg": "SHA-256",
+            "content": "a74f733635a19aefb1f73e5947cef59cd7440c6952ef0f03d09d974274cbd6df"
+          }
+        ]
+      }
+    ]
+  }
+}

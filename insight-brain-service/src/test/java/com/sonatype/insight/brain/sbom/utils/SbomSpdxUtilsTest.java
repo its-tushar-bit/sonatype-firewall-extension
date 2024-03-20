@@ -128,6 +128,34 @@ public class SbomSpdxUtilsTest
         "sonatype/spdxdocs/uuid/");
   }
 
+  @Test
+  public void testGetSbomCreationDetailsJson_Valid_Json() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-with-metadata.json", Format.JSON);
+    String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
+    assertThat(actual).isEqualTo(expectedSbomMetadataJson());
+  }
+
+  @Test
+  public void testGetSbomCreationDetailsJson_Valid_Xml() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-with-metadata.xml", Format.XML);
+    String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
+    assertThat(actual).isEqualTo(expectedSbomMetadataJson());
+  }
+
+  @Test
+  public void testGetSbomCreationDetailsJson_OnlyTools() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-with-metadata-only-tools.json", Format.JSON);
+    String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
+    assertThat(actual).isEqualTo(expectedSbomMetadataJsonOnlyTools());
+  }
+
+  @Test
+  public void testGetSbomCreationDetailsJson_OnlyCreators() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-with-metadata-only-creators.json", Format.JSON);
+    String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
+    assertThat(actual).isEqualTo(expectedSbomMetadataJsonOnlyCreators());
+  }
+
   private static SpdxDocument getSpdxDocument(final String fileName, Format format)
       throws IOException, InvalidSPDXAnalysisException, URISyntaxException
   {
@@ -145,5 +173,25 @@ public class SbomSpdxUtilsTest
       throw new IOException("SPDX content cannot be parsed", e);
     }
     return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);
+  }
+
+  private String expectedSbomMetadataJson() {
+    return "{\"type\":\"APPLICATION\",\"created\":\"2024-03-08T22:14:19Z\",\"creators\":[{\"type\":\"Person\"," +
+        "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
+        "{\"type\":\"Organization\",\"name\":\"Example Organization\",\"email\":\"example@example.com\"},{\"type\"" +
+        ":\"Organization\",\"name\":\"Example Organization\"}],\"tools\":[{\"name\":\"Sonatype IQ Server\"," +
+        "\"version\":\"1.175.0-SNAPSHOT\"}]}";
+  }
+
+  private String expectedSbomMetadataJsonOnlyTools() {
+    return "{\"type\":\"APPLICATION\",\"created\":\"2024-03-08T22:14:19Z\",\"tools\":[{\"name\":" +
+        "\"Sonatype IQ Server\",\"version\":\"1.175.0-SNAPSHOT\"}]}";
+  }
+
+  private String expectedSbomMetadataJsonOnlyCreators() {
+    return "{\"type\":\"APPLICATION\",\"created\":\"2024-03-08T22:14:19Z\",\"creators\":[{\"type\":\"Person\"," +
+        "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
+        "{\"type\":\"Person\",\"name\":\"Joe Smith\"},{\"type\":\"Organization\",\"name\":\"Example Organization\"," +
+        "\"email\":\"example@example.com\"},{\"type\":\"Organization\",\"name\":\"Example Organization2\"}]}";
   }
 }

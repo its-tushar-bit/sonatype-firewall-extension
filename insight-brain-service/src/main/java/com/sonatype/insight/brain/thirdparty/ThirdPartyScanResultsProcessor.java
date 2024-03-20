@@ -435,8 +435,8 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setSpec(sbomDetectionResult.summary.specification);
     sbomMetadata.setSpecFormat(sbomDetectionResult.summary.format);
     sbomMetadata.setSpecVersion(sbomDetectionResult.summary.version);
+    sbomMetadata.setMetadataJson(sbomDetectionResult.summary.creationDetails);
     sbomMetadata.setCreatedAt(new Date());
-
     sbomMetadata.setStatus(SbomStatus.PENDING.name());
     return sbomMetadata;
   }

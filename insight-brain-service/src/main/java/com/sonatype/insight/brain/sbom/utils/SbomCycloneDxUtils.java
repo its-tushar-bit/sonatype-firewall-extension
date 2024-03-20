@@ -5,13 +5,35 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.commons.collections.CollectionUtils;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Service;
+import org.cyclonedx.model.Tool;
+import org.cyclonedx.model.OrganizationalContact;
+import org.cyclonedx.model.OrganizationalEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SbomCycloneDxUtils
 {
+  private static final Logger log = LoggerFactory.getLogger(SbomCycloneDxUtils.class);
+
+  private static final Gson gson =  new GsonBuilder().create();
+
+  private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
   private SbomCycloneDxUtils() {
     //no-op
   }
@@ -45,5 +67,184 @@ public class SbomCycloneDxUtils
       return bomDocument.getMetadata();
     }
     return null;
+  }
+
+  public static String getSbomCreationDetails(Bom bom) {
+    if (bom == null || bom.getMetadata() == null) {
+      return null;
+    }
+    SbomCreationDetails extractedMetadata = new SbomCreationDetails();
+    Metadata metadataFromSbomFile = bom.getMetadata();
+    Component componentMetadata = metadataFromSbomFile.getComponent();
+    if (componentMetadata != null) {
+      extractedMetadata.type = componentMetadata.getType().getTypeName();
+    }
+    Date timestampFromSbomFile = metadataFromSbomFile.getTimestamp();
+    if (timestampFromSbomFile != null) {
+      extractedMetadata.created = dateTimeFormatter.withZone(ZoneOffset.UTC)
+          .format(timestampFromSbomFile.toInstant());
+    }
+    buildCreators(extractedMetadata, metadataFromSbomFile);
+    buildTools(extractedMetadata, metadataFromSbomFile);
+    return gson.toJson(extractedMetadata);
+  }
+
+  private static void buildCreators(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
+    extractedMetadata.creators = new ArrayList<>();
+    buildCreatorsWithAuthors(extractedMetadata, metadataFromSbomFile);
+    buildCreatorsWithManufacturer(extractedMetadata, metadataFromSbomFile);
+    buildCreatorsWithSupplier(extractedMetadata, metadataFromSbomFile);
+    if (extractedMetadata.creators.size() == 0) {
+      extractedMetadata.creators = null;
+    }
+  }
+
+  private static void buildCreatorsWithAuthors(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
+    List<OrganizationalContact> authorsFromSbomFile = metadataFromSbomFile.getAuthors();
+    if (!CollectionUtils.isEmpty(authorsFromSbomFile)) {
+      extractedMetadata.creators.addAll(authorsFromSbomFile.stream()
+          .map(organizationalContact ->
+              mapOrganizationalContactToCreator(organizationalContact, SbomCreationDetails.CreatorType.Author.name()))
+          .collect(Collectors.toList()));
+    }
+  }
+
+  private static void buildCreatorsWithManufacturer(SbomCreationDetails extractedMetadata,
+                                                    Metadata metadataFromSbomFile)
+  {
+    OrganizationalEntity manufactureFromSbomFile = metadataFromSbomFile.getManufacture();
+    if (manufactureFromSbomFile != null) {
+      extractedMetadata.creators.addAll(manufactureFromSbomFile.getContacts().stream()
+          .map(contact -> mapOrganizationalContactToCreator(contact,
+              SbomCreationDetails.CreatorType.Manufacturer.name(),
+              manufactureFromSbomFile.getUrls()))
+          .collect(Collectors.toList()));
+    }
+  }
+
+  private static void buildCreatorsWithSupplier(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
+    OrganizationalEntity supplierFromSbomFile = metadataFromSbomFile.getSupplier();
+    if (supplierFromSbomFile != null) {
+      extractedMetadata.creators.addAll(supplierFromSbomFile.getContacts().stream()
+          .map(contact -> mapOrganizationalContactToCreator(contact, SbomCreationDetails.CreatorType.Supplier.name(),
+              supplierFromSbomFile.getUrls()))
+          .collect(Collectors.toList()));
+    }
+  }
+
+  private static SbomCreationDetails.Creator mapOrganizationalContactToCreator(
+      OrganizationalContact organizationalContact,
+      String creatorType,
+      List<String> urls)
+  {
+    SbomCreationDetails.Creator creator = mapOrganizationalContactToCreator(organizationalContact,creatorType);
+    StringBuilder creatorUrls = new StringBuilder();
+    if (!CollectionUtils.isEmpty(urls)) {
+      for (int i = 0; i < urls.size(); i++) {
+        if (i == urls.size() - 1) {
+          creatorUrls.append(urls.get(i));
+        }
+        else {
+          creatorUrls.append(urls.get(i)).append(",");
+        }
+      }
+    }
+    creator.url = creatorUrls.toString();
+    return creator;
+  }
+
+  private static SbomCreationDetails.Creator mapOrganizationalContactToCreator(
+      OrganizationalContact organizationalContact,
+       String creatorType)
+  {
+    SbomCreationDetails.Creator creator = new SbomCreationDetails.Creator();
+    creator.type = creatorType;
+    if (organizationalContact.getName() != null ) {
+      creator.name = organizationalContact.getName();
+    }
+    if (organizationalContact.getEmail() != null ) {
+      creator.email = organizationalContact.getEmail();
+    }
+    if (organizationalContact.getPhone() != null ) {
+      creator.phone = organizationalContact.getPhone();
+    }
+    return creator;
+  }
+
+  private static void buildTools(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
+    extractedMetadata.tools = new ArrayList<>();
+    List<Tool> legacyToolsFromSbomFile = metadataFromSbomFile.getTools();
+    if (metadataFromSbomFile.getToolChoice() != null) {
+      log.debug("Using tools from tool choice in sbom");
+      if (!CollectionUtils.isEmpty(metadataFromSbomFile.getToolChoice().getComponents())) {
+        List<Component> toolChoiceComponentsFromSbomFile = metadataFromSbomFile.getToolChoice().getComponents();
+        buildToolsWithToolChoiceComponents(extractedMetadata, toolChoiceComponentsFromSbomFile);
+      }
+      if (!CollectionUtils.isEmpty(metadataFromSbomFile.getToolChoice().getServices())) {
+        List<Service> toolChoiceServicesFromSbomFile = metadataFromSbomFile.getToolChoice().getServices();
+        buildToolsWithToolChoiceServices(extractedMetadata, toolChoiceServicesFromSbomFile);
+      }
+    }
+    else if (!CollectionUtils.isEmpty(legacyToolsFromSbomFile)) {
+      log.debug("Using tools from legacy tools in sbom");
+      buildToolsWithLegacyTool(extractedMetadata, legacyToolsFromSbomFile);
+    }
+    if (extractedMetadata.tools.size() == 0) {
+      extractedMetadata.tools = null;
+    }
+  }
+
+  private static void buildToolsWithToolChoiceComponents(SbomCreationDetails extractedMetadata,
+                                               List<Component> toolComponentsFromSbom)
+  {
+    extractedMetadata.tools.addAll(toolComponentsFromSbom.stream().map(bomTool -> {
+      SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
+      if (bomTool.getName() != null) {
+        tool.name = bomTool.getName();
+      }
+      if (bomTool.getVersion() != null) {
+        tool.version = bomTool.getVersion();
+      }
+      if (bomTool.getType() != null) {
+        tool.type = bomTool.getType().getTypeName();
+      }
+      if (!CollectionUtils.isEmpty(bomTool.getComponents())) {
+        buildToolsWithToolChoiceComponents(extractedMetadata, bomTool.getComponents());
+      }
+      return tool;
+    }).collect(Collectors.toList()));
+  }
+
+  private static void buildToolsWithToolChoiceServices(SbomCreationDetails extractedMetadata,
+                                                       List<Service> toolServicesFromSbom)
+  {
+    extractedMetadata.tools.addAll(toolServicesFromSbom.stream().map(bomService -> {
+      SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
+      if (bomService.getName() != null) {
+        tool.name = bomService.getName();
+      }
+      if (bomService.getVersion() != null) {
+        tool.version = bomService.getVersion();
+      }
+      if (!CollectionUtils.isEmpty(bomService.getServices())) {
+        buildToolsWithToolChoiceServices(extractedMetadata, bomService.getServices());
+      }
+      return tool;
+    }).collect(Collectors.toList()));
+  }
+
+  private static void buildToolsWithLegacyTool(SbomCreationDetails extractedMetadata,
+                                               List<Tool> legacyToolsFromSbomFile)
+  {
+    extractedMetadata.tools.addAll(legacyToolsFromSbomFile.stream().map(bomTool -> {
+      SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
+      if (bomTool.getName() != null) {
+        tool.name = bomTool.getName();
+      }
+      if (bomTool.getVersion() != null) {
+        tool.version = bomTool.getVersion();
+      }
+      return tool;
+    }).collect(Collectors.toList()));
   }
 }

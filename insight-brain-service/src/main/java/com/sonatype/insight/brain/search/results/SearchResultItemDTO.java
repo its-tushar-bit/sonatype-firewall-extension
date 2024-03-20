@@ -28,6 +28,8 @@ public class SearchResultItemDTO
 
   public String applicationName;
 
+  public String applicationVersion;
+
   public String policyEvaluationStage;
 
   public String reportId;

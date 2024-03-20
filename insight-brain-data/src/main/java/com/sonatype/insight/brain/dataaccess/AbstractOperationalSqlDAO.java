@@ -14,10 +14,8 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Function;
 
-import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
@@ -42,8 +40,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   private final OperationalDataStore operationalDataStore;
 
-  private final SearchIndexManager searchIndexManager;
-
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
    * <ul>
@@ -57,19 +53,14 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       final OperationalDataStore operationalDataStore,
       final SearchIndexManager searchIndexManager)
   {
+    super(searchIndexManager);
     this.operationalDataStore = operationalDataStore;
-    this.searchIndexManager = searchIndexManager;
     entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
   }
 
-  /**
-   * Constructor for DAOs that will <B>NOT</B> require the search index. The {@link #searchIndexManager} will be set to
-   * a {@link EmptySearchIndexManager} instance. If the <T> entity for this DAO needs to be searchable then use the
-   * {@link #AbstractOperationalSqlDAO(OperationalDataStore, SearchIndexManager)} constructor.
-   */
   protected AbstractOperationalSqlDAO(OperationalDataStore operationalDataStore) {
-    // Note: singleton pattern used to reduce churn in tests
-    this(operationalDataStore, EmptySearchIndexManager.getInstance());
+    this.operationalDataStore = operationalDataStore;
+    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
   }
 
   private ParameterizedType getParameterizedSuperClass() {
@@ -108,14 +99,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       testEntityLeaksDetectionData.put(entity.getId(),
           new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
     }
-
-    insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
-  }
-
-  @Override
-  public void update(TransactionContext tx, T entity) {
-    super.update(tx, entity);
-    insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
   }
 
   @Override
@@ -125,8 +108,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     if (entity != null && detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
       testEntityLeaksDetectionData.remove(entity.getId());
     }
-
-    insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
   }
 
   public static javax.persistence.Query createPaginationQuery(
@@ -149,27 +130,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     javax.persistence.Query query = tx.createNativeQuery(sQuery);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
-  }
-
-  private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
-    searchIndexManager.insert(tx, searchIndexChange);
-  }
-
-  protected SearchIndexChange newSearchIndexChangeForInsert(T entity) {
-    return newSearchIndexChange(entity);
-  }
-
-  protected SearchIndexChange newSearchIndexChangeForUpdate(T entity) {
-    return newSearchIndexChange(entity);
-  }
-
-  protected SearchIndexChange newSearchIndexChangeForDelete(T entity) {
-    return newSearchIndexChange(entity);
-  }
-
-  protected SearchIndexChange newSearchIndexChange(@SuppressWarnings("unused") T entity) {
-    // by default, no contribution to the search index
-    return null;
   }
 
   protected String buildPositionalParameters(Collection<?> collection, int startFrom) {

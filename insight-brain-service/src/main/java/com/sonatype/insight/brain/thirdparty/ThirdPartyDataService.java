@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -94,6 +96,8 @@ public class ThirdPartyDataService
 
   private final TelemetrySender telemetrySender;
 
+  private final SearchIndexManager searchIndexManager;
+
   private final ProductLicense productLicense;
 
   @Inject
@@ -109,6 +113,7 @@ public class ThirdPartyDataService
       final ThirdPartyComponentDAO thirdPartyComponentDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final TelemetrySender telemetrySender,
+      SearchIndexManager searchIndexManager,
       final ProductLicense productLicense)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -122,6 +127,7 @@ public class ThirdPartyDataService
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.telemetrySender = telemetrySender;
+    this.searchIndexManager = searchIndexManager;
     this.productLicense = productLicense;
   }
 
@@ -370,6 +376,15 @@ public class ThirdPartyDataService
     }
 
     return thirdPartyApplicationReportDTO;
+  }
+
+  public void indexSbomForSearch(String scanId) {
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+
+    if (sbomMetadata != null) {
+      SearchIndexChange searchIndexChange = thirdPartySbomMetadataDAO.newSearchIndexChange(sbomMetadata);
+      searchIndexManager.insert(searchIndexChange);
+    }
   }
 
   public void mergeSonatypeDataWithThirdPartyData(final String scanId) {

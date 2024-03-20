@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.search.docs;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -39,7 +39,15 @@ public class DocumentBuilder
     SECURITY_VULNERABILITY,
     APPLICATION_CATEGORY,
     COMPONENT_LABEL,
-    POLICY
+    POLICY,
+    SBOM_METADATA;
+
+    /**
+     * The name to use when constructing a search Term for this item type. For whatever reason it must be lowercase
+     */
+    public String searchFieldName() {
+      return name().toLowerCase();
+    }
   }
 
   public enum FieldIdentifier
@@ -51,6 +59,7 @@ public class DocumentBuilder
     APPLICATION_NAME("applicationName"),
     APPLICATION_PUBLIC_ID("applicationPublicId"),
     POLICY_EVALUATION_STAGE("policyEvaluationStage"),
+    APPLICATION_VERSION("applicationVersion"),
     REPORT_ID("reportId"),
     COMPONENT_HASH("componentHash"),
     COMPONENT_FORMAT("componentFormat"),
@@ -147,6 +156,8 @@ public class DocumentBuilder
 
   private Optional<Field[]> policyThreatLevel = Optional.empty();
 
+  private Optional<Field> applicationVersion = Optional.empty();
+
   public DocumentBuilder(ItemType itemType) {
     document = new Document();
     document.add(new TextField(ITEM_TYPE.label, itemType.name(), Store.YES));
@@ -177,14 +188,14 @@ public class DocumentBuilder
     return this;
   }
 
-  public DocumentBuilder setParentOrganizationNames(List<Organization> parentOrganizations) {
+  public DocumentBuilder setParentOrganizationNames(Collection<Organization> parentOrganizations) {
     this.parentOrganizationNames = Optional.of(parentOrganizations.stream().map(
         parentOrg -> new TextField(PARENT_ORGANIZATION_NAME.label, parentOrg.getName(), Store.YES))
         .toArray(Field[]::new));
     return this;
   }
 
-  public DocumentBuilder setParentOrganizationIds(List<Organization> parentOrganizations) {
+  public DocumentBuilder setParentOrganizationIds(Collection<Organization> parentOrganizations) {
     this.parentOrganizationIds = Optional.of(parentOrganizations.stream().map(
         parentOrg -> new TextField(PARENT_ORGANIZATION_ID.label, parentOrg.getId(), Store.YES))
         .toArray(Field[]::new));
@@ -345,6 +356,11 @@ public class DocumentBuilder
     return this;
   }
 
+  public DocumentBuilder setApplicationVersion(final String version) {
+    this.applicationVersion = Optional.of(new TextField(APPLICATION_VERSION.label, version, Store.YES));
+    return this;
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -375,6 +391,7 @@ public class DocumentBuilder
     policyThreatLevel.ifPresent(this::setFields);
     parentOrganizationNames.ifPresent(this::setFields);
     parentOrganizationIds.ifPresent(this::setFields);
+    applicationVersion.ifPresent(this::setFields);
     return document;
   }
 

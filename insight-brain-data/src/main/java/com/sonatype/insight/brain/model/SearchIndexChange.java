@@ -31,7 +31,9 @@ public class SearchIndexChange
 
     APPLICATION_CATEGORY,
 
-    LABEL
+    LABEL,
+
+    SBOM
   }
 
   @Id

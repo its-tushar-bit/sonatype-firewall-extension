@@ -71,6 +71,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.BooleanQuery.TooManyClauses;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.NormsFieldExistsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreDoc;
@@ -165,6 +166,8 @@ public class SearchService
       initialSearch = true;
     }
 
+    updateMaxQueryClauseCount();
+
     try (Directory directory = openSearchIndex(); //
          IndexReader indexReader = DirectoryReader.open(directory)) {
 
@@ -218,10 +221,20 @@ public class SearchService
         throw new BadRequestException("The search query contains invalid field names: " + invalidFieldNames);
       }
 
-      Query queryWithPermissions = appendAllowedApplicationsAndOrganizationsToQuery(query);
+      Query finalQuery;
+      try {
+        // TODO second param here will be based on REST query param
+        Query queryWithSbomFiltering = appendSbomFilteringToQuery(query, false);
+        finalQuery = appendAllowedApplicationsAndOrganizationsToQuery(queryWithSbomFiltering);
+      }
+      catch (TooManyClauses e) {
+        throw new BadRequestException("Error performing search due to too many clauses. " +
+            "Please try narrowing down the query as much as possible " +
+            "and consider updating Advanced Search configuration to support larger queries.");
+      }
 
       // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
-      TopDocs topDocs = indexSearcher.search(queryWithPermissions, Math.max(1, indexReader.maxDoc()));
+      TopDocs topDocs = indexSearcher.search(finalQuery, Math.max(1, indexReader.maxDoc()));
       groupDocuments(indexSearcher, topDocs.scoreDocs, page, pageSize, searchResultDTO,
           getGroupFieldNamesByItemType(fieldNames));
 
@@ -238,6 +251,12 @@ public class SearchService
       AuditData.get().setData("resultRecordCount", resultRecordCount);
       return searchResultDTO;
     }
+  }
+
+  // Update the static setting within lucene for the max query clause count, based on the current value in the
+  // configuration
+  private void updateMaxQueryClauseCount() {
+    BooleanQuery.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
   }
 
   private int countSearchResults(final SearchResultDTO searchResultDTO) {
@@ -358,6 +377,7 @@ public class SearchService
     // pick a field that is available for the item type, potentially driven by the fields searched on
     switch (itemType) {
       case APPLICATION:
+      case SBOM_METADATA: // TODO confirm with design how grouping should work for app versions (aka SBOM_METADATA)
         return APPLICATION_NAME;
       case APPLICATION_CATEGORY:
         return APPLICATION_CATEGORY_NAME;
@@ -412,6 +432,7 @@ public class SearchService
     searchResultItemDTO.applicationId = document.get(APPLICATION_ID.label);
     searchResultItemDTO.applicationPublicId = document.get(APPLICATION_PUBLIC_ID.label);
     searchResultItemDTO.applicationName = document.get(APPLICATION_NAME.label);
+    searchResultItemDTO.applicationVersion = document.get(APPLICATION_VERSION.label);
     searchResultItemDTO.policyEvaluationStage = document.get(POLICY_EVALUATION_STAGE.label);
     if (searchResultItemDTO.policyEvaluationStage != null) {
       searchResultItemDTO.policyEvaluationStage =
@@ -464,29 +485,55 @@ public class SearchService
 
     Map<String, OwnerType> contextIdsWithReadPermissionMap = getChildContextIds(contextIdsWithReadPermission);
 
-    BooleanQuery.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
     Builder allowedContextIdsQueryBuilder = new Builder();
 
-    try {
-      contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
-        if (OwnerType.APPLICATION.equals(type)) {
-          allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
-        }
-        else if (OwnerType.ORGANIZATION.equals(type)) {
-          allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
-        }
-      });
+    contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
+      if (OwnerType.APPLICATION.equals(type)) {
+        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
+      }
+      else if (OwnerType.ORGANIZATION.equals(type)) {
+        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
+      }
+    });
 
-      return new Builder()
-          .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
-          .add(query, Occur.MUST)
-          .build();
+    return new Builder()
+        .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
+        .add(query, Occur.MUST)
+        .build();
+  }
+
+  /**
+   * When the REST API is called in SBOM Manager mode, only components and vulnerabilities that are from
+   * SBOM Manager (that is, those with a defined applicationVersion) should be returned.  When it is not in
+   * SBOM Manager mode, only components and vulnerabilities that are not from SBOM Manager should be returned.
+   * SBOM entities should only be returned in SBOM Mode.
+   */
+  private Query appendSbomFilteringToQuery(Query originalQuery, boolean sbomMode) {
+    Query hasAppVersionQuery = new NormsFieldExistsQuery(APPLICATION_VERSION.label);
+    Occur shouldAppVersionResultsBeExcluded = sbomMode ? Occur.MUST_NOT : Occur.MUST;
+
+    Query componentsToExcludeQuery = new Builder()
+        .add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.searchFieldName())), Occur.MUST)
+        .add(hasAppVersionQuery, shouldAppVersionResultsBeExcluded)
+        .build();
+    Query vulnerabilitysToExcludeQuery = new Builder()
+        .add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.SECURITY_VULNERABILITY.searchFieldName())), Occur.MUST)
+        .add(hasAppVersionQuery, shouldAppVersionResultsBeExcluded)
+        .build();
+
+    Builder retvalBuilder = new Builder()
+        .add(originalQuery, Occur.MUST)
+        .add(componentsToExcludeQuery, Occur.MUST_NOT)
+        .add(vulnerabilitysToExcludeQuery, Occur.MUST_NOT);
+
+    if (!sbomMode) {
+      retvalBuilder.add(
+          new TermQuery(new Term(ITEM_TYPE.label, ItemType.SBOM_METADATA.searchFieldName())),
+          Occur.MUST_NOT
+      );
     }
-    catch (TooManyClauses e) {
-      throw new BadRequestException("Error performing search due to too many clauses. " +
-          "Please try narrowing down the query as much as possible " +
-          "and consider updating Advanced Search configuration to support larger queries.");
-    }
+
+    return retvalBuilder.build();
   }
 
   private Map<String, OwnerType> getChildContextIds(Set<String> contextIdsWithReadPermission) {

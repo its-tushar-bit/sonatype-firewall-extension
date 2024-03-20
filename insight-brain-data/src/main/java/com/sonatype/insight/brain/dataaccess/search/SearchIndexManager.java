@@ -11,4 +11,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public interface SearchIndexManager
 {
   void insert(TransactionContext tx, SearchIndexChange searchIndexChange);
+
+  void insert(SearchIndexChange searchIndexChange);
 }

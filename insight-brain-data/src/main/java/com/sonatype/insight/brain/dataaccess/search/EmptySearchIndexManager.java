@@ -25,4 +25,9 @@ public class EmptySearchIndexManager
   public void insert(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
     // no-op
   }
+
+  @Override
+  public void insert(final SearchIndexChange searchIndexChange) {
+    // no-op
+  }
 }

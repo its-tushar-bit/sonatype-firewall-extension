@@ -167,11 +167,13 @@ public class ReportService
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
-      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
-        thirdPartyDataService.deleteByScanId(scanId);
+
+      if (productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+        thirdPartyDataService.mergeSonatypeDataWithThirdPartyData(scanId);
+        thirdPartyDataService.indexSbomForSearch(scanId);
       }
       else {
-        thirdPartyDataService.mergeSonatypeDataWithThirdPartyData(scanId);
+        thirdPartyDataService.deleteByScanId(scanId);
       }
     }
   }

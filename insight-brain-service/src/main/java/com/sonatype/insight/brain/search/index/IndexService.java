@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -35,6 +38,9 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -50,6 +56,9 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -69,9 +78,13 @@ import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ListMultimap;
 import datadog.trace.api.DDTags;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -137,6 +150,14 @@ public class IndexService
   private final OwnerDAO ownerDAO;
 
   private final PolicyDAO policyDAO;
+
+  private final ThirdPartySbomMetadataDAO sbomMetadataDAO;
+
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   private final SearchIndexChangeDAO searchIndexChangeDAO;
 
@@ -212,6 +233,10 @@ public class IndexService
       TaskScheduler taskScheduler,
       LuceneComponents luceneComponents,
       ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
+      ThirdPartySbomMetadataDAO sbomMetadataDAO,
+      ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       ComponentLoaderFactory componentLoaderFactory,
       Provider<IndexCreationScheduler> indexCreationScheduler)
   {
@@ -229,6 +254,10 @@ public class IndexService
     this.taskScheduler = taskScheduler;
     this.luceneComponents = luceneComponents;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
+    this.sbomMetadataDAO = sbomMetadataDAO;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.componentLoaderFactory = componentLoaderFactory;
     this.indexCreationScheduler = indexCreationScheduler;
 
@@ -300,6 +329,7 @@ public class IndexService
       List<Organization> organizations = organizationDAO.getAll();
       Map<String, Organization> organizationById =
           organizations.stream().collect(Collectors.toMap(Organization::getId, item -> item));
+      ListMultimap<Organization, Organization> parentsByOrganization = computeParentsByOrganization(organizationById);
       List<Application> applications = applicationDAO.getAll();
 
       IndexingContext indexingContext = new IndexingContext(indexWriter);
@@ -314,15 +344,16 @@ public class IndexService
               new TenantAwareSupplier<>(() -> buildApplicationDocs(indexingContext, applications)), searchIndexPool)
           .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      TenantAwareFunction<Application, CompletableFuture<Void>> function =
+      TenantAwareFunction<Application, CompletableFuture<Void>> processSVDocsForApplication =
           new TenantAwareFunction<>(application -> CompletableFuture
               .supplyAsync(new TenantAwareSupplier<>(
                   () -> buildApplicationSVDocs(indexingContext, organizationById.get(application.getOrganizationId()),
-                      application)), searchIndexPool)
+                      application, parentsByOrganization.asMap())), searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
+
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
-          .map(function)
+          .map(processSVDocsForApplication)
           .collect(toList());
 
       CompletableFuture<Void> tagDocs =
@@ -339,6 +370,23 @@ public class IndexService
                   searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
+      CompletableFuture<Void> sbomDocs =
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildSbomDocs(indexingContext)),
+                  searchIndexPool)
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+
+      TenantAwareFunction<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
+          new TenantAwareFunction<>(application -> CompletableFuture
+              .supplyAsync(new TenantAwareSupplier<>(
+                  () -> buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
+                      application, parentsByOrganization.asMap())), searchIndexPool)
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
+
+      List<CompletableFuture<Void>> sbomSVDocs = applications
+          .parallelStream()
+          .map(processSbomSVDocsForApplication)
+          .collect(toList());
+
       log.info("indexing threads started");
       orgDocs.join();
       log.info("org indexing complete");
@@ -352,6 +400,10 @@ public class IndexService
       log.info("label indexing complete");
       policyDocs.join();
       log.info("policy indexing complete");
+      sbomDocs.join();
+      log.info("SBOM metadata indexing complete");
+      sbomSVDocs.forEach(CompletableFuture::join);
+      log.info("sbomSV indexing complete");
       indexWriter.commit();
       log.info("all indexing complete");
     }
@@ -429,6 +481,10 @@ public class IndexService
       case APPLICATION_CATEGORY:
         updateIndexForApplicationCategory(change.getChangeData(), indexingContext);
         break;
+      case SBOM:
+        String[] appIdAndVersion = change.getChangeData().split(":");
+        updateIndexForSbom(appIdAndVersion[0], appIdAndVersion[1], indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -457,6 +513,42 @@ public class IndexService
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
         buildApplicationStageSVDocs(indexingContext, organization, application, stageType, parentOrganizations));
+  }
+
+  private void updateIndexForSbom(String applicationId, String applicationVersion, IndexingContext indexingContext)
+      throws IOException
+  {
+    Query queryForObsoleteDocs = new BooleanQuery.Builder()
+        .add(indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId), Occur.MUST)
+        .add(indexingContext.newQuery(FieldIdentifier.APPLICATION_VERSION, applicationVersion), Occur.MUST)
+        .build();
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+
+    Application application = applicationDAO.getById(applicationId);
+    ThirdPartySbomMetadata sbomMetadata =
+        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, applicationVersion);
+
+    if (application == null || sbomMetadata == null) {
+      return;
+    }
+
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+    if (organization == null) {
+      return;
+    }
+
+    List<Organization> parentOrganizations = new ArrayList<>();
+    ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
+
+    Document sbomDoc = buildDocument(indexingContext, sbomMetadata);
+    List<Document> sbomContentsDocs =
+        buildSbomVersionSVDocs(organization, application, sbomMetadata, parentOrganizations);
+
+    List<Document> docsToAdd = new ArrayList<>(sbomContentsDocs.size() + 1);
+    docsToAdd.addAll(sbomContentsDocs);
+    docsToAdd.add(sbomDoc);
+
+    addDocsWithException(indexingContext.indexWriter, docsToAdd);
   }
 
   private void updateIndexForLabel(String labelId, IndexingContext indexingContext)
@@ -649,6 +741,27 @@ public class IndexService
         .build();
   }
 
+  private List<Document> buildSbomDocs(IndexingContext indexingContext) {
+    return sbomMetadataDAO.getAll().stream()
+        .map(sbomMetadata -> buildDocument(indexingContext, sbomMetadata))
+        .collect(toList());
+  }
+
+  Document buildDocument(IndexingContext indexingContext, ThirdPartySbomMetadata sbomMetadata) {
+    Owner owner = indexingContext.getOwner(sbomMetadata.getApplicationId());
+    if (!(owner instanceof Application)) {
+      throw new IllegalStateException("ThirdPartySbomMetadata " + sbomMetadata.getId() + " has owner that is not " +
+          "of type Application: " + owner);
+    }
+
+    Application application = (Application)owner;
+
+    return new DocumentBuilder(ItemType.SBOM_METADATA)
+      .setOwner(application)
+      .setApplicationVersion(sbomMetadata.getSbomVersion())
+      .build();
+  }
+
   private List<Document> buildApplicationSVDocs(
       IndexingContext indexingContext,
       Organization organization,
@@ -657,10 +770,21 @@ public class IndexService
     List<Organization> parentOrganizations = new ArrayList<>();
     ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
 
+    return buildApplicationSVDocs(indexingContext, organization, application,
+        ImmutableMap.of(organization, parentOrganizations));
+  }
+
+  private List<Document> buildApplicationSVDocs(
+      IndexingContext indexingContext,
+      Organization organization,
+      Application application,
+      Map<Organization, Collection<Organization>> parentOrgsMap)
+  {
+
     return StageTypes.getAll().parallelStream()
         .map(new TenantAwareFunction<StageType, List<Document>>(
             stageType -> buildApplicationStageSVDocs(indexingContext, organization, application, stageType,
-                parentOrganizations)))
+                parentOrgsMap.get(organization))))
         .flatMap(Collection::stream).collect(toList());
   }
 
@@ -669,7 +793,7 @@ public class IndexService
       Organization organization,
       Application application,
       StageType stageType,
-      List<Organization> parentOrganizations)
+      Collection<Organization> parentOrganizations)
   {
     try {
       PolicyEvaluation latestPolicyEvaluation =
@@ -714,7 +838,7 @@ public class IndexService
   private List<Document> buildApplicationComponentVulnerabilityDocuments(
       IndexingContext indexingContext,
       Organization organization,
-      List<Organization> parentOrganizations,
+      Collection<Organization> parentOrganizations,
       Application application,
       StageType stageType,
       String reportId,
@@ -738,7 +862,7 @@ public class IndexService
 
   Document buildDocument(
       Organization organization,
-      List<Organization> parentOrganizations,
+      Collection<Organization> parentOrganizations,
       Application application,
       StageType stageType,
       String reportId,
@@ -766,7 +890,7 @@ public class IndexService
       String reportId,
       Component component,
       SecurityVulnerability vulnerability,
-      List<Organization> parentOrganizations)
+      Collection<Organization> parentOrganizations)
   {
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
         .setOwner(application) //
@@ -784,6 +908,112 @@ public class IndexService
         .setVulnerabilityDescription(getDescription(indexingContext, vulnerability)) //
         .setParentOrganizationNames(parentOrganizations) //
         .setParentOrganizationIds(parentOrganizations) //
+        .build();
+  }
+
+  private List<Document> buildSbomSVDocs(
+      Organization organization,
+      Application application,
+      Map<Organization, Collection<Organization>> parentOrgsMap)
+  {
+    return sbomMetadataDAO.getByApplicationId(application.getId()).parallelStream()
+        .map(new TenantAwareFunction<>(
+            sbomMetadata -> buildSbomVersionSVDocs(organization, application, sbomMetadata,
+                parentOrgsMap.get(organization))))
+        .flatMap(Collection::stream).collect(toList());
+  }
+
+  private List<Document> buildSbomVersionSVDocs(
+      Organization organization,
+      Application application,
+      ThirdPartySbomMetadata sbomMetadata,
+      Collection<Organization> parentOrganizations)
+  {
+    return thirdPartyFileCoordinateDAO.getBySbomMetadataId(sbomMetadata.getId()).parallelStream()
+        .map(new TenantAwareFunction<>(
+            fileCoord -> buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata,
+                parentOrganizations, fileCoord)))
+        .flatMap(Collection::stream).collect(toList());
+  }
+
+  private List<Document> buildSbomFileCoordinateSVDocs(
+      Organization organization,
+      Application application,
+      ThirdPartySbomMetadata sbomMetadata,
+      Collection<Organization> parentOrganizations,
+      ThirdPartyFileCoordinate thirdPartyFileCoord)
+  {
+    List<ThirdPartyCoordinateSecurity> vulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
+        Collections.singletonList(thirdPartyFileCoord.getId())
+    );
+
+    if (CollectionUtils.isNotEmpty(vulns)) {
+      return vulns.parallelStream()
+          .map(new TenantAwareFunction<>(
+              vuln -> buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, vuln,
+                  parentOrganizations)))
+          .collect(toList());
+    }
+    else if (thirdPartyFileCoord.getPackageUrl() != null) {
+      return Collections.singletonList(
+          buildDocument(organization, parentOrganizations, application, sbomMetadata, thirdPartyFileCoord));
+    }
+    else {
+      return Collections.emptyList();
+    }
+  }
+
+  Document buildDocument(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFileCoordinate thirdPartyFileCoord)
+  {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier(thirdPartyFileCoord.getPackageUrl());
+    ComponentIdentifier componentIdentifier = purl.toComponentIdentifier();
+
+    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
+        .setOwner(application)
+        .setApplicationVersion(sbomMetadata.getSbomVersion())
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organization.getName())
+        .setComponentHash(thirdPartyFileCoord.getHash())
+        .setComponentFormat(purl.getFormat())
+        .setComponentCoordinates(componentIdentifier)
+        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations)
+        .build();
+  }
+
+  Document buildDocument(
+      Organization organization,
+      Application application,
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFileCoordinate thirdPartyFileCoord,
+      ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
+      Collection<Organization> parentOrganizations)
+  {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier(thirdPartyFileCoord.getPackageUrl());
+    ComponentIdentifier componentIdentifier = purl.toComponentIdentifier();
+
+    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+        .setOwner(application)
+        .setApplicationVersion(sbomMetadata.getSbomVersion())
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organization.getName())
+        .setComponentHash(thirdPartyFileCoord.getHash())
+        .setComponentFormat(purl.getFormat())
+        .setComponentCoordinates(componentIdentifier)
+        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations)
+        .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
+        .setVulnerabilitySeverity(thirdPartyCoordinateSecurity.getSeverity())
+        .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations)
         .build();
   }
 
@@ -822,5 +1052,34 @@ public class IndexService
       indexingContext.vulnDescByVulnId.put(vulnerability.getRefId(), description);
       return description;
     }
+  }
+
+  /**
+   * @return a multimap mapping each organization to all of its ancestor orgs, in order
+   */
+  private ListMultimap<Organization, Organization> computeParentsByOrganization(
+      Map<String, Organization> organizationsById)
+  {
+    // Note: the value in this map can be null (e.g. with the Root Org). Collectors.toMap doesn't allow
+    // null values, hence the for loop
+    Map<String, Organization> immediateParentMap = new HashMap<>();
+    for (Organization organization : organizationsById.values()) {
+      immediateParentMap.put(organization.getId(), organizationsById.get(organization.getParentOrganizationId()));
+    }
+
+    ListMultimap<Organization, Organization> retval = ArrayListMultimap.create(organizationsById.size(), 3);
+    for (Organization org : organizationsById.values()) {
+      Organization current = org;
+      Organization next = immediateParentMap.get(org.getParentOrganizationId());
+
+      while (current != null) {
+        retval.put(org, current);
+
+        current = next;
+        next = next == null ? null : immediateParentMap.get(next.getParentOrganizationId());
+      }
+    }
+
+    return retval;
   }
 }

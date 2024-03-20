@@ -531,8 +531,13 @@ public class SearchServiceTest
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
-    assertThat(results.stream().map(e -> e.itemType).collect(toList()))
-        .containsExactlyInAnyOrderElementsOf(Arrays.stream(ItemType.values()).map(Enum::name).collect(toList()));
+
+    List<String> actualItemTypes = results.stream().map(e -> e.itemType).collect(toList());
+    List<String> expectedItemTypes = Arrays.stream(ItemType.values()).map(Enum::name).collect(toList());
+
+    // TODO temporary until SBOM Advanced Search is fully implemented
+    expectedItemTypes.remove("SBOM_METADATA");
+    assertThat(actualItemTypes).containsExactlyInAnyOrderElementsOf(expectedItemTypes);
 
     StreamingOutput stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
     ByteArrayOutputStream baos = new ByteArrayOutputStream();

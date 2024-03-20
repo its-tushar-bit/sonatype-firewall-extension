@@ -26,6 +26,7 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
     applicationName =
       searchResultItem.applicationName &&
       (searchResultItem.itemType === 'APPLICATION' || groupIdentifier !== 'APPLICATION_NAME'),
+    applicationVersion = searchResultItem.applicationVersion,
     applicationCategory = searchResultItem.applicationCategoryName,
     componentName = searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
     componentLabel = searchResultItem.componentLabelId,
@@ -106,6 +107,17 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             <td className="nx-cell">
               <a href={getAppHref()}>{searchResultItem.applicationName}</a>
             </td>
+          </tr>
+        )}
+
+        {applicationVersion && (
+          <tr className="nx-table-row">
+            <td className="nx-cell">
+              {/* TODO use correct icon */}
+              <NxFontAwesomeIcon icon={faTerminal} />
+            </td>
+            <td className="nx-cell">Application Version</td>
+            <td className="nx-cell">{searchResultItem.applicationVersion}</td>
           </tr>
         )}
 

@@ -12,6 +12,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -65,7 +67,13 @@ public class ThirdPartySbomMetadataDAO
         " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2";
     return get(sQuery, applicationId, sbomVersion);
   }
-  
+
+  public ThirdPartySbomMetadata getByScanId(String scanId) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity, ThirdPartyScan scan" +
+        " WHERE entity.thirdPartyFileId = scan.thirdPartyFileId AND scan.scanId = ?1";
+    return get(sQuery, scanId);
+  }
+
   public ThirdPartySbomMetadata getByApplicationIdAndSbomVersionAndStatus(
       String applicationId,
       String sbomVersion,
@@ -86,5 +94,24 @@ public class ThirdPartySbomMetadataDAO
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity " //
         + "WHERE entity.status='ACTIVE'";
     return getSingle(Long.class, sQuery);
+  }
+
+  /**
+   * This allows service-layer code to create a SearchIndexChanges for insert or update at the appropriate times.
+   * It also implements the search index change for deletions.
+   */
+  @Override
+  public SearchIndexChange newSearchIndexChange(ThirdPartySbomMetadata sbomMetadata) {
+    return new SearchIndexChange(ChangeType.SBOM,
+        String.format("%s:%s", sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion()));
+  }
+
+  /**
+   * Search indexing for these records should not occur automatically, as child records need to be in place
+   * before the indexing is done, and those records are outside the scope of this DAO
+   */
+  @Override
+  protected SearchIndexChange newSearchIndexChangeForInsert(ThirdPartySbomMetadata sbomMetadata) {
+    return null;
   }
 }

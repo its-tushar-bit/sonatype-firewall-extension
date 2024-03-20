@@ -38,4 +38,15 @@ public class DefaultSearchIndexManager
       searchIndexChangeDAO.insert(tx, searchIndexChange);
     }
   }
+
+  @Override
+  public void insert(final SearchIndexChange searchIndexChange) {
+    if (searchIndexChange != null) {
+      try (TransactionContext tx = searchIndexChangeDAO.createTransactionContext()) {
+        tx.begin();
+        insert(tx, searchIndexChange);
+        tx.commit();
+      }
+    }
+  }
 }

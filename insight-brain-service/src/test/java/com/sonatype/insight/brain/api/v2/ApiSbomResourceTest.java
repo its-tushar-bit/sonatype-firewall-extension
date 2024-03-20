@@ -241,4 +241,36 @@ public class ApiSbomResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getBody(SbomComponentDTO[].class)).isEmpty();
   }
+
+  @Test
+  public void testGetSbomVersionListByAppId_Successful() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("1.5")
+        .build();
+
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APP_PATH)
+        .parameter(app.getId());
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    assertThat(response.getContentType()).isEqualTo("application/json");
+    List<String> applicationVersionsSbomDTOS = response.getBody(List.class);
+    assertThat(applicationVersionsSbomDTOS).hasSize(1);
+    assertThat(applicationVersionsSbomDTOS.get(0)).isEqualTo("1.5");
+  }
+
+  @Test
+  public void testGetSbomVersionListByAppId_Empty() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APP_PATH)
+        .parameter(app.getId());
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    assertThat(response.getContentType()).isEqualTo("application/json");
+    List<String> applicationVersionsSbomDTOS = response.getBody(List.class);
+    assertThat(applicationVersionsSbomDTOS).isEmpty();
+  }
 }

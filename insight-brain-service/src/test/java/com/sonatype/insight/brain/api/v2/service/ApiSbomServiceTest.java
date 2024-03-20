@@ -315,4 +315,25 @@ public class ApiSbomServiceTest
               .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
         });
   }
+
+  @Test
+  public void testGetSbomVersionListByAppId_Successful() {
+    Application app = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("1.5")
+        .build();
+
+    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByAppId(app.getId());
+    assertThat(applicationVersionsSbomDTOS.size()).isEqualTo(1);
+    assertThat(applicationVersionsSbomDTOS.get(0)).isEqualTo("1.5");
+  }
+
+  @Test
+  public void testGetSbomVersionListByAppId_SuccessfulEmpty() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByAppId(app.getId());
+    assertThat(applicationVersionsSbomDTOS).isEmpty();
+  }
 }

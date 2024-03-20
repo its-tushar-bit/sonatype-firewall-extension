@@ -119,4 +119,31 @@ public class ApiSbomServiceAuthzTest
     grantReadPermission(application.getId());
     apiSbomService.getSbomComponents(application.getId(), "test-version");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSbomVersionListForAppId_Unauthenticated() {
+    apiSbomService.getSbomVersionListByAppId("test-app-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSbomVersionListForAppId_Unauthorized() {
+    login();
+    apiSbomService.getSbomVersionListByAppId(app.getId());
+  }
+
+  @Test
+  public void testGetSbomVersionListForAppId_Authorized() {
+    grantReadPermission(app.getId());
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("1.5")
+        .build();
+    apiSbomService.getSbomVersionListByAppId(app.getId());
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetSbomVersionListForAppId_Authorized_NotFound() {
+    grantReadPermission("test");
+    apiSbomService.getSbomVersionListByAppId("test");
+  }
 }

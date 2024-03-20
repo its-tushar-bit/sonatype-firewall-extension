@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -173,5 +174,16 @@ public class ApiSbomService
       throw new NotFoundException(String.format(cannotFindVersionError, sbomVersion, applicationId));
     }
     return thirdPartySbomMetadata;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<String> getSbomVersionListByAppId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+  {
+    List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(applicationId);
+
+    return sbomMetadata.stream()
+        .map(ThirdPartySbomMetadata::getSbomVersion)
+        .collect(Collectors.toList());
   }
 }

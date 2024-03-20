@@ -50,6 +50,8 @@ public class ApiSbomResource
 
   static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/versions/{sbomVersion}";
 
+  static final String SBOM_VERSIONS_BY_APP_PATH = "/sbomVersions/" + SBOM_APPLICATION_PATH;
+
   static final String SBOMS_APPLICATION_PATH = "application/" + SBOM_APPLICATION_PATH;
 
   static final String SBOM_COMPONENTS_PATH = SBOM_VERSIONS_PATH + "/components";
@@ -158,5 +160,26 @@ public class ApiSbomResource
           required = true) @PathParam("sbomVersion") String sbomVersion)
   {
     return apiSbomService.getSbomComponents(applicationId, sbomVersion);
+  }
+
+  @Operation(summary = "Gets a list of sbom versions by application id",
+      tags = {"sbom"},
+      description = "Gets a list of sbom versions by application id",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "list of the sbom versions by application id",
+              content = @Content(mediaType = "application/json"))
+      })
+
+  @GET
+  @Path(SBOM_VERSIONS_BY_APP_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<String> getSbomVersionListByApplication(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId
+  )
+  {
+    return apiSbomService.getSbomVersionListByAppId(applicationId);
   }
 }

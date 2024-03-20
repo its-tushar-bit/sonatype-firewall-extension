@@ -9,20 +9,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -31,6 +34,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -44,10 +49,14 @@ import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.Searc
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -81,6 +90,9 @@ public class SearchServiceTest
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
   @Override
   public void configure(Binder binder) {
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
@@ -93,20 +105,22 @@ public class SearchServiceTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
 
     assertThatExceptionOfType(NotAuthorizedException.class)
-        .isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
+        .isThrownBy(() -> searchService.searchIndex("query", 1, 1, false, null))
         .withMessage("advanced-search-configuration feature is disabled.");
   }
 
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(
+        () -> searchService.searchIndex("query", 1, 1, false, null))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
   @Test
   public void testSearchIndex_EmptySearchIndexDirectory() throws Exception {
     Files.createDirectories(insightWork.getSearchIndexDir().toPath());
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(
+        () -> searchService.searchIndex("query", 1, 1, false, null))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
@@ -119,8 +133,8 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_Telemetry() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0, true);
-    searchService.searchIndex("itemType:it1", 1, 0, false);
+    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0, true, null);
+    searchService.searchIndex("itemType:it1", 1, 0, false, null);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
@@ -138,7 +152,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_TelemetryNotAddedWhenPagingThroughResults() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1", 10, 1, false);
+    searchService.searchIndex("itemType:it1", 10, 1, false, null);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     assertThat(telemetryData).isNull();
@@ -149,7 +163,7 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> searchService.searchIndex("invalidFieldName:value", 1, 0, false));
+        .isThrownBy(() -> searchService.searchIndex("invalidFieldName:value", 1, 0, false, null));
 
     TelemetryData telemetryData = collectSearchTelemetry();
 
@@ -168,7 +182,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_TelemetryDuplicateFieldNamesInQueryAreIgnored() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1 itemType:it2", 1, 0, true);
+    searchService.searchIndex("itemType:it1 itemType:it2", 1, 0, true, null);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
@@ -193,7 +207,7 @@ public class SearchServiceTest
     tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
 
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
@@ -216,7 +230,7 @@ public class SearchServiceTest
     tempEntity.newMembershipMapping(anotherApplication.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
 
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
 
@@ -245,7 +259,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
     List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
@@ -254,7 +268,7 @@ public class SearchServiceTest
         .collect(toList());
     assertThat(organizationIds).containsOnly(organization.getId());
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
     List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
@@ -290,10 +304,10 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3); // 2 orgs + the Root org = 3
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // 4 applications owned by 2 organizations
   }
 
@@ -316,7 +330,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false, null);
 
     List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -324,7 +338,7 @@ public class SearchServiceTest
         .collect(toList());
     assertThat(organizationIds).containsExactly(org1.getId());
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
 
     List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -352,17 +366,17 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("CVE-2022-25857 AND organizationName:org-01", 10, 0, true);
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:org-01", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3);
 
-    searchResultDTO = searchService.searchIndex("organizationName:org-02", 10, 0, true);
+    searchResultDTO = searchService.searchIndex("organizationName:org-02", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(0);  // insufficient permissions
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857 AND organizationName:org-02", 10, 0, true);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857 AND organizationName:org-02", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);  // sufficient permissions
 
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // no org filter
   }
 
@@ -386,11 +400,11 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("CVE-2022-25857 AND organizationName:parent-organization", 10, 0, true);
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:parent-organization", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3);
 
     searchResultDTO =
-        searchService.searchIndex("CVE-2022-25857 AND organizationName:child-organization", 10, 0, true);
+        searchService.searchIndex("CVE-2022-25857 AND organizationName:child-organization", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
   }
 
@@ -417,15 +431,15 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+        searchService.searchIndex("CVE-2022-25857", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);  // insufficient permissions
 
     tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5);  // sufficient permissions
   }
 
@@ -453,7 +467,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:POLICY", 20, 0, false);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:POLICY", 20, 0, false, null);
 
     List<String> policyIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -483,7 +497,7 @@ public class SearchServiceTest
       indexService.createSearchIndex();
 
       assertThatExceptionOfType(BadRequestException.class)
-          .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0, false))
+          .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0, false, null))
           .withMessage("Error performing search due to too many clauses. " +
               "Please try narrowing down the query as much as possible " +
               "and consider updating Advanced Search configuration to support larger queries.");
@@ -499,7 +513,7 @@ public class SearchServiceTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
 
     assertThatExceptionOfType(NotAuthorizedException.class)
-        .isThrownBy(() -> searchService.exportSearch("itemType:*", true))
+        .isThrownBy(() -> searchService.exportSearch("itemType:*", true, null))
         .withMessage("advanced-search-configuration feature is disabled.");
   }
 
@@ -526,7 +540,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
 
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -539,7 +553,7 @@ public class SearchServiceTest
     expectedItemTypes.remove("SBOM_METADATA");
     assertThat(actualItemTypes).containsExactlyInAnyOrderElementsOf(expectedItemTypes);
 
-    StreamingOutput stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
+    StreamingOutput stream = (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);
     List<String> export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -576,7 +590,7 @@ public class SearchServiceTest
           ";");
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
-      stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
+      stream = (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
       baos = new ByteArrayOutputStream();
       stream.write(baos);
       export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -587,6 +601,221 @@ public class SearchServiceTest
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
     }
+  }
+
+  @Test
+  public void testSearchIndex_SbomManagerMode_MissingLicensedFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager"))
+        .withMessageContaining("The SBOM Manager feature is not supported by your license.");
+  }
+
+  @Test
+  public void testSearchIndex_SbomManagerFeature_DefaultModeNotSupported() {
+    testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, null))
+        .withMessageContaining("Only SBOM Manager mode is supported by your license.");
+  }
+
+  @Test
+  public void testSearchIndex_SbomManagerMode() throws Exception {
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), userPrincipal.getUsername());
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1", true);
+    tempEntity.newSbomEvaluation(app,
+        "1.1",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
+        "someScanId2", false);
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
+    tempEntity.newPolicy(); // Should not be returned
+    newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
+    indexService.createSearchIndex();
+    assertThat(searchService.searchIndex("applicationCategoryId:*", 100, 0, true, true,
+        "sbomManager").groupingByDTOS).isEmpty();
+    assertThat(searchService.searchIndex("componentLabelId:*", 100, 0, true, true,
+        "sbomManager").groupingByDTOS).isEmpty();
+    assertThat(searchService.searchIndex("policyId:*", 100, 0, true, true,
+        "sbomManager").groupingByDTOS).isEmpty();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager");
+
+    List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .collect(toList());
+    assertThat(results).hasSize(7);
+    assertThat(find(results, ItemType.ORGANIZATION,
+        s -> Organization.ROOT_ORGANIZATION_ID.equals(s.organizationId))).hasSize(1);
+    assertThat(find(results, ItemType.ORGANIZATION, s -> org.getId().equals(s.organizationId))).hasSize(1);
+    assertThat(find(results, ItemType.APPLICATION, s -> app.getId().equals(s.applicationId))).hasSize(1);
+    assertThat(find(results, ItemType.SBOM_METADATA, s -> "1.0".equals(s.applicationVersion))).hasSize(1);
+    assertThat(find(results, ItemType.SBOM_METADATA, s -> "1.1".equals(s.applicationVersion))).hasSize(1);
+    assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "n v1".equals(s.componentName))).hasSize(1);
+    assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "1.0".equals(s.applicationVersion))).hasSize(1);
+    assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "n v2".equals(s.componentName))).hasSize(1);
+    assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "1.1".equals(s.applicationVersion))).hasSize(1);
+    assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "someScanId3".equals(s.reportId))).isEmpty();
+    assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "someScanId3".equals(s.reportId))).isEmpty();
+  }
+
+  @Test
+  public void testSearchIndex_DefaultMode() throws Exception {
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), userPrincipal.getUsername());
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1",
+        true);
+    tempEntity.newSbomEvaluation(app,
+        "1.1",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
+        "someScanId2",
+        false);
+    newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    Policy policy = tempEntity.newPolicy();
+    indexService.createSearchIndex();
+    assertThat(searchService.searchIndex("applicationVersion:*", 100, 0, true, true, null).groupingByDTOS).isEmpty();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
+
+    List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .collect(toList());
+    assertThat(results).hasSize(9);
+    assertThat(find(results, ItemType.ORGANIZATION,
+        s -> Organization.ROOT_ORGANIZATION_ID.equals(s.organizationId))).hasSize(1);
+    assertThat(find(results, ItemType.ORGANIZATION, s -> org.getId().equals(s.organizationId))).hasSize(1);
+    assertThat(find(results, ItemType.APPLICATION, s -> app.getId().equals(s.applicationId))).hasSize(1);
+    assertThat(find(results, ItemType.APPLICATION_CATEGORY, s -> tag.getId().equals(s.applicationCategoryId))).hasSize(
+        1);
+    assertThat(find(results, ItemType.COMPONENT_LABEL, s -> label.getId().equals(s.componentLabelId))).hasSize(1);
+    assertThat(find(results, ItemType.POLICY, s -> policy.getId().equals(s.policyId))).hasSize(1);
+    assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "n v1".equals(s.componentName))).isEmpty();
+    assertThat(
+        find(results, ItemType.SECURITY_VULNERABILITY, s -> StringUtils.isNotBlank(s.applicationVersion))).isEmpty();
+    assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "n v2".equals(s.componentName))).isEmpty();
+    assertThat(
+        find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> StringUtils.isNotBlank(s.applicationVersion))).isEmpty();
+    assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "someScanId3".equals(s.reportId))).hasSize(2);
+    assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "someScanId3".equals(s.reportId))).hasSize(1);
+  }
+
+  @Test
+  public void testSearchIndex_ExportAdvancedSearch_SbomManagerMode() throws Exception {
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), userPrincipal.getUsername());
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1",
+        true);
+    tempEntity.newSbomEvaluation(app,
+        "1.1",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
+        "someScanId2",
+        false);
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
+    tempEntity.newPolicy(); // Should not be returned
+    newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
+    indexService.createSearchIndex();
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager");
+    List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .collect(toList());
+
+    StreamingOutput stream =
+        (StreamingOutput) searchService.exportSearch("itemType:*", true, "sbomManager").getEntity();
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    stream.write(baos);
+    List<String> rows = Arrays.asList(baos.toString().split("\n"));
+    Map<String, List<List<String>>> items = rows.stream()
+        .skip(1)
+        .map(s -> Arrays.stream(s.split(",")).collect(toList()))
+        .collect(groupingBy(l -> l.get(0)));
+    assertThat(rows).hasSize(8);
+    assertThat(rows.size() - 1).isEqualTo(results.size());
+    assertThat(items).hasSize(5);
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo("Root Organization");
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app.getName());
+    // TODO include SBOM manager metadata
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(12)).isEqualTo("n v1");
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo("n v2");
+  }
+
+  @Test
+  public void testSearchIndex_ExportAdvancedSearch_DefaultMode() throws Exception {
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), userPrincipal.getUsername());
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1",
+        true);
+    tempEntity.newSbomEvaluation(app,
+        "1.1",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
+        "someScanId2",
+        false);
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    Policy policy = tempEntity.newPolicy();
+    newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
+    indexService.createSearchIndex();
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
+    List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .collect(toList());
+
+    StreamingOutput stream =
+        (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    stream.write(baos);
+    List<String> rows = Arrays.asList(baos.toString().split("\n"));
+    Map<String, List<List<String>>> items = rows.stream()
+        .skip(1)
+        .map(s -> Arrays.stream(s.split(",")).collect(toList()))
+        .collect(groupingBy(l -> l.get(0)));
+    assertThat(rows).hasSize(10);
+    assertThat(rows.size() - 1).isEqualTo(results.size());
+    assertThat(items).hasSize(7);
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo("Root Organization");
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app.getName());
+    assertThat(items.get(ItemType.APPLICATION_CATEGORY.name()).get(0).get(5)).isEqualTo(tag.getName());
+    assertThat(items.get(ItemType.COMPONENT_LABEL.name()).get(0).get(7)).isEqualTo(label.getLabel());
+    assertThat(items.get(ItemType.POLICY.name()).get(0).get(9)).isEqualTo(policy.getName());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(12)).isEqualTo(
+        "tomcat : tomcat-util : 5.5.23");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(14)).isEqualTo("ui/links/vln/36079");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(1).get(12)).isEqualTo(
+        "tomcat : tomcat-util : 5.5.23");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(1).get(14)).isEqualTo("ui/links/vln/62054");
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo(
+        "org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.3");
   }
 
   @Test
@@ -610,7 +839,7 @@ public class SearchServiceTest
     // Try all results on one page
     // There are 4 results for CVE-2022-25857 but only 2 of these are sequential and should be grouped
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", Integer.MAX_VALUE, 0, false);
+        searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", Integer.MAX_VALUE, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(38);
 
@@ -632,7 +861,7 @@ public class SearchServiceTest
 
     // Try splitting a group across pages
     // There are 4 results for CVE-2022-25857 but the 2 sequential results are split across pages and so not grouped
-    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 0, false);
+    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(36);
 
@@ -651,7 +880,7 @@ public class SearchServiceTest
     assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS).hasSize(1);
     assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(0).resultIndex).isEqualTo(36);
 
-    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 2, false);
+    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 2, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(3);
 
@@ -662,7 +891,7 @@ public class SearchServiceTest
 
     // If we search specifically for CVE-2022-25857, then all results should be grouped (unless split across pages)
     // since no matter the order they will have the same groupBy key
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", Integer.MAX_VALUE, 0, false);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", Integer.MAX_VALUE, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
 
@@ -675,7 +904,7 @@ public class SearchServiceTest
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(3).resultIndex).isEqualTo(4);
 
     // Try splitting across pages
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 0, false);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 0, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
 
@@ -687,7 +916,7 @@ public class SearchServiceTest
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(1);
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(1).resultIndex).isEqualTo(2);
 
-    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 2, false);
+    searchResultDTO = searchService.searchIndex("CVE-2022-25857", 2, 2, false, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
     assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
 
@@ -707,5 +936,20 @@ public class SearchServiceTest
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
     return policyEval;
+  }
+
+  private List<SearchResultItemDTO> find(
+      Collection<SearchResultItemDTO> searchResultDTOS,
+      ItemType itemType,
+      Predicate<SearchResultItemDTO> searchResultDTOPredicate)
+  {
+    return find(searchResultDTOS, s -> itemType.name().equals(s.itemType) && searchResultDTOPredicate.test(s));
+  }
+
+  private List<SearchResultItemDTO> find(
+      Collection<SearchResultItemDTO> searchResultDTOS,
+      Predicate<SearchResultItemDTO> searchResultDTOPredicate)
+  {
+    return searchResultDTOS.stream().filter(searchResultDTOPredicate).collect(toList());
   }
 }

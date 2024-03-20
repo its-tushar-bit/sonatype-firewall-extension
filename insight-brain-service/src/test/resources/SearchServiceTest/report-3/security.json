@@ -1,0 +1,27 @@
+{
+  "aaData" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/36079",
+    "reference" : "36079",
+    "source" : "osvdb",
+    "score" : 3.5,
+    "matchState" : "exact",
+    "proprietary" : true,
+    "status" : "Acknowledged",
+    "comment" : "Test"
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/62054",
+    "reference" : "62054",
+    "source" : "osvdb",
+    "score" : null,
+    "matchState" : "exact",
+    "proprietary" : true
+  } ]
+}

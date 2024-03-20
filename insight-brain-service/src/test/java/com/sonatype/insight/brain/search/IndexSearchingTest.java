@@ -127,7 +127,7 @@ public class IndexSearchingTest
   }
 
   private List<SearchResultItemDTO> search(String query, boolean allComponents) throws Exception {
-    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents).groupingByDTOS.stream()
+    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, null).groupingByDTOS.stream()
         .map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream).collect(toList());
   }
 

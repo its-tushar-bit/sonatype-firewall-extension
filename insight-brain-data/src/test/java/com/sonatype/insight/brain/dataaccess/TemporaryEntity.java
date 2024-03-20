@@ -300,6 +300,7 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -4732,6 +4733,30 @@ public class TemporaryEntity
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
     return thirdPartySbomMetadata;
+  }
+
+  public void newSbomEvaluation(
+      Application application,
+      String applicationVersion,
+      PackageUrlIdentifier componentPackageUrl,
+      String scanId,
+      boolean isVulnerable)
+  {
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile("bom.xml");
+    createSbomMetadata(application.getId(), applicationVersion, thirdPartyFile);
+    ThirdPartyScan thirdPartyScan = newThirdPartyScan(thirdPartyFile);
+    thirdPartyScan.setScanId(scanId);
+    thirdPartyScanDAO.update(thirdPartyScan);
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        newThirdPartyFileCoordinate(thirdPartyFile, "someSource", componentPackageUrl.getFormat(),
+            componentPackageUrl.getName(), componentPackageUrl.getVersion());
+    thirdPartyFileCoordinate.setPackageUrl(componentPackageUrl.getPackageUrl());
+    thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
+    if (isVulnerable) {
+      newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
+          5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
+          "aRMethod", "someRecommendations", "someAdvisories");
+    }
   }
 
   private void initializeDAOs() {

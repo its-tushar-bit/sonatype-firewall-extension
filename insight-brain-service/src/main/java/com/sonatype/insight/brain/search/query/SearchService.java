@@ -44,6 +44,8 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -58,6 +60,8 @@ import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -79,6 +83,8 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.Directory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getItemManagementPathEdit;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;
@@ -107,8 +113,12 @@ import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.SE
 @Singleton
 public class SearchService
 {
+  private static final Logger log = LoggerFactory.getLogger(SearchService.class);
+
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
+
+  private static final String SBOM_MANAGER_MODE = "sbomManager";
 
   private final LuceneComponents luceneComponents;
 
@@ -124,6 +134,8 @@ public class SearchService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public SearchService(
       LuceneComponents luceneComponents,
@@ -132,7 +144,8 @@ public class SearchService
       CurrentUser currentUser,
       OwnerDAO ownerDAO,
       Configuration configuration,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      ProductLicense productLicense)
   {
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
@@ -141,13 +154,7 @@ public class SearchService
     this.ownerDAO = ownerDAO;
     this.configuration = configuration;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
-  }
-
-  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page, boolean allComponents)
-      throws IOException
-  {
-    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
-    return searchIndex(searchQuery, pageSize, page, allComponents, false);
+    this.productLicense = productLicense;
   }
 
   public SearchResultDTO searchIndex(
@@ -155,9 +162,35 @@ public class SearchService
       int pageSize,
       int page,
       boolean allComponents,
-      boolean isExportable)
+      String mode)
       throws IOException
   {
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
+    return searchIndex(searchQuery, pageSize, page, allComponents, false, mode);
+  }
+
+  public SearchResultDTO searchIndex(
+      String searchQuery,
+      int pageSize,
+      int page,
+      boolean allComponents,
+      boolean isExportable,
+      String mode)
+      throws IOException
+  {
+    return searchIndex(searchQuery, pageSize, page, allComponents, isExportable, isSbomManagerMode(mode));
+  }
+
+  private SearchResultDTO searchIndex(
+      String searchQuery,
+      int pageSize,
+      int page,
+      boolean allComponents,
+      boolean isExportable,
+      boolean isSbomManagerMode)
+      throws IOException
+  {
+    checkMode(isSbomManagerMode);
     boolean initialSearch = false;
     if (page == 0) {
       // when actually paging through the results, a positive page index is used
@@ -223,8 +256,7 @@ public class SearchService
 
       Query finalQuery;
       try {
-        // TODO second param here will be based on REST query param
-        Query queryWithSbomFiltering = appendSbomFilteringToQuery(query, false);
+        Query queryWithSbomFiltering = appendSbomFilteringToQuery(query, isSbomManagerMode);
         finalQuery = appendAllowedApplicationsAndOrganizationsToQuery(queryWithSbomFiltering);
       }
       catch (TooManyClauses e) {
@@ -314,16 +346,17 @@ public class SearchService
     }
   }
 
-  public Response exportSearch(String searchQuery, boolean allComponents) {
+  public Response exportSearch(String searchQuery, boolean allComponents, String mode) {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
+    boolean isSbomManagerMode = isSbomManagerMode(mode);
     try {
       List<SearchResultItemDTO> searchResultItemsDTO =
-          searchIndex(searchQuery, 0, 0, allComponents, true)
+          searchIndex(searchQuery, 0, 0, allComponents, true, isSbomManagerMode)
               .groupingByDTOS.stream()
               .flatMap(g -> g.searchResultItemDTOS.stream())
               .collect(Collectors.toList());
 
-      ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(searchResultItemsDTO))
+      ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(searchResultItemsDTO, isSbomManagerMode))
           .type("application/csv; charset=UTF-8")
           .encoding("UTF-8")
           .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -503,37 +536,54 @@ public class SearchService
   }
 
   /**
-   * When the REST API is called in SBOM Manager mode, only components and vulnerabilities that are from
-   * SBOM Manager (that is, those with a defined applicationVersion) should be returned.  When it is not in
-   * SBOM Manager mode, only components and vulnerabilities that are not from SBOM Manager should be returned.
-   * SBOM entities should only be returned in SBOM Mode.
+   * When the REST API is called in:
+   * <br/><br/>
+   * SBOM Manager mode
+   * <ul>
+   *   <li>Components without an applicationVersion MUST NOT be returned</li>
+   *   <li>Vulnerabilities without an applicationVersion MUST NOT be returned</li>
+   *   <li>Application categories MUST NOT be returned</li>
+   *   <li>Component labels MUST NOT be returned</li>
+   *   <li>Policies MUST NOT be returned</li>
+   * </ul>
+   * Default Mode
+   * </ul>
+   *   <li>Components with an applicationVersion MUST NOT be returned</li>
+   *   <li>Vulnerabilities with an applicationVersion MUST NOT be returned</li>
+   *   <li>SBOM metadata MUST NOT be returned</li>
+   * </ul>
    */
-  private Query appendSbomFilteringToQuery(Query originalQuery, boolean sbomMode) {
+  private Query appendSbomFilteringToQuery(Query originalQuery, boolean isSbomManagerMode) {
     Query hasAppVersionQuery = new NormsFieldExistsQuery(APPLICATION_VERSION.label);
-    Occur shouldAppVersionResultsBeExcluded = sbomMode ? Occur.MUST_NOT : Occur.MUST;
-
+    Occur shouldAppVersionResultsBeExcluded = isSbomManagerMode ? Occur.MUST_NOT : Occur.MUST;
     Query componentsToExcludeQuery = new Builder()
         .add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.searchFieldName())), Occur.MUST)
         .add(hasAppVersionQuery, shouldAppVersionResultsBeExcluded)
         .build();
-    Query vulnerabilitysToExcludeQuery = new Builder()
+    Query vulnerabilitiesToExcludeQuery = new Builder()
         .add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.SECURITY_VULNERABILITY.searchFieldName())), Occur.MUST)
         .add(hasAppVersionQuery, shouldAppVersionResultsBeExcluded)
         .build();
 
-    Builder retvalBuilder = new Builder()
-        .add(originalQuery, Occur.MUST)
-        .add(componentsToExcludeQuery, Occur.MUST_NOT)
-        .add(vulnerabilitysToExcludeQuery, Occur.MUST_NOT);
-
-    if (!sbomMode) {
-      retvalBuilder.add(
-          new TermQuery(new Term(ITEM_TYPE.label, ItemType.SBOM_METADATA.searchFieldName())),
-          Occur.MUST_NOT
-      );
+    Builder builder = new Builder();
+    builder.add(originalQuery, Occur.MUST);
+    // SBOM Manager -> -(NON_VULNERABLE_COMPONENT AND !APPLICATION_VERSION)
+    // Default -> -(NON_VULNERABLE_COMPONENT AND APPLICATION_VERSION)
+    builder.add(componentsToExcludeQuery, Occur.MUST_NOT);
+    // SBOM Manager -> -(SECURITY_VULNERABILITY AND !APPLICATION_VERSION)
+    // Default -> -(SECURITY_VULNERABILITY AND APPLICATION_VERSION)
+    builder.add(vulnerabilitiesToExcludeQuery, Occur.MUST_NOT);
+    if (isSbomManagerMode) {
+      // SBOM Manager -> -APPLICATION_CATEGORY, -COMPONENT_LABEL, -POLICY
+      builder.add(new TermQuery(new Term(ITEM_TYPE.label, APPLICATION_CATEGORY.searchFieldName())), Occur.MUST_NOT);
+      builder.add(new TermQuery(new Term(ITEM_TYPE.label, COMPONENT_LABEL.searchFieldName())), Occur.MUST_NOT);
+      builder.add(new TermQuery(new Term(ITEM_TYPE.label, POLICY.searchFieldName())), Occur.MUST_NOT);
     }
-
-    return retvalBuilder.build();
+    else {
+      // Default -> -SBOM_METADATA
+      builder.add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.SBOM_METADATA.searchFieldName())), Occur.MUST_NOT);
+    }
+    return builder.build();
   }
 
   private Map<String, OwnerType> getChildContextIds(Set<String> contextIdsWithReadPermission) {
@@ -549,7 +599,10 @@ public class SearchService
     return childContextIds;
   }
 
-  private StreamingOutput createAdvancedSearchCSV(List<SearchResultItemDTO> searchResultItemsDTOS) {
+  private StreamingOutput createAdvancedSearchCSV(
+      List<SearchResultItemDTO> searchResultItemsDTOS,
+      boolean isSbomManagerMode)
+  {
     CSVFormat csvFormat = CSVFormat.Builder.create()
         .setHeader(EXPORT_SEARCH_HEADERS)
         .setDelimiter(configuration.getAdvancedSearchCSVExportDelimiter())
@@ -561,7 +614,8 @@ public class SearchService
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));
            CSVPrinter printer = new CSVPrinter(writer, csvFormat)) {
         for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOS) {
-          printer.printRecord(getAdvancedSearchCVSRowFromSearchResultItem(searchResultItemDTO, baseUrl));
+          printer.printRecord(
+              getAdvancedSearchCVSRowFromSearchResultItem(searchResultItemDTO, baseUrl, isSbomManagerMode));
         }
         printer.flush();
         writer.flush();
@@ -571,7 +625,8 @@ public class SearchService
 
   private List<String> getAdvancedSearchCVSRowFromSearchResultItem(
       SearchResultItemDTO searchResultItemDTO,
-      String baseUrl)
+      String baseUrl,
+      boolean isSbomManagerMode)
   {
     List<String> row = new ArrayList<>(Collections.nCopies(16, ""));
 
@@ -641,7 +696,9 @@ public class SearchService
         row.set(3, searchResultItemDTO.applicationName);
         row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
         row.set(12, searchResultItemDTO.componentName);
-        row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
+        // TODO properly customize csv for SBOM manager mode, this is needed now so that the tests pass
+        row.set(13, isSbomManagerMode ? "" :
+            baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
         row.set(14, baseUrl + getVulnerabilityDetailsUrl(searchResultItemDTO.vulnerabilityId));
         row.set(15, searchResultItemDTO.policyEvaluationStage);
         break;
@@ -654,7 +711,9 @@ public class SearchService
         row.set(3, searchResultItemDTO.applicationName);
         row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
         row.set(12, searchResultItemDTO.componentName);
-        row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
+        // TODO properly customize csv for SBOM manager mode, this is needed now so that the tests pass
+        row.set(13, isSbomManagerMode ? "" :
+            baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
         row.set(15, searchResultItemDTO.policyEvaluationStage);
         break;
       default:
@@ -662,5 +721,35 @@ public class SearchService
         break;
     }
     return row;
+  }
+
+  private static boolean isSbomManagerMode(String mode) {
+    return SBOM_MANAGER_MODE.equalsIgnoreCase(mode);
+  }
+
+  private void checkMode(boolean isSbomManagerMode) {
+    if (isSbomManagerMode && !productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      log.error("License does not have the SBOM Manager feature.");
+      throw new InvalidLicenseException("The SBOM Manager feature is not supported by your license.");
+    }
+    if (!isSbomManagerMode && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) &&
+        !hasProductSupportingDefaultMode()) {
+      log.error("License does not support anything other than SBOM Manager mode.");
+      throw new InvalidLicenseException("Only SBOM Manager mode is supported by your license.");
+    }
+  }
+
+  // TODO possibly add a LicensedFeature.ADVANCED_SEARCH to replace this
+  private boolean hasProductSupportingDefaultMode() {
+    //     Auditor
+    return productLicense.hasProduct(ProductLicenseDetails.PRODUCT_RISK)
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)
+        // Lifecycle
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)
+        // Foundation
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)
+        || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS);
   }
 }

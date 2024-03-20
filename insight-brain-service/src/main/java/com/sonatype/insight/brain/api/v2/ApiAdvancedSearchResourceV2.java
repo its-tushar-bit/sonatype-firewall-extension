@@ -65,9 +65,10 @@ public class ApiAdvancedSearchResourceV2
       @QueryParam("query") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("page") int page,
-      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents) throws IOException
+      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
+      @QueryParam("mode") String mode) throws IOException
   {
-    return searchService.searchIndex(searchQuery, pageSize, page, allComponents);
+    return searchService.searchIndex(searchQuery, pageSize, page, allComponents, mode);
   }
 
   /**
@@ -84,8 +85,9 @@ public class ApiAdvancedSearchResourceV2
   @Produces("application/csv")
   public Response getExportResults(
       @QueryParam("query") String searchQuery,
-      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents)
+      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
+      @QueryParam("mode") String mode)
   {
-    return searchService.exportSearch(searchQuery, allComponents);
+    return searchService.exportSearch(searchQuery, allComponents, mode);
   }
 }

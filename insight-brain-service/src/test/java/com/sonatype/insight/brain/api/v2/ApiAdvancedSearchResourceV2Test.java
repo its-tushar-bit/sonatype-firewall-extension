@@ -9,10 +9,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -21,6 +23,8 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.index.DirectoryReader;
@@ -83,6 +87,66 @@ public class ApiAdvancedSearchResourceV2Test
     assertThat(groupingByDTO.searchResultItemDTOS).hasSize(1);
     SearchResultItemDTO searchResultItemDTO = groupingByDTO.searchResultItemDTOS.get(0);
     assertThat(searchResultItemDTO.applicationId).isEqualTo(application.getId());
+  }
+
+  @Test
+  public void testSearchIndex_SBOMManagerMode() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1",
+        true);
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .query("query", FieldIdentifier.COMPONENT_NAME.label + ":" + "*")
+        .query("mode", "sbomManager")
+        .get();
+
+    assertResponseStatus(200, response);
+    SearchResultDTO searchResultDTO = response.getBody(SearchResultDTO.class);
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    GroupingByDTO groupingByDTO = searchResultDTO.groupingByDTOS.get(0);
+    assertThat(groupingByDTO.searchResultItemDTOS).hasSize(1);
+    SearchResultItemDTO searchResultItemDTO = groupingByDTO.searchResultItemDTOS.get(0);
+    assertThat(searchResultItemDTO.applicationVersion).isEqualTo("1.0");
+    assertThat(searchResultItemDTO.componentName).isEqualTo("n v1");
+  }
+
+  @Test
+  public void testSearchIndex_SBOMManagerMode_MissingLicensedFeature() throws Exception {
+    HttpResponse response = restRequest()
+        .query("query", FieldIdentifier.COMPONENT_NAME.label + ":" + "*")
+        .query("mode", "sbomManager")
+        .get();
+
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).contains("The SBOM Manager feature is not supported by your license");
+  }
+
+  @Test
+  public void testSearchIndex_DefaultMode() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app,
+        "1.0",
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
+        "someScanId1",
+        true);
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .query("query", FieldIdentifier.COMPONENT_NAME.label + ":" + "*")
+        .get();
+
+    assertResponseStatus(200, response);
+    SearchResultDTO searchResultDTO = response.getBody(SearchResultDTO.class);
+    assertThat(searchResultDTO.groupingByDTOS).isEmpty();
   }
 
   @Test

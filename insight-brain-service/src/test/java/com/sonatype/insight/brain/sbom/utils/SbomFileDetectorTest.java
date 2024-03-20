@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Objects;
@@ -112,7 +111,7 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  public void testGetSbomMetadata_SPDX_Json_Valid_2_3() throws IOException {
+  public void testGetSbomMetadata_SPDX_Json_Valid_2_3() {
     SbomDetectionResult expected2 =
         createExpectedResult(true, "application/json", null, "2.3", "SPDX", "json", 6, 5,
             "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");

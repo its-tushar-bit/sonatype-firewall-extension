@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.UUID;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -44,7 +45,7 @@ public class ApiSbomServiceAuthzTest
   }
 
   @Test
-  public void testDeleteSbomVersion_Authorized() throws IOException {
+  public void testDeleteSbomVersion_Authorized() {
     Application app = tempEntity.newApplicationWithParent();
     grantWritePermission(app.getId());
 

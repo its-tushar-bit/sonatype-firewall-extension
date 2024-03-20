@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Objects;
@@ -28,7 +27,7 @@ public class SbomImportResourceTest
   private Application application;
 
   @Before
-  public void before() throws IOException {
+  public void before() {
     licenseManager.setFeatures(LicensedFeature.SBOM_MANAGER);
     application = tempEntity.newApplicationWithParent();
   }

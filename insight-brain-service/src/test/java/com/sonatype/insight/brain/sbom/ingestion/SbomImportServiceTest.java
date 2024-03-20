@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
+
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,7 +49,7 @@ public class SbomImportServiceTest
   private Application application;
 
   @Before
-  public void before() throws IOException {
+  public void before() {
     application = tempEntity.newApplicationWithParent();
   }
 

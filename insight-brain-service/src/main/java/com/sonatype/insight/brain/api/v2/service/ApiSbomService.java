@@ -35,7 +35,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
@@ -118,7 +118,7 @@ public class ApiSbomService
     String fileName =
         applicationDAO.getById(applicationId).getName() + "_" + sbomVersion + "." +
             thirdPartySbomMetadata.getSpecFormat();
-    if (thirdPartySbomMetadata.getSpecFormat().equals(SbomFormat.JSON.toString().toLowerCase())) {
+    if (thirdPartySbomMetadata.getSpecFormat().equals(SbomFormat.JSON.toString())) {
       type = MediaType.APPLICATION_JSON_TYPE;
     }
     else {
@@ -175,4 +175,3 @@ public class ApiSbomService
     return thirdPartySbomMetadata;
   }
 }
-

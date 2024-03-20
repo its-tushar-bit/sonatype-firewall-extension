@@ -31,7 +31,7 @@ import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ScanSession;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;

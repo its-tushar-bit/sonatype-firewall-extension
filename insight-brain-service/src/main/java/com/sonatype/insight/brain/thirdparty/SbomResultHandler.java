@@ -40,7 +40,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.util.SbomUtils;
 import com.sonatype.insight.IdentificationSource;
@@ -166,7 +166,7 @@ public class SbomResultHandler
   //visible for testing
   Bom parseBom(final ThirdPartyScanContent content) throws ParseException, IOException {
     String extension = FilenameUtils.getExtension(content.getPath());
-    SbomFormat sbomFormat = SbomFormat.valueOf(extension.toUpperCase(Locale.ROOT));
+    SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
     return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
   }
 

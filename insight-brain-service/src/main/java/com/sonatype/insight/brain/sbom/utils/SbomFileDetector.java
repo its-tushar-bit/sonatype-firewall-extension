@@ -15,7 +15,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,7 +109,7 @@ public class SbomFileDetector
       throws IOException, InvalidSPDXAnalysisException
   {
     try {
-      SbomFormat sbomFormat = detectSbomFormat(sbomResult.mimeType);
+      SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
       SpdxDocument spdxDocument =
           ThirdPartyUtils.parseAndValidateSpdx(sbom, Objects.requireNonNull(sbomFormat));
       sbomResult.isSbom = true;
@@ -127,7 +127,7 @@ public class SbomFileDetector
 
   private SbomDetectionResult tryDetectingAsCycloneDx(final String fileContent, final SbomDetectionResult sbomResult) {
     try {
-      SbomFormat sbomFormat = detectSbomFormat(sbomResult.mimeType);
+      SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
       Bom bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
           Objects.requireNonNull(sbomFormat));
       sbomResult.isSbom = true;
@@ -171,22 +171,12 @@ public class SbomFileDetector
     sbomResult.summary = new SbomSummary();
     sbomResult.summary.specification = SPEC_CYCLONEDX;
     sbomResult.summary.version = bom.getSpecVersion();
-    sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());
+    sbomResult.summary.format = sbomFormat.toString();
     sbomResult.summary.componentCount = CollectionUtils.size(bom.getComponents());
     sbomResult.summary.vulnerabilityCount = CollectionUtils.size(bom.getVulnerabilities());
     sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
     sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
     sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
-  }
-
-  public static SbomFormat detectSbomFormat(final String mimeType) {
-    if (APPLICATION_JSON.equals(mimeType)) {
-      return SbomFormat.JSON;
-    }
-    if (APPLICATION_XML.equals(mimeType)) {
-      return SbomFormat.XML;
-    }
-    return null;
   }
 
   private boolean isPlainTextValidJson(String sbomContent) {

@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.PackageURL;

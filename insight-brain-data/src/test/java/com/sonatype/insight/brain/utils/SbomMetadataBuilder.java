@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -58,7 +58,7 @@ public class SbomMetadataBuilder
     this.serialNumber = RandomStringUtils.random(10, true, true);
     this.sbomVersion = RandomStringUtils.random(10, true, true);
     this.spec = RandomStringUtils.random(10, true, true);
-    this.specFormat = SbomFormat.XML.toString().toLowerCase();
+    this.specFormat = SbomFormat.XML.toString();
     this.specVersion = RandomStringUtils.random(10, true, true);
     //this.status = SbomStatus.ACTIVE.toString();
     this.status = "ACTIVE";
@@ -95,12 +95,12 @@ public class SbomMetadataBuilder
   }
 
   public SbomMetadataBuilder withJsonSpecFormat() {
-    this.specFormat = SbomFormat.JSON.toString().toLowerCase();
+    this.specFormat = SbomFormat.JSON.toString();
     return this;
   }
 
   public SbomMetadataBuilder withXmlSpecFormat() {
-    this.specFormat = SbomFormat.XML.toString().toLowerCase();
+    this.specFormat = SbomFormat.XML.toString();
     return this;
   }
 

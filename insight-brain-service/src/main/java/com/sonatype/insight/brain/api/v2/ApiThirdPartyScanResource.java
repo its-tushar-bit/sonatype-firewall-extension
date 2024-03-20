@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codahale.metrics.annotation.Timed;
 

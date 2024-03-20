@@ -43,7 +43,7 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.application.ScannerDriver;
-import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
@@ -141,7 +141,7 @@ public class SbomImportService
     }
 
     String fileName = decodedRequestId[0];
-    SbomFormat sbomFormat = SbomFileDetector.detectSbomFormat(decodedRequestId[1]);
+    SbomFormat sbomFormat = SbomFormat.forMimeType(decodedRequestId[1]);
     ItemContentType contentType = determineItemContentType(decodedRequestId[2]);
 
     Application application = applicationDAO.getById(applicationId);

@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getAdvancedSearchUrl } from 'MainRoot/util/CLMLocation';
 import { searchFormSubmit } from 'MainRoot/advancedSearch/advancedSearchActions';
 
 const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED';
@@ -12,7 +11,9 @@ const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
 const ADVANCED_SEARCH_QUERY_FAILED = 'ADVANCED_SEARCH_QUERY_FAILED';
 
 describe('advancedSearchActions', () => {
-  let mockAxiosCalls, store, mockState, defaultSearchUrl;
+  const defaultSearchUrl = '/api/v2/search/advanced?query=testQuery&page=0&allComponents=false';
+  const defaultSearchUrlWithAllComponents = '/api/v2/search/advanced?query=testQuery&page=0&allComponents=true';
+  let mockAxiosCalls, store, mockState;
 
   beforeEach(() => {
     mockState = {
@@ -27,7 +28,6 @@ describe('advancedSearchActions', () => {
     };
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     store = SpecUtil.mockReduxStore(mockState);
-    defaultSearchUrl = getAdvancedSearchUrl(mockState.advancedSearch.formState.currentQuery, 0, false);
   });
 
   describe('submit search', () => {
@@ -88,12 +88,6 @@ describe('advancedSearchActions', () => {
 
       store = SpecUtil.mockReduxStore(mockState);
 
-      const defaultSearchUrlWithAllComponents = getAdvancedSearchUrl(
-        mockState.advancedSearch.formState.currentQuery,
-        0,
-        true
-      );
-
       mockAxiosCalls({
         get: {
           [defaultSearchUrl]: Promise.resolve(mockResponse),
@@ -123,12 +117,6 @@ describe('advancedSearchActions', () => {
 
       store = SpecUtil.mockReduxStore(mockState);
 
-      const defaultSearchUrlWithAllComponents = getAdvancedSearchUrl(
-        mockState.advancedSearch.formState.currentQuery,
-        0,
-        true
-      );
-
       mockAxiosCalls({
         get: {
           [defaultSearchUrl]: Promise.resolve(mockResponse),
@@ -138,6 +126,42 @@ describe('advancedSearchActions', () => {
 
       store.dispatch(searchFormSubmit()).then(() => {
         expect(axios.get).toHaveBeenCalledWith(defaultSearchUrlWithAllComponents);
+        done();
+      });
+    });
+
+    it('sets mode to sbomManager when selectIsSbomManager is true', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        router: {
+          currentState: {
+            name: 'sbomManager.advancedSearch',
+          },
+        },
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: false,
+            isToggleComponentResultsEnabled: false,
+            searchIncludedAllComponents: false,
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const defaultSearchUrlWithSbomManagerMode =
+        '/api/v2/search/advanced?query=testQuery&page=0&allComponents=false&mode=sbomManager';
+
+      mockAxiosCalls({
+        get: {
+          [defaultSearchUrlWithSbomManagerMode]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(defaultSearchUrlWithSbomManagerMode);
         done();
       });
     });

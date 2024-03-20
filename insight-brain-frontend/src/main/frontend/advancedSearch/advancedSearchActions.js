@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { getAdvancedSearchConfigUrl, getAdvancedSearchUrl } from '../util/CLMLocation';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const ADVANCED_SEARCH_LOAD_REQUESTED = 'ADVANCED_SEARCH_LOAD_REQUESTED';
 export const ADVANCED_SEARCH_LOAD_FULFILLED = 'ADVANCED_SEARCH_LOAD_FULFILLED';
@@ -63,15 +64,17 @@ export function searchFormSubmit(pageIncrement) {
       dispatch(resetSearchQuery());
     }
 
-    const formState = getState().advancedSearch.formState;
+    const state = getState();
+    const formState = state.advancedSearch.formState;
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
     const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
     const showAllComponents = formState.isToggleComponentResultsEnabled && formState.isShowingAllComponentResults;
+    const isSbomManager = selectIsSbomManager(state);
 
     dispatch(queryRequested());
 
     return axios
-      .get(getAdvancedSearchUrl(formState.currentQuery, page, showAllComponents))
+      .get(getAdvancedSearchUrl(formState.currentQuery, page, showAllComponents, isSbomManager))
       .then(({ data }) => {
         dispatch(queryFulfilled(data));
       })

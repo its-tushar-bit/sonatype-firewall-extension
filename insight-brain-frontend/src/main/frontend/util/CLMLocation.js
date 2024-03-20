@@ -221,8 +221,14 @@ export function getAdvancedSearchIndexUrl() {
   return uriTemplate`/api/v2/search/advanced/index`;
 }
 
-export function getAdvancedSearchUrl(query, page, isShowAllComponents) {
-  return uriTemplate`/api/v2/search/advanced?query=${query}&page=${page}&allComponents=${isShowAllComponents}`;
+export function getAdvancedSearchUrl(query, page, isShowAllComponents, isSbomManager) {
+  const params = toURIParams({
+    query,
+    page,
+    allComponents: isShowAllComponents,
+    mode: isSbomManager ? 'sbomManager' : null,
+  });
+  return uriTemplate`/api/v2/search/advanced?` + params;
 }
 
 export function getAdvancedSearchCsvExportUrl(query, isShowAllComponents) {

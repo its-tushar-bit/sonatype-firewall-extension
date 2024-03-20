@@ -1392,4 +1392,30 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getRepositoryComponentNamePatternUpdateUrl()).toEqual(expectedUrl);
     });
   });
+
+  describe('getAdvancedSearchUrl', () => {
+    it('returns the url with the query, page, and allComponents false', () => {
+      const expectedUrl = '/api/v2/search/advanced?query=some%26Query&page=0&allComponents=false';
+
+      expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, false, false)).toEqual(expectedUrl);
+    });
+
+    it('returns the url with the query, page, and allComponents true', () => {
+      const expectedUrl = '/api/v2/search/advanced?query=some%26Query&page=0&allComponents=true';
+
+      expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, true, false)).toEqual(expectedUrl);
+    });
+
+    it('returns the url with the query, page, allComponents false, and mode sbomManager', () => {
+      const expectedUrl = '/api/v2/search/advanced?query=some%26Query&page=0&allComponents=false&mode=sbomManager';
+
+      expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, false, true)).toEqual(expectedUrl);
+    });
+
+    it('returns the url with the query, page, allComponents true, and mode sbomManager', () => {
+      const expectedUrl = '/api/v2/search/advanced?query=some%26Query&page=0&allComponents=true&mode=sbomManager';
+
+      expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, true, true)).toEqual(expectedUrl);
+    });
+  });
 });

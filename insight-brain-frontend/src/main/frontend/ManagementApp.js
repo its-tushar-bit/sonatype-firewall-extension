@@ -24,7 +24,6 @@ import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
 import vulnerabilityCustomizeModule from './vulnerabilityCustomize/module';
 import violationPageModule from './violation/module';
-import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import firewallModule from './firewall/module';
 import firewallOnboardingModule from './firewallOnboarding/module';
@@ -41,6 +40,7 @@ import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
 import sbomManagerModule from 'MainRoot/sbomManager/module';
 import developmentReportModule from 'MainRoot/development/developmentReport/development.report.module';
+import advancedSearchModule from 'MainRoot/advancedSearch/module';
 
 export default angular
   .module('managementApp', [
@@ -79,19 +79,6 @@ export default angular
     sastScanModule.name,
     sbomManagerModule.name,
     developmentReportModule.name,
+    advancedSearchModule.name,
   ])
-  .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
-  .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))
-  .config(routes);
-
-function routes($stateProvider) {
-  $stateProvider.state('advancedSearch', {
-    component: 'advancedSearch',
-    url: '/advancedSearch',
-    data: {
-      title: 'Advanced Search',
-    },
-  });
-}
-
-routes.$inject = ['$stateProvider'];
+  .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));

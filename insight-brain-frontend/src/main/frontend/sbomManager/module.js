@@ -6,9 +6,10 @@
 
 import SbomManagerDashboard from 'MainRoot/sbomManager/features/dashboard/SbomManagerDashboard';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
+import advancedSearchModule from 'MainRoot/advancedSearch/module';
 
 export default angular
-  .module('sbomManagerModule', ['ngRedux'])
+  .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
   .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$ngRedux', '$state']))
   .config(routes);
 
@@ -16,7 +17,7 @@ function routes($stateProvider) {
   $stateProvider
     .state('sbomManager', {
       url: '/sbomManager',
-      component: 'sbomManagerDashboard',
+      template: '<ui-view></ui-view>',
       data: {
         title: 'SBOM Manager',
         authenticationRequired: true,
@@ -27,6 +28,14 @@ function routes($stateProvider) {
       component: 'sbomManagerDashboard',
       data: {
         title: 'SBOM Manager - Dashboard',
+        authenticationRequired: true,
+      },
+    })
+    .state('sbomManager.advancedSearch', {
+      url: '/advancedSearch',
+      component: 'advancedSearch',
+      data: {
+        title: 'SBOM Manager - Advanced Search',
         authenticationRequired: true,
       },
     });

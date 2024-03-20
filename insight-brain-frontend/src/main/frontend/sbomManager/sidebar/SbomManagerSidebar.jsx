@@ -11,7 +11,7 @@ import {
   useToggle,
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
-import { faHome } from '@fortawesome/pro-solid-svg-icons';
+import { faHome, faSearch } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -23,10 +23,12 @@ export default function SbomManagerSidebar(props) {
   const uiRouterState = useRouterState();
   const currentStateName = useCurrentStateName(uiRouterState.router);
   const dashboardState = 'sbomManager.dashboard';
+  const advancedSearchState = 'sbomManager.advancedSearch';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const dashboardHref = uiRouterState.href(dashboardState);
+  const advancedSearchHref = uiRouterState.href(advancedSearchState);
   const sbomManagerHref = uiRouterState.href('sbomManager');
 
   const isSelected = (entryName) => {
@@ -60,13 +62,22 @@ export default function SbomManagerSidebar(props) {
       {isLoggedIn && (
         <NxGlobalSidebarNavigation>
           {isSbomManagerEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected(dashboardState)}
-              id="sbom-manager-dashboard-navigation-button"
-              icon={faHome}
-              text="Dashboard"
-              href={dashboardHref}
-            />
+            <>
+              <NxGlobalSidebarNavigationLink
+                isSelected={isSelected(dashboardState)}
+                id="sbom-manager-dashboard-navigation-button"
+                icon={faHome}
+                text="Dashboard"
+                href={dashboardHref}
+              />
+              <NxGlobalSidebarNavigationLink
+                isSelected={isSelected(advancedSearchState)}
+                id="sbom-manager-search-navigation-button"
+                icon={faSearch}
+                text="Advanced Search"
+                href={advancedSearchHref}
+              />
+            </>
           )}
         </NxGlobalSidebarNavigation>
       )}

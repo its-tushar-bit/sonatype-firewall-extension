@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.Date;
 
+import com.sonatype.insight.json.store.ISODateSerializer;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 public class ThirdPartySbomMetadataSummaryDTO
 {
   private String applicationVersion;
@@ -15,6 +19,7 @@ public class ThirdPartySbomMetadataSummaryDTO
 
   private String specVersion;
 
+  @JsonSerialize(using = ISODateSerializer.class)
   private Date importDate;
 
   private int none;

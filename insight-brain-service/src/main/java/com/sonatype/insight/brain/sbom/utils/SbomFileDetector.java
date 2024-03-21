@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Set;
 import javax.inject.Named;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
@@ -32,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
@@ -54,6 +60,8 @@ public class SbomFileDetector
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
+  private final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+
   public SbomDetectionResult getSbomMetadata(InputStream sbomContent, String sbomName) {
     return getSbomMetadata(null, sbomContent, sbomName);
   }
@@ -75,9 +83,15 @@ public class SbomFileDetector
         sbomStringContent = getSbomStringContent(sbomContent);
       }
       SbomDetectionResult result = new SbomDetectionResult();
-      result.mimeType = detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidJson(sbomStringContent) ?
-          APPLICATION_JSON : detectedMimeType;
-
+      if (detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidJson(sbomStringContent)) {
+        result.mimeType = APPLICATION_JSON;
+      }
+      else if (detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidXml(sbomStringContent)) {
+        result.mimeType = APPLICATION_XML;
+      }
+      else {
+        result.mimeType = detectedMimeType;
+      }
       if (supportedSbomMimeTypes.contains(result.mimeType)) {
         return attemptDetectingSbomFromContent(sbomStringContent, result);
       }
@@ -186,7 +200,19 @@ public class SbomFileDetector
       return objectMapper.readTree(sbomContent) != null;
     }
     catch (IOException e) {
-      log.debug("Error when parsing sbom file from JSON content");
+      log.debug("File content is not valid a JSON document");
+    }
+    return false;
+  }
+
+  private boolean isPlainTextValidXml(String sbomContent) {
+    try {
+      SAXParser saxParser = saxParserFactory.newSAXParser();
+      saxParser.parse(new ByteArrayInputStream(sbomContent.getBytes(StandardCharsets.UTF_8)), new DefaultHandler());
+      return true;
+    }
+    catch (ParserConfigurationException | IOException | SAXException e) {
+      log.debug("File content is not valid a XML document");
     }
     return false;
   }

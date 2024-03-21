@@ -256,6 +256,8 @@ public class TestProductLicenseManager
         properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
       }
 
+      properties.put(ProductLicenseDetails.PROPERTY_MAX_SBOMS, Integer.toString(50));
+
       properties.putAll(this.properties);
 
       DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap));

@@ -21,11 +21,6 @@ const proxyNavList = [
 
 const hostedNavList = [
   {
-    label: 'Policies',
-    target: 'owner-pill-policy',
-    isDisplayed: true,
-  },
-  {
     label: 'Namespace Confusion Protection',
     target: 'namespace-confusion-protection-pill-configuration',
     isDisplayed: true,

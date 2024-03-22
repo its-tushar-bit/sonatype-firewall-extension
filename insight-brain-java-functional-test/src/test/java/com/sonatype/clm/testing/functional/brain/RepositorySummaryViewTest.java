@@ -508,6 +508,33 @@ public class RepositorySummaryViewTest
     eyesWatcher.eyesCheck("proxy repository namespace confusion protection tile");
   }
 
+  @Test
+  public void testRepositorySummaryView_checkTilesForProxyAndHostedRepositories() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+    Repository proxyRepo = tempEntity.newRepository(repoManager, "maven-central", RepositoryType.proxy,
+            ComponentIdentifier.FORMAT_MAVEN);
+    Repository hostedRepo = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
+            ComponentIdentifier.FORMAT_MAVEN);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(proxyRepo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(proxyRepo.getId()));
+
+    RepositoriesSummaryPage.namespaceConfusionProtectionTile().shouldNotBe(visible);
+    RepositoriesSummaryPage.policyTile().shouldBe(visible);
+    RepositoriesSummaryPage.accessTile().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("check tiles for proxy repository");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(hostedRepo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(hostedRepo.getId()));
+
+    RepositoriesSummaryPage.namespaceConfusionProtectionTile().shouldBe(visible);
+    RepositoriesSummaryPage.policyTile().shouldNotBe(visible);
+    RepositoriesSummaryPage.accessTile().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("check tiles for hosted repository");
+  }
+
   public void checkDefaultSortForNamespaceConfusionTile(
       NamespaceConfusionProtectionTile namespaceConfusionProtectionTile,
       List<ProprietaryComponentNamePattern> namePatterns

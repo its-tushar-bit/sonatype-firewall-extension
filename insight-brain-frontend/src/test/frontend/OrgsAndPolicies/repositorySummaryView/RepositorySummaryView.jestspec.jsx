@@ -241,7 +241,7 @@ describe('RepositorySummaryView', () => {
     expect(accessTile).toBeVisible();
   });
 
-  it('renders namespace confusion protection tile for hosted repositories', async () => {
+  it('renders namespace confusion protection and access tile only for hosted repositories', async () => {
     axiosMock.onGet(getRepositoryInfoUrl(ownerId)).reply(200, {
       managerInstanceId: '7EDE7A0F-41612922-1613498A-165AA9D9-D1031992',
       managerName: '7EDE7A0F-41612922-1613498A-165AA9D9-D1031992',
@@ -261,15 +261,17 @@ describe('RepositorySummaryView', () => {
       },
     });
     renderComponent(preloadedState);
-    const namespaceConfusionProtectionTile = await screen.findByTestId(
-      'namespace-confusion-protection-pill-configuration'
-    );
 
-    expect(namespaceConfusionProtectionTile).toBeVisible();
+    expect(await screen.findByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+    expect(await screen.findByTestId('repositories_access')).toBeVisible();
+    expect(await screen.queryByTestId('policies-tile')).not.toBeInTheDocument();
   });
 
-  it('does not render namespace confusion protection tile for proxy repositories', async () => {
+  it('renders policies and access tile only for proxy repositories', async () => {
     renderComponent(preloadedState);
+
+    expect(await screen.findByTestId('repositories_access')).toBeVisible();
+    expect(await screen.findByTestId('policies-tile')).toBeVisible();
     expect(await screen.queryByTestId('namespace-confusion-protection-pill-configuration')).not.toBeInTheDocument();
   });
 });

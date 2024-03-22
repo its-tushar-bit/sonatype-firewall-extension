@@ -53,7 +53,7 @@ export default function RepositorySummaryView() {
           id="repositories-summary-sections"
         >
           <div id="scrollable-content">
-            <PoliciesTile />
+            {!isHostedRepository && <PoliciesTile />}
             {isHostedRepository && (
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository_${repository.publicId}`} />
             )}

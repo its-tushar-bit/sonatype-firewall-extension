@@ -24,6 +24,10 @@ import {
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectShowSbomManagerSidebar } from 'MainRoot/sbomManager/sbomManagerPageSelectors';
+import {
+  selectIsSbomManagerOnlyLicense,
+  selectLoadingProducts,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
@@ -46,6 +50,8 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isSbomManagerEnabled = false;
   vm.showSbomManagerSidebar = false;
   vm.isProductFeaturesLoading = false;
+  vm.isSbomManagerOnlyLicense = false;
+  vm.isProductsLoading = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -116,6 +122,8 @@ function mapStateToThis(state) {
     isSbomManagerEnabled: selectIsSbomManagerEnabled(state),
     showSbomManagerSidebar: selectShowSbomManagerSidebar(state),
     isProductFeaturesLoading: selectLoadingFeatures(state),
+    isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),
+    isProductsLoading: selectLoadingProducts(state),
   };
 }
 

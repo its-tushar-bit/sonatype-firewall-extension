@@ -62,6 +62,8 @@ export default angular
         'isSbomManagerEnabled',
         'showSbomManagerSidebar',
         'isProductFeaturesLoading',
+        'isSbomManagerOnlyLicense',
+        'isProductsLoading',
       ],
       ['$state']
     )

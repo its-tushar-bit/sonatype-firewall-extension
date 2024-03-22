@@ -64,6 +64,7 @@ export default angular
         'isMonitoringSupported',
         'isSsoIdpManagedBySonatype',
         'isSingleTenant',
+        'isSbomManagerOnlyLicense',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

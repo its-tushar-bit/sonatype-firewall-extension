@@ -28,6 +28,7 @@ export const SystemPreferencesMenu = ({
   isMonitoringSupported = false,
   isSsoIdpManagedBySonatype = false,
   isSingleTenant = false,
+  isSbomManagerOnlyLicense = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -72,11 +73,14 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="waivedComponentUpgradesConfiguration"
         id="system-configuration-waived-component-upgrades"
-        showIf={CONFIGURE_SYSTEM && isMonitoringSupported}
+        showIf={CONFIGURE_SYSTEM && isMonitoringSupported && !isSbomManagerOnlyLicense}
       >
         Waived Components
       </NavLink>
-      <NavLink stateName="atlassianCrowdConfiguration" showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled}>
+      <NavLink
+        stateName="atlassianCrowdConfiguration"
+        showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled && !isSbomManagerOnlyLicense}
+      >
         Atlassian Crowd
       </NavLink>
       <NavLink
@@ -117,21 +121,25 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="successMetricsConfiguration"
         id="system-configuration-success-metrics"
-        showIf={CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled}
+        showIf={CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled && !isSbomManagerOnlyLicense}
       >
         Success Metrics
       </NavLink>
       <NavLink
         stateName="automaticApplicationsConfiguration"
         id="system-configuration-automatic-applications"
-        showIf={MANAGE_AUTOMATIC_APPLICATION_CREATION && isAutomaticApplicationConfigurationEnabled}
+        showIf={
+          MANAGE_AUTOMATIC_APPLICATION_CREATION &&
+          isAutomaticApplicationConfigurationEnabled &&
+          !isSbomManagerOnlyLicense
+        }
       >
         Automatic Applications
       </NavLink>
       <NavLink
         stateName="automaticSourceControlConfiguration"
         id="system-configuration-automatic-scm-configuration"
-        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isAutomaticScmConfigurationEnabled}
+        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isAutomaticScmConfigurationEnabled && !isSbomManagerOnlyLicense}
       >
         Automatic SCM Configuration
       </NavLink>
@@ -145,7 +153,7 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="advancedSearchConfig"
         id="system-configuration-advanced-search"
-        showIf={CONFIGURE_SYSTEM && isAdvancedSearchConfigurationEnabled}
+        showIf={CONFIGURE_SYSTEM && isAdvancedSearchConfigurationEnabled && !isSbomManagerOnlyLicense}
       >
         Advanced Search
       </NavLink>
@@ -180,6 +188,7 @@ SystemPreferencesMenu.propTypes = {
   isSamlConfigurationEnabled: PropTypes.bool,
   isSsoIdpManagedBySonatype: PropTypes.bool,
   isSingleTenant: PropTypes.bool,
+  isSbomManagerOnlyLicense: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

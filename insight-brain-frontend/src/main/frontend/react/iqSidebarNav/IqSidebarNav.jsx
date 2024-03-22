@@ -56,6 +56,8 @@ function IqSidebarNav(props) {
     isSbomManagerEnabled,
     showSbomManagerSidebar,
     isProductFeaturesLoading,
+    isSbomManagerOnlyLicense,
+    isProductsLoading,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -104,7 +106,7 @@ function IqSidebarNav(props) {
       logoAltText={productEdition}
       logoLink={logoHref}
     >
-      {isLoggedIn && (
+      {isLoggedIn && !isProductsLoading && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">
           {(isDashboardAvailable || isDashboardWaiversAvailable) && (
             <NxGlobalSidebarNavigationLink
@@ -239,7 +241,7 @@ function IqSidebarNav(props) {
     // Empty sidebar until product info is fully loaded
     return <DefaultEmptyIqSidebar />;
   }
-  return isSbomManagerEnabled && showSbomManagerSidebar ? sbomManagerSidebar : iqSidebar;
+  return isSbomManagerOnlyLicense || (isSbomManagerEnabled && showSbomManagerSidebar) ? sbomManagerSidebar : iqSidebar;
 }
 
 IqSidebarNav.propTypes = {
@@ -262,5 +264,7 @@ IqSidebarNav.propTypes = {
   isSbomManagerEnabled: PropTypes.bool,
   showSbomManagerSidebar: PropTypes.bool,
   isProductFeaturesLoading: PropTypes.bool,
+  isSbomManagerOnlyLicense: PropTypes.bool,
+  isProductsLoading: PropTypes.bool,
 };
 export default IqSidebarNav;

@@ -15,6 +15,7 @@ import { faHome, faSearch } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
+import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 
 const logoImg = require('../assets/sbom-manager.svg');
 
@@ -81,6 +82,7 @@ export default function SbomManagerSidebar(props) {
           )}
         </NxGlobalSidebarNavigation>
       )}
+      <IqSidebarNavFooter />
     </NxGlobalSidebar>
   );
 }

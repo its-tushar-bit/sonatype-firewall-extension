@@ -11,11 +11,12 @@ import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import IqSidebarNavFooter from './IqSidebarNavFooter';
 
 import { isLeftNavigationOpen } from '../../util/preferenceStore';
+import { getProductLogo } from 'MainRoot/util/productLogoUtils';
 
 function DefaultEmptyIqSidebar(props) {
-  const [isOpen, toggleOpen] = useToggle(isLeftNavigationOpen());
-
   const { productEdition, releaseVersion, isShowVersionEnabled } = props;
+  const logo = getProductLogo(productEdition);
+  const [isOpen, toggleOpen] = useToggle(isLeftNavigationOpen());
 
   return (
     <NxGlobalSidebar
@@ -25,7 +26,7 @@ function DefaultEmptyIqSidebar(props) {
       toggleCloseIcon={faBars}
       logoAltText={''}
       logoLink={'#'}
-      logoImg={''}
+      logoImg={logo}
     >
       {productEdition && releaseVersion && (
         <IqSidebarNavFooter releaseNumber={releaseVersion} isShowVersionEnabled={isShowVersionEnabled} />

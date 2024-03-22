@@ -25,6 +25,7 @@ import {
   selectTenantMode,
   selectIsSsoIdpManagedBySonatype,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
@@ -107,6 +108,7 @@ export const mapStateToThis = (state) => ({
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isSsoIdpManagedBySonatype: selectIsSsoIdpManagedBySonatype(state),
   isSingleTenant: selectTenantMode(state) !== 'multi-tenant',
+  isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),
 });
 
 MainHeaderController.$inject = [

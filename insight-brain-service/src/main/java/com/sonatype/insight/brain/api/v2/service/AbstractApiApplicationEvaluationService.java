@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
@@ -23,11 +23,11 @@ class AbstractApiApplicationEvaluationService
 {
   protected final ApplicationDAO applicationDAO;
 
-  protected final DefaultPolicyEvaluateService policyEvaluateService;
+  protected final PolicyEvaluateService policyEvaluateService;
 
   AbstractApiApplicationEvaluationService(
       ApplicationDAO applicationDAO,
-      DefaultPolicyEvaluateService policyEvaluateService)
+      PolicyEvaluateService policyEvaluateService)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluateService = policyEvaluateService;

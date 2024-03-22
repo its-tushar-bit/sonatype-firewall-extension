@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -63,7 +63,7 @@ public class ApiPromoteScanServiceV2
   public ApiPromoteScanServiceV2(
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      DefaultPolicyEvaluateService policyEvaluateService,
+      PolicyEvaluateService policyEvaluateService,
       InsightWork work,
       PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils)
   {

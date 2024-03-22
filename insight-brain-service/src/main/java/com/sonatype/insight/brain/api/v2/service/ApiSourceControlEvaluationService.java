@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -51,7 +51,7 @@ public class ApiSourceControlEvaluationService
       final SourceControlEventPublisher sourceControlEventPublisher,
       final SourceControlUtils sourceControlUtils,
       final IqForScmLicenseChecker licenseChecker,
-      DefaultPolicyEvaluateService policyEvaluateService,
+      PolicyEvaluateService policyEvaluateService,
       ApplicationDAO applicationDAO)
   {
     super(applicationDAO, policyEvaluateService);

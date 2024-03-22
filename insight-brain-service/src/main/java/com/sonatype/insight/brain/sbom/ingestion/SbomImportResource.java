@@ -20,8 +20,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -60,6 +62,7 @@ public class SbomImportResource
   @Path(COMMIT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Audited(AuditEvent.CREATE_SBOM_VERSION)
   public Response importDetectedSbom(
       @PathParam("applicationId") String applicationId,
       @PathParam("requestId") String requestId,

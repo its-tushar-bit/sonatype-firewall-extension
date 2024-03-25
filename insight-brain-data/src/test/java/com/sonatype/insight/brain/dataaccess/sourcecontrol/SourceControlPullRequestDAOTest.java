@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -157,5 +158,43 @@ public class SourceControlPullRequestDAOTest
 
     // and expect IllegalArgumentException when called with null arguments
     assertThatThrownBy(() -> dao.getCountByUpdateTimeRange(null, null)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void testInsert_InvalidBaseBranchName() {
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "testBranchName", "/testBaseBranchName");
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testInsert_InvalidBranchName() {
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "/testBranchName", "testBaseBranchName");
+    }).isInstanceOf(BadRequestException.class)
+            .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testUpdate_InvalidBaseBranchName() {
+    SourceControlPullRequest sourceControlPullRequest =
+        tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "testBranchName", "testBaseBranchName");
+    sourceControlPullRequest.setBaseBranchName("/testBaseBranch");
+    assertThatThrownBy(() -> {
+      dao.update(sourceControlPullRequest);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testUpdate_InvalidBranchName() {
+    SourceControlPullRequest sourceControlPullRequest =
+        tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "testBranchName", "testBaseBranchName");
+    sourceControlPullRequest.setBranchName("/testBranch");
+    assertThatThrownBy(() -> {
+      dao.update(sourceControlPullRequest);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
   }
 }

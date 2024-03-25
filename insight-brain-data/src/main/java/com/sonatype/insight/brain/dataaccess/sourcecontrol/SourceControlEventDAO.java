@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.git.utils.GitBranchNameValidator;
+import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -337,5 +340,32 @@ public class SourceControlEventDAO
   public List<SourceControlEvent> getAllByApplicationId(String applicationId) {
     String sQuery = SELECT_ENTITY + "WHERE entity.applicationId =?1";
     return getList(sQuery, applicationId);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SourceControlEvent entity) {
+    validateBranchName(entity.getBranchName());
+    validateBranchName(entity.getBaseBranchName());
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, SourceControlEvent entity) {
+    validateBranchName(entity.getBranchName());
+    validateBranchName(entity.getBaseBranchName());
+    super.update(tx, entity);
+  }
+
+  private static void validateBranchName(String branchName) {
+    if (branchName == null) {
+      return;
+    }
+
+    try {
+      GitBranchNameValidator.validate(branchName);
+    }
+    catch (InvalidBranchNameException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 }

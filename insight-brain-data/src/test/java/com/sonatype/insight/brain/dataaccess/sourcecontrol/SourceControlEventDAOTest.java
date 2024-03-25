@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -40,6 +41,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SourceControlEventDAOTest
     extends AbstractDbDAOTest
@@ -78,6 +80,48 @@ public class SourceControlEventDAOTest
 
     // then it is persisted with a new id
     assertThat(sourceControlEvent.getId()).isNotNull();
+  }
+
+  @Test
+  public void testInsert_InvalidBaseBranchName() {
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
+    sourceControlEvent.setBaseBranchName("/testBaseBranch");
+    assertThatThrownBy(() -> {
+      sourceControlEventDAO.insert(sourceControlEvent);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testInsert_InvalidBranchName() {
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
+    sourceControlEvent.setBranchName("/testBranch");
+    assertThatThrownBy(() -> {
+      sourceControlEventDAO.insert(sourceControlEvent);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testUpdate_InvalidBaseBranchName() {
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(sourceControlEvent);
+    sourceControlEvent.setBaseBranchName("/testBaseBranch");
+    assertThatThrownBy(() -> {
+      sourceControlEventDAO.update(sourceControlEvent);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testUpdate_InvalidBranchName() {
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(sourceControlEvent);
+    sourceControlEvent.setBranchName("/testBranch");
+    assertThatThrownBy(() -> {
+      sourceControlEventDAO.update(sourceControlEvent);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
   }
 
   @Test

@@ -14,6 +14,9 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.git.utils.GitBranchNameValidator;
+import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
 @Named
 @Singleton
@@ -23,6 +26,17 @@ public class SastScmScanContextDAO
   @Inject
   public SastScmScanContextDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SastScmScanContext entity) {
+    try {
+      GitBranchNameValidator.validate(entity.getBranchName());
+    }
+    catch (InvalidBranchNameException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+    super.insert(tx, entity);
   }
 
   @Override

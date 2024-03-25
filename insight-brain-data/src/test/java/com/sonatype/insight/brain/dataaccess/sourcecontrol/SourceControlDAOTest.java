@@ -394,6 +394,38 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testInsert_InvalidBaseBranchName() {
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId("baz").setRepositoryUrl(VALID_URL)
+        .setToken("bar").setBaseBranch("/testBaseBranch").build();
+    assertThatThrownBy(() -> {
+      sourceControlDAO.insert(sourceControl);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testInsert_NullBaseBranchName() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+        .setToken("bar").setBaseBranch(null).build();
+    tempEntity.newSourceControl(sourceControl);
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getBaseBranch()).isNull();
+  }
+
+  @Test
+  public void testInsert_EmptyBaseBranchName() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+        .setToken("bar").setBaseBranch("").build();
+    tempEntity.newSourceControl(sourceControl);
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getBaseBranch()).isEmpty();
+  }
+
+  @Test
   public void testInsert_DuplicateRepositoryUrlAllowed() {
     createRootOrgWithGitHubProvider();
     Application baz = tempEntity.newApplicationWithParent("baz");
@@ -411,6 +443,43 @@ public class SourceControlDAOTest
     sourceControl.setOwnerId(null);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessage("SourceControl owner id is required");
+  }
+
+  @Test
+  public void testUpdate_InvalidBaseBranchName() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
+    sourceControl.setBaseBranch("/testBaseBranch");
+    assertThatThrownBy(() -> {
+      sourceControlDAO.update(sourceControl);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+  }
+
+  @Test
+  public void testUpdate_NullBaseBranchName() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+        .setToken("bar").setBaseBranch("testBranchName").build();
+    tempEntity.newSourceControl(sourceControl);
+    sourceControl.setBaseBranch(null);
+    sourceControlDAO.update(sourceControl);
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getBaseBranch()).isNull();
+  }
+
+  @Test
+  public void testUpdate_EmptyBaseBranchName() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+        .setToken("bar").setBaseBranch("testBranchName").build();
+    tempEntity.newSourceControl(sourceControl);
+    sourceControl.setBaseBranch("");
+    sourceControlDAO.update(sourceControl);
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getBaseBranch()).isEmpty();
   }
 
   @Test

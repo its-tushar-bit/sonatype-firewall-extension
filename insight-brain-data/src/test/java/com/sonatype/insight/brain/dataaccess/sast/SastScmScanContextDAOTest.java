@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.dataaccess.sast;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -61,5 +62,14 @@ public class SastScmScanContextDAOTest
     sastScmScanContextDAO.delete(sastScmScanContext);
     assertThat(sastScmScanContextDAO.getById(sastScmScanContext.getId())).isNull();
     assertThat(sastScanDAO.getById(sastScan.getId()).getSastScmScanContextId()).isNull();
+  }
+
+  @Test
+  public void testInsert_InvalidBranchName() {
+    SastScmScanContext sastScmScanContext = new SastScmScanContext("/testBranch", "testCommitHash");
+    assertThatThrownBy(() -> {
+      sastScmScanContextDAO.insert(sastScmScanContext);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
   }
 }

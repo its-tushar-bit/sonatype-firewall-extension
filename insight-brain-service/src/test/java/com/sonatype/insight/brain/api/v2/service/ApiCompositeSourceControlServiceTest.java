@@ -571,7 +571,7 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, false,
-            null, "New Branch", null, true, true, "/target/childOrg/*", true, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -590,7 +590,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.remediationPullRequestsEnabled.value = false;
     actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.remediationPullRequestsEnabled.parentValue = true;
-    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.baseBranch.value = "NewBranch";
     actualDTO.baseBranch.parentName = rootOrganization.getName();
     actualDTO.baseBranch.parentValue = "BASE_BRANCH";
     actualDTO.pullRequestCommentingEnabled.value = true;
@@ -628,7 +628,7 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, true,
-            null, "New Branch", null, true, true, "/target/childOrg/*", true, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -645,7 +645,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.remediationPullRequestsEnabled.value = true;
     actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
     actualDTO.remediationPullRequestsEnabled.parentValue = true;
-    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.baseBranch.value = "NewBranch";
     actualDTO.pullRequestCommentingEnabled.value = true;
     actualDTO.sourceControlEvaluationsEnabled.value = true;
     actualDTO.sourceControlScanTarget.value = "/target/childOrg/*";
@@ -662,7 +662,7 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, true,
-            null, "New Branch", null, true, true, "/target/childOrg/*", true, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -673,7 +673,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
     actualDTO.token.value = FAKE_SECRET_KEY;
     actualDTO.remediationPullRequestsEnabled.value = true;
-    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.baseBranch.value = "NewBranch";
     actualDTO.pullRequestCommentingEnabled.value = true;
     actualDTO.sourceControlEvaluationsEnabled.value = true;
     actualDTO.sourceControlScanTarget.value = "/target/childOrg/*";

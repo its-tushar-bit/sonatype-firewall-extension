@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,6 +17,9 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.git.utils.GitBranchNameValidator;
+import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,12 +88,16 @@ public class SourceControlPullRequestDAO
 
   @Override
   public void insert(TransactionContext tx, SourceControlPullRequest entity) {
+    validateBranchName(entity.getBranchName());
+    validateBranchName(entity.getBaseBranchName());
     super.insert(tx, entity);
     log.trace("Inserted SourceControlPullRequest: " + entity);
   }
 
   @Override
   public void update(TransactionContext tx, SourceControlPullRequest entity) {
+    validateBranchName(entity.getBranchName());
+    validateBranchName(entity.getBaseBranchName());
     super.update(tx, entity);
     log.trace("Updated SourceControlPullRequest: " + entity);
   }
@@ -104,5 +112,18 @@ public class SourceControlPullRequestDAO
     String sQuery =
         "SELECT entity FROM SourceControlPullRequest entity WHERE entity.repositoryUrl=?1 AND entity.pullRequestId=?2";
     return createQuery(sQuery, repositoryUrl, pullRequestId).forceSingleResult().get();
+  }
+
+  private static void validateBranchName(String branchName) {
+    if (branchName == null) {
+      return;
+    }
+
+    try {
+      GitBranchNameValidator.validate(branchName);
+    }
+    catch (InvalidBranchNameException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 }

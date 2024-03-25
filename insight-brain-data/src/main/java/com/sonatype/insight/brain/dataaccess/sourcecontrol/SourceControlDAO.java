@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,14 +27,16 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.git.utils.GitBranchNameValidator;
+import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -578,7 +581,22 @@ public class SourceControlDAO
     }
   }
 
+  private static void validateBaseBranchName(String baseBranchName) {
+    if (baseBranchName == null || "".equals(baseBranchName)) {
+      return;
+    }
+
+    try {
+      GitBranchNameValidator.validate(baseBranchName);
+    }
+    catch (InvalidBranchNameException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+
   private void validate(final TransactionContext tx, final SourceControl sourceControl) {
+    validateBaseBranchName(sourceControl.getBaseBranch());
+
     if (StringUtils.isBlank(sourceControl.getOwnerId())) {
       throw new BadRequestException("SourceControl owner id is required");
     }

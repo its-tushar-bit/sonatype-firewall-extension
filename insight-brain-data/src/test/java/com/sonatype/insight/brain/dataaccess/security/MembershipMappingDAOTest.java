@@ -204,4 +204,13 @@ public class MembershipMappingDAOTest
       assertThat(foundMemberships.get(0).getId()).isEqualTo(membership.getId());
     }
   }
+
+  @Test
+  public void testIsSystemAdmin() {
+    boolean isSystemAdmin = membershipDAO.isSystemAdmin("notAnAdmin");
+    assertThat(isSystemAdmin).isFalse();
+
+    isSystemAdmin = membershipDAO.isSystemAdmin(User.ADMIN_USERNAME); // built-in admin
+    assertThat(isSystemAdmin).isTrue();
+  }
 }

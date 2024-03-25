@@ -376,7 +376,9 @@ public abstract class AbstractBaseIntegrationTest
             SystemConfigurationProperty.ACCESS_ALLOWLIST, SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
-            SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED);
+            SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+            SystemConfigurationProperty.API_ACCESS_ALLOW_LIST
+        );
       }
     }
     releaseScmPerpetualLock();
@@ -722,7 +724,7 @@ public abstract class AbstractBaseIntegrationTest
     setProperties(properties);
   }
 
-  private void setProperties(Map<String, Object> properties) {
+  protected void setProperties(Map<String, Object> properties) {
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     service.setConfigurationNoAuthz(properties);
     service.applyConfigurationToClients(properties.keySet());

@@ -189,7 +189,8 @@ public class Configuration
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
-        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -515,6 +516,11 @@ public class Configuration
 
   public List<AllowedIp> getAccessAllowlist() {
     List<AllowedIp> allowlist = configCache.get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
+    return allowlist == null ? new ArrayList<>() : allowlist;
+  }
+
+  public List<String> getApiAccessAllowList() {
+    List<String> allowlist = configCache.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
     return allowlist == null ? new ArrayList<>() : allowlist;
   }
 

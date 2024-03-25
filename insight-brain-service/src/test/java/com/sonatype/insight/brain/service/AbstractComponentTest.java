@@ -137,6 +137,7 @@ public class AbstractComponentTest
     tearDownSecurity();
     resetBaseUrl();
     resetAccessAllowlist();
+    resetApiAccessAllowList();
     SharedConfigurationState.clear();
   }
 
@@ -168,6 +169,13 @@ public class AbstractComponentTest
   public void resetAccessAllowlist() {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ACCESS_ALLOWLIST);
+    service.deleteConfigurationNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
+  }
+
+  public void resetApiAccessAllowList() {
+    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
     service.deleteConfigurationNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }

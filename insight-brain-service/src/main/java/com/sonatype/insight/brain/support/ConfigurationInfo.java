@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.support;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -94,6 +94,8 @@ public class ConfigurationInfo
         configuration.getWaivedComponentUpgradeMonitoringEnabled());
     entries.put(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
         configuration.getAdvanceReportingInsightsEnabled());
+    entries.put(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
+        ConfigurationUtils.listToStringDuplicatesRemoved(configuration.getApiAccessAllowList()));
 
     return JsonUtils.format(entries);
   }

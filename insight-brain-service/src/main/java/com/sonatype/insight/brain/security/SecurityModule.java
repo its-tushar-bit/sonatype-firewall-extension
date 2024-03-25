@@ -124,7 +124,8 @@ public class SecurityModule
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, clientIPAddressFilter, " +
         "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
-        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, saml, requireAuth");
+        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, " +
+        "saml, apiAccessControlFilter, requireAuth");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, clientIPAddressFilter, antiCsrf["
@@ -231,6 +232,7 @@ public class SecurityModule
         FilterChainManager filterChainManager,
         AntiCsrfFilter antiCsrfFilter,
         ClientIPAddressFilter clientIPAddressFilter,
+        ApiAccessControlFilter apiAccessControlFilter,
         UserFriendlyBasicHttpAuthenticationFilter basicHttpAuthenticationFilter,
         ReverseProxyAuthenticationFilter reverseProxyAuthenticationFilter,
         SecureCookiesFilter secureCookiesFilter,
@@ -243,6 +245,7 @@ public class SecurityModule
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
       filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
       filterChainManager.addFilter("clientIPAddressFilter", clientIPAddressFilter);
+      filterChainManager.addFilter("apiAccessControlFilter", apiAccessControlFilter);
       filterChainManager.addFilter("requireAuth", missingAuthenticationFilter);
       filterChainManager.addFilter("saml", samlFilter);
       filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);

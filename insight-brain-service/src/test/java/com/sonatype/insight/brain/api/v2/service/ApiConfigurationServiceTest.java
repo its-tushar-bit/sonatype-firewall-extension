@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -556,6 +557,14 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_ApiAccessAllowList_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)))
+        .containsEntry(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+  }
+
+  @Test
   public void testGetConfiguration_SchemaMigrationEnabled_NullDb_NullEnv() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
@@ -956,6 +965,64 @@ public class ApiConfigurationServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
             service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowlist)))
         .withMessageContaining(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testSetConfiguration_ApiAccessAllowList_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))).containsEntry(
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+  }
+
+  @Test
+  public void testSetConfiguration_ApiAccessAllowList_EmptyList() {
+    List<String> allowlist = new ArrayList<>();
+
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, allowlist));
+
+    assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))).containsEntry(
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+  }
+
+  @Test
+  public void testSetConfiguration_ApiAccessAllowList() {
+    List<String> allowlist = new ArrayList<>();
+    allowlist.add("user1");
+    allowlist.add("user2");
+
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, allowlist));
+
+    assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isEqualTo("[\"user1\",\"user2\"]");
+
+    List<String> allowList2 = (List<String>) service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
+        .get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
+
+    assertThat(allowList2).containsExactlyInAnyOrder("user1", "user2");
+  }
+
+  @Test
+  public void testSetConfiguration_ApiAccessAllowList_NoDuplicates() {
+    List<String> allowlist = new ArrayList<>();
+    allowlist.add("user1");
+    allowlist.add("user1");
+
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, allowlist));
+
+    assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isEqualTo("[\"user1\"]");
+
+    List<String> allowList2 = (List<String>) service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
+        .get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
+
+    assertThat(allowList2).containsExactlyInAnyOrder("user1");
   }
 
   @Test

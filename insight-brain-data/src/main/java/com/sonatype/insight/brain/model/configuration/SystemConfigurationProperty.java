@@ -219,6 +219,8 @@ public class SystemConfigurationProperty
 
   public static final String ADVANCED_REPORTING_INSIGHTS_ENABLED = "ADVANCED_REPORTING_INSIGHTS_ENABLED";
 
+  public static final String API_ACCESS_ALLOW_LIST = "apiAccessAllowList";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

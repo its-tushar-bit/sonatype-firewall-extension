@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -190,5 +191,11 @@ public class MembershipMappingDAO
     String sQuery = "SELECT entity FROM MembershipMapping entity" //
         + " WHERE entity.roleId=?1";
     return getList(tx, sQuery, roleId);
+  }
+
+  public boolean isSystemAdmin(String username) {
+    String sQuery = "SELECT count(entity) FROM MembershipMapping entity" +
+        " WHERE entity.memberName=?1 and entity.roleId=?2";
+    return getSingle(Long.class, sQuery, username, Role.SYSTEM_ADMIN_ROLE_ID) > 0;
   }
 }

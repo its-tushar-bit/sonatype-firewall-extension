@@ -770,9 +770,10 @@ public class TestDAOFactory
     UserFilterDAO userFilterDAO = createUserFilterDAO();
     UserViewedProductNotificationDAO userViewedProductNotificationDAO = createUserViewedProductNotificationDAO();
     UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = createUserIdePolicyEvaluationDAO();
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = createSystemConfigurationPropertyDAO();
     return new UserDAO(dataStoreProvider.getOperationalDataStore(), membershipMappingDAO, userTokenDAO,
         dashboardFilterDAO, userFilterDAO,
-        userViewedProductNotificationDAO, userIdePolicyEvaluationDAO);
+        userViewedProductNotificationDAO, userIdePolicyEvaluationDAO, systemConfigurationPropertyDAO);
   }
 
   @Override

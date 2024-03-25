@@ -202,6 +202,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, List.class,
+          (p, s) -> ConfigurationUtils.stringToList(s),
+          (p, o) -> ConfigurationUtils.listToStringDuplicatesRemoved((List<String>) o))
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

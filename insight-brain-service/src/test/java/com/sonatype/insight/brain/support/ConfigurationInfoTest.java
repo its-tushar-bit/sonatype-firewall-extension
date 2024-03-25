@@ -89,6 +89,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, "48");
     tempEntity.newSystemConfigurationProperty(
             SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, "false");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
+        "[\"user1\",\"user2\"]");
 
     configuration.configurationChanged(Sets.newHashSet(
         SystemConfigurationProperty.PURGE_SCAN_FILES,
@@ -125,7 +127,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
-        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -178,6 +181,8 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("48");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asText()).isEqualTo(
             "false");
+    assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).asText()).isEqualTo(
+        "[\"user1\",\"user2\"]");
   }
 
   @Test
@@ -228,5 +233,6 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("12");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
             .asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).isEmpty()).isTrue();
   }
 }

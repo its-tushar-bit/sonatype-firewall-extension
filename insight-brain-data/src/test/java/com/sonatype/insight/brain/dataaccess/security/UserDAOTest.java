@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -55,6 +57,8 @@ public class UserDAOTest
 
   private UserTokenDAO userTokenDAO;
 
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   @Override
   public void setup() {
@@ -67,6 +71,7 @@ public class UserDAOTest
     roleDAO = daoFactory.createRoleDAO();
     membershipMappingDAO = daoFactory.createMembershipMappingDAO();
     userTokenDAO = daoFactory.createUserTokenDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
   }
 
   @Test
@@ -650,6 +655,33 @@ public class UserDAOTest
     userDAO.delete(user);
 
     assertThat(userIdePolicyEvaluationDAO.getByUsername(username)).isNull();
+  }
+
+  @Test
+  public void testDelete_cascadeToApiAccessAllowList() {
+    // set up apiAccessAllowList
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
+        "[\"user1\",\"user2\"]");
+
+    String username = "testUser";
+    User user = createUser(username);
+    userDAO.delete(user);
+    // apiAccessAllowList is not affected
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)
+        .getValue()).isEqualTo("[\"user1\",\"user2\"]");
+
+    username = "user1";
+    user = createUser(username);
+    userDAO.delete(user);
+    // user1 is removed from apiAccessAllowList
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)
+        .getValue()).isEqualTo("[\"user2\"]");
+
+    username = "user2";
+    user = createUser(username);
+    userDAO.delete(user);
+    // user2 is removed from apiAccessAllowList, which becomes empty
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isNull();
   }
 
   @Test

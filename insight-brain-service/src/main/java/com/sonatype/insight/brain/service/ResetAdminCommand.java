@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -115,9 +116,11 @@ public class ResetAdminCommand
     UserViewedProductNotificationDAO userViewedProductNotificationDAO =
         new UserViewedProductNotificationDAO(operationalDataStore);
     UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO(operationalDataStore);
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO =
+        new SystemConfigurationPropertyDAO(operationalDataStore);
     UserDAO userDAO =
         new UserDAO(operationalDataStore, membershipMappingDAO, userTokenDAO, dashboardFilterDAO, userFilterDAO,
-            userViewedProductNotificationDAO, userIdePolicyEvaluationDAO);
+            userViewedProductNotificationDAO, userIdePolicyEvaluationDAO, systemConfigurationPropertyDAO);
     return userDAO;
   }
 

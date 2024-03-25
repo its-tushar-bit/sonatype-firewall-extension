@@ -5,15 +5,19 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -21,11 +25,15 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.7
@@ -53,6 +61,8 @@ public class UserDAO
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
   public UserDAO(
       final OperationalDataStore operationalDataStore,
@@ -61,7 +71,8 @@ public class UserDAO
       final DashboardFilterDAO dashboardFilterDAO,
       final UserFilterDAO userFilterDAO,
       final UserViewedProductNotificationDAO userViewedProductNotificationDAO,
-      final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO)
+      final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     super(operationalDataStore);
     this.membershipMappingDAO = membershipMappingDAO;
@@ -70,6 +81,7 @@ public class UserDAO
     this.userFilterDAO = userFilterDAO;
     this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
     this.userIdePolicyEvaluationDAO = userIdePolicyEvaluationDAO;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   public User getByUsername(TransactionContext tx, String username) {
@@ -206,7 +218,33 @@ public class UserDAO
     // Cascade to userIdePolicyEvaluation
     userIdePolicyEvaluationDAO.deleteByUsername(tx, entity.getUsername());
 
+    // Cascade to apiAccessAllowList system configuration
+    deleteFromApiAccessAllowList(tx, entity.getUsername());
+
     super.delete(tx, entity);
+  }
+
+  private void deleteFromApiAccessAllowList(final TransactionContext tx, final String username) {
+    SystemConfigurationProperty configurationProperty =
+        systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
+    if (configurationProperty != null && StringUtils.isNotEmpty(configurationProperty.getValue())) {
+      try {
+        List<String> list = JsonUtils.parse(configurationProperty.getValue(), List.class);
+        List<String> updatedList = list.stream().filter(id -> !id.equals(username)).collect(Collectors.toList());
+        if (updatedList.size() < list.size()) {
+          if (updatedList.isEmpty()) {
+            systemConfigurationPropertyDAO.delete(tx, configurationProperty);
+          }
+          else {
+            configurationProperty.setValue(JsonUtils.writeUnformatted(updatedList));
+            systemConfigurationPropertyDAO.update(tx, configurationProperty);
+          }
+        }
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Invalid json: " + configurationProperty.getValue(), e);
+      }
+    }
   }
 
   @Override

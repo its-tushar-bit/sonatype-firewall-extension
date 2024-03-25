@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -207,6 +208,30 @@ public class ConfigurationUtils
     }
     return addr.getPrefixLength() != null &&
         !addr.mask(addr.getNetworkMask()).toInetAddress().equals(addr.toInetAddress());
+  }
+
+  public static List<String> stringToList(String values) {
+    if (values != null) {
+      try {
+        return JsonUtils.parse(values, List.class);
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Invalid json: " + values, e);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Converts a List to its String representation (JSON), by also removing any duplicated items.
+   * Empty lists return `null`.
+   */
+  public static String listToStringDuplicatesRemoved(List<String> values) {
+    if (values != null && !values.isEmpty()) {
+      Set<String> noDuplicates = new HashSet<>(values);
+      return JsonUtils.writeUnformatted(noDuplicates);
+    }
+    return null;
   }
 
   public static String userAgentSuffix(Object userAgentSuffix) {

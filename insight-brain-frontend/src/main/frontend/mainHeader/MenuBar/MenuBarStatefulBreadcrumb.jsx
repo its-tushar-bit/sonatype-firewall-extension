@@ -75,7 +75,7 @@ const getBreadcrumb = (
       href: uiRouterState.href(`management.view.${currentOwner.type}`, routeParams),
     });
 
-    currentOwner = ownersMap[currentOwner[parentEntityIdKey]];
+    currentOwner = currentOwner[parentEntityIdKey] ? ownersMap[currentOwner[parentEntityIdKey]] : null;
   }
 
   return breadcrumb;

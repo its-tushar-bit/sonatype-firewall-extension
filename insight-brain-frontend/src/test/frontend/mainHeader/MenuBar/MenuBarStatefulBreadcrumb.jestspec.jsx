@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { mergeDeepRight } from 'ramda';
 
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import { render, screen } from 'TestRoot/SpecUtil';
@@ -57,6 +58,36 @@ describe('MenuBarStatefulBreadcrumb', () => {
         'organization name 2',
         'application name 2 at organization 2',
       ];
+
+      expectedBreadCrumbs.forEach((breadCrumbName) => {
+        expect(screen.getByText(breadCrumbName)).toBeVisible();
+      });
+    });
+
+    it('renders root org as first item', async () => {
+      renderComponent(
+        mergeDeepRight(state, {
+          router: { currentParams: { applicationPublicId: 'null' } },
+          orgsAndPolicies: {
+            ownerSideNav: {
+              ownersMap: {
+                'organization id 2': {
+                  applicationIds: ['null'],
+                },
+                null: {
+                  id: '1e60f6d0dc514bf9bd90ab2e57311fda',
+                  publicId: 'null',
+                  type: 'application',
+                  organizationId: 'organization name 2',
+                  name: 'null',
+                },
+              },
+            },
+          },
+        })
+      );
+
+      const expectedBreadCrumbs = ['ROOT_ORGANIZATION_NAME', 'organization name 1', 'organization name 2', 'null'];
 
       expectedBreadCrumbs.forEach((breadCrumbName) => {
         expect(screen.getByText(breadCrumbName)).toBeVisible();

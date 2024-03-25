@@ -765,7 +765,7 @@ public class CLMLicenseManagerTest
 
     //after
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
-    assertThat(productLicense.getMaxSboms()).isNull();
+    assertThat(productLicense.getMaxSboms()).isEqualTo(50);
     verify(clmLicenseManagerSpy, never()).loadLicense();
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }

@@ -713,7 +713,7 @@ public class ScmOnboardingService
   private ImportScmOrganizationTicket createImportTicketFor(final SourceControlOrganizationImportEvent importEvent) {
     ImportScmOrganizationTicket ticket = new ImportScmOrganizationTicket();
     ticket.statusUrl = PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH + "/" +
-        DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH
+        ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH
             .replace("{organizationId}", importEvent.getOrganizationId())
             .replace("{eventId}", importEvent.getId());
     return ticket;

@@ -35,7 +35,7 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.EXPERIMENTAL_ONBOARD
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class DefaultApiScmOnboardingResourceTest
+public class ApiScmOnboardingResourceTest
     extends AbstractScmOnboardingResourceTest
 {
   private static final Pattern STATUS_URL_PATTERN = Pattern.compile(
@@ -73,7 +73,7 @@ public class DefaultApiScmOnboardingResourceTest
     importRequest.desiredSubOrganizationCount = 3;
 
     HttpResponse response = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
         .body(importRequest)
         .post();
 
@@ -113,7 +113,7 @@ public class DefaultApiScmOnboardingResourceTest
     importRequest.importLimit = 5;
 
     HttpResponse response = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
         .body(importRequest)
         .post();
 
@@ -139,7 +139,7 @@ public class DefaultApiScmOnboardingResourceTest
     importRequest.scmHostUrl = gitService.baseUrl();
 
     HttpResponse response = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH)
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH)
             .build("orgThatDoesNotExist").toString())
         .body(importRequest)
         .post();
@@ -162,7 +162,7 @@ public class DefaultApiScmOnboardingResourceTest
     importRequest.importLimit = 5;
 
     HttpResponse submitResponse = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
         .body(importRequest)
         .post();
 
@@ -175,7 +175,7 @@ public class DefaultApiScmOnboardingResourceTest
         ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
 
     HttpResponse statusResponse = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
             .build(org.getId(), eventId).toString())
         .get();
 
@@ -200,7 +200,7 @@ public class DefaultApiScmOnboardingResourceTest
         tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "scm-url", 5, 0);
 
     HttpResponse statusResponse = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
             .build(org.getId(), importEvent.getId()).toString())
         .get();
 
@@ -219,7 +219,7 @@ public class DefaultApiScmOnboardingResourceTest
   @Test
   public void testGetImportRepositoriesStatus_NotFound() throws Exception {
     HttpResponse statusResponse = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
             .build(org.getId(), "nonExistentId").toString())
         .get();
 

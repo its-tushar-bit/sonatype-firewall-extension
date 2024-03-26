@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH;
 
-public class DefaultApiScmOnboardingResourceAuditTest
+public class ApiScmOnboardingResourceAuditTest
     extends AbstractAuditTest
 {
   @Override
@@ -35,7 +35,7 @@ public class DefaultApiScmOnboardingResourceAuditTest
     importRequest.importLimit = 0; //to throw a bad request
 
     HttpResponse response = restRequest()
-        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH)
+        .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH)
             .build(org.getId()).toString())
         .body(importRequest)
         .post();

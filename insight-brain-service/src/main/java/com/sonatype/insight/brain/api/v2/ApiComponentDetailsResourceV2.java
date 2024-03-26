@@ -26,12 +26,12 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_DETAILS_PATH_V2)
-public class DefaultApiComponentDetailsResourceV2
+public class ApiComponentDetailsResourceV2
 {
   private final ApiComponentDetailsServiceV2 componentDetailsService;
 
   @Inject
-  public DefaultApiComponentDetailsResourceV2(final ApiComponentDetailsServiceV2 componentDetailsService) {
+  public ApiComponentDetailsResourceV2(final ApiComponentDetailsServiceV2 componentDetailsService) {
     this.componentDetailsService = componentDetailsService;
   }
 

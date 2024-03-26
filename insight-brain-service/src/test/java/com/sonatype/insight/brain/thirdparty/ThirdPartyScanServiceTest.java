@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -61,8 +62,8 @@ public class ThirdPartyScanServiceTest
     String scanRequestId = "scanRequestId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null),
-        eq(app.getId())))
+    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class),
+        any(File.class), eq(null), eq(app.getId()), eq(stage.getStageTypeId())))
         .thenReturn(scanRequestId);
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     String testClientUserAgent = "client_user_agent";
@@ -72,7 +73,8 @@ public class ThirdPartyScanServiceTest
     service.filterAndUpload(scanFile, app, stage.getStageTypeId(), testClientUserAgent, null);
 
     verify(thirdPartyScanResultsProcessorMock, times(1))
-        .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null), eq(app.getId()));
+        .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null), eq(app.getId()),
+            eq(stage.getStageTypeId()));
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .postHandle(scanId, scanRequestId);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
@@ -85,12 +87,13 @@ public class ThirdPartyScanServiceTest
     Stage stage = new Stage(ReleaseStageType.ID);
     String scanId = "ThirdPartyScanServiceTest_scanId";
     File scanFile = createScanFile(app, scanId);
-    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null),
-        eq(app.getId())))
+    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class),
+        eq(null), eq(app.getId()), eq(stage.getStageTypeId())))
         .thenThrow(new IllegalArgumentException("error"));
 
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-        () -> service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null, null));
+    ThrowingCallable throwable = () -> service.filterAndUpload(scanFile,
+        app, stage.getStageTypeId(), null, null);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(throwable);
   }
 
   private File createScanFile(Application app, String scanId) {

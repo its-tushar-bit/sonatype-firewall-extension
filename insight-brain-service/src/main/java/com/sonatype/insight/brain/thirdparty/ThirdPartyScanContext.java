@@ -21,10 +21,17 @@ public class ThirdPartyScanContext
 
   private String thirdPartyFileId;
 
-  public ThirdPartyScanContext(final String scanRequestId, final String applicationId, final File scanFile) {
+  private String stageType;
+
+  public ThirdPartyScanContext(final String scanRequestId,
+                               final String applicationId,
+                               final File scanFile,
+                               final String stageType)
+  {
     this.scanRequestId = scanRequestId;
     this.applicationId = applicationId;
     this.scanFile = scanFile;
+    this.stageType = stageType;
   }
 
   public String getScanRequestId() {
@@ -61,5 +68,13 @@ public class ThirdPartyScanContext
 
   public void setThirdPartyFileId(final String thirdPartyFileId) {
     this.thirdPartyFileId = thirdPartyFileId;
+  }
+
+  public String getStageType() {
+    return stageType;
+  }
+
+  public void setStageType(final String stageType) {
+    this.stageType = stageType;
   }
 }

@@ -55,7 +55,7 @@ public class ThirdPartyScanService
     File tempScanFile = FileUtils.createTempFile("tmp-", ".xml.gz", scanDir);
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanTelemetryData,
-            app.getId());
+            app.getId(), stageTypeId);
     ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
     scanResultsProcessor.postHandle(scanReceipt.getScanId(), scanRequestId);
     try {

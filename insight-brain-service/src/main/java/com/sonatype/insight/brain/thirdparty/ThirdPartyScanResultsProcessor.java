@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
@@ -132,13 +133,18 @@ public class ThirdPartyScanResultsProcessor
       File tempScanFile,
       File scanDir,
       TelemetryData thirdPartyScanTelemetryData,
-      String applicationId)
+      String applicationId,
+      String stageTypeId)
   {
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
     try {
       File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
-      ThirdPartyScanContext scanContext = new ThirdPartyScanContext(scanRequestId, applicationId, scanFile);
+      ThirdPartyScanContext scanContext = new ThirdPartyScanContext(scanRequestId,
+          applicationId,
+          scanFile,
+          stageTypeId
+          );
       try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
            OutputStream out = new FileOutputStream(filteredFile)) {
 
@@ -215,7 +221,8 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext scanContext,
       XmlPullParser parser,
       XMLEventWriter writer,
-      TelemetryData thirdPartyScanTelemetryData) throws XMLStreamException, IOException, XmlPullParserException
+      TelemetryData thirdPartyScanTelemetryData
+  ) throws XMLStreamException, IOException, XmlPullParserException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
@@ -369,8 +376,15 @@ public class ThirdPartyScanResultsProcessor
     //for now we persist only the first sbom for sbom manager support when there are multiple sboms in the scan.
     return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)
         && !hasMaxSbomLimitBeenReached()
+        && isStageTypeSupported(scanContext)
         && (ItemContentType.SBOM.equals(contentItemType) || ItemContentType.SPDX.equals(contentItemType))
         && !scanContext.isSbomSavedForScan();
+  }
+
+  private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {
+    return scanContext.getStageType().equalsIgnoreCase(ReleaseStageType.ID)
+        && productLicense.getStageTypes().stream().anyMatch(
+            stageType -> stageType.getId().equalsIgnoreCase( ReleaseStageType.ID));
   }
 
   private String storeSbom(

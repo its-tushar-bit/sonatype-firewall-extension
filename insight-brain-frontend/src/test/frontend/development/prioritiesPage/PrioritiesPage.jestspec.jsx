@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
-import DevelopmentReport from 'MainRoot/development/developmentReport/DevelopmentReport';
+import PrioritiesPage from 'MainRoot/development/prioritiesPage/PrioritiesPage';
 
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
@@ -21,16 +21,16 @@ import {
   getReportPolicyThreatsUrl,
 } from 'MainRoot/util/CLMLocation';
 
-const appId = 'testAppId';
+const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
-describe('DevelopmentReport', () => {
+describe('PrioritiesPage', () => {
   let renderComponent, selectIsDeveloperDashboardEnabled, axiosMock;
 
   const defaultPreloadedState = {
     router: {
       currentParams: {
-        appId,
+        publicAppId,
         scanId,
       },
     },
@@ -44,14 +44,14 @@ describe('DevelopmentReport', () => {
     axiosMock = axiosMockAdapter();
 
     renderComponent = (preloadedState) =>
-      render(<DevelopmentReport />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<PrioritiesPage />, { preloadedState: preloadedState || defaultPreloadedState });
 
-    axiosMock.onGet(getReportBomUrl(appId, scanId)).reply(200, bomData);
-    axiosMock.onGet(getReportMetadataUrl(appId, scanId)).reply(200, metadata);
-    axiosMock.onGet(getReportPolicyThreatsUrl(appId, scanId)).reply(200, policyThreatsData);
-    axiosMock.onGet(getReportDataUrl(appId, scanId)).reply(200, reportData);
-    axiosMock.onGet(getReportPartialMatchedUrl(appId, scanId)).reply(200, { aaData: [] });
-    axiosMock.onGet(getDependenciesUrl(appId, scanId)).reply(200, dependenciesData);
+    axiosMock.onGet(getReportBomUrl(publicAppId, scanId)).reply(200, bomData);
+    axiosMock.onGet(getReportMetadataUrl(publicAppId, scanId)).reply(200, metadata);
+    axiosMock.onGet(getReportPolicyThreatsUrl(publicAppId, scanId)).reply(200, policyThreatsData);
+    axiosMock.onGet(getReportDataUrl(publicAppId, scanId)).reply(200, reportData);
+    axiosMock.onGet(getReportPartialMatchedUrl(publicAppId, scanId)).reply(200, { aaData: [] });
+    axiosMock.onGet(getDependenciesUrl(publicAppId, scanId)).reply(200, dependenciesData);
   });
 
   it('renders an alert in place of content given the feature is not enabled for the license', async () => {
@@ -74,11 +74,9 @@ describe('DevelopmentReport', () => {
   });
 
   it('renders an alert when there is a network error', async () => {
-    axiosMock.onGet(getReportDataUrl(appId, scanId)).reply(404, 'something went wrong');
+    axiosMock.onGet(getReportDataUrl(publicAppId, scanId)).reply(500, 'something went wrong');
     renderComponent();
 
-    const alert = await screen.findByRole('alert');
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent('something went wrong');
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
   });
 });

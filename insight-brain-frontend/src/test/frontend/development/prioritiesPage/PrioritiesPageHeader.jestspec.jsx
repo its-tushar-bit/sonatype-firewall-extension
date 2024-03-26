@@ -6,10 +6,10 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import DevelopmentReportHeader from 'MainRoot/development/developmentReport/DevelopmentReportHeader';
+import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
 import moment from 'moment';
 
-describe('DevelopmentReportHeader', () => {
+describe('PrioritiesPageHeader', () => {
   let renderComponent;
 
   const metadata = {
@@ -39,7 +39,7 @@ describe('DevelopmentReportHeader', () => {
 
   beforeEach(() => {
     renderComponent = (preloadedState) =>
-      render(<DevelopmentReportHeader />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<PrioritiesPageHeader />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   it('renders a header with the app name', () => {

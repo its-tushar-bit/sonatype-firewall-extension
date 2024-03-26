@@ -24,7 +24,7 @@ const COPY_STATUS_TOOLTIP_TIMEOUT = 1500;
 
 const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
 
-export default function DevelopmentReportHeader() {
+export default function PrioritiesPageHeader() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
 
   const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash, stageId, application } =
@@ -40,9 +40,9 @@ export default function DevelopmentReportHeader() {
   return (
     <NxPageTitle.Headings>
       <NxH1>{appName} - Priorities</NxH1>
-      <NxPageTitle.Description className="iq-development-report-desc">
+      <NxPageTitle.Description className="iq-priorities-page-desc">
         <TriggerText triggerText={triggerText} />
-        <div className="iq-development-report-desc-details">
+        <div className="iq-priorities-page-desc-details">
           <Timestamp formattedDate={formattedDate} />
           <Commit commitHash={commitHash} />
           <Stage stageName={stageName} />
@@ -61,14 +61,14 @@ function TooltipTitle({ copySuccess }) {
     return (
       <span>
         Copied
-        <NxFontAwesomeIcon className="iq-development-report-copy-success" icon={faCheckCircle} />
+        <NxFontAwesomeIcon className="iq-priorities-page-copy-success" icon={faCheckCircle} />
       </span>
     );
   } else {
     return (
       <span>
         Copy failed
-        <NxFontAwesomeIcon className="iq-development-report-copy-fail" icon={faExclamationCircle} />
+        <NxFontAwesomeIcon className="iq-priorities-page-copy-fail" icon={faExclamationCircle} />
       </span>
     );
   }
@@ -118,13 +118,9 @@ function Commit({ commitHash }) {
       {commitHash && (
         <span>
           <strong>Commit </strong>
-          <NxCode className="iq-development-report-commit">{commitHash?.substring(0, 7)}</NxCode>
+          <NxCode className="iq-priorities-page-commit">{commitHash?.substring(0, 7)}</NxCode>
           <NxTooltip title={<TooltipTitle copySuccess={copySuccess} />}>
-            <NxFontAwesomeIcon
-              className="iq-development-report-copy-commit-btn"
-              icon={faCopy}
-              onClick={copyToClipboard}
-            />
+            <NxFontAwesomeIcon className="iq-priorities-page-copy-commit-btn" icon={faCopy} onClick={copyToClipboard} />
           </NxTooltip>
         </span>
       )}

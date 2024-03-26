@@ -38,8 +38,8 @@ import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceContro
 import integrationsModule from 'MainRoot/development/developmentDashboard/integrations.module';
 import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
+import prioritiesPageModule from 'MainRoot/development/prioritiesPage/priorities.page.module';
 import sbomManagerModule from 'MainRoot/sbomManager/sbom.manager.module';
-import developmentReportModule from 'MainRoot/development/developmentReport/development.report.module';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 
 export default angular
@@ -78,7 +78,7 @@ export default angular
     enterpriseReportingModule.name,
     sastScanModule.name,
     sbomManagerModule.name,
-    developmentReportModule.name,
+    prioritiesPageModule.name,
     advancedSearchModule.name,
   ])
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));

@@ -8,7 +8,8 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxLoadingSpinner, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
-import DevelopmentReportHeader from 'MainRoot/development/developmentReport/DevelopmentReportHeader';
+import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
+import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
 import {
   selectLoadingFeatures,
   selectIsDeveloperDashboardEnabled,
@@ -18,9 +19,9 @@ import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationRep
 import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { pick } from 'ramda';
 
-export default function DevelopmentReport() {
+export default function PrioritiesPage() {
   return (
-    <NxPageMain className="iq-development-report">
+    <NxPageMain className="iq-priorities-page">
       <PageContents />
     </NxPageMain>
   );
@@ -33,14 +34,14 @@ function PageContents() {
   if (productFeaturesLoading) {
     return <NxLoadingSpinner />;
   } else if (isDeveloperDashboardEnabled) {
-    return <DevelopmentReportContents />;
+    return <PrioritiesPageContents />;
   } else {
     return <LicenseLockScreen />;
   }
 }
 
-function DevelopmentReportContents() {
-  const { appId, scanId } = useSelector(selectRouterCurrentParams);
+function PrioritiesPageContents() {
+  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const applicationReport = useSelector(selectApplicationReportSlice);
   const loading =
     !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata);
@@ -49,19 +50,22 @@ function DevelopmentReportContents() {
   const dispatch = useDispatch();
 
   const doLoad = () => {
-    dispatch(setReportParameters(appId, scanId));
+    dispatch(setReportParameters(publicAppId, scanId));
     dispatch(loadReportIfNeeded());
   };
 
   useEffect(() => {
-    doLoad();
-  }, [appId, scanId]);
+    if (publicAppId && scanId) {
+      doLoad();
+    }
+  }, [publicAppId, scanId]);
 
   return (
     <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
       <NxPageTitle>
-        <DevelopmentReportHeader />
+        <PrioritiesPageHeader />
       </NxPageTitle>
+      <PrioritiesPageTable />
     </NxLoadWrapper>
   );
 }

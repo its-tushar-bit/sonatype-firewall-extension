@@ -8,12 +8,22 @@ import * as PropTypes from 'prop-types';
 
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import { useRouterState } from '../react/RouterStateContext';
+import { useSelector } from 'react-redux';
+import { selectPreviousRouteName, selectRouterPrevParams } from '../reduxUiRouter/routerSelectors';
 
 export default function ComponentDetailsBackButton(props) {
   const { scanId, publicId } = props;
   const dependencyTreePropsPresent = scanId && publicId;
 
+  const prevRouteName = useSelector(selectPreviousRouteName);
+  const prevParams = useSelector(selectRouterPrevParams);
+  const uiRouterState = useRouterState();
+
   if (!dependencyTreePropsPresent) {
+    if (prevRouteName && prevRouteName === 'prioritiesPage') {
+      const prioritiesPageHref = uiRouterState.href('prioritiesPage', { ...prevParams });
+      return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities" />;
+    }
     return <MenuBarBackButton stateName="applicationReport.policy" />;
   }
 

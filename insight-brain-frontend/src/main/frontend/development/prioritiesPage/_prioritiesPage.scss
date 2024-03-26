@@ -1,0 +1,136 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.iq-priorities-page {
+  .iq-priorities-page-commit {
+    font-size: 16px;
+  }
+
+  .iq-priorities-page-copy-commit-btn {
+    cursor: pointer;
+  }
+
+  .iq-priorities-page-desc-details {
+    display: flex;
+    gap: var(--nx-spacing-3x);
+  }
+
+  .iq-priorities-page-table {
+    .nx-cell {
+      height: 100%;
+    }
+
+    .iq-priorities-page-table-info-icon.nx-icon {
+      color: var(--nx-color-text-dark);
+    }
+
+    .nx-table-row > td.nx-cell.iq-priorities-page-priority-findings-toggle,
+    .nx-table-row > td.nx-cell.iq-priorities-page-all-findings-toggle {
+      padding: 0;
+      border: none;
+
+      .nx-accordion {
+        background-color: var(--nx-swatch-indigo-95);
+        border-radius: 0;
+        .nx-accordion__content {
+          display: none;
+        }
+      }
+    }
+
+    .iq-priorities-page-priority {
+      font-weight: bold;
+    }
+
+    .iq-priorities-page-policy-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .iq-priorities-page-policy-details__desc {
+        display: flex;
+        align-items: center;
+        svg.iq-priorities-page-policy-details__desc-threat-indicator.nx-threat-indicator {
+          margin-left: 0;
+        }
+
+        .iq-priorities-page-policy-details__desc-threat {
+          font-weight: bold;
+        }
+
+        .iq-priorities-page-policy-details__desc-policy-action {
+          margin: 0 0 0 var(--nx-spacing-2x);
+          text-transform: capitalize;
+          padding: 0px 6px;
+          border-radius: 10px;
+          font-size: 14px;
+
+          &.fail {
+            color: var(--nx-swatch-white);
+            background-color: var(--nx-swatch-red-40);
+          }
+
+          &.warn {
+            color: var(--nx-swatch-grey-05);
+            background-color: var(--nx-swatch-orange-55);
+          }
+        }
+      }
+
+      .iq-priorities-page-policy-details__policy {
+        color: var(--nx-swatch-grey-50);
+        font-size: 14px;
+      }
+    }
+
+    .iq-priorities-page-components {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .iq-priorities-page-components__component {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: var(--nx-spacing-2x);
+
+        .iq-component-display {
+          position: relative;
+          top: -2px;
+        }
+      }
+
+      .iq-priorities-page-components__detail {
+        flex-direction: row;
+        gap: var(--nx-spacing-2x);
+
+        .iq-priorities-page-components__detail-tag {
+          background-color: var(--nx-swatch-blue-80);
+          border-color: var(--nx-swatch-blue-80);
+        }
+      }
+    }
+
+    .iq-priorities-page-remediation {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .iq-priorities-page-remediation__upgrade-desc {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.iq-priorities-page-copy-success.nx-icon {
+  color: var(--nx-swatch-green-40);
+  margin-right: 0;
+}
+
+.iq-priorities-page-copy-fail.nx-icon {
+  color: var(--nx-swatch-red-60);
+  margin-right: 0;
+}

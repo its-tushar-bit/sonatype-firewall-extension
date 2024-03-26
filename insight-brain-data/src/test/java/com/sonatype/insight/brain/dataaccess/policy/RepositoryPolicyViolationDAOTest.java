@@ -232,9 +232,9 @@ public class RepositoryPolicyViolationDAOTest
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetails(c1, c1v1),
-        toRepositoryResultsDetails(c1, c1v2),
-        toRepositoryResultsDetails(c2, c2v1)
+        toRepositoryResultsDetails(repository, c1, c1v1),
+        toRepositoryResultsDetails(repository, c1, c1v2),
+        toRepositoryResultsDetails(repository, c2, c2v1)
     );
   }
 
@@ -283,8 +283,8 @@ public class RepositoryPolicyViolationDAOTest
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetailsWithoutWaived(c1, c1v1),
-        toRepositoryResultsDetailsWithoutWaived(c2, c2v1)
+        toRepositoryResultsDetailsWithoutWaived(repository, c1, c1v1),
+        toRepositoryResultsDetailsWithoutWaived(repository, c2, c2v1)
     );
   }
 
@@ -342,20 +342,20 @@ public class RepositoryPolicyViolationDAOTest
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetails(c1, c1v1),
-        toRepositoryResultsDetails(c2, c2v1)
+        toRepositoryResultsDetails(repository, c1, c1v1),
+        toRepositoryResultsDetails(repository, c2, c2v1)
     );
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "19");
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        toRepositoryResultsDetails(c1, c1v1)
+        toRepositoryResultsDetails(repository, c1, c1v1)
     );
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "18");
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        toRepositoryResultsDetails(c2, c2v1)
+        toRepositoryResultsDetails(repository, c2, c2v1)
     );
   }
 
@@ -409,42 +409,47 @@ public class RepositoryPolicyViolationDAOTest
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetails(c1, c1v1),
-        toRepositoryResultsDetails(c1, c1v2),
-        toRepositoryResultsDetails(c1, c1v3),
-        toRepositoryResultsDetails(c1, c1v4)
+        toRepositoryResultsDetails(repository, c1, c1v1),
+        toRepositoryResultsDetails(repository, c1, c1v2),
+        toRepositoryResultsDetails(repository, c1, c1v3),
+        toRepositoryResultsDetails(repository, c1, c1v4)
     );
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 5);
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetails(c1, c1v2)
+        toRepositoryResultsDetails(repository, c1, c1v2)
     );
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 10);
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
     assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        toRepositoryResultsDetails(c1, c1v1),
-        toRepositoryResultsDetails(c1, c1v2)
+        toRepositoryResultsDetails(repository, c1, c1v1),
+        toRepositoryResultsDetails(repository, c1, c1v2)
     );
   }
 
   private RepositoryResultsDetails toRepositoryResultsDetailsWithoutWaived(
+      Repository repository,
       RepositoryComponent repositoryComponent,
       RepositoryPolicyViolation repositoryPolicyViolation)
   {
-    RepositoryResultsDetails result = toRepositoryResultsDetails(repositoryComponent, repositoryPolicyViolation);
+    RepositoryResultsDetails result =
+        toRepositoryResultsDetails(repository, repositoryComponent, repositoryPolicyViolation);
     result.waived = null;
     return result;
   }
 
   private RepositoryResultsDetails toRepositoryResultsDetails(
+      Repository repository,
       RepositoryComponent repositoryComponent,
       RepositoryPolicyViolation repositoryPolicyViolation)
   {
     return new RepositoryResultsDetails(
         repositoryPolicyViolation.getThreatLevel(),
         repositoryPolicyViolation.getPolicyName(),
+        repository.getRepositoryManagerId(),
+        repository.getId(),
         repositoryComponent.getComponentIdentifier().getFormat(),
         repositoryComponent.getPathname(),
         ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier().getCoordinates()),

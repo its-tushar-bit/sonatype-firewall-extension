@@ -52,6 +52,10 @@ public class RepositoryResultsServiceTest
 
   private Repository repository;
 
+  private RepositoryManager repositoryManager2;
+
+  private Repository repository2;
+
   private final Date date = new Date();
 
   @Before
@@ -78,10 +82,21 @@ public class RepositoryResultsServiceTest
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4"));
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, "3", "policy3",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4"));
+
+    repositoryManager2 = tempEntity.newRepositoryManager();
+    repository2 = tempEntity.newRepository(repositoryManager2, "publicId2");
+
+    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
+
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 5, "path", false, Action.ID_FAIL, "2", "policy2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
   }
 
   @Test
-  public void testGetDetails_MatchStateFilters_NotSpecified() {
+  public void testGetDetails_Repository_MatchStateFilters_NotSpecified() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -135,7 +150,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_MatchStateFilters_All() {
+  public void testGetDetails_Repository_MatchStateFilters_All() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -191,7 +206,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_MatchStateFilters_ExactAndUnkown() {
+  public void testGetDetails_Repository_MatchStateFilters_ExactAndUnkown() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -248,7 +263,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_MatchStateFilters_Exact() {
+  public void testGetDetails_Repository_MatchStateFilters_Exact() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -289,7 +304,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_MatchStateFilters_Unknown() {
+  public void testGetDetails_Repository_MatchStateFilters_Unknown() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -330,7 +345,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_All() {
+  public void testGetDetails_Repository_All() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -371,7 +386,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_Aggregate() {
+  public void testGetDetails_Repository_Aggregate() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -408,7 +423,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolating() {
+  public void testGetDetails_Repository_NotViolating() {
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
@@ -427,7 +442,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_Open() {
+  public void testGetDetails_Repository_Open() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -473,7 +488,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_Quarantined() {
+  public void testGetDetails_Repository_Quarantined() {
     SortField sortField = new SortField();
     sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField.sortPriority = 1;
@@ -504,7 +519,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_Waived() {
+  public void testGetDetails_Repository_Waived() {
     SortField sortField = new SortField();
     sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField.sortPriority = 1;
@@ -528,7 +543,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolatingAndOpen() {
+  public void testGetDetails_Repository_NotViolatingAndOpen() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -569,7 +584,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolatingAndQuarantined() {
+  public void testGetDetails_Repository_NotViolatingAndQuarantined() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_NAME;
     sortField1.sortPriority = 1;
@@ -610,7 +625,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolatingAndWaived() {
+  public void testGetDetails_Repository_NotViolatingAndWaived() {
     SortField sortField = new SortField();
     sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField.sortPriority = 1;
@@ -641,7 +656,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_OpenAndQuarantined() {
+  public void testGetDetails_Repository_OpenAndQuarantined() {
     SortField sortField = new SortField();
     sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField.sortPriority = 1;
@@ -673,7 +688,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_OpenAndWaived() {
+  public void testGetDetails_Repository_OpenAndWaived() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.COMPONENT_COORDINATES;
     sortField1.sortPriority = 1;
@@ -709,7 +724,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_QuarantinedAndWaived() {
+  public void testGetDetails_Repository_QuarantinedAndWaived() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -745,7 +760,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolatingAndOpenAndQuarantined() {
+  public void testGetDetails_Repository_NotViolatingAndOpenAndQuarantined() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -782,7 +797,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_NotViolatingAndQuarantinedAndWaived() {
+  public void testGetDetails_Repository_NotViolatingAndQuarantinedAndWaived() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -818,7 +833,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_invalidPage() {
+  public void testGetDetails_Repository_invalidPage() {
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = -1;
@@ -830,7 +845,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_invalidSortPriority() {
+  public void testGetDetails_Repository_invalidSortPriority() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 2;
@@ -853,7 +868,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_MissingRequestParameters() {
+  public void testGetDetails_Repository_MissingRequestParameters() {
     assertThatThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), null))
         .isInstanceOf(BadRequestException.class).hasMessage("Missing request parameters");
   }
@@ -895,7 +910,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_SearchByComponentCoordinates() {
+  public void testGetDetails_Repository_SearchByComponentCoordinates() {
     SortField sortField = new SortField();
     sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField.sortPriority = 1;
@@ -929,7 +944,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_SortByComponentCoordinates() {
+  public void testGetDetails_Repository_SortByComponentCoordinates() {
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path0", "hash0",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v0", "c1", "e1"), date, date, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "path0", false, Action.ID_FAIL, "1", "policy1",
@@ -977,7 +992,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_UnknownComponent_WithPolicyViolation() {
+  public void testGetDetails_Repository_UnknownComponent_WithPolicyViolation() {
     repository = tempEntity.newRepository();
     RepositoryComponent unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
         "testpathname", null /* componentIdentifier */, false);
@@ -1000,7 +1015,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_UnknownComponent_WithoutPolicyViolation() {
+  public void testGetDetails_Repository_UnknownComponent_WithoutPolicyViolation() {
     repository = tempEntity.newRepository();
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, "testpathname",
         null /* componentIdentifier */, false);
@@ -1022,7 +1037,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_ThreatLevelFilters() {
+  public void testGetDetails_Repository_ThreatLevelFilters() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -1058,7 +1073,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_QuarantineTimeFilter() {
+  public void testGetDetails_Repository_QuarantineTimeFilter() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -1113,7 +1128,7 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_hasNextPage() {
+  public void testGetDetails_Repository_hasNextPage() {
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 5;
@@ -1129,14 +1144,35 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetails_RepositoryContainer() {
-    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
-    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
-    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
-    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
-            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+  public void testGetDetails_Repository_SearchIdFilters() {
+    SearchFilter searchFilter1 = new SearchFilter();
+    searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter1.value = repository.getId();
 
+    SearchFilter searchFilter2 = new SearchFilter();
+    searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
+    searchFilter2.value = repositoryManager.getId();
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+
+    // throws exception as repositoryId is not a valid for the owner type Repository
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
+        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
+
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter2);
+
+    // throws exception as repositoryManagerId is not a valid for the owner type Repository
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
+        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
+  }
+
+  @Test
+  public void testGetDetails_RepositoryContainer_NonAggregate() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -1152,13 +1188,13 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    // Repository Manager level: returns details of all repository managers
+    // Repository Container level: returns details of all repository managers
     RepositoryResultsDetailsResponseDto responseDto =
         repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
             detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(repositoryResultsDetails).hasSize(7);
+    assertThat(repositoryResultsDetails).hasSize(8);
     assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
     assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
@@ -1166,87 +1202,90 @@ public class RepositoryResultsServiceTest
     assertThat(repositoryResultsDetails.get(0).waived).isFalse();
     assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
     assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
-    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(1).waived).isFalse();
     assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
     assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
-    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
     assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
-    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
-    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy");
-    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(2).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
     assertThat(repositoryResultsDetails.get(3).quarantineTime).isEqualTo(date);
-    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(3).waived).isTrue();
     assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
     assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
-    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(4).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(4).waived).isFalse();
     assertThat(repositoryResultsDetails.get(5).threatLevel).isEqualTo(10);
     assertThat(repositoryResultsDetails.get(5).policyName).isEqualTo("policy1");
-    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
     assertThat(repositoryResultsDetails.get(5).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(5).waived).isFalse();
-    assertThat(repositoryResultsDetails.get(6).threatLevel).isNull();
-    assertThat(repositoryResultsDetails.get(6).policyName).isNull();
-    assertThat(repositoryResultsDetails.get(6).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
-    assertThat(repositoryResultsDetails.get(6).quarantineTime).isNull();
-    assertThat(repositoryResultsDetails.get(6).waived).isEqualTo(null);
+    assertThat(repositoryResultsDetails.get(6).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(6).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(6).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(6).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(6).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(7).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(7).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(7).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(7).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(7).waived).isEqualTo(null);
   }
 
   @Test
-  public void testGetDetails_RepositoryManager() {
-    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
-    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
-    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
-    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy1",
-            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
-    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 8, "path", false, Action.ID_FAIL, "2", "policy2",
-            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+  public void testGetDetails_RepositoryContainer_Aggregate() {
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = false;
 
-    SortField sortField = new SortField();
-    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
-    sortField.sortPriority = 1;
-    sortField.asc = false;
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
 
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
-    detailsRequest.sortFields = Arrays.asList(sortField);
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+    detailsRequest.aggregate = true;
 
-    detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_ALL);
-
-    // Repository Manager level: returns only details of repositoryManager2
+    // Repository Container level: returns details of all repository managers
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails).hasSize(4);
     assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
     assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
-    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
-    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(8);
-    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
-    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).waived).isNull();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
     assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
-    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
-    assertThat(responseDto.hasNextPage).isFalse();
+    assertThat(repositoryResultsDetails.get(1).waived).isNull();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isNull();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(3).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(3).quarantineTime).isNull();
+    assertThat(repositoryResultsDetails.get(3).waived).isNull();
   }
 
   @Test
-  public void testGetDetailsRepositoryContainer_SearchIdFilters() {
-    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
-    Repository repository2 = tempEntity.newRepository(repositoryManager2, "publicId");
-    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
-    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
-
+  public void testGetDetails_RepositoryContainer_SearchIdFilters() {
     SearchFilter searchFilter1 = new SearchFilter();
     searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
     searchFilter1.value = repository2.getId();
@@ -1288,12 +1327,17 @@ public class RepositoryResultsServiceTest
         repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
             detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
-    assertThat(repositoryResultsDetails).hasSize(1);
-    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
 
     detailsRequest.searchFilters = ImmutableList.of(searchFilter2);
 
@@ -1337,17 +1381,22 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter3);
 
-    // return details of repository 2 as it exists in repositoryManager2
+    // return details of repository2 as it exists in repositoryManager2
     responseDto =
         repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
             detailsRequest);
     repositoryResultsDetails = responseDto.repositoryResultsDetails;
-    assertThat(repositoryResultsDetails).hasSize(1);
-    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isEqualTo(false);
 
     detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2);
 
@@ -1360,7 +1409,7 @@ public class RepositoryResultsServiceTest
 
     detailsRequest.searchFilters = ImmutableList.of(searchFilter4);
 
-    // returns empty list as repositoryManager does not exist
+    // returns empty list as repository manager does not exist
     responseDto =
         repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
             detailsRequest);
@@ -1378,36 +1427,140 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetailsRepositoryManager_SearchIdFilters() {
-    Repository repository2 = tempEntity.newRepository(repositoryManager, "publicId2");
-    tempEntity.newRepositoryComponent(repository2.getId(), MatchState.EXACT, "path", "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), date, date, null);
-    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 10, "path", false, Action.ID_FAIL, "1", "policy",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+  public void testGetDetails_RepositoryContainer_AllFilters() {
+    SearchFilter searchFilter1 = new SearchFilter();
+    searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
+    searchFilter1.value = repository.getId();
 
+    SearchFilter searchFilter2 = new SearchFilter();
+    searchFilter2.filterableField = FilterableField.COMPONENT_COORDINATES;
+    searchFilter2.value = "g1";
+
+    SearchFilter searchFilter3 = new SearchFilter();
+    searchFilter3.filterableField = FilterableField.POLICY_NAME;
+    searchFilter3.value = "policy1";
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = false;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 5;
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2, searchFilter3);
+    detailsRequest.matchStateFilters =
+        ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT);
+    detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_OPEN);
+    detailsRequest.threatLevelFilters = Arrays.asList(5, 10);
+    detailsRequest.sortFields = Arrays.asList(sortField1);
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isEqualTo(false);
+  }
+
+  @Test
+  public void testGetDetails_RepositoryManager_NonAggregate() {
+    SortField sortField = new SortField();
+    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField.sortPriority = 1;
+    sortField.asc = false;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField);
+
+    // Repository Manager level: returns only details of repositoryManager2
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(responseDto.hasNextPage).isFalse();
+  }
+
+  @Test
+  public void testGetDetails_RepositoryManager_Aggregate() {
+    SortField sortField = new SortField();
+    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField.sortPriority = 1;
+    sortField.asc = false;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField);
+    detailsRequest.aggregate = true;
+
+    // Repository Manager level: returns only details of repositoryManager2
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isNull();
+    assertThat(responseDto.hasNextPage).isFalse();
+  }
+
+  @Test
+  public void testGetDetails_RepositoryManager_SearchIdFilters() {
     SearchFilter searchFilter1 = new SearchFilter();
     searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
     searchFilter1.value = repository2.getId();
 
     SearchFilter searchFilter2 = new SearchFilter();
     searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
-    searchFilter2.value = repositoryManager.getId();
+    searchFilter2.value = repositoryManager2.getId();
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
 
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
     detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+    detailsRequest.sortFields = Arrays.asList(sortField1);
 
-    // return details of repository
+    // return details of repository2
     RepositoryResultsDetailsResponseDto responseDto =
-        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
-    assertThat(repositoryResultsDetails).hasSize(1);
-    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy");
+    assertThat(repositoryResultsDetails).hasSize(2);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
 
     detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2);
 
@@ -1419,30 +1572,42 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
-  public void testGetDetailsRepository_SearchIdFilters() {
+  public void testGetDetails_RepositoryManager_AllFilters() {
     SearchFilter searchFilter1 = new SearchFilter();
     searchFilter1.filterableField = FilterableField.REPOSITORY_ID;
-    searchFilter1.value = repository.getId();
+    searchFilter1.value = repository2.getId();
 
     SearchFilter searchFilter2 = new SearchFilter();
-    searchFilter2.filterableField = FilterableField.REPOSITORY_MANAGER_ID;
-    searchFilter2.value = repositoryManager.getId();
+    searchFilter2.filterableField = FilterableField.COMPONENT_COORDINATES;
+    searchFilter2.value = "g";
+
+    SearchFilter searchFilter3 = new SearchFilter();
+    searchFilter3.filterableField = FilterableField.POLICY_NAME;
+    searchFilter3.value = "policy1";
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
 
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;
-    detailsRequest.searchFilters = ImmutableList.of(searchFilter1);
+    detailsRequest.searchFilters = ImmutableList.of(searchFilter1, searchFilter2, searchFilter3);
+    detailsRequest.matchStateFilters =
+        ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT, MatchStateFilter.MATCH_STATE_UNKNOWN);
+    detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
+    detailsRequest.threatLevelFilters = Arrays.asList(3, 10);
+    detailsRequest.sortFields = Arrays.asList(sortField1);
 
-    // throws exception as repositoryId is not a valid for the owner type Repository
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
-        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
-
-    detailsRequest.searchFilters = ImmutableList.of(searchFilter2);
-
-    // throws exception as repositoryManagerId is not a valid for the owner type Repository
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
-        .withMessage("SearchFilter is not valid for the ownerType REPOSITORY.");
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY_MANAGER, repositoryManager2.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(1);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
+    assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
   }
 }

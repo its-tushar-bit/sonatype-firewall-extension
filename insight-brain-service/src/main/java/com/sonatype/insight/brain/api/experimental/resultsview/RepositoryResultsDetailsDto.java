@@ -18,6 +18,10 @@ public class RepositoryResultsDetailsDto
 
   public String policyName;
 
+  public String repositoryManagerId;
+
+  public String repositoryId;
+
   public String componentDisplayText;
 
   public String pathname;
@@ -41,6 +45,8 @@ public class RepositoryResultsDetailsDto
 
     this.threatLevel = details.policyThreatLevel;
     this.policyName = details.policyName;
+    this.repositoryManagerId = details.repositoryManagerId;
+    this.repositoryId = details.repositoryId;
     this.componentDisplayText = details.componentDisplayName;
     this.pathname = details.pathname;
     this.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifierFromJson);

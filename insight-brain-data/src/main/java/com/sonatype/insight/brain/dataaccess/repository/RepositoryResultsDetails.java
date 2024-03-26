@@ -13,6 +13,10 @@ public class RepositoryResultsDetails
 
   public String policyName;
 
+  public String repositoryManagerId;
+
+  public String repositoryId;
+
   public String componentIdFormat;
 
   public String pathname;
@@ -32,6 +36,8 @@ public class RepositoryResultsDetails
   public RepositoryResultsDetails(
       final Integer policyThreatLevel,
       final String policyName,
+      final String repositoryManagerId,
+      final String repositoryId,
       final String componentIdFormat,
       final String pathname,
       final String componentIdCoordinatesJson,
@@ -43,6 +49,8 @@ public class RepositoryResultsDetails
   {
     this.policyThreatLevel = policyThreatLevel;
     this.policyName = policyName;
+    this.repositoryManagerId = repositoryManagerId;
+    this.repositoryId = repositoryId;
     this.componentIdFormat = componentIdFormat;
     this.pathname = pathname;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;

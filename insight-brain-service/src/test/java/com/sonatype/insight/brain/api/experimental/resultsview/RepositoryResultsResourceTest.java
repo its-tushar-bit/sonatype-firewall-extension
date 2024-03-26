@@ -28,7 +28,7 @@ public class RepositoryResultsResourceTest
     extends AbstractResourceTest
 {
   @Test
-  public void testGetDetails_RepositoryContainer() throws Exception {
+  public void testGetDetails() throws Exception {
     DateTime now = DateTime.now();
     final RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
     final Repository repository1 = tempEntity.newRepository(repositoryManager1, "repository1");

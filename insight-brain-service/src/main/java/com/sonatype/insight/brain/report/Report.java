@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -242,6 +243,7 @@ public final class Report
       final File reportFile,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
       final Configuration configuration)
       throws IOException
   {
@@ -260,7 +262,7 @@ public final class Report
 
     embedApplicationPublicId(application, reportFile);
 
-    applyComponentRelatedChanges(application, reportFile, repositoryMatcher, telemetrySender);
+    applyComponentRelatedChanges(application, reportFile, repositoryMatcher, telemetrySender, telemetryUtils);
     cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
@@ -744,10 +746,12 @@ public final class Report
   /**
    * Applies changes to component data (bom/license/security/partialmatched/dependencies) including claiming components
    */
-  private static void applyComponentRelatedChanges(final Application application,
-                                                   final File reportFile,
-                                                   final RepositoryMatcher repositoryMatcher,
-                                                   final TelemetrySender telemetrySender) throws IOException
+  private static void applyComponentRelatedChanges(
+      final Application application,
+      final File reportFile,
+      final RepositoryMatcher repositoryMatcher,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -773,7 +777,7 @@ public final class Report
 
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender,
-            innerSourceComponentDAO, applicationDAO, proprietaryConfigService)
+            telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService)
         .resolve();
 
     componentIdentifiers.addAll(

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -35,8 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPartyScanTelemetryData;
 
 /**
  * Worker task to process a single application bundle.
@@ -96,6 +95,8 @@ class ScanTask
 
   private final ThirdPartyScanService thirdPartyScanService;
 
+  private final TelemetryUtils telemetryUtils;
+
   private final String id;
 
   private Application app;
@@ -130,7 +131,8 @@ class ScanTask
       FileCleaner fileCleaner,
       ProprietaryConfigService proprietaryConfigService,
       ThirdPartyScanService thirdPartyScanService,
-      PersistedScanTicketDAO persistedScanTicketDAO)
+      PersistedScanTicketDAO persistedScanTicketDAO,
+      TelemetryUtils telemetryUtils)
   {
     this.scanner = scanner;
     this.uploader = uploader;
@@ -141,6 +143,7 @@ class ScanTask
     this.proprietaryConfigService = proprietaryConfigService;
     this.thirdPartyScanService = thirdPartyScanService;
     this.persistedScanTicketDAO = persistedScanTicketDAO;
+    this.telemetryUtils = telemetryUtils;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -224,7 +227,8 @@ class ScanTask
       ScanReceipt scanReceipt;
       if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
         scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
-            null /* clientUserAgent */, buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
+            null /* clientUserAgent */,
+            telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
       }
       else {
         scanReceipt =

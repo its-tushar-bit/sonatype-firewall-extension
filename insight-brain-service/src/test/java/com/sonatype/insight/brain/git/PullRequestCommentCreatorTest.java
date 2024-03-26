@@ -20,8 +20,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetryDataObfuscator;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
@@ -43,6 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PullRequestCommentCreatorTest
     extends VerifiableLoggingTestBase
@@ -56,6 +60,10 @@ public class PullRequestCommentCreatorTest
 
   @Mock
   private PullRequestCommentingMetricsService mockCommentingMetricsService;
+
+  private Configuration configurationMock = mock(Configuration.class);
+
+  private TelemetryUtils telemetryUtils = new TelemetryUtils(new TelemetryDataObfuscator(configurationMock));
 
   @Before
   @Override
@@ -143,6 +151,8 @@ public class PullRequestCommentCreatorTest
 
   @Test
   public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket() throws IOException {
+    when(configurationMock.getAdvanceReportingInsightsEnabled()).thenReturn(true);
+
     final String featureBranchHeadCommit = "feature-1-commit-1";
     TestCase testCase = new TestCase()
         .forApplication("app1")
@@ -176,6 +186,43 @@ public class PullRequestCommentCreatorTest
     assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
     verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
     assertThat(telemetryCaptor.getValue().realApplicationId).isEqualTo("app1");
+  }
+
+  @Test
+  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket_noAdvancedReporting() throws IOException {
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(5)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    GitRepositoryInfo repositoryInfo = new GitRepositoryInfo();
+    repositoryInfo.provider = SourceControlProvider.BITBUCKET;
+
+    testCase.pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(repositoryInfo);
+
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // For bitbucket, we do not want the PR commenting, but we want the mockPostCommentAction which posts code insights
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    ArgumentCaptor<PullRequestCommentTelemetry> telemetryCaptor =
+        ArgumentCaptor.forClass(PullRequestCommentTelemetry.class);
+    verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
+    verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+    assertThat(telemetryCaptor.getValue().realApplicationId).isEqualTo(telemetryUtils.obfuscate("app1"));
   }
 
   @Test
@@ -362,7 +409,8 @@ public class PullRequestCommentCreatorTest
           mockLocationDiscoveryService,
           mockPullRequestCommentingEligibilityValidator,
           mockComponentLoader,
-          mockProductLicense
+          mockProductLicense,
+          telemetryUtils
       );
     }
 

@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -32,6 +36,15 @@ public class OwnerMaintenanceTelemetryCreatorTest
   @Inject
   private OwnerMaintenanceTelemetryCreator telemetryCreator;
 
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private TelemetryUtils telemetryUtils;
+
   private Organization organization;
 
   private Application application;
@@ -44,6 +57,11 @@ public class OwnerMaintenanceTelemetryCreatorTest
 
   @Test
   public void testSendOwnerMaintenanceTelemetry_typeADD() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
     // Given
     organization = tempEntity.newOrganization("Some Organization");
     application = tempEntity.newApplication("Some App", "publicIdA", organization.getId());
@@ -58,6 +76,51 @@ public class OwnerMaintenanceTelemetryCreatorTest
 
   @Test
   public void testSendOwnerMaintenanceTelemetry_typeUPDATE() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    // Given
+    organization = tempEntity.newOrganization("Some Organization");
+    application = tempEntity.newApplication("Other App", "publicIdB", organization.getId());
+
+    // When
+    final String maintenanceType = OwnerMaintenanceTelemetry.TYPE_UPDATE;
+    telemetryCreator.sendOwnerMaintenanceTelemetry(application, maintenanceType);
+
+    // Then
+    assertTelemetry(application, maintenanceType);
+  }
+
+  @Test
+  public void testSendOwnerMaintenanceTelemetry_typeADD_obfuscatesInformationIfAdvancedReportingDisabled() {
+    // Toggle advanced reporting to make sure values are being obfuscated accordingly
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    // Given
+    organization = tempEntity.newOrganization("Some Organization");
+    application = tempEntity.newApplication("Some App", "publicIdA", organization.getId());
+
+    // When
+    final String maintenanceType = OwnerMaintenanceTelemetry.TYPE_ADD;
+    telemetryCreator.sendOwnerMaintenanceTelemetry(application, maintenanceType);
+
+    // Then
+    assertTelemetry(application, maintenanceType);
+  }
+
+  @Test
+  public void testSendOwnerMaintenanceTelemetry_typeUPDATE_obfuscatesInformationIfAdvancedReportingDisabled() {
+    // Toggle advanced reporting to make sure values are being obfuscated accordingly
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
     // Given
     organization = tempEntity.newOrganization("Some Organization");
     application = tempEntity.newApplication("Other App", "publicIdB", organization.getId());
@@ -74,8 +137,12 @@ public class OwnerMaintenanceTelemetryCreatorTest
       final Application application,
       final String maintenanceType)
   {
-    final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
+    OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
         new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
+    if (!configuration.getAdvanceReportingInsightsEnabled()) {
+      ownerMaintenanceTelemetry = new OwnerMaintenanceTelemetry(telemetryUtils.obfuscate(application.getId()),
+          telemetryUtils.obfuscate(application.getName()), maintenanceType);
+    }
 
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());

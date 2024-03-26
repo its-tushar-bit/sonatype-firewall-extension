@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -62,6 +63,8 @@ public class PullRequestCommentCreator
 
   private final ProductLicense productLicense;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public PullRequestCommentCreator(
       final GitClientFactory gitClientFactory,
@@ -74,7 +77,8 @@ public class PullRequestCommentCreator
       final PullRequestLocationDiscoveryService locationDiscoveryService,
       final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
       final SourceControlComponentLoader sourceControlComponentLoader,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      TelemetryUtils telemetryUtils)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
@@ -87,6 +91,7 @@ public class PullRequestCommentCreator
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
     this.sourceControlComponentLoader = sourceControlComponentLoader;
     this.productLicense = productLicense;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public void createPullRequestComment(
@@ -117,7 +122,8 @@ public class PullRequestCommentCreator
       final String contentHash)
   {
     PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(
-        prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
+        prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber(),
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(prPolicyEvaluationsDTO.getApplicationId()));
 
     PolicyEvaluation featureBranchPolicyEvaluation = prPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation();
     PolicyEvaluation targetPolicyEvaluation = prPolicyEvaluationsDTO.getTargetPolicyEvaluation();

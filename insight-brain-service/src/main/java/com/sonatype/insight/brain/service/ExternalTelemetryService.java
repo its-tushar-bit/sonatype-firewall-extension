@@ -30,9 +30,12 @@ public class ExternalTelemetryService
 
   private final TelemetrySender telemetrySender;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
-  public ExternalTelemetryService(TelemetrySender telemetryValues) {
+  public ExternalTelemetryService(TelemetrySender telemetryValues, TelemetryUtils telemetryUtils) {
     this.telemetrySender = telemetryValues;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public void sendTelemetry(String userAgent, Map<String, String> telemetryValues) {
@@ -77,7 +80,7 @@ public class ExternalTelemetryService
 
     telemetryData.put("ssc_integration_service_version", sscIntegrationServiceVersion);
     telemetryData.put(APPLICATION_ID_KEY, HdsClientAnalytics.obfuscate(telemetryValues.get(APPLICATION_ID_KEY)));
-    TelemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), telemetryValues.get(APPLICATION_ID_KEY));
+    telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), telemetryValues.get(APPLICATION_ID_KEY));
     telemetryData.put("overwrite", Boolean.valueOf(telemetryValues.get("overwrite")));
     String forceUpload = telemetryValues.get("force_upload");
     if (forceUpload != null) {

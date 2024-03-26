@@ -65,7 +65,7 @@ public class PullRequestCommentingClientTest
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
-    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
     gitApiResponse.setId(20);
     gitApiResponse.setVersion(1);
@@ -102,7 +102,7 @@ public class PullRequestCommentingClientTest
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
-    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     Integer commentVersion = null;
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 1, commentVersion);
@@ -147,7 +147,7 @@ public class PullRequestCommentingClientTest
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
-    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     Integer commentVersion = 10;
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 20, commentVersion);
@@ -192,7 +192,7 @@ public class PullRequestCommentingClientTest
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
-    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     Integer commentVersion = 10;
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 20, commentVersion);
@@ -233,7 +233,7 @@ public class PullRequestCommentingClientTest
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
-    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     Integer commentVersion = 10;
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 20, commentVersion);

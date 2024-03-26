@@ -45,7 +45,7 @@ public class PullRequestCommentingMetricsServiceTest
   public void testSendTelemetry() {
     // given: comment in PR of an application
     String realAppId = "app1";
-    PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry(realAppId, 100);
+    PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry(realAppId, 100, realAppId);
     ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);
 
     // when: sending telemetry

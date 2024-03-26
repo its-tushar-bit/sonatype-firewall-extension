@@ -8,12 +8,12 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
-import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -21,15 +21,22 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public final class TelemetryUtils
 {
-  private TelemetryUtils() {
+  private final TelemetryDataObfuscator telemetryDataObfuscator;
+
+  @Inject
+  public TelemetryUtils(TelemetryDataObfuscator telemetryDataObfuscator) {
+    this.telemetryDataObfuscator = telemetryDataObfuscator;
   }
 
-  public static TelemetryData buildThirdPartyScanTelemetryData(
+  public TelemetryData buildThirdPartyScanTelemetryData(
       final String applicationPublicId,
       final Stage stage,
-      final String thirdPartyScanType, final String userAgent)
+      final String thirdPartyScanType,
+      final String userAgent)
   {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", applicationPublicId);
@@ -44,18 +51,8 @@ public final class TelemetryUtils
     return telemetryData;
   }
 
-  public static TelemetryData buildInnerSourceTelemetryData(
-      final String consumerId,
-      final Set<InnerSourceProducerComponentTelemetry> producers)
-  {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INNER_SOURCE_REPORT_USAGE);
-    telemetryData.put(InnerSourceConsumerTelemetry.ATTRIBUTE_NAME,
-        new InnerSourceConsumerTelemetry(consumerId, producers));
-    return telemetryData;
-  }
-
   @SuppressWarnings("unchecked")
-  public static TelemetryData buildApplicationEvaluationTelemetryData(
+  public TelemetryData buildApplicationEvaluationTelemetryData(
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
@@ -112,16 +109,24 @@ public final class TelemetryUtils
    * This method adds a real_owner_id entry to the telemetry data attributes map. It has a dependency with the
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
-  public static void includeRealOwnerId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    telemetryAttributes.put("real_owner_id", attributeValue);
+  public void includeRealOwnerId(Map<String, Object> telemetryAttributes, String attributeValue) {
+    telemetryAttributes.put("real_owner_id", obfuscateIfAdvancedReportingDisabled(attributeValue));
   }
 
   /**
    * This method adds a real_application_id entry to the telemetry data attributes map. It has a dependency with the
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
-  public static void includeRealApplicationId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    telemetryAttributes.put("real_application_id", attributeValue);
+  public void includeRealApplicationId(Map<String, Object> telemetryAttributes, String attributeValue) {
+    telemetryAttributes.put("real_application_id", obfuscateIfAdvancedReportingDisabled(attributeValue));
+  }
+
+  public String obfuscate(String value) {
+    return telemetryDataObfuscator.obfuscate(value);
+  }
+
+  public String obfuscateIfAdvancedReportingDisabled(String value) {
+    return telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(value);
   }
 
   private static long getTotalComponentCounts(final Map<String, Number> componentCounts) {

@@ -5,13 +5,19 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.organization.ApplicationTelemetryCollector.OwnerData;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -27,6 +33,15 @@ public class ApplicationTelemetryCollectorTest
 {
   @Inject
   private ApplicationTelemetryCollector telemetryCollector;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private TelemetryUtils telemetryUtils;
 
   private Organization org;
 
@@ -54,5 +69,27 @@ public class ApplicationTelemetryCollectorTest
         tuple(app1.getId(), app1.getName()),
         tuple(app2.getId(), app2.getName()),
         tuple(app3.getId(), app3.getName()));
+  }
+
+  @Test
+  public void testCollectData_FeatureEnabled_CollectApplicationIds_obfuscatesInformationIfAdvancedReportingDisabled() {
+    // Toggle advanced reporting to make sure values are being obfuscated accordingly
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    Application app3 = tempEntity.newApplication(tempEntity.newOrganization().getId());
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
+    assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
+    List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
+    assertThat(appData).hasSize(3).extracting("ownerId", "ownerName").contains(
+        tuple(telemetryUtils.obfuscate(app1.getId()), telemetryUtils.obfuscate(app1.getName())),
+        tuple(telemetryUtils.obfuscate(app2.getId()), telemetryUtils.obfuscate(app2.getName())),
+        tuple(telemetryUtils.obfuscate(app3.getId()), telemetryUtils.obfuscate(app3.getName())));
   }
 }

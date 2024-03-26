@@ -8,10 +8,15 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Rule;
@@ -20,26 +25,38 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class TelemetryUtilsTest
+    extends BrainInjectedTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
+  @Inject
+  private TelemetryUtils telemetryUtils;
+
+  @Inject
+  private TelemetryDataObfuscator telemetryDataObfuscator;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
   @Test
   public void test_buildThirdPartyScanTelemetryData() {
-
     TelemetryData telemetryData =
-        TelemetryUtils.buildThirdPartyScanTelemetryData("appId", new Stage(Stage.ID_RELEASE), "cli", "agent");
-    assertThat(telemetryData.getAttributes())
-        .contains(entry("application_id", "appId"), entry("stage_id", "release"), entry("source", "cli"),
-            entry("user_agent", "agent"));
+        telemetryUtils.buildThirdPartyScanTelemetryData("appId", new Stage(Stage.ID_RELEASE), "cli", "agent");
+    assertThat(telemetryData.getAttributes()).contains(entry("application_id", "appId"),
+        entry("stage_id", "release"), entry("source", "cli"), entry("user_agent", "agent"));
   }
 
   @Test
   public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId() {
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
     // then:
     assertThat(telemetryData.getAttributes()).contains(
@@ -56,7 +73,7 @@ public class TelemetryUtilsTest
   @Test
   public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_IEREnabled() {
     // When
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
 
     // Then
@@ -75,7 +92,7 @@ public class TelemetryUtilsTest
   @Test
   public void test_buildApplicationEvaluationTelemetryData_noComponents_invalidUA_noInstanceId() {
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, "user agent", null, Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
@@ -94,7 +111,7 @@ public class TelemetryUtilsTest
     // given:
     String ua = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, ua, "abc", Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
@@ -121,7 +138,7 @@ public class TelemetryUtilsTest
     map.put("maven", 3L);
     map.put("npm", 2L);
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", map));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
@@ -144,7 +161,7 @@ public class TelemetryUtilsTest
     componentCounts.put("maven", 15);
     componentCounts.put("npm", 10);
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null,
         Collections.singletonMap("component_counts", componentCounts));
     // then:
@@ -166,7 +183,7 @@ public class TelemetryUtilsTest
     // given:
     environmentVariables.set("SONATYPE_INTERNAL_HOST_SYSTEM", "Docker");
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
@@ -184,7 +201,7 @@ public class TelemetryUtilsTest
     requestedAttributes.put("ide_theme", "light");
     requestedAttributes.put("component_counts", null);
     // when:
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         "appId", "build", ScanTriggerType.CLI, null, null,
         requestedAttributes);
     // then:
@@ -194,5 +211,92 @@ public class TelemetryUtilsTest
         entry("scan_trigger_type", "CLI"),
         entry("ide_theme", "light")
     );
+  }
+
+  @Test
+  public void testObfuscate() {
+    String potentialApplicationId = "potentialApplicationId";
+    String obfuscated = telemetryUtils.obfuscate(potentialApplicationId);
+    assertThat(obfuscated).isEqualTo(telemetryDataObfuscator.obfuscate(potentialApplicationId));
+  }
+
+  @Test
+  public void testObfuscateIfAdvancedReportingDisabled_propertyIsEnabled_doesNotObfuscate() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    String obfuscated = telemetryUtils.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);
+    assertThat(obfuscated).isEqualTo(potentialApplicationId);
+  }
+
+  @Test
+  public void testObfuscateIfAdvancedReportingDisabled_propertyIsDisabled() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    String obfuscated = telemetryUtils.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);
+    assertThat(obfuscated).isEqualTo(telemetryDataObfuscator.obfuscate(potentialApplicationId));
+  }
+
+  @Test
+  public void testIncludeRealOwnerId_obfuscatesValueIfAdvancedReportingDisabled() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    Map<String, Object> telemetryAttributes = new HashMap<>();
+    telemetryUtils.includeRealOwnerId(telemetryAttributes, potentialApplicationId);
+    assertThat(telemetryAttributes.entrySet()).extracting("key", "value")
+        .containsOnlyOnce(tuple("real_owner_id", telemetryDataObfuscator.obfuscate(potentialApplicationId)));
+  }
+
+  @Test
+  public void testIncludeRealOwnerId() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    Map<String, Object> telemetryAttributes = new HashMap<>();
+    telemetryUtils.includeRealOwnerId(telemetryAttributes, potentialApplicationId);
+    assertThat(telemetryAttributes.entrySet()).extracting("key", "value")
+        .containsOnlyOnce(tuple("real_owner_id", potentialApplicationId));
+  }
+
+  @Test
+  public void testIncludeRealApplicationId_obfuscatesValueIfAdvancedReportingDisabled() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    Map<String, Object> telemetryAttributes = new HashMap<>();
+    telemetryUtils.includeRealApplicationId(telemetryAttributes, potentialApplicationId);
+    assertThat(telemetryAttributes.entrySet()).extracting("key", "value")
+        .containsOnlyOnce(tuple("real_application_id", telemetryDataObfuscator.obfuscate(potentialApplicationId)));
+  }
+
+  @Test
+  public void testIncludeRealApplicationId() {
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    String potentialApplicationId = "potentialApplicationId";
+    Map<String, Object> telemetryAttributes = new HashMap<>();
+    telemetryUtils.includeRealApplicationId(telemetryAttributes, potentialApplicationId);
+    assertThat(telemetryAttributes.entrySet()).extracting("key", "value")
+        .containsOnlyOnce(tuple("real_application_id", potentialApplicationId));
   }
 }

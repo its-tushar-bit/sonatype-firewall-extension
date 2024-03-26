@@ -110,6 +110,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.tenancy.TenantAwareRunnable;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
@@ -222,6 +223,8 @@ public class ApiLicenseLegalService
 
   private final IdUtils idUtils;
 
+  private final TelemetryUtils telemetryUtils;
+
   private static final Set<String> SONATYPE_SPECIAL_LICENSES = new HashSet<>(Arrays.asList(
       UNSPECIFIED_ID,
       UNKNOWN_ID,
@@ -248,7 +251,7 @@ public class ApiLicenseLegalService
       TelemetrySender telemetrySender,
       ApplicationComponentDAO applicationComponentDAO,
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
-      final ComponentCopyrightDAO componentCopyrightDAO,
+      ComponentCopyrightDAO componentCopyrightDAO,
       ComponentLegalFileDAO componentLegalFileDAO,
       ComponentInfoService componentInfoService,
       ApiLicenseDataAdapter apiLicenseDataAdapter,
@@ -265,7 +268,8 @@ public class ApiLicenseLegalService
       InnerSourceComponentDAO innerSourceComponentDAO,
       LegalDashboardsService legalDashboardService,
       ComponentLegalService componentLegalService,
-      final IdUtils idUtils)
+      IdUtils idUtils,
+      TelemetryUtils telemetryUtils)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -280,6 +284,7 @@ public class ApiLicenseLegalService
     this.componentLegalFileDAO = componentLegalFileDAO;
     this.componentInfoService = componentInfoService;
     this.idUtils = idUtils;
+    this.telemetryUtils = telemetryUtils;
     this.componentInfoService.setToolName("ci");
     this.apiLicenseDataAdapter = apiLicenseDataAdapter;
     this.productLicense = productLicense;
@@ -1325,7 +1330,8 @@ public class ApiLicenseLegalService
         multiLicenses.stream()
             .map(license -> license.licenseId)
             .collect(Collectors.toSet()));
-    applicationLicenseUsageTelemetry.setRealApplicationId(applicationId);
+    applicationLicenseUsageTelemetry.setRealApplicationId(
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(applicationId));
 
     telemetryData.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, applicationLicenseUsageTelemetry);
 

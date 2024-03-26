@@ -17,14 +17,19 @@ public class OwnerMaintenanceTelemetryCreator
 {
   private final TelemetrySender telemetrySender;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
-  public OwnerMaintenanceTelemetryCreator(final TelemetrySender telemetrySender) {
+  public OwnerMaintenanceTelemetryCreator(final TelemetrySender telemetrySender, TelemetryUtils telemetryUtils) {
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public void sendOwnerMaintenanceTelemetry(Application application, String maintenanceType) {
+    String applicationId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getId());
+    String applicationName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getName());
     final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
+        new OwnerMaintenanceTelemetry(applicationId, applicationName, maintenanceType);
 
     sendOwnerMaintenanceTelemetry(ownerMaintenanceTelemetry);
   }

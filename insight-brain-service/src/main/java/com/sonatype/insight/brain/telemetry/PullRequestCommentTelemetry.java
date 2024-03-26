@@ -38,9 +38,9 @@ public class PullRequestCommentTelemetry
     // for deserialization
   }
 
-  public PullRequestCommentTelemetry(final String applicationId, final int prNumber) {
+  public PullRequestCommentTelemetry(final String applicationId, final int prNumber, final String realApplicationId) {
     this.applicationId = applicationId;
     this.prNumber = prNumber;
-    this.realApplicationId = applicationId;
+    this.realApplicationId = realApplicationId;
   }
 }

@@ -86,17 +86,21 @@ public class ComponentRemediationService
 
   private final ProductLicense productLicense;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public ComponentRemediationService(
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
       ComponentPolicyEvaluator componentPolicyEvaluator,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      TelemetryUtils telemetryUtils)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.productLicense = productLicense;
+    this.telemetryUtils = telemetryUtils;
   }
 
   private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
@@ -342,7 +346,7 @@ public class ComponentRemediationService
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
 
-    TelemetryUtils.includeRealOwnerId(attributes, owner.getId());
+    telemetryUtils.includeRealOwnerId(attributes, owner.getId());
 
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);

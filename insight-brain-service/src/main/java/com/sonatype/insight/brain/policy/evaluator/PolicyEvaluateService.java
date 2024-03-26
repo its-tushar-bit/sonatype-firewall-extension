@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -41,6 +40,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -49,8 +49,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPartyScanTelemetryData;
 
 @Named
 @Singleton
@@ -84,6 +82,8 @@ public class PolicyEvaluateService
 
   private final InsightWork insightWork;
 
+  private final TelemetryUtils telemetryUtils;
+
   public boolean disablePollingIntervalForTesting = false;
 
   @Inject
@@ -96,7 +96,8 @@ public class PolicyEvaluateService
       StageTypeService stageTypeService,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       ApplicationDAO applicationDAO,
-      InsightWork insightWork)
+      InsightWork insightWork,
+      TelemetryUtils telemetryUtils)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -107,6 +108,7 @@ public class PolicyEvaluateService
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
+    this.telemetryUtils = telemetryUtils;
 
     executor = new PolicyEvaluationThreadPoolExecutor();
   }
@@ -308,7 +310,7 @@ public class PolicyEvaluateService
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
     TelemetryData thirdPartyScanTelemetryData =
-        buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
+        telemetryUtils.buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
     AuditData.get().continueAsync(
         new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
             thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId),
@@ -485,8 +487,9 @@ public class PolicyEvaluateService
     String scanId = null;
 
     try {
-      TelemetryData thirdPartyScanTelemetryData = buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
-          null /* thirdPartyScanType */, clientUserAgent);
+      TelemetryData thirdPartyScanTelemetryData =
+          telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
+              null /* thirdPartyScanType */, clientUserAgent);
       ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyScanTelemetryData,
           stage.getStageTypeId(), clientUserAgent);
       scanId = scanReceipt.getScanId();

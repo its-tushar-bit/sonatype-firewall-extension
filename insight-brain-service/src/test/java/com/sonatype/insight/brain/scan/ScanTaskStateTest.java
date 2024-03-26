@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -63,6 +64,8 @@ public class ScanTaskStateTest
 
   private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
+  private TelemetryUtils telemetryUtils = mock(TelemetryUtils.class);
+
   ScanTask task;
 
   TaskStateCapturer captureState = new TaskStateCapturer();
@@ -70,7 +73,7 @@ public class ScanTaskStateTest
   @Before
   public void init() throws Exception {
     task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-        proprietaryConfigService, thirdPartyScanService, daoFactory.createPersistedScanTicketDAO());
+        proprietaryConfigService, thirdPartyScanService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
 
     File binFile = new File("any");
     Application application = new Application("any", "MyApp", null);

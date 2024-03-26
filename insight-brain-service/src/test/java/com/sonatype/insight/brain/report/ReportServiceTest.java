@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
@@ -124,6 +125,9 @@ public class ReportServiceTest
   private TelemetrySender telemetrySender;
 
   @Mock
+  private TelemetryUtils telemetryUtils;
+
+  @Mock
   private RepositoryMatcher repositoryMatcher;
 
   /**
@@ -139,7 +143,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, policyEvaluationDAO, configuration,
-        applicationDAO, organizationDAO, thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher,
+        applicationDAO, organizationDAO, thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher,
         applicationRiskService, productLicense);
   }
 

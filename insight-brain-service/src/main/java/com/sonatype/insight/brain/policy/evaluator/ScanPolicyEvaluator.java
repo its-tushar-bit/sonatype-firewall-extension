@@ -165,6 +165,8 @@ public class ScanPolicyEvaluator
 
   private final PolicyAlertUtil policyAlertUtil;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -188,7 +190,8 @@ public class ScanPolicyEvaluator
       final Configuration configuration,
       final ComponentLoaderFactory componentLoaderFactory,
       final ClusterLockManager clusterLockManager,
-      final PolicyAlertUtil policyAlertUtil)
+      final PolicyAlertUtil policyAlertUtil,
+      final TelemetryUtils telemetryUtils)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -212,6 +215,7 @@ public class ScanPolicyEvaluator
     this.componentLoaderFactory = componentLoaderFactory;
     this.clusterLockManager = clusterLockManager;
     this.policyAlertUtil = policyAlertUtil;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -305,7 +309,7 @@ public class ScanPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
     PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, sourceControlUtils.isScmEnabled(appId));
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, sourceControlUtils.isScmEnabled(appId));
 
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
@@ -934,7 +938,7 @@ public class ScanPolicyEvaluator
       String clientInstanceId)
   {
     Map<String, Long> componentCounts = getComponentCounts(components);
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId,
         Collections.singletonMap("component_counts", componentCounts));
     telemetrySender.send(telemetryData);
@@ -987,7 +991,7 @@ public class ScanPolicyEvaluator
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    TelemetryUtils.includeRealApplicationId(attributes, applicationId);
+    telemetryUtils.includeRealApplicationId(attributes, applicationId);
     attributes.put("grandfathering_enabled",
         String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId)));
     attributes.put("number_of_grandfathered_violations", String.valueOf(legacyViolationCount));

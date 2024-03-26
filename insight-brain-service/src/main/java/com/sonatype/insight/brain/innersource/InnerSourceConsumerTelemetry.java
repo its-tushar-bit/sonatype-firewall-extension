@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.innersource;
 
 import java.util.Set;
 
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-
 public class InnerSourceConsumerTelemetry
 {
   public static final String ATTRIBUTE_NAME = "inner_source";
@@ -21,10 +19,11 @@ public class InnerSourceConsumerTelemetry
 
   public InnerSourceConsumerTelemetry(
       final String consumerAppId,
+      final String realConsumerAppId,
       final Set<InnerSourceProducerComponentTelemetry> producers)
   {
-    this.consumerAppId = HdsClientAnalytics.obfuscate(consumerAppId);
-    this.realConsumerAppId = consumerAppId;
+    this.consumerAppId = consumerAppId;
+    this.realConsumerAppId = realConsumerAppId;
     this.producers = producers;
   }
 

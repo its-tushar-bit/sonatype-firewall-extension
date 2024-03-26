@@ -23,7 +23,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -67,19 +66,23 @@ public class UserInterfaceLinksResource
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public UserInterfaceLinksResource(
       BaseUrl baseUrl,
       TelemetrySender telemetrySender,
       CurrentUser currentUser,
       ApplicationDAO applicationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      TelemetryUtils telemetryUtils)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
     this.currentUser = currentUser;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.telemetryUtils = telemetryUtils;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -277,11 +280,11 @@ public class UserInterfaceLinksResource
 
     Map<String, Object> telemetryAttributes = Stream.of(
             new AbstractMap.SimpleImmutableEntry<>("source", source.toLowerCase(Locale.ENGLISH)),
-            new AbstractMap.SimpleImmutableEntry<>("application_id", HdsClientAnalytics.obfuscate(applicationId)),
-            new AbstractMap.SimpleImmutableEntry<>("scan_id", HdsClientAnalytics.obfuscate(scanId)),
+            new AbstractMap.SimpleImmutableEntry<>("application_id", telemetryUtils.obfuscate(applicationId)),
+            new AbstractMap.SimpleImmutableEntry<>("scan_id", telemetryUtils.obfuscate(scanId)),
             new AbstractMap.SimpleImmutableEntry<>("is_logged_in", !currentUser.isAnonymous()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    TelemetryUtils.includeRealApplicationId(telemetryAttributes, applicationId);
+    telemetryUtils.includeRealApplicationId(telemetryAttributes, applicationId);
     telemetryData.setAttributes(telemetryAttributes);
 
     telemetrySender.send(telemetryData);

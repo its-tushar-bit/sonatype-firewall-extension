@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
@@ -117,6 +116,8 @@ public class ApiPolicyWaiverService
 
   private final IdUtils idUtils;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
@@ -131,7 +132,8 @@ public class ApiPolicyWaiverService
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       OrganizationDAO organizationDAO,
-      final IdUtils idUtils)
+      IdUtils idUtils,
+      TelemetryUtils telemetryUtils)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -146,6 +148,7 @@ public class ApiPolicyWaiverService
     this.policyViolationDAO = policyViolationDAO;
     this.organizationDAO = organizationDAO;
     this.idUtils = idUtils;
+    this.telemetryUtils = telemetryUtils;
   }
 
   /**
@@ -407,8 +410,8 @@ public class ApiPolicyWaiverService
   private void sendTelemetry(OwnerType ownerType, String ownerId) {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_WAIVER_API);
     telemetryData.getAttributes().put(OWNER_TYPE_ATTR, ownerType.toString());
-    telemetryData.getAttributes().put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
-    TelemetryUtils.includeRealOwnerId(telemetryData.getAttributes(), ownerId);
+    telemetryData.getAttributes().put(OWNER_ID_ATTR, telemetryUtils.obfuscate(ownerId));
+    telemetryUtils.includeRealOwnerId(telemetryData.getAttributes(), ownerId);
     telemetrySender.send(telemetryData);
   }
 

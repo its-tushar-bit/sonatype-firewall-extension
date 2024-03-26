@@ -96,6 +96,8 @@ public class ThirdPartyDataService
 
   private final TelemetrySender telemetrySender;
 
+  private final TelemetryUtils telemetryUtils;
+
   private final SearchIndexManager searchIndexManager;
 
   private final ProductLicense productLicense;
@@ -113,6 +115,7 @@ public class ThirdPartyDataService
       final ThirdPartyComponentDAO thirdPartyComponentDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
       SearchIndexManager searchIndexManager,
       final ProductLicense productLicense)
   {
@@ -127,6 +130,7 @@ public class ThirdPartyDataService
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
     this.searchIndexManager = searchIndexManager;
     this.productLicense = productLicense;
   }
@@ -449,7 +453,7 @@ public class ThirdPartyDataService
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    TelemetryUtils.includeRealApplicationId(attributes, applicationId);
+    telemetryUtils.includeRealApplicationId(attributes, applicationId);
 
     for (String provider : providerCount.keySet()) {
       attributes.put("number_of_components_with_provider_" + provider, String.valueOf(providerCount.get(provider)));

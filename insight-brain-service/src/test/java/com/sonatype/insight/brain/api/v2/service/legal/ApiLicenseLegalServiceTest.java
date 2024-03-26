@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -94,6 +95,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -121,6 +123,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -266,6 +269,15 @@ public class ApiLicenseLegalServiceTest
   private OwnerDAO ownerDAO;
 
   private PolicyDAO policyDAO;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private TelemetryUtils telemetryUtils;
 
   @Override
   public void configure(Binder binder) {
@@ -2948,6 +2960,25 @@ public class ApiLicenseLegalServiceTest
     verify(mockApiLicenseLegalHdsService).getLicenseMetadata(new HashSet<>(licenses));
   }
 
+  @Test
+  public void getLicenseLegalApplicationReport_sendsObfuscatedApplicationTelemetryIfRequired() throws Exception {
+    // Toggle advanced reporting to make sure values are being obfuscated accordingly in the telemetry
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    mockReport(policyEvaluation);
+    ApiReportRawDataDTOV2 rawReport =
+        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
+        false);
+  }
+
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(
         Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
@@ -3304,7 +3335,11 @@ public class ApiLicenseLegalServiceTest
                 licenseData.effectiveLicenses.stream()))
             .map(license -> license.licenseId)
             .collect(Collectors.toSet()));
+
     applicationLicenseUsageTelemetry.setRealApplicationId(application.getId());
+    if (!configuration.getAdvanceReportingInsightsEnabled()) {
+      applicationLicenseUsageTelemetry.setRealApplicationId(telemetryUtils.obfuscate(application.getId()));
+    }
 
     expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, applicationLicenseUsageTelemetry);
 

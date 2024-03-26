@@ -5,23 +5,29 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -60,6 +66,15 @@ public class ApplicationSummaryServiceTest
 
   @Inject
   private AsyncEventBus eventBus;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private TelemetryUtils telemetryUtils;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -219,6 +234,12 @@ public class ApplicationSummaryServiceTest
     assertTelemetryData(invocation[0], before, after, true, appPublicId);
     clearInvocations(telemetrySenderMock);
 
+    // Toggle advanced reporting to make sure values are being obfuscated accordingly
+    Map<String, Object> properties =
+        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
+    configurationService.setConfigurationNoAuthz(properties);
+    configuration.configurationChanged(properties.keySet());
+
     // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created
     // automatically.
     before = new Date();
@@ -279,8 +300,14 @@ public class ApplicationSummaryServiceTest
     assertThat(ownerMaintenanceTelemetryData).isNotNull();
 
     final Application application = applicationDAO.getByPublicId(appPublicId);
-    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(application.getId());
-    assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(application.getName());
+    String applicationId = application.getId();
+    String applicationName = application.getName();
+    if (!configuration.getAdvanceReportingInsightsEnabled()) {
+      applicationId = telemetryUtils.obfuscate(applicationId);
+      applicationName = telemetryUtils.obfuscate(applicationName);
+    }
+    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(applicationId);
+    assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(applicationName);
     assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }
 

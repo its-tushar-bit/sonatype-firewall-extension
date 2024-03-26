@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -70,6 +71,8 @@ public class ApplicationSummaryService
 
   private final ProductLicense productLicense;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public ApplicationSummaryService(
       final ApplicationDAO applicationDAO,
@@ -78,7 +81,8 @@ public class ApplicationSummaryService
       TelemetrySender telemetrySender,
       final ApplicationHelper applicationHelper,
       final OrganizationDAO organizationDAO,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      TelemetryUtils telemetryUtils)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -87,6 +91,7 @@ public class ApplicationSummaryService
     this.applicationHelper = applicationHelper;
     this.organizationDAO = organizationDAO;
     this.productLicense = productLicense;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public ApplicationSummaryList getApplications(Goal goal, String organizationId) {
@@ -286,14 +291,16 @@ public class ApplicationSummaryService
       boolean appCreatedAutomatically,
       String clientUserAgent)
   {
+    // TODO CLM-29876 maybe this should use the OwnerMaintenanceTelemetryCreator class with some refactoring
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
     telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
         String.valueOf(appCreatedAutomatically));
 
+    String applicationId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getId());
+    String applicationName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getName());
     final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(application.getId(), application.getName(), OwnerMaintenanceTelemetry.TYPE_ADD);
-    telemetryData.getAttributes()
-        .put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
+        new OwnerMaintenanceTelemetry(applicationId, applicationName, OwnerMaintenanceTelemetry.TYPE_ADD);
+    telemetryData.getAttributes().put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 
     telemetrySender.send(telemetryData, clientUserAgent);
   }

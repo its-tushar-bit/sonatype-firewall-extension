@@ -218,7 +218,8 @@ public class PullRequestFeedbackMarkupServiceTest
     newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), false);
     componentDetails.getHashToComponentInfoMap().put("7a03e737484ca232d714", newComponentInfo);
 
-    PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry(app.getId(), pullRequestNumber);
+    PullRequestCommentTelemetry commentTelemetry =
+        new PullRequestCommentTelemetry(app.getId(), pullRequestNumber, app.getId());
 
     // when: creating pull request comment markup
     Optional<String> markup = pullRequestFeedbackMarkupService.createMarkup(

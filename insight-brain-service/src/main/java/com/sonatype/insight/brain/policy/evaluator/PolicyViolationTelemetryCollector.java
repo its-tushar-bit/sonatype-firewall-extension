@@ -65,12 +65,19 @@ public class PolicyViolationTelemetryCollector
 
   private List<TelemetryData> telemetryDataList = new ArrayList<>();
 
+  private final TelemetryUtils telemetryUtils;
+
   private boolean isScmEnabled;
 
   private Date timeOfPolicyEvaluation;
 
-  public PolicyViolationTelemetryCollector(final PolicyWaiverDAO policyWaiverDAO, boolean isScmEnabled) {
+  public PolicyViolationTelemetryCollector(
+      final PolicyWaiverDAO policyWaiverDAO,
+      TelemetryUtils telemetryUtils,
+      boolean isScmEnabled)
+  {
     this.policyWaiverDAO = policyWaiverDAO;
+    this.telemetryUtils = telemetryUtils;
     this.isScmEnabled = isScmEnabled;
     timeOfPolicyEvaluation = new Date();
   }
@@ -176,7 +183,7 @@ public class PolicyViolationTelemetryCollector
         .put(TIME, computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
         .put(THREAT_CATEGORY, policyViolation.getThreatCategory().getName())
         .put(THREAT_LEVEL, policyViolation.getThreatLevel());
-    TelemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
+    telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
 
     return telemetryData;
   }

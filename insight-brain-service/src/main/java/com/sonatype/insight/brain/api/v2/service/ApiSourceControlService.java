@@ -119,6 +119,8 @@ public class ApiSourceControlService
 
   private final EncryptionKeyStore encryptionKeyStore;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -135,7 +137,8 @@ public class ApiSourceControlService
       final SourceControlRepositoryUtils sourceControlRepositoryUtils,
       final GitClientFactory gitClientFactory,
       final SourceControlUserActivityService sourceControlUserActivityService,
-      final EncryptionKeyStore encryptionKeyStore)
+      final EncryptionKeyStore encryptionKeyStore,
+      final TelemetryUtils telemetryUtils)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -152,6 +155,7 @@ public class ApiSourceControlService
     this.gitClientFactory = gitClientFactory;
     this.sourceControlUserActivityService = sourceControlUserActivityService;
     this.encryptionKeyStore = encryptionKeyStore;
+    this.telemetryUtils = telemetryUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -471,7 +475,7 @@ public class ApiSourceControlService
     attributes.put("enable_status_checks", sourceControl.getStatusChecksEnabled());
     attributes.put("base_branch", sourceControl.getBaseBranch());
 
-    TelemetryUtils.includeRealOwnerId(attributes, sourceControl.getOwnerId());
+    telemetryUtils.includeRealOwnerId(attributes, sourceControl.getOwnerId());
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
     telemetryData.setAttributes(attributes);

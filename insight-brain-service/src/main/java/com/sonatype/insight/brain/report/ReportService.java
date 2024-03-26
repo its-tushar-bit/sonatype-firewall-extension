@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -75,6 +76,8 @@ public class ReportService
 
   private final TelemetrySender telemetrySender;
 
+  private final TelemetryUtils telemetryUtils;
+
   private final RepositoryMatcher repositoryMatcher;
 
   private final ApplicationRiskService applicationRiskService;
@@ -91,6 +94,7 @@ public class ReportService
       OrganizationDAO organizationDAO,
       ThirdPartyDataService thirdPartyDataService,
       TelemetrySender telemetrySender,
+      TelemetryUtils telemetryUtils,
       RepositoryMatcher repositoryMatcher,
       ApplicationRiskService applicationRiskService,
       ProductLicense productLicense)
@@ -103,6 +107,7 @@ public class ReportService
     this.organizationDAO = organizationDAO;
     this.thirdPartyDataService = thirdPartyDataService;
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
     this.repositoryMatcher = repositoryMatcher;
     this.applicationRiskService = applicationRiskService;
     this.productLicense = productLicense;
@@ -123,7 +128,7 @@ public class ReportService
       FileUtils.rename(tempFile, reportFile);
     }
 
-    Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender, configuration);
+    Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender, telemetryUtils, configuration);
 
     return reportFile;
   }

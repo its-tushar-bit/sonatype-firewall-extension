@@ -95,6 +95,8 @@ public class IdeResource
 
   private final ComponentLoaderFactory componentLoaderFactory;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public IdeResource(
       BaseUrl baseUrl,
@@ -106,7 +108,8 @@ public class IdeResource
       Configuration configuration,
       ApplicationDAO applicationDAO,
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
-      ComponentLoaderFactory componentLoaderFactory)
+      ComponentLoaderFactory componentLoaderFactory,
+      TelemetryUtils telemetryUtils)
   {
     this.baseUrl = baseUrl;
     this.client = client;
@@ -118,6 +121,7 @@ public class IdeResource
     this.componentLoaderFactory = componentLoaderFactory;
     this.applicationDAO = applicationDAO;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+    this.telemetryUtils = telemetryUtils;
   }
 
   /**
@@ -290,7 +294,7 @@ public class IdeResource
     String userAgent = HdsClient.getClientUserAgent(req);
     String instanceId = HdsClient.getClientInstanceId(req);
 
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         applicationPublicId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,
@@ -319,7 +323,7 @@ public class IdeResource
     String userAgent = HdsClient.getClientUserAgent(req);
     String instanceId = HdsClient.getClientInstanceId(req);
 
-    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+    TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         applicationPublicId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,

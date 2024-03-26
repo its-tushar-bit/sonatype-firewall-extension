@@ -23,7 +23,10 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetryDataObfuscator;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -68,6 +71,9 @@ public class ScanTaskTest
 
   private final ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
+  private final TelemetryUtils telemetryUtils =
+      new TelemetryUtils(new TelemetryDataObfuscator(mock(Configuration.class)));
+
   private ScanTask task;
 
   private final Application app = newApp("public-app-id");
@@ -92,7 +98,7 @@ public class ScanTaskTest
   @Before
   public void init() throws Exception {
     task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-        thirdPartyScanService, daoFactory.createPersistedScanTicketDAO());
+        thirdPartyScanService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
 
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
@@ -239,9 +245,9 @@ public class ScanTaskTest
 
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
-    assertThat(telemetryData.getAttributes())
-        .contains(entry("application_id", "public-app-id"), entry("stage_id", "build"), entry("source", "ui"),
-            entry("user_agent", "agent"));
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", "public-app-id"), entry("stage_id", "build"),
+        entry("source", "ui"), entry("user_agent", "agent"));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

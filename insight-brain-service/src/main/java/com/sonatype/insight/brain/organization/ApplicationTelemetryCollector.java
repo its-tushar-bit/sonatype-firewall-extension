@@ -12,8 +12,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -29,19 +31,27 @@ public class ApplicationTelemetryCollector
 
   private final ApplicationDAO applicationDAO;
 
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
-  public ApplicationTelemetryCollector(final ApplicationDAO applicationDAO) {
+  public ApplicationTelemetryCollector(final ApplicationDAO applicationDAO, TelemetryUtils telemetryUtils) {
     this.applicationDAO = applicationDAO;
+    this.telemetryUtils = telemetryUtils;
   }
 
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
     List<OwnerData> ownerData = applicationDAO.getAll().stream()
-        .map(app -> new OwnerData(app.getId(), OwnerType.APPLICATION.toString(), app.getName()))
+        .map(this::createOwnerDataFromApplication)
         .collect(Collectors.toList());
     telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);
     return telemetryData;
+  }
+
+  private OwnerData createOwnerDataFromApplication(Application app) {
+    return new OwnerData(telemetryUtils.obfuscateIfAdvancedReportingDisabled(app.getId()),
+        OwnerType.APPLICATION.toString(), telemetryUtils.obfuscateIfAdvancedReportingDisabled(app.getName()));
   }
 
   @Override

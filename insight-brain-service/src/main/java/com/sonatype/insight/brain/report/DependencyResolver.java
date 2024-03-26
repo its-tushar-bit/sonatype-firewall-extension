@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -39,6 +40,8 @@ import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.util.HashUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,6 +98,8 @@ public class DependencyResolver
 
   private final TelemetrySender telemetrySender;
 
+  private final TelemetryUtils telemetryUtils;
+
   private final InnerSourceComponentDAO innerSourceComponentDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -118,12 +123,13 @@ public class DependencyResolver
       JsonNode summaryJson,
       Application application,
       TelemetrySender telemetrySender,
+      TelemetryUtils telemetryUtils,
       InnerSourceComponentDAO innerSourceComponentDAO,
       ApplicationDAO applicationDAO,
       ProprietaryConfigService proprietaryConfigService)
   {
     return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, application, telemetrySender,
-        innerSourceComponentDAO, applicationDAO, proprietaryConfigService);
+        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService);
   }
 
   //visible for testing
@@ -134,6 +140,7 @@ public class DependencyResolver
       final JsonNode summaryJson,
       final Application application,
       final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final ApplicationDAO applicationDAO,
       final ProprietaryConfigService proprietaryConfigService)
@@ -145,6 +152,7 @@ public class DependencyResolver
     this.summaryJson = summaryJson;
     this.application = application;
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.applicationDAO = applicationDAO;
     this.proprietaryConfigService = proprietaryConfigService;
@@ -676,10 +684,21 @@ public class DependencyResolver
     return modules;
   }
 
+  private TelemetryData buildInnerSourceTelemetryData(
+      final String applicationId,
+      final Set<InnerSourceProducerComponentTelemetry> producers)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INNER_SOURCE_REPORT_USAGE);
+    telemetryData.put(InnerSourceConsumerTelemetry.ATTRIBUTE_NAME,
+        new InnerSourceConsumerTelemetry(applicationId,
+            telemetryUtils.obfuscateIfAdvancedReportingDisabled(applicationId), producers));
+    return telemetryData;
+  }
+
   private void sendTelemetryData() {
     if (!innerSourceProducerTelemetries.isEmpty()) {
       telemetrySender.send(
-          TelemetryUtils.buildInnerSourceTelemetryData(application.getId(), innerSourceProducerTelemetries));
+          buildInnerSourceTelemetryData(application.getId(), innerSourceProducerTelemetries));
     }
   }
 }

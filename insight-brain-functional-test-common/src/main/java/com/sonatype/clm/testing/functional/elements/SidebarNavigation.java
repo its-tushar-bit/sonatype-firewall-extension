@@ -96,4 +96,12 @@ public class SidebarNavigation
   public static MainHeaderNavigationButton integrationsNavigationButton() {
     return new MainHeaderNavigationButton("#integrations-navigation-button");
   }
+
+  public static MainHeaderNavigationButton sbomManagerDashboardNavigationButton() {
+    return new MainHeaderNavigationButton("#sbom-manager-dashboard-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton sbomManagerOrganizationsNavigationButton() {
+    return new MainHeaderNavigationButton("#sbom-manager-organizations-navigation-button");
+  }
 }

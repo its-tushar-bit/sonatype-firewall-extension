@@ -21,6 +21,7 @@ import {
   selectIsFirewall,
   selectRouterCurrentParams,
   selectIsFirewallOrRepository,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import {
@@ -46,6 +47,7 @@ function mapStateToProps(state, props) {
   const componentApplicationDetails = selectComponentDetails(state);
   const { tabId } = selectRouterCurrentParams(state);
   const firewallComponentDetailsPageParams = selectFirewallComponentDetailsPageRouteParams(state);
+  const isSbomManager = selectIsSbomManager(state);
 
   const getFirewallOrRepositoryViolationDetails = () =>
     !Array.isArray(firewallComponentDetailsPage?.violationDetails)
@@ -91,6 +93,7 @@ function mapStateToProps(state, props) {
     componentDisplayName: isFirewallOrRepository ? firewallComponentDetailsPageParams.componentDisplayName : null,
     isFirewall,
     firewallIsLoading,
+    isSbomManager,
   };
 }
 

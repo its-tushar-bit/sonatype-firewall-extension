@@ -19,6 +19,7 @@ import {
   selectIsRepositoryContainer,
   selectRouteParamsFromSecurityTab,
   selectIsSbomManager,
+  selectIsManagementViewRouterState,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -249,6 +250,36 @@ describe('routerSelectors', function () {
 
       expect(selectIsSbomManager(state)).toBe(false);
       expect(selectIsSbomManager(state2)).toBe(false);
+    });
+  });
+
+  describe('selectIsManagementViewRouterState', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsManagementViewRouterState.dependencies).toEqual([selectRouterState]);
+    });
+
+    it('returns true for management.view`', () => {
+      const actualSelection = selectIsManagementViewRouterState.resultFunc({
+        name: 'management.view',
+      });
+
+      expect(actualSelection).toBe(true);
+    });
+
+    it('returns true for sbomManager.management.view`', () => {
+      const actualSelection = selectIsManagementViewRouterState.resultFunc({
+        name: 'sbomManager.management.view',
+      });
+
+      expect(actualSelection).toBe(true);
+    });
+
+    it('returns false `', () => {
+      const actualSelection = selectIsManagementViewRouterState.resultFunc({
+        name: 'sbomManager.',
+      });
+
+      expect(actualSelection).toBe(false);
     });
   });
 });

@@ -7,12 +7,20 @@ import { connect } from 'react-redux';
 
 import * as advancedSearchActions from './advancedSearchActions';
 import AdvancedSearch from './AdvancedSearch';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-function mapStateToProps({ advancedSearch }) {
+function mapStateToProps(state) {
+  const { advancedSearch } = state;
+  const isSbomManager = selectIsSbomManager(state);
+  const noSbomManagerEnabledError = selectNoSbomManagerEnabledError(state);
+
   return {
     ...advancedSearch.viewState,
     ...advancedSearch.configurationState,
     ...advancedSearch.formState,
+    isSbomManager,
+    noSbomManagerEnabledError,
   };
 }
 

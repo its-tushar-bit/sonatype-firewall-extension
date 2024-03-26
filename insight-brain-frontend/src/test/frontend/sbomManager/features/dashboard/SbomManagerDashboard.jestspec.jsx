@@ -10,7 +10,7 @@ import { screen } from '@testing-library/dom';
 
 describe('SbomManagerDashboard page', () => {
   let productFeatureState;
-
+  let renderComponent;
   beforeEach(() => {
     productFeatureState = {
       productFeatures: {
@@ -18,22 +18,23 @@ describe('SbomManagerDashboard page', () => {
           'sbom-manager': true,
         },
       },
+      router: { currentState: { name: 'sbomManager.dashboard' } },
     };
+    renderComponent = (preloadedState = productFeatureState) => render(<SbomManagerDashboard />, { preloadedState });
   });
 
   it('Renders the page', async () => {
-    render(<SbomManagerDashboard />, { preloadedState: productFeatureState });
-
-    expect(await screen.findByText('Content for Dashboard')).toBeInTheDocument();
+    renderComponent();
+    expect(await screen.findByText('Content for Dashboard')).toBeVisible();
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {
     productFeatureState.productFeatures.productFeatures = {};
-    render(<SbomManagerDashboard />, { preloadedState: productFeatureState });
+    renderComponent();
 
     const errorMessage = await screen.findByText(
       'An error occurred loading data. The SBOM Manager license feature is not enabled.'
     );
-    expect(errorMessage).toBeInTheDocument();
+    expect(errorMessage).toBeVisible();
   });
 });

@@ -14,7 +14,11 @@ import { getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH, stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import { sortOwnerByName, fuzzyFilter, flatEntries } from './utils';
-import { selectRouterCurrentParams, selectIsManagementViewRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectIsManagementViewRouterState,
+  selectIsSbomManager,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions, PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
@@ -97,6 +101,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
       const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
       const showRepositories = results[1];
       const routerParams = selectRouterCurrentParams(state);
+      const isSbomManager = selectIsSbomManager(state);
 
       const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
 
@@ -105,7 +110,11 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
       const isManagementViewRoute = selectIsManagementViewRouterState(state);
       if (isManagementViewRoute) {
         dispatch(
-          stateGo('management.view.organization', { organizationId: displayedOrganization.id }, { location: 'replace' })
+          stateGo(
+            `${isSbomManager ? 'sbomManager.' : ''}management.view.organization`,
+            { organizationId: displayedOrganization.id },
+            { location: 'replace' }
+          )
         );
       }
 

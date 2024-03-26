@@ -11,10 +11,13 @@ import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { getOwnerImageUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
-import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsSbomManagerEnabled,
+  selectNoSbomManagerEnabledError,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
@@ -55,6 +58,9 @@ export default function OwnerSummary() {
   const entityId = useSelector(selectEntityId);
   const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
   const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
+  const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
 
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
 
@@ -67,7 +73,7 @@ export default function OwnerSummary() {
   return isSyntheticOrg ? (
     <InsufficientPermissionOwnerHierarchyTree />
   ) : (
-    <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
+    <NxLoadWrapper loading={loading} error={error} retryHandler={doLoad}>
       <div id="owner-summary">
         <NxPageTitle className="iq-page-title">
           <NxH1>
@@ -100,7 +106,7 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        {isSbomManagerEnabled && isApp ? (
+        {isSbomManagerEnabled && isSbomManager && isApp ? (
           <SBOMsTile />
         ) : (
           <>

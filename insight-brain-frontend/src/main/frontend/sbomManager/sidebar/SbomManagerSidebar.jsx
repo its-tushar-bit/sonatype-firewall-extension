@@ -4,14 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   NxGlobalSidebar,
   NxGlobalSidebarNavigation,
   useToggle,
   NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
-import { faHome, faSearch } from '@fortawesome/pro-solid-svg-icons';
+import { faHome, faSitemap, faSearch } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -22,33 +22,17 @@ const logoImg = require('../assets/sbom-manager.svg');
 export default function SbomManagerSidebar(props) {
   const { isLoggedIn, isSbomManagerEnabled } = props;
   const uiRouterState = useRouterState();
-  const currentStateName = useCurrentStateName(uiRouterState.router);
   const dashboardState = 'sbomManager.dashboard';
+  const sbomManagerOrgsState = 'sbomManager.management.view';
   const advancedSearchState = 'sbomManager.advancedSearch';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const dashboardHref = uiRouterState.href(dashboardState);
+  const sbomManagerOrgsHref = uiRouterState.href(sbomManagerOrgsState);
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
-  const sbomManagerHref = uiRouterState.href('sbomManager');
 
-  const isSelected = (entryName) => {
-    return currentStateName === entryName;
-  };
-
-  function useCurrentStateName(router) {
-    const [currentStateName, setCurrentStateName] = useState(router.globals.current.name);
-
-    useEffect(() => {
-      const deregister = router.transitionService.onSuccess({}, (transition) => {
-        setCurrentStateName(transition.to().name);
-      });
-
-      return () => deregister();
-    }, [router]);
-
-    return currentStateName;
-  }
+  const isSelected = (entryName) => uiRouterState.includes(entryName);
 
   return (
     <NxGlobalSidebar
@@ -58,28 +42,31 @@ export default function SbomManagerSidebar(props) {
       onToggleClick={onToggleCollapse}
       logoImg={logoImg}
       logoAltText="sonatype sbom manager"
-      logoLink={sbomManagerHref}
+      logoLink={dashboardHref}
     >
-      {isLoggedIn && (
+      {isLoggedIn && isSbomManagerEnabled && (
         <NxGlobalSidebarNavigation>
-          {isSbomManagerEnabled && (
-            <>
-              <NxGlobalSidebarNavigationLink
-                isSelected={isSelected(dashboardState)}
-                id="sbom-manager-dashboard-navigation-button"
-                icon={faHome}
-                text="Dashboard"
-                href={dashboardHref}
-              />
-              <NxGlobalSidebarNavigationLink
-                isSelected={isSelected(advancedSearchState)}
-                id="sbom-manager-search-navigation-button"
-                icon={faSearch}
-                text="Advanced Search"
-                href={advancedSearchHref}
-              />
-            </>
-          )}
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(dashboardState)}
+            id="sbom-manager-dashboard-navigation-button"
+            icon={faHome}
+            text="Dashboard"
+            href={dashboardHref}
+          />
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(sbomManagerOrgsState)}
+            id="sbom-manager-organizations-navigation-button"
+            icon={faSitemap}
+            text="Organizations"
+            href={sbomManagerOrgsHref}
+          />
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(advancedSearchState)}
+            id="sbom-manager-search-navigation-button"
+            icon={faSearch}
+            text="Advanced Search"
+            href={advancedSearchHref}
+          />
         </NxGlobalSidebarNavigation>
       )}
       <IqSidebarNavFooter />

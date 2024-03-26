@@ -5,7 +5,11 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { and, prop, propOr } from 'ramda';
-import { selectIsRepositories, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositories,
+  selectIsRepositoryContainer,
+  selectIsSbomManager,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { PROVIDER_TYPES, SOURCE_CONTROL_OPTIONS } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
@@ -222,3 +226,10 @@ export const selectIsDeveloperDashboardEnabled = createSelector(
 );
 
 export const selectIsSbomManagerEnabled = createSelector(selectProductFeatures, propOr(false, 'sbom-manager'));
+export const selectNoSbomManagerEnabledError = createSelector(
+  selectIsSbomManagerEnabled,
+  selectLoadingFeatures,
+  selectIsSbomManager,
+  (isSbomManagerEnable, loading, isSbomManager) =>
+    !isSbomManagerEnable && isSbomManager && !loading ? 'The SBOM Manager license feature is not enabled.' : null
+);

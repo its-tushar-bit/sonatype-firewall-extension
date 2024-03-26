@@ -173,7 +173,7 @@ export const selectOwnerInfo = createSelector(
 
 export const selectIsManagementViewRouterState = createSelector(
   selectRouterState,
-  (currentState) => currentState.name === 'management.view'
+  (currentState) => currentState.name === 'management.view' || currentState.name === 'sbomManager.management.view'
 );
 
 export const selectIncludesManagementView = createSelector(

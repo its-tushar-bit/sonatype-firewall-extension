@@ -18,7 +18,7 @@ import {
 import { faHexagon, faTag } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon, NxThreatIndicator } from '@sonatype/react-shared-components';
 
-export default function AdvancedSearchResultCard({ searchResultItem, groupIdentifier, $state }) {
+export default function AdvancedSearchResultCard({ searchResultItem, groupIdentifier, isSbomManager, $state }) {
   // The following constants are conditions whether this particular row should be presented in result card or not
   const organizationName =
       searchResultItem.organizationName &&
@@ -41,11 +41,11 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
 
   // generator functions for the various links that can appear in the results
   const getOrgHref = () =>
-      $state.href($state.get('management.view.organization'), {
+      $state.href($state.get(`${isSbomManager ? 'sbomManager.' : ''}management.view.organization`), {
         organizationId: searchResultItem.organizationId,
       }),
     getAppHref = () =>
-      $state.href($state.get('management.view.application'), {
+      $state.href($state.get(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`), {
         applicationPublicId: searchResultItem.applicationPublicId,
       }),
     getCategoryHref = () =>
@@ -216,6 +216,7 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
 
 AdvancedSearchResultCard.propTypes = {
   searchResultItem: PropTypes.object,
+  isSbomManager: PropTypes.bool,
   groupIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

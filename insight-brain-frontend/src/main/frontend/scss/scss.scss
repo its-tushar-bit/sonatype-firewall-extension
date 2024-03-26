@@ -163,6 +163,7 @@
 @use '../enterpriseReporting/dashboard/enterpriseReportingDashboardPage';
 @use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 @use '../sbomManager/sbomManager';
+@use '../sbomManager/features/billOfMaterials/billOfMaterials';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

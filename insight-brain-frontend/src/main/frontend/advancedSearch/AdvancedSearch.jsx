@@ -26,6 +26,8 @@ export default function AdvancedSearch(props) {
     searchedQuery,
     searchIncludedAllComponents,
     queryError,
+    isSbomManager,
+    noSbomManagerEnabledError,
   } = props;
 
   // configurationState
@@ -41,7 +43,7 @@ export default function AdvancedSearch(props) {
 
   const { $state } = props;
 
-  const loadError = isEnabled ? loadErrorProp : 'Advanced Search is not turned on!';
+  const loadError = isEnabled ? loadErrorProp || noSbomManagerEnabledError : 'Advanced Search is not turned on!';
 
   useEffect(load, []);
 
@@ -86,7 +88,7 @@ export default function AdvancedSearch(props) {
           )}
           {searchResultItemDTOS.map((searchResultItem) => (
             <AdvancedSearchResultCard
-              {...{ searchResultItem, groupIdentifier, $state }}
+              {...{ searchResultItem, groupIdentifier, isSbomManager, $state }}
               key={searchResultItem.resultIndex}
             />
           ))}
@@ -104,6 +106,8 @@ AdvancedSearch.propTypes = {
   loadError: PropTypes.object,
   isEnabled: PropTypes.bool.isRequired,
   searchResult: PropTypes.object,
+  isSbomManager: PropTypes.bool,
+  noSbomManagerEnabledError: PropTypes.string,
   queryError: PropTypes.object,
   $state: PropTypes.object.isRequired,
 };

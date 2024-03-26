@@ -17,6 +17,7 @@ import {
   selectIsRepository,
   selectRepositoryId,
   selectIsRepositoryManager,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -37,7 +38,8 @@ const getBreadcrumb = (
   applicationPublicId,
   repositoryId,
   pageTitle,
-  currentRouteName
+  currentRouteName,
+  isSbomManager
 ) => {
   const breadcrumb = [];
 
@@ -54,7 +56,9 @@ const getBreadcrumb = (
     const displayedApplication = ownersMap[applicationPublicId];
     breadcrumb.unshift({
       name: displayedApplication.name,
-      href: uiRouterState.href(`management.view.application`, { applicationPublicId: displayedApplication.publicId }),
+      href: uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`, {
+        applicationPublicId: displayedApplication.publicId,
+      }),
     });
   }
 
@@ -72,7 +76,10 @@ const getBreadcrumb = (
     const [parentEntityIdKey, routeParams] = getOwnerInfo(currentOwner);
     breadcrumb.unshift({
       name: currentOwner.name,
-      href: uiRouterState.href(`management.view.${currentOwner.type}`, routeParams),
+      href: uiRouterState.href(
+        `${isSbomManager ? 'sbomManager.' : ''}management.view.${currentOwner.type}`,
+        routeParams
+      ),
     });
 
     currentOwner = currentOwner[parentEntityIdKey] ? ownersMap[currentOwner[parentEntityIdKey]] : null;
@@ -98,6 +105,7 @@ const MenuBarStatefulBreadcrumb = () => {
   const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const routeName = useSelector(selectCurrentRouteName);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   if (isNilOrEmpty(ownersMap) || isNilOrEmpty(displayedOrganization)) {
     return null;
@@ -112,7 +120,8 @@ const MenuBarStatefulBreadcrumb = () => {
     applicationPublicId,
     repositoryId,
     pageTitle,
-    routeName
+    routeName,
+    isSbomManager
   );
 
   const renderComponentInsidePortal = (componentToRender) =>

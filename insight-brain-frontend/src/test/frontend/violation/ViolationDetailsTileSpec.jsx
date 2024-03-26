@@ -434,10 +434,22 @@ describe('ViolationDetailsTile', function () {
       });
     });
 
+    describe('when the policy owner is an org and comes from sbomManager', function () {
+      it('sets the link href using the sbomManager.management.view.organization state and the org id', function () {
+        expect(
+          getShallowComponent({ isSbomManager: true }).find('.iq-violation-details__policy-owner').find(NxTextLink)
+        ).toHaveProp('href', '#/foo');
+        expect(stateGetMock).toHaveBeenCalledWith('sbomManager.management.view.organization');
+        expect(stateHrefMock).toHaveBeenCalledWith('theState', {
+          organizationId: '1234',
+        });
+      });
+    });
+
     describe('when the policy owner is an app', function () {
-      const getComponentWithAppProps = () =>
-        getShallowComponent(
-          pathSet(
+      const getComponentWithAppProps = (additionalProps) =>
+        getShallowComponent({
+          ...pathSet(
             ['violationDetails', 'policyOwner'],
             {
               ownerName: 'polOwner',
@@ -446,8 +458,9 @@ describe('ViolationDetailsTile', function () {
               ownerPublicId: 'app2',
             },
             minimalProps
-          )
-        );
+          ),
+          ...additionalProps,
+        });
 
       it('sets the link href using the management.view.application state and the app public id', function () {
         expect(getComponentWithAppProps().find('.iq-violation-details__policy-owner').find(NxTextLink)).toHaveProp(
@@ -455,6 +468,16 @@ describe('ViolationDetailsTile', function () {
           '#/foo'
         );
         expect(stateGetMock).toHaveBeenCalledWith('management.view.application');
+        expect(stateHrefMock).toHaveBeenCalledWith('theState', {
+          applicationPublicId: 'app2',
+        });
+      });
+
+      it('sets the link href using the sbomManager.management.view.application state and the app public id', function () {
+        expect(
+          getComponentWithAppProps({ isSbomManager: true }).find('.iq-violation-details__policy-owner').find(NxTextLink)
+        ).toHaveProp('href', '#/foo');
+        expect(stateGetMock).toHaveBeenCalledWith('sbomManager.management.view.application');
         expect(stateHrefMock).toHaveBeenCalledWith('theState', {
           applicationPublicId: 'app2',
         });

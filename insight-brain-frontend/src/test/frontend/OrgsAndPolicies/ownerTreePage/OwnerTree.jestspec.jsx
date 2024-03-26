@@ -20,9 +20,10 @@ describe('OwnerTree', () => {
 
   const fakeRouterState = (url, params) => {
     const isOrganization = url.includes('organization');
+    const isSbomManager = url.includes('sbomManager');
     const ownerType = isOrganization ? 'organization' : 'application';
     const id = isOrganization ? params.organizationId : params?.applicationPublicId;
-    return `#/management/view/${ownerType}/${id}`;
+    return `#${isSbomManager ? '/sbomManager' : ''}/management/view/${ownerType}/${id}`;
   };
 
   beforeEach(() => {
@@ -130,6 +131,15 @@ describe('OwnerTree', () => {
     });
   });
 
+  it('renders correct amount of clickable tree nodes with sbomManager url', () => {
+    renderComponent({ ...state, router: { currentState: { name: 'sbomManager' } } });
+
+    Object.values(ownersMap).forEach((owner) => {
+      const aTag = screen.getByText(owner.name).closest('a');
+      expect(aTag).toHaveAttribute('href', getExpectedHref(owner, true));
+    });
+  });
+
   it('renders non clickable for synthetic orgs', () => {
     // make all organization into synthetic
     Object.values(ownersMap).forEach((owner) => {
@@ -152,8 +162,8 @@ describe('OwnerTree', () => {
   });
 });
 
-const getExpectedHref = (owner) => {
+const getExpectedHref = (owner, isSbomManager) => {
   const isOrganization = owner.type === 'organization';
   const id = isOrganization ? owner.id : owner.publicId;
-  return `#/management/view/${owner.type}/${id}`;
+  return `#${isSbomManager ? '/sbomManager' : ''}/management/view/${owner.type}/${id}`;
 };

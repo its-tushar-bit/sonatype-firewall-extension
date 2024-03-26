@@ -6,15 +6,18 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.SbomManagerDashboardPage;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.visible;
 
-public class SbomManagerDashboardPageTest extends AbstractFunctionalTest
+public class SbomManagerDashboardPageTest
+    extends AbstractFunctionalTest
 {
   private final SbomManagerDashboardPage sbomManagerPage = new SbomManagerDashboardPage();
 
@@ -29,7 +32,8 @@ public class SbomManagerDashboardPageTest extends AbstractFunctionalTest
     setFeatures(LicensedFeature.SBOM_MANAGER);
     refreshOrOpen(SbomManagerDashboardPage.url());
     sbomManagerPage.dashboard().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
+    eyesWatcher.eyesCheck("Sbom Manager Dashboard page");
   }
 
   @Test
@@ -37,5 +41,7 @@ public class SbomManagerDashboardPageTest extends AbstractFunctionalTest
     setMissingFeature(LicensedFeature.SBOM_MANAGER);
     refreshOrOpen(SbomManagerDashboardPage.url());
     sbomManagerPage.sbomManagerNotEnabledError().shouldBe(visible);
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
+    eyesWatcher.eyesCheck("Sbom Manager Dashboard not enabled");
   }
 }

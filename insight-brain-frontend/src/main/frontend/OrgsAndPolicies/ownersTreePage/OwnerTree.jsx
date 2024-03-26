@@ -15,6 +15,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { renderDisplayName } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 import { faDatabase } from '@fortawesome/pro-regular-svg-icons';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const shouldRenderNodeById = (searchTerm, filteredOwners) => (nodeId) =>
   !searchTerm || (searchTerm && filteredOwners.includes(nodeId));
@@ -36,9 +37,13 @@ const OwnerTreeNode = ({
   const hasChildEntities = !!organizationIds?.length || !!applicationIds?.length;
   const items = [...(organizationIds || []), ...(applicationIds || [])];
   const isApplication = type === 'application';
-  const href = uiRouterState.href(`management.view.${isApplication ? 'application' : 'organization'}`, {
-    ...(isApplication ? { applicationPublicId } : { organizationId }),
-  });
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const href = uiRouterState.href(
+    `${isSbomManager ? 'sbomManager.' : ''}management.view.${isApplication ? 'application' : 'organization'}`,
+    {
+      ...(isApplication ? { applicationPublicId } : { organizationId }),
+    }
+  );
 
   const nodeId = applicationPublicId || organizationId;
   const clickDOMElement = (id) => document.getElementById(id)?.click();

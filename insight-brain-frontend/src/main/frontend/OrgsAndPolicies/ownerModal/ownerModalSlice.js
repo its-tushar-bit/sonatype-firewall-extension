@@ -30,7 +30,7 @@ import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
-import { selectIsScmOnboarding } from '../../reduxUiRouter/routerSelectors';
+import { selectIsSbomManager, selectIsScmOnboarding } from '../../reduxUiRouter/routerSelectors';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
@@ -171,6 +171,7 @@ const createNewOwner = createAsyncThunk(
     const { ownerName, appId, isApplication, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
     const isCurrentOwnerAnApp = selectIsApplication(state);
     const isRepo = selectIsRepository(state);
+    const isSbomManager = selectIsSbomManager(state);
     let currentOwner = selectSelectedOwner(state);
 
     if (isCurrentOwnerAnApp) {
@@ -213,11 +214,15 @@ const createNewOwner = createAsyncThunk(
 
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
         if (isApplication) {
-          dispatch(stateGo('management.view.application', { applicationPublicId: payload.application.publicId }));
+          dispatch(
+            stateGo(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`, {
+              applicationPublicId: payload.application.publicId,
+            })
+          );
         }
         if (shouldRedirectToNewOrg) {
           dispatch(
-            stateGo('scmOnboardingOrg', {
+            stateGo(isSbomManager ? 'management.view.organization' : 'scmOnboardingOrg', {
               organizationId: payload.organization.id,
             })
           );

@@ -36,6 +36,7 @@ export default function ViolationDetailsTile(props) {
       policyDetail,
       hasPermissionForAppWaivers,
       constraintViolations,
+      isSbomManager,
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
@@ -99,7 +100,7 @@ export default function ViolationDetailsTile(props) {
   function getOwnerHref(owner) {
     const ownerIdType = ownerIdTypeMap[owner.ownerType],
       ownerId = owner.ownerPublicId || owner.ownerId;
-    return $state.href($state.get(`management.view.${owner.ownerType}`), {
+    return $state.href($state.get(`${isSbomManager ? 'sbomManager.' : ''}management.view.${owner.ownerType}`), {
       [ownerIdType]: ownerId,
     });
   }
@@ -266,5 +267,6 @@ ViolationDetailsTile.propTypes = {
   isFirewallContext: PropTypes.bool,
   policyDetail: PropTypes.object,
   hasPermissionForAppWaivers: PropTypes.bool,
+  isSbomManager: PropTypes.bool,
   constraintViolations: constraintViolationsPropType,
 };

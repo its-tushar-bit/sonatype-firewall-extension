@@ -44,8 +44,13 @@ import {
   selectIsRepository,
   selectRepositoryId,
   selectRouterCurrentParams,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsScmEnabled, selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsScmEnabled,
+  selectIsOrgsAndAppsEnabled,
+  selectNoSbomManagerEnabledError,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { getOwnerInfo } from './utils';
@@ -86,6 +91,8 @@ export default function OwnerSideNav() {
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
+  const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
+  const error = loadError || noSbomManagerEnabledError;
 
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isScmEnabled = useSelector(selectIsScmEnabled);
@@ -95,7 +102,9 @@ export default function OwnerSideNav() {
   const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container', {
     repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
   });
-  const treeViewPageHref = uiRouterState.href('management.tree');
+  const isSbomManager = useSelector(selectIsSbomManager);
+
+  const treeViewPageHref = uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.tree`);
 
   const onSearch = (query) => dispatch(actions.filterSidebarEntries(query));
   const openOwnerEditorModal = (isApp) => dispatch(ownerModalActions.openModal({ isApp }));
@@ -132,7 +141,10 @@ export default function OwnerSideNav() {
     });
 
     const [, routeParams] = getOwnerInfo(displayedOrganization);
-    const organizationUrl = uiRouterState.href(`management.view.${displayedOrganization.type}`, routeParams);
+    const organizationUrl = uiRouterState.href(
+      `${isSbomManager ? 'sbomManager.' : ''}management.view.${displayedOrganization.type}`,
+      routeParams
+    );
 
     return (
       <>
@@ -393,7 +405,7 @@ export default function OwnerSideNav() {
   return (
     <>
       <MenuBarStatefulBreadcrumb />
-      <NxLoadWrapper loading={loading || !displayedOrganization} error={loadError} retryHandler={load}>
+      <NxLoadWrapper loading={loading || !displayedOrganization} error={error} retryHandler={load}>
         {() => {
           return (
             <>

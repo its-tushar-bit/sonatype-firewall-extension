@@ -15,6 +15,7 @@ import {
   selectIsOrganization,
   selectIsRepository,
   selectIsRepositoryManager,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -52,6 +53,7 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
   const isOrg = selectIsOrganization(state);
   const isRepositoryManager = selectIsRepositoryManager(state);
   const isRepository = selectIsRepository(state);
+  const isSbomManager = selectIsSbomManager(state);
 
   let url;
   if (isApp) {
@@ -68,11 +70,19 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
         batch(() => {
           if (isApp) {
-            dispatch(stateGo('management.view.organization', { organizationId: ownerToDelete.organizationId }));
+            dispatch(
+              stateGo(`${isSbomManager ? 'sbomManager.' : ''}management.view.organization`, {
+                organizationId: ownerToDelete.organizationId,
+              })
+            );
             dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
             dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.organizationId }));
           } else if (isOrg) {
-            dispatch(stateGo('management.view.organization', { organizationId: ownerToDelete.parentOrganizationId }));
+            dispatch(
+              stateGo(`${isSbomManager ? 'sbomManager.' : ''}management.view.organization`, {
+                organizationId: ownerToDelete.parentOrganizationId,
+              })
+            );
             dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
             dispatch(
               ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.parentOrganizationId })

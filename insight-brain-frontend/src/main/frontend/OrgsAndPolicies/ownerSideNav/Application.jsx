@@ -11,12 +11,16 @@ import { NxOverflowTooltip, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectOwnerById } from './ownerSideNavSelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const Application = memo(({ applicationPublicId, isFilteredResult, ...otherProps }) => {
   const uiRouterState = useRouterState();
   const application = useSelector((state) => selectOwnerById(state, applicationPublicId));
   const parentOrg = useSelector((state) => selectOwnerById(state, application?.organizationId));
-  const applicationUrl = uiRouterState.href('management.view.application', { applicationPublicId });
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const applicationUrl = uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`, {
+    applicationPublicId,
+  });
   const applicationTooltip = (
     <>
       <span>{application?.name}</span>

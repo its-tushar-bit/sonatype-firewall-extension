@@ -12,12 +12,13 @@ import {
   getApplicablePolicies,
   getApplicationSummaryUrl,
 } from 'MainRoot/util/CLMLocation';
-import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 describe('OwnerSummary', () => {
   let axiosMock, preloadedState;
 
+  const ownerType = 'organization';
+  const ownerId = 'be17ea5538de4679ba3a9220734ddbf7';
   const renderComponent = (preloadedState) => render(<OwnerSummary />, { preloadedState });
 
   beforeAll(() => {
@@ -25,8 +26,6 @@ describe('OwnerSummary', () => {
   });
 
   describe('if owner is an organization', () => {
-    const ownerType = 'organization';
-    const ownerId = 'be17ea5538de4679ba3a9220734ddbf7';
     beforeAll(() => {
       preloadedState = {
         router: {
@@ -294,15 +293,7 @@ describe('OwnerSummary', () => {
         policyEvaluations: {},
         policyEvaluationsResults: {},
       });
-      componentLabelSetup();
     });
-
-    const componentLabelSetup = () => {
-      spyOn(actions, 'loadApplicableLabels').and.returnValue({
-        type: 'labels/loadApplicableLabels/fulfilled',
-        payload: [],
-      });
-    };
 
     it('true, then SBOMs and Access tiles are visible and no other tiles are', async () => {
       const stateSBOMtrue = {
@@ -310,6 +301,19 @@ describe('OwnerSummary', () => {
         productFeatures: {
           productFeatures: {
             'sbom-manager': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.application',
+            url: '/application/{applicationPublicId}',
+            data: {
+              title: 'Application Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            applicationPublicId: 'sbom_test',
           },
         },
       };
@@ -320,20 +324,22 @@ describe('OwnerSummary', () => {
       expect(await screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
     });
 
-    it('false, then SBOMs and Access tiles are NOT visible but other tiles are', async () => {
+    it('false, and shows error when the SBOM Manager license is disabled', async () => {
       const stateSBOMfalse = {
         ...preloadedState,
         productFeatures: {
-          productFeatures: {
-            'sbom-manager': false,
-          },
+          productFeatures: {},
+        },
+        router: {
+          currentState: { name: 'sbomManager.dashboard' },
         },
       };
       renderComponent(stateSBOMfalse);
 
-      expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
-      expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
-      expect(await screen.findByRole('heading', { name: 'Component Labels' })).toBeVisible();
+      const errorMessage = await screen.findByText(
+        'An error occurred loading data. The SBOM Manager license feature is not enabled.'
+      );
+      expect(errorMessage).toBeVisible();
     });
   });
 });

@@ -11,12 +11,16 @@ import { NxOverflowTooltip, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react
 import { faSitemap } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectOwnerById } from './ownerSideNavSelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const Organization = memo(({ organizationId, displayParentNameInTooltip = false, ...otherProps }) => {
   const uiRouterState = useRouterState();
   const organization = useSelector((state) => selectOwnerById(state, organizationId));
   const parentOrganization = useSelector((state) => selectOwnerById(state, organization?.parentOrganizationId));
-  const organizationUrl = uiRouterState.href('management.view.organization', { organizationId });
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const organizationUrl = uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.view.organization`, {
+    organizationId,
+  });
 
   const organizationTooltip = (
     <>

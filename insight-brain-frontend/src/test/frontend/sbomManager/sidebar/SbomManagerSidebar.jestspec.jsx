@@ -4,61 +4,78 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, screen } from 'TestRoot/SpecUtil';
 
 import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
 import * as RouterStateContextModule from 'MainRoot/react/RouterStateContext';
 
 describe('SbomManagerSidebar', () => {
+  let renderComponent;
   beforeEach(() => {
+    const defaultPreloadedState = {
+      router: {
+        currentState: {
+          name: 'sbomManager.dashboard',
+        },
+      },
+    };
+
     const mockRouterState = {
       href: jest.fn().mockImplementation((stateName) => {
         switch (stateName) {
-          case 'sbomManager':
-            return '#/sbomManager/dashboard';
           case 'sbomManager.dashboard':
             return '#/sbomManager/dashboard';
+          case 'sbomManager.management.view':
+            return '#/sbomManager/management/view';
+          case 'sbomManager.management.tree':
+            return '#/sbomManager/management/tree';
+          case 'sbomManager.advancedSearch':
+            return '#/sbomManager/advancedSearch';
           default:
             return '/mocked-default-href';
         }
       }),
       includes: jest.fn(),
-      get: jest.fn(),
-      router: {
-        globals: {
-          current: {
-            name: 'sbomManager.dashboard',
-          },
-        },
-        transitionService: {
-          onSuccess: jest.fn().mockImplementation(() => jest.fn()),
-        },
-      },
     };
     jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
+
+    const props = { isLoggedIn: true, isSbomManagerEnabled: true };
+    renderComponent = (additionalProps, preloadedState) =>
+      render(<SbomManagerSidebar {...props} {...additionalProps} />, {
+        preloadedState: { ...defaultPreloadedState, ...preloadedState },
+      });
   });
+
   it('renders correctly when user is logged in and sbomManager is enabled', () => {
-    const { getByText } = render(<SbomManagerSidebar isLoggedIn={true} isSbomManagerEnabled={true} />);
-    const dashboardText = getByText('Dashboard');
-    const dashboardLink = dashboardText.closest('a');
-    expect(dashboardLink).toHaveClass('nx-global-sidebar__navigation-link nx-text-link selected');
-    expect(dashboardLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    renderComponent();
+    const sidebarLinks = screen.getAllByRole('link');
+    expect(sidebarLinks.length).toBe(4);
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const orgsLink = sidebarLinks[2];
+    const searchLink = sidebarLinks[3];
+    expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
     expect(dashboardLink).toHaveTextContent('Dashboard');
-
-    const homeIcon = dashboardLink.querySelector('svg.fa-home');
-    expect(homeIcon).toBeInTheDocument();
-    expect(homeIcon).toHaveAttribute('data-icon', 'home');
-    expect(homeIcon).toHaveAttribute('role', 'img');
+    expect(dashboardLink).toHaveAttribute('href', '#/sbomManager/dashboard');
+    expect(orgsLink).toHaveTextContent('Organizations');
+    expect(orgsLink).toHaveAttribute('href', '#/sbomManager/management/view');
+    expect(searchLink).toHaveTextContent('Advanced Search');
+    expect(searchLink).toHaveAttribute('href', '#/sbomManager/advancedSearch');
   });
 
-  it('does not render the dashboard link when the user is not logged in', () => {
-    const { queryByText } = render(<SbomManagerSidebar isLoggedIn={false} isSbomManagerEnabled={true} />);
-    expect(queryByText('Dashboard')).not.toBeInTheDocument();
+  it('does not render the sidebar when the user is not logged in', () => {
+    renderComponent({ isLoggedIn: false });
+    const sidebarLinks = screen.getAllByRole('link');
+    const mainLink = sidebarLinks[0];
+    expect(sidebarLinks.length).toBe(1);
+    expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
   });
 
-  it('does not show sidebar when isSbomManagerEnabled is disabled', () => {
-    const { queryByText } = render(<SbomManagerSidebar isLoggedIn={true} isSbomManagerEnabled={false} />);
-    expect(queryByText('Dashboard')).not.toBeInTheDocument();
+  it('does not render the sidebar when isSbomManagerEnabled is disabled', () => {
+    renderComponent({ isSbomManagerEnabled: false });
+    const sidebarLinks = screen.getAllByRole('link');
+    const mainLink = sidebarLinks[0];
+    expect(sidebarLinks.length).toBe(1);
+    expect(mainLink).toHaveAttribute('href', '#/sbomManager/dashboard');
   });
 });

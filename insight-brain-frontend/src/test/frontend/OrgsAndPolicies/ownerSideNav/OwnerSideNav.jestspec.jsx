@@ -144,6 +144,23 @@ describe('OwnerSideNav', () => {
     expect(searchInput).toHaveTextContent('');
   });
 
+  it('renders sbom manager error when trying to access without permission', async () => {
+    const preloadedState = {
+      ...state,
+      router: {
+        currentParams: {},
+        currentState: { name: 'sbomManager.management.view' },
+      },
+    };
+    renderComponent(preloadedState);
+    expect(
+      await screen.findByRole(
+        'alert',
+        /An error occurred loading data. The SBOM Manager license feature is not enabled./i
+      )
+    ).toBeVisible();
+  });
+
   describe('Search', () => {
     it('renders empty search input', async () => {
       renderComponent();

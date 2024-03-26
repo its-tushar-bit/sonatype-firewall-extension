@@ -38,7 +38,7 @@ import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceContro
 import integrationsModule from 'MainRoot/development/developmentDashboard/integrations.module';
 import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
-import sbomManagerModule from 'MainRoot/sbomManager/module';
+import sbomManagerModule from 'MainRoot/sbomManager/sbom.manager.module';
 import developmentReportModule from 'MainRoot/development/developmentReport/development.report.module';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 

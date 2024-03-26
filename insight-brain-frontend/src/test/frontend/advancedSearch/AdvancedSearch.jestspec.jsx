@@ -28,7 +28,7 @@ describe('AdvancedSearch', function () {
       },
     },
   };
-  const renderComponent = () => render(<AdvancedSearchContainer />, { preloadedState: initialState });
+  const renderComponent = (preloadedState = initialState) => render(<AdvancedSearchContainer />, { preloadedState });
 
   describe('help', function () {
     it('has a "Craft your search terms…" toggle', function () {
@@ -85,8 +85,9 @@ describe('AdvancedSearch', function () {
         router: {
           currentState: { name: 'sbomManager.advancedSearch' },
         },
+        productFeatures: { productFeatures: { 'sbom-manager': true } },
       };
-      render(<AdvancedSearchContainer />, { preloadedState: sbomManagerState });
+      renderComponent(sbomManagerState);
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
       fireEvent.click(toggle);
@@ -114,8 +115,9 @@ describe('AdvancedSearch', function () {
         router: {
           currentState: { name: 'sbomManager.advancedSearch' },
         },
+        productFeatures: { productFeatures: { 'sbom-manager': true } },
       };
-      render(<AdvancedSearchContainer />, { preloadedState: sbomManagerState });
+      renderComponent(sbomManagerState);
 
       let helpLink = screen.queryByRole('link', { name: 'documentation' });
       expect(helpLink).not.toBeInTheDocument();
@@ -125,6 +127,22 @@ describe('AdvancedSearch', function () {
 
       helpLink = screen.queryByRole('link', { name: 'documentation' });
       expect(helpLink).not.toBeInTheDocument();
+    });
+
+    it('shows error when the SBOM Manager license is disabled', async () => {
+      const sbomManagerState = {
+        ...initialState,
+        router: {
+          currentState: { name: 'sbomManager.advancedSearch' },
+        },
+        productFeatures: { productFeatures: {} },
+      };
+      renderComponent(sbomManagerState);
+
+      const errorMessage = await screen.findByText(
+        'An error occurred loading data. The SBOM Manager license feature is not enabled.'
+      );
+      expect(errorMessage).toBeVisible();
     });
   });
 });

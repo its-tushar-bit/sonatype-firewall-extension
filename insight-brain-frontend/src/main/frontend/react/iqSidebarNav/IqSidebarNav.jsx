@@ -54,12 +54,11 @@ function IqSidebarNav(props) {
     isDeveloperDashboardEnabled,
     isOrgsAndAppsEnabled,
     isSbomManagerEnabled,
-    showSbomManagerSidebar,
+    isSbomManager,
     isProductFeaturesLoading,
     isSbomManagerOnlyLicense,
     isProductsLoading,
   } = props;
-
   const logo = getProductLogo(productEdition);
 
   const apiHref = uiRouterState.href('api');
@@ -241,7 +240,7 @@ function IqSidebarNav(props) {
     // Empty sidebar until product info is fully loaded
     return <DefaultEmptyIqSidebar />;
   }
-  return isSbomManagerOnlyLicense || (isSbomManagerEnabled && showSbomManagerSidebar) ? sbomManagerSidebar : iqSidebar;
+  return isSbomManagerOnlyLicense || isSbomManager ? sbomManagerSidebar : iqSidebar;
 }
 
 IqSidebarNav.propTypes = {
@@ -262,7 +261,7 @@ IqSidebarNav.propTypes = {
   isDeveloperDashboardEnabled: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
-  showSbomManagerSidebar: PropTypes.bool,
+  isSbomManager: PropTypes.bool,
   isProductFeaturesLoading: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isProductsLoading: PropTypes.bool,

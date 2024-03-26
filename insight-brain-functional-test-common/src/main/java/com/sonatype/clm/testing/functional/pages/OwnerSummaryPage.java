@@ -46,6 +46,10 @@ public class OwnerSummaryPage
     return BaseUrl.resolvePageUrl("/management/view/{ownerType}/{ownerId}", ownerType, id);
   }
 
+  public static String sbomManagerUrl(OwnerType ownerType, String id) {
+    return BaseUrl.resolvePageUrl("sbomManager/management/view/{ownerType}/{ownerId}", ownerType, id);
+  }
+
   public static OrgsAndPoliciesSidebar sidebar() {
     return new OrgsAndPoliciesSidebar();
   }

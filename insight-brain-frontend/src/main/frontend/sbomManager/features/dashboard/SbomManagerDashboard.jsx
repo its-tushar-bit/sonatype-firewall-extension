@@ -5,36 +5,34 @@
  */
 
 import React from 'react';
-import { NxH1, NxLoadError, NxLoadWrapper, NxP, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
+import { NxH1, NxLoadWrapper, NxP, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 import {
-  selectIsSbomManagerEnabled,
   selectLoadErrorFeatures,
   selectLoadingFeatures,
+  selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function SbomManagerDashboard() {
-  const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
-
-  const error = <NxLoadError error="The SBOM Manager license feature is not enabled." retryHandler={retryHandler} />;
-
-  const dashboard = (
-    <div>
-      <NxPageTitle>
-        <NxH1>Dashboard</NxH1>
-      </NxPageTitle>
-      <NxP>Content for Dashboard</NxP>
-    </div>
-  );
+  const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
 
   function retryHandler() {}
 
   return (
     <NxPageMain id="sbom-manager-dashboard">
-      <NxLoadWrapper retryHandler={() => {}} loading={isProductFeaturesLoading} error={errorLoadingProductFeatures}>
-        {isSbomManagerEnabled ? dashboard : error}
+      <NxLoadWrapper
+        retryHandler={retryHandler}
+        loading={isProductFeaturesLoading}
+        error={errorLoadingProductFeatures || noSbomManagerEnabledError}
+      >
+        <div>
+          <NxPageTitle>
+            <NxH1>Dashboard</NxH1>
+          </NxPageTitle>
+          <NxP>Content for Dashboard</NxP>
+        </div>
       </NxLoadWrapper>
     </NxPageMain>
   );

@@ -15,6 +15,7 @@ import { selectChangeApplicationIdSlice } from './changeApplicationIdSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
@@ -49,6 +50,7 @@ const changeApplicationId = createAsyncThunk(
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const currentOwner = selectSelectedOwner(state);
+    const isSbomManager = selectIsSbomManager(state);
     const { ownerType } = selectOwnerProperties(state);
     const { newPublicId } = selectChangeApplicationIdSlice(state);
 
@@ -69,7 +71,7 @@ const changeApplicationId = createAsyncThunk(
 
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() =>
         dispatch(
-          stateGo('management.view.application', {
+          stateGo(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`, {
             applicationPublicId: newPublicId.trimmedValue,
           })
         )

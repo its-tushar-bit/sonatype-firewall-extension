@@ -60,7 +60,7 @@ export default angular
         'isDeveloperDashboardEnabled',
         'isOrgsAndAppsEnabled',
         'isSbomManagerEnabled',
-        'showSbomManagerSidebar',
+        'isSbomManager',
         'isProductFeaturesLoading',
         'isSbomManagerOnlyLicense',
         'isProductsLoading',

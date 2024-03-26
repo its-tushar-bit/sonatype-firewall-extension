@@ -56,6 +56,7 @@ export default function ViolationPage(props) {
     pathname,
     isFirewall,
     firewallIsLoading,
+    isSbomManager,
   } = props;
 
   const [activeTabName, setActiveTabName] = useState(VULNERABILITY_DETAILS);
@@ -135,6 +136,7 @@ export default function ViolationPage(props) {
             policyDetail,
             hasPermissionForAppWaivers,
             constraintViolations,
+            isSbomManager,
           }}
         />
         <section className={sectionClasses}>
@@ -231,6 +233,7 @@ export const violationPageTypes = {
   hasEditIqPermission: PropTypes.bool,
   firewallIsLoading: PropTypes.bool,
   setSelectPolicyViolation: PropTypes.func,
+  isSbomManager: PropTypes.bool,
 };
 
 ViolationPage.propTypes = violationPageTypes;

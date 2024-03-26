@@ -30,6 +30,8 @@ public class SearchResultItemDTO
 
   public String applicationVersion;
 
+  public String sbomSpecification;
+
   public String policyEvaluationStage;
 
   public String reportId;

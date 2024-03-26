@@ -758,9 +758,10 @@ public class IndexService
     Application application = (Application)owner;
 
     return new DocumentBuilder(ItemType.SBOM_METADATA)
-      .setOwner(application)
-      .setApplicationVersion(sbomMetadata.getSbomVersion())
-      .build();
+        .setOwner(application)
+        .setApplicationVersion(sbomMetadata.getSbomVersion())
+        .setSbomSpecification(sbomMetadata.getSpec())
+        .build();
   }
 
   private List<Document> buildApplicationSVDocs(
@@ -977,6 +978,7 @@ public class IndexService
     return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
         .setOwner(application)
         .setApplicationVersion(sbomMetadata.getSbomVersion())
+        .setSbomSpecification(sbomMetadata.getSpec())
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
@@ -1002,6 +1004,7 @@ public class IndexService
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
         .setOwner(application)
         .setApplicationVersion(sbomMetadata.getSbomVersion())
+        .setSbomSpecification(sbomMetadata.getSpec())
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())

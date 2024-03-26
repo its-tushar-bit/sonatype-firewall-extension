@@ -466,6 +466,7 @@ public class SearchService
     searchResultItemDTO.applicationPublicId = document.get(APPLICATION_PUBLIC_ID.label);
     searchResultItemDTO.applicationName = document.get(APPLICATION_NAME.label);
     searchResultItemDTO.applicationVersion = document.get(APPLICATION_VERSION.label);
+    searchResultItemDTO.sbomSpecification = document.get(SBOM_SPECIFICATION.label);
     searchResultItemDTO.policyEvaluationStage = document.get(POLICY_EVALUATION_STAGE.label);
     if (searchResultItemDTO.policyEvaluationStage != null) {
       searchResultItemDTO.policyEvaluationStage =

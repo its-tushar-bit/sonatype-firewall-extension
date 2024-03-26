@@ -77,7 +77,7 @@ export default function AdvancedSearchCriteriaBuilder(props) {
             'applicationName',
             !isSbomManager && 'applicationPublicId',
             isSbomManager && 'applicationVersion',
-            isSbomManager && 'sbomFormat'
+            isSbomManager && 'sbomSpecification'
           )}
 
           {!isSbomManager &&

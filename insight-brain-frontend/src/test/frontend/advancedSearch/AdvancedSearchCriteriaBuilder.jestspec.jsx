@@ -63,7 +63,7 @@ describe('AdvancedSearchCriteriaBuilder', () => {
   };
 
   const sbomCriteriaGroups = {
-    Application: ['applicationVersion', 'sbomFormat'],
+    Application: ['applicationVersion', 'sbomSpecification'],
   };
 
   const checkCriteriaGroupsAreRendered = (criteriaGroups) => {

@@ -815,6 +815,7 @@ public class TemporaryEntity
       delete(sourceControlDAO.getAll(), sourceControlDAO);
       samlConfigurationDAO.delete();
       delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
+      delete(thirdPartyScanDAO.getAll(), thirdPartyScanDAO);
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
       delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
       delete(thirdPartyCoordinateSecurityDAO.getAll(), thirdPartyCoordinateSecurityDAO);
@@ -4738,12 +4739,15 @@ public class TemporaryEntity
   public void newSbomEvaluation(
       Application application,
       String applicationVersion,
+      String sbomSpecification,
       PackageUrlIdentifier componentPackageUrl,
       String scanId,
       boolean isVulnerable)
   {
     ThirdPartyFile thirdPartyFile = newThirdPartyFile("bom.xml");
-    createSbomMetadata(application.getId(), applicationVersion, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = createSbomMetadata(application.getId(), applicationVersion, thirdPartyFile);
+    sbomMetadata.setSpec(sbomSpecification);
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
     ThirdPartyScan thirdPartyScan = newThirdPartyScan(thirdPartyFile);
     thirdPartyScan.setScanId(scanId);
     thirdPartyScanDAO.update(thirdPartyScan);

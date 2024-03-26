@@ -82,7 +82,8 @@ public class DocumentBuilder
     POLICY_THREAT_CATEGORY("policyThreatCategory"),
     POLICY_THREAT_LEVEL("policyThreatLevel"),
     PARENT_ORGANIZATION_NAME("parentOrganizationName"),
-    PARENT_ORGANIZATION_ID("parentOrganizationId");
+    PARENT_ORGANIZATION_ID("parentOrganizationId"),
+    SBOM_SPECIFICATION("sbomSpecification");
 
     public final String label;
 
@@ -157,6 +158,8 @@ public class DocumentBuilder
   private Optional<Field[]> policyThreatLevel = Optional.empty();
 
   private Optional<Field> applicationVersion = Optional.empty();
+
+  private Optional<Field> sbomSpecification = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
     document = new Document();
@@ -282,7 +285,10 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setVulnerabilityDescription(final String description) {
-    this.vulnerabilityDescription = Optional.of(new TextField(VULNERABILITY_DESCRIPTION.label, description, Store.YES));
+    if (description != null) {
+      this.vulnerabilityDescription =
+          Optional.of(new TextField(VULNERABILITY_DESCRIPTION.label, description, Store.YES));
+    }
     return this;
   }
 
@@ -361,6 +367,11 @@ public class DocumentBuilder
     return this;
   }
 
+  public DocumentBuilder setSbomSpecification(final String sbomSpecification) {
+    this.sbomSpecification = Optional.of(new TextField(SBOM_SPECIFICATION.label, sbomSpecification, Store.YES));
+    return this;
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -392,6 +403,7 @@ public class DocumentBuilder
     parentOrganizationNames.ifPresent(this::setFields);
     parentOrganizationIds.ifPresent(this::setFields);
     applicationVersion.ifPresent(this::setFields);
+    sbomSpecification.ifPresent(this::setFields);
     return document;
   }
 

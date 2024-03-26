@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.io.FileUtils;
@@ -96,6 +98,7 @@ public class ApiAdvancedSearchResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
+        SbomFileDetector.SPEC_CYCLONEDX,
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
@@ -125,7 +128,19 @@ public class ApiAdvancedSearchResourceV2Test
         .get();
 
     assertResponseStatus(402, response);
-    assertThat(response.getBodyText()).contains("The SBOM Manager feature is not supported by your license");
+    assertThat(response.getBodyText()).contains("The SBOM Manager feature is not supported by your license.");
+  }
+
+  @Test
+  public void testSearchIndex_DefaultMode_MissingProductSupportingDefaultMode() throws Exception {
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    HttpResponse response = restRequest()
+        .query("query", FieldIdentifier.COMPONENT_NAME.label + ":" + "*")
+        .get();
+
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).contains("Only SBOM Manager mode is supported by your license.");
   }
 
   @Test
@@ -134,6 +149,7 @@ public class ApiAdvancedSearchResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
+        SbomFileDetector.SPEC_CYCLONEDX,
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);

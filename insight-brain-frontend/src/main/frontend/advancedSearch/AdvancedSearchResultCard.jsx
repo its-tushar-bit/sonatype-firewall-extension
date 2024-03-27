@@ -6,6 +6,7 @@
 
 import * as PropTypes from 'prop-types';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   faCogs,
   faExclamationTriangle,
@@ -16,6 +17,7 @@ import {
   faUniversity,
 } from '@fortawesome/pro-regular-svg-icons';
 import { faHexagon, faTag } from '@fortawesome/pro-solid-svg-icons';
+import { faTableTree } from '@fortawesome/pro-light-svg-icons';
 import { NxFontAwesomeIcon, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 export default function AdvancedSearchResultCard({ searchResultItem, groupIdentifier, isSbomManager, $state }) {
@@ -25,7 +27,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
       (searchResultItem.itemType === 'ORGANIZATION' || groupIdentifier !== 'ORGANIZATION_NAME'),
     applicationName =
       searchResultItem.applicationName &&
-      (searchResultItem.itemType === 'APPLICATION' || groupIdentifier !== 'APPLICATION_NAME'),
+      (searchResultItem.itemType === 'APPLICATION' ||
+        searchResultItem.itemType === 'SBOM_METADATA' ||
+        groupIdentifier !== 'APPLICATION_NAME'),
     applicationVersion = searchResultItem.applicationVersion,
     applicationCategory = searchResultItem.applicationCategoryName,
     componentName = searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
@@ -113,10 +117,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
         {applicationVersion && (
           <tr className="nx-table-row">
             <td className="nx-cell">
-              {/* TODO use correct icon */}
-              <NxFontAwesomeIcon icon={faTerminal} />
+              <NxFontAwesomeIcon icon={faTableTree} />
             </td>
-            <td className="nx-cell">Application Version</td>
+            <td className="nx-cell">Version</td>
             <td className="nx-cell">{searchResultItem.applicationVersion}</td>
           </tr>
         )}
@@ -180,7 +183,11 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Security Issue</td>
             <td className="nx-cell">
-              <a href={getVulnHref()}>{searchResultItem.vulnerabilityId}</a>
+              {isSbomManager ? (
+                searchResultItem.vulnerabilityId
+              ) : (
+                <a href={getVulnHref()}>{searchResultItem.vulnerabilityId}</a>
+              )}
             </td>
           </tr>
         )}

@@ -410,7 +410,7 @@ public class SearchService
     // pick a field that is available for the item type, potentially driven by the fields searched on
     switch (itemType) {
       case APPLICATION:
-      case SBOM_METADATA: // TODO confirm with design how grouping should work for app versions (aka SBOM_METADATA)
+      case SBOM_METADATA:
         return APPLICATION_NAME;
       case APPLICATION_CATEGORY:
         return APPLICATION_CATEGORY_NAME;

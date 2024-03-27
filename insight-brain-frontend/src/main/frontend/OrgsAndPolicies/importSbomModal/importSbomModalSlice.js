@@ -5,26 +5,20 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import {
-  nxFileUploadStateHelpers,
-  nxTextInputStateHelpers,
-  SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS,
-} from '@sonatype/react-shared-components';
+import { nxFileUploadStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { always } from 'ramda';
 
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
-import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
-import { selectSelectedOwnerName, selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
+import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
-const { initialState: rscInitialState, userInput: userTextInput } = nxTextInputStateHelpers;
 
 const REDUCER_NAME = `${OWNER_ACTIONS}/importSbomModal`;
-const SUBMIT_MASK_IMPORT_MESSAGE = 'importing';
+const SUBMIT_MASK_IMPORT_MESSAGE = 'Importing…';
 
 export const initialState = {
   isModalOpen: false,
@@ -37,9 +31,9 @@ export const initialState = {
 
   // post upload
   requestId: null,
-  componentsCount: null,
-  vulnerabilitiesCount: null,
-  versionId: rscInitialState('', validateNonEmpty),
+  componentCount: null,
+  vulnerabilityCount: null,
+  versionId: '',
 
   submitError: null,
   submitMaskState: null,
@@ -55,7 +49,7 @@ const setIsModalOpen = (state, { payload }) => {
 };
 
 const setVersionId = (state, { payload }) => {
-  state.versionId = userTextInput(payload);
+  state.versionId = payload.trim();
 };
 
 const setupFileUpload = (state, { payload }) => {
@@ -91,7 +85,12 @@ const uploadFile = createAsyncThunk(
           dispatch(actions.updateUploadFileProgress(percentCompleted));
         },
       })
-      .then(({ data }) => data)
+      .then(({ data }) => {
+        if (data.errorMessage) {
+          throw new Error(data.errorMessage);
+        }
+        return data;
+      })
       .catch(rejectWithValue);
   }
 );
@@ -102,36 +101,28 @@ const uploadFileFulfilled = (state, { payload }) => {
     state.submitError = null;
 
     state.requestId = payload.requestId;
-    state.componentsCount = payload.componentsCount;
-    state.vulnerabilitiesCount = payload.vulnerabilitiesCount;
+    state.versionId = payload.sbomSummary?.applicationVersion || '';
+    state.componentCount = payload.sbomSummary?.componentCount;
+    state.vulnerabilityCount = payload.sbomSummary?.vulnerabilityCount;
   }
 };
 
 const uploadFileFailed = (state, { payload }) => {
   if (state.uploadState !== null) {
     state.uploadState = -1;
-    state.submitError = Messages.getHttpErrorMessage(payload);
+    state.submitError = payload instanceof Error ? payload.message : Messages.getHttpErrorMessage(payload);
   }
 };
 
 const submitImport = createAsyncThunk(`${REDUCER_NAME}/import`, async (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
-  const { requestId, versionId } = selectImportSbomModalSlice(state);
-  const applicationName = selectSelectedOwnerName(state);
-
-  const dataPayload = {
-    applicationName,
-    requestId,
-  };
-
-  if (versionId) {
-    dataPayload.version = versionId;
-  }
+  const { requestId } = selectImportSbomModalSlice(state);
+  const appId = selectSelectedOwnerId(state);
 
   return axios
-    .post(getCommitImportedSbomUrl(), dataPayload)
+    .post(getCommitImportedSbomUrl(appId, requestId))
     .then(({ data }) => {
-      startSubmitMaskSuccessTimer(() => dispatch(actions.reset));
+      startSubmitMaskSuccessTimer(() => dispatch(actions.reset()));
       return data;
     })
     .catch(rejectWithValue);

@@ -35,8 +35,8 @@ export default function ImportSbomModal() {
     uploadFileProgress,
 
     versionId,
-    componentsCount,
-    vulnerabilitiesCount,
+    componentCount,
+    vulnerabilityCount,
 
     submitMaskState,
     submitMaskMessage,
@@ -50,11 +50,12 @@ export default function ImportSbomModal() {
   const submitImport = () => {
     if (isFileUploadSuccessful) dispatch(actions.submitImport());
   };
+  const versionIdHandler = (value) => dispatch(actions.setVersionId(value));
 
   const progressBarLabel = cond([
-    [equals(-1), always({ labelError: 'Upload failed' })],
+    [equals(-1), always({ label: 'Upload failed', labelError: 'Upload failed' })],
     [equals(0), always({ label: `Uploading ${file.files?.[0]?.name} file` })],
-    [equals(1), always({ labelSuccess: 'Upload successful!' })],
+    [equals(1), always({ label: 'Upload successful!', labelSuccess: 'Upload successful!' })],
   ])(uploadState);
 
   const progressBar = () =>
@@ -74,18 +75,19 @@ export default function ImportSbomModal() {
           />
         </NxFormGroup>
 
-        <NxFormGroup
-          label="Version Id"
-          sublabel={
-            'Enter a custom version Id to apply to this SBOM. By default, SBOM Manager will use the timestamp of import as version Id.'
-          }
-        >
-          <NxTextInput id="import-sbom-modal-version-id-input" value={versionId} isPristine={true} />
+        <NxFormGroup label="Version Id" sublabel="Version value cannot be edited">
+          <NxTextInput
+            id="import-sbom-modal-version-id-input"
+            value={versionId}
+            isPristine={true}
+            onChange={versionIdHandler}
+            disabled
+          />
         </NxFormGroup>
 
         <NxInfoAlert id="import-sbom-modal-info-alert" data-testid="import-sbom-modal-info-alert">
-          <strong>{componentsCount} components</strong> and <strong>{vulnerabilitiesCount} vulnerabilities</strong> will
-          be included with uploaded file.
+          <strong>{componentCount} components</strong> and <strong>{vulnerabilityCount} vulnerabilities</strong> will be
+          included with uploaded file.
         </NxInfoAlert>
       </>
     ) : null;
@@ -106,7 +108,7 @@ export default function ImportSbomModal() {
         validationErrors={undefined}
       >
         <NxModal.Header>
-          <NxH2>Import SBOM for {applicationName}</NxH2>
+          <NxH2>Import SBOM for Application {applicationName}</NxH2>
         </NxModal.Header>
         <NxModal.Content>
           <NxFormGroup label="Upload SBOM File" isRequired>

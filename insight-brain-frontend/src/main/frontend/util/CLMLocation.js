@@ -1016,13 +1016,11 @@ export function getAddIconUrl(isApp, ownerId) {
 }
 
 export function getImportSbomUrl(applicationId) {
-  // placeholder URI
-  return uriTemplate`/rest/sbom/detection/${applicationId}`;
+  return uriTemplate`/rest/sbom/detect/${applicationId}`;
 }
 
-export function getCommitImportedSbomUrl() {
-  // placeholder URI
-  return uriTemplate`/rest/sbom/detection/commit/`;
+export function getCommitImportedSbomUrl(applicationId, requestId) {
+  return uriTemplate`/rest/sbom/commit/${applicationId}/${requestId}`;
 }
 
 export const getVersionGraphUrl = ({

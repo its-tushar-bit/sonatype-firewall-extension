@@ -758,13 +758,15 @@ describe('CLMLocation.js', function () {
 
   describe('getImportSbomUrl', function () {
     it('should return the url for importing SBOM and appending the application id at the end', function () {
-      expect(CLMLocation.getImportSbomUrl('applicationId')).toBe('/rest/sbom/detection/applicationId');
+      expect(CLMLocation.getImportSbomUrl('applicationId')).toBe('/rest/sbom/detect/applicationId');
     });
   });
 
   describe('getCommitImportedSbomUrl', function () {
     it('should return the url for committing SBOM import', function () {
-      expect(CLMLocation.getCommitImportedSbomUrl()).toBe('/rest/sbom/detection/commit/');
+      expect(CLMLocation.getCommitImportedSbomUrl('applicationId', 'requestId')).toBe(
+        '/rest/sbom/commit/applicationId/requestId'
+      );
     });
   });
 

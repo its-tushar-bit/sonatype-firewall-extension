@@ -755,7 +755,8 @@ public class CLMLicenseManager
         LicensedFeature.DATA_INSIGHTS, //
         LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK, //
         LicensedFeature.BREAKING_CHANGE, //
-        LicensedFeature.DEVELOPER_DASHBOARD //
+        LicensedFeature.DEVELOPER_DASHBOARD, //
+        LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

@@ -1160,6 +1160,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_IntegratedEnterpriseReportingFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

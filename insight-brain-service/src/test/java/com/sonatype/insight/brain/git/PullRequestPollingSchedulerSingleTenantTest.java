@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.LogOutput;
@@ -68,6 +69,15 @@ public class PullRequestPollingSchedulerSingleTenantTest
       new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
           .encryptPassword("password".toCharArray())
   );
+
+  // There seems to be a quirk in AbstractBaseIntegrationTest (this class' grandparent) where it won't reliable
+  // start a distinct IQ server for a given test class, using that class' `getBrainModules` method, unless that
+  // class also specifies a custom configurator or one of a number of other things (see the logic in
+  // AbstractBaseIntegrationTest.maybeStopTestIqServer).  We don't need a custom configurator generally, but in
+  // order to get our `getBrainModules` method to be used reliably, we need to specify a configurator that is
+  // specific to this class. This no-op function below will do.
+  private static final Configurator CONFIGURATOR = config -> {
+  };
 
   @Rule
   public LogOutput logOutput =
@@ -121,7 +131,9 @@ public class PullRequestPollingSchedulerSingleTenantTest
   }
 
   @Before
-  public void before() {
+  public void before() throws Exception {
+    startIqTestServer(CONFIGURATOR);
+
     PullRequestPollingService service = lookup(PullRequestPollingService.class);
     ApiConfigFeaturesService apiConfigFeaturesService = lookup(ApiConfigFeaturesService.class);
     gitClientFactorySpy = lookup(GitClientFactory.class);
@@ -149,6 +161,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
   }
 
   @Test
+  @ManualIqServerInit
   public void testPullRequestPollingScheduler_skipsAppsWithMissingParentConfiguration() throws Exception {
     Organization orgWithoutScmConf = tempEntity.newOrganization("orgWithoutScmConf");
     String orgWithoutScmConfId = orgWithoutScmConf.getId();

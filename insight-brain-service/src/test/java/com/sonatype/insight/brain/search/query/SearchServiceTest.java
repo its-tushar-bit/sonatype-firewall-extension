@@ -669,12 +669,16 @@ public class SearchServiceTest
     SearchResultItemDTO securityVulnerability = securityVulnerabilities.get(0);
     assertThat(securityVulnerability.applicationVersion).isEqualTo("1.0");
     assertThat(securityVulnerability.sbomSpecification).isEqualTo(SbomFileDetector.SPEC_CYCLONEDX);
+    assertThat(securityVulnerability.policyEvaluationStage).isNull();
+    assertThat(securityVulnerability.reportId).isNull();
     List<SearchResultItemDTO> nonVulnerableComponents =
         find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "n v2".equals(s.componentName));
     assertThat(nonVulnerableComponents).hasSize(1);
     SearchResultItemDTO nonVulnerableComponent = nonVulnerableComponents.get(0);
     assertThat(nonVulnerableComponent.applicationVersion).isEqualTo("1.1");
     assertThat(nonVulnerableComponent.sbomSpecification).isEqualTo(SbomFileDetector.SPEC_SPDX);
+    assertThat(nonVulnerableComponent.policyEvaluationStage).isNull();
+    assertThat(nonVulnerableComponent.reportId).isNull();
     assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "someScanId3".equals(s.reportId))).isEmpty();
     assertThat(find(results, ItemType.NON_VULNERABLE_COMPONENT, s -> "someScanId3".equals(s.reportId))).isEmpty();
   }

@@ -163,6 +163,7 @@
 @use '../enterpriseReporting/dashboard/enterpriseReportingDashboardPage';
 @use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 @use '../sbomManager/sbomManager';
+@use '../OrgsAndPolicies/ownerSummary/sbomsTile/_sbomsTile.scss';
 @use '../sbomManager/features/billOfMaterials/billOfMaterials';
 
 // CIP

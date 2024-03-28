@@ -34,6 +34,7 @@ import actionDropdownSlice from './actionDropdown/actionDropdownSlice';
 import sourceControlConfigurationSlice from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ownersTreeSlice from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 import importSbomModalSlice from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
+import sbomsTileSlice from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice.js';
 
 export default combineReducers({
   root: rootSlice,
@@ -70,4 +71,5 @@ export default combineReducers({
   licenseThreatGroups: licenseThreatGroupsSlice,
   ownerSideNav: ownerSideNavSlice,
   ownersTree: ownersTreeSlice,
+  sbomsTile: sbomsTileSlice,
 });

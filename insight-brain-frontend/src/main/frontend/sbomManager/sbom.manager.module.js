@@ -74,7 +74,7 @@ function routes($stateProvider) {
       component: 'ownersTreePage',
     })
     .state('sbomManager.management.view.bom', {
-      url: '/application/{applicationId}/bom/{versionId}',
+      url: '/application/{applicationPublicId}/bom/{versionId}',
       component: 'billOfMaterials',
       data: {
         title: 'SBOM Manager - Bill Of Materials',

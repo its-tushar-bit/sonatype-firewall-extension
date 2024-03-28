@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
@@ -133,7 +134,8 @@ public class ApiSbomResourceTest
   }
 
   @Test
-  public void testGetVulnerabilities() throws Exception {
+  @PostgresTest
+  public void testGetListOfSbomsForApplicationId() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX -bom.xml");
@@ -153,8 +155,12 @@ public class ApiSbomResourceTest
     HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
                             .parameter(app.getId()).get();
     assertResponseStatus(200, response);
-    List<ThirdPartySbomMetadataSummaryDTO> thirdPartySbomMetadataSummaryDTOList = response
-        .getBody(List.class);
+
+    ThirdPartySbomMetadataSummaryListDTO result = response.getBody(ThirdPartySbomMetadataSummaryListDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    List<ThirdPartySbomMetadataSummaryDTO> thirdPartySbomMetadataSummaryDTOList = result.getResults();
     assertThat(thirdPartySbomMetadataSummaryDTOList).hasSize(2);
 
     ObjectMapper mapper = new ObjectMapper();

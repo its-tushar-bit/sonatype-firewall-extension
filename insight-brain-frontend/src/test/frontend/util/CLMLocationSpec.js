@@ -1420,4 +1420,38 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, true, true)).toEqual(expectedUrl);
     });
   });
+
+  describe('getSbomsByApplicationUrl', () => {
+    it('should return the correct URL with the given parameters', () => {
+      const applicationId = 'abc123';
+      const sortDir = 'desc';
+      const pageSize = 10;
+      const page = 0;
+      const expectedURL = `/api/v2/sbom/application/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
+
+      expect(clmLocation.getSbomsByApplicationUrl(applicationId, pageSize, page, sortDir)).toBe(expectedURL);
+    });
+  });
+
+  describe('getDownloadSbomFromSbomTableUrl', () => {
+    it('should return the correct URL with the given parameters', () => {
+      const applicationId = 'abc123';
+      const applicationVersion = 'v1';
+      const expectedURL = `/api/v2/sbom/${applicationId}/versions/${applicationVersion}/?state=original`;
+
+      expect(clmLocation.getDownloadSbomFromSbomTableUrl(applicationId, applicationVersion)).toBe(expectedURL);
+    });
+  });
+
+  describe('getDeleteSbomByApplicationIdAndVersionUrl', () => {
+    it('should return the correct URL with the given parameters', () => {
+      const applicationId = 'abc123';
+      const applicationVersion = 'v1';
+      const expectedURL = `/api/v2/sbom/${applicationId}/versions/${applicationVersion}`;
+
+      expect(clmLocation.getDeleteSbomByApplicationIdAndVersionUrl(applicationId, applicationVersion)).toBe(
+        expectedURL
+      );
+    });
+  });
 });

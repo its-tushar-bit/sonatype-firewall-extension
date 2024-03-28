@@ -161,10 +161,11 @@ public class ThirdPartyFileCoordinateDAO
   }
 
   @SuppressWarnings("unchecked")
-  public List<ThirdPartySbomMetadataSummaryDTO> getSbomApplicationVulnerabilities(String applicationId,
-                                                                                  final String sortByDate,
-                                                                                   final int limit,
-                                                                                   final int offset)
+  public ThirdPartySbomMetadataSummaryListDTO getSbomApplicationVulnerabilities(
+      String applicationId,
+      String sortByDate,
+      int pageSize,
+      int page)
   {
     String sQuery = "" + //
         "SELECT sm.sbom_version," + //
@@ -175,18 +176,23 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END)," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END)," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END)," + //
-        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END)" + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END)," + //
+        "       COUNT(*) OVER() AS full_count" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
         "    ON fc.third_party_file_id = sm.third_party_file_id" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
         "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
         " WHERE sm.application_id = ?10" + //
+        "   AND sm.status = ?11" + //
         " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at" + //
         " ORDER BY sm.created_at " + (sortByDate.equalsIgnoreCase("asc") ? "ASC " : "DESC ");
 
+    int offset = (page - 1) * pageSize;
+    ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
+
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, limit);
+      javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
       paginationQuery.setParameter(1, NONE.getStartScoreRange());
       paginationQuery.setParameter(2, LOW.getStartScoreRange());
       paginationQuery.setParameter(3, LOW.getEndScoreRange());
@@ -197,10 +203,19 @@ public class ThirdPartyFileCoordinateDAO
       paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
       paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
       paginationQuery.setParameter(10, applicationId);
+      paginationQuery.setParameter(11, "ACTIVE");
 
-      return ((Stream<Object[]>) paginationQuery.getResultStream())
+      List<ThirdPartySbomMetadataSummaryDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
+          .peek(array -> {
+            if (result.getTotalResultsCount() == 0) {
+              result.setTotalResultsCount(((Long) array[9]).intValue());
+            }
+          })
           .map(ThirdPartySbomMetadataSummaryDTO::new)
           .collect(Collectors.toList());
+
+      result.setResults(dtos);
+      return result;
     }
   }
 }

@@ -3704,10 +3704,11 @@ public class TemporaryEntity
     return newThirdPartyScan(newThirdPartyFile());
   }
 
-  public void newThirdPartySbomMetadata(String thirdPartyFileId,
-                                        String applicationId,
-                                        String status,
-                                        String fileName)
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String thirdPartyFileId,
+      String applicationId,
+      String status,
+      String fileName)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     ThirdPartyFile thirdPartyFile = newThirdPartyFile();
@@ -3724,6 +3725,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    return thirdPartySbomMetadata;
   }
 
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId) {

@@ -32,7 +32,7 @@ import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/R
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
 import ArtifactoryRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ArtifactoryRepositoryTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
-import SBOMsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SBOMsTile';
+import SbomsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/SbomsTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 import LegacyViolationModal from 'MainRoot/OrgsAndPolicies/legacyViolationModal/LegacyViolationModal';
@@ -107,7 +107,7 @@ export default function OwnerSummary() {
         id="owner-summary-sections"
       >
         {isSbomManagerEnabled && isSbomManager && isApp ? (
-          <SBOMsTile />
+          <SbomsTile />
         ) : (
           <>
             <ApplicationCategoriesTile />

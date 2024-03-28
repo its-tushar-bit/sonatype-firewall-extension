@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -145,17 +145,19 @@ public class ApiSbomService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ThirdPartySbomMetadataSummaryDTO> getSbomListForAppId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, String sortByDate, int limit, int offset)
+  public ThirdPartySbomMetadataSummaryListDTO getSbomListForAppId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String sortByDate,
+      int pageSize,
+      int page)
   {
-    if (offset < 0) {
-      throw new BadRequestException("Offset index must not be less than zero!");
+    if (pageSize < 1) {
+      throw new BadRequestException("pageSize must not be less than one!");
     }
-
-    if (limit < 1) {
-      throw new BadRequestException("Limit must not be less than one!");
+    if (page < 1) {
+      throw new BadRequestException("page index must not be less than one!");
     }
-    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, limit, offset);
+    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, pageSize, page);
   }
 
   @Authorize(permission = Permission.READ)

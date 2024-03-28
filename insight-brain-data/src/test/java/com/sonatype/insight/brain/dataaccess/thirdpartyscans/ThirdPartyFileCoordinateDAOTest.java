@@ -179,18 +179,24 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @PostgresTest
   public void testGetSbomApplicationVulnerabilities() {
     Organization organization1 = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization1.getId());
 
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
+    ThirdPartyFile file3 = tempEntity.newThirdPartyFile("file.json");
 
-    tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(),  "ACTIVE", file2.getFilename());
+    ThirdPartySbomMetadata sbom1 =
+        tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
+    ThirdPartySbomMetadata sbom2 =
+        tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), "ACTIVE", file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file3.getId(), application.getId(), "PENDING", file3.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
+    ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");
 
     tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", "d1", "l1", 3.5F, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", "d2", "l2", 7.5F, "sd2", "f2");
@@ -198,10 +204,15 @@ public class ThirdPartyFileCoordinateDAOTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", "d5", "l5", 4.7F, "sd5", "f5");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", "d6", "l6", 0F, "sd6", "f6");
+    tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", "d7", "l7", 1F, "sd7", "f7");
 
-    List<ThirdPartySbomMetadataSummaryDTO> results = thirdPartyFileCoordinateDAO
-        .getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 0);
+    ThirdPartySbomMetadataSummaryListDTO result =
+        thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "asc", 5, 1);
 
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    List<ThirdPartySbomMetadataSummaryDTO> results = result.getResults();
     Collections.sort(results, Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));
 
     assertThat(results).hasSize(2);
@@ -210,6 +221,38 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(results.get(0).getNone()).isEqualTo(1);
     assertThat(results.get(1).getLow()).isEqualTo(1);
     assertThat(results.get(1).getHigh()).isEqualTo(1);
+
+    // test pagination
+    result = thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "desc", 1, 1);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    results = result.getResults();
+    assertThat(results).hasSize(1);
+
+    ThirdPartySbomMetadataSummaryDTO dto = results.get(0);
+    assertThat(dto.getApplicationVersion()).isEqualTo(sbom2.getSbomVersion());
+    assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom2.getCreatedAt().toInstant());
+    assertThat(dto.getSpec()).isEqualTo(sbom2.getSpec());
+    assertThat(dto.getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
+    assertThat(dto.getLow()).isEqualTo(2);
+    assertThat(dto.getMedium()).isEqualTo(1);
+    assertThat(dto.getNone()).isEqualTo(1);
+
+    result = thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(application.getId(), "desc", 1, 2);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    results = result.getResults();
+    assertThat(results).hasSize(1);
+
+    dto = results.get(0);
+    assertThat(dto.getApplicationVersion()).isEqualTo(sbom1.getSbomVersion());
+    assertThat(dto.getImportDate().toInstant()).isEqualTo(sbom1.getCreatedAt().toInstant());
+    assertThat(dto.getSpec()).isEqualTo(sbom1.getSpec());
+    assertThat(dto.getSpecVersion()).isEqualTo(sbom1.getSpecVersion());
+    assertThat(dto.getLow()).isEqualTo(1);
+    assertThat(dto.getHigh()).isEqualTo(1);
   }
 
   @Test

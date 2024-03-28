@@ -90,6 +90,7 @@ public class ApiSbomServiceAuthzTest
   }
 
   @Test
+  @PostgresTest
   public void testGetSbomListForAppId_Authorized() {
     Application application = tempEntity.newApplicationWithParent();
     grantReadPermission(application.getId());

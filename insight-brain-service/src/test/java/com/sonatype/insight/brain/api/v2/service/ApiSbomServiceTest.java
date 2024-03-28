@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -181,6 +182,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @PostgresTest
   public void testGetVulnerabilities() {
     Application application = tempEntity.newApplicationWithParent();
 
@@ -198,7 +200,11 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
 
-    List<ThirdPartySbomMetadataSummaryDTO> results = service.getSbomListForAppId(application.getId(), "asc",  5, 0);
+    ThirdPartySbomMetadataSummaryListDTO resultList = service.getSbomListForAppId(application.getId(), "asc", 5, 1);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTotalResultsCount()).isEqualTo(2);
+
+    List<ThirdPartySbomMetadataSummaryDTO> results = resultList.getResults();
     assertThat(results).hasSize(2);
 
     Collections.sort(results, Comparator.comparingInt(ThirdPartySbomMetadataSummaryDTO::getHigh));

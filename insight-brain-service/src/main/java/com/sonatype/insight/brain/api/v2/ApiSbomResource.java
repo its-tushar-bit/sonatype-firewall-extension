@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -132,15 +132,20 @@ public class ApiSbomResource
   @Path(SBOMS_APPLICATION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
-  public List<ThirdPartySbomMetadataSummaryDTO> getListOfSbomsForApplicationId(
+  public ThirdPartySbomMetadataSummaryListDTO getListOfSbomsForApplicationId(
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
+
+      @Parameter(description = "Sort results by import date. Allowed values [asc|desc]. default = asc")
       @DefaultValue("asc") @QueryParam("sortByDate") String sortByDate,
-      @DefaultValue("10") @QueryParam("limit") int limit,
-      @DefaultValue("0") @QueryParam("offset") int offset
-  )
+
+      @Parameter(description = "Number of items to return by page. default = 10")
+      @DefaultValue("10") @QueryParam("pageSize") int pageSize,
+
+      @Parameter(description = "Current page number. default = 1")
+      @DefaultValue("1") @QueryParam("page") int page)
   {
-    return apiSbomService.getSbomListForAppId(applicationId, sortByDate, limit, offset);
+    return apiSbomService.getSbomListForAppId(applicationId, sortByDate, pageSize, page);
   }
 
   @Operation(summary = "Gets the components found in a specific sbom version", tags = {"sbom"},

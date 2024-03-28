@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.Collections;
 
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;

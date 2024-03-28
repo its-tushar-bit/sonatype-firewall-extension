@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -56,6 +56,28 @@ public class ApiCallFlowAnalysisConfigServiceAuthzTest
     ApiCallFlowAnalysisConfigDTO result =
         apiCallFlowAnalysisService.getCallFlowAnalysisConfig(org.getType(), org.getId());
     assertCallFlowAnalysis(result, persisted);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetCallFlowAnalysisConfigByPublicId_Unauthenticated() {
+    apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(org.getType(), org.getPublicId());
+  }
+
+  @Test
+  public void testGetCallFlowAnalysisConfigByPublicId_Authorized() {
+    grantWritePermission(org.getId());
+    ApiCallFlowAnalysisConfigDTO persisted = apiCallFlowAnalysisService.upsertCallFlowAnalysisConfig(
+        org.getType(), org.getId(), buildCallFlowAnalysisConfig(org.getId()));
+    grantReadPermission(org.getId());
+    ApiCallFlowAnalysisConfigDTO result =
+        apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(org.getType(), org.getPublicId());
+    assertCallFlowAnalysis(result, persisted);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetCallFlowAnalysisConfigByPublicId_Unauthorized() {
+    login();
+    apiCallFlowAnalysisService.getCallFlowAnalysisConfig(org.getType(), org.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -44,6 +45,7 @@ import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.slf4j.Logger;
@@ -222,7 +224,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       log.debug("Saving scan file to {}", scanFile.getAbsolutePath());
 
       return scanner.scan(scanFile, params.getBaseDir(), files, moduleIndices,
-          getScanConfiguration(params, proprietaryConfig), scanMetadata, licensedFeatures);
+          getScanConfiguration(params.getProperties(), proprietaryConfig), scanMetadata, licensedFeatures);
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);
@@ -281,13 +283,13 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
         .collect(Collectors.toList());
   }
 
-  protected Properties getScanConfiguration(P params, ProprietaryConfig proprietaryConfig) {
+  protected Properties getScanConfiguration(List<String> properties, ProprietaryConfig proprietaryConfig) {
     Properties props = new Properties();
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
       props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
     }
-    for (String property : params.getProperties()) {
+    for (String property : properties) {
       int eq = property.indexOf('=');
       if (eq < 0) {
         props.setProperty(property, "true");
@@ -306,7 +308,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
                                 ClientScanResult clientScanResult,
                                 ClientScanType clientScanType) throws ExitException
   {
-
     PolicyEvaluationPollingResult eval;
     try {
       eval = restClient
@@ -327,11 +328,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       saveErrorData(params, CLIError.forSystemError(message), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
-
     PolicyEvaluationResult policyEvaluationResult = eval.getResult();
-
-    if (params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null) {
-      policyEvaluationResult = runCallFlowAnalysis(params, restClient, eval);
+    ApiCallFlowAnalysisConfigDTO iqCallFlowParams = fetchCallFlowAnalysisConfig(params, restClient);
+    if (shouldRunCallFlowAnalysis(iqCallFlowParams, params)) {
+      policyEvaluationResult = runCallFlowAnalysis(restClient,eval,params,iqCallFlowParams);
     }
 
     log.info("");
@@ -356,6 +356,56 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
 
     processResults(params, eval.getScanReceipt(), policyEvaluationResult, outcome, restClient);
+  }
+
+  private ApiCallFlowAnalysisConfigDTO fetchCallFlowAnalysisConfig(P params, RestClient restClient) {
+    try {
+      return restClient.getCallFlowAnalysisConfig("application", params.getApplicationId());
+    }
+    catch (HttpResponseException e) {
+      if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
+        log.error("Could not fetch IQ params for application {}", params.getApplicationId(), e);
+      }
+    }
+    catch (IOException e) {
+      log.error("The call flow analysis configuration for application ID {} could not be fetched from the IQ Server",
+          params.getApplicationId());
+    }
+    return null;
+  }
+
+  private List<String> validateParamValue(List<String> properties, String key, String newValue) {
+    if (!propertyExists(properties, key) && newValue != null) {
+      return updateProperty(properties, key, newValue);
+    }
+    return properties;
+  }
+
+  private boolean propertyExists(List<String> properties, String key) {
+    return properties.stream().anyMatch(property -> property.startsWith(key + "="));
+  }
+
+  private List<String> updateProperty(List<String> properties, String key, String newValue) {
+    boolean found = false;
+    List<String> updatedProperties = new ArrayList<>();
+    for (String property : properties) {
+      if (property.startsWith(key + "=")) {
+        updatedProperties.add(key + "=" + newValue);
+        found = true;
+      }
+      else {
+        updatedProperties.add(property);
+      }
+    }
+    if (!found) {
+      updatedProperties.add(key + "=" + newValue);
+    }
+    return updatedProperties;
+  }
+
+  private boolean shouldRunCallFlowAnalysis(ApiCallFlowAnalysisConfigDTO iqCallFlowParams, P params) {
+    return (iqCallFlowParams != null && iqCallFlowParams.enabled) ||
+        params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null;
   }
 
   protected RestClient createClient(Configuration configuration) {
@@ -444,12 +494,16 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   private PolicyEvaluationResult runCallFlowAnalysis(
-      P params,
       RestClient restClient,
-      PolicyEvaluationPollingResult policyEvaluationResult) throws ExitException
+      PolicyEvaluationPollingResult policyEvaluationResult,
+      P params,
+      ApiCallFlowAnalysisConfigDTO iqCallFlowParams) throws ExitException
   {
     log.info("Running call flow analysis...");
     StopWatch stopWatch = StopWatch.createStarted();
+
+    List<String> properties = prepareProperties(params, iqCallFlowParams);
+    List<String> namespaces = prepareNamespaces(params, iqCallFlowParams);
 
     PolicyEvaluationResult result = policyEvaluationResult.getResult();
     String scanId = policyEvaluationResult.getScanReceipt().getScanId();
@@ -460,9 +514,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       if (vulnerableComponentsSignatures != null && !vulnerableComponentsSignatures.getComponents().isEmpty()) {
         CallFlowAnalysisConfig config = new CallFlowAnalysisConfig(
             params.getScanTargets(),
-            params.getCallFlowAnalysisNamespaces(),
+            namespaces,
             // Pass down parameters entered by the user
-            getScanConfiguration(params, null)
+            getScanConfiguration(properties, null)
         );
 
         CallFlowGraphExtractor extractor = CallFlowGraphExtractor.newInstance(log, config);
@@ -488,5 +542,26 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       saveErrorData(params, CLIError.forSystemError(message), restClient);
     }
     return result;
+  }
+
+  private List<String> prepareProperties(P params, ApiCallFlowAnalysisConfigDTO iqCallFlowParams) {
+    List<String> properties = new ArrayList<>(params.getProperties());
+    if (iqCallFlowParams != null) {
+      properties = validateParamValue(properties, "callFlowAlgorithm",
+          iqCallFlowParams.algorithm != null ? iqCallFlowParams.algorithm.getName() : null);
+      properties = validateParamValue(properties, "callFlowThreadCount",
+          iqCallFlowParams.threadCount != null ? iqCallFlowParams.threadCount.toString() : null);
+    }
+    return properties;
+  }
+
+  private List<String> prepareNamespaces(P params, ApiCallFlowAnalysisConfigDTO iqCallFlowParams) {
+    if (params.getCallFlowAnalysisNamespaces() != null) {
+      return new ArrayList<>(params.getCallFlowAnalysisNamespaces());
+    }
+    else if (iqCallFlowParams != null && iqCallFlowParams.namespaces != null) {
+      return new ArrayList<>(iqCallFlowParams.namespaces);
+    }
+    return null;
   }
 }

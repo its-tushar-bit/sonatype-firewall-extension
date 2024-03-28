@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.configuration;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

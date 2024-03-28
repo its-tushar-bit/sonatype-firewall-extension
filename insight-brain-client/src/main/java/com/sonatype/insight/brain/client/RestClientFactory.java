@@ -13,6 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -221,6 +222,17 @@ public class RestClientFactory
         VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
     {
       return new PolicyClient(config, applicationId).importReachabilityAnalysis(scanId, analysisDTO);
+    }
+
+    /**
+     * Get the call flow configuration used for an application.
+     *
+     * @since 1.175.0
+     */
+    public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(String ownerType, String ownerId)
+        throws IOException
+    {
+      return new CallFlowAnalysisConfigClient(config).getAnalysisCallFlowConfig(ownerType,ownerId);
     }
   }
 }

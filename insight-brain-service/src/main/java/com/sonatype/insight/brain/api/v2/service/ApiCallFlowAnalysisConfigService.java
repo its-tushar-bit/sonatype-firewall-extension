@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -33,13 +34,17 @@ public class ApiCallFlowAnalysisConfigService
 
   private final OwnerDAO ownerDAO;
 
+  private final IdUtils idUtils;
+
   @Inject
   public ApiCallFlowAnalysisConfigService(
       final CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO,
-      final OwnerDAO ownerDAO)
+      final OwnerDAO ownerDAO,
+      final IdUtils idUtils)
   {
     this.callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAO;
     this.ownerDAO = ownerDAO;
+    this.idUtils = idUtils;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -67,16 +72,16 @@ public class ApiCallFlowAnalysisConfigService
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId) throws NotFoundException
   {
-    Iterable<Owner> ownersParents = ownerDAO.walkHierarchy(ownerId);
-    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false);
-    Optional<ApiCallFlowAnalysisConfigDTO> optionalConfigDTO = ownerStream
-        .map(owner -> callFlowAnalysisConfigDAO.getByOwnerId(owner.getId()))
-        .filter(Objects::nonNull)
-        .map(this::buildApiCallFlowConfigDTO)
-        .findFirst();
+    return getCallFlowAnalysisConfig(ownerId);
+  }
 
-    return optionalConfigDTO.orElseThrow(
-        () -> new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId));
+  @Authorize(permission = Permission.READ)
+  public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfigByPublicId(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.ID) final String ownerId) throws NotFoundException
+  {
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    return getCallFlowAnalysisConfig(internalOwnerId);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -91,6 +96,19 @@ public class ApiCallFlowAnalysisConfigService
     callFlowAnalysisConfigDAO.delete(existingConfigByOwner);
   }
 
+  private ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(String ownerId) throws NotFoundException {
+    Iterable<Owner> ownersParents = ownerDAO.walkHierarchy(ownerId);
+    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false);
+    Optional<ApiCallFlowAnalysisConfigDTO> optionalConfigDTO = ownerStream
+        .map(owner -> callFlowAnalysisConfigDAO.getByOwnerId(owner.getId()))
+        .filter(Objects::nonNull)
+        .map(this::buildApiCallFlowConfigDTO)
+        .findFirst();
+
+    return optionalConfigDTO.orElseThrow(
+        () -> new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId));
+  }
+
   private void auditCallFlowAnalysisConfigUpdates(final ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig) {
     AuditData.get().setData("namespaces", callFlowAnalysisConfig.namespaces);
   }
@@ -98,9 +116,6 @@ public class ApiCallFlowAnalysisConfigService
   private void validateCallFlowAnalysisConfigDTO(ApiCallFlowAnalysisConfigDTO dto, String ownerId) {
     if (dto.ownerId == null) {
       throw new BadRequestException("ownerId cannot be null");
-    }
-    if (dto.enabled == null) {
-      throw new BadRequestException("enabled cannot be null");
     }
     if (!dto.ownerId.equals(ownerId)) {
       throw new BadRequestException("ownerId does not match");

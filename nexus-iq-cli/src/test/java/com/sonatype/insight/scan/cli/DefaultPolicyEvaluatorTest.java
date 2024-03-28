@@ -917,21 +917,44 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_WithCallFlowAnalysisAndVulnerableSignatures() throws Exception {
+  public void testRun_WithCallFlowAnalysisEnabledInIQ() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
+    setupVulnerabilitiesSignatures();
+    tempEntity.newCallFlowAnalysisConfig(app.getId(), 1);
 
-    Signature signature = new Signature();
-    signature.setAnchor("test-anchor");
-    signature
-        .setFunctionSignature(new FunctionSignature("com/sonatype/insight/scan/cli/Main.main([Ljava/lang/String;)V"));
+    List<String> params = ImmutableList.of(
+        "-s", insightServerUrl,
+        "-a", "admin:admin123",
+        "-i", app.getPublicId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "src/test/data/artifact.jar"
+    );
+    // This creates labels at root org level. We need to remove them after the test.
+    Set<String> oldLabelIds = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).stream().map(Label::getId)
+        .collect(Collectors.toSet());
+    try {
+      withTestRunner(params).doPolicyEvaluationRun();
 
-    ComponentWithSignatures component =
-        new ComponentWithSignatures("pkg:maven/ch.qos.logback/logback-access@0.6", signature);
+      Label label = labelDAO.getByLabelWithHierarchy("Security-Reachable", app.getId());
+      assertThat(label).isNotNull();
 
-    ComponentWithSignaturesList componentWithSignaturesList =
-        new ComponentWithSignaturesList(Collections.singletonList(component));
+      if (label != null) {
+        try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
+          assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
+              .isNotEmpty();
+        }
+      }
+    }
+    finally {
+      List<Label> labels = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      labels.stream().filter(label -> !oldLabelIds.contains(label.getId())).forEach(labelDAO::delete);
+    }
+  }
 
-    hdsRespondWith(componentWithSignaturesList).atUri("rest/component/signatures/vulnerability");
+  @Test
+  public void testRun_WithCallFlowAnalysisAndVulnerableSignaturesEnableByParam() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    setupVulnerabilitiesSignatures();
 
     List<String> params = ImmutableList.of(
         "-s", insightServerUrl,
@@ -962,6 +985,21 @@ public abstract class DefaultPolicyEvaluatorTest
       List<Label> labels = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
       labels.stream().filter(label -> !oldLabelIds.contains(label.getId())).forEach(labelDAO::delete);
     }
+  }
+
+  private void setupVulnerabilitiesSignatures() {
+    Signature signature = new Signature();
+    signature.setAnchor("test-anchor");
+    signature
+        .setFunctionSignature(new FunctionSignature("com/sonatype/insight/scan/cli/Main.main([Ljava/lang/String;)V"));
+
+    ComponentWithSignatures component =
+        new ComponentWithSignatures("pkg:maven/ch.qos.logback/logback-access@0.6", signature);
+
+    ComponentWithSignaturesList componentWithSignaturesList =
+        new ComponentWithSignaturesList(Collections.singletonList(component));
+
+    hdsRespondWith(componentWithSignaturesList).atUri("rest/component/signatures/vulnerability");
   }
 
   private ScanItem findScanItemByPath(Collection<ScanItem> scanItems, String path) {

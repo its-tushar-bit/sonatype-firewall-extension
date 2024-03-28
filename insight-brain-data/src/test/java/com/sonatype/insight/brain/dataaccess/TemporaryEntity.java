@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -174,7 +175,6 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
@@ -1611,7 +1611,7 @@ public class TemporaryEntity
 
   public CallFlowAnalysisConfig newCallFlowAnalysisConfig(String ownerId, int threadCount) {
     CallFlowAnalysisConfig callFlowAnalysisConfig = new CallFlowAnalysisConfig(true,
-        Collections.singletonList("foo"),
+        Collections.singletonList("com.sonatype"),
         CallFlowAlgorithm.CLASS_HIERARCHY_ANALYSIS,
         threadCount,
         ownerId);

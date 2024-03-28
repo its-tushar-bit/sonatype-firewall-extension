@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -49,7 +49,7 @@ public class ApiCallFlowAnalysisConfigResourceAuditTest
 
   @Test
   public void testUpsert_BadRequest() throws Exception {
-    upsert(null, org, buildCallFlowAnalysisConfigBadRequest(org.getId()));
+    upsert(null, org, buildCallFlowAnalysisConfigBadRequest());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CALL_FLOW_ANALYSIS, "bad-request");
     assertOrganizationData(auditDTO, org);
   }
@@ -119,9 +119,8 @@ public class ApiCallFlowAnalysisConfigResourceAuditTest
     return apiCallFlowAnalysisConfigDTO;
   }
 
-  private ApiCallFlowAnalysisConfigDTO buildCallFlowAnalysisConfigBadRequest(String ownerId) {
+  private ApiCallFlowAnalysisConfigDTO buildCallFlowAnalysisConfigBadRequest() {
     ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
-    apiCallFlowAnalysisConfigDTO.ownerId = ownerId;
     apiCallFlowAnalysisConfigDTO.threadCount = 1;
     apiCallFlowAnalysisConfigDTO.namespaces = new ArrayList<>();
     return apiCallFlowAnalysisConfigDTO;

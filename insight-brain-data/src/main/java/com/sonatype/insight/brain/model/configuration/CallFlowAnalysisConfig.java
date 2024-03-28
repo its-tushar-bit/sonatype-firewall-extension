@@ -17,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
@@ -46,7 +47,7 @@ public class CallFlowAnalysisConfig
   private CallFlowAlgorithm algorithm;
 
   @Column(name = "thread_count")
-  private int threadCount;
+  private Integer threadCount;
 
   @Column(name = "owner_id")
   private String ownerId;
@@ -58,7 +59,7 @@ public class CallFlowAnalysisConfig
       boolean enabled,
       List<String> namespaces,
       CallFlowAlgorithm algorithm,
-      int threadCount)
+      Integer threadCount)
   {
     this.enabled = enabled;
     setNamespaces(namespaces);
@@ -70,7 +71,7 @@ public class CallFlowAnalysisConfig
       boolean enabled,
       List<String> namespaces,
       CallFlowAlgorithm algorithm,
-      int threadCount,
+      Integer threadCount,
       String ownerId)
   {
     this.enabled = enabled;
@@ -124,7 +125,7 @@ public class CallFlowAnalysisConfig
     return algorithm;
   }
 
-  public int getThreadCount() {
+  public Integer getThreadCount() {
     return threadCount;
   }
 
@@ -149,7 +150,7 @@ public class CallFlowAnalysisConfig
     this.algorithm = algorithm;
   }
 
-  public void setThreadCount(final int threadCount) {
+  public void setThreadCount(final Integer threadCount) {
     this.threadCount = threadCount;
   }
 

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -53,13 +53,6 @@ public class ApiCallFlowAnalysisConfigServiceTest
 
   @Test
   public void testUpsertCallFlowAnalysisConfig_BadRequest() {
-    final ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfigEnable =
-        buildCallFlowAnalysisConfigBadRequestEnable(application.getId());
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiCallFlowAnalysisService.upsertCallFlowAnalysisConfig(
-          application.getType(), application.getId(), callFlowAnalysisConfigEnable);
-    }).withMessage("enabled cannot be null");
 
     final ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfigOwnerMatch =
         buildCallFlowAnalysisConfigBadRequestOwnerNotMatch();
@@ -140,20 +133,29 @@ public class ApiCallFlowAnalysisConfigServiceTest
     assertCallFlowAnalysis(existing, result);
   }
 
+  @Test
+  public void testGetCallFlowAnalysisConfigByPublicId_Success() {
+    CallFlowAnalysisConfig existing = tempEntity.newCallFlowAnalysisConfig(application.getId(), 1);
+    ApiCallFlowAnalysisConfigDTO result = apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(
+        application.getType(), application.getPublicId());
+
+    assertThat(result).isNotNull();
+    assertCallFlowAnalysis(buildApiCallFlowConfigDTO(existing), result);
+  }
+
+  @Test
+  public void testGetCallFlowAnalysisConfigByPublicId_NotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(application.getType(), application.getPublicId());
+    }).withMessage("Call Flow Analysis Config not found for ownerId " + application.getId());
+  }
+
   private ApiCallFlowAnalysisConfigDTO buildCallFlowAnalysisConfig(String ownerId) {
     ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
     apiCallFlowAnalysisConfigDTO.enabled = true;
     apiCallFlowAnalysisConfigDTO.ownerId = ownerId;
     apiCallFlowAnalysisConfigDTO.threadCount = 1;
-    apiCallFlowAnalysisConfigDTO.namespaces = Collections.singletonList("foo");
-    return apiCallFlowAnalysisConfigDTO;
-  }
-
-  private ApiCallFlowAnalysisConfigDTO buildCallFlowAnalysisConfigBadRequestEnable(String ownerId) {
-    ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
-    apiCallFlowAnalysisConfigDTO.threadCount = 1;
-    apiCallFlowAnalysisConfigDTO.ownerId = ownerId;
-    apiCallFlowAnalysisConfigDTO.namespaces = new ArrayList<>();
+    apiCallFlowAnalysisConfigDTO.namespaces = Collections.singletonList("com.sonatype");
     return apiCallFlowAnalysisConfigDTO;
   }
 

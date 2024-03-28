@@ -16,7 +16,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCallFlowAnalysisConfigService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -65,5 +65,14 @@ public class ApiCallFlowAnalysisConfigResource
       @PathParam("ownerId") final String ownerId)
   {
     apiCallFlowAnalysisService.deleteCallFlowAnalysisConfig(ownerType, ownerId);
+  }
+
+  @GET
+  @Path("/publicId")
+  public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfigByPublicId(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId)
+  {
+    return apiCallFlowAnalysisService.getCallFlowAnalysisConfigByPublicId(ownerType, ownerId);
   }
 }

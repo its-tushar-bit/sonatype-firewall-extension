@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 
+import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
+import com.sonatype.clm.dto.model.callflowanalysis.CallFlowAlgorithm;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.CallFlowAlgorithm;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -56,11 +56,7 @@ public class ApiCallFlowAnalysisConfigResourceTest
     ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig = buildCallFlowAnalysisConfigBadRequest(application.getId());
 
     HttpResponse response = request.body(callFlowAnalysisConfig).put();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("enabled cannot be null");
-
     callFlowAnalysisConfig.ownerId = application.getPublicId();
-    callFlowAnalysisConfig.enabled = true;
     response = request.body(callFlowAnalysisConfig).put();
 
     assertResponseStatus(400, response);
@@ -92,6 +88,33 @@ public class ApiCallFlowAnalysisConfigResourceTest
   public void testGetApiCallFlowAnalysisConfig_NotFound() throws Exception {
     HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG)
         .parameter(application.getType(), application.getId());
+    ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig = buildCallFlowAnalysisConfigBadRequest(application.getId());
+
+    HttpResponse response = request.body(callFlowAnalysisConfig).get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        "Call Flow Analysis Config not found for ownerId " + application.getId());
+  }
+
+  @Test
+  public void testGetApiCallFlowAnalysisConfigByPublicId_Successful() throws Exception {
+    //insert element to search
+    insertElementToSearch();
+    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG,"publicId")
+        .parameter(application.getType(), application.getPublicId());
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    ApiCallFlowAnalysisConfigDTO configResponse = response.getBody(ApiCallFlowAnalysisConfigDTO.class);
+    assertThat(configResponse).isNotNull();
+    assertThat(configResponse.id).isNotNull();
+    assertThat(configResponse.ownerId).isEqualTo(application.getId());
+  }
+
+  @Test
+  public void testGetApiCallFlowAnalysisConfigByPublicId_NotFound() throws Exception {
+    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG,"publicId")
+        .parameter(application.getType(), application.getPublicId());
     ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig = buildCallFlowAnalysisConfigBadRequest(application.getId());
 
     HttpResponse response = request.body(callFlowAnalysisConfig).get();
@@ -137,6 +160,7 @@ public class ApiCallFlowAnalysisConfigResourceTest
     ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO = new ApiCallFlowAnalysisConfigDTO();
     apiCallFlowAnalysisConfigDTO.ownerId = ownerId;
     apiCallFlowAnalysisConfigDTO.threadCount = 1;
+    apiCallFlowAnalysisConfigDTO.enabled = true;
     return apiCallFlowAnalysisConfigDTO;
   }
 

@@ -74,8 +74,8 @@
     <geb.version>6.0</geb.version>
     <selenium.version>3.141.59</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
-    <nexus-scm-client.version>1.51.16-SNAPSHOT</nexus-scm-client.version>
-    <nexus-dependency-management.version>1.23.10-01</nexus-dependency-management.version>
+    <nexus-scm-client.version>1.52.0-01</nexus-scm-client.version>
+    <nexus-dependency-management.version>1.23.11-01</nexus-dependency-management.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file.
      mockito 5.x requires Java 11 -->
     <mockito-core.version>4.11.0</mockito-core.version>

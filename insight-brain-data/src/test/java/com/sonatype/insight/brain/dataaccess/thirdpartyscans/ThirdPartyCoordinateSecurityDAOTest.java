@@ -82,6 +82,18 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  public void testGetByCoordinateFileIdAndRefId_caseInsensitive() {
+    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity();
+    ThirdPartyCoordinateSecurity retrievedCoordinateSecurity =
+        dao.getByCoordinateFileIdAndRefId(coordinateSecurity.getFileCoordinateId(),
+            coordinateSecurity.getRefId().toUpperCase());
+
+    assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), coordinateSecurity.getDescription(),
+        coordinateSecurity.getLink(), coordinateSecurity.getSeverity(), coordinateSecurity.getFixedBy(),
+        coordinateSecurity.getFileCoordinateId(), retrievedCoordinateSecurity);
+  }
+
+  @Test
   public void testGetByFileCoordinateIdList() {
     List<ThirdPartyCoordinateSecurity> coordinateSecurityList = newThirdPartyCoordinateSecurityList();
     List<String> listId =

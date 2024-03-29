@@ -129,6 +129,7 @@ public class ReportService
     }
 
     Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender, telemetryUtils, configuration);
+    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, reportFile);
 
     return reportFile;
   }
@@ -173,11 +174,7 @@ public class ReportService
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
 
-      if (productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
-        thirdPartyDataService.mergeSonatypeDataWithThirdPartyData(scanId);
-        thirdPartyDataService.indexSbomForSearch(scanId);
-      }
-      else {
+      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
         thirdPartyDataService.deleteByScanId(scanId);
       }
     }

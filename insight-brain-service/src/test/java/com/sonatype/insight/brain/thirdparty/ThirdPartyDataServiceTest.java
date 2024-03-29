@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -21,6 +24,8 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -36,11 +41,15 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ReferenceLink;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Binder;
@@ -52,8 +61,12 @@ import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ThirdPartyDataServiceTest
     extends AbstractComponentTest
@@ -67,6 +80,12 @@ public class ThirdPartyDataServiceTest
   private ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
 
   @Inject
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  @Inject
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -76,10 +95,14 @@ public class ThirdPartyDataServiceTest
 
   private TelemetrySender mockTelemetrySender;
 
+  private SecurityVulnerabilityDataService mockSecurityVulnerabilityDataService;
+
   @Override
   public void configure(Binder binder) {
     mockTelemetrySender = mock(TelemetrySender.class);
+    mockSecurityVulnerabilityDataService = mock(SecurityVulnerabilityDataService.class);
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    binder.bind(SecurityVulnerabilityDataService.class).toInstance(mockSecurityVulnerabilityDataService);
     super.configure(binder);
   }
 
@@ -385,14 +408,19 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithThirdPartyData_SbomMetadataStatusIsUnchangedIfUnlicensed() {
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsUnchangedIfUnlicensed()
+      throws Exception
+  {
     productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file);
 
-    handler.mergeSonatypeDataWithThirdPartyData(SCAN_ID);
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
@@ -400,14 +428,233 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithThirdPartyData_SbomMetadataStatusIsActiveIfLicensed() {
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsActiveIfLicensed()
+      throws URISyntaxException, IOException
+  {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     tempEntity.createSbomMetadata("appId", "1", file);
 
-    handler.mergeSonatypeDataWithThirdPartyData(SCAN_ID);
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsUnchangedIfNoScans()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInserts()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    mockSecurityVulnerabilityDataHdsResponse();
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
+            "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
+
+    ThirdPartyCoordinateSecurity tpVuln1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "description", null, 0f, null,
+            null);
+    tpVuln1.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln1);
+
+    ThirdPartyCoordinateSecurity tpVuln2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00229", "description1", "link1", 1.0f,
+            "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
+            "advisories1");
+    tpVuln2.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln2);
+
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00230", "description", null, 0f, null,
+        null);
+
+    ThirdPartyCoordinateSecurity tpVuln3 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00274", "description2", "link2", 1.0f,
+            "fixedBy2", "vulnSource2", "vectorString2", "high2", "cwes2", "deepdive2", "recommendations2",
+            "advisories2");
+    tpVuln3.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln3);
+
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(8);
+
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
+
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
+
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00274");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_SecurityVulnerabilityDescription()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("CVE-2012-5783");
+    securityVulnerabilityData1.description = "";
+    securityVulnerabilityData1.explanationMarkdown = "some explanation markdown";
+    lenient().when(
+        mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData1.identifier),
+            any(), eq(true))).thenReturn(securityVulnerabilityData1);
+
+    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("CVE-2012-5784");
+    securityVulnerabilityData2.description = "";
+    securityVulnerabilityData2.explanationMarkdown = "some other explanation markdown";
+    lenient().when(
+        mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData2.identifier),
+            any(), eq(true))).thenReturn(securityVulnerabilityData2);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
+            "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar");
+
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1, "CVE-2012-5783", "", null, 0f, null,
+        null);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "a", "1",
+            "964cd74171f427720481", "pkg:maven/g/a@1?type=jar");
+
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-license-data", tempDir).toURI())
+            .toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
+            Arrays.asList(thirdPartyFileCoordinate1.getId(), thirdPartyFileCoordinate2.getId()));
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(2);
+
+    // updated record
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate1.getId(),
+            "CVE-2012-5783");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+
+    // inserted record
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate2.getId(),
+            "CVE-2012-5784");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("some other explanation markdown");
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_VerifyLicenseUpdatesAndInserts()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
+            "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar");
+
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache-2.0", "Apache-2.0", "link1");
+
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-2.0", "AGPL-2.0", "link2");
+
+    ThirdPartyCoordinateLicense thirdPartyCoordinateLicense1 =
+        tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3");
+    thirdPartyCoordinateLicense1.setIdentificationSources("SBOM");
+    thirdPartyCoordinateLicenseDAO.update(thirdPartyCoordinateLicense1);
+
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-license-data", tempDir).toURI())
+            .toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyCoordinateLicenseList).hasSize(4);
+
+    ThirdPartyCoordinateLicense thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link2");
+
+    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-3.0");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-3.0");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-3.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link3");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-1.0");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-1.0");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
+
+    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "Apache-2.0");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("Apache-2.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link1");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
@@ -479,6 +726,58 @@ public class ThirdPartyDataServiceTest
         -> component.packageUrl.equals(coord3.getPackageUrl()))).isTrue();
     assertBomContains(scanData.billOfMaterials, coord4, file);
     assertBomContains(scanData.billOfMaterials, coord5, file);
+  }
+
+  private void mockSecurityVulnerabilityDataHdsResponse() throws URISyntaxException {
+    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("FG-R00229");
+    securityVulnerabilityData1.description = "new description1";
+    securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
+    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 2.0f);
+    securityVulnerabilityData1.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
+
+    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("FG-R00274");
+    securityVulnerabilityData2.description = "new description2";
+    securityVulnerabilityData2.vulnerabilityLink = new URI("new.link2");
+    securityVulnerabilityData2.mainSeverity = new SecurityVulnerabilitySeverity("new source2", "new label2", 2.2f);
+    securityVulnerabilityData2.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType2", "new.url2"));
+
+    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("FG-R00099");
+    securityVulnerabilityData3.description = "new description3";
+    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
+    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 3.0f);
+    securityVulnerabilityData3.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData3.identifier),
+        any(), eq(true))).thenReturn(securityVulnerabilityData3);
+
+    SecurityVulnerabilityData securityVulnerabilityData4 = new SecurityVulnerabilityData("FG-R00100");
+    securityVulnerabilityData4.description = "new description4";
+    securityVulnerabilityData4.vulnerabilityLink = new URI("new.link4");
+    securityVulnerabilityData4.mainSeverity = new SecurityVulnerabilitySeverity("new source4", "new label4", 4.0f);
+    securityVulnerabilityData4.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType4", "new.url4"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData4.identifier),
+        any(), eq(true))).thenReturn(securityVulnerabilityData4);
+
+    SecurityVulnerabilityData securityVulnerabilityData5 = new SecurityVulnerabilityData("FG-R00275");
+    securityVulnerabilityData5.description = "new description5";
+    securityVulnerabilityData5.vulnerabilityLink = new URI("new.link5");
+    securityVulnerabilityData5.mainSeverity = new SecurityVulnerabilitySeverity("new source5", "new label5", 5.0f);
+    securityVulnerabilityData5.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType5", "new.url5"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData5.identifier),
+        any(), eq(true))).thenReturn(securityVulnerabilityData5);
+
+    SecurityVulnerabilityData securityVulnerabilityData6 = new SecurityVulnerabilityData("FG-R00101");
+    securityVulnerabilityData6.description = "new description6";
+    securityVulnerabilityData6.vulnerabilityLink = new URI("new.link6");
+    securityVulnerabilityData6.mainSeverity = new SecurityVulnerabilitySeverity("new source6", "new label6", 6.0f);
+    securityVulnerabilityData6.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType6", "new.url6"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData6.identifier),
+        any(), eq(true))).thenReturn(securityVulnerabilityData6);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {

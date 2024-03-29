@@ -228,6 +228,7 @@ public class ThirdPartySbomMetadataDAOTest
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata metadata =
         ThirdPartySbomMetadataTestUtil.createSbomMetadata(status, application.getId(), thirdPartyFile.getId());
 

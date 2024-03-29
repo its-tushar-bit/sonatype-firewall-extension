@@ -1,0 +1,22 @@
+{
+  "popularity" : [ {
+    "catalogDates" : [ 1453445378786, 1453473017085, 1453473052904 ],
+    "currentVersionIndex" : 0,
+    "popularity" : [ 0, 0, 0 ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "version" : "3.1",
+    "artifactId" : "commons-httpclient",
+    "groupId" : "apache-httpclient"
+  } ],
+  "lastCatalog" : 1589291895154,
+  "firstCatalog" : 1453445378786
+}

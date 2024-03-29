@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -14,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -47,9 +50,12 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -57,22 +63,38 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 
 @Named
 public class ThirdPartyDataService
 {
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyDataService.class);
+
+  public static final String FIELD_EFFECTIVE_LICENSES = "effectiveLicenses";
+
+  public static final String FIELD_REFERENCE = "reference";
+
+  public static final String FIELD_LICENSE_NAME = "name";
+
+  public static final String FIELD_LICENSE_URL = "url";
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
@@ -100,6 +122,8 @@ public class ThirdPartyDataService
 
   private final SearchIndexManager searchIndexManager;
 
+  private final SecurityVulnerabilityDataService securityVulnerabilityDataService;
+
   private final ProductLicense productLicense;
 
   @Inject
@@ -117,6 +141,7 @@ public class ThirdPartyDataService
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       SearchIndexManager searchIndexManager,
+      final SecurityVulnerabilityDataService securityVulnerabilityDataService,
       final ProductLicense productLicense)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -132,6 +157,7 @@ public class ThirdPartyDataService
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.searchIndexManager = searchIndexManager;
+    this.securityVulnerabilityDataService = securityVulnerabilityDataService;
     this.productLicense = productLicense;
   }
 
@@ -382,31 +408,239 @@ public class ThirdPartyDataService
     return thirdPartyApplicationReportDTO;
   }
 
-  public void indexSbomForSearch(String scanId) {
-    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+  public void indexSbomForSearch(ThirdPartySbomMetadata sbomMetadata) {
+    SearchIndexChange searchIndexChange = thirdPartySbomMetadataDAO.newSearchIndexChange(sbomMetadata);
+    searchIndexManager.insert(searchIndexChange);
+  }
 
-    if (sbomMetadata != null) {
-      SearchIndexChange searchIndexChange = thirdPartySbomMetadataDAO.newSearchIndexChange(sbomMetadata);
-      searchIndexManager.insert(searchIndexChange);
+  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final File reportFile) throws IOException {
+    if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      return;
+    }
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    if (sbomMetadata == null) {
+      return;
+    }
+
+    ContainerNode<?> bomJsonData =
+        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.BOM_JSON_FILENAME)).buf);
+    ContainerNode<?> securityJsonData =
+        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME)).buf);
+    ContainerNode<?> licensesJsonData =
+        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME)).buf);
+
+    mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData);
+    indexSbomForSearch(sbomMetadata);
+  }
+
+  private void mergeSonatypeDataWithSbomData(
+      ThirdPartySbomMetadata sbomMetadata,
+      String scanId,
+      ContainerNode<?> bomJsonData,
+      ContainerNode<?> securityJsonData,
+      ContainerNode<?> licensesJsonData)
+  {
+    Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults = readSonatypeSecurityResults(securityJsonData);
+    Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
+        readSonatypeLicenseResults(licensesJsonData);
+    if (MapUtils.isEmpty(sonatypeVulnerabilityResults) && MapUtils.isEmpty(sonatypeLicenseResults)) {
+      makeSbomActive(sbomMetadata);
+      return;
+    }
+
+    ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
+    for (JsonNode bomNode : bomArray) {
+      String matchStateString = bomNode.get(MATCH_STATE).asText();
+      MatchState matchState = MatchState.getById(matchStateString);
+      if (MatchState.UNKNOWN.equals(matchState)) {
+        continue;
+      }
+      ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomNode);
+      if (bomComponentIdentifier == null) {
+        log.debug("matched bom.json entry found without a component identifier {}", bomNode);
+        continue;
+      }
+
+      String bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier).getPackageUrl();
+      ThirdPartyFileCoordinate sbomComponent =
+          thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(bomPurl, scanId);
+      if (sbomComponent == null) {
+        log.debug("Could not locate matching third party coordinate entry for component identifier {} and scanId {}",
+            bomComponentIdentifier, scanId);
+        continue;
+      }
+      mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent);
+      mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
+    }
+    makeSbomActive(sbomMetadata);
+  }
+
+  private void makeSbomActive(final ThirdPartySbomMetadata sbomMetadata) {
+    sbomMetadata.setStatus(SbomStatus.ACTIVE.toString());
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+  }
+
+  private void mergeSecurityData(
+      final Map<ComponentIdentifier, List<String>> sonatypeSecResults,
+      final ComponentIdentifier bomComponentIdentifier,
+      final ThirdPartyFileCoordinate sbomComponent)
+  {
+    List<String> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
+    if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
+      for (String sonatypeVuln : sonatypeVulns) {
+        ThirdPartyCoordinateSecurity sbomVulnerability =
+            thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(sbomComponent.getId(), sonatypeVuln);
+        if (sbomVulnerability != null) {
+          //matching sbom vulnerability found, update record
+          updateSbomVulnerability(sbomVulnerability);
+        }
+        else {
+          //no matching sbom vulnerability, insert sonatype data
+          SecurityVulnerabilityData sonatypeVulnerabilityData =
+              securityVulnerabilityDataService.getSecurityVulnerabilityDetails(sonatypeVuln, bomComponentIdentifier,
+                  true);
+          if (sonatypeVulnerabilityData != null) {
+            thirdPartyCoordinateSecurityDAO.insert(
+                newThirdPartyCoordinateSecurity(sbomComponent, sonatypeVuln, sonatypeVulnerabilityData));
+          }
+        }
+      }
     }
   }
 
-  public void mergeSonatypeDataWithThirdPartyData(final String scanId) {
-    if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
-      // nothing to do if sbom manager feature is not enabled
-      return;
-    }
-    // TODO: merge sonatype security/license data with third party data
-    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
-    if (CollectionUtils.isNotEmpty(thirdPartyFiles)) {
-      List<ThirdPartySbomMetadata> thirdPartySbomMetadataRows =
-          thirdPartySbomMetadataDAO.getByThirdPartyFileIds(thirdPartyFiles.stream().map(ThirdPartyFile::getId).collect(
-              Collectors.toList()));
-      for (ThirdPartySbomMetadata thirdPartySbomMetadata : thirdPartySbomMetadataRows) {
-        thirdPartySbomMetadata.setStatus(SbomStatus.ACTIVE.name());
-        thirdPartySbomMetadataDAO.update(thirdPartySbomMetadata);
+  private void mergeLicenseData(
+      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
+      final ComponentIdentifier bomComponentIdentifier,
+      final ThirdPartyFileCoordinate sbomComponent)
+  {
+    Map<String, JsonNode> sonatypeLicenses = sonatypeLicenseResults.get(bomComponentIdentifier);
+    if (MapUtils.isNotEmpty(sonatypeLicenses)) {
+      for (Entry<String, JsonNode> sonatypeLicenseEntry : sonatypeLicenses.entrySet()) {
+        ThirdPartyCoordinateLicense sbomLicense =
+            thirdPartyCoordinateLicenseDAO.getByFileCoordinateIdAndLicenseId(sbomComponent.getId(),
+                sonatypeLicenseEntry.getKey());
+        if (sbomLicense != null) {
+          //matching sbom license found, update record
+          updateSbomLicense(sbomLicense);
+        }
+        else {
+          //no matching sbom license, insert sonatype data
+          thirdPartyCoordinateLicenseDAO.insert(
+              newThirdPartyCoordinateLicense(sbomComponent, sonatypeLicenseEntry.getKey(),
+                  sonatypeLicenseEntry.getValue()));
+        }
       }
     }
+  }
+
+  private void updateSbomLicense(final ThirdPartyCoordinateLicense thirdPartyLicense) {
+    if (thirdPartyLicense.getIdentificationSources() == null) {
+      thirdPartyLicense.setIdentificationSources(IdentificationSource.SONATYPE.getId());
+    }
+    else if (!thirdPartyLicense.getIdentificationSources()
+        .contains(IdentificationSource.SONATYPE.getId())) {
+      thirdPartyLicense.setIdentificationSources(
+          thirdPartyLicense.getIdentificationSources() + "," + IdentificationSource.SONATYPE.getId());
+    }
+    thirdPartyCoordinateLicenseDAO.update(thirdPartyLicense);
+  }
+
+  private void updateSbomVulnerability(
+      final ThirdPartyCoordinateSecurity thirdPartySecurity)
+  {
+    if (thirdPartySecurity.getIdentificationSources() == null) {
+      thirdPartySecurity.setIdentificationSources(IdentificationSource.SONATYPE.getId());
+    }
+    else if (!thirdPartySecurity.getIdentificationSources().contains(
+        IdentificationSource.SONATYPE.getId())) {
+      thirdPartySecurity.setIdentificationSources(
+          thirdPartySecurity.getIdentificationSources() + "," + IdentificationSource.SONATYPE.getId());
+    }
+    thirdPartyCoordinateSecurityDAO.update(thirdPartySecurity);
+  }
+
+  private Map<ComponentIdentifier, Map<String, JsonNode>> readSonatypeLicenseResults(
+      final ContainerNode<?> licensesJsonData)
+  {
+    Map<ComponentIdentifier, Map<String, JsonNode>> licenseResults = new HashMap<>();
+    ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonArray) {
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+      List<String> licenseIds = JsonUtils.getStringListFromArray(licenseJsonNode.get(FIELD_EFFECTIVE_LICENSES));
+      // later we may need to fall back to declared licenses if effective licenses is empty
+      if (CollectionUtils.isNotEmpty(licenseIds)) {
+        for (String licenseId : licenseIds) {
+          licenseResults.computeIfAbsent(componentIdentifier, identifier -> new HashMap<>())
+              .put(licenseId, licenseJsonNode);
+        }
+      }
+    }
+    return licenseResults;
+  }
+
+  private Map<ComponentIdentifier, List<String>> readSonatypeSecurityResults(final ContainerNode<?> securityJsonData) {
+    Map<ComponentIdentifier, List<String>> secResults = new HashMap<>();
+    ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
+    for (JsonNode securityJsonNode : securityJsonArray) {
+      ComponentIdentifier securityComponentIdentifier =
+          ComponentIdentifierAdapter.getComponentIdentifier(securityJsonNode);
+      String refId = JsonUtils.getNullableString(securityJsonNode.get(FIELD_REFERENCE));
+      secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier -> new ArrayList<>()).add(refId);
+    }
+    return secResults;
+  }
+
+  @NotNull
+  private static ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
+      final ThirdPartyFileCoordinate thirdPartyComponent,
+      final String refId,
+      final SecurityVulnerabilityData data)
+  {
+    ThirdPartyCoordinateSecurity sonatypeCve = new ThirdPartyCoordinateSecurity();
+    sonatypeCve.setFileCoordinateId(thirdPartyComponent.getId());
+    sonatypeCve.setRefId(refId);
+    if (data != null) {
+      if (data.advisories != null) {
+        sonatypeCve.setAdvisories(data.advisories.stream().map(a -> a.url).collect(Collectors.joining(",")));
+      }
+      if (data.customData != null) {
+        sonatypeCve.setAttackVector(data.customData.cvssVector);
+        sonatypeCve.setCwes(data.customData.cweId);
+      }
+      if (StringUtils.isNotBlank(data.description)) {
+        sonatypeCve.setDescription(data.description);
+      }
+      else if (StringUtils.isNotBlank(data.explanationMarkdown)) {
+        sonatypeCve.setDescription(data.explanationMarkdown);
+      }
+      sonatypeCve.setIdentificationSources(IdentificationSource.SONATYPE.getId());
+      if (data.vulnerabilityLink != null) {
+        sonatypeCve.setLink(data.vulnerabilityLink.toString());
+      }
+      sonatypeCve.setRecommendations(data.recommendationMarkdown);
+      if (data.mainSeverity != null && data.mainSeverity.score > 0) {
+        sonatypeCve.setSeverity(data.mainSeverity.score);
+      }
+    }
+    return sonatypeCve;
+  }
+
+  @NotNull
+  private ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense(
+      final ThirdPartyFileCoordinate thirdPartyComponent,
+      final String licenseId,
+      final JsonNode licenseJsonNode)
+  {
+    ThirdPartyCoordinateLicense sonatypeLicense = new ThirdPartyCoordinateLicense();
+    sonatypeLicense.setFileCoordinateId(thirdPartyComponent.getId());
+    sonatypeLicense.setLicenseId(licenseId);
+    if (licenseJsonNode != null) {
+      sonatypeLicense.setName(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_NAME)));
+      sonatypeLicense.setUrl(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_URL)));
+      sonatypeLicense.setIdentificationSources(IdentificationSource.SONATYPE.getId());
+    }
+    return sonatypeLicense;
   }
 
   private void collectTelemetryData(

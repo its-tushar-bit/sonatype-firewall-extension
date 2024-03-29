@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -45,6 +46,8 @@ public class ThirdPartyFileCoordinateDAOTest
 
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
   @Before
   @Override
   public void setup() {
@@ -53,6 +56,7 @@ public class ThirdPartyFileCoordinateDAOTest
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
+    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
   }
 
   @Test
@@ -101,6 +105,19 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(results).hasSize(1);
     assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
         fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), results.get(0));
+  }
+
+  @Test
+  public void testGetByPackageUrlAndScanId() {
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(
+        thirdPartyFileDAO.getById(fileCoordinate.getThirdPartyFileId()));
+
+    ThirdPartyFileCoordinate result = thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(
+        fileCoordinate.getPackageUrl(), thirdPartyScan.getScanId());
+
+    assertThat(result).isNotNull();
+    assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
+        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), result);
   }
 
   @Test

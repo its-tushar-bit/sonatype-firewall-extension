@@ -88,6 +88,28 @@ public class ThirdPartyCoordinateLicenseDAOTest
     assertThat(dao.getById(coordLic2.getId())).isNull();
   }
 
+  @Test
+  public void testGetByFileCoordinateIdAndLicenseId() {
+    ThirdPartyFileCoordinate coord =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
+    tempEntity.newThirdPartyCoordinateLicense(coord, "l1", "n1", "u1");
+
+    final ThirdPartyCoordinateLicense result = dao.getByFileCoordinateIdAndLicenseId(coord.getId(), "l1");
+
+    assertThat(result.getName()).isEqualTo("n1");
+  }
+
+  @Test
+  public void testGetByFileCoordinateIdAndLicenseId_caseInsensitive() {
+    ThirdPartyFileCoordinate coord =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
+    tempEntity.newThirdPartyCoordinateLicense(coord, "L1", "n1", "u1");
+
+    final ThirdPartyCoordinateLicense result = dao.getByFileCoordinateIdAndLicenseId(coord.getId(), "l1");
+
+    assertThat(result.getName()).isEqualTo("n1");
+  }
+
   private void assertThirdPartyCoordinateLicense(
       final ThirdPartyCoordinateLicense expected,
       final ThirdPartyCoordinateLicense actual)

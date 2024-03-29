@@ -3696,6 +3696,7 @@ public class TemporaryEntity
 
   public ThirdPartyScan newThirdPartyScan(ThirdPartyFile thirdPartyFile) {
     ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), uuid(), new Date());
+    scan.setScanId("scanId");
     thirdPartyScanDAO.insert(scan);
     return scan;
   }

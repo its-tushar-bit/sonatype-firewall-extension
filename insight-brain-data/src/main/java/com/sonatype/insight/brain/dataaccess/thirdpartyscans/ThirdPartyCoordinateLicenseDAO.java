@@ -49,4 +49,13 @@ public class ThirdPartyCoordinateLicenseDAO
         " WHERE entity.fileCoordinateId=?1";
     return getList(sQuery, fileCoordinateId);
   }
+
+  public ThirdPartyCoordinateLicense getByFileCoordinateIdAndLicenseId(
+      final String fileCoordinateId,
+      final String licenseId)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
+        " WHERE entity.fileCoordinateId=?1 AND UPPER(entity.licenseId)=?2";
+    return get(sQuery, fileCoordinateId, licenseId.toUpperCase());
+  }
 }

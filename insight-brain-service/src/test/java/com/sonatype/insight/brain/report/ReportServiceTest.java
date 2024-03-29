@@ -77,7 +77,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -605,30 +604,6 @@ public class ReportServiceTest
     assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
 
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
-  }
-
-  @Test
-  public void testProcessThirdPartyData_SBOMManagerDisabled_mergeSonatypeDataWithThirdPartyData_NotCalled() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    verify(thirdPartyDataServiceSpy, never()).mergeSonatypeDataWithThirdPartyData(eq(scanId));
-  }
-
-  @Test
-  public void testProcessThirdPartyData_SBOMManagerEnabled_mergeSonatypeDataWithThirdPartyData_Called()
-      throws Exception
-  {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-
-    final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
-    createReportFile(app.getId(), scanId, reportZip);
-    ReportService reportService = createReportService();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
-
-    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
-    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
-    reportService.processThirdPartyData(scanId, reportZip, "app-id");
-
-    verify(thirdPartyDataServiceSpy, times(1)).mergeSonatypeDataWithThirdPartyData(eq(scanId));
   }
 
   @Test

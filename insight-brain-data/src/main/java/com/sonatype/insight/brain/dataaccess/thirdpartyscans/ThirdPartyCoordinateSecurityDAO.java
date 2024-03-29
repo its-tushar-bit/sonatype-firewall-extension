@@ -44,8 +44,8 @@ public class ThirdPartyCoordinateSecurityDAO
 
   public ThirdPartyCoordinateSecurity getByCoordinateFileIdAndRefId(String coordinateFileId, String refId) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
-        " WHERE entity.fileCoordinateId=?1 AND entity.refId=?2";
-    return get(sQuery, coordinateFileId, refId);
+        " WHERE entity.fileCoordinateId=?1 AND UPPER(entity.refId)=?2";
+    return get(sQuery, coordinateFileId, refId.toUpperCase());
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {

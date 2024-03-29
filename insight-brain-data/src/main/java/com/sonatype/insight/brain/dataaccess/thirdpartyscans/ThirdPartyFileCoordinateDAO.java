@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
@@ -74,6 +73,13 @@ public class ThirdPartyFileCoordinateDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByThirdPartyFileId(tx, thirdPartyFileId);
     }
+  }
+
+  public ThirdPartyFileCoordinate getByPackageUrlAndScanId(String purl, String scanId) {
+    String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
+        " ThirdPartyFileCoordinate TPF" + //
+        " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId AND TPF.packageUrl=?1 AND TPS.scanId=?2";
+    return get(sQuery, purl, scanId);
   }
 
   public List<ThirdPartyFileCoordinate> getByHashAndScanId(String hash, String scanId) {

@@ -171,12 +171,32 @@ public class InsightWork
   }
 
   public File getSbomDir() {
-    return new File(insightConfig.getClusterDirectory(), "sboms");
+    File sbomTempDir = new File(insightConfig.getClusterDirectory(), "sboms");
+
+    if (!sbomTempDir.exists()) {
+      try {
+        Files.createDirectories(sbomTempDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed creating SBOM directory", e);
+      }
+    }
+    return sbomTempDir;
   }
 
   public File getSbomDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(getSbomDir(), appId);
+    File sbomTempDir = new File(getSbomDir(), appId);
+
+    if (!sbomTempDir.exists()) {
+      try {
+        Files.createDirectories(sbomTempDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed creating SBOM directory for appId " + appId, e);
+      }
+    }
+    return sbomTempDir;
   }
   
   public File getSbomTempDir() {

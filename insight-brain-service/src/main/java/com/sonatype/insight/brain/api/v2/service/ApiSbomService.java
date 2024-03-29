@@ -7,27 +7,54 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiSbomResource;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.ScanResult;
+import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
@@ -36,14 +63,19 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-
 import org.apache.commons.io.IOUtils;
-
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.io.Files.getFileExtension;
 
 @Named
 public class ApiSbomService
@@ -56,6 +88,12 @@ public class ApiSbomService
 
   public static final String SBOM_STATE_ORIGINAL = "original";
 
+  public static final String APPLICATION_ID_PLACEHOLDER = "{applicationId}";
+
+  public static final String SBOM_VERSION_PLACEHOLDER = "{sbomVersion}";
+
+  public static final String SBOM_FORM_PLACEHOLDER = "?form=original";
+
   private final ThirdPartySbomMetadataDAO dao;
 
   private final ThirdPartyFileDAO thirdPartyFileDAO;
@@ -66,16 +104,47 @@ public class ApiSbomService
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
+  private final SbomFileDetector sbomFileDetector;
+
+  private final PolicyEvaluateService policyEvaluateService;
+
+  private final ProprietaryConfigService proprietaryConfigService;
+
+  private final Scanner scanner;
+
+  private final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  private final SbomMetadataUtils sbomMetadataUtils;
+
+  private final ProductLicense productLicense;
+
   @Inject
   public ApiSbomService(
-      final ThirdPartySbomMetadataDAO dao, final ThirdPartyFileDAO thirdPartyFileDAO, final InsightWork insightWork,
-      final ApplicationDAO applicationDAO, final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO)
+      final ThirdPartySbomMetadataDAO dao,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
+      final InsightWork insightWork,
+      final ApplicationDAO applicationDAO,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final SbomFileDetector sbomFileDetector,
+      final PolicyEvaluateService policyEvaluateService,
+      final ProprietaryConfigService proprietaryConfigService,
+      final Scanner scanner,
+      final ThirdPartyScanDAO thirdPartyScanDAO,
+      final SbomMetadataUtils sbomMetadataUtils,
+      final ProductLicense productLicense)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.insightWork = insightWork;
     this.applicationDAO = applicationDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.sbomFileDetector = sbomFileDetector;
+    this.policyEvaluateService = policyEvaluateService;
+    this.proprietaryConfigService = proprietaryConfigService;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.scanner = scanner;
+    this.sbomMetadataUtils = sbomMetadataUtils;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -178,6 +247,138 @@ public class ApiSbomService
     return thirdPartySbomMetadata;
   }
 
+  @Authorize(permission = Permission.WRITE)
+  public Response importSbom(
+      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      InputStream fileInputStream,
+      FormDataContentDisposition fileDetails,
+      String clientUserAgent)
+  {
+    File tempFile = createTempFile(fileDetails);
+    saveSbomFileFromHttpRequestIntoTempFile(fileInputStream, tempFile);
+
+    SbomDetectionResult sbomMetadata = sbomFileDetector.getSbomMetadata(tempFile);
+
+    if (!sbomMetadata.isSbom) {
+      cleanupTempFile(tempFile);
+      throw new BadRequestException(sbomMetadata.errorMessage);
+    }
+    try {
+      Application application = applicationDAO.getById(applicationId);
+      String scanRequestId = UUID.randomUUID().toString().replace("-", "");
+      ApiThirdPartyScanTicketDTO scanTicketDTO = new ApiThirdPartyScanTicketDTO();
+      scanTicketDTO.statusUrl =
+          PublicApiPaths.SBOM_RESOURCE_PATH + "/" + applicationId + "/status/" + scanRequestId;
+
+      ScanResult scanResult =
+          scanSbom(application, new String(Files.readAllBytes(tempFile.toPath())), scanRequestId,
+              SbomFormat.forMimeType(sbomMetadata.mimeType), ScannerDriver.SBOM_API.getValue(),
+              determineItemContentType(sbomMetadata.summary.specification));
+
+      policyEvaluateService.evaluateWithPolling(scanRequestId, application, ClientScanType.SONATYPE_THIRD_PARTY,
+          new Stage(Stage.ID_RELEASE), ScanTriggerType.SBOM_API, scanResult.getScanFile(),
+          ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
+
+      cleanupTempFile(tempFile);
+
+      return Response.ok(Status.ACCEPTED)
+          .entity(scanTicketDTO)
+          .build();
+    }
+    catch (IOException e) {
+      cleanupTempFile(tempFile);
+      throw new InternalServerException("Error while importing SBOM");
+    }
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiSbomStatusDTO getImportStatus(
+      @AuthzContext(Key.APPLICATION_ID) String applicationId, String importRequestId)
+  {
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(applicationDAO.getById(applicationId).getPublicId(),
+            importRequestId);
+
+    switch (policyEvaluationPollingResult.getStatus()) {
+      case COMPLETED:
+        List<ThirdPartyScan> scans =
+            thirdPartyScanDAO.getByScanId(policyEvaluationPollingResult.getScanReceipt().getScanId());
+
+        if (scans.isEmpty() && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+          throw new PaymentRequiredException(
+              "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
+        }
+
+        ThirdPartySbomMetadata sbomMetadata = dao.getByThirdPartyFileId(scans.get(0).getThirdPartyFileId());
+
+        ApiSbomStatusDTO apiSbomStatusDTO = new ApiSbomStatusDTO();
+        apiSbomStatusDTO.downloadUrl = createDownloadUrl(applicationId, sbomMetadata.getSbomVersion());
+        apiSbomStatusDTO.applicationId = applicationId;
+        apiSbomStatusDTO.version = sbomMetadata.getSbomVersion();
+
+        return apiSbomStatusDTO;
+      case FAILED:
+        return new ApiSbomStatusDTO(policyEvaluationPollingResult.getReason());
+      case PENDING:
+        throw new NotFoundException("Sbom version import is still in progress");
+      default:
+        throw new IllegalStateException(String
+            .format("Unexpected result %s with status id %s for application with id %s",
+                policyEvaluationPollingResult.getStatus(), importRequestId, applicationId));
+    }
+  }
+
+  private void saveSbomFileFromHttpRequestIntoTempFile(InputStream fileInputStream, File scanFile) {
+    try (FileOutputStream os = new FileOutputStream(scanFile)) {
+      IOUtils.copy(fileInputStream, os);
+    }
+    catch (IOException e) {
+      throw new InternalServerException("Error while reading the SBOM file");
+    }
+  }
+
+  private File createTempFile(final FormDataContentDisposition fileDetails) {
+    Path sbomDirPath = insightWork.getSbomTempDir().toPath();
+
+    return new File(sbomDirPath.toString(),
+        "scan-" + UUID.randomUUID().toString().replace("-", "") + "." + getFileExtension(fileDetails.getFileName()));
+  }
+
+  private ItemContentType determineItemContentType(String sbomSpecification) {
+    if (sbomSpecification.equals(SbomFileDetector.SPEC_SPDX)) {
+      return ItemContentType.SPDX;
+    }
+    else {
+      return ItemContentType.SBOM;
+    }
+  }
+
+  private ScanResult scanSbom(
+      final Application app,
+      final String sbom,
+      final String source,
+      final SbomFormat format,
+      final String scannerDriver,
+      final ItemContentType type)
+  {
+    try {
+      ProprietaryConfig proprietaryConfig =
+          proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
+      return scanner.scanContent(sbom, insightWork.getScanDir(app.getId()), type,
+          source, format, proprietaryConfig, scannerDriver);
+    }
+    catch (IOException ex) {
+      log.error("Error processing sbom content", ex);
+      throw new UncheckedIOException("Error while processing SBOM file", ex);
+    }
+  }
+
+  private String createDownloadUrl(String applicationId, String sbomVersion) {
+    return PublicApiPaths.SBOM_RESOURCE_PATH + "/" +
+        ApiSbomResource.SBOM_VERSION_PATH.replace(APPLICATION_ID_PLACEHOLDER, applicationId)
+            .replace(SBOM_VERSION_PLACEHOLDER, sbomVersion) + SBOM_FORM_PLACEHOLDER;
+  }
+
   @Authorize(permission = Permission.READ)
   public List<String> getSbomVersionListByAppId(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
@@ -187,5 +388,14 @@ public class ApiSbomService
     return sbomMetadata.stream()
         .map(ThirdPartySbomMetadata::getSbomVersion)
         .collect(Collectors.toList());
+  }
+
+  private void cleanupTempFile(File tempFile) {
+    try {
+      Files.deleteIfExists(tempFile.toPath());
+    }
+    catch (IOException fileDeleteException) {
+      log.warn(fileDeleteException.getMessage(), fileDeleteException);
+    }
   }
 }

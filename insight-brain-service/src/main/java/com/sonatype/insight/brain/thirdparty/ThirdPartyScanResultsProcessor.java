@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
@@ -107,6 +108,8 @@ public class ThirdPartyScanResultsProcessor
 
   private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
+  private final SbomMetadataUtils sbomMetadataUtils;
+
   @Inject
   public ThirdPartyScanResultsProcessor(
       ThirdPartyScanDAO thirdPartyScanDAO,
@@ -116,7 +119,7 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory,
       InsightWork insightWork,
       ProductLicense productLicense,
-      SbomFileDetector sbomFileDetector)
+      SbomFileDetector sbomFileDetector, final SbomMetadataUtils sbomMetadataUtils)
   {
     this.telemetrySender = telemetrySender;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -126,6 +129,7 @@ public class ThirdPartyScanResultsProcessor
     this.insightWork = insightWork;
     this.productLicense = productLicense;
     this.sbomFileDetector = sbomFileDetector;
+    this.sbomMetadataUtils = sbomMetadataUtils;
   }
 
   public String filterAndSaveData(
@@ -375,7 +379,7 @@ public class ThirdPartyScanResultsProcessor
 
     //for now we persist only the first sbom for sbom manager support when there are multiple sboms in the scan.
     return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)
-        && !hasMaxSbomLimitBeenReached()
+        && !sbomMetadataUtils.hasMaxSbomLimitBeenReached()
         && isStageTypeSupported(scanContext)
         && (ItemContentType.SBOM.equals(contentItemType) || ItemContentType.SPDX.equals(contentItemType))
         && !scanContext.isSbomSavedForScan();
@@ -468,19 +472,5 @@ public class ThirdPartyScanResultsProcessor
                     existingSbomApplicationVersion.getSbomVersion(), dtFormatter.format(LocalDateTime.now())))
                 .orElse(version))
         .orElseGet(() -> dtFormatter.format(LocalDateTime.now()));
-  }
-
-  private boolean hasMaxSbomLimitBeenReached() {
-    long currentSbomFiles = thirdPartySbomMetadataDAO.getActiveSbomCount();
-    if (currentSbomFiles < productLicense.getMaxSboms()) {
-      return false;
-    }
-    else {
-      log.warn(
-          "SBOM Manager has reached its licensed maximum of {} files. " +
-              "Contact your account team to manage all your SBOMs.",
-          productLicense.getMaxSboms());
-      return true;
-    }
   }
 }

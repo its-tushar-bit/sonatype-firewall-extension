@@ -5,20 +5,22 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -28,11 +30,15 @@ public class ApiSbomServiceAuthzTest
 {
   private static final String DUMMY_APP_ID = UUID.randomUUID().toString().replace("-", "");
 
+  private static final String DUMMY_IMPORT_REQUEST_ID = UUID.randomUUID().toString().replace("-", "");
+
   private static final String DUMMY_APP_VERSION = RandomStringUtils.random(10, true, true);
+
+  private static final String DUMMY_USER_AGENT = RandomStringUtils.random(10, true, true);
 
   @Inject
   private ApiSbomService apiSbomService;
-  
+
   @Test(expected = UnauthenticatedException.class)
   public void testDeleteSbomVersion_Unauthenticated() throws IOException {
     apiSbomService.deleteSbomVersion(DUMMY_APP_ID, DUMMY_APP_VERSION);
@@ -94,7 +100,34 @@ public class ApiSbomServiceAuthzTest
   public void testGetSbomListForAppId_Authorized() {
     Application application = tempEntity.newApplicationWithParent();
     grantReadPermission(application.getId());
-    apiSbomService.getSbomListForAppId(application.getId(), "asc",  1, 2);
+    apiSbomService.getSbomListForAppId(application.getId(), "asc", 1, 2);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testImportSbomVersion_Unauthenticated() throws IOException {
+    apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]),
+        FormDataContentDisposition.name("test").build(), DUMMY_USER_AGENT);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testImportSbomVersion_Unauthorized() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    login();
+    apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),
+        FormDataContentDisposition.name("test").build(), DUMMY_USER_AGENT);
+  }
+
+  @Test
+  public void testImportSbomVersion_Authorized() {
+    Application app = tempEntity.newApplicationWithParent();
+    grantWritePermission(app.getId());
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),
+                FormDataContentDisposition.name("test").fileName("test.xml").build(),
+                DUMMY_USER_AGENT))
+        .withMessage("Not a valid/supported sbom file");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -147,5 +180,24 @@ public class ApiSbomServiceAuthzTest
   public void testGetSbomVersionListForAppId_Authorized_NotFound() {
     grantReadPermission("test");
     apiSbomService.getSbomVersionListByAppId("test");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetImportStatus_Unauthenticated() {
+    apiSbomService.getImportStatus(DUMMY_APP_ID, DUMMY_IMPORT_REQUEST_ID);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetImportStatus_Unauthorized() {
+    Application app = tempEntity.newApplicationWithParent();
+    login();
+    apiSbomService.getImportStatus(app.getId(), DUMMY_IMPORT_REQUEST_ID);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetImportStatus_Authorized() {
+    Application app = tempEntity.newApplicationWithParent();
+    grantEvaluateApplicationPermission(app.getId());
+    apiSbomService.getImportStatus(app.getId(), DUMMY_IMPORT_REQUEST_ID);
   }
 }

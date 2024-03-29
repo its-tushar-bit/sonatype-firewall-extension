@@ -1,0 +1,103 @@
+{
+  "aaData" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+    "reference" : "CVE-2007-3385",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+    "reference" : "CVE-2007-5333",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-2526",
+    "reference" : "CVE-2011-2526",
+    "source" : "cve",
+    "score" : 4.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-0022",
+    "reference" : "CVE-2012-0022",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/37071",
+    "reference" : "37071",
+    "source" : "osvdb",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/41435",
+    "reference" : "41435",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/73797",
+    "reference" : "73797",
+    "source" : "osvdb",
+    "score" : 4.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/73798",
+    "reference" : "73798",
+    "source" : "osvdb",
+    "score" : 4.4,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://osvdb.org/78573",
+    "reference" : "78573",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }
+  ]
+}

@@ -24,6 +24,7 @@ public enum ScanTriggerType
   WEB_UI("Web UI"), //
   IDE("IDE"), //
   SBOM_UI("SBOM Manager UI"), //
+  SBOM_API("SBOM Manager API"), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.
   // It should never be used in new code anywhere.
   UNKNOWN("Unknown");

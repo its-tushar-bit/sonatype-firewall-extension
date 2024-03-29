@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -117,7 +118,11 @@ public class ThirdPartyScanResultsProcessorTest
   @Mock
   private ProductLicense productLicense;
 
+  @Mock
   private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessorSpy;
+
+  @Mock
+  private SbomMetadataUtils sbomMetadataUtils;
 
   private static final Gson GSON = new Gson();
 
@@ -127,8 +132,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void before() {
     thirdPartyScanResultsProcessorSpy =
         spy(new ThirdPartyScanResultsProcessor(thirdPartyScanDAO, thirdPartyFileDAO,
-            thirdPartySbomMetadataDAO, telemetrySender,
-            thirdPartyResultHandlerFactory, insightWork, productLicense, sbomFileDetector));
+            thirdPartySbomMetadataDAO, telemetrySender, thirdPartyResultHandlerFactory, insightWork,
+            productLicense, sbomFileDetector, sbomMetadataUtils));
   }
 
   @Test
@@ -178,14 +183,14 @@ public class ThirdPartyScanResultsProcessorTest
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 6);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
   }
 
   @Test
   public void testHandle_spdx_api_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -265,15 +270,15 @@ public class ThirdPartyScanResultsProcessorTest
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
     verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -337,8 +342,8 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_sbom_cli_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -450,7 +455,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScanner_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
@@ -470,7 +475,7 @@ public class ThirdPartyScanResultsProcessorTest
         "clair-scanner-out/other/clair-scanner-output.json");
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
     thirdPartyFileList.forEach(thirdPartyFile -> assertThirdPartySbomMetadata(thirdPartyFile, false, null));
     verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
@@ -496,7 +501,7 @@ public class ThirdPartyScanResultsProcessorTest
         "clair-scanner-out/other/clair-scanner-output.json");
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
   }
 
   @Test
@@ -589,8 +594,8 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled_creationDetails() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -701,7 +706,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled_maxSbom_reached() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
     IntStream.rangeClosed(1, 2).forEach(i -> createSbomMetadata());
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -713,14 +718,14 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
     verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
 
   @Test
   public void testHandle_SbomManagerEnabled_BuildStage_noSbomSaved() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getMaxSboms()).thenReturn(2);
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
     createSbomMetadata();
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -732,7 +737,7 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
-    assertThat(sbomDir).doesNotExist();
+    assertThat(sbomDir).isEmptyDirectory();
     verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
   }
 

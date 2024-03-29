@@ -6,29 +6,36 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -37,6 +44,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
 @Timed
@@ -46,15 +56,17 @@ public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_STATE = "current";
 
-  static final String SBOM_APPLICATION_PATH = "{applicationId}";
+  static final String SBOM_IMPORT_PATH = "import";
 
-  static final String SBOM_VERSIONS_PATH = SBOM_APPLICATION_PATH + "/versions/{sbomVersion}";
+  public static final String SBOM_VERSION_PATH = "{applicationId}/version/{sbomVersion}";
 
-  static final String SBOM_VERSIONS_BY_APP_PATH = "/sbomVersions/" + SBOM_APPLICATION_PATH;
+  static final String SBOMS_BY_APPLICATION_ID_PATH = "application/{applicationId}";
 
-  static final String SBOMS_APPLICATION_PATH = "application/" + SBOM_APPLICATION_PATH;
+  static final String SBOM_STATUS_PATH = "{applicationId}/status/{importRequestId}";
 
-  static final String SBOM_COMPONENTS_PATH = SBOM_VERSIONS_PATH + "/components";
+  static final String SBOM_VERSIONS_BY_APPLICATION_ID_PATH = "/sbomVersions/{applicationId}";
+
+  static final String SBOM_COMPONENTS_PATH = SBOM_VERSION_PATH + "/components";
 
   private final ApiSbomService apiSbomService;
 
@@ -72,7 +84,7 @@ public class ApiSbomResource
       })
 
   @DELETE
-  @Path(SBOM_VERSIONS_PATH)
+  @Path(SBOM_VERSION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Audited(AuditEvent.DELETE_SBOM_VERSION)
   public void deleteSbomVersion(
@@ -95,7 +107,7 @@ public class ApiSbomResource
       })
 
   @GET
-  @Path(SBOM_VERSIONS_PATH)
+  @Path(SBOM_VERSION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public Response getSbomVersion(
@@ -129,7 +141,7 @@ public class ApiSbomResource
       })
 
   @GET
-  @Path(SBOMS_APPLICATION_PATH)
+  @Path(SBOMS_BY_APPLICATION_ID_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
   public ThirdPartySbomMetadataSummaryListDTO getListOfSbomsForApplicationId(
@@ -150,8 +162,10 @@ public class ApiSbomResource
 
   @Operation(summary = "Gets the components found in a specific sbom version", tags = {"sbom"},
       description = "Lists the components in a specific sbom version with data about vulnerabilities and licenses",
-      responses = {@ApiResponse(responseCode = "200", description = "List of components in the sbom",
-          content = @Content(mediaType = "application/json"))})
+      responses = {
+          @ApiResponse(responseCode = "200", description = "List of components in the sbom",
+              content = @Content(mediaType = "application/json"))
+      })
 
   @GET
   @Path(SBOM_COMPONENTS_PATH)
@@ -177,7 +191,7 @@ public class ApiSbomResource
       })
 
   @GET
-  @Path(SBOM_VERSIONS_BY_APP_PATH)
+  @Path(SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
   public List<String> getSbomVersionListByApplication(
@@ -186,5 +200,59 @@ public class ApiSbomResource
   )
   {
     return apiSbomService.getSbomVersionListByAppId(applicationId);
+  }
+
+  @Operation(summary = "Import a new sbom version",
+      tags = {"sbom"},
+      description = "Imports a new sbom version to an existing application",
+      responses = {
+          @ApiResponse(responseCode = "400", description = "Invalid/Unsupported data provided for sbom import"),
+          @ApiResponse(responseCode = "202",
+              description = "Import successful. URL to check the status of the import returned",
+              content = @Content(mediaType = "application/json"))
+      })
+
+  @POST
+  @Path(SBOM_IMPORT_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces({MediaType.APPLICATION_JSON})
+  @Audited(AuditEvent.IMPORT_SBOM_VERSION)
+  public Response importSbom(
+      @Parameter(description = "The internal id of the application", required = true)
+      @FormDataParam("applicationId") String applicationId,
+      @FormDataParam("file") InputStream inputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @Context final HttpServletRequest request
+  ) throws IOException
+  {
+    if (StringUtils.isBlank(applicationId)) {
+      throw new BadRequestException("Missing required parameter [applicationId]");
+    }
+
+    return apiSbomService.importSbom(applicationId, inputStream, fileDetail, HdsClient.getClientUserAgent(request));
+  }
+
+  @Operation(summary = "Get sbom import status",
+      tags = {"sbom"},
+      description = "Gets status of a sbom import.",
+      responses = {
+          @ApiResponse(responseCode = "404", description = "Sbom import still in progress."),
+          @ApiResponse(responseCode = "200",
+              description = "Sbom import completed successfully.",
+              content = @Content(mediaType = "application/json"))
+      })
+
+  @GET
+  @Path(SBOM_STATUS_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces({MediaType.APPLICATION_JSON})
+  public ApiSbomStatusDTO getImportStatus(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "The id of the import request", required = true)
+      @PathParam("importRequestId") String importRequestId
+  )
+  {
+    return apiSbomService.getImportStatus(applicationId, importRequestId);
   }
 }

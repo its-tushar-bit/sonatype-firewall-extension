@@ -1,0 +1,75 @@
+{
+  "dependencyGraph" : {
+    "tomcat:tomcat-util:5.5.23" : [ ]
+  },
+  "securityIssuesByDepth" : {
+    "2" : {
+      "Severe" : 18,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "3" : {
+      "Severe" : 12,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "4" : {
+      "Severe" : 6,
+      "Critical" : 0,
+      "Moderate" : 0
+    },
+    "1" : {
+      "Severe" : 11,
+      "Critical" : 4,
+      "Moderate" : 3
+    },
+    "5" : {
+      "Severe" : 6,
+      "Critical" : 0,
+      "Moderate" : 0
+    }
+  },
+  "gavDepths" : {
+    "tomcat:tomcat-util:5.5.23": [
+      2,
+      3
+    ]
+  },
+  "licenseThreatsByDepth" : {
+    "2" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 7,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 2,
+      "NOT-PROVIDED" : 0
+    },
+    "3" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 7,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 1,
+      "NOT-PROVIDED" : 0
+    },
+    "4" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 3,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    },
+    "1" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 9,
+      "WEAKCOPYLEFT" : 2,
+      "COPYLEFT" : 1,
+      "NOT-PROVIDED" : 1
+    },
+    "5" : {
+      "NON-STANDARD" : 1,
+      "LIBERAL" : 1,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    }
+  }
+}

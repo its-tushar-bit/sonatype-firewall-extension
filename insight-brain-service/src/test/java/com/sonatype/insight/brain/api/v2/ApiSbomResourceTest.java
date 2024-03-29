@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -17,6 +21,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
@@ -31,16 +37,16 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
-
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class ApiSbomResourceTest
     extends AbstractResourceTest
@@ -53,6 +59,7 @@ public class ApiSbomResourceTest
   public void setUp() throws Exception {
     dao = lookup(ThirdPartySbomMetadataDAO.class);
     insightWork = lookup(InsightWork.class);
+
     setFeatures(LicensedFeature.SBOM_MANAGER);
   }
 
@@ -72,7 +79,7 @@ public class ApiSbomResourceTest
         .withFilename(fileInWorkDirPath.getFileName().toString())
         .build();
 
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
         .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
     assertResponseStatus(204, response);
 
@@ -94,7 +101,7 @@ public class ApiSbomResourceTest
         .withFilename(fileInWorkDirPath.getFileName().toString())
         .build();
 
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
         .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion())
         .query("state=" + ApiSbomService.SBOM_STATE_ORIGINAL)
         .get();
@@ -120,7 +127,7 @@ public class ApiSbomResourceTest
         .withFilename(fileInWorkDirPath.getFileName().toString())
         .build();
 
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
         .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion())
         .query("state=" + ApiSbomService.SBOM_STATE_ORIGINAL)
         .get();
@@ -142,7 +149,7 @@ public class ApiSbomResourceTest
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX .spdx.json");
 
     tempEntity.newThirdPartySbomMetadata(file1.getId(), app.getId(), "ACTIVE", file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), app.getId(),  "ACTIVE", file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), app.getId(), "ACTIVE", file2.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
@@ -152,8 +159,8 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
 
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
-                            .parameter(app.getId()).get();
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_BY_APPLICATION_ID_PATH)
+        .parameter(app.getId()).get();
     assertResponseStatus(200, response);
 
     ThirdPartySbomMetadataSummaryListDTO result = response.getBody(ThirdPartySbomMetadataSummaryListDTO.class);
@@ -256,7 +263,7 @@ public class ApiSbomResourceTest
         .withSbomVersion("1.5")
         .build();
 
-    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APP_PATH)
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
         .parameter(app.getId());
 
     HttpResponse response = request.get();
@@ -270,7 +277,7 @@ public class ApiSbomResourceTest
   @Test
   public void testGetSbomVersionListByAppId_Empty() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APP_PATH)
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
         .parameter(app.getId());
 
     HttpResponse response = request.get();
@@ -278,5 +285,76 @@ public class ApiSbomResourceTest
     assertThat(response.getContentType()).isEqualTo("application/json");
     List<String> applicationVersionsSbomDTOS = response.getBody(List.class);
     assertThat(applicationVersionsSbomDTOS).isEmpty();
+  }
+
+  @Test
+  public void testImportSbom_SPDX() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/spdx.json");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .part("file", "spdx.json", sbomFile)
+        .part("applicationId", app.getId())
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        "api/v2/sbom/" + app.getId() + "/status/");
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+  }
+
+  @Test
+  public void testImportSbom_CycloneDX() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .parameter(app.getId())
+        .part("file", "third-party-simple-bom.xml", sbomFile)
+        .part("applicationId", app.getId())
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        "api/v2/sbom/" + app.getId() + "/status/");
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+  }
+
+  @Test
+  public void testImportSbom_EmptyApplicationId() throws Exception {
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .part("file", "third-party-simple-bom.xml", sbomFile)
+        .post();
+
+    assertResponseStatus(Status.BAD_REQUEST.getStatusCode(), response);
+    assertThat(response.getBodyText()).isEqualTo("Missing required parameter [applicationId]");
+  }
+
+  private byte[] loadFileFromAssets(String fileName) throws IOException {
+    try (InputStream inputStream = getClass().getResourceAsStream(fileName)) {
+      assertThat(inputStream).as("Missing resource: " + fileName).isNotNull();
+      return IOUtils.toByteArray(inputStream);
+    }
+  }
+
+  private ApiSbomStatusDTO getSbomStatusDTO(String statusUrl) {
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> super.restRequest().path(statusUrl).get(),
+        resp -> resp.getStatusCode() == 200);
+    return response.getBody(ApiSbomStatusDTO.class);
   }
 }

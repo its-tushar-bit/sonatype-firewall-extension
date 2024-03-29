@@ -5,26 +5,34 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -33,20 +41,37 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.inject.Binder;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.internal.stubbing.answers.AnswersWithDelay;
+import org.mockito.internal.stubbing.answers.Returns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 public class ApiSbomServiceTest
     extends AbstractComponentTest
 {
+  private static final String DUMMY_USER_AGENT = RandomStringUtils.random(10, true, true);
+
   @Inject
   private ApiSbomService service;
 
@@ -55,6 +80,18 @@ public class ApiSbomServiceTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
+  @Mock
+  private HdsClient mockHdsClient;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    super.configure(binder);
+  }
 
   @Test
   public void testDeleteSbomVersion() throws IOException {
@@ -134,10 +171,12 @@ public class ApiSbomServiceTest
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
         ApiSbomService.SBOM_STATE_ORIGINAL);
-    byte[] fileA = Files.readAllBytes(
-        Paths.get(getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml").getPath()));
-    byte[] fileB = (byte[]) response.getEntity();
-    assertThat(Arrays.equals(fileA, fileB)).isTrue();
+    String expectedContent = FileUtils.readFileToString(
+        new File(getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml").getPath()),
+        StandardCharsets.UTF_8);
+    expectedContent = expectedContent.replaceAll("\r\n", "\n");
+    String actualContent = new String((byte[]) response.getEntity());
+    assertThat(expectedContent).isEqualTo(actualContent);
   }
 
   @Test
@@ -160,10 +199,12 @@ public class ApiSbomServiceTest
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
         ApiSbomService.SBOM_STATE_ORIGINAL);
-    byte[] fileA = Files.readAllBytes(
-        Paths.get(getClass().getResource("/" + getClass().getSimpleName() + "/spdx.json").getPath()));
-    byte[] fileB = (byte[]) response.getEntity();
-    assertThat(Arrays.equals(fileA, fileB)).isTrue();
+    String expectedContent = FileUtils.readFileToString(
+        new File(getClass().getResource("/" + getClass().getSimpleName() + "/spdx.json").getPath()),
+        StandardCharsets.UTF_8);
+    expectedContent = expectedContent.replaceAll("\r\n", "\n");
+    String actualContent = new String((byte[]) response.getEntity());
+    assertThat(expectedContent).isEqualTo(actualContent);
   }
 
   @Test
@@ -190,7 +231,7 @@ public class ApiSbomServiceTest
     ThirdPartyFile file2 = tempEntity.newThirdPartyFile("SPDX-spdx.json");
 
     tempEntity.newThirdPartySbomMetadata(file1.getId(), application.getId(), "ACTIVE", file1.getFilename());
-    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(),  "ACTIVE", file2.getFilename());
+    tempEntity.newThirdPartySbomMetadata(file2.getId(), application.getId(), "ACTIVE", file2.getFilename());
 
     ThirdPartyFileCoordinate c1 = tempEntity.newThirdPartyFileCoordinate(file1, "s1", "f1", "n1", "v1");
     ThirdPartyFileCoordinate c2 = tempEntity.newThirdPartyFileCoordinate(file2, "s2", "f2", "n2", "v2");
@@ -341,5 +382,175 @@ public class ApiSbomServiceTest
 
     List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByAppId(app.getId());
     assertThat(applicationVersionsSbomDTOS).isEmpty();
+  }
+
+  @Test
+  public void testImportSbom_InvalidFile() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails = FormDataContentDisposition.name("test").fileName("index.html").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html")) {
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(
+              () -> service.importSbom(app.getId(), inputStream, fileDetails, DUMMY_USER_AGENT))
+          .withMessage("provided file type is not a supported SBOM file type");
+    }
+  }
+
+  @Test
+  public void testImportSbom_ValidFile_SPDX() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails = FormDataContentDisposition.name("test").fileName("spdx.json").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
+      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+          DUMMY_USER_AGENT);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/" + app.getId() + "/status/");
+    }
+  }
+
+  @Test
+  public void testImportSbom_ValidFile_CycloneDX() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails =
+        FormDataContentDisposition.name("test").fileName("third-party-simple-bom.xml").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+          DUMMY_USER_AGENT);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/" + app.getId() + "/status/");
+    }
+  }
+
+  @Test
+  public void testGetImportStatus_NonExistentImportRequestId() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> service.getImportStatus(app.getId(), "dummyRequestId"))
+        .withMessage("Policy evaluation status with id dummyRequestId for public application id " + app.getPublicId() +
+            " was not found.");
+  }
+
+  @Test
+  public void testGetImportStatus_Completed() throws IOException {
+    mockHdsForImportWithDelayedReportDownload(0);
+
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails =
+        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+          DUMMY_USER_AGENT);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
+
+      await().atMost(10, TimeUnit.SECONDS).until(() ->
+              persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
+          pollingResult -> pollingResult != null &&
+              pollingResult.getPolicyEvaluationPollingResult().getStatus().equals(PolicyEvaluationStatus.COMPLETED)
+      );
+
+      ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
+      assertThat(apiSbomStatusDTO.applicationId).isEqualTo(app.getId());
+      assertThat(apiSbomStatusDTO.downloadUrl).startsWith("api/v2/sbom/" + app.getId() + "/version/");
+    }
+  }
+
+  @Test
+  public void testGetImportStatus_Pending() throws Exception {
+    mockHdsForImportWithDelayedReportDownload(1000);
+
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails =
+        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+          DUMMY_USER_AGENT);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
+
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> service.getImportStatus(app.getId(), importRequestId))
+          .withMessage("Sbom version import is still in progress");
+
+      await().atMost(10, TimeUnit.SECONDS).until(
+          () -> persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
+          pollingResult -> pollingResult.getPolicyEvaluationPollingResult().getStatus()
+              .equals(PolicyEvaluationStatus.COMPLETED));
+    }
+  }
+
+  @Test
+  public void testGetImportStatus_Error() throws Exception {
+    mockHdsForImportWithError();
+
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    FormDataContentDisposition fileDetails =
+        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
+
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+          DUMMY_USER_AGENT);
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
+
+      await().atMost(10, TimeUnit.SECONDS).until(
+          () -> persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
+          pollingResult -> pollingResult != null
+              && pollingResult.getPolicyEvaluationPollingResult().getStatus().equals(PolicyEvaluationStatus.FAILED));
+
+      ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
+      assertThat(apiSbomStatusDTO.isError).isTrue();
+      assertThat(apiSbomStatusDTO.errorMessage).isNotEmpty();
+    }
+  }
+
+  private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("SCAN-ID");
+    doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
+        eq(ScanUploader.HDS_PATH), any(File.class), any());
+
+    doAnswer(new AnswersWithDelay(delayInMs,
+        new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/small-report.zip"))))
+        .when(mockHdsClient).get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
+            isNull(), eq("SCAN-ID"));
+  }
+
+  private void mockHdsForImportWithError() throws IOException {
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("SCAN-ID");
+    doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
+        eq(ScanUploader.HDS_PATH), any(File.class), any());
+
+    doThrow(new RuntimeException("Test error")).when(mockHdsClient).get(any(Retry.class), eq(InputStream.class),
+        eq("rest/application/analysis/{scanId}"),
+        isNull(), eq("SCAN-ID"));
   }
 }

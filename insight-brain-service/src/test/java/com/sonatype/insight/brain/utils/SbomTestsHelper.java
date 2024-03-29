@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class SbomTestsHelper
@@ -20,7 +19,7 @@ public class SbomTestsHelper
     final Path tempFilePath =
         Files.createTempFile(sbomDir.toPath().normalize(), "", ".xml");
 
-    Files.copy(Paths.get(fileURL.getPath()), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+    Files.copy(new File(fileURL.getPath()).toPath(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
 
     return tempFilePath;
   }

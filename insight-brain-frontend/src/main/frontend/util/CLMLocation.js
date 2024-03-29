@@ -1401,10 +1401,10 @@ export const getSbomsByApplicationUrl = (applicationId, pageSize, page, sortDir)
   uriTemplate`/api/v2/sbom/application/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
 
 export const getDownloadSbomFromSbomTableUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/versions/${applicationVersion}/?state=original`;
+  uriTemplate`/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
 
 export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/versions/${applicationVersion}`;
+  uriTemplate`/api/v2/sbom/${applicationId}/version/${applicationVersion}`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

@@ -1437,7 +1437,7 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const applicationVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/${applicationId}/versions/${applicationVersion}/?state=original`;
+      const expectedURL = `/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
 
       expect(clmLocation.getDownloadSbomFromSbomTableUrl(applicationId, applicationVersion)).toBe(expectedURL);
     });
@@ -1447,7 +1447,7 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const applicationVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/${applicationId}/versions/${applicationVersion}`;
+      const expectedURL = `/api/v2/sbom/${applicationId}/version/${applicationVersion}`;
 
       expect(clmLocation.getDeleteSbomByApplicationIdAndVersionUrl(applicationId, applicationVersion)).toBe(
         expectedURL

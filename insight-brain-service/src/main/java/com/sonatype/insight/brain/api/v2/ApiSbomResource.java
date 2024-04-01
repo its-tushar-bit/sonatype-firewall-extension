@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -223,7 +224,7 @@ public class ApiSbomResource
       @FormDataParam("file") InputStream inputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail,
       @Context final HttpServletRequest request
-  ) throws IOException
+  )
   {
     if (StringUtils.isBlank(applicationId)) {
       throw new BadRequestException("Missing required parameter [applicationId]");

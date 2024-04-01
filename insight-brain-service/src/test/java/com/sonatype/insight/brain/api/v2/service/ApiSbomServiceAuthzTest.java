@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -104,13 +105,13 @@ public class ApiSbomServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testImportSbomVersion_Unauthenticated() throws IOException {
+  public void testImportSbomVersion_Unauthenticated() {
     apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]),
         FormDataContentDisposition.name("test").build(), DUMMY_USER_AGENT);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testImportSbomVersion_Unauthorized() throws IOException {
+  public void testImportSbomVersion_Unauthorized() {
     Application app = tempEntity.newApplicationWithParent();
     login();
     apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),

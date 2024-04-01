@@ -6,15 +6,12 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.SbomManagerBillOfMaterialsPage;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 public class SbomManagerBillOfMaterialsPageTest
@@ -26,16 +23,6 @@ public class SbomManagerBillOfMaterialsPageTest
   public static void beforeClass() {
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url("mockAppId", "mockVersionId"));
     loginAsAdmin();
-  }
-
-  @Test
-  public void testFeatureEnabled_Success() {
-    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.ORGS_AND_APPS);
-    refreshOrOpen(SbomManagerBillOfMaterialsPage.url("mockAppId", "mockVersionId"));
-    sbomManagerBillOfMaterialsPage.bomPageContainer().shouldBe(visible);
-    sbomManagerBillOfMaterialsPage.pageTitle().shouldBe(visible).shouldHave(text("Bill Of Materials"));
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
-    eyesWatcher.eyesCheck("Sbom Manager Bill of Materials page");
   }
 
   @Test

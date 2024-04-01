@@ -36,7 +36,7 @@ import {
   selectShowDeleteModal,
 } from './sbomsTileSelectors.js';
 import { actions } from './sbomsTileSlice.js';
-import { getDownloadSbomFromSbomTableUrl } from 'MainRoot/util/CLMLocation';
+import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
 import DeleteModal from './DeleteModal.jsx';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -49,7 +49,7 @@ export default function SbomsTile() {
   const [selectedSbom, setSelectedSbom] = useState({});
   const sbomTableData = useSelector(selectSbomsResults);
   const sbomTableError = useSelector(selectError);
-  const downloadSbomUrl = getDownloadSbomFromSbomTableUrl;
+  const downloadSbomUrl = getDownloadSbomFileUrl;
   const currentPage = useSelector(selectCurrentPage);
   const pageCount = useSelector(selectPageCount);
   const deleteMaskState = useSelector(selectDeleteMaskState);

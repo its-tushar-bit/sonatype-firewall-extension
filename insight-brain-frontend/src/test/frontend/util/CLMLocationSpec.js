@@ -1433,13 +1433,13 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  describe('getDownloadSbomFromSbomTableUrl', () => {
+  describe('getDownloadSbomFileUrl', () => {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const applicationVersion = 'v1';
       const expectedURL = `/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
 
-      expect(clmLocation.getDownloadSbomFromSbomTableUrl(applicationId, applicationVersion)).toBe(expectedURL);
+      expect(clmLocation.getDownloadSbomFileUrl(applicationId, applicationVersion)).toBe(expectedURL);
     });
   });
 
@@ -1452,6 +1452,16 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getDeleteSbomByApplicationIdAndVersionUrl(applicationId, applicationVersion)).toBe(
         expectedURL
       );
+    });
+  });
+
+  describe('getBillsOfMaterialsComponents', () => {
+    it('should return the correct URL with the given parameters', () => {
+      const applicationId = 'abc123';
+      const sbomVersion = 'v1';
+      const expectedURL = `/api/v2/sbom/${applicationId}/version/${sbomVersion}/components`;
+
+      expect(clmLocation.getBillsOfMaterialsComponents(applicationId, sbomVersion)).toBe(expectedURL);
     });
   });
 });

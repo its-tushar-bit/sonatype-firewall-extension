@@ -96,6 +96,8 @@ import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
+import componentsBillOfMaterialsSlice from 'MainRoot/sbomManager/features/componentsTile/componentsBillOfMaterialsSlice';
+import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -190,4 +192,6 @@ export default combineReducers({
   enterpriseReportingDashboard: enterpriseReportingDashboardSlice,
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,
   sast: sastReportSlice,
+  componentsBillOfMaterialsTile: componentsBillOfMaterialsSlice,
+  billOfMaterialsPage: billsOfMaterialsPageSlice,
 });

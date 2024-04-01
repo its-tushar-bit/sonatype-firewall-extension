@@ -49,6 +49,7 @@ import {
 import {
   selectIsScmEnabled,
   selectIsOrgsAndAppsEnabled,
+  selectIsFirewallSupported,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -95,6 +96,7 @@ export default function OwnerSideNav() {
   const error = loadError || noSbomManagerEnabledError;
 
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
+  const isFirewallSupported = useSelector(selectIsFirewallSupported);
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
 
@@ -436,10 +438,14 @@ export default function OwnerSideNav() {
                 ) : (
                   <>
                     {renderRepositoriesNavigationItem()}
-                    {isOrgsAndAppsEnabled && (
+                    {isFirewallSupported && (
                       <>
                         {renderRepositoryManagers(displayedOrganization)}
                         {renderRepositories(displayedOrganization.repositoryIds)}
+                      </>
+                    )}
+                    {isOrgsAndAppsEnabled && (
+                      <>
                         {renderOrganizations(displayedOrganization)}
                         {renderApplications(displayedOrganization)}
                       </>
@@ -447,7 +453,7 @@ export default function OwnerSideNav() {
                   </>
                 )}
               </nav>
-              {isOrgsAndAppsEnabled && (
+              {(isOrgsAndAppsEnabled || isFirewallSupported) && (
                 <footer className="iq-orgs-and-policies-summary-sidebar__footer">
                   <a href={treeViewPageHref} className="nx-btn nx-btn--tertiary iq-tree-view-button">
                     <NxFontAwesomeIcon icon={faFolderTree} />

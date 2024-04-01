@@ -415,7 +415,7 @@ describe('OwnerSideNav', () => {
       state = {
         productFeatures: {
           productFeatures: {
-            'orgs-and-apps': true,
+            firewall: true,
           },
         },
         router: {
@@ -541,6 +541,7 @@ describe('OwnerSideNav', () => {
         state = {
           productFeatures: {
             productFeatures: {
+              firewall: true,
               'orgs-and-apps': true,
             },
           },
@@ -667,6 +668,7 @@ describe('OwnerSideNav', () => {
       state = {
         productFeatures: {
           productFeatures: {
+            firewall: true,
             'orgs-and-apps': true,
           },
         },
@@ -795,6 +797,7 @@ describe('OwnerSideNav', () => {
         state = {
           productFeatures: {
             productFeatures: {
+              firewall: true,
               'orgs-and-apps': true,
             },
           },
@@ -913,7 +916,7 @@ describe('OwnerSideNav', () => {
       state = {
         productFeatures: {
           productFeatures: {
-            'orgs-and-apps': true,
+            firewall: true,
           },
         },
         router: {
@@ -1032,6 +1035,7 @@ describe('OwnerSideNav', () => {
         state = {
           productFeatures: {
             productFeatures: {
+              firewall: true,
               'orgs-and-apps': true,
             },
           },
@@ -1654,11 +1658,14 @@ describe('OwnerSideNav', () => {
       expect(screen.queryByTestId('organizations-add')).not.toBeNull();
       expect(screen.queryByText('Tree View')).not.toBeNull();
     });
+
     it('does not render components when FirewallOnlyLicense', async () => {
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
         productFeatures: {
-          productFeatures: {},
+          productFeatures: {
+            firewall: true,
+          },
         },
         router: {
           currentState: {
@@ -1689,7 +1696,6 @@ describe('OwnerSideNav', () => {
 
       expect(screen.queryByPlaceholderText('Org or App Name')).toBeNull();
       expect(screen.queryByTestId('organizations-add')).toBeNull();
-      expect(screen.queryByText('Tree View')).toBeNull();
     });
   });
 });

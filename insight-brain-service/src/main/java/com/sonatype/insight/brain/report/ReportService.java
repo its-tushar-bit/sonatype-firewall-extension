@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -84,6 +85,8 @@ public class ReportService
 
   private final ProductLicense productLicense;
 
+  private final SbomMetadataUtils sbomMetadataUtils;
+
   @Inject
   public ReportService(
       InsightWork work,
@@ -97,7 +100,8 @@ public class ReportService
       TelemetryUtils telemetryUtils,
       RepositoryMatcher repositoryMatcher,
       ApplicationRiskService applicationRiskService,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      SbomMetadataUtils sbomMetadataUtils)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
@@ -111,6 +115,7 @@ public class ReportService
     this.repositoryMatcher = repositoryMatcher;
     this.applicationRiskService = applicationRiskService;
     this.productLicense = productLicense;
+    this.sbomMetadataUtils = sbomMetadataUtils;
   }
 
   public File fetchReport(final Application app, final String scanId)
@@ -174,7 +179,8 @@ public class ReportService
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
 
-      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
+          sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
         thirdPartyDataService.deleteByScanId(scanId);
       }
     }

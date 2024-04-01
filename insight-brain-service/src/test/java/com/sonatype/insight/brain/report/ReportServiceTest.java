@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -77,6 +78,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,6 +136,9 @@ public class ReportServiceTest
    */
   private ReportDownloader reportDownloader;
 
+  @Mock
+  private SbomMetadataUtils sbomMetadataUtils;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
@@ -143,7 +148,7 @@ public class ReportServiceTest
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, policyEvaluationDAO, configuration,
         applicationDAO, organizationDAO, thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher,
-        applicationRiskService, productLicense);
+        applicationRiskService, productLicense, sbomMetadataUtils);
   }
 
   @Test
@@ -604,6 +609,45 @@ public class ReportServiceTest
     assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
 
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
+  }
+
+  @Test
+  public void testProcessThirdPartyData_MaxSbomLimitNotReached_reportNotDeleted() throws Exception {
+    final File reportZip = zipReportDir("/ReportServiceTest/report");
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+    final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "hash1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
+    dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
+
+    createReportService().includeThirdPartyData(reportZip, dto);
+
+    assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
+    verify(thirdPartyDataServiceSpy, never()).deleteByScanId(scanId);
+  }
+
+  @Test
+  public void testProcessThirdPartyData_MaxSbomLimitReached_reportDeleted() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+
+    ComponentIdentifier coord = new ComponentIdentifier("sbom",
+        ImmutableMap.of("group", "group1", "artifactId", "existing1", "version", "1.0"));
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "existing1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
+
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(true);
+    reportService.processThirdPartyData(scanId, reportZip, "app-id");
+
+    verify(thirdPartyDataServiceSpy, times(1)).deleteByScanId(scanId);
   }
 
   @Test

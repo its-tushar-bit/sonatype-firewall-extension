@@ -13,12 +13,19 @@ import {
   selectError,
   selectLoading,
 } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
+import {
+  selectDataInsightsLicenseError,
+  selectLoadingFeatures,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
   const embedUrlData = useSelector(selectEmbedUrlData);
   const loading = useSelector(selectLoading);
+  const loadingFeatures = useSelector(selectLoadingFeatures);
+  const isLoading = loading || loadingFeatures;
   const apiError = useSelector(selectError);
+  const licenseError = useSelector(selectDataInsightsLicenseError);
   const [iframeError, setIframeError] = useState(false);
   const load = () => dispatch(actions.load());
 
@@ -44,11 +51,11 @@ export default function EnterpriseReportingDashboardPage() {
     }
   }, [embedUrlData]);
 
-  const combinedError = apiError || iframeError;
+  const combinedError = licenseError || apiError || iframeError;
 
   return (
     <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
-      <NxLoadWrapper loading={loading} retryHandler={load} error={combinedError}>
+      <NxLoadWrapper loading={isLoading} retryHandler={load} error={combinedError}>
         <div
           className="enterprise-reporting-dashboard-container"
           id="dashboard"

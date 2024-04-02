@@ -6,7 +6,7 @@
 import React from 'react';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
-import { getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 import { screen } from '@testing-library/dom';
 
 describe('EnterpriseReportingDashboardPage', () => {
@@ -53,6 +53,7 @@ describe('EnterpriseReportingDashboardPage', () => {
 
   beforeEach(() => {
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockDashboardsData);
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
     renderPage = () => render(<EnterpriseReportingLandingPage />);
   });
 
@@ -104,6 +105,17 @@ describe('EnterpriseReportingDashboardPage', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    expect(screen.queryByText('An error occurred loading data. Unauthorized')).toBeInTheDocument();
+    expect(screen.getByText('An error occurred loading data. Unauthorized')).toBeInTheDocument();
+  });
+
+  it('shows error when there license does not have data-insights', async () => {
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, []);
+
+    renderPage();
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByText('An error occurred loading data. Data Insights feature not supported')).toBeVisible();
   });
 });

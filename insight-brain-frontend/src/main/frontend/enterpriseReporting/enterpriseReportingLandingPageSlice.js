@@ -7,6 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { path } from 'ramda';
 
 const REDUCER_NAME = 'enterpriseReportingLandingPage';
@@ -42,9 +43,9 @@ function loadFailed(state, { payload }) {
   };
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue }) => {
-  return axios
-    .get(getEnterpriseReportingDashboardsUrl())
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
+  return dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded())
+    .then(() => axios.get(getEnterpriseReportingDashboardsUrl()))
     .then(path(['data', 'dashboardMetadata']))
     .catch(rejectWithValue);
 });

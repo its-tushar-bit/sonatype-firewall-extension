@@ -6,7 +6,7 @@
 import { actions, initialState } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { omit } from 'ramda';
-import { getEnterpriseReportingEmbedUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingEmbedUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('enterpriseReportingDashboardSliceAction', () => {
   let store, state, axiosMock;
@@ -17,6 +17,7 @@ describe('enterpriseReportingDashboardSliceAction', () => {
     state = { enterpriseReportingDashboard: initialState };
     store = SpecUtil.mockReduxStore(state);
     axiosMock = axiosMockAdapter();
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
   });
 
   describe('load', () => {
@@ -38,8 +39,10 @@ describe('enterpriseReportingDashboardSliceAction', () => {
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('enterpriseReportingDashboard/load/pending');
-        expect(actions[1].type).toBe('enterpriseReportingDashboard/load/rejected');
-        expect(actions[1].payload.response.data).toEqual(errorMessage);
+        expect(actions[1].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/pending');
+        expect(actions[2].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled');
+        expect(actions[3].type).toBe('enterpriseReportingDashboard/load/rejected');
+        expect(actions[3].payload.response.data).toEqual(errorMessage);
         done();
       });
     });
@@ -51,7 +54,9 @@ describe('enterpriseReportingDashboardSliceAction', () => {
       store.dispatch(actions.load(dashboardId)).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
         expect(actions[0].type).toBe('enterpriseReportingDashboard/load/pending');
-        expect(actions[1]).toEqual({
+        expect(actions[1].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/pending');
+        expect(actions[2].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled');
+        expect(actions[3]).toEqual({
           type: 'enterpriseReportingDashboard/load/fulfilled',
           payload: { url: ssoEmbedUrl.url, baseUrl: ssoEmbedUrl.baseUrl },
         });

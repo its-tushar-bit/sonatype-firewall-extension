@@ -54,6 +54,7 @@ function IqSidebarNav(props) {
     isDeveloperDashboardEnabled,
     isOrgsAndAppsEnabled,
     isSbomManagerEnabled,
+    isIntegratedEnterpriseReportingSupported,
     isSbomManager,
     isProductFeaturesLoading,
     isSbomManagerOnlyLicense,
@@ -188,10 +189,10 @@ function IqSidebarNav(props) {
               href={apiHref}
             />
           )}
-          {isLicensed && (
+          {isLicensed && isIntegratedEnterpriseReportingSupported && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('enterpriseReporting')}
-              id="enterprise-reporting-navigation-button"
+              id="data-insights-button"
               className="iq-enterprise-reporting-nav-link"
               icon={faChartPieAlt}
               text={
@@ -261,6 +262,7 @@ IqSidebarNav.propTypes = {
   isDeveloperDashboardEnabled: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
+  isIntegratedEnterpriseReportingSupported: PropTypes.bool,
   isSbomManager: PropTypes.bool,
   isProductFeaturesLoading: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,

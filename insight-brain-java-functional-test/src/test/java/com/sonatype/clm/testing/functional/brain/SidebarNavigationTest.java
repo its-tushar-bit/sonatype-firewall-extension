@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
@@ -20,9 +23,9 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -41,7 +44,7 @@ import static com.sonatype.clm.testing.functional.elements.CLM.CSS_SIDEBAR_OPEN;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class SidebarNavigationTest
-        extends AbstractFunctionalTest
+    extends AbstractFunctionalTest
 {
   private SystemConfigurationPropertyDAO dao;
 
@@ -62,9 +65,9 @@ public class SidebarNavigationTest
   @Test
   public void testSidebar_DefaultsToOpen() {
     SidebarNavigation.container()
-            .shouldBe(visible)
-            .shouldHave(CSS_SIDEBAR_OPEN)
-            .shouldNotHave(CSS_SIDEBAR_CLOSED);
+        .shouldBe(visible)
+        .shouldHave(CSS_SIDEBAR_OPEN)
+        .shouldNotHave(CSS_SIDEBAR_CLOSED);
   }
 
   @Test
@@ -276,6 +279,7 @@ public class SidebarNavigationTest
 
   @Test
   public void testDataInsightsNavigation_toDataInsights() {
+    setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     refresh();
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/enterpriseReportingLandingPage"));
@@ -371,7 +375,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
   }
 
   @Test
@@ -490,7 +494,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(visible);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldNotBe(visible);
   }
 
   @Test
@@ -500,6 +504,9 @@ public class SidebarNavigationTest
     refresh();
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    List<LicensedFeature> features = new ArrayList<>(testProductLicense.getFeatures());
+    features.add(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
+    productLicenseManager.setFeatures(features.toArray(new LicensedFeature[0]));
 
     refresh();
 

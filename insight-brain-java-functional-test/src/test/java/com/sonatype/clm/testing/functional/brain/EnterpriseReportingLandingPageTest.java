@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -52,6 +53,7 @@ public class EnterpriseReportingLandingPageTest
 
   @Test
   public void testFeatureEnabled_Success() throws IOException {
+    setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     mockHDSResponses();
     DashboardMetadataDTO spotlightDashboardMetadataDTO = mockDashboardMetadataDTOSpotlight();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();

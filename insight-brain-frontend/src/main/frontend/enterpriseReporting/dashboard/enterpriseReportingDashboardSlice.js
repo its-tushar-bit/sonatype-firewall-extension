@@ -10,6 +10,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { prop } from 'ramda';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectSelectedDashboard } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'enterpriseReportingDashboard';
 
@@ -35,11 +36,11 @@ function loadFailed(state, { payload }) {
   state.loadError = Messages.getHttpErrorMessage(payload);
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue, dispatch }) => {
   const state = getState();
   const selectedDashboard = selectSelectedDashboard(state);
-  return axios
-    .post(getEnterpriseReportingEmbedUrl(), { dashboard: selectedDashboard.dashboardId })
+  return dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded())
+    .then(() => axios.post(getEnterpriseReportingEmbedUrl(), { dashboard: selectedDashboard.dashboardId }))
     .then(prop('data'))
     .catch(rejectWithValue);
 });

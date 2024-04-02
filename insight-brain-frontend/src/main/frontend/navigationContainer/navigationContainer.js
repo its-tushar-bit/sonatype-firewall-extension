@@ -21,6 +21,7 @@ import {
   selectIsDeveloperDashboardEnabled,
   selectIsOrgsAndAppsEnabled,
   selectIsSbomManagerEnabled,
+  selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -48,6 +49,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isDeveloperDashboardEnabled = false;
   vm.isOrgsAndAppsEnabled = false;
   vm.isSbomManagerEnabled = false;
+  vm.isIntegratedEnterpriseReportingSupported = false;
   vm.isSbomManager = false;
   vm.isProductFeaturesLoading = false;
   vm.isSbomManagerOnlyLicense = false;
@@ -120,6 +122,7 @@ function mapStateToThis(state) {
     isDeveloperDashboardEnabled: selectIsDeveloperDashboardEnabled(state),
     isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
     isSbomManagerEnabled: selectIsSbomManagerEnabled(state),
+    isIntegratedEnterpriseReportingSupported: selectIsIntegratedEnterpriseReportingSupported(state),
     isSbomManager: selectIsSbomManager(state),
     isProductFeaturesLoading: selectLoadingFeatures(state),
     isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),

@@ -355,9 +355,10 @@ describe('IqSidebarNav', function () {
       const component = getMountedComponent({
         isLoggedIn: true,
         isLicensed: true,
+        isIntegratedEnterpriseReportingSupported: true,
       });
 
-      const navLink = component.find('#enterprise-reporting-navigation-button').at(0);
+      const navLink = component.find('#data-insights-button').at(0);
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faChartPieAlt);
@@ -365,6 +366,18 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
 
       expect(navLink.find('a').getDOMNode().textContent).toBe('Data Insights (NEW)');
+    });
+
+    it('does not render an NxGlobalSidebarNavigationLink for Data Insights (Enterprise Reporting) if not allowed', function () {
+      const component = getMountedComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isIntegratedEnterpriseReportingSupported: false,
+      });
+
+      const navLink = component.find('#data-insights-button');
+
+      expect(navLink.length).toBe(0);
     });
 
     describe('selected state', function () {

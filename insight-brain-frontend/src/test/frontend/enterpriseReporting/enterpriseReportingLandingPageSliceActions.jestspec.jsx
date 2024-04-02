@@ -7,7 +7,7 @@ import { actions, initialState } from 'MainRoot/enterpriseReporting/enterpriseRe
 import { omit } from 'ramda';
 import '../SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('enterpriseReportingLandingPageSliceAction', () => {
   let store, axiosMock;
@@ -15,6 +15,7 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
     store = SpecUtil.mockReduxStore(initialState);
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-reportin-enterprise']);
   });
 
   describe('load', () => {
@@ -34,8 +35,10 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('enterpriseReportingLandingPage/load/pending');
-        expect(actions[1].type).toBe('enterpriseReportingLandingPage/load/rejected');
-        expect(actions[1].payload.response.data).toEqual(errorMessage);
+        expect(actions[1].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/pending');
+        expect(actions[2].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled');
+        expect(actions[3].type).toBe('enterpriseReportingLandingPage/load/rejected');
+        expect(actions[3].payload.response.data).toEqual(errorMessage);
         done();
       });
     });
@@ -59,7 +62,9 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
         expect(actions[0].type).toBe('enterpriseReportingLandingPage/load/pending');
-        expect(actions[1]).toEqual({
+        expect(actions[1].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/pending');
+        expect(actions[2].type).toBe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled');
+        expect(actions[3]).toEqual({
           type: 'enterpriseReportingLandingPage/load/fulfilled',
           payload: response.data,
         });

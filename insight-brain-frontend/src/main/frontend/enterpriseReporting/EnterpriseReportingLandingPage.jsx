@@ -24,12 +24,20 @@ import {
   selectLoading,
 } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
+import {
+  selectDataInsightsLicenseError,
+  selectLoadingFeatures,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
   const dashboardsData = useSelector(selectDashboardsData);
   const loading = useSelector(selectLoading);
+  const loadingFeatures = useSelector(selectLoadingFeatures);
+  const isLoading = loading || loadingFeatures;
   const apiError = useSelector(selectError);
+  const licenseError = useSelector(selectDataInsightsLicenseError);
+  const error = licenseError || apiError;
   const load = () => dispatch(actions.load());
 
   useEffect(() => {
@@ -51,7 +59,7 @@ export default function EnterpriseReportingLandingPage() {
         </NxPageTitle.Description>
       </NxPageTitle>
 
-      <NxLoadWrapper loading={loading} retryHandler={load} error={apiError}>
+      <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
         <div className="iq-enterprise-reporting__dashboards-container" id="enterprise-reporting-dashboards-container">
           {dashboardsData
             ? dashboardsData.map((dashboard, idx) => <EnterpriseReportCard dashboard={dashboard} key={idx} />)

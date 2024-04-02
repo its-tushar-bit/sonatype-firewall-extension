@@ -8,8 +8,8 @@ import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 
 export default function LabsDataInsights(props) {
-  const { loadLabsDataInsights, errorMessage, loadingLabsDataInsights } = props,
-    loadError = errorMessage;
+  const { loadLabsDataInsights, errorMessage, loadingLabsDataInsights, licenseError } = props,
+    loadError = licenseError || errorMessage;
 
   function load() {
     return loadLabsDataInsights();
@@ -35,4 +35,5 @@ LabsDataInsights.propTypes = {
   loadingLabsDataInsights: PropTypes.bool.isRequired,
   loadLabsDataInsights: PropTypes.func.isRequired,
   errorMessage: PropTypes.string,
+  licenseError: PropTypes.string,
 };

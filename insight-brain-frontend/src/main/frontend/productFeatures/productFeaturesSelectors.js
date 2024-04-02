@@ -127,6 +127,16 @@ export const selectIsAutomaticApplicationConfigurationEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'automatic-application-configuration')
 );
+export const selectIsIntegratedEnterpriseReportingSupported = createSelector(
+  selectProductFeatures,
+  propOr(false, 'integrated-enterprise-reporting')
+);
+export const selectDataInsightsLicenseError = createSelector(
+  selectIsIntegratedEnterpriseReportingSupported,
+  selectLoadingFeatures,
+  (isIntegratedEnterpriseReportingSupported, loading) =>
+    isIntegratedEnterpriseReportingSupported || loading ? null : 'Data Insights feature not supported'
+);
 
 export const selectIsScmEnabled = createSelector(selectProductFeatures, propOr(false, 'saas-lifecycle-scm-enabled'));
 const _selectIsAutomaticScmConfigurationEnabled = createSelector(

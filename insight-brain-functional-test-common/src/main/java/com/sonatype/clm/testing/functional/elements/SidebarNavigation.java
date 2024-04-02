@@ -90,7 +90,7 @@ public class SidebarNavigation
   }
 
   public static MainHeaderNavigationButton dataInsightsNavigationButton() {
-    return new MainHeaderNavigationButton("#enterprise-reporting-navigation-button");
+    return new MainHeaderNavigationButton("#data-insights-button");
   }
 
   public static MainHeaderNavigationButton integrationsNavigationButton() {

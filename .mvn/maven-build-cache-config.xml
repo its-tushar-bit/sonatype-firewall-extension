@@ -30,6 +30,8 @@
             </glob>
             <includes>
                 <include>src/</include>
+                <include>package.json</include>
+                <include>yarn.lock</include>
             </includes>
         </global>
     </input>

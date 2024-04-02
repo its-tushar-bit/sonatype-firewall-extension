@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.test.reverseproxy.jetty.http.HttpStatus;
 
+import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 public class ApiAuditLogsResourceAuditTest
@@ -37,7 +37,7 @@ public class ApiAuditLogsResourceAuditTest
         .query("endUtcDate", "2024-02-08")
         .get();
 
-    assertResponseStatus(HttpStatus.OK_200, response);
+    assertResponseStatus(HttpStatus.SC_OK, response);
     assertAuditLog(AuditEvent.EXPORT_AUDIT_LOG, null, user.getUsername());
   }
 
@@ -48,7 +48,7 @@ public class ApiAuditLogsResourceAuditTest
         .query("endUtcDate", "2024-02-08")
         .get();
 
-    assertResponseStatus(HttpStatus.FORBIDDEN_403, response);
+    assertResponseStatus(HttpStatus.SC_FORBIDDEN, response);
     assertAuditLog(AuditEvent.EXPORT_AUDIT_LOG, "unauthorized", "admin");
   }
 }

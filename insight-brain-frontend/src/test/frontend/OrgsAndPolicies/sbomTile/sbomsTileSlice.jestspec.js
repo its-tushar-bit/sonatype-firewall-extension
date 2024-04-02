@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-import reducer from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';
+import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 const APP_ID = 'abc123';
 
@@ -197,6 +197,28 @@ describe('sbomTileSlice reducers have the correct state when the following reduc
 
       expect(newState.deleteError).toBe(null);
       expect(newState.deleteMaskState).toBe(true);
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH', () => {
+    it('clears state on onFinish', () => {
+      const state = Object.freeze({
+        results: [1, 2, 3],
+        numResults: 20,
+        loading: true,
+        error: 'some error',
+        deleteError: 'delete error',
+        currentPage: 10,
+        pageCount: 2,
+        selectedVersionForActions: '1.0',
+        applicationId: 'someAppId',
+        sortDir: 'asc',
+        deleteMaskState: true,
+        showDeleteModal: true,
+      });
+
+      const newState = reducer(state, { type: UI_ROUTER_ON_FINISH });
+      expect(newState).toEqual(initialState);
     });
   });
 });

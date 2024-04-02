@@ -5,7 +5,9 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { always } from 'ramda';
 import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
 
@@ -56,6 +58,7 @@ const billsOfMaterialsPageSlice = createSlice({
     [loadInternalApplicationId.pending]: loadInternalApplicationIdRequested,
     [loadInternalApplicationId.fulfilled]: loadInternalApplicationIdFulfilled,
     [loadInternalApplicationId.rejected]: loadInternalApplicationIdFailed,
+    [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
 

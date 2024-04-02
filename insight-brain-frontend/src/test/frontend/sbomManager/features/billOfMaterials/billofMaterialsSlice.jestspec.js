@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-import reducer from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+import reducer, { initialState } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('billOfMaterialsPage reducers have the correct state when the following reducer is dispatched', function () {
   it('billOfMaterialsPage/setPublicAppId', () => {
@@ -77,6 +77,20 @@ describe('billOfMaterialsPage reducers have the correct state when the following
       expect(newState.loading).toBe(false);
       expect(newState.errorInternalAppId).toBe(null);
       expect(newState.internalAppId).toBe('abc123');
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH', () => {
+    it('clears state on onFinish', () => {
+      const state = Object.freeze({
+        loading: true,
+        errorInternalAppId: 'some error',
+        publicAppId: 'test-app-public',
+        internalAppId: 'test-app-internal',
+      });
+
+      const newState = reducer(state, { type: UI_ROUTER_ON_FINISH });
+      expect(newState).toEqual(initialState);
     });
   });
 });

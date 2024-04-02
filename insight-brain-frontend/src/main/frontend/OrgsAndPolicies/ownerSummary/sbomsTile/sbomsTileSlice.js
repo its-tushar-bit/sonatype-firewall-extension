@@ -9,9 +9,10 @@ import { getDeleteSbomByApplicationIdAndVersionUrl, getSbomsByApplicationUrl } f
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectCurrentPage, selectSbomsTile, selectSortDir } from './sbomsTileSelectors';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { compose } from 'ramda';
+import { always, compose } from 'ramda';
 
 const REDUCER_NAME = 'sbomsTile';
 
@@ -142,6 +143,7 @@ const sbomsTileSlice = createSlice({
     [deleteSbomFromTable.pending]: deleteSbomFromTableRequested,
     [deleteSbomFromTable.fulfilled]: deleteSbomFromTableFulfilled,
     [deleteSbomFromTable.rejected]: deleteSbomFromTableFailed,
+    [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
 

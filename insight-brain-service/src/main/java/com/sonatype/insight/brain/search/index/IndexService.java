@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -83,6 +82,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.github.packageurl.PackageURLBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
@@ -972,19 +972,21 @@ public class IndexService
       ThirdPartySbomMetadata sbomMetadata,
       ThirdPartyFileCoordinate thirdPartyFileCoord)
   {
-    PackageUrlIdentifier purl = new PackageUrlIdentifier(thirdPartyFileCoord.getPackageUrl());
-    ComponentIdentifier componentIdentifier = purl.toComponentIdentifier();
-
-    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
+    DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT);
+    ComponentIdentifier componentIdentifier = tryConvert(thirdPartyFileCoord);
+    if (componentIdentifier != null) {
+      documentBuilder
+          .setComponentFormat(componentIdentifier.getFormat())
+          .setComponentCoordinates(componentIdentifier)
+          .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    }
+    return documentBuilder
         .setOwner(application)
         .setApplicationVersion(sbomMetadata.getSbomVersion())
         .setSbomSpecification(sbomMetadata.getSpec())
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
-        .setComponentFormat(purl.getFormat())
-        .setComponentCoordinates(componentIdentifier)
-        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .build();
@@ -998,19 +1000,21 @@ public class IndexService
       ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
       Collection<Organization> parentOrganizations)
   {
-    PackageUrlIdentifier purl = new PackageUrlIdentifier(thirdPartyFileCoord.getPackageUrl());
-    ComponentIdentifier componentIdentifier = purl.toComponentIdentifier();
-
-    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+    DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.SECURITY_VULNERABILITY);
+    ComponentIdentifier componentIdentifier = tryConvert(thirdPartyFileCoord);
+    if (componentIdentifier != null) {
+      documentBuilder
+          .setComponentFormat(componentIdentifier.getFormat())
+          .setComponentCoordinates(componentIdentifier)
+          .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    }
+    return documentBuilder
         .setOwner(application)
         .setApplicationVersion(sbomMetadata.getSbomVersion())
         .setSbomSpecification(sbomMetadata.getSpec())
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
-        .setComponentFormat(purl.getFormat())
-        .setComponentCoordinates(componentIdentifier)
-        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
@@ -1019,6 +1023,60 @@ public class IndexService
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .build();
+  }
+
+  private ComponentIdentifier tryConvert(ThirdPartyFileCoordinate thirdPartyFileCoordinate) {
+    PackageUrlIdentifier packageUrlIdentifier = null;
+
+    // First try the pURL, if it exists
+    if (thirdPartyFileCoordinate.getPackageUrl() != null) {
+      try {
+        packageUrlIdentifier =
+            new PackageUrlIdentifier(thirdPartyFileCoordinate.getPackageUrl());
+      }
+      catch (Exception e) {
+        log.error("Unable to create PackageUrlIdentifier from ThirdPartyFileCoordinate with id: '{}', and pURL: '{}'.",
+            thirdPartyFileCoordinate.getId(), thirdPartyFileCoordinate.getPackageUrl());
+      }
+    }
+
+    // Second, try the ThirdPartyFileCoordinate format, name, and version (which should always exist)
+    if (packageUrlIdentifier == null) {
+      try {
+        packageUrlIdentifier = new PackageUrlIdentifier(PackageURLBuilder.aPackageURL()
+            .withType(thirdPartyFileCoordinate.getFormat())
+            .withName(thirdPartyFileCoordinate.getName())
+            .withVersion(thirdPartyFileCoordinate.getVersion()).build()
+            .canonicalize());
+      }
+      catch (Exception e) {
+        log.warn("Unable to create PackageUrlIdentifier from ThirdPartyFileCoordinate with " +
+                "id: '{}', format: '{}', name: '{}', and version: '{}'.", thirdPartyFileCoordinate.getId(),
+            thirdPartyFileCoordinate.getFormat(), thirdPartyFileCoordinate.getName(),
+            thirdPartyFileCoordinate.getVersion());
+      }
+    }
+
+    // If one of the above worked, try to convert it to a component identifier and return it
+    if (packageUrlIdentifier != null) {
+      try {
+        return packageUrlIdentifier.toComponentIdentifier();
+      }
+      catch (Exception e) {
+        log.error("Unable to convert PackageUrlIdentifier from ThirdPartyFileCoordinate with id: " +
+                "'{}', and pURL: '{}' to ComponentIdentifier.", thirdPartyFileCoordinate.getId(),
+            packageUrlIdentifier.getPackageUrl());
+      }
+    }
+
+    // If none of the above worked, log and return null
+    log.error("Unable to create ComponentIdentifier from ThirdPartyFileCoordinate with id: " +
+            "'{}', pURL: '{}', format: '{}', name: '{}', version: '{}'.",
+        thirdPartyFileCoordinate.getId(), thirdPartyFileCoordinate.getPackageUrl(),
+        thirdPartyFileCoordinate.getFormat(), thirdPartyFileCoordinate.getName(),
+        thirdPartyFileCoordinate.getVersion());
+
+    return null;
   }
 
   private String getDescription(IndexingContext indexingContext, SecurityVulnerability vulnerability) {

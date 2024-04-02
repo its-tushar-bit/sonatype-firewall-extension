@@ -15,15 +15,20 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
@@ -81,6 +86,9 @@ public class IndexServiceTest
 
   @Mock
   private IndexCreationScheduler mockIndexCreationScheduler;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -321,6 +329,253 @@ public class IndexServiceTest
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_NonVulnerableComponent_NullPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", null);
+
+    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
+            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "someVersion", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "someName : someVersion", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_NonVulnerableComponent_InvalidPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
+
+    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
+            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "someVersion", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "someName : someVersion", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_NonVulnerableComponent_ValidPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
+
+    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
+            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "GroupId", "g", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "ArtifactId", "a", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "v", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Extension", "jar", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "g : a : v", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_SecurityVulnerability_NullPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", null);
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
+            5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
+            "someRecommendations", "someAdvisories");
+
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
+            thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "someVersion", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "someName : someVersion", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, "someRefId", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, "someDescription", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_SecurityVulnerability_InvalidPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
+            5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
+            "someRecommendations", "someAdvisories");
+
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
+            thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "someVersion", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "someName : someVersion", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, "someRefId", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, "someDescription", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_SecurityVulnerability_ValidPurl() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
+            5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
+            "someRecommendations", "someAdvisories");
+
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
+            thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "GroupId", "g", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "ArtifactId", "a", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "v", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Extension", "jar", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "g : a : v", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, "someRefId", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, "someDescription", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SBOM_SecurityVulnerability_NullDescription() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("bom.xml");
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(),
+        application.getId(), "someStatus", "bom.xml");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", null, "someLink",
+            5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
+            "someRecommendations", "someAdvisories");
+
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
+            thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "GroupId", "g", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "ArtifactId", "a", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "v", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Extension", "jar", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "g : a : v", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, "someRefId", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 5.5f, StoredField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, application.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, application.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, application.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, thirdPartySbomMetadata.getSbomVersion(), TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, thirdPartySbomMetadata.getSpec(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
   }
 
   @Test

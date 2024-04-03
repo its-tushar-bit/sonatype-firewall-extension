@@ -177,7 +177,7 @@ public class Scanner
     return scanResult;
   }
 
-  public ScanResult scanContent(
+  public ScanResult scanThirdPartyContent(
       String content,
       File scanDir,
       ItemContentType contentType,

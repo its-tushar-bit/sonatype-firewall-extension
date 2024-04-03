@@ -183,7 +183,7 @@ public class ApiThirdPartyScanService
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanContent(sbom, work.getScanDir(app.getId()), type,
+      return scanner.scanThirdPartyContent(sbom, work.getScanDir(app.getId()), type,
           source, format, proprietaryConfig, ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (IOException ex) {

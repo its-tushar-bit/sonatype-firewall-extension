@@ -127,8 +127,9 @@ public class ScannerTest
             .replace("\r\n", "\n");
 
     String scannerDriver = "thirdPartyApiTest";
-    ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
-        SbomFormat.XML, null, scannerDriver);
+    ScanResult scanResult =
+        scanner.scanThirdPartyContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
+            SbomFormat.XML, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());
@@ -151,8 +152,9 @@ public class ScannerTest
             .replace("\r\n", "\n");
 
     String scannerDriver = "thirdPartyApiTest";
-    ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
-        SbomFormat.JSON, null, scannerDriver);
+    ScanResult scanResult =
+        scanner.scanThirdPartyContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
+            SbomFormat.JSON, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());

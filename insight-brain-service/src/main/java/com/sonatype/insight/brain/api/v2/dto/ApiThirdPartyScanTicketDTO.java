@@ -5,10 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * @since 1.75
  */
 public class ApiThirdPartyScanTicketDTO
 {
   public String statusUrl;
+
+  @JsonIgnore
+  public String requestId;
 }

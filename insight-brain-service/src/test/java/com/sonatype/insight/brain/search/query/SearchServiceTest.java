@@ -776,11 +776,35 @@ public class SearchServiceTest
     assertThat(rows.size() - 1).isEqualTo(results.size());
     assertThat(items).hasSize(5);
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo("Root Organization");
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(2)).contains(Organization.ROOT_ORGANIZATION_ID);
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(2)).contains(org.getId());
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(2)).contains(org.getId());
     assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app.getName());
-    // TODO include SBOM manager metadata
-    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(12)).isEqualTo("n v1");
-    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo("n v2");
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(4)).contains(app.getPublicId());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(2)).contains(org.getId());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(3)).isEqualTo(app.getName());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(4)).contains(app.getPublicId());
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(10)).isEqualTo("n v1");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(13)).contains("1.0");
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(14)).contains("CycloneDx");
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(1)).isEqualTo(org.getName());
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(2)).contains(org.getId());
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(3)).isEqualTo(app.getName());
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(4)).contains(app.getPublicId());
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(10)).isEqualTo("n v2");
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(13)).contains("1.1");
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(14)).contains("SPDX");
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(3)).isEqualTo(app.getName());
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(4)).contains(app.getPublicId());
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(13)).contains("1.0");
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(0).get(14)).contains("CycloneDx");
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(3)).isEqualTo(app.getName());
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(4)).contains(app.getPublicId());
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(13)).contains("1.1");
+    assertThat(items.get(ItemType.SBOM_METADATA.name()).get(1).get(14)).contains("SPDX");
   }
 
   @Test

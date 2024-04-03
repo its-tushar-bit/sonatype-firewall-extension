@@ -11,6 +11,8 @@ import { faFile } from '@fortawesome/pro-regular-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { getAdvancedSearchCsvExportUrl } from 'MainRoot/util/CLMLocation';
+import { useSelector } from 'react-redux';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function AdvancedSearchExportButton({
   loading,
@@ -19,9 +21,12 @@ export default function AdvancedSearchExportButton({
   searchedQuery,
   searchIncludedAllComponents,
 }) {
+  const isSbomManager = useSelector(selectIsSbomManager);
   const isDisabled = loading || waitingSearchResponse || totalNumberOfHits === 0;
-  const exportUrl = isDisabled ? '#' : getAdvancedSearchCsvExportUrl(searchedQuery, searchIncludedAllComponents);
   const buttonClasses = classNames('nx-btn nx-btn--tertiary', { disabled: isDisabled });
+  const exportUrl = isDisabled
+    ? '#'
+    : getAdvancedSearchCsvExportUrl(searchedQuery, searchIncludedAllComponents, isSbomManager);
 
   return (
     <a

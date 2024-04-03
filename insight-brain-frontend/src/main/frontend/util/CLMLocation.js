@@ -231,8 +231,13 @@ export function getAdvancedSearchUrl(query, page, isShowAllComponents, isSbomMan
   return uriTemplate`/api/v2/search/advanced?` + params;
 }
 
-export function getAdvancedSearchCsvExportUrl(query, isShowAllComponents) {
-  return uriTemplate`/api/v2/search/advanced/export/csv?query=${query}&allComponents=${isShowAllComponents}`;
+export function getAdvancedSearchCsvExportUrl(query, isShowAllComponents, isSbomManager) {
+  const params = toURIParams({
+    query,
+    allComponents: isShowAllComponents,
+    mode: isSbomManager ? 'sbomManager' : null,
+  });
+  return uriTemplate`/api/v2/search/advanced/export/csv?` + params;
 }
 
 export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {

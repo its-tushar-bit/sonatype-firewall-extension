@@ -3,19 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.search;
+package com.sonatype.insight.brain.search.export;
 
-public final class AdvancedSearchExportPaths
+public final class SearchPaths
 {
-  private AdvancedSearchExportPaths() {}
+  private SearchPaths() {
+  }
 
   public static final String EXPORT_FILE_NAME = "advanced_search.csv";
-
-  public static final String[] EXPORT_SEARCH_HEADERS = {
-      "Item Type", "Organization", "Organization Link", "Application", "Application Link", "Application Category",
-      "Application Category Link", "Component Label", "Component Label Link", "Policy", "Threat",
-      "Policy Link", "Component Name", "Report", "Security Issue", "Stage"
-  };
 
   public static final String ORGANIZATION_PATH_VARIABLE = "organization";
 

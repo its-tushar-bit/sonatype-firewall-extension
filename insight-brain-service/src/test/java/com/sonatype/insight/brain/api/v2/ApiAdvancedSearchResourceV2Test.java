@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+import com.sonatype.insight.brain.search.export.SearchRowFactory;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -35,7 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_SEARCH_HEADERS;
+import static com.sonatype.insight.brain.search.export.SearchRowFactory.Header.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -192,7 +193,31 @@ public class ApiAdvancedSearchResourceV2Test
     assertResponseStatus(200, response);
     String[] csvExportSearchHeaders =
         Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
-    assertThat(csvExportSearchHeaders).isEqualTo(EXPORT_SEARCH_HEADERS);
+    assertThat(csvExportSearchHeaders).isEqualTo(
+        Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
+                APPLICATION_CATEGORY_LINK, COMPONENT_LABEL, COMPONENT_LABEL_LINK, POLICY, THREAT, POLICY_LINK,
+                COMPONENT_NAME, REPORT, SECURITY_ISSUE, STAGE).stream().map(SearchRowFactory.Header::getHeader)
+            .toArray(String[]::new));
+  }
+
+  @Test
+  public void testGetExportResults_SBOMManagerMode() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("mode", "sbomManager")
+        .get();
+    assertResponseStatus(200, response);
+    String[] csvExportSearchHeaders =
+        Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).isEqualTo(
+        Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
+                APPLICATION_CATEGORY_LINK, POLICY, THREAT, POLICY_LINK, COMPONENT_NAME, SECURITY_ISSUE,
+                SECURITY_ISSUE_ID, APPLICATION_VERSION, SBOM_SPECIFICATION).stream()
+            .map(SearchRowFactory.Header::getHeader).toArray(String[]::new));
   }
 
   @Override

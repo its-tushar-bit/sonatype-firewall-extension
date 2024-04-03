@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +48,9 @@ import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
+import com.sonatype.insight.brain.search.export.LifecycleSearchRowFactory;
+import com.sonatype.insight.brain.search.export.SbomSearchRowFactory;
+import com.sonatype.insight.brain.search.export.SearchRowFactory;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -86,25 +87,13 @@ import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getItemManagementPathEdit;
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getReportUrl;
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getVulnerabilityDetailsUrl;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.APPLICATION_CATEGORY_PATH_VARIABLE;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.APPLICATION_PATH_VARIABLE;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_FILE_NAME;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_SEARCH_HEADERS;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.LABEL_PATH_VARIABLE;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.ORGANIZATION_PATH_VARIABLE;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.POLICY_PATH_VARIABLE;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION_CATEGORY;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.COMPONENT_LABEL;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.NON_VULNERABLE_COMPONENT;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.ORGANIZATION;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.POLICY;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.SECURITY_VULNERABILITY;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.SBOM_METADATA;
+import static com.sonatype.insight.brain.search.export.SearchPaths.EXPORT_FILE_NAME;
 
 /**
  * @since 1.88
@@ -136,6 +125,10 @@ public class SearchService
 
   private final ProductLicense productLicense;
 
+  private final LifecycleSearchRowFactory lifecycleSearchRowFactory;
+
+  private final SbomSearchRowFactory sbomManagerSearchRowFactory;
+
   @Inject
   public SearchService(
       LuceneComponents luceneComponents,
@@ -145,7 +138,9 @@ public class SearchService
       OwnerDAO ownerDAO,
       Configuration configuration,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      LifecycleSearchRowFactory lifecycleSearchRowFactory,
+      SbomSearchRowFactory sbomManagerSearchRowFactory)
   {
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
@@ -155,6 +150,8 @@ public class SearchService
     this.configuration = configuration;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.productLicense = productLicense;
+    this.lifecycleSearchRowFactory = lifecycleSearchRowFactory;
+    this.sbomManagerSearchRowFactory = sbomManagerSearchRowFactory;
   }
 
   public SearchResultDTO searchIndex(
@@ -537,9 +534,7 @@ public class SearchService
   }
 
   /**
-   * When the REST API is called in:
-   * <br/><br/>
-   * SBOM Manager mode
+   * When the REST API is called in: <br/><br/> SBOM Manager mode
    * <ul>
    *   <li>Components without an applicationVersion MUST NOT be returned</li>
    *   <li>Vulnerabilities without an applicationVersion MUST NOT be returned</li>
@@ -582,7 +577,7 @@ public class SearchService
     }
     else {
       // Default -> -SBOM_METADATA
-      builder.add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.SBOM_METADATA.searchFieldName())), Occur.MUST_NOT);
+      builder.add(new TermQuery(new Term(ITEM_TYPE.label, SBOM_METADATA.searchFieldName())), Occur.MUST_NOT);
     }
     return builder.build();
   }
@@ -604,8 +599,10 @@ public class SearchService
       List<SearchResultItemDTO> searchResultItemsDTOS,
       boolean isSbomManagerMode)
   {
+    SearchRowFactory searchExportRowFactory = getSearchRowFactory(isSbomManagerMode);
+
     CSVFormat csvFormat = CSVFormat.Builder.create()
-        .setHeader(EXPORT_SEARCH_HEADERS)
+        .setHeader(searchExportRowFactory.getHeaders())
         .setDelimiter(configuration.getAdvancedSearchCSVExportDelimiter())
         .build();
 
@@ -615,8 +612,7 @@ public class SearchService
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));
            CSVPrinter printer = new CSVPrinter(writer, csvFormat)) {
         for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOS) {
-          printer.printRecord(
-              getAdvancedSearchCVSRowFromSearchResultItem(searchResultItemDTO, baseUrl, isSbomManagerMode));
+          printer.printRecord(searchExportRowFactory.create(searchResultItemDTO, baseUrl));
         }
         printer.flush();
         writer.flush();
@@ -624,104 +620,8 @@ public class SearchService
     };
   }
 
-  private List<String> getAdvancedSearchCVSRowFromSearchResultItem(
-      SearchResultItemDTO searchResultItemDTO,
-      String baseUrl,
-      boolean isSbomManagerMode)
-  {
-    List<String> row = new ArrayList<>(Collections.nCopies(16, ""));
-
-    switch (ItemType.valueOf(searchResultItemDTO.itemType)) {
-      case ORGANIZATION:
-        row.set(0, ORGANIZATION.name());
-        row.set(1, searchResultItemDTO.organizationName);
-        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-        break;
-      case APPLICATION:
-        row.set(0, APPLICATION.name());
-        row.set(1, searchResultItemDTO.organizationName);
-        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-        row.set(3, searchResultItemDTO.applicationName);
-        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
-        break;
-      case APPLICATION_CATEGORY:
-        row.set(0, APPLICATION_CATEGORY.name());
-        row.set(1, searchResultItemDTO.organizationName);
-        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-        row.set(5, searchResultItemDTO.applicationCategoryName);
-        row.set(6, baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
-            APPLICATION_CATEGORY_PATH_VARIABLE, searchResultItemDTO.applicationCategoryId));
-        break;
-      case COMPONENT_LABEL:
-        row.set(0, COMPONENT_LABEL.name());
-        row.set(7, searchResultItemDTO.componentLabelName);
-        if (!Objects.isNull(searchResultItemDTO.organizationId)) {
-          row.set(1, searchResultItemDTO.organizationName);
-          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-          row.set(8, baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
-              LABEL_PATH_VARIABLE, searchResultItemDTO.componentLabelId));
-        }
-        else {
-          row.set(3, searchResultItemDTO.applicationName);
-          row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
-          row.set(8,
-              baseUrl + getItemManagementPathEdit(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId,
-                  LABEL_PATH_VARIABLE, searchResultItemDTO.componentLabelId));
-        }
-        break;
-      case POLICY:
-        row.set(0, POLICY.name());
-        row.set(9, searchResultItemDTO.policyName);
-        row.set(10, String.valueOf(searchResultItemDTO.policyThreatLevel));
-        if (!Objects.isNull(searchResultItemDTO.organizationId)) {
-          row.set(1, searchResultItemDTO.organizationName);
-          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-          row.set(11,
-              baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
-                  POLICY_PATH_VARIABLE, searchResultItemDTO.policyId));
-        }
-        else {
-          row.set(3, searchResultItemDTO.applicationName);
-          row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
-          row.set(11, baseUrl +
-              getItemManagementPathEdit(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId,
-                  POLICY_PATH_VARIABLE, searchResultItemDTO.policyId));
-        }
-        break;
-      case SECURITY_VULNERABILITY:
-        row.set(0, SECURITY_VULNERABILITY.name());
-        if (searchResultItemDTO.organizationName != null) {
-          row.set(1, searchResultItemDTO.organizationName);
-          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-        }
-        row.set(3, searchResultItemDTO.applicationName);
-        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
-        row.set(12, searchResultItemDTO.componentName);
-        // TODO properly customize csv for SBOM manager mode, this is needed now so that the tests pass
-        row.set(13, isSbomManagerMode ? "" :
-            baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
-        row.set(14, baseUrl + getVulnerabilityDetailsUrl(searchResultItemDTO.vulnerabilityId));
-        row.set(15, searchResultItemDTO.policyEvaluationStage);
-        break;
-      case NON_VULNERABLE_COMPONENT:
-        row.set(0, NON_VULNERABLE_COMPONENT.name());
-        if (searchResultItemDTO.organizationName != null) {
-          row.set(1, searchResultItemDTO.organizationName);
-          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
-        }
-        row.set(3, searchResultItemDTO.applicationName);
-        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
-        row.set(12, searchResultItemDTO.componentName);
-        // TODO properly customize csv for SBOM manager mode, this is needed now so that the tests pass
-        row.set(13, isSbomManagerMode ? "" :
-            baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
-        row.set(15, searchResultItemDTO.policyEvaluationStage);
-        break;
-      default:
-        Collections.fill(row, "");
-        break;
-    }
-    return row;
+  private SearchRowFactory getSearchRowFactory(boolean isSbomManagerMode) {
+    return isSbomManagerMode ? sbomManagerSearchRowFactory : lifecycleSearchRowFactory;
   }
 
   private static boolean isSbomManagerMode(String mode) {

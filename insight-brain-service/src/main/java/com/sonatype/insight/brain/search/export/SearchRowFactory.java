@@ -126,6 +126,9 @@ public abstract class SearchRowFactory
               APPLICATION, APPLICATION_LINK, COMPONENT_NAME, REPORT, STAGE, APPLICATION_VERSION, SBOM_SPECIFICATION);
         break;
       case SBOM_METADATA:
+        if (searchResultItemDTO.organizationName != null) {
+          addColumns(row, searchResultItemDTO, baseUrl, ORGANIZATION, ORGANIZATION_LINK);
+        }
         addColumns(row, searchResultItemDTO, baseUrl,
             APPLICATION, APPLICATION_LINK, APPLICATION_VERSION, SBOM_SPECIFICATION);
         break;
@@ -176,13 +179,15 @@ public abstract class SearchRowFactory
         value = searchResultItemDTO.organizationName;
         break;
       case ORGANIZATION_LINK:
-        value = baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId);
+        value = baseUrl +
+            getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId, isSbomManager());
         break;
       case APPLICATION:
         value = searchResultItemDTO.applicationName;
         break;
       case APPLICATION_LINK:
-        value = baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId);
+        value = baseUrl +
+            getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId, isSbomManager());
         break;
       case APPLICATION_CATEGORY:
         value = searchResultItemDTO.applicationCategoryName;
@@ -261,5 +266,9 @@ public abstract class SearchRowFactory
     }
 
     return exportSearchHeadersMap;
+  }
+
+  protected boolean isSbomManager() {
+    return false;
   }
 }

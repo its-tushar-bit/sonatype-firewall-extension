@@ -15,12 +15,13 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -70,7 +71,13 @@ public class IndexServiceTest
   private IndexService indexService;
 
   @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
   private InsightWork work;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
@@ -86,9 +93,6 @@ public class IndexServiceTest
 
   @Mock
   private IndexCreationScheduler mockIndexCreationScheduler;
-
-  @Inject
-  private OrganizationDAO organizationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -155,6 +159,122 @@ public class IndexServiceTest
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_SbomMetadata() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    IndexingContext indexingContext = newIndexingContext();
+    indexingContext.addOwners(Arrays.asList(org, app));
+
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(), "ACTIVE", "bom.xml");
+    sbomMetadata.setSbomVersion("1.2.3");
+    sbomMetadata.setSpec("CycloneDx");
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+
+    Document document = indexService.buildDocument(indexingContext, sbomMetadata);
+
+    assertFields(document,
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SBOM_METADATA.name(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_Sbom_ComponentVulnerability() {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    IndexingContext indexingContext = newIndexingContext();
+    indexingContext.addOwners(Arrays.asList(org, app));
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "bom.xml");
+    sbomMetadata.setSbomVersion("1.2.3");
+    sbomMetadata.setSpec("CycloneDx");
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoord = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "asdf",
+        "npm", "jquery", "1.1.1", "deadbeef", "pkg:npm/jquery@1.1.1");
+
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(
+        thirdPartyFileCoord, "CVE-111-1111", "vulnDesc", "http://link", 9.0f, "severityDesc", "");
+
+    Document document = indexService.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
+        thirdPartyCoordinateSecurity, Arrays.asList(org, rootOrg));
+
+    assertFields(document,
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, "deadbeef", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "npm", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "PackageId", "jquery", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "1.1.1", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "jquery : 1.1.1", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, "CVE-111-1111", TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 9.0f, FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, 9.0f, StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, "vulnDesc", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_Sbom_NonVulnerableComponent() {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    IndexingContext indexingContext = newIndexingContext();
+    indexingContext.addOwners(Arrays.asList(org, app));
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "bom.xml");
+    sbomMetadata.setSbomVersion("1.2.3");
+    sbomMetadata.setSpec("CycloneDx");
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoord = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "asdf",
+        "npm", "jquery", "1.1.1", "deadbeef", "pkg:npm/jquery@1.1.1");
+
+    Document document = indexService.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
+        Arrays.asList(org, rootOrg));
+
+    assertFields(document,
+        field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, "deadbeef", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, "npm", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "PackageId", "jquery", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", "1.1.1", TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, "jquery : 1.1.1", TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_VERSION, "1.2.3", TextField.class, true),
+        field(FieldIdentifier.SBOM_SPECIFICATION, "CycloneDx", TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true));
   }
 
   @Test
@@ -342,8 +462,8 @@ public class IndexServiceTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", null);
 
-    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
-            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata,
+            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
@@ -372,8 +492,8 @@ public class IndexServiceTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
 
-    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
-            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata,
+            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
@@ -402,8 +522,8 @@ public class IndexServiceTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
 
-    assertFields(indexService.buildDocument(organization, Collections.singletonList(rootOrganization), application,
-            thirdPartySbomMetadata, thirdPartyFileCoordinate),
+    assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata,
+            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "GroupId", "g", TextField.class, true),

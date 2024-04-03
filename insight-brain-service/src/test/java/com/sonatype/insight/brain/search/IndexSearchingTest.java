@@ -5,10 +5,16 @@
  */
 package com.sonatype.insight.brain.search;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -16,8 +22,14 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
+import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -25,6 +37,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
@@ -41,6 +54,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
@@ -49,18 +63,26 @@ import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -78,6 +100,15 @@ public class IndexSearchingTest
   private SearchService searchService;
 
   @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private ApiSbomService apiSbomService;
+
+  @Inject
+  private ApiThirdPartyScanService apiThirdPartyScanService;
+
+  @Inject
   private ApplicationDAO applicationDAO;
 
   @Inject
@@ -93,6 +124,9 @@ public class IndexSearchingTest
   private TagDAO tagDAO;
 
   @Inject
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  @Inject
   private InsightWork insightWork;
 
   @Mock
@@ -100,6 +134,9 @@ public class IndexSearchingTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
+
+  @Rule
+  public HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Override
   public void configure(Binder binder) {
@@ -116,6 +153,8 @@ public class IndexSearchingTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
     systemConfigurationPropertyDAO
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+
+    setHdsUrl();
   }
 
   private void index() throws Exception {
@@ -124,6 +163,11 @@ public class IndexSearchingTest
 
   private void indexChanges() throws Exception {
     indexService.updateIndex();
+  }
+
+  private void setHdsUrl() {
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsMockServer.getHttpUrl());
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
   private List<SearchResultItemDTO> search(String query, boolean allComponents) throws Exception {
@@ -143,6 +187,25 @@ public class IndexSearchingTest
       throws Exception
   {
     return search(fieldIdentifier + ":" + fieldValue, true);
+  }
+
+  private List<SearchResultItemDTO> sbomManagerSearch(String query, boolean allComponents) throws Exception {
+    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents,
+            ProductMode.SBOM_MANAGER).groupingByDTOS.stream().map(groupDTO -> groupDTO.searchResultItemDTOS)
+        .flatMap(List::stream).collect(toList());
+  }
+
+  private List<SearchResultItemDTO> sbomManagerSearch(
+      FieldIdentifier fieldIdentifier,
+      String fieldValue) throws Exception
+  {
+    return sbomManagerSearch(fieldIdentifier + ":" + fieldValue, false);
+  }
+
+  private List<SearchResultItemDTO> sbomManagerSearchInAllComponents(FieldIdentifier fieldIdentifier, String fieldValue)
+      throws Exception
+  {
+    return sbomManagerSearch(fieldIdentifier + ":" + fieldValue, true);
   }
 
   private PolicyEvaluation newAppReport(String stageId, String reportId) throws Exception {
@@ -185,6 +248,24 @@ public class IndexSearchingTest
     assertThat(result.applicationId).isEqualTo(application.getId());
     assertThat(result.applicationPublicId).isEqualTo(application.getPublicId());
     assertThat(result.applicationName).isEqualTo(application.getName());
+  }
+
+  private void assertSbom(
+      SearchResultItemDTO result,
+      Application application,
+      Organization organization,
+      String version,
+      String sbomSpecification)
+  {
+    assertThat(result.itemType).isEqualTo(ItemType.SBOM_METADATA.name());
+    assertSbomDataData(result, version, sbomSpecification);
+    assertApplicationData(result, application);
+    assertOrganizationData(result, organization);
+  }
+
+  private void assertSbomDataData(SearchResultItemDTO result, String version, String sbomSpecification) {
+    assertThat(result.applicationVersion).isEqualTo(version);
+    assertThat(result.sbomSpecification).isEqualTo(sbomSpecification);
   }
 
   private void assertApplicationCategory(SearchResultItemDTO result, Tag tag, Organization organization) {
@@ -258,6 +339,54 @@ public class IndexSearchingTest
     assertApplicationData(result, applicationDAO.getById(evaluation.getApplicationId()));
   }
 
+  private void assertSbomVulnerability(
+      SearchResultItemDTO result,
+      SecurityVulnerability vulnerability,
+      String vulnerabilityDescription,
+      String componentHash,
+      ComponentIdentifier componentIdentifier,
+      Application application,
+      Organization org,
+      String version,
+      String sbomSpecification)
+  {
+    assertThat(result.itemType).isEqualTo(ItemType.SECURITY_VULNERABILITY.name());
+    assertThat(result.vulnerabilityId).isEqualTo(vulnerability.getRefId());
+    assertThat(result.vulnerabilityStatus).isNull();
+    assertThat(result.vulnerabilityDescription).isEqualTo(vulnerabilityDescription);
+    assertThat(result.reportId).isNull();
+    assertThat(result.componentHash).isEqualTo(componentHash);
+    assertThat(result.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(result.componentName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    assertThat(result.policyEvaluationStage).isNull();
+    assertSbomDataData(result, version, sbomSpecification);
+    assertApplicationData(result, application);
+    assertOrganizationData(result, org);
+  }
+
+  private void assertSbomNonVulnerableComponent(
+      SearchResultItemDTO result,
+      String componentHash,
+      ComponentIdentifier componentIdentifier,
+      Application application,
+      Organization org,
+      String version,
+      String sbomSpecification)
+  {
+    assertThat(result.itemType).isEqualTo(ItemType.NON_VULNERABLE_COMPONENT.name());
+    assertThat(result.vulnerabilityId).isNull();
+    assertThat(result.vulnerabilityStatus).isNull();
+    assertThat(result.vulnerabilityDescription).isNull();
+    assertThat(result.reportId).isNull();
+    assertThat(result.componentHash).isEqualTo(componentHash);
+    assertThat(result.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(result.componentName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    assertThat(result.policyEvaluationStage).isNull();
+    assertSbomDataData(result, version, sbomSpecification);
+    assertApplicationData(result, application);
+    assertOrganizationData(result, org);
+  }
+
   @Test
   public void testResultFields_Organization() throws Exception {
     Organization org = tempEntity.newOrganization();
@@ -275,6 +404,20 @@ public class IndexSearchingTest
     List<SearchResultItemDTO> results = search(FieldIdentifier.APPLICATION_ID, app.getId());
     assertThat(results).hasSize(1);
     assertApplication(results.get(0), app, org);
+  }
+
+  @Test
+  public void testResultFields_SbomMetadata() throws Exception {
+    String appVersion = "1.2.3";
+    String sbomSpec = "spdx";
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", false);
+    index();
+    List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, appVersion);
+    assertThat(results).hasSize(1);
+    assertSbom(results.get(0), app, org, appVersion, sbomSpec);
   }
 
   @Test
@@ -339,6 +482,44 @@ public class IndexSearchingTest
         new SecurityVulnerability("cve", "CVE-8765-1234", 4.3f, SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED),
         vulnDescription, "1234567890abcdeABCDE", ComponentIdentifier.createNugetCoordinates("Search.Test", "1.2.3"),
         evaluation);
+  }
+
+  @Test
+  public void testResultFields_Sbom_Vulnerability() throws Exception {
+    String appVersion = "1.2.3";
+    String sbomSpecification = "spdx";
+
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", true);
+
+    index();
+    List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.VULNERABILITY_ID, "someRefId");
+    assertThat(results).hasSize(1);
+    assertSbomVulnerability(results.get(0),
+        new SecurityVulnerability("someVulSource", "someRefId", 5.5f, SecurityVulnerabilityOverrideStatus.OPEN),
+        "someDescription", "12345",
+        ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.200", null, "jar"),
+        app, org, appVersion, sbomSpecification);
+  }
+
+  @Test
+  public void testResultFields_Sbom_NonVulnerableComponent() throws Exception {
+    String appVersion = "1.2.3";
+    String sbomSpecification = "spdx";
+
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", false);
+
+    index();
+    List<SearchResultItemDTO> results = sbomManagerSearchInAllComponents(FieldIdentifier.COMPONENT_HASH, "12345");
+    assertThat(results).hasSize(1);
+    assertSbomNonVulnerableComponent(results.get(0), "12345",
+        ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.200", null, "jar"),
+        app, org, appVersion, sbomSpecification);
   }
 
   @Test
@@ -419,6 +600,70 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, "A_search-TEST")).extracting(dto -> dto.applicationId)
         .containsExactlyInAnyOrder(app.getId());
     assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationVersion() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
+    tempEntity.newApplicationWithParent("a_search-test2", "App Name 2");
+    tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+    index();
+
+    // not SBOM Mgr mode; this should not be returned
+    assertThat(search(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_Sbom_ApplicationVersion() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
+    tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+    index();
+
+    assertThat(sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).satisfiesExactly(
+        result1 -> {
+          assertThat(result1.itemType).isEqualTo("SBOM_METADATA");
+          assertThat(result1.applicationName).isEqualTo("App Name 1");
+          assertThat(result1.applicationVersion).isEqualTo("1.2.3");
+          assertThat(result1.sbomSpecification).isEqualTo("spdx");
+        },
+        result2 -> {
+          assertThat(result2.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(result2.applicationName).isEqualTo("App Name 1");
+          assertThat(result2.applicationVersion).isEqualTo("1.2.3");
+          assertThat(result2.sbomSpecification).isEqualTo("spdx");
+          assertThat(result2.vulnerabilityId).isEqualTo("someRefId");
+          assertThat(result2.vulnerabilityDescription).isEqualTo("someDescription");
+          assertThat(result2.componentName).isEqualTo("com.h2database : h2 : 1.4.200");
+        }
+    );
+  }
+
+  @Test
+  public void testSearchByField_Sbom_SbomSpecification() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
+    tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+    index();
+
+    assertThat(sbomManagerSearch(FieldIdentifier.SBOM_SPECIFICATION, "spdx")).satisfiesExactly(
+        result1 -> {
+          assertThat(result1.itemType).isEqualTo("SBOM_METADATA");
+          assertThat(result1.applicationName).isEqualTo("App Name 1");
+          assertThat(result1.applicationVersion).isEqualTo("1.2.3");
+          assertThat(result1.sbomSpecification).isEqualTo("spdx");
+        },
+        result2 -> {
+          assertThat(result2.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(result2.applicationName).isEqualTo("App Name 1");
+          assertThat(result2.applicationVersion).isEqualTo("1.2.3");
+          assertThat(result2.sbomSpecification).isEqualTo("spdx");
+          assertThat(result2.vulnerabilityId).isEqualTo("someRefId");
+          assertThat(result2.vulnerabilityDescription).isEqualTo("someDescription");
+          assertThat(result2.componentName).isEqualTo("com.h2database : h2 : 1.4.200");
+        }
+    );
   }
 
   @Test
@@ -809,6 +1054,147 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_NAME, app.getName())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId())).isEmpty();
+  }
+
+  @Test
+  public void testIncrementalUpdate_Sbom() throws Exception {
+    Path reportZipPath = Paths.get(getClass().getResource("/IndexSearchingTest/sbom/report.zip").toURI());
+    hdsMockServer.respondWith("{ \"scanId\": \"hds-scan-id\" }").atUri("/rest/application/analysis");
+    hdsMockServer.respondWith(Files.readAllBytes(reportZipPath)).atUri("/rest/application/analysis/hds-scan-id");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/CVE-2018-7489");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/CVE-2020-25649");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/CVE-2020-36518");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/CVE-2022-42003");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/CVE-2022-42004");
+    hdsMockServer.respondWith("{}")
+        .atUri("/rest/vulnerability/details/json/sonatype-2020-1579");
+
+    Organization org = tempEntity.newOrganization("org");
+    Application app = tempEntity.newApplication("app", org.getId());
+    InputStream binaryUploadInputStream = getClass().getResourceAsStream("/IndexSearchingTest/sbom/vuln-bom.xml");
+
+    index();
+
+    FormDataContentDisposition contentDisposition = FormDataContentDisposition
+        .name("file")
+        .fileName("vuln-bom.xml")
+        .build();
+    ApiThirdPartyScanTicketDTO scanTicket = (ApiThirdPartyScanTicketDTO) apiSbomService
+        .importSbom(app.getId(), binaryUploadInputStream, contentDisposition, "")
+        .getEntity();
+
+    // Wait for the import processing to complete
+    int totalWait = 0;
+    String scanRequestId = scanTicket.statusUrl.substring(scanTicket.statusUrl.lastIndexOf('/') + 1);
+    ApiThirdPartyScanResultDTO scanResult = await().atMost(30, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1))
+        .until(() -> {
+          try {
+            return apiThirdPartyScanService.getScanStatus(app.getId(), scanRequestId);
+          }
+          catch (NotFoundException e) {
+            return null;
+          }
+        }, notNullValue());
+
+    assertThat(scanResult.errorMessage).isBlank();
+    assertThat(scanResult.isError).isFalse();
+    assertThat((long)totalWait).isLessThanOrEqualTo(Duration.ofSeconds(30).toMillis());
+    assertThat(searchIndexChangeDAO.getAll()).filteredOn(change -> change.getChangeType() == ChangeType.SBOM)
+        .isNotEmpty();
+
+    indexChanges();
+
+    List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.ITEM_TYPE, "*");
+    assertThat(results).satisfiesExactlyInAnyOrder(
+        organization -> {
+          assertThat(organization.itemType).isEqualTo("ORGANIZATION");
+          assertThat(organization.organizationName).isEqualTo("Root Organization");
+        },
+        organization -> {
+          assertThat(organization.itemType).isEqualTo("ORGANIZATION");
+          assertThat(organization.organizationName).isEqualTo("org");
+        },
+        application -> {
+          assertThat(application.itemType).isEqualTo("APPLICATION");
+          assertThat(application.organizationName).isEqualTo("org");
+          assertThat(application.applicationPublicId).isEqualTo("app");
+        },
+        sbom -> {
+          assertThat(sbom.itemType).isEqualTo("SBOM_METADATA");
+          assertThat(sbom.organizationName).isEqualTo("org");
+          assertThat(sbom.applicationPublicId).isEqualTo("app");
+          assertThat(sbom.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(sbom.applicationVersion).isNotBlank();
+        },
+        sbomVuln -> {
+          assertThat(sbomVuln.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(sbomVuln.organizationName).isEqualTo("org");
+          assertThat(sbomVuln.applicationPublicId).isEqualTo("app");
+          assertThat(sbomVuln.applicationVersion).isNotBlank();
+          assertThat(sbomVuln.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(sbomVuln.vulnerabilityId).isEqualTo("SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111");
+          assertThat(sbomVuln.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln1 -> {
+          assertThat(hdsVuln1.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln1.organizationName).isEqualTo("org");
+          assertThat(hdsVuln1.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln1.applicationVersion).isNotBlank();
+          assertThat(hdsVuln1.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln1.vulnerabilityId).isEqualTo("CVE-2018-7489");
+          assertThat(hdsVuln1.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln2 -> {
+          assertThat(hdsVuln2.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln2.organizationName).isEqualTo("org");
+          assertThat(hdsVuln2.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln2.applicationVersion).isNotBlank();
+          assertThat(hdsVuln2.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln2.vulnerabilityId).isEqualTo("CVE-2020-25649");
+          assertThat(hdsVuln2.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln3 -> {
+          assertThat(hdsVuln3.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln3.organizationName).isEqualTo("org");
+          assertThat(hdsVuln3.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln3.applicationVersion).isNotBlank();
+          assertThat(hdsVuln3.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln3.vulnerabilityId).isEqualTo("CVE-2020-36518");
+          assertThat(hdsVuln3.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln4 -> {
+          assertThat(hdsVuln4.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln4.organizationName).isEqualTo("org");
+          assertThat(hdsVuln4.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln4.applicationVersion).isNotBlank();
+          assertThat(hdsVuln4.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln4.vulnerabilityId).isEqualTo("CVE-2022-42003");
+          assertThat(hdsVuln4.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln5 -> {
+          assertThat(hdsVuln5.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln5.organizationName).isEqualTo("org");
+          assertThat(hdsVuln5.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln5.applicationVersion).isNotBlank();
+          assertThat(hdsVuln5.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln5.vulnerabilityId).isEqualTo("CVE-2022-42004");
+          assertThat(hdsVuln5.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+        },
+        hdsVuln6 -> {
+          assertThat(hdsVuln6.itemType).isEqualTo("SECURITY_VULNERABILITY");
+          assertThat(hdsVuln6.organizationName).isEqualTo("org");
+          assertThat(hdsVuln6.applicationPublicId).isEqualTo("app");
+          assertThat(hdsVuln6.applicationVersion).isNotBlank();
+          assertThat(hdsVuln6.sbomSpecification).isEqualTo("CycloneDx");
+          assertThat(hdsVuln6.vulnerabilityId).isEqualTo("sonatype-2020-1579");
+          assertThat(hdsVuln6.componentName).isEqualTo("prismjs : 1.27.0");
+        }
+    );
   }
 
   @Test

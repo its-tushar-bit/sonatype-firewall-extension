@@ -101,6 +101,18 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(SBOM_MANAGEMENT_PATH)
+  public Response linkToSbomManagement(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+        .fragment("/sbomManager/management/view/{ownerType}/{ownerId}");
+    return redirect(uriBuilder, ownerType, ownerId);
+  }
+
+  @GET
   @Path(ITEM_MANAGEMENT_EDIT_PATH)
   public Response linkToItemManagementEdit(
       @PathParam("ownerType") OwnerType ownerType,

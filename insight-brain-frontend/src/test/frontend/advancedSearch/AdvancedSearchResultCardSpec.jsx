@@ -50,6 +50,74 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.queryByRole('cell', { name: 'Policy' })).not.toBeInTheDocument();
   });
 
+  it('passes the correct parameters to construct the SBOM Manager org link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      organizationId: 'testOrgId',
+      organizationName: 'testOrg',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: true });
+
+    expect(screen.getByRole('link', { name: 'testOrg' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.management.view.organization');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      jasmine.anything(),
+      jasmine.objectContaining({ organizationId: 'testOrgId' })
+    );
+  });
+
+  it('passes the correct parameters to construct the non SBOM Manager org link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      organizationId: 'testOrgId',
+      organizationName: 'testOrg',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: false });
+
+    expect(screen.getByRole('link', { name: 'testOrg' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('management.view.organization');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      jasmine.anything(),
+      jasmine.objectContaining({ organizationId: 'testOrgId' })
+    );
+  });
+
+  it('passes the correct parameters to construct the SBOM Manager app link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      applicationPublicId: 'testAppPublicId',
+      applicationName: 'testApp',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: true });
+
+    expect(screen.getByRole('link', { name: 'testApp' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.management.view.application');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      jasmine.anything(),
+      jasmine.objectContaining({ applicationPublicId: 'testAppPublicId' })
+    );
+  });
+
+  it('passes the correct parameters to construct the non SBOM Manager app link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      applicationPublicId: 'testAppPublicId',
+      applicationName: 'testApp',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: false });
+
+    expect(screen.getByRole('link', { name: 'testApp' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('management.view.application');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      jasmine.anything(),
+      jasmine.objectContaining({ applicationPublicId: 'testAppPublicId' })
+    );
+  });
+
   it('displays vulnerability link when not in SBOM Manager', () => {
     const componentTypeResult = {
       itemType: 'testItemType',

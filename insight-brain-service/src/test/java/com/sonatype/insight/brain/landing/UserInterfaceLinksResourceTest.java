@@ -55,9 +55,21 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToManagement_App_sbomManager() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.SBOM_MANAGEMENT_PATH, "application", "test id");
+    assertRedirect(response, "assets/index.html#/sbomManager/management/view/application/test%20id");
+  }
+
+  @Test
   public void testLinkToManagement_Org() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.MANAGEMENT_PATH, "organization", "test id");
     assertRedirect(response, "assets/index.html#/management/view/organization/test%20id");
+  }
+
+  @Test
+  public void testLinkToManagement_Org_sbomManager() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.SBOM_MANAGEMENT_PATH, "organization", "test id");
+    assertRedirect(response, "assets/index.html#/sbomManager/management/view/organization/test%20id");
   }
 
   @Test

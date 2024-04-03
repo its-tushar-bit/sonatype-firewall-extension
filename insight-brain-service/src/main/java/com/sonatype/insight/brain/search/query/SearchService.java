@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -107,8 +108,6 @@ public class SearchService
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
 
-  private static final String SBOM_MANAGER_MODE = "sbomManager";
-
   private final LuceneComponents luceneComponents;
 
   private final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics;
@@ -159,7 +158,7 @@ public class SearchService
       int pageSize,
       int page,
       boolean allComponents,
-      String mode)
+      ProductMode mode)
       throws IOException
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
@@ -172,7 +171,7 @@ public class SearchService
       int page,
       boolean allComponents,
       boolean isExportable,
-      String mode)
+      ProductMode mode)
       throws IOException
   {
     return searchIndex(searchQuery, pageSize, page, allComponents, isExportable, isSbomManagerMode(mode));
@@ -343,7 +342,7 @@ public class SearchService
     }
   }
 
-  public Response exportSearch(String searchQuery, boolean allComponents, String mode) {
+  public Response exportSearch(String searchQuery, boolean allComponents, ProductMode mode) {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     boolean isSbomManagerMode = isSbomManagerMode(mode);
     try {
@@ -624,8 +623,8 @@ public class SearchService
     return isSbomManagerMode ? sbomManagerSearchRowFactory : lifecycleSearchRowFactory;
   }
 
-  private static boolean isSbomManagerMode(String mode) {
-    return SBOM_MANAGER_MODE.equalsIgnoreCase(mode);
+  private static boolean isSbomManagerMode(ProductMode mode) {
+    return ProductMode.SBOM_MANAGER == mode;
   }
 
   private void checkMode(boolean isSbomManagerMode) {

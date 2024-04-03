@@ -23,13 +23,18 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -87,6 +92,9 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
+  private SearchIndexChangeDAO searchIndexChangeDAO;
 
   @Inject
   private TestProductLicense productLicense;
@@ -726,6 +734,22 @@ public class ThirdPartyDataServiceTest
         -> component.packageUrl.equals(coord3.getPackageUrl()))).isTrue();
     assertBomContains(scanData.billOfMaterials, coord4, file);
     assertBomContains(scanData.billOfMaterials, coord5, file);
+  }
+
+  @Test
+  public void testIndexSbomForSearch() {
+    Application app = tempEntity.newApplicationWithParent();
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
+        new PackageUrlIdentifier("pkg:npm/jquery@1.1.1"), "deadbeef", false);
+    handler.indexSbomForSearch(sbomMetadata);
+
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
+    assertThat(searchIndexChanges).satisfiesExactly(searchIndexChange -> {
+      assertThat(searchIndexChange.getChangeType()).isEqualTo(ChangeType.SBOM);
+      assertThat(searchIndexChange.getChangeData()).isEqualTo(app.getId() + ":1.2.3");
+    });
   }
 
   private void mockSecurityVulnerabilityDataHdsResponse() throws URISyntaxException {

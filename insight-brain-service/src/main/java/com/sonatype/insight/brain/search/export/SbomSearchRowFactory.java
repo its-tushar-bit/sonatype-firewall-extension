@@ -48,4 +48,9 @@ public class SbomSearchRowFactory
       super.addColumn(row, header, searchResultItemDTO, baseUrl);
     }
   }
+
+  @Override
+  protected boolean isSbomManager() {
+    return true;
+  }
 }

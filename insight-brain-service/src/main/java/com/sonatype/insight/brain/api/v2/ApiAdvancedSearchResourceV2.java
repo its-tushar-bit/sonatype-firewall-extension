@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -66,7 +67,7 @@ public class ApiAdvancedSearchResourceV2
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("page") int page,
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
-      @QueryParam("mode") String mode) throws IOException
+      @QueryParam("mode") ProductMode mode) throws IOException
   {
     return searchService.searchIndex(searchQuery, pageSize, page, allComponents, mode);
   }
@@ -86,7 +87,7 @@ public class ApiAdvancedSearchResourceV2
   public Response getExportResults(
       @QueryParam("query") String searchQuery,
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
-      @QueryParam("mode") String mode)
+      @QueryParam("mode") ProductMode mode)
   {
     return searchService.exportSearch(searchQuery, allComponents, mode);
   }

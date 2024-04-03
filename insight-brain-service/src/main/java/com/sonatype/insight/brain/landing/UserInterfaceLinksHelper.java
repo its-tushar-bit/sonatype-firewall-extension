@@ -13,6 +13,9 @@ public class UserInterfaceLinksHelper
 
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
+  public static final String SBOM_MANAGEMENT_PATH =
+      "sbomManager/{ownerType: application|organization}/{ownerId}/management";
+
   public static final String ITEM_MANAGEMENT_EDIT_PATH =
       "{ownerType: application|organization}/{ownerId}/{itemType: category|label|policy}/{itemId}/management/edit";
 
@@ -107,8 +110,8 @@ public class UserInterfaceLinksHelper
    *
    * @since 1.138
    */
-  public static String getManagementPath(String ownerType, String ownerId) {
-    return buildStableUrl(MANAGEMENT_PATH, ownerType, ownerId);
+  public static String getManagementPath(String ownerType, String ownerId, boolean isSbomManager) {
+    return buildStableUrl(isSbomManager ? SBOM_MANAGEMENT_PATH : MANAGEMENT_PATH, ownerType, ownerId);
   }
 
   /**

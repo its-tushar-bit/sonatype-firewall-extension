@@ -330,7 +330,8 @@ public class IndexService
       List<Organization> organizations = organizationDAO.getAll();
       Map<String, Organization> organizationById =
           organizations.stream().collect(Collectors.toMap(Organization::getId, item -> item));
-      ListMultimap<Organization, Organization> parentsByOrganization = computeParentsByOrganization(organizationById);
+      Map<Organization, Collection<Organization>> parentsByOrganization =
+          computeParentsByOrganization(organizationById).asMap();
       List<Application> applications = applicationDAO.getAll();
 
       IndexingContext indexingContext = new IndexingContext(indexWriter);
@@ -349,7 +350,7 @@ public class IndexService
           new TenantAwareFunction<>(application -> CompletableFuture
               .supplyAsync(new TenantAwareSupplier<>(
                   () -> buildApplicationSVDocs(indexingContext, organizationById.get(application.getOrganizationId()),
-                      application, parentsByOrganization.asMap())), searchIndexPool)
+                      application, parentsByOrganization)), searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
 
       List<CompletableFuture<Void>> appSVDocs = applications
@@ -371,16 +372,15 @@ public class IndexService
                   searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> sbomDocs =
-          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildSbomDocs(indexingContext)),
-                  searchIndexPool)
-              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
+          new TenantAwareSupplier<>(() -> buildSbomDocs(indexingContext)), searchIndexPool
+      ).thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       TenantAwareFunction<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
           new TenantAwareFunction<>(application -> CompletableFuture
               .supplyAsync(new TenantAwareSupplier<>(
                   () -> buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
-                      application, parentsByOrganization.asMap())), searchIndexPool)
+                      application, parentsByOrganization)), searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
 
       List<CompletableFuture<Void>> sbomSVDocs = applications
@@ -756,12 +756,14 @@ public class IndexService
     }
 
     Application application = (Application)owner;
+    Organization org = (Organization)indexingContext.getOwner(application.getOrganizationId());
 
     return new DocumentBuilder(ItemType.SBOM_METADATA)
-        .setOwner(application)
-        .setApplicationVersion(sbomMetadata.getSbomVersion())
-        .setSbomSpecification(sbomMetadata.getSpec())
-        .build();
+      .setOwner(application)
+      .setOwner(org)
+      .setApplicationVersion(sbomMetadata.getSbomVersion())
+      .setSbomSpecification(sbomMetadata.getSpec())
+      .build();
   }
 
   private List<Document> buildApplicationSVDocs(
@@ -958,7 +960,7 @@ public class IndexService
     }
     else if (thirdPartyFileCoord.getPackageUrl() != null) {
       return Collections.singletonList(
-          buildDocument(organization, parentOrganizations, application, sbomMetadata, thirdPartyFileCoord));
+          buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, parentOrganizations));
     }
     else {
       return Collections.emptyList();
@@ -967,10 +969,10 @@ public class IndexService
 
   Document buildDocument(
       Organization organization,
-      Collection<Organization> parentOrganizations,
       Application application,
       ThirdPartySbomMetadata sbomMetadata,
-      ThirdPartyFileCoordinate thirdPartyFileCoord)
+      ThirdPartyFileCoordinate thirdPartyFileCoord,
+      Collection<Organization> parentOrganizations)
   {
     DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT);
     ComponentIdentifier componentIdentifier = tryConvert(thirdPartyFileCoord);
@@ -1015,8 +1017,8 @@ public class IndexService
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
-        .setParentOrganizationNames(parentOrganizations)
-        .setParentOrganizationIds(parentOrganizations)
+        .setComponentCoordinates(componentIdentifier)
+        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
         .setVulnerabilitySeverity(thirdPartyCoordinateSecurity.getSeverity())
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
@@ -1132,13 +1134,10 @@ public class IndexService
     ListMultimap<Organization, Organization> retval = ArrayListMultimap.create(organizationsById.size(), 3);
     for (Organization org : organizationsById.values()) {
       Organization current = org;
-      Organization next = immediateParentMap.get(org.getParentOrganizationId());
 
       while (current != null) {
         retval.put(org, current);
-
-        current = next;
-        next = next == null ? null : immediateParentMap.get(next.getParentOrganizationId());
+        current = immediateParentMap.get(current.getId());
       }
     }
 

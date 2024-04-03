@@ -408,7 +408,8 @@ public class ThirdPartyDataService
     return thirdPartyApplicationReportDTO;
   }
 
-  public void indexSbomForSearch(ThirdPartySbomMetadata sbomMetadata) {
+  @VisibleForTesting
+  void indexSbomForSearch(ThirdPartySbomMetadata sbomMetadata) {
     SearchIndexChange searchIndexChange = thirdPartySbomMetadataDAO.newSearchIndexChange(sbomMetadata);
     searchIndexManager.insert(searchIndexChange);
   }
@@ -433,7 +434,8 @@ public class ThirdPartyDataService
     indexSbomForSearch(sbomMetadata);
   }
 
-  private void mergeSonatypeDataWithSbomData(
+  @VisibleForTesting
+  void mergeSonatypeDataWithSbomData(
       ThirdPartySbomMetadata sbomMetadata,
       String scanId,
       ContainerNode<?> bomJsonData,

@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
@@ -608,7 +609,7 @@ public class SearchServiceTest
   public void testSearchIndex_SbomManagerMode_MissingLicensedFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager"))
+        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER))
         .withMessageContaining("The SBOM Manager feature is not supported by your license.");
   }
 
@@ -645,13 +646,14 @@ public class SearchServiceTest
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     indexService.createSearchIndex();
     assertThat(searchService.searchIndex("applicationCategoryId:*", 100, 0, true, true,
-        "sbomManager").groupingByDTOS).isEmpty();
+        ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
     assertThat(searchService.searchIndex("componentLabelId:*", 100, 0, true, true,
-        "sbomManager").groupingByDTOS).isEmpty();
+        ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
     assertThat(searchService.searchIndex("policyId:*", 100, 0, true, true,
-        "sbomManager").groupingByDTOS).isEmpty();
+        ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager");
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER);
 
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -757,13 +759,14 @@ public class SearchServiceTest
     tempEntity.newPolicy(); // Should not be returned
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, "sbomManager");
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER);
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
 
     StreamingOutput stream =
-        (StreamingOutput) searchService.exportSearch("itemType:*", true, "sbomManager").getEntity();
+        (StreamingOutput) searchService.exportSearch("itemType:*", true, ProductMode.SBOM_MANAGER).getEntity();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);

@@ -3706,15 +3706,22 @@ public class TemporaryEntity
   }
 
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String applicationId,
+      String status,
+      String fileName)
+  {
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
+    return newThirdPartySbomMetadata(thirdPartyFile.getId(), applicationId, status, fileName);
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
       String status,
       String fileName)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
     thirdPartySbomMetadata.setCreatedAt(new Date());
-    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
@@ -3726,6 +3733,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+
     return thirdPartySbomMetadata;
   }
 
@@ -4739,11 +4747,24 @@ public class TemporaryEntity
     return thirdPartySbomMetadata;
   }
 
-  public void newSbomEvaluation(
+  public ThirdPartySbomMetadata newSbomEvaluation(
       Application application,
       String applicationVersion,
       String sbomSpecification,
       PackageUrlIdentifier componentPackageUrl,
+      String scanId,
+      boolean isVulnerable)
+  {
+    return newSbomEvaluation(application, applicationVersion, sbomSpecification, componentPackageUrl,
+        newRandomHash(), scanId, isVulnerable);
+  }
+
+  public ThirdPartySbomMetadata newSbomEvaluation(
+      Application application,
+      String applicationVersion,
+      String sbomSpecification,
+      PackageUrlIdentifier componentPackageUrl,
+      String hash,
       String scanId,
       boolean isVulnerable)
   {
@@ -4756,14 +4777,15 @@ public class TemporaryEntity
     thirdPartyScanDAO.update(thirdPartyScan);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate =
         newThirdPartyFileCoordinate(thirdPartyFile, "someSource", componentPackageUrl.getFormat(),
-            componentPackageUrl.getName(), componentPackageUrl.getVersion());
-    thirdPartyFileCoordinate.setPackageUrl(componentPackageUrl.getPackageUrl());
+            componentPackageUrl.getName(), componentPackageUrl.getVersion(), hash, componentPackageUrl.getPackageUrl());
     thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
     if (isVulnerable) {
       newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
           5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
           "aRMethod", "someRecommendations", "someAdvisories");
     }
+
+    return sbomMetadata;
   }
 
   private void initializeDAOs() {

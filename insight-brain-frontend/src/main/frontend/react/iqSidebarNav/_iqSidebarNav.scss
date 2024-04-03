@@ -74,6 +74,10 @@ iq-sidebar-nav {
       background-color: var(--nx-swatch-blue-50);
       color: var(--nx-swatch-white);
     }
+
+    &.development-preview-label {
+      margin-left: var(--nx-spacing-2x);
+    }
   }
 
   &__tooltip-only-text {

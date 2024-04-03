@@ -217,8 +217,8 @@ function IqSidebarNav(props) {
               icon={faWrench}
               text={
                 <>
-                  <span>Developer</span>
-                  <span className="iq-integrations-nav-link__navigation-badge preview">
+                  <span>Development</span>
+                  <span className="iq-integrations-nav-link__navigation-badge preview development-preview-label">
                     {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
                     <span className="iq-integrations-nav-link__tooltip-only-text"> (</span>
                     Preview

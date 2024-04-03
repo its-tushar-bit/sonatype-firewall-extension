@@ -187,7 +187,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('href', 'href-integrations');
       expect(navLink).toHaveProp('isSelected', false);
 
-      expect(navLink.find('a').getDOMNode().textContent).toBe('Developer (Preview)');
+      expect(navLink.find('a').getDOMNode().textContent).toBe('Development (Preview)');
     });
 
     it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed when is firewall only license', function () {

@@ -759,6 +759,8 @@ public class TemporaryEntity
     // - SourceControlPullRequestComment: cascaded from PolicyEvaluation
     // - SourceControlPullRequestResult: cascaded from Application
     // - SuccessMetricsReportData: cascaded from SuccessMetricsReport
+    // - ThirdPartyCoordinateSecurity: cascaded from ThirdPartyFileCoordinate
+    // - thirdPartyCoordinateLicense: cascaded from ThirdPartyFileCoordinate
     // - ThirdPartyFileCoordinate: cascaded from ThirdPartyFile
     // - ThirdPartyVulnerabilityExploitabilityExchange: cascaded from ThirdPartyCoordinateSecurity
     // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity

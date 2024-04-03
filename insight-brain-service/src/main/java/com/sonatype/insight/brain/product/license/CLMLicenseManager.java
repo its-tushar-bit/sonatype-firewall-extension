@@ -107,6 +107,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Development";
 
+  public static final String PRODUCT_TEAMS_EDITION = "Teams Edition";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -411,6 +413,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT:
         marketingNameSuffix = PRODUCT_SONATYPE_DEVELOPMENT;
         break;
+      case ProductLicenseDetails.PRODUCT_TEAMS_EDITION:
+        marketingNameSuffix = PRODUCT_TEAMS_EDITION;
+        break;
       default:
         return null;
     }
@@ -545,6 +550,9 @@ public class CLMLicenseManager
     else if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
       return PRODUCT_SONATYPE_DEVELOPMENT;
     }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
+      return PRODUCT_TEAMS_EDITION;
+    }
 
     return "";
   }
@@ -611,29 +619,7 @@ public class CLMLicenseManager
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
         || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)) {
-      features.add(LicensedFeature.QUALITY);
-      features.add(LicensedFeature.POLICY_MONITORING);
-      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
-      features.add(LicensedFeature.DASHBOARD);
-      features.add(LicensedFeature.WAIVERS_DASHBOARD);
-      features.add(LicensedFeature.CLI_INTEGRATION);
-      features.add(LicensedFeature.ENFORCEMENT);
-      features.add(LicensedFeature.NOTIFICATIONS);
-      features.add(LicensedFeature.POLICY_GRANDFATHERING);
-      features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
-      features.add(LicensedFeature.IDE_INTEGRATION);
-      features.add(LicensedFeature.CI_INTEGRATION);
-      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
-      features.add(LicensedFeature.AUTOMATION);
-      features.add(LicensedFeature.HYGIENE);
-      features.add(LicensedFeature.BREAKING_CHANGE);
-      features.add(LicensedFeature.RELEASE_INTEGRITY);
-      features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
-
-      features.add(LicensedFeature.DATA_RETENTION);
-      features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
-      features.add(LicensedFeature.ORGS_AND_APPS);
-      features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
+      addLifecycleFeatures(features);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
@@ -742,7 +728,13 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.PROXY);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
-      features.add(LicensedFeature.DEVELOPER_DASHBOARD);
+      addDevelopmentFeatures(features);
+    }
+
+    if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
+      addLifecycleFeatures(features);
+      addDevelopmentFeatures(features);
+      stageTypes.addAll(StageTypes.getAll());
     }
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
@@ -770,6 +762,36 @@ public class CLMLicenseManager
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModel, applicationCount,
         maxUsers, maxFirewallUsers, maxSboms);
     notifyListeners();
+  }
+
+  private static void addDevelopmentFeatures(final Set<LicensedFeature> features) {
+    features.add(LicensedFeature.DEVELOPER_DASHBOARD);
+  }
+
+  private static void addLifecycleFeatures(final Set<LicensedFeature> features) {
+    features.add(LicensedFeature.QUALITY);
+    features.add(LicensedFeature.POLICY_MONITORING);
+    features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    features.add(LicensedFeature.DASHBOARD);
+    features.add(LicensedFeature.WAIVERS_DASHBOARD);
+    features.add(LicensedFeature.CLI_INTEGRATION);
+    features.add(LicensedFeature.ENFORCEMENT);
+    features.add(LicensedFeature.NOTIFICATIONS);
+    features.add(LicensedFeature.POLICY_GRANDFATHERING);
+    features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+    features.add(LicensedFeature.IDE_INTEGRATION);
+    features.add(LicensedFeature.CI_INTEGRATION);
+    features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+    features.add(LicensedFeature.AUTOMATION);
+    features.add(LicensedFeature.HYGIENE);
+    features.add(LicensedFeature.BREAKING_CHANGE);
+    features.add(LicensedFeature.RELEASE_INTEGRITY);
+    features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+
+    features.add(LicensedFeature.DATA_RETENTION);
+    features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
+    features.add(LicensedFeature.ORGS_AND_APPS);
+    features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
   }
 
   private String getProperty(ProductLicenseKey key, String property) {

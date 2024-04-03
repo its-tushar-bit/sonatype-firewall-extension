@@ -537,6 +537,37 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_TeamsEdition() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.AUTOMATION,
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES,
+        LicensedFeature.BREAKING_CHANGE,
+        LicensedFeature.CI_INTEGRATION,
+        LicensedFeature.CLI_INTEGRATION,
+        LicensedFeature.DASHBOARD,
+        LicensedFeature.DATA_RETENTION,
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.HYGIENE,
+        LicensedFeature.IDE_INTEGRATION,
+        LicensedFeature.INNER_SOURCE_REPOSITORIES,
+        LicensedFeature.NOTIFICATIONS,
+        LicensedFeature.ORGS_AND_APPS,
+        LicensedFeature.POLICY_GRANDFATHERING,
+        LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        LicensedFeature.PROPRIETARY_COMPONENTS,
+        LicensedFeature.QUALITY,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.RM_STAGING_INTEGRATION,
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.DEVELOPER_DASHBOARD);
+  }
+
+  @Test
   public void testGetStageTypes_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     mockHdsProductLicenseDetails(withStages());
@@ -681,6 +712,22 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_LifecycleSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.DEVELOP,
+        StageTypes.SOURCE,
+        StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE,
+        StageTypes.OPERATE,
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_TeamsEdition() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
@@ -1320,6 +1367,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseSummary_ProductEditionTeamsEdition() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_TEAMS_EDITION);
+  }
+
+  @Test
   public void testGetLicenseInfo_IncludesFingerprint() throws Exception {
     String fingerprint = "test-passed";
     licenseFingerprinter.setDummyLicenseFingerprint(fingerprint);
@@ -1439,6 +1495,15 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
+  }
+
+  @Test
+  public void testGetLicenseInfo_ProductEditionTeamsEdition() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_TEAMS_EDITION);
   }
 
   @Test

@@ -16,12 +16,11 @@ import java.nio.file.Files;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
-
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
@@ -71,7 +70,7 @@ public class SbomImportServiceTest
         .getResource("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     SbomDetectionResultDTO actual = sbomImportService
-        .detectSbom(application.getId(), new ByteArrayInputStream( Files.readAllBytes(sbom.toPath())));
+        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
@@ -102,7 +101,7 @@ public class SbomImportServiceTest
         .getResource("/SbomImportServiceTest/valid-spdx-bom.json");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     SbomDetectionResultDTO actual = sbomImportService
-        .detectSbom(application.getId(), new ByteArrayInputStream( Files.readAllBytes(sbom.toPath())));
+        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
@@ -152,9 +151,14 @@ public class SbomImportServiceTest
     String requestId =
         Base64.getEncoder().encodeToString(String.format("%s-%s-%s", fileName, mimeType, contentType).getBytes());
     File tempFile = createTemporarySbomFile(fileName, sbom);
-    Response actual = sbomImportService
+    Response response = sbomImportService
         .importDetectedSbom(application.getId(), requestId, "clientUserAgent");
-    assertThat(actual.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+    assertThat(response.getEntity()).isNotNull();
+    ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
+    assertThat(status.statusUrl).isNotEmpty()
+            .startsWith("api/v2/sbom/" + application.getId() + "/status/");
     assertThat(Files.exists(tempFile.toPath())).isFalse();
   }
 

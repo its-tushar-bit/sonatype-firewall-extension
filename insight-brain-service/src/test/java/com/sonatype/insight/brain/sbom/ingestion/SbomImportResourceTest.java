@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -143,6 +144,11 @@ public class SbomImportResourceTest
         .parameter(application.getId(), actual.getRequestId())
         .post();
 
+    ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);
+
     assertResponseStatus(201, responseCommit);
+    assertThat(responseCommitBody).isNotNull();
+    assertThat(responseCommitBody.statusUrl).isNotEmpty();
+    assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/" + application.getId() + "/status/");
   }
 }

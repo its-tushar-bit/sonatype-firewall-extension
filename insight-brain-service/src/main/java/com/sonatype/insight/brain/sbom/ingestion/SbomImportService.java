@@ -19,7 +19,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -153,7 +152,7 @@ public class SbomImportService
           ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.RELEASE.getId()), ScanTriggerType.SBOM_UI,
           scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
 
-      return Response.status(Status.CREATED).build();
+      return Response.status(Response.Status.CREATED).entity(importTicket).build();
     }
 
     finally {

@@ -7,13 +7,11 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -65,11 +63,8 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.io.Files.getFileExtension;
 
 @Named
 public class ApiSbomService
@@ -191,7 +186,7 @@ public class ApiSbomService
           .build();
     }
     catch (IOException e) {
-      log.error("File not found for sbom metadata with application id {}, version {}, filename {}", applicationId,
+      log.debug("File not found for sbom metadata with application id {}, version {}, filename {}", applicationId,
           sbomVersion, thirdPartySbomMetadata.getFilename(), e);
       throw new InternalServerException(
           String.format("Internal server error trying to retrieve the %s sbom for application %s version %s", sbomState,
@@ -237,44 +232,27 @@ public class ApiSbomService
   public Response importSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
       InputStream fileInputStream,
-      FormDataContentDisposition fileDetails,
       String clientUserAgent)
   {
-    File tempFile = null;
-    try {
-      tempFile = createTempFile(fileDetails);
-      saveSbomFileFromHttpRequestIntoTempFile(fileInputStream, tempFile);
-
-      SbomDetectionResult sbomMetadata = sbomFileDetector.getSbomMetadata(tempFile);
-
-      if (!sbomMetadata.isSbom) {
-        throw new BadRequestException(sbomMetadata.errorMessage);
-      }
-      Application application = applicationDAO.getById(applicationId);
-      ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
-      ScanResult scanResult =
-          sbomMetadataUtils.scanSbomFile(application, tempFile, insightWork.getScanDir(applicationId),
-              SbomFormat.forMimeType(sbomMetadata.mimeType),
-              sbomMetadataUtils.determineItemContentType(sbomMetadata.summary.specification), ScannerDriver.SBOM_API);
-
-      policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
-          ClientScanType.SONATYPE_THIRD_PARTY, new Stage(Stage.ID_RELEASE), ScanTriggerType.SBOM_API,
-          scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
-
-      return Response.ok(Status.ACCEPTED)
-          .entity(scanTicketDTO)
-          .build();
+    String sbomContentAsString = getSbomContentAsString(fileInputStream);
+    SbomDetectionResult sbomMetadata = sbomFileDetector.getSbomDetectionResult(sbomContentAsString);
+    if (!sbomMetadata.isSbom) {
+      throw new BadRequestException(sbomMetadata.errorMessage);
     }
-    finally {
-      if (tempFile != null) {
-        try {
-          Files.deleteIfExists(tempFile.toPath());
-        }
-        catch (IOException e) {
-          log.error("Unable to delete temporary sbom file {}", tempFile, e);
-        }
-      }
-    }
+
+    Application application = applicationDAO.getById(applicationId);
+    ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
+    ScanResult scanResult = sbomMetadataUtils.scanSbomContent(application, sbomContentAsString,
+        insightWork.getScanDir(applicationId), SbomFormat.forMimeType(sbomMetadata.mimeType),
+        sbomMetadataUtils.determineItemContentType(sbomMetadata.summary.specification), ScannerDriver.SBOM_API);
+
+    policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
+        ClientScanType.SONATYPE_THIRD_PARTY, new Stage(Stage.ID_RELEASE), ScanTriggerType.SBOM_API,
+        scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
+
+    return Response.ok(Status.ACCEPTED)
+        .entity(scanTicketDTO)
+        .build();
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -314,22 +292,6 @@ public class ApiSbomService
     }
   }
 
-  private void saveSbomFileFromHttpRequestIntoTempFile(InputStream fileInputStream, File scanFile) {
-    try (FileOutputStream os = new FileOutputStream(scanFile)) {
-      IOUtils.copy(fileInputStream, os);
-    }
-    catch (IOException e) {
-      throw new InternalServerException("Error while reading the SBOM file");
-    }
-  }
-
-  private File createTempFile(final FormDataContentDisposition fileDetails) {
-    Path sbomDirPath = insightWork.getSbomTempDir().toPath();
-
-    return new File(sbomDirPath.toString(),
-        "scan-" + UUID.randomUUID().toString().replace("-", "") + "." + getFileExtension(fileDetails.getFileName()));
-  }
-
   private String createDownloadUrl(String applicationId, String sbomVersion) {
     return PublicApiPaths.SBOM_RESOURCE_PATH + "/" +
         ApiSbomResource.SBOM_VERSION_PATH.replace(APPLICATION_ID_PLACEHOLDER, applicationId)
@@ -347,12 +309,13 @@ public class ApiSbomService
         .collect(Collectors.toList());
   }
 
-  private void cleanupTempFile(File tempFile) {
+  private static String getSbomContentAsString(final InputStream fileInputStream) {
     try {
-      Files.deleteIfExists(tempFile.toPath());
+      return IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
     }
-    catch (IOException fileDeleteException) {
-      log.warn(fileDeleteException.getMessage(), fileDeleteException);
+    catch (IOException e) {
+      log.debug("error reading from provided file upload", e);
+      throw new InternalServerException("unable to read from the input sbom");
     }
   }
 }

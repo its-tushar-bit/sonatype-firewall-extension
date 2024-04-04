@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Set;
 import javax.inject.Named;
@@ -17,16 +19,16 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 import com.sonatype.insight.scan.file.InvalidSbomException;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.cyclonedx.exception.ParseException;
@@ -39,6 +41,7 @@ import org.spdx.library.model.SpdxPackage;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
@@ -62,36 +65,57 @@ public class SbomFileDetector
 
   private final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
 
-  public SbomDetectionResult getSbomMetadata(InputStream sbomContent, String sbomName) {
-    return getSbomMetadata(null, sbomContent, sbomName);
+  public SbomDetectionResult getSbomDetectionResult(final InputStream sbomInputStream) {
+    if (sbomInputStream == null) {
+      return sbomDetectionErrorResult("provided content is not recognizable as an SBOM");
+    }
+
+    try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
+      Files.copy(sbomInputStream, tempFile.getPath(), REPLACE_EXISTING);
+      return detect(tempFile.getPath().toFile());
+    }
+    catch (IOException e) {
+      log.error("error detecting SBOM metadata", e);
+      return sbomDetectionErrorResult("internal error in processing SBOM");
+    }
   }
 
-  public SbomDetectionResult getSbomMetadata(File sbomFile) {
-    return getSbomMetadata(sbomFile, null, null);
+  public SbomDetectionResult getSbomDetectionResult(String sbomString) {
+    if (StringUtils.isBlank(sbomString)) {
+      return sbomDetectionErrorResult("provided content is not recognizable as an SBOM");
+    }
+
+    try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
+      Path file = Files.write(tempFile.getPath(), sbomString.getBytes(StandardCharsets.UTF_8));
+      return detect(file.toFile());
+    }
+    catch (IOException e) {
+      log.error("error detecting SBOM metadata", e);
+      return sbomDetectionErrorResult("internal error in processing SBOM");
+    }
   }
 
-  private SbomDetectionResult getSbomMetadata(File sbomFile, InputStream sbomContent, String sbomName) {
+  public SbomDetectionResult getSbomDetectionResult(File sbomFile) {
+    if (sbomFile == null) {
+      return sbomDetectionErrorResult("invalid SBOM file input");
+    }
+    return detect(sbomFile);
+  }
+
+  private SbomDetectionResult detect(File sbomFile) {
     try {
-      String sbomStringContent;
-      String detectedMimeType;
-      if (sbomFile != null) {
-        detectedMimeType = tika.detect(sbomFile);
-        sbomStringContent = getSbomStringContent(sbomFile);
-      }
-      else {
-        detectedMimeType = tika.detect(sbomContent, sbomName);
-        sbomStringContent = getSbomStringContent(sbomContent);
-      }
       SbomDetectionResult result = new SbomDetectionResult();
-      if (detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidJson(sbomStringContent)) {
-        result.mimeType = APPLICATION_JSON;
+      result.mimeType = tika.detect(sbomFile);
+      String sbomStringContent = getSbomStringContent(sbomFile);
+      if (TEXT_PLAIN.equals(result.mimeType)) {
+        if (isPlainTextValidJson(sbomStringContent)) {
+          result.mimeType = APPLICATION_JSON;
+        }
+        else if (isPlainTextValidXml(sbomStringContent)) {
+          result.mimeType = APPLICATION_XML;
+        }
       }
-      else if (detectedMimeType.equals(TEXT_PLAIN) && isPlainTextValidXml(sbomStringContent)) {
-        result.mimeType = APPLICATION_XML;
-      }
-      else {
-        result.mimeType = detectedMimeType;
-      }
+
       if (supportedSbomMimeTypes.contains(result.mimeType)) {
         return attemptDetectingSbomFromContent(sbomStringContent, result);
       }
@@ -99,8 +123,16 @@ public class SbomFileDetector
       return result;
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      log.debug("error detecting SBOM metadata", e);
+      return sbomDetectionErrorResult("internal error in processing SBOM");
     }
+  }
+
+  private SbomDetectionResult sbomDetectionErrorResult(String errorMessage) {
+    SbomDetectionResult result = new SbomDetectionResult();
+    result.isSbom = false;
+    result.errorMessage = errorMessage;
+    return result;
   }
 
   private SbomDetectionResult attemptDetectingSbomFromContent(final String sbom, final SbomDetectionResult sbomResult) {
@@ -217,11 +249,7 @@ public class SbomFileDetector
     return false;
   }
 
-  public static String getSbomStringContent(File sbomFile) throws IOException {
+  private String getSbomStringContent(File sbomFile) throws IOException {
     return FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
-  }
-
-  public static String getSbomStringContent(InputStream sbomContent) throws IOException {
-    return IOUtils.toString(sbomContent, StandardCharsets.UTF_8);
   }
 }

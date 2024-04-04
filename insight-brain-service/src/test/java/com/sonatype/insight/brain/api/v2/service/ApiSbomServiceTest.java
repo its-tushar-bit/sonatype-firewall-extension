@@ -51,7 +51,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
@@ -389,12 +388,10 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails = FormDataContentDisposition.name("test").fileName("index.html").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html")) {
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(
-              () -> service.importSbom(app.getId(), inputStream, fileDetails, DUMMY_USER_AGENT))
+              () -> service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT))
           .withMessage("provided file type is not a supported SBOM file type");
     }
   }
@@ -404,10 +401,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails = FormDataContentDisposition.name("test").fileName("spdx.json").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
-      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
+      Response response = service.importSbom(app.getId(), inputStream,
           DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -421,13 +416,9 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails =
-        FormDataContentDisposition.name("test").fileName("third-party-simple-bom.xml").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
-      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
-          DUMMY_USER_AGENT);
+      Response response = service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
@@ -453,13 +444,9 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails =
-        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
-      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
-          DUMMY_USER_AGENT);
+      Response response = service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
 
@@ -482,13 +469,9 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails =
-        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
-      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
-          DUMMY_USER_AGENT);
+      Response response = service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
 
@@ -510,13 +493,9 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
-    FormDataContentDisposition fileDetails =
-        FormDataContentDisposition.name("file").fileName("third-party-simple-bom.xml").build();
-
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
-      Response response = service.importSbom(app.getId(), inputStream, fileDetails,
-          DUMMY_USER_AGENT);
+      Response response = service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
 

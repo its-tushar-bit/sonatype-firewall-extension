@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -21,7 +20,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -106,16 +104,14 @@ public class ApiSbomServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testImportSbomVersion_Unauthenticated() {
-    apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]),
-        FormDataContentDisposition.name("test").build(), DUMMY_USER_AGENT);
+    apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testImportSbomVersion_Unauthorized() {
     Application app = tempEntity.newApplicationWithParent();
     login();
-    apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),
-        FormDataContentDisposition.name("test").build(), DUMMY_USER_AGENT);
+    apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT);
   }
 
   @Test
@@ -125,10 +121,8 @@ public class ApiSbomServiceAuthzTest
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),
-                FormDataContentDisposition.name("test").fileName("test.xml").build(),
-                DUMMY_USER_AGENT))
-        .withMessage("Not a valid/supported sbom file");
+            () -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT))
+        .withMessage("provided content is not recognizable as an SBOM");
   }
 
   @Test(expected = UnauthenticatedException.class)

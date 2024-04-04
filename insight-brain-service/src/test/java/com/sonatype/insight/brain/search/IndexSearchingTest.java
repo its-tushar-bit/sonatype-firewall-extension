@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -71,8 +70,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
-
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -1080,12 +1077,8 @@ public class IndexSearchingTest
 
     index();
 
-    FormDataContentDisposition contentDisposition = FormDataContentDisposition
-        .name("file")
-        .fileName("vuln-bom.xml")
-        .build();
     ApiThirdPartyScanTicketDTO scanTicket = (ApiThirdPartyScanTicketDTO) apiSbomService
-        .importSbom(app.getId(), binaryUploadInputStream, contentDisposition, "")
+        .importSbom(app.getId(), binaryUploadInputStream, "")
         .getEntity();
 
     // Wait for the import processing to complete

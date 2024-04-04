@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -46,7 +45,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang.StringUtils;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
@@ -222,7 +220,6 @@ public class ApiSbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @FormDataParam("applicationId") String applicationId,
       @FormDataParam("file") InputStream inputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail,
       @Context final HttpServletRequest request
   )
   {
@@ -230,7 +227,7 @@ public class ApiSbomResource
       throw new BadRequestException("Missing required parameter [applicationId]");
     }
 
-    return apiSbomService.importSbom(applicationId, inputStream, fileDetail, HdsClient.getClientUserAgent(request));
+    return apiSbomService.importSbom(applicationId, inputStream, HdsClient.getClientUserAgent(request));
   }
 
   @Operation(summary = "Get sbom import status",

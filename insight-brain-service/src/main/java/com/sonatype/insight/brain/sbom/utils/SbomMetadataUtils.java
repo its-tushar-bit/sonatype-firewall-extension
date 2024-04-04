@@ -93,7 +93,7 @@ public class SbomMetadataUtils
     }
   }
 
-  private ScanResult scanSbomContent(
+  public ScanResult scanSbomContent(
       final Application app,
       final String sbom,
       final File scanDir,

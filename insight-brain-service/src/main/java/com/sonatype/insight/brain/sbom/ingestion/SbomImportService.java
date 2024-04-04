@@ -101,7 +101,7 @@ public class SbomImportService
       }
       throw new InternalServerException("Internal error saving the supplied file", e);
     }
-    SbomDetectionResult result = sbomFileDetector.getSbomMetadata(tempSbomFile);
+    SbomDetectionResult result = sbomFileDetector.getSbomDetectionResult(tempSbomFile);
     if (result.errorMessage != null && tempSbomFile.exists()) {
       String deletionResult = tempSbomFile.delete() ? "succeeded" : "failed";
       log.debug("Deleting file due to an error, {}, {} ", result.errorMessage, deletionResult);

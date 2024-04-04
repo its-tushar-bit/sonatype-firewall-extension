@@ -424,9 +424,7 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext scanContext, String sbomContent)
   {
     try {
-      SbomDetectionResult sbomResult =
-          sbomFileDetector.getSbomMetadata(IOUtils.toInputStream(sbomContent, StandardCharsets.UTF_8),
-              scanContext.getSbomFileName());
+      SbomDetectionResult sbomResult = sbomFileDetector.getSbomDetectionResult(sbomContent);
       if (sbomResult == null || sbomResult.summary == null) {
         throw new InvalidSbomException("SBOM metadata could not be identified.");
       }

@@ -279,8 +279,6 @@ public class DefaultTestInsightBrainService
 
     RestRequestFilter.configure(env, (request, response) -> getRestRequestFilterHandler().accept(request, response));
 
-    System.out.println("DefaultTestInsightBrainService run using HDS url " + testHdsUrl);
-
     // Note: beans have already been constructed at this point, so we need to not only set the HDS url in the config
     // but also update the HdsClients
     setHdsUrl(config);

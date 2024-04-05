@@ -1071,6 +1071,34 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void test_getVulnerabilityInformation_AnalysisIncludedWithoutResponse() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
+
+    ApiReportComponentDTOV2 componentInformation =
+        createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "cve",
+            "f19ac613238ca6e4ae78",
+            9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test1");
+    ApiSecurityIssueDTO apiSecurityIssueDTO = componentInformation.securityData.securityIssues.iterator().next();
+    ApiSecurityIssueAnalysisDTO analysis = new ApiSecurityIssueAnalysisDTO();
+    analysis.detail = "Detailed analysis for the issue";
+    analysis.response = "";
+    analysis.justification = "protected_by_compiler";
+    analysis.state = "exploitable";
+    apiSecurityIssueDTO.analysis = analysis;
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
+        Version.VERSION_14);
+
+    Vulnerability vulnerability =
+        vulnerabilities.stream().filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
+            .findFirst().get();
+
+    assertThat(vulnerability.getAnalysis().getDetail()).isEqualTo(analysis.detail);
+    assertThat(vulnerability.getAnalysis().getResponses()).isNull();
+  }
+
+  @Test
   public void test_getVulnerabilityInformation_Cwes() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
     Map<String, Map<String, String>> matchingComponents = new HashMap<>();

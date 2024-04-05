@@ -481,7 +481,7 @@ public class ApiCycloneDxServiceV2
         analysis.setDetail(securityIssue.analysis.detail);
         analysis.setJustification(Justification.fromString(securityIssue.analysis.justification));
         String response = securityIssue.analysis.response;
-        if (response != null) {
+        if (StringUtils.isNotBlank(response)) {
           analysis.setResponses(
               Arrays.stream(response.split(",")).map(Analysis.Response::fromString).collect(Collectors.toList()));
         }

@@ -82,8 +82,7 @@ public class TenantUtil
           "tenant was set: " + clazz);
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz)
-        && !isAllTenantsJob(clazz) && GLOBAL_TENANT.equals(tenant))
-    {
+        && !isAllTenantsJob(clazz) && GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("TenantJob was invoked which expects a specific tenant to be set but instead global " +
           "tenant was set: " + clazz);
     }
@@ -185,8 +184,8 @@ public class TenantUtil
   }
 
   /**
-   * Admin API requests should use the global tenant.  Additionally, assume that calls to a IP-address hostname
-   * are to admin APIs (probably /healthcheck)
+   * Admin API requests should use the global tenant.  Additionally, assume that calls to a IP-address hostname are to
+   * admin APIs (probably /healthcheck)
    */
   public boolean requestShouldUseGlobalTenant(ServletRequest request) {
     return isAdminApiRequest(request) || InetAddresses.isInetAddress(request.getServerName());
@@ -200,7 +199,20 @@ public class TenantUtil
     return isMtiqBatchMode() && !isGlobalTenant();
   }
 
-  static class InvalidTenantForJobTypeException extends RuntimeException
+  /**
+   * Validate that there is no customer tenant set. i.e. tenant is `global` for MTIQ or `single` for on-prem
+   */
+  public void validateNoCustomerTenantSet() {
+    if (isGlobalTenant() || isSingleTenant()) {
+      return;
+    }
+
+    throw new RuntimeException(String.format("Found tenant '%s' but was expecting no tenant to be set",
+        TenantThreadLocal.getTenantWithoutValidation().tenantSlug));
+  }
+
+  static class InvalidTenantForJobTypeException
+      extends RuntimeException
   {
     public InvalidTenantForJobTypeException(String message) {
       super(message);

@@ -14,13 +14,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -44,13 +45,15 @@ public class TelemetrySender
 {
   private static final Logger log = LoggerFactory.getLogger(TelemetrySender.class);
 
-  private final HdsClient client;
+  private final HdsClient hdsClient;
 
   private final VersionService versionService;
 
   private final TelemetryId telemetryId;
 
-  private final BlockingQueue<TelemetrySubmission> submissions = new LinkedBlockingQueue<>();
+  private final TenantUtil tenantUtil;
+
+  private final BlockingQueue<TenantAwareOneTimeRunnable> submissions = new LinkedBlockingQueue<>();
 
   private TelemetrySubmitter submitter;
 
@@ -69,10 +72,16 @@ public class TelemetrySender
   public static final String ZIP_FILENAME = "telemetry.zip";
 
   @Inject
-  public TelemetrySender(HdsClient client, VersionService versionService, TelemetryId telemetryId) {
-    this.client = client;
+  public TelemetrySender(
+      HdsClient hdsClient,
+      VersionService versionService,
+      TelemetryId telemetryId,
+      TenantUtil tenantUtil)
+  {
+    this.hdsClient = hdsClient;
     this.versionService = versionService;
     this.telemetryId = telemetryId;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -108,7 +117,9 @@ public class TelemetrySender
       return;
     }
     try {
-      submissions.add(new TelemetrySubmission(createZip(createHeader(), telemetryData), clientUserAgent));
+      TelemetrySubmission telemetrySubmission =
+          new TelemetrySubmission(createZip(createHeader(), telemetryData), clientUserAgent);
+      submissions.add(new TenantAwareOneTimeRunnable(() -> submitTelemetry(telemetrySubmission)));
     }
     catch (Exception e) {
       log.debug("Failed to send telemetry.", e);
@@ -161,10 +172,11 @@ public class TelemetrySender
     public void run() {
       while (true) {
         try {
-          TelemetrySubmission submission = submissions.take();
-          ContentBody fileBody = new ByteArrayBody(submission.zipData, ZIP_FILENAME);
-          HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
-          client.post(RESOURCE_PATH, httpEntity, submission.clientUserAgent);
+          // Verify this thread should always run as `global` tenant for MTIQ and `single` for on-premise
+          tenantUtil.validateNoCustomerTenantSet();
+
+          TenantAwareOneTimeRunnable tenantAwareOneTimeRunnable = submissions.take();
+          tenantAwareOneTimeRunnable.run();
         }
         catch (InterruptedException e) {
           // interrupt is our signal to quit
@@ -182,5 +194,11 @@ public class TelemetrySender
         }
       }
     }
+  }
+
+  private void submitTelemetry(final TelemetrySubmission telemetrySubmission) {
+    ContentBody fileBody = new ByteArrayBody(telemetrySubmission.zipData, ZIP_FILENAME);
+    HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
+    hdsClient.post(RESOURCE_PATH, httpEntity, telemetrySubmission.clientUserAgent);
   }
 }

@@ -136,7 +136,31 @@ public class TenantUtilTest
             "Type=" + TestAllTenantsJob.class.getSimpleName() + ", Tenant=" + tenant);
   }
 
-  private interface TestAllTenantsJob extends AllTenantsJob
+  @Test
+  public void testValidateNoCustomerTenantSet_SingleTenant() {
+    TenantThreadLocal.setTenant(SINGLE_TENANT);
+    // verifies no exception thrown
+    new TenantUtil().validateNoCustomerTenantSet();
+  }
+
+  @Test
+  public void testValidateNoCustomerTenantSet_GlobalTenant() {
+    TenantThreadLocal.setTenant(GLOBAL_TENANT);
+    // verifies no exception thrown
+    new TenantUtil().validateNoCustomerTenantSet();
+  }
+
+  @Test
+  public void testValidateNoCustomerTenantSet_RealTenant() {
+    TenantThreadLocal.setTenant(new Tenant("foo"));
+
+    assertThatThrownBy(() -> new TenantUtil().validateNoCustomerTenantSet())
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Found tenant 'foo' but was expecting no tenant to be set");
+  }
+
+  private interface TestAllTenantsJob
+      extends AllTenantsJob
   {
   }
 }

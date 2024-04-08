@@ -9,7 +9,7 @@ configureBranchJob()
 make(
     deployBranch: 'main',
     useEventSpy: false,
-    javaVersion: 'OpenJDK 17',
+    javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,

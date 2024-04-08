@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
@@ -124,6 +125,36 @@ public class PolicyWaiverMatcherWrapperTest
         new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(EXACT_COMPONENT)
             .setAssociatedPackagedUrl(associatedPackagedUrl).build();
     ComponentFact componentFact = new ComponentFact(policyWaiver.getComponentIdentifier(), hash);
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT_nullHash() {
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setComponentMatchStrategy(EXACT_COMPONENT)
+            .setAssociatedPackagedUrl(associatedPackagedUrl).build();
+    ComponentFact componentFact = new ComponentFact(policyWaiver.getComponentIdentifier(), null);
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT_nullHash_missingRequiredCoordinates() {
+    String associatedPackagedUrl = "pkg:pypi/name?extension=e&qualifier=q";
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setComponentMatchStrategy(EXACT_COMPONENT)
+            .setAssociatedPackagedUrl(associatedPackagedUrl).build();
+
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>() {{
+        this.put("name", "name");
+        this.put("extension", "e");
+        this.put("qualifier", "q");
+      }});
+
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, null);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
     assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isTrue();

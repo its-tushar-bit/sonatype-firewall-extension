@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
@@ -52,6 +55,7 @@ import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -61,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -91,6 +96,7 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
@@ -107,6 +113,9 @@ import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME;
 import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT;
 import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
@@ -3357,5 +3366,270 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
     }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_WaivedComponents_ExactComponentWaiver_PyPI() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Age");
+    Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Constraint constraint = new Constraint(policy.getId(), "age>1day", null);
+    constraint.addCondition(condition);
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    // mock data for 2 components
+    ComponentIdentifier quarantinedComponentIdentifier = null;
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    for (int i = 1; i < 3; i++) {
+      String filename = "testname-" + i + "-testqualifier.whl";
+      String pathname = "/testname/" + i + "/" + filename;
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createPypiCoordinates("testname", Integer.toString(i), "testqualifier", "whl");
+      componentEvaluationDataRequestList.components
+          .add(
+              new RepositoryComponentEvaluationDataRequest(ComponentIdentifier.FORMAT_PYPI, pathname, null /* hash */));
+      long catalogDateLong = Instant.now().minusSeconds(60 * 60).toEpochMilli();
+      if (i == 1) {
+        quarantinedComponentIdentifier = componentIdentifier;
+        catalogDateLong = Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli();
+      }
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
+          0 /* index */, filename, null, null, null, 0 /* popularity */, catalogDateLong));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+
+    // call to service method
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+
+    // mock data for policy waiver
+    Date date = new Date();
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    constraintFact.addConditionFact(
+        new ConditionFact(condition.getConditionTypeId(), condition.getConditionIndex(), "summary", "reason"));
+    tempEntity.newWaiver("hash1", policy.getId(), Organization.ROOT_ORGANIZATION_ID,
+        Collections.singletonList(constraintFact),
+        PackageUrlIdentifier.toPackageUrl(quarantinedComponentIdentifier), EXACT_COMPONENT, "test comment", date,
+        null);
+
+    // call to service method
+    repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_WaivedComponents_AllVersionsWaiver_PyPI() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Age");
+    Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Constraint constraint = new Constraint(policy.getId(), "age>1day", null);
+    constraint.addCondition(condition);
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    // mock data for 2 components
+    ComponentIdentifier quarantinedComponentIdentifier = null;
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    for (int i = 1; i < 3; i++) {
+      String filename = "testname-" + i + "-testqualifier.whl";
+      String pathname = "/testname/" + i + "/" + filename;
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createPypiCoordinates("testname", Integer.toString(i), "testqualifier", "whl");
+      componentEvaluationDataRequestList.components
+          .add(
+              new RepositoryComponentEvaluationDataRequest(ComponentIdentifier.FORMAT_PYPI, pathname, null /* hash */));
+      if (i == 1) {
+        quarantinedComponentIdentifier = componentIdentifier;
+      }
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
+          0 /* index */, filename, null, null, null, 0 /* popularity */,
+          Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli()));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+
+    // call to service method
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+    }
+
+    // mock data for policy waiver
+    Date date = new Date();
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    constraintFact.addConditionFact(
+        new ConditionFact(condition.getConditionTypeId(), condition.getConditionIndex(), "summary", "reason"));
+    tempEntity.newWaiver(null, policy.getId(), Organization.ROOT_ORGANIZATION_ID,
+        Collections.singletonList(constraintFact),
+        PackageUrlIdentifier.toPackageUrl(quarantinedComponentIdentifier), ALL_VERSIONS, "test comment", date,
+        null);
+
+    // call to service method
+    repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_WaivedComponents_AllComponentsWaiver_PyPI() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Age");
+    Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    Constraint constraint = new Constraint(policy.getId(), "age>1day", null);
+    constraint.addCondition(condition);
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    // mock data for 2 components
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    for (int i = 1; i < 3; i++) {
+      String filename = "testname-" + i + "-testqualifier.whl";
+      String pathname = "/testname/" + i + "/" + filename;
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createPypiCoordinates("testname", Integer.toString(i), "testqualifier", "whl");
+      componentEvaluationDataRequestList.components
+          .add(
+              new RepositoryComponentEvaluationDataRequest(ComponentIdentifier.FORMAT_PYPI, pathname, null /* hash */));
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
+          0 /* index */, filename, null, null, null, 0 /* popularity */,
+          Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli()));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+
+    // call to service method
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+    }
+
+    // mock data for policy waiver
+    Date date = new Date();
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    constraintFact.addConditionFact(
+        new ConditionFact(condition.getConditionTypeId(), condition.getConditionIndex(), "summary", "reason"));
+    tempEntity.newWaiver(null, policy.getId(), Organization.ROOT_ORGANIZATION_ID,
+        Collections.singletonList(constraintFact), null, ALL_COMPONENTS, "test comment", date,
+        null);
+
+    // call to service method
+    repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+    for (int i = 0; i < 2; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+  }
+
+  protected ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      String filename,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity,
+      long catalogDate)
+  {
+    ComponentEvaluationData componentEvaluationData =
+        createComponentEvaluationData(componentIdentifier, hash, matchState,
+            index, filename, null, null, null, 0);
+    componentEvaluationData.catalogDate = catalogDate;
+
+    return componentEvaluationData;
   }
 }

@@ -43,7 +43,12 @@ public class PolicyWaiverMatcherWrapper
 
     switch (componentMatcherStrategy) {
       case EXACT_COMPONENT:
-        return componentFactNotNull(componentFact).matchesComponentHash(componentFact);
+        if (componentFact != null && componentFact.getHash() != null) {
+          return componentFactNotNull(componentFact).matchesComponentHash(componentFact);
+        }
+        else {
+          return componentFactNotNull(componentFact).matchesComponentIdentifier(componentFact);
+        }
       case ALL_COMPONENTS:
         return matchesAllComponents();
       case ALL_VERSIONS:
@@ -51,6 +56,27 @@ public class PolicyWaiverMatcherWrapper
       default:
         return matchesAllComponents() || componentFactNotNull(componentFact).matchesComponentHash(componentFact);
     }
+  }
+
+  private boolean matchesComponentIdentifier(ComponentFact componentFact) {
+    ComponentIdentifier policyWaiverComponentIdentifier = policyWaiver.getComponentIdentifier();
+    ComponentIdentifier componentFactComponentIdentifier = componentFact.getComponentIdentifier();
+
+    if (policyWaiverComponentIdentifier == null || componentFactComponentIdentifier == null) {
+      return false;
+    }
+
+    try {
+      policyWaiverComponentIdentifier.ensureComplete();
+      componentFactComponentIdentifier.ensureComplete();
+    }
+    catch (InvalidComponentIdentifierException e) {
+      log.warn("Failed to ensureComplete for purl {} (or) component identifier {} with the following error: {}",
+          policyWaiver.getAssociatedPackageUrl(), componentFactComponentIdentifier, e.getMessage());
+      return compareWhenMissingRequiredCoordinates(policyWaiverComponentIdentifier, componentFactComponentIdentifier);
+    }
+
+    return policyWaiverComponentIdentifier.compareTo(componentFactComponentIdentifier) == 0;
   }
 
   private PolicyWaiverMatcherWrapper componentFactNotNull(ComponentFact componentFact) {

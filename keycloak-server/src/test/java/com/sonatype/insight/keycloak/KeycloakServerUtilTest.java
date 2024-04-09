@@ -20,6 +20,7 @@ import com.github.javafaker.Name;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -43,6 +44,11 @@ public class KeycloakServerUtilTest
   public static KeycloakServerRule rule = new KeycloakServerRule();
 
   private KeycloakServerUtil keycloak = rule.getKeycloakServerUtil();
+
+  // There is a bug in keycloak that causes some tests to fail randomly,
+  // so we add a retry for all tests in case they fail.
+  @Rule
+  public TestRetryRule retryRule = new TestRetryRule(2);
 
   private final Faker faker = new Faker();
 

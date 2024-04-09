@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
@@ -98,6 +99,9 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private TestProductLicense productLicense;
+
+  @Inject
+  private InsightWork insightWork;
 
   private static final String SCAN_ID = "scanId";
 
@@ -326,13 +330,22 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testDeleteByScanId() {
+  public void testDeleteByScanId() throws IOException {
     String scanId = TemporaryEntity.uuid();
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1);
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    String sbomApplicationPath = tempDir.getRoot().toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
+    sbomFile.deleteOnExit();
+    assertThat(sbomFile).exists();
 
     handler.deleteByScanId(scanId);
+
+    assertThat(sbomFile).doesNotExist();
     assertThat(handler.getScanData(scanId)).isNull();
   }
 

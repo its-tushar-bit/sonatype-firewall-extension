@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -614,17 +616,31 @@ public class ReportServiceTest
   @Test
   public void testProcessThirdPartyData_MaxSbomLimitNotReached_reportNotDeleted() throws Exception {
     final File reportZip = zipReportDir("/ReportServiceTest/report");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile);
+    String sbomApplicationPath = tempDir.getRoot().toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
+    sbomFile.deleteOnExit();
+    assertThat(sbomFile).exists();
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
     dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "hash1"));
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
     dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
 
-    createReportService().includeThirdPartyData(reportZip, dto);
+    reportService.processThirdPartyData(scanId, reportZip, app.getId());
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(scanId);
+    assertThat(sbomFile).exists();
+    assertThat(sbomFile.delete()).isTrue();
   }
 
   @Test
@@ -635,6 +651,14 @@ public class ReportServiceTest
     createReportFile(app.getId(), scanId, reportZip);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile);
+    String sbomApplicationPath = tempDir.getRoot().toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
+    sbomFile.deleteOnExit();
+    assertThat(sbomFile).exists();
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
 
@@ -645,9 +669,11 @@ public class ReportServiceTest
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
     when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(true);
-    reportService.processThirdPartyData(scanId, reportZip, "app-id");
+
+    reportService.processThirdPartyData(scanId, reportZip, app.getId());
 
     verify(thirdPartyDataServiceSpy, times(1)).deleteByScanId(scanId);
+    assertThat(sbomFile).doesNotExist();
   }
 
   @Test

@@ -4723,7 +4723,7 @@ public class TemporaryEntity
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
-    thirdPartySbomMetadata.setFilename(thirdPartyFile.getFilename());
+    thirdPartySbomMetadata.setFilename(uuid() + ".xml.gz");
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
@@ -126,6 +128,8 @@ public class ThirdPartyDataService
 
   private final ProductLicense productLicense;
 
+  private final InsightWork insightWork;
+
   @Inject
   public ThirdPartyDataService(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -142,7 +146,8 @@ public class ThirdPartyDataService
       final TelemetryUtils telemetryUtils,
       SearchIndexManager searchIndexManager,
       final SecurityVulnerabilityDataService securityVulnerabilityDataService,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final InsightWork insightWork)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -159,6 +164,7 @@ public class ThirdPartyDataService
     this.searchIndexManager = searchIndexManager;
     this.securityVulnerabilityDataService = securityVulnerabilityDataService;
     this.productLicense = productLicense;
+    this.insightWork = insightWork;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -179,7 +185,12 @@ public class ThirdPartyDataService
         coordsByScanId.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList()));
   }
 
-  public void deleteByScanId(String scanId) {
+  public void deleteByScanId(String scanId) throws IOException {
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    if (sbomMetadata != null) {
+      Files.deleteIfExists(
+          insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath().resolve(sbomMetadata.getFilename()));
+    }
     thirdPartyFileDAO.deleteByScanId(scanId);
   }
 

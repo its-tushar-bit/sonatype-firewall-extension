@@ -147,6 +147,8 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
     }
   };
 
+  const showIconOptions = isApp || isOrganization || isScmOnboarding || isRepositoryManager;
+
   return (
     <>
       {isModalOpen ? (
@@ -191,7 +193,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
                 </NxFormGroup>
               )}
 
-              {(isApp || isOrganization || isScmOnboarding) && (
+              {showIconOptions && (
                 <NxFieldset label="Icon" isRequired>
                   <NxRadio name="icon" value="" onChange={setIconType} isChecked={ownerIconType === ''}>
                     Use a default icon

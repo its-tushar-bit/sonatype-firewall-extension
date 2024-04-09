@@ -33,4 +33,8 @@ public class RepositoriesSummaryTile
   public PillButton accessButton() {
     return new PillButton("#repositories-pill-access-button");
   }
+
+  public SelenideElement headerIcon() {
+    return child(".nx-icon", "img");
+  }
 }

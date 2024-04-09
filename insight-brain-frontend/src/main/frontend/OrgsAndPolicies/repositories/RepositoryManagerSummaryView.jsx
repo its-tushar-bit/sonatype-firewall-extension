@@ -5,6 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { NxLoadWrapper, NxPageTitle, NxH1, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faCubes } from '@fortawesome/pro-solid-svg-icons';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
@@ -32,6 +33,7 @@ export default function RepositoryManagerSummaryView() {
   const owner = useSelector(selectSelectedOwner);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
+  const getIconUrl = () => getAddIconUrl('repository_manager', owner.id) + `?${Math.random()}`;
 
   useEffect(() => {
     if (entityId) {
@@ -46,7 +48,7 @@ export default function RepositoryManagerSummaryView() {
           <NxPageTitle id="repositories-summary" className="iq-page-title">
             <NxH1>
               <span className="nx-icon">
-                <NxFontAwesomeIcon icon={faCubes} />
+                <img src={getIconUrl()} />
               </span>
               <span>{owner.name}</span>
             </NxH1>

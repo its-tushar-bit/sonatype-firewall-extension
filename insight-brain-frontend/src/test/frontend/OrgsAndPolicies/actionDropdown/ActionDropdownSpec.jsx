@@ -292,7 +292,7 @@ describe('ActionDropdown', () => {
       const buttonNames = [
         'Actions',
         'Repository Manager ID to Clipboard',
-        'Edit Repository Manager Name',
+        'Edit Repository Manager Name / Icon',
         'Delete 91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
       ];
       dropdownButtons.forEach((button, ind) => {

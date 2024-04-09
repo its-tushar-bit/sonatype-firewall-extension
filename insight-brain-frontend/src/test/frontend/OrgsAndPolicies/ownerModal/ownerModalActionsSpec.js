@@ -352,7 +352,7 @@ describe('ownerModal actions', () => {
         name: 'newOwnerName',
       },
     });
-    mock.onPost(getAddIconUrl(false, 'organizationOneID')).reply(200, {});
+    mock.onPost(getAddIconUrl('organization', 'organizationOneID')).reply(200, {});
 
     mock.onGet(getOrganizationUrl(editOrgState.router.currentParams.organizationId)).reply(200, {
       data: {
@@ -401,7 +401,7 @@ describe('ownerModal actions', () => {
       organizationId: 'organizationOneID',
       name: 'newAppName',
     });
-    mock.onPost(getAddIconUrl(true, 'applicationOneID')).reply(200, {});
+    mock.onPost(getAddIconUrl('application', 'applicationOneID')).reply(200, {});
 
     mock.onGet(getApplicationSummaryUrl(editAppState.router.currentParams.applicationPublicId)).reply(200, {
       data: {
@@ -451,6 +451,7 @@ describe('ownerModal actions', () => {
       id: 'repositoryManagerId',
       name: 'newRepositoryManagerName',
     });
+    mock.onPost(getAddIconUrl('repository_manager', 'repositoryManagerId')).reply(200, {});
 
     mock.onGet(getRepositoryManagerById('repositoryManagerId')).reply(200, {
       data: {

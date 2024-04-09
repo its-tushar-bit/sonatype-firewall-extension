@@ -181,9 +181,7 @@ const ActionDropdown = () => {
             className="nx-dropdown-button"
           >
             <NxFontAwesomeIcon icon={faPen} />
-            <span>
-              Edit {getShortOwnerName()} Name{isRepositoryManager ? '' : ' / Icon'}
-            </span>
+            <span>Edit {getShortOwnerName()} Name / Icon</span>
           </button>
         </NxOverflowTooltip>
 

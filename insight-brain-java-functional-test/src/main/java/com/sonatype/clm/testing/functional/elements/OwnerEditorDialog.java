@@ -75,6 +75,10 @@ public class OwnerEditorDialog
     return iconRadioButton("Upload a custom icon");
   }
 
+  public static SelenideElement customIconInput() {
+    return $(" .nx-file-upload__input");
+  }
+
   public static SelenideElement robotIcon() {
     return iconRadioButton("Get a robot");
   }

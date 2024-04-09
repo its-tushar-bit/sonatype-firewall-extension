@@ -196,7 +196,9 @@ const createNewOwner = createAsyncThunk(
       }
 
       if (ownerIconType !== '') {
-        const iconUrl = getAddIconUrl(isApplication, isApplication ? payload.application.id : payload.organization.id);
+        const iconUrlOwnerType = isApplication ? 'application' : 'organization';
+        const iconUrlId = isApplication ? payload.application.id : payload.organization.id;
+        const iconUrl = getAddIconUrl(iconUrlOwnerType, iconUrlId);
         const formData = new FormData();
 
         if (ownerIconType === iconTypes.robot) {
@@ -255,8 +257,13 @@ const editCurrentOwner = createAsyncThunk(
         await dispatch(ownerEditorActions.updateOwner({ ownerToSave, ownerType }));
       }
 
-      if (ownerType === 'application' || ownerType === 'organization' || isScmOnboarding) {
-        const iconUrl = getAddIconUrl(isApp, currentOwner.id);
+      if (
+        ownerType === 'repository_manager' ||
+        ownerType === 'application' ||
+        ownerType === 'organization' ||
+        isScmOnboarding
+      ) {
+        const iconUrl = getAddIconUrl(ownerType, currentOwner.id);
         const formData = new FormData();
 
         if (ownerIconType === '') {

@@ -1016,8 +1016,12 @@ export function getRobotUrl(isApp, hashcode) {
   return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/services/generateIcon/${hashcode}`;
 }
 
-export function getAddIconUrl(isApp, ownerId) {
-  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/icon/${encodeURIComponent(ownerId)}`;
+export function getAddIconUrl(ownerType, ownerId) {
+  if (ownerType === 'repository_manager') {
+    return uriTemplate`/rest/repositories/icon/repositoryManager/${encodeURIComponent(ownerId)}`;
+  }
+
+  return uriTemplate`/rest/${ownerType}/icon/${encodeURIComponent(ownerId)}`;
 }
 
 export function getImportSbomUrl(applicationId) {

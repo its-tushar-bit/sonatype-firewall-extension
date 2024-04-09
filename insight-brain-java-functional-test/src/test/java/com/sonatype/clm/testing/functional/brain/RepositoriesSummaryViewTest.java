@@ -5,8 +5,19 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
+
+import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -41,6 +52,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -58,26 +70,24 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.sidebar;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -100,6 +110,12 @@ public class RepositoriesSummaryViewTest
 
   private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
+  private IconDAO iconDAO;
+
+  private static final int IMAGE_RESIZE_WIDTH = 52;
+
+  private static final int IMAGE_RESIZE_HEIGHT = 52;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(RepositoriesSummaryPage.url());
@@ -112,6 +128,7 @@ public class RepositoriesSummaryViewTest
     roleDAO = lookup(RoleDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
     repositoryDAO = lookup(RepositoryDAO.class);
+    iconDAO = lookup(IconDAO.class);
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
     proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);
 
@@ -1538,5 +1555,168 @@ public class RepositoriesSummaryViewTest
     rootOrgAccessListWriteRoleDescription.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
 
     eyesWatcher.eyesCheck("repository manager access tile");
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_editRobotIcon() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("repomanagerId", "repo manager instance");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    RepositoriesSummaryPage.summaryTile().name().should(appear).shouldHave(text("repomanagerId"));
+    assertImage(RepositoriesSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = RepositoriesSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage originalDefaultImage = fetchImage(summaryTileHeaderIconSrc);
+
+    ActionDropDown.menu().shouldBe(hidden);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
+    ActionDropDown.copyOrgIdButton().shouldBe(visible);
+    ActionDropDown.editOwner().shouldHave(text("Repository Manager name / icon")).shouldBe(visible);
+    ActionDropDown.editOwner().click();
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = fetchImage(userSelectedImageSrc);
+
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    // validate the selected image is displayed
+    RepositoriesSummaryPage.summaryTile().name().should(appear).shouldHave(text("repomanagerId"));
+    assertImage(RepositoriesSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = RepositoriesSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the same as image that was selected and displayed
+    BufferedImage persistedImage = readImage(repositoryManager.getId());
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedImage, persistedImage);
+
+    // resetting icon back to default
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text("Repository Manager name / icon")).click();
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    // validate the selected image is displayed
+    RepositoriesSummaryPage.summaryTile().name().should(appear).shouldHave(text("repomanagerId"));
+    assertImage(RepositoriesSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = RepositoriesSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage imageAfterResettingToDefault = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the default image
+    assertImageEquals(originalDefaultImage, imageAfterResettingToDefault);
+  }
+
+  @Test
+  public void testRepositoryManagerSummaryView_editRobotIconWithCustomIcon() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("repomanagerId", "repo manager instance");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    RepositoriesSummaryPage.summaryTile().name().should(appear).shouldHave(text("repomanagerId"));
+    assertImage(RepositoriesSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = RepositoriesSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage originalDefaultImage = fetchImage(summaryTileHeaderIconSrc);
+
+    ActionDropDown.menu().shouldBe(hidden);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
+    ActionDropDown.copyOrgIdButton().shouldBe(visible);
+    ActionDropDown.editOwner().shouldHave(text("Repository Manager name / icon")).shouldBe(visible);
+    ActionDropDown.editOwner().click();
+
+    // select a custom image
+    File customIcon = new File(
+        Objects.requireNonNull(getClass().getClassLoader().getResource("RepoManagerHeaderIcons/customIcon.png"))
+            .getFile());
+
+    OwnerEditorDialog.customIcon().click();
+    OwnerEditorDialog.customIconInput().shouldBe(visible).sendKeys(customIcon.getAbsolutePath());
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
+
+    // validate the selected image is displayed
+    RepositoriesSummaryPage.summaryTile().name().should(appear).shouldHave(text("repomanagerId"));
+    assertImage(RepositoriesSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = RepositoriesSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the same as image that was uploaded and displayed
+    BufferedImage persistedImage = readImage(repositoryManager.getId());
+    assertImageEquals(displayedImage, persistedImage);
+
+    // validate uploaded image saved is different to the default image
+    assertImageIsNotEquals(originalDefaultImage, displayedImage);
+  }
+
+  private void assertImageEquals(BufferedImage image1, BufferedImage image2) throws IOException {
+    BufferedImage resizedImage1 = resizeImage(image1, image1.getType());
+    byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
+    BufferedImage resizedImage2 = resizeImage(image2, image2.getType());
+    byte[] resizedImage2Bytes = bufferedImageToBytesArray(resizedImage2);
+    assertThat(resizedImage1Bytes).isEqualTo(resizedImage2Bytes);
+  }
+
+  private void assertImageIsNotEquals(BufferedImage image1, BufferedImage image2) throws IOException {
+    BufferedImage resizedImage1 = resizeImage(image1, image1.getType());
+    byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
+    BufferedImage resizedImage2 = resizeImage(image2, image2.getType());
+    byte[] resizedImage2Bytes = bufferedImageToBytesArray(resizedImage2);
+    assertThat(resizedImage1Bytes).isNotEqualTo(resizedImage2Bytes);
+  }
+
+  private BufferedImage resizeImage(BufferedImage originalImage, int type) {
+    BufferedImage resizedImage = new BufferedImage(IMAGE_RESIZE_WIDTH, IMAGE_RESIZE_HEIGHT, type);
+    Graphics2D g = resizedImage.createGraphics();
+    g.drawImage(originalImage, 0, 0, IMAGE_RESIZE_WIDTH, IMAGE_RESIZE_HEIGHT, null);
+    g.dispose();
+    return resizedImage;
+  }
+
+  private byte[] bufferedImageToBytesArray(BufferedImage image) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ImageIO.write(image, "png", baos);
+    return baos.toByteArray();
+  }
+
+  private BufferedImage fetchImage(String urlString) throws IOException {
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpGet get = new HttpGet(urlString);
+    get.setHeader("Authorization",
+            "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
+    HttpResponse response = client.execute(get);
+    return ImageIO.read(response.getEntity().getContent());
+  }
+
+  private BufferedImage readImage(String ownerId) throws Exception {
+    InsightWork insightWork = testCLMServer.getCLMServer().getInstance(InsightWork.class);
+    return ImageIO.read(new ByteArrayInputStream(iconDAO.getIcon(ownerId, insightWork.getRepositoryManagerIconDir())));
+  }
+
+  private void assertImage(SelenideElement element) {
+    element.shouldBe(new Condition("image")
+    {
+      @Override
+      public boolean apply(WebElement ignored) {
+        return element.isImage();
+      }
+    });
   }
 }

@@ -225,7 +225,7 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
 
       ScanReceipt scanReceipt;
-      if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
+      if (ClientScanType.SONATYPE_THIRD_PARTY.equals(scanResult.getClientScanType())) {
         scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
             null /* clientUserAgent */,
             telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
@@ -249,7 +249,7 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage,
-          ScanTriggerType.WEB_UI, ClientScanType.SONATYPE);
+          ScanTriggerType.WEB_UI, scanResult.getClientScanType());
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, results);
       }

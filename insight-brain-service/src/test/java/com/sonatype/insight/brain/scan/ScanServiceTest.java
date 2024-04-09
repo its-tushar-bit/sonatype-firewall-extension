@@ -17,10 +17,13 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -34,6 +37,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
@@ -62,6 +66,9 @@ public class ScanServiceTest
 
   @Inject
   private PersistedScanTicketDAO persistedScanTicketDAO;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -109,6 +116,10 @@ public class ScanServiceTest
   @After
   public void exit() {
     // wait for any submitted scan to finish processing or its activity can affect following tests
+    waitForScanResults();
+  }
+
+  private void waitForScanResults() {
     while (scanTicket != null && scanTicket.currentStep < scanTicket.totalSteps) {
       Thread.yield();
       scanTicket = scanService.getTicket(scanTicket.applicationPublicId, scanTicket.ticketId);
@@ -122,6 +133,30 @@ public class ScanServiceTest
         scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
+    
+    waitForScanResults();
+    PolicyEvaluation policyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanTicket.scanId);
+    assertThat(policyEvaluation.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.WEB_UI);
+  }
+
+  @Test
+  public void testScanBinary_WithThirdPartyContent() throws Exception {
+    InputStream appBundle = getBundle("app1-bom.xml");
+    scanTicket =
+        scanService.scanBinary(app.getPublicId(), appBundle, "app1-bom.xml", new Stage(Stage.ID_BUILD), false, null,
+            null);
+    assertThat(scanTicket).isNotNull();
+    assertThat(scanTicket.ticketId).isNotNull();
+
+    waitForScanResults();
+    PolicyEvaluation policyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanTicket.scanId);
+    assertThat(policyEvaluation.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
+    assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.WEB_UI);
   }
 
   @Test

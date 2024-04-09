@@ -20,6 +20,7 @@ import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ModuleScanRequest;
 import com.sonatype.insight.scan.file.ScanSession;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 import com.sonatype.insight.test.InjectedTest;
@@ -68,7 +69,7 @@ public class ScannerTest
 
     assertThat(cliScanResult).isNotNull();
     assertThat(cliScanResult.getScanFile()).isNotNull();
-    assertThat(cliScanResult.hasThirdPartyScanContent()).isFalse();
+    assertThat(cliScanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
     assertThat(cliScanResult.hasScanningErrors()).isFalse();
   }
 
@@ -98,7 +99,7 @@ public class ScannerTest
 
     assertThat(cliScanResult).isNotNull();
     assertThat(cliScanResult.getScanFile()).isNotNull();
-    assertThat(cliScanResult.hasThirdPartyScanContent()).isFalse();
+    assertThat(cliScanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
     assertThat(cliScanResult.hasScanningErrors()).isTrue();
   }
 

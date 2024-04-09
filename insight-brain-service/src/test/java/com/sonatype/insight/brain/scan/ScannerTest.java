@@ -9,14 +9,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -76,6 +78,7 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
     assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
@@ -108,6 +111,7 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
     assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
@@ -131,7 +135,7 @@ public class ScannerTest
         scanner.scanThirdPartyContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
             SbomFormat.XML, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
-    assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
@@ -156,7 +160,7 @@ public class ScannerTest
         scanner.scanThirdPartyContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
             SbomFormat.JSON, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
-    assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
@@ -183,6 +187,7 @@ public class ScannerTest
 
     // then: scan contains expected results
     assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
@@ -224,6 +229,7 @@ public class ScannerTest
 
     // then: scan contains expected results
     assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan.getItems()).hasSize(1);
@@ -238,6 +244,7 @@ public class ScannerTest
     File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
 
     ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null);
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan.getItems()).hasSize(1);
@@ -253,6 +260,7 @@ public class ScannerTest
     File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
 
     ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null);
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan.getItems()).hasSize(1);
@@ -270,6 +278,7 @@ public class ScannerTest
     File terraformFile = new File("src/test/resources/ScannerTest/aws.large.tfplan.zip");
 
     ScanResult scanResult = scanner.scan(terraformFile, "aws.large.tfplan.zip", tempDir.getRoot(), null);
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     //noinspection unchecked
@@ -285,6 +294,7 @@ public class ScannerTest
         new File(tempDir.getRoot(), "not-yet-existent"), null);
 
     assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
@@ -300,6 +310,7 @@ public class ScannerTest
           new File(tempDir.getRoot(), "not-yet-existent"), null);
 
       assertThat(scanResult.getScanFile()).isFile();
+      assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
       Scan scan = scanReader.read(scanResult.getScanFile());
       assertThat(scan).isNotNull();
       assertThat(scan.getItems()).hasSize(1);

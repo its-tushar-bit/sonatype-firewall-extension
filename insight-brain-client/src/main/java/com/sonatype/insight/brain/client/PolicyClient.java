@@ -82,12 +82,11 @@ public class PolicyClient
   public PolicyEvaluationPollingResult evaluateCI(final ClientScanResult clientScanResult,
                                                   final Stage stage) throws IOException
   {
-    return evaluate(CI_INTEGRATION_PATH, clientScanResult.getScanFile(),
-        getClientScanType(clientScanResult, ClientScanType.SONATYPE), stage);
+    return evaluate(CI_INTEGRATION_PATH, clientScanResult.getScanFile(), clientScanResult.getClientScanType(), stage);
   }
 
   private ClientScanType getClientScanType(ClientScanResult clientScanResult, ClientScanType clientScanType) {
-    if (clientScanResult.hasThirdPartyScanContent()) {
+    if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanResult.getClientScanType())) {
       return ClientScanType.SONATYPE_THIRD_PARTY;
     }
     return clientScanType;

@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -187,11 +186,9 @@ public class SourceControlScanService
 
         RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
         ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
-        ClientScanType clientScanType =
-            scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
-        PolicyEvaluation policyEvaluation =
-            policyEvaluateService.evaluateSynchronousNoAuth(application, clientScanType, scanResult.getScanFile(),
-                stage, ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST, null /* clientUserAgent */);
+        PolicyEvaluation policyEvaluation = policyEvaluateService.evaluateSynchronousNoAuth(application,
+            scanResult.getClientScanType(), scanResult.getScanFile(), stage,
+            ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST, null /* clientUserAgent */);
 
         log.trace("Source control scan completed for application '{}': {}", applicationId, repoSyncResult);
 
@@ -269,9 +266,7 @@ public class SourceControlScanService
   }
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {
-    ClientScanType clientScanType =
-        scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
-    policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, clientScanType,
+    policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, scanResult.getClientScanType(),
         new Stage(event.getStageTypeId()), event.getScanTriggerType(), scanResult.getScanFile(), "api",
         event.getUserAgent(), null);
   }

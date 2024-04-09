@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.File;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.junit.Before;
@@ -119,7 +121,7 @@ public class SbomMetadataUtilsTest
         sbomMetadataUtils.scanSbomFile(app, getSbomFile("valid-cyclonedx-bom.xml"), scanDir, SbomFormat.XML,
             ItemContentType.SBOM,
             ScannerDriver.SBOM_API);
-    assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
+    assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanResult.getScanFile()).isNotNull();
   }
 

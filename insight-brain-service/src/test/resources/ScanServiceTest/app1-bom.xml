@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:c78d08e4-5576-461c-a37c-8ab9c43f7c99" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+  <metadata>
+    <timestamp>2024-02-15T08:24:30Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.173.0-01</version>
+      </tool>
+    </tools>
+    <component type="application" bom-ref="3f6f2d06-ec85-4e14-bc94-f073f3e57c96">
+      <name>TestApp</name>
+      <version>0.0.0</version>
+      <purl>pkg:generic/TestApp@0.0.0</purl>
+    </component>
+    <properties>
+      <property name="Scan ID">d78d08e45576461ca37c8ab9c43f7c99</property>
+    </properties>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="48249441-264e-4bb4-8b2c-ccee37010c41">
+      <name>Microsoft.Identity.Client.Extensions.Msal</name>
+      <version>2.23.0</version>
+      <licenses>
+        <license>
+          <name>Not Supported</name>
+        </license>
+        <license>
+          <id>MIT</id>
+        </license>
+      </licenses>
+      <purl>pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Sonatype truncated SHA1">00603c85922bf35d8edd</property>
+        <property name="Match State">exact</property>
+        <property name="Identification Source">Sonatype</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>EasyConnect.WiFi-bom.xml/pkg:nuget\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+  </components>
+</bom>

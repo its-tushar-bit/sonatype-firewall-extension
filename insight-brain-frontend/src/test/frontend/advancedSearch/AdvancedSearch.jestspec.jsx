@@ -5,8 +5,9 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import AdvancedSearchContainer from 'MainRoot/advancedSearch/AdvancedSearchContainer';
+import { assocPath, mergeDeepRight } from 'ramda';
 
 /**
  * Note: this file currently only holds more-recently written tests for the page as a whole. See
@@ -28,7 +29,12 @@ describe('AdvancedSearch', function () {
       },
     },
   };
-  const renderComponent = (preloadedState = initialState) => render(<AdvancedSearchContainer />, { preloadedState });
+  const mockRouterState = {
+    get: () => ({}),
+    href: () => '#',
+  };
+  const renderComponent = (preloadedState = initialState) =>
+    render(<AdvancedSearchContainer $state={mockRouterState} />, { preloadedState });
 
   describe('help', function () {
     it('has a "Craft your search terms…" toggle', function () {
@@ -36,15 +42,6 @@ describe('AdvancedSearch', function () {
 
       // Ideally this would have a role, but it does not
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      expect(toggle).toBeInTheDocument();
-    });
-
-    it('has a "Craft your search terms…" toggle', function () {
-      renderComponent();
-
-      // Ideally this would have a role, but it does not
-      const toggle = screen.getByText('Craft your search terms for the best results.');
-
       expect(toggle).toBeInTheDocument();
     });
 
@@ -143,6 +140,91 @@ describe('AdvancedSearch', function () {
         'An error occurred loading data. The SBOM Manager license feature is not enabled.'
       );
       expect(errorMessage).toBeVisible();
+    });
+  });
+
+  describe('search result group', function () {
+    it(
+      'renders a vulnerability link if the group is of VULNERABILITY_ID or ' + 'VULNERABILITY_DESCRIPTION types',
+      function () {
+        const state = assocPath(
+          ['advancedSearch', 'formState', 'searchResult', 'groupingByDTOS'],
+          [
+            {
+              groupIdentifier: 'VULNERABILITY_ID',
+              groupBy: 'CVE-111-1111',
+              searchResultItemDTOS: [],
+            },
+            {
+              groupIdentifier: 'VULNERABILITY_DESCRIPTION',
+              groupBy: 'Foo bar baz.',
+              searchResultItemDTOS: [],
+            },
+            {
+              groupIdentifier: 'SOMETHING_ELSE',
+              groupBy: 'asdf',
+              searchResultItemDTOS: [],
+            },
+          ],
+          initialState
+        );
+
+        renderComponent(state);
+
+        const vulnResult = screen.getByRole('region', { name: 'CVE-111-1111' });
+        const vulnDescriptionResult = screen.getByRole('region', { name: 'Foo bar baz.' });
+        const otherResult = screen.getByRole('region', { name: 'asdf' });
+
+        expect(
+          within(vulnResult).getByRole('link', { name: 'Click here for detailed information.' })
+        ).toBeInTheDocument();
+        expect(
+          within(vulnDescriptionResult).getByRole('link', { name: 'Click here for detailed information.' })
+        ).toBeInTheDocument();
+        expect(within(otherResult).queryByRole('link')).not.toBeInTheDocument();
+      }
+    );
+
+    it('renders no vulnerability link if in SBOM Manager Mode', function () {
+      const state = mergeDeepRight(initialState, {
+        advancedSearch: {
+          formState: {
+            searchResult: {
+              groupingByDTOS: [
+                {
+                  groupIdentifier: 'VULNERABILITY_ID',
+                  groupBy: 'CVE-111-1111',
+                  searchResultItemDTOS: [],
+                },
+                {
+                  groupIdentifier: 'VULNERABILITY_DESCRIPTION',
+                  groupBy: 'Foo bar baz.',
+                  searchResultItemDTOS: [],
+                },
+                {
+                  groupIdentifier: 'SOMETHING_ELSE',
+                  groupBy: 'asdf',
+                  searchResultItemDTOS: [],
+                },
+              ],
+            },
+          },
+        },
+        router: {
+          currentState: { name: 'sbomManager.advancedSearch' },
+        },
+        productFeatures: { productFeatures: { 'sbom-manager': true } },
+      });
+
+      renderComponent(state);
+
+      const vulnResult = screen.getByRole('region', { name: 'CVE-111-1111' });
+      const vulnDescriptionResult = screen.getByRole('region', { name: 'Foo bar baz.' });
+      const otherResult = screen.getByRole('region', { name: 'asdf' });
+
+      expect(within(vulnResult).queryByRole('link')).not.toBeInTheDocument();
+      expect(within(vulnDescriptionResult).queryByRole('link')).not.toBeInTheDocument();
+      expect(within(otherResult).queryByRole('link')).not.toBeInTheDocument();
     });
   });
 });

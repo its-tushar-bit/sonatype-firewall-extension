@@ -12,6 +12,7 @@ import { NxButtonBar, NxTextLink } from '@sonatype/react-shared-components';
 import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
 import AdvancedSearchExportButton from 'MainRoot/advancedSearch/AdvancedSearchExportButton';
+import { includes } from 'ramda';
 
 export default function AdvancedSearch(props) {
   // Actions
@@ -66,22 +67,26 @@ export default function AdvancedSearch(props) {
     </main>
   );
 
-  function advancedSearchResultsGroupedBy(groupingByDto) {
+  function advancedSearchResultsGroupedBy(groupingByDto, index) {
     const { groupBy, additionalInfo, groupIdentifier, searchResultItemDTOS } = groupingByDto,
       detailedInfoHref = $state.href($state.get('vulnerabilitySearchDetail'), {
         id: groupBy,
-      });
+      }),
+      showVulnLink = !isSbomManager && includes(groupIdentifier, ['VULNERABILITY_ID', 'VULNERABILITY_DESCRIPTION']),
+      headerId = `iq-advanced-search-result-group-${index}-header`;
 
     return (
-      <section key={groupBy} className="nx-tile">
+      <section key={groupBy} aria-labelledby={headerId} className="nx-tile">
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
-            <h2 className="nx-h2">{groupBy}</h2>
+            <h2 id={headerId} className="nx-h2">
+              {groupBy}
+            </h2>
           </div>
         </header>
         <div className="nx-tile-content">
           {additionalInfo && <p className="nx-p">{additionalInfo}</p>}
-          {(groupIdentifier === 'VULNERABILITY_ID' || groupIdentifier === 'VULNERABILITY_DESCRIPTION') && (
+          {showVulnLink && (
             <p className="nx-p">
               <NxTextLink href={detailedInfoHref}>Click here for detailed information.</NxTextLink>
             </p>

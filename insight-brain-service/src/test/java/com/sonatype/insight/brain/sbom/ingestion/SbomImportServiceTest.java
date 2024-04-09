@@ -158,7 +158,7 @@ public class SbomImportServiceTest
     assertThat(response.getEntity()).isNotNull();
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     assertThat(status.statusUrl).isNotEmpty()
-            .startsWith("api/v2/sbom/" + application.getId() + "/status/");
+        .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
     assertThat(Files.exists(tempFile.toPath())).isFalse();
   }
 

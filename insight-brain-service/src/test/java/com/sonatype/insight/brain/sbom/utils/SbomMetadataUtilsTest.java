@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -90,7 +91,8 @@ public class SbomMetadataUtilsTest
   @Test
   public void testCreateSbomImportTicket() {
     assertThat(sbomMetadataUtils.createSbomImportTicket("appId").statusUrl).startsWith(
-        String.format("%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, "appId"));
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            "appId"));
   }
 
   @Test

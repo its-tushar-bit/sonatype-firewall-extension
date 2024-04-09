@@ -69,7 +69,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
-  public void testDeleteSbomVersion() throws Exception {
+  public void testDeleteSbomVersion_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Path fileInWorkDirPath =
         SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
@@ -142,7 +142,7 @@ public class ApiSbomResourceTest
 
   @Test
   @PostgresTest
-  public void testGetListOfSbomsForApplicationId() throws Exception {
+  public void testGetSbomMetadataSummaryForApplication_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX -bom.xml");
@@ -159,7 +159,7 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
 
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_BY_APPLICATION_ID_PATH)
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
         .parameter(app.getId()).get();
     assertResponseStatus(200, response);
 
@@ -191,7 +191,7 @@ public class ApiSbomResourceTest
 
   @Test
   @PostgresTest
-  public void testGetSbomComponents() throws Exception {
+  public void testGetSbomComponents_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
@@ -256,14 +256,14 @@ public class ApiSbomResourceTest
   }
 
   @Test
-  public void testGetSbomVersionListByAppId_Successful() throws Exception {
+  public void testGetSbomVersionListByApplication_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withSbomVersion("1.5")
         .build();
 
-    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
         .parameter(app.getId());
 
     HttpResponse response = request.get();
@@ -275,9 +275,9 @@ public class ApiSbomResourceTest
   }
 
   @Test
-  public void testGetSbomVersionListByAppId_Empty() throws Exception {
+  public void testGetSbomVersionListByApplication_Empty() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
+    HttpRequest request = restRequest().path(ApiSbomResource.SBOM_VERSIONS_PATH)
         .parameter(app.getId());
 
     HttpResponse response = request.get();
@@ -303,7 +303,8 @@ public class ApiSbomResourceTest
     assertResponseStatus(Status.OK.getStatusCode(), response);
     ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
     assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
-        "api/v2/sbom/" + app.getId() + "/status/");
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
 
     ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
@@ -327,7 +328,8 @@ public class ApiSbomResourceTest
     assertResponseStatus(Status.OK.getStatusCode(), response);
     ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
     assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
-        "api/v2/sbom/" + app.getId() + "/status/");
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
 
     ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();

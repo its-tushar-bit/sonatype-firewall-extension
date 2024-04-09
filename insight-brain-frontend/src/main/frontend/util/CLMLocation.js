@@ -1407,19 +1407,16 @@ export const getUsageOverTimeChartVisibility = () =>
   uriTemplate`/rest/integrations/stats/usage-over-time/charts/visibility`;
 
 export const getSbomsByApplicationUrl = (applicationId, pageSize, page, sortDir) =>
-  uriTemplate`/api/v2/sbom/application/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
+  uriTemplate`/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
 
 export const getDownloadSbomFileUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
-
-export const getDownloadSbomFromSbomTableUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/?state=original`;
 
 export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/version/${applicationVersion}`;
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;
 
 export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
-  uriTemplate`/api/v2/sbom/${applicationId}/version/${sbomVersion}/components`;
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

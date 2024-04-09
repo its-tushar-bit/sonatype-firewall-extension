@@ -15,6 +15,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -116,7 +117,9 @@ public class SbomMetadataUtils
     ApiThirdPartyScanTicketDTO scanTicketDTO = new ApiThirdPartyScanTicketDTO();
     scanTicketDTO.requestId = UUID.randomUUID().toString().replace("-", "");
     scanTicketDTO.statusUrl =
-        PublicApiPaths.SBOM_RESOURCE_PATH + "/" + applicationId + "/status/" + scanTicketDTO.requestId;
+        PublicApiPaths.SBOM_RESOURCE_PATH + ApiSbomResource.SBOM_STATUS_PATH
+            .replace("{applicationId}", applicationId)
+            .replace("{importRequestId}", scanTicketDTO.requestId);
     return scanTicketDTO;
   }
 

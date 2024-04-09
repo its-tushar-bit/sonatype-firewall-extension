@@ -1427,7 +1427,7 @@ describe('CLMLocation.js', function () {
       const sortDir = 'desc';
       const pageSize = 10;
       const page = 0;
-      const expectedURL = `/api/v2/sbom/application/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
 
       expect(clmLocation.getSbomsByApplicationUrl(applicationId, pageSize, page, sortDir)).toBe(expectedURL);
     });
@@ -1437,7 +1437,7 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const applicationVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/${applicationId}/version/${applicationVersion}/?state=original`;
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/?state=original`;
 
       expect(clmLocation.getDownloadSbomFileUrl(applicationId, applicationVersion)).toBe(expectedURL);
     });
@@ -1447,7 +1447,7 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const applicationVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/${applicationId}/version/${applicationVersion}`;
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;
 
       expect(clmLocation.getDeleteSbomByApplicationIdAndVersionUrl(applicationId, applicationVersion)).toBe(
         expectedURL
@@ -1459,7 +1459,7 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const sbomVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/${applicationId}/version/${sbomVersion}/components`;
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
 
       expect(clmLocation.getBillsOfMaterialsComponents(applicationId, sbomVersion)).toBe(expectedURL);
     });

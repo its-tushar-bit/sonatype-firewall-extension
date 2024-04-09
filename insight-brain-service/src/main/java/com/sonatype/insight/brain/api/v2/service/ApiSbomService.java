@@ -131,9 +131,9 @@ public class ApiSbomService
   @Authorize(permission = Permission.WRITE)
   public void deleteSbomVersion(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      String sbomVersion) throws IOException
+      String version) throws IOException
   {
-    final ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, sbomVersion);
+    final ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
 
     AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.DELETE);
 
@@ -148,7 +148,7 @@ public class ApiSbomService
   @Authorize(permission = Permission.READ)
   public Response getSbomVersion(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      String sbomVersion,
+      String version,
       String sbomState)
   {
     if (!sbomState.equals(SBOM_STATE_CURRENT) && !sbomState.equals(SBOM_STATE_ORIGINAL)) {
@@ -160,14 +160,14 @@ public class ApiSbomService
     }
 
     final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, sbomVersion, SbomStatus.ACTIVE.name());
+        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, SbomStatus.ACTIVE.name());
     if (thirdPartySbomMetadata == null) {
-      throw new NotFoundException(String.format(cannotFindVersionError, sbomVersion, applicationId));
+      throw new NotFoundException(String.format(cannotFindVersionError, version, applicationId));
     }
 
     MediaType type;
     String fileName =
-        applicationDAO.getById(applicationId).getName() + "_" + sbomVersion + "." +
+        applicationDAO.getById(applicationId).getName() + "_" + version + "." +
             thirdPartySbomMetadata.getSpecFormat();
     if (thirdPartySbomMetadata.getSpecFormat().equals(SbomFormat.JSON.toString())) {
       type = MediaType.APPLICATION_JSON_TYPE;
@@ -187,15 +187,15 @@ public class ApiSbomService
     }
     catch (IOException e) {
       log.debug("File not found for sbom metadata with application id {}, version {}, filename {}", applicationId,
-          sbomVersion, thirdPartySbomMetadata.getFilename(), e);
+          version, thirdPartySbomMetadata.getFilename(), e);
       throw new InternalServerException(
           String.format("Internal server error trying to retrieve the %s sbom for application %s version %s", sbomState,
-              applicationId, sbomVersion));
+              applicationId, version));
     }
   }
 
   @Authorize(permission = Permission.READ)
-  public ThirdPartySbomMetadataSummaryListDTO getSbomListForAppId(
+  public ThirdPartySbomMetadataSummaryListDTO getSbomMetadataSummaryForApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sortByDate,
       int pageSize,
@@ -213,17 +213,17 @@ public class ApiSbomService
   @Authorize(permission = Permission.READ)
   public List<SbomComponentDTO> getSbomComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      String sbomVersion)
+      String version)
   {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, sbomVersion);
+    ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
     return thirdPartyFileCoordinateDAO
         .getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
   }
 
-  private ThirdPartySbomMetadata getThirdPartySbomMetadataNotNull(String applicationId, String sbomVersion) {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
+  private ThirdPartySbomMetadata getThirdPartySbomMetadataNotNull(String applicationId, String version) {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByApplicationIdAndSbomVersion(applicationId, version);
     if (thirdPartySbomMetadata == null) {
-      throw new NotFoundException(String.format(cannotFindVersionError, sbomVersion, applicationId));
+      throw new NotFoundException(String.format(cannotFindVersionError, version, applicationId));
     }
     return thirdPartySbomMetadata;
   }
@@ -293,13 +293,13 @@ public class ApiSbomService
   }
 
   private String createDownloadUrl(String applicationId, String sbomVersion) {
-    return PublicApiPaths.SBOM_RESOURCE_PATH + "/" +
+    return PublicApiPaths.SBOM_RESOURCE_PATH +
         ApiSbomResource.SBOM_VERSION_PATH.replace(APPLICATION_ID_PLACEHOLDER, applicationId)
             .replace(SBOM_VERSION_PLACEHOLDER, sbomVersion) + SBOM_FORM_PLACEHOLDER;
   }
 
   @Authorize(permission = Permission.READ)
-  public List<String> getSbomVersionListByAppId(
+  public List<String> getSbomVersionListByApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
     List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(applicationId);

@@ -223,7 +223,7 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
-  public void testGetVulnerabilities() {
+  public void testGetSbomMetadataSummaryForApplication_Successful() {
     Application application = tempEntity.newApplicationWithParent();
 
     ThirdPartyFile file1 = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
@@ -240,7 +240,8 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", "d3", "l3", 1.5F, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", "d4", "l4", 0.5F, "sd4", "f4");
 
-    ThirdPartySbomMetadataSummaryListDTO resultList = service.getSbomListForAppId(application.getId(), "asc", 5, 1);
+    ThirdPartySbomMetadataSummaryListDTO resultList =
+        service.getSbomMetadataSummaryForApplication(application.getId(), "asc", 5, 1);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotalResultsCount()).isEqualTo(2);
 
@@ -363,23 +364,23 @@ public class ApiSbomServiceTest
   }
 
   @Test
-  public void testGetSbomVersionListByAppId_Successful() {
+  public void testGetSbomVersionListByApplication_Successful() {
     Application app = tempEntity.newApplicationWithParent();
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withSbomVersion("1.5")
         .build();
 
-    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByAppId(app.getId());
+    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByApplication(app.getId());
     assertThat(applicationVersionsSbomDTOS.size()).isEqualTo(1);
     assertThat(applicationVersionsSbomDTOS.get(0)).isEqualTo("1.5");
   }
 
   @Test
-  public void testGetSbomVersionListByAppId_SuccessfulEmpty() {
+  public void testGetSbomVersionListByApplication_SuccessfulEmpty() {
     Application app = tempEntity.newApplicationWithParent();
 
-    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByAppId(app.getId());
+    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByApplication(app.getId());
     assertThat(applicationVersionsSbomDTOS).isEmpty();
   }
 
@@ -407,7 +408,7 @@ public class ApiSbomServiceTest
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
-          .startsWith("api/v2/sbom/" + app.getId() + "/status/");
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
     }
   }
 
@@ -422,7 +423,7 @@ public class ApiSbomServiceTest
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
-          .startsWith("api/v2/sbom/" + app.getId() + "/status/");
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
     }
   }
 
@@ -458,7 +459,7 @@ public class ApiSbomServiceTest
 
       ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
       assertThat(apiSbomStatusDTO.applicationId).isEqualTo(app.getId());
-      assertThat(apiSbomStatusDTO.downloadUrl).startsWith("api/v2/sbom/" + app.getId() + "/version/");
+      assertThat(apiSbomStatusDTO.downloadUrl).startsWith("api/v2/sbom/applications/" + app.getId() + "/versions/");
     }
   }
 

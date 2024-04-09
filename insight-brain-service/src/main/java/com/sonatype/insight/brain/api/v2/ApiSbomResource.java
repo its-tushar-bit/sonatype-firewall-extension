@@ -55,17 +55,19 @@ public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_STATE = "current";
 
-  static final String SBOM_IMPORT_PATH = "import";
+  public static final String SBOMS_APPLICATIONS_PATH = "/applications";
 
-  public static final String SBOM_VERSION_PATH = "{applicationId}/version/{sbomVersion}";
+  static final String SBOMS_APPLICATION_PATH = SBOMS_APPLICATIONS_PATH + "/{applicationId}";
 
-  static final String SBOMS_BY_APPLICATION_ID_PATH = "application/{applicationId}";
+  static final String SBOM_VERSIONS_PATH = SBOMS_APPLICATION_PATH + "/versions";
 
-  static final String SBOM_STATUS_PATH = "{applicationId}/status/{importRequestId}";
-
-  static final String SBOM_VERSIONS_BY_APPLICATION_ID_PATH = "/sbomVersions/{applicationId}";
+  public static final String SBOM_VERSION_PATH = SBOM_VERSIONS_PATH + "/{version}";
 
   static final String SBOM_COMPONENTS_PATH = SBOM_VERSION_PATH + "/components";
+
+  static final String SBOM_IMPORT_PATH = "/import";
+
+  public static final String SBOM_STATUS_PATH = SBOMS_APPLICATION_PATH + "/status/{importRequestId}";
 
   private final ApiSbomService apiSbomService;
 
@@ -90,9 +92,9 @@ public class ApiSbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
       @Parameter(description = "URL Encoded version value of the sbom to be deleted", required = true)
-      @PathParam("sbomVersion") String sbomVersion) throws IOException
+      @PathParam("version") String version) throws IOException
   {
-    apiSbomService.deleteSbomVersion(applicationId, sbomVersion);
+    apiSbomService.deleteSbomVersion(applicationId, version);
   }
 
   @Operation(summary = "Gets a sbom version",
@@ -114,7 +116,7 @@ public class ApiSbomResource
       @PathParam("applicationId") String applicationId,
 
       @Parameter(description = "URL Encoded version value of the sbom", required = true)
-      @PathParam("sbomVersion") String sbomVersion,
+      @PathParam("version") String version,
 
       @Parameter(description = "The state of the sbom version. Allowed values [original|current]. default = current")
       @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
@@ -127,7 +129,7 @@ public class ApiSbomResource
           "Allowed values {'application/json'|'application/xml'}. default = null")
       @HeaderParam(HttpHeaders.ACCEPT) String acceptMediaType)
   {
-    return apiSbomService.getSbomVersion(applicationId, sbomVersion, sbomState);
+    return apiSbomService.getSbomVersion(applicationId, version, sbomState);
   }
 
   @Operation(summary = "Gets a paginated list of SBOMs for an application",
@@ -140,10 +142,10 @@ public class ApiSbomResource
       })
 
   @GET
-  @Path(SBOMS_BY_APPLICATION_ID_PATH)
+  @Path(SBOMS_APPLICATION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
-  public ThirdPartySbomMetadataSummaryListDTO getListOfSbomsForApplicationId(
+  public ThirdPartySbomMetadataSummaryListDTO getSbomMetadataSummaryForApplication(
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId,
 
@@ -156,7 +158,7 @@ public class ApiSbomResource
       @Parameter(description = "Current page number. default = 1")
       @DefaultValue("1") @QueryParam("page") int page)
   {
-    return apiSbomService.getSbomListForAppId(applicationId, sortByDate, pageSize, page);
+    return apiSbomService.getSbomMetadataSummaryForApplication(applicationId, sortByDate, pageSize, page);
   }
 
   @Operation(summary = "Gets the components found in a specific sbom version", tags = {"sbom"},
@@ -175,9 +177,9 @@ public class ApiSbomResource
           required = true) @PathParam("applicationId") String applicationId,
 
       @Parameter(description = "URL Encoded version value of the sbom to query its components",
-          required = true) @PathParam("sbomVersion") String sbomVersion)
+          required = true) @PathParam("version") String version)
   {
-    return apiSbomService.getSbomComponents(applicationId, sbomVersion);
+    return apiSbomService.getSbomComponents(applicationId, version);
   }
 
   @Operation(summary = "Gets a list of sbom versions by application id",
@@ -190,7 +192,7 @@ public class ApiSbomResource
       })
 
   @GET
-  @Path(SBOM_VERSIONS_BY_APPLICATION_ID_PATH)
+  @Path(SBOM_VERSIONS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
   public List<String> getSbomVersionListByApplication(
@@ -198,7 +200,7 @@ public class ApiSbomResource
       @PathParam("applicationId") String applicationId
   )
   {
-    return apiSbomService.getSbomVersionListByAppId(applicationId);
+    return apiSbomService.getSbomVersionListByApplication(applicationId);
   }
 
   @Operation(summary = "Import a new sbom version",

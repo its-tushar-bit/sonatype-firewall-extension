@@ -149,6 +149,6 @@ public class SbomImportResourceTest
     assertResponseStatus(201, responseCommit);
     assertThat(responseCommitBody).isNotNull();
     assertThat(responseCommitBody.statusUrl).isNotEmpty();
-    assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/" + application.getId() + "/status/");
+    assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
   }
 }

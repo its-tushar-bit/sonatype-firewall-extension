@@ -102,7 +102,7 @@ public class ApiSbomResourceAuditTest
     assertResponseStatus(Status.OK.getStatusCode(), response);
     ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
     assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
-        "api/v2/sbom/" + app.getId() + "/status/");
+        "api/v2/sbom/applications/" + app.getId() + "/status/");
 
     ApiSbomStatusDTO resultDTO = getStatusResponse(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();

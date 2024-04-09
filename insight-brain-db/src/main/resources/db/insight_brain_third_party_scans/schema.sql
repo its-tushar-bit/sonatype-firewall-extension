@@ -35,6 +35,8 @@ CREATE TABLE file_coordinate (
   package_url VARCHAR(1000)  NULL,
   cpe VARCHAR(255) NULL,
   swid TEXT NULL,
+  dependency_type        VARCHAR(2)   NULL,
+  identification_sources VARCHAR(100) NULL,
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );

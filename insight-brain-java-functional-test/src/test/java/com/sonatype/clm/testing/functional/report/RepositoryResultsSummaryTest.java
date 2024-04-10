@@ -1561,6 +1561,10 @@ public class RepositoryResultsSummaryTest
     policyThreatLevelFilter.slider().setValues(3, 4);
     repositoryFilterPopover.applyButton().click();
 
+    Wait<WebDriver> wait = getWebDriverAwait();
+    // Wait until the table is fully loaded.
+    wait.until(ExpectedConditions.visibilityOf(RepositoryResultDetailPage.table().rows().get(0)));
+
     RepositoryResultDetailPage.table().rows().shouldHaveSize(4);
     testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4", "2020-06-04",
         "groupId4 : artifactId4 : jar : classifier4 : version4");
@@ -1573,6 +1577,9 @@ public class RepositoryResultsSummaryTest
 
     repositoryFilterPopover.clearButton().click();
     repositoryFilterPopover.applyButton().click();
+
+    // Wait until the table is fully loaded.
+    wait.until(ExpectedConditions.visibilityOf(RepositoryResultDetailPage.table().rows().get(0)));
 
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
     testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -261,7 +263,7 @@ public class ThirdPartyDataService
     dto.matchState = MatchState.EXACT.toString();
     dto.reference = coordinateSecurity.getRefId();
     dto.description = coordinateSecurity.getDescription();
-    dto.score = coordinateSecurity.getSeverity();
+    dto.score = BigDecimal.valueOf(coordinateSecurity.getSeverity()).setScale(2, RoundingMode.UNNECESSARY).floatValue();
     dto.url = coordinateSecurity.getLink();
     dto.fixedVersion = coordinateSecurity.getFixedBy();
     dto.source = coordinateSecurity.getVulnerabilitySource();

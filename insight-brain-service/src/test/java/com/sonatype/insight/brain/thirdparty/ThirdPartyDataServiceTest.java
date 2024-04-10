@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
@@ -836,7 +838,8 @@ public class ThirdPartyDataServiceTest
             assertThat(securityRow.componentIdentifier).isEqualTo(handler.getComponentIdentifier(coordinate));
             assertThat(securityRow.matchState).isEqualTo(MatchState.EXACT.toString());
             assertThat(securityRow.description).isEqualTo(expectedSecRow.getDescription());
-            assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
+            assertThat(securityRow.score).isEqualTo(
+                BigDecimal.valueOf(expectedSecRow.getSeverity()).setScale(2, RoundingMode.UNNECESSARY).floatValue());
             assertThat(securityRow.url).isEqualTo(expectedSecRow.getLink());
             assertThat(securityRow.fixedVersion).isEqualTo(expectedSecRow.getFixedBy());
             assertThat(securityRow.source).isEqualTo(expectedSecRow.getVulnerabilitySource());

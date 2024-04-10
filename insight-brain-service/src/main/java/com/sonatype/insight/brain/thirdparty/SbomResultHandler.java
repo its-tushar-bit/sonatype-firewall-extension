@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -39,11 +40,10 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.util.SbomUtils;
-import com.sonatype.insight.IdentificationSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
@@ -573,7 +573,7 @@ public class SbomResultHandler
       Rating rating = ratingsElements.get(0);
       Double baseScore = getBaseScore(rating);
       if (baseScore != null) {
-        coordinateSecurity.setSeverity(baseScore.floatValue());
+        coordinateSecurity.setSeverity(baseScore);
         if (rating.getVector() != null) {
           coordinateSecurity.setAttackVector(getTruncatedAttackVector(rating.getVector()));
         }
@@ -632,7 +632,7 @@ public class SbomResultHandler
       if (rating != null) {
         Double baseScore = rating.getScore();
         if (baseScore != null) {
-          coordinateSecurity.setSeverity(baseScore.floatValue());
+          coordinateSecurity.setSeverity(baseScore);
           if (rating.getVector() != null) {
             coordinateSecurity.setAttackVector(getTruncatedAttackVector(rating.getVector()));
           }

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.StringReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,13 +22,13 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -36,8 +38,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
@@ -1915,7 +1917,7 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getId());
 
     Vulnerability.Rating rating = sbomResultHandler.getValidRating(vulnerability.getRatings());
-    Float severityExpected = new Float(rating.getScore());
+    double severityExpected = BigDecimal.valueOf(rating.getScore()).setScale(2, RoundingMode.UNNECESSARY).doubleValue();
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(severityExpected);
 
     if (optionalValuesPresent) {
@@ -2118,7 +2120,8 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getId());
 
     Rating rating = vulnerability.getRatings().get(0);
-    Float severityExpected = new Float(rating.getScore().getBase());
+    double severityExpected =
+        BigDecimal.valueOf(rating.getScore().getBase()).setScale(2, RoundingMode.UNNECESSARY).doubleValue();
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(severityExpected);
 
     if (optionalValuesPresent) {

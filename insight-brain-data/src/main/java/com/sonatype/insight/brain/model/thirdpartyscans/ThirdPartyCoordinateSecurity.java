@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -25,7 +27,7 @@ public class ThirdPartyCoordinateSecurity
       String refId,
       String description,
       String link,
-      float severity,
+      double severity,
       String fixedBy)
   {
 
@@ -54,7 +56,7 @@ public class ThirdPartyCoordinateSecurity
   private String link;
 
   @Column(name = "severity")
-  private float severity;
+  private double severity;
 
   @Column(name = "fixed_by")
   private String fixedBy;
@@ -125,12 +127,12 @@ public class ThirdPartyCoordinateSecurity
     this.link = link;
   }
 
-  public float getSeverity() {
+  public double getSeverity() {
     return severity;
   }
 
-  public void setSeverity(float severity) {
-    this.severity = severity;
+  public void setSeverity(double severity) {
+    this.severity = BigDecimal.valueOf(severity).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
   }
 
   public String getFixedBy() {

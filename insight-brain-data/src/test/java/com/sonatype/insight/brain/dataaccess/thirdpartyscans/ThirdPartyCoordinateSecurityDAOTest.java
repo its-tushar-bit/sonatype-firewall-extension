@@ -165,7 +165,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
       final String refId,
       final String description,
       final String link,
-      final float score,
+      final double score,
       final String fixedBy,
       final String cooedinateFileId, final ThirdPartyCoordinateSecurity actual)
   {

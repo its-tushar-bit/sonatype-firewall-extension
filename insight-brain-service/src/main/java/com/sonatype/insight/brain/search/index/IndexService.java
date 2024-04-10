@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.search.index;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1020,7 +1022,9 @@ public class IndexService
         .setComponentCoordinates(componentIdentifier)
         .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
-        .setVulnerabilitySeverity(thirdPartyCoordinateSecurity.getSeverity())
+        .setVulnerabilitySeverity(
+            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity()).setScale(2, RoundingMode.UNNECESSARY)
+                .floatValue())
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)

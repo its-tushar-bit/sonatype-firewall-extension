@@ -3821,7 +3821,7 @@ public class TemporaryEntity
       String refId,
       String description,
       String link,
-      float severity,
+      double severity,
       String severityDescription,
       String fixedBy)
   {
@@ -3834,7 +3834,7 @@ public class TemporaryEntity
       String refId,
       String description,
       String link,
-      float severity,
+      double severity,
       String fixedBy,
       String vulnerabilitySource,
       String cvssVectorString,
@@ -3858,7 +3858,7 @@ public class TemporaryEntity
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
-    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1", "source",
+    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5d, "1.1", "source",
         "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
   }
 
@@ -4783,7 +4783,7 @@ public class TemporaryEntity
     thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
     if (isVulnerable) {
       newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
-          5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
+          5.5d, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
           "aRMethod", "someRecommendations", "someAdvisories");
     }
 

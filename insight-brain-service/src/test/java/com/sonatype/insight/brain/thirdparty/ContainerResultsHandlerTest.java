@@ -133,37 +133,37 @@ public class ContainerResultsHandlerTest
 
     Iterator<ThirdPartyCoordinateSecurity> iterator = coordinateSecurityList.iterator();
     assertCoordinateSecurity(iterator.next(), "CVE-2017-15874", "archival/libarchive/decompress_unlzma.c in BusyBox",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-15874", 5.5f, source, "medium",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-15874", 5.5d, source, "medium",
         "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H", "1.27.2-r4", "1.27.2-r4");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2018-1000500", "Busybox contains a Missing SSL certificate",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1000500", 8.1f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1000500", 8.1d, source, "high",
         "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H", "1.28.3-r2", "1.28.3-r2");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2018-20679", "An issue was discovered in BusyBox",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20679", 7.5f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20679", 7.5d, source, "high",
         "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N", "1.29.3-r10", "1.29.3-r10");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2019-14697",
         "musl libc through 1.1.23 has an x87",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14697", 9.8f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14697", 9.8d, source, "high",
         "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "1.1.23-r2", "1.1.23-r2");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2019-5747", "An issue was discovered in BusyBox",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5747", 7.5f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5747", 7.5d, source, "high",
         "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N", "1.30.1-r2", "1.30.1-r2");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2020-28928",
         "In musl libc through 1.2.1",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-28928", 5.5f, source, "medium",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-28928", 5.5d, source, "medium",
         "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H", "1.2.2_pre2-r0", "1.2.2_pre2-r0");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2021-28831", "decompress_gunzip.c in BusyBox through 1.32.1",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28831", 7.5f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28831", 7.5d, source, "high",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "1.33.0-r5", "1.33.0-r5");
 
     assertCoordinateSecurity(iterator.next(), "CVE-2021-30139", "In Alpine Linux apk-tools",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139", 7.5f, source, "high",
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139", 7.5d, source, "high",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "2.12.5-r0", "2.12.5-r0");
   }
 
@@ -198,7 +198,7 @@ public class ContainerResultsHandlerTest
       final String cve,
       final String descriptionStartsWith,
       final String link,
-      final float severity,
+      final double severity,
       final String source,
       final String severityDescription, final String vector, final String recommendation, final String fixedBy)
   {

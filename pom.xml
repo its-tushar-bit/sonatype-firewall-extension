@@ -93,7 +93,7 @@
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
 
-    <datadog.version>1.12.1</datadog.version>
+    <datadog.version>1.31.2</datadog.version>
   </properties>
 
   <scm>

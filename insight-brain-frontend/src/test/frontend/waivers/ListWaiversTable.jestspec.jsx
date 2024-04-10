@@ -96,7 +96,7 @@ describe('ListWaiversTable', () => {
         comment: 'waiver at org level',
         scopeOwnerType: 'organization',
         scopeOwnerName: 'main org',
-        expiryTime: moment().add(7, 'day'),
+        expiryTime: '2023-12-21T18:29:30.649+0000',
         creatorName: 'Vesper Noir',
       };
       renderComponent({ violation: { activeWaivers: [expectedFirstWaiver], expiredWaivers: [expectedSecondWaiver] } });
@@ -123,7 +123,7 @@ describe('ListWaiversTable', () => {
       expect(
         within(rowAtOrgLevel).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
       ).toBeVisible();
-      expect(within(rowAtOrgLevel).getByText('2024-04-11')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('2023-12-21')).toBeVisible();
       expect(within(rowAtOrgLevel).getByText('waiver at org level')).toBeVisible();
     });
 

@@ -380,7 +380,6 @@ public abstract class AbstractMtiqFunctionalTest
 
     // global tenant must be used for system-wide configuration calls below
     TenantTestHelper.setGlobalTenant();
-    testCLMServer.getCLMServer().setHdsUrl();
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
 

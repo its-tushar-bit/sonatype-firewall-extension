@@ -8,7 +8,6 @@ import React from 'react';
 import { axiosMockAdapter, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 import * as waiverActions from 'MainRoot/waivers/waiverActions';
-import moment from 'moment';
 import { getApplicableWaiversUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ListWaiversTable', () => {

@@ -13,6 +13,7 @@ import { curry, descend, map, prop, sort } from 'ramda';
 import {
   NxButton,
   NxFontAwesomeIcon,
+  NxReadOnly,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -48,27 +49,45 @@ export default function ListWaiversTable(props) {
     const key = waiver.policyWaiverId;
     return (
       <NxTableRow className={rowClass} key={key}>
-        <NxTableCell className="iq-waivers-table--create-time visual-testing-ignore">
-          {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
+        <NxTableCell>
+          <NxReadOnly.Label>Created</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-waivers-table--created visual-testing-ignore">
+            {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
+          </NxReadOnly.Data>
+
+          <NxReadOnly.Label>Expiration</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-waivers-table--expiration visual-testing-ignore">
+            {waiver.expiryTime ? moment(waiver.expiryTime).format(STANDARD_DATE_FORMAT) : 'Does not expire'}
+          </NxReadOnly.Data>
         </NxTableCell>
-        <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>
-        <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
-        <NxTableCell className="iq-waivers-table--component-name">
-          {isWaiverAllVersionsOrExact(waiver) ? (
-            <ComponentDisplay
-              component={violationDetails}
-              truncate={false}
-              matcherStrategy={waiver.matcherStrategy}
-              displayTextIfUnknown={unknownComponentName}
-            />
-          ) : (
-            'All'
+        <NxTableCell>
+          <NxReadOnly.Label>Scope</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxReadOnly.Data>
+
+          <NxReadOnly.Label>Component</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-waivers-table--component">
+            {isWaiverAllVersionsOrExact(waiver) ? (
+              <ComponentDisplay
+                component={violationDetails}
+                truncate={false}
+                matcherStrategy={waiver.matcherStrategy}
+                displayTextIfUnknown={unknownComponentName}
+              />
+            ) : (
+              'All'
+            )}
+          </NxReadOnly.Data>
+
+          {waiver.comment && (
+            <>
+              <NxReadOnly.Label>Comment</NxReadOnly.Label>
+              <NxReadOnly.Data className="iq-waivers-table--comment">{waiver.comment}</NxReadOnly.Data>
+            </>
           )}
+
+          <NxReadOnly.Label>Author</NxReadOnly.Label>
+          <NxReadOnly.Data className="iq-waivers-table--author">{waiver?.creatorName || '- -'}</NxReadOnly.Data>
         </NxTableCell>
-        <NxTableCell className="iq-waivers-table--expiry-time">
-          {waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}
-        </NxTableCell>
-        <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--delete">
           <div className="nx-btn-bar">
             <NxButton
@@ -101,12 +120,8 @@ export default function ListWaiversTable(props) {
       <NxTable id="list-waivers-table">
         <NxTableHead>
           <NxTableRow>
-            <NxTableCell>CREATED</NxTableCell>
-            <NxTableCell>AUTHOR</NxTableCell>
-            <NxTableCell>SCOPE</NxTableCell>
-            <NxTableCell>COMPONENT</NxTableCell>
-            <NxTableCell>EXPIRATION</NxTableCell>
-            <NxTableCell>COMMENTS</NxTableCell>
+            <NxTableCell className="iq-waivers-table--duration">DURATION</NxTableCell>
+            <NxTableCell>WAIVER DETAILS</NxTableCell>
             <NxTableCell> </NxTableCell>
           </NxTableRow>
         </NxTableHead>

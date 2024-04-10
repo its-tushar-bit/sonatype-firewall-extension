@@ -611,12 +611,8 @@ public class ViolationDetailsTest
     violationDetailsPage.applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTable =
         violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTable.headerRow().dateCreated().shouldHave(text("CREATED"));
-    applicableWaiversTable.headerRow().createdBy().shouldHave(text("AUTHOR"));
-    applicableWaiversTable.headerRow().scope().shouldHave(text("SCOPE"));
-    applicableWaiversTable.headerRow().components().shouldHave(text("COMPONENT"));
-    applicableWaiversTable.headerRow().waiverExpiration().shouldHave(text("EXPIRATION"));
-    applicableWaiversTable.headerRow().comments().shouldHave(text("COMMENTS"));
+    applicableWaiversTable.headerRow().duration().shouldHave(text("DURATION"));
+    applicableWaiversTable.headerRow().waiverDetails().shouldHave(text("WAIVER DETAILS"));
     applicableWaiversTable.noWaiversMessage().shouldBe(visible);
     applicableWaiversTable.noWaiversMessage().shouldHave(
         text("You don't have any waivers: to learn more about waivers you can check our help documentation."));

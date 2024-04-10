@@ -47,27 +47,35 @@ public class ListWaiversTable
     }
 
     public SelenideElement dateCreated() {
+      return child(".iq-waivers-table--created");
+    }
+
+    public SelenideElement duration() {
       return child(TABLE_CELL_SELECTOR, nthChild(1));
     }
 
-    public SelenideElement createdBy() {
+    public SelenideElement waiverExpiration() {
+      return child(".iq-waivers-table--expiration");
+    }
+
+    public SelenideElement waiverDetails() {
       return child(TABLE_CELL_SELECTOR, nthChild(2));
     }
 
+    public SelenideElement createdBy() {
+      return child(".iq-waivers-table--author");
+    }
+
     public SelenideElement scope() {
-      return child(TABLE_CELL_SELECTOR, nthChild(3));
+      return child(".iq-waivers-table--scope");
     }
 
     public SelenideElement components() {
-      return child(TABLE_CELL_SELECTOR, nthChild(4));
-    }
-
-    public SelenideElement waiverExpiration() {
-      return child(TABLE_CELL_SELECTOR, nthChild(5));
+      return child(".iq-waivers-table--component");
     }
 
     public SelenideElement comments() {
-      return child(TABLE_CELL_SELECTOR, nthChild(6));
+      return child(".iq-waivers-table--comment");
     }
 
     public SelenideElement deleteButton() {

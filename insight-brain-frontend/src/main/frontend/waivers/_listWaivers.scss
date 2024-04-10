@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 @use 'MainRoot/scss/mixins';
 
 #list-waivers-table {
@@ -12,38 +13,18 @@
 }
 
 .iq-waivers-table {
-  &--scope,
-  &--creator,
-  &--component-name,
-  &--comments {
-    @include mixins.overflow-wrap-anywhere;
-  }
-
-  &--create-time {
-    max-width: 84px;
-  }
-
-  &--creator {
-    min-width: 60px;
-  }
-
+  &--author,
+  &--component,
+  &--comment,
   &--scope {
-    min-width: 68px;
-  }
-
-  &--component-name {
-    min-width: 96px;
-  }
-
-  &--expiry-time {
-    width: 85px;
-  }
-
-  &--comments {
-    min-width: 119px;
+    @include mixins.overflow-wrap-anywhere;
   }
 
   &--delete {
     width: 24px;
+  }
+
+  &--duration {
+    width: 118px;
   }
 }

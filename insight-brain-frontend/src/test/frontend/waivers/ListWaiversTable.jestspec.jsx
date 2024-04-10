@@ -30,13 +30,9 @@ describe('ListWaiversTable', () => {
       expect(groups.length).toBe(2);
 
       const headers = within(groups[0]).getAllByRole('columnheader');
-      expect(headers.length).toBe(7);
-      expect(within(headers[0]).getByText('CREATED')).toBeVisible();
-      expect(within(headers[1]).getByText('AUTHOR')).toBeVisible();
-      expect(within(headers[2]).getByText('SCOPE')).toBeVisible();
-      expect(within(headers[3]).getByText('COMPONENT')).toBeVisible();
-      expect(within(headers[4]).getByText('EXPIRATION')).toBeVisible();
-      expect(within(headers[5]).getByText('COMMENTS')).toBeVisible();
+      expect(headers.length).toBe(3);
+      expect(within(headers[0]).getByText('DURATION')).toBeVisible();
+      expect(within(headers[1]).getByText('WAIVER DETAILS')).toBeVisible();
       // final header (headers[6]) is empty to accommodate the delete icon
     });
 
@@ -80,7 +76,7 @@ describe('ListWaiversTable', () => {
         const groups = within(table).getAllByRole('rowgroup');
         const rows = within(groups[1]).getAllByRole('row');
         expect(rows.length).toBe(1);
-        expect(within(rows[0]).getByRole('cell', { name: 'updated waiver' })).toBeVisible();
+        expect(within(rows[0]).getByText('updated waiver')).toBeVisible();
 
         expect(screen.queryByText(/An error occurred loading data/)).not.toBeInTheDocument();
       });
@@ -111,28 +107,24 @@ describe('ListWaiversTable', () => {
       expect(rows.length).toBe(2);
 
       const rowAtAppLevel = rows[0];
-      expect(within(rowAtAppLevel).getByRole('cell', { name: '2023-12-28' })).toBeVisible();
-      expect(within(rowAtAppLevel).getByRole('cell', { name: 'Admin BuiltIn' })).toBeVisible();
-      expect(within(rowAtAppLevel).getByRole('cell', { name: 'Application - app2' })).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('2023-12-28')).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('Admin BuiltIn')).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('Application - app2')).toBeVisible();
       expect(
-        within(rowAtAppLevel).getByRole('cell', {
-          name: 'org.springframework.security : spring-security-config : 5.2.0.RELEASE',
-        })
+        within(rowAtAppLevel).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
       ).toBeVisible();
-      expect(within(rowAtAppLevel).getByRole('cell', { name: 'Does not expire' })).toBeVisible();
-      expect(within(rowAtAppLevel).getByRole('cell', { name: 'waiver at app level' })).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('Does not expire')).toBeVisible();
+      expect(within(rowAtAppLevel).getByText('waiver at app level')).toBeVisible();
 
       const rowAtOrgLevel = rows[1];
-      expect(within(rowAtOrgLevel).getByRole('cell', { name: '2023-12-14' })).toBeVisible();
-      expect(within(rowAtOrgLevel).getByRole('cell', { name: 'Vesper Noir' })).toBeVisible();
-      expect(within(rowAtOrgLevel).getByRole('cell', { name: 'Organization - main org' })).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('2023-12-14')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('Vesper Noir')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('Organization - main org')).toBeVisible();
       expect(
-        within(rowAtOrgLevel).getByRole('cell', {
-          name: 'org.springframework.security : spring-security-config : 5.2.0.RELEASE',
-        })
+        within(rowAtOrgLevel).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
       ).toBeVisible();
-      expect(within(rowAtOrgLevel).getByRole('cell', { name: 'in 7 days' })).toBeVisible();
-      expect(within(rowAtOrgLevel).getByRole('cell', { name: 'waiver at org level' })).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('2024-04-11')).toBeVisible();
+      expect(within(rowAtOrgLevel).getByText('waiver at org level')).toBeVisible();
     });
 
     it('with active waivers in descending order by expiry time', async () => {
@@ -161,9 +153,9 @@ describe('ListWaiversTable', () => {
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(3);
 
-      expect(within(rows[0]).getByRole('cell', { name: '2023-12-28' })).toBeVisible();
-      expect(within(rows[1]).getByRole('cell', { name: '2023-12-14' })).toBeVisible();
-      expect(within(rows[2]).getByRole('cell', { name: '2023-12-01' })).toBeVisible();
+      expect(within(rows[0]).getByText('2023-12-28')).toBeVisible();
+      expect(within(rows[1]).getByText('2023-12-14')).toBeVisible();
+      expect(within(rows[2]).getByText('2023-12-01')).toBeVisible();
     });
 
     it('with expired waivers in descending order by expiry time after the active waivers', async () => {
@@ -200,10 +192,10 @@ describe('ListWaiversTable', () => {
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(4);
 
-      expect(within(rows[0]).getByRole('cell', { name: '2023-12-31' })).toBeVisible();
-      expect(within(rows[1]).getByRole('cell', { name: '2023-12-28' })).toBeVisible();
-      expect(within(rows[2]).getByRole('cell', { name: '2023-12-14' })).toBeVisible();
-      expect(within(rows[3]).getByRole('cell', { name: '2023-12-01' })).toBeVisible();
+      expect(within(rows[0]).getByText('2023-12-31')).toBeVisible();
+      expect(within(rows[1]).getByText('2023-12-28')).toBeVisible();
+      expect(within(rows[2]).getByText('2023-12-14')).toBeVisible();
+      expect(within(rows[3]).getByText('2023-12-01')).toBeVisible();
     });
 
     it('with different component name per row depending on the matching strategy', async () => {
@@ -236,15 +228,17 @@ describe('ListWaiversTable', () => {
       expect(rows.length).toBe(3);
 
       expect(
-        within(rows[0]).getByRole('cell', {
-          name: 'org.springframework.security : spring-security-config : 5.2.0.RELEASE',
-        })
+        within(rows[0]).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
       ).toBeVisible();
-      expect(within(rows[1]).getByRole('cell', { name: 'All' })).toBeVisible();
+
       expect(
-        within(rows[2]).getByRole('cell', {
-          name: 'org.springframework.security : spring-security-config (all versions)',
-        })
+        within(rows[0]).getByText('org.springframework.security : spring-security-config : 5.2.0.RELEASE')
+      ).toBeVisible();
+
+      expect(within(rows[1]).getByText('All')).toBeVisible();
+
+      expect(
+        within(rows[2]).getByText('org.springframework.security : spring-security-config (all versions)')
       ).toBeVisible();
     });
 

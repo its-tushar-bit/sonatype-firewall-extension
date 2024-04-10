@@ -69,6 +69,11 @@ public class SbomMetadataBuilder
     return new SbomMetadataBuilder(daoFactory);
   }
 
+  public SbomMetadataBuilder withCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
+    return this;
+  }
+
   public SbomMetadataBuilder withApplicationId(String applicationId) {
     this.applicationId = applicationId;
     return this;

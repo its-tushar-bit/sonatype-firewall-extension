@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import java.util.Date;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ApiSbomDashboardResourceTest
+    extends AbstractResourceTest
+{
+  @Before
+  public void setUp() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PublicApiPaths.SBOM_DASHBOARD_RESOURCE_PATH);
+  }
+
+  @Test
+  public void testGetSbomsAnalyzedMetrics() throws Exception {
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date oneMonthAgo = DateUtils.addMonths(now, -1);
+    Date oneWeekAgo = DateUtils.addWeeks(now, -1);
+    Date yesterday = DateUtils.addDays(now, -1);
+
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
+
+    HttpResponse response = restRequest().path(ApiSbomDashboardResource.SBOMS_ANALYZED_PATH).get();
+    assertResponseStatus(200, response);
+
+    SbomsAnalyzedMetricsDTO result = response.getBody(SbomsAnalyzedMetricsDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotal()).isEqualTo(7);
+    assertThat(result.getThreshold()).isEqualTo(testProductLicense.getMaxSboms().longValue());
+  }
+}

@@ -22,6 +22,7 @@
     <truezipVersion>7.7.10</truezipVersion>
     <!-- lucene 9.x requires Java 11 -->
     <lucene.version>8.11.2</lucene.version>
+    <micrometer.version>1.12.4</micrometer.version>
   </properties>
 
   <dependencies>
@@ -121,6 +122,18 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <!-- Used to collect and push custom DataDog metrics -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <version>${micrometer.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-statsd</artifactId>
+      <version>${micrometer.version}</version>
     </dependency>
 
     <dependency>

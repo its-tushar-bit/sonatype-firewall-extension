@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.net.URI;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 
+import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -45,6 +47,10 @@ public class MultiTenantInsightConfig
 
   @JsonProperty
   private String globalTenantEncryptionKeyName;
+
+  @Nullable
+  @JsonProperty
+  private StatsdMetricsConfig statsdMetricsConfig;
 
   @Override
   public File getSonatypeWork() {
@@ -134,5 +140,13 @@ public class MultiTenantInsightConfig
 
   public void setGlobalTenantEncryptionKeyName(String globalTenantEncryptionKeyName) {
     this.globalTenantEncryptionKeyName = globalTenantEncryptionKeyName;
+  }
+
+  public StatsdMetricsConfig getStatsdMetricsConfig() {
+    return statsdMetricsConfig;
+  }
+
+  public void setStatsdMetricsConfig(final StatsdMetricsConfig metricsConfig) {
+    this.statsdMetricsConfig = metricsConfig;
   }
 }

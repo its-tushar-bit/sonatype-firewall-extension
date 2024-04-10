@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.git.MultiTenantDefaultBranchMonitorExecutor;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.metrics.micrometer.MeterRegistryProvider;
+import com.sonatype.insight.brain.micrometer.MultiTenantMeterRegistryProvider;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -347,6 +349,8 @@ public class MultiTenantInsightBrainService
         bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
 
         bind(SourceControlSshValidator.class).to(MtiqSourceControlSshValidator.class);
+
+        bind(MeterRegistryProvider.class).to(MultiTenantMeterRegistryProvider.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

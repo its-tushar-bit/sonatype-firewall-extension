@@ -221,6 +221,8 @@ public class SystemConfigurationProperty
 
   public static final String API_ACCESS_ALLOW_LIST = "apiAccessAllowList";
 
+  public static final String PRIORITIZED_FINDINGS_REPORT = "prioritizedFindingsReport";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

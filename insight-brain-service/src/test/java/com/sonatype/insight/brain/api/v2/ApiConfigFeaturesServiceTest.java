@@ -782,4 +782,41 @@ public class ApiConfigFeaturesServiceTest
     SystemConfigurationPropertyFeature.SBOM_MANAGER.setEnabled(false);
     assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isFalse();
   }
+
+  @Test
+  public void testEnableFeature_PrioritizedFindingsReport() {
+    service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_PrioritizedFindingsReport_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_PrioritizedFindingsReport() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT
+        .getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
+        .isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_PrioritizedFindingsReport() {
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_PrioritizedFindingsReport_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
 }

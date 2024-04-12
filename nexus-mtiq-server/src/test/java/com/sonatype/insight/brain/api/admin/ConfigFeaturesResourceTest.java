@@ -103,6 +103,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
           SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
+          SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       }
   )).toArray(String[]::new);
 

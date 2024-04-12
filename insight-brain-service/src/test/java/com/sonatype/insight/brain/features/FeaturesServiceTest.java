@@ -17,6 +17,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -147,5 +148,20 @@ public class FeaturesServiceTest
     Set<String> allFeatureIdsSet = new LinkedHashSet<>(allFeatureIdsList);
 
     assertThat(allFeatureIdsSet).hasSize(allFeatureIdsList.size());
+  }
+
+  @Test
+  public void testGetFeatures_PrioritizedFindingsReportEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, "true");
+    assertThat(featuresService.getFeatures())
+        .contains(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
+  }
+
+  @Test
+  public void testGetFeatures_PrioritizedFindingsReportDisabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    assertThat(featuresService.getFeatures())
+        .doesNotContain(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
   }
 }

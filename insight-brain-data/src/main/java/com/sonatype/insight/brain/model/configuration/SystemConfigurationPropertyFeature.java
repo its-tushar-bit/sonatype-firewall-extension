@@ -188,7 +188,9 @@ public enum SystemConfigurationPropertyFeature
   DEVELOPMENT_DASHBOARD_METRIC_COLLECTION(
       SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
       true
-  );
+  ),
+
+  PRIORITIZED_FINDINGS_REPORT(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

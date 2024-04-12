@@ -47,7 +47,7 @@
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
      keycloak 22.x requires Java 17 -->
     <keycloak.version>21.1.2</keycloak.version>
-    <bouncycastle.version>1.77</bouncycastle.version>
+    <bouncycastle.version>1.78</bouncycastle.version>
 
     <!--
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.

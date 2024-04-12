@@ -19,10 +19,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -77,11 +77,7 @@ public class ApiSbomService
 
   public static final String SBOM_STATE_ORIGINAL = "original";
 
-  public static final String APPLICATION_ID_PLACEHOLDER = "{applicationId}";
-
-  public static final String SBOM_VERSION_PLACEHOLDER = "{sbomVersion}";
-
-  public static final String SBOM_FORM_PLACEHOLDER = "?form=original";
+  public static final String STATE_PARAM = "state";
 
   private final ThirdPartySbomMetadataDAO dao;
 
@@ -293,9 +289,11 @@ public class ApiSbomService
   }
 
   private String createDownloadUrl(String applicationId, String sbomVersion) {
-    return PublicApiPaths.SBOM_RESOURCE_PATH +
-        ApiSbomResource.SBOM_VERSION_PATH.replace(APPLICATION_ID_PLACEHOLDER, applicationId)
-            .replace(SBOM_VERSION_PLACEHOLDER, sbomVersion) + SBOM_FORM_PLACEHOLDER;
+    return UriBuilder
+        .fromResource(ApiSbomResource.class)
+        .path(ApiSbomResource.SBOM_VERSION_PATH)
+        .queryParam(STATE_PARAM, SBOM_STATE_ORIGINAL)
+        .build(applicationId, sbomVersion).toString();
   }
 
   @Authorize(permission = Permission.READ)

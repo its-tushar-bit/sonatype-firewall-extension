@@ -12,9 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -116,10 +116,11 @@ public class SbomMetadataUtils
   public ApiThirdPartyScanTicketDTO createSbomImportTicket(final String applicationId) {
     ApiThirdPartyScanTicketDTO scanTicketDTO = new ApiThirdPartyScanTicketDTO();
     scanTicketDTO.requestId = UUID.randomUUID().toString().replace("-", "");
-    scanTicketDTO.statusUrl =
-        PublicApiPaths.SBOM_RESOURCE_PATH + ApiSbomResource.SBOM_STATUS_PATH
-            .replace("{applicationId}", applicationId)
-            .replace("{importRequestId}", scanTicketDTO.requestId);
+    scanTicketDTO.statusUrl = UriBuilder
+        .fromResource(ApiSbomResource.class)
+        .path(ApiSbomResource.SBOM_STATUS_PATH)
+        .build(applicationId, scanTicketDTO.requestId)
+        .toString();
     return scanTicketDTO;
   }
 

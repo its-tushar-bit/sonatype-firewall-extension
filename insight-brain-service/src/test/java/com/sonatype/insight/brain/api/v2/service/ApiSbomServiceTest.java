@@ -460,6 +460,7 @@ public class ApiSbomServiceTest
       ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
       assertThat(apiSbomStatusDTO.applicationId).isEqualTo(app.getId());
       assertThat(apiSbomStatusDTO.downloadUrl).startsWith("api/v2/sbom/applications/" + app.getId() + "/versions/");
+      assertThat(apiSbomStatusDTO.downloadUrl).endsWith("state=original");
     }
   }
 

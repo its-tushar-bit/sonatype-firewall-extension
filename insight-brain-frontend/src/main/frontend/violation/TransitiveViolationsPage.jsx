@@ -20,36 +20,27 @@ import ComponentWaiversPopover from '../componentDetails/ViolationsTableTile/com
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectAvailableScopes,
-  selectComponentTransitivePolicyViolations,
-  selectIsRequestWaiveTransitiveViolationsOpen,
-  selectIsViewTransitiveViolationWaiversOpen,
-  selectIsWaiveTransitiveViolationsOpen,
-  selectReportMetadata,
   selectShouldGoBackToComponentDetails,
-  selectTransitiveHash,
-  selectTransitiveOwnerId,
-  selectTransitiveOwnerType,
-  selectTransitiveScanId,
-  selectTransitiveViolationWaivers,
+  selectTransitiveViolations,
 } from 'MainRoot/violation/transitiveViolationsSelectors';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function TransitiveViolationsPage() {
   const dispatch = useDispatch();
-  const ownerType = useSelector(selectTransitiveOwnerType);
-  const ownerId = useSelector(selectTransitiveOwnerId);
-  const hash = useSelector(selectTransitiveHash);
-  const scanId = useSelector(selectTransitiveScanId);
-  const availableScopes = useSelector(selectAvailableScopes);
-  const reportMetadata = useSelector(selectReportMetadata);
-  const componentTransitivePolicyViolations = useSelector(selectComponentTransitivePolicyViolations);
-  const transitiveViolationWaivers = useSelector(selectTransitiveViolationWaivers);
-  const waiverToDelete = useSelector(selectWaiverToDelete);
-  const isRequestWaiveTransitiveViolationsOpen = useSelector(selectIsRequestWaiveTransitiveViolationsOpen);
-  const isWaiveTransitiveViolationsOpen = useSelector(selectIsWaiveTransitiveViolationsOpen);
-  const isViewTransitiveViolationWaiversOpen = useSelector(selectIsViewTransitiveViolationWaiversOpen);
+  const { ownerType, ownerId, hash, scanId } = useSelector(selectRouterCurrentParams);
+
+  const {
+    availableScopes,
+    componentTransitivePolicyViolations,
+    isRequestWaiveTransitiveViolationsOpen,
+    isViewTransitiveViolationWaiversOpen,
+    isWaiveTransitiveViolationsOpen,
+    reportMetadata,
+    transitiveViolationWaivers,
+  } = useSelector(selectTransitiveViolations);
   const shouldGoBackToComponentDetails = useSelector(selectShouldGoBackToComponentDetails);
+  const waiverToDelete = useSelector(selectWaiverToDelete);
   const loadAvailableScopes = (ownerType, ownerId) => dispatch(actions.loadAvailableScopes(ownerType, ownerId));
   const loadReportMetadata = (ownerId, ScanId) => dispatch(actions.loadReportMetadata(ownerId, ScanId));
   const loadTransitiveViolations = (ownerType, ownerId, scanId, hash) =>

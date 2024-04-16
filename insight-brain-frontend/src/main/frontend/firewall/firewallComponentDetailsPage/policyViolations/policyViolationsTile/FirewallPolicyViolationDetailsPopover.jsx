@@ -105,7 +105,8 @@ export default function FirewallPolicyViolationDetailsPopover() {
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
               hasPermissionForAppWaivers={hasPermissionForAppWaivers}
               isFirewallOrRepository
-              onClick={redirectToAddWaiverPage}
+              onClickAddWaiver={redirectToAddWaiverPage}
+              onClickRequestWaiver={() => {}}
             />
           </NxButtonBar>
         ) : null}

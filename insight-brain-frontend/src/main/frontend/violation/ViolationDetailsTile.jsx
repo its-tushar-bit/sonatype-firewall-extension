@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 import ViolationDetailsTileHeaderMainTitle from './ViolationDetailsTileHeaderMainTitle';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
@@ -17,6 +17,7 @@ import { capitalizeFirstLetter } from '../util/jsUtil';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
 import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './PolicyViolationConstraintInfo';
+import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -78,24 +79,7 @@ export default function ViolationDetailsTile(props) {
         stateGo('addWaiver', { violationId: selectedViolationId });
       }
     },
-    redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId }),
-    waiversButton = hasPermissionForAppWaivers ? (
-      <NxButton
-        id="violation-page-add-waiver"
-        variant={activeWaivers.length === 0 ? 'primary' : 'secondary'}
-        onClick={redirectToAddWaiverPage}
-      >
-        <span>Add Waiver</span>
-      </NxButton>
-    ) : (
-      <NxButton
-        id="violation-page-request-waiver"
-        variant={activeWaivers.length === 0 ? 'primary' : 'secondary'}
-        onClick={redirectToRequestWaiverPage}
-      >
-        <span>Request Waiver</span>
-      </NxButton>
-    );
+    redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId });
 
   function getOwnerHref(owner) {
     const ownerIdType = ownerIdTypeMap[owner.ownerType],
@@ -135,7 +119,14 @@ export default function ViolationDetailsTile(props) {
           {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} />}
           {policyExists && (
             <Fragment>
-              <div className="nx-tile__actions">{waiversButton}</div>
+              <div className="nx-tile__actions">
+                <AddOrRequestWaiverButton
+                  variant={activeWaivers?.length ? 'secondary' : 'primary'}
+                  hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+                  onClickAddWaiver={redirectToAddWaiverPage}
+                  onClickRequestWaiver={redirectToRequestWaiverPage}
+                />
+              </div>
               {activeWaivers?.length && hasPermissionForAppWaivers ? (
                 <ActiveWaiversIndicator
                   activeWaiverCount={activeWaivers.length}

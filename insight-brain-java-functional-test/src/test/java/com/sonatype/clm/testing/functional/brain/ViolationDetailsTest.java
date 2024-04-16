@@ -587,6 +587,35 @@ public class ViolationDetailsTest
   }
 
   @Test
+  public void testRequestWaiverPageFromSegmentedButton() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+
+    detailsTile.getAddWaiversSegmentedDropdownButton().shouldBe(visible);
+    detailsTile.getAddWaiversSegmentedDropdownButton().click();
+
+    detailsTile.requestWaiverButton().shouldBe(visible).click();
+
+    waitUntilUrl(RequestWaiverPage.url(securityPolicyViolation.getId()));
+    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+    requestWaiverPage.root().shouldBe(visible);
+    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
+    requestWaiverPage.root().shouldHave(text(
+        "A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver" +
+            " requests is configured. If you are unsure about the webhook configuration, share the policy violation" +
+            " ID and the curl command with the designated approver."));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
+    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+    requestWaiverPage.comments().shouldHave(text(""));
+    requestWaiverPage.saveButton().shouldBe(visible);
+    requestWaiverPage.cancelButton().shouldBe(visible);
+  }
+
+  @Test
   public void testWaivedIndicator() {
     // Set up a waiver
     List<ConstraintFact> constraintFacts = otherPolicyViolation.getConstraintFacts();

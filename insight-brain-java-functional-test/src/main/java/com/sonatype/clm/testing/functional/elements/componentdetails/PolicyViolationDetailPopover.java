@@ -28,6 +28,10 @@ public class PolicyViolationDetailPopover
     return child("#violation-page-add-waiver");
   }
 
+  public SelenideElement getAddWaiversSegmentedDropdownButton() {
+    return child("#violation-page-add-waiver .nx-segmented-btn__dropdown-btn");
+  }
+
   public SelenideElement getRequestWaiversButton() {
     return child("#violation-page-request-waiver");
   }

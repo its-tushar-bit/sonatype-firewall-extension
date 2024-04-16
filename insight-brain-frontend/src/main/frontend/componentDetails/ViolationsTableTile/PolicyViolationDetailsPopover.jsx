@@ -40,11 +40,10 @@ export default function PolicyViolationDetailsPopover() {
   const { activeWaivers } = useSelector(selectApplicableWaivers);
   const violationDetails = useSelector(selectViolationDetails);
   const hasPermissionForAppWaivers = useSelector(selectHasPermissionForAppWaivers);
-
-  const redirectToAddOrRequestWaiverPage = () =>
-    hasPermissionForAppWaivers
-      ? dispatch(stateGo('addWaiver', { violationId: selectedPolicyViolation.policyViolationId }))
-      : dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+  const redirectToAddWaiver = () =>
+    dispatch(stateGo('addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+  const redirectToRequestWaiver = () =>
+    dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
 
   useEffect(() => {
     return () => {
@@ -94,7 +93,8 @@ export default function PolicyViolationDetailsPopover() {
             <AddOrRequestWaiverButton
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
               hasPermissionForAppWaivers={hasPermissionForAppWaivers}
-              onClick={redirectToAddOrRequestWaiverPage}
+              onClickAddWaiver={redirectToAddWaiver}
+              onClickRequestWaiver={redirectToRequestWaiver}
             />
           </NxButtonBar>
         ) : null}

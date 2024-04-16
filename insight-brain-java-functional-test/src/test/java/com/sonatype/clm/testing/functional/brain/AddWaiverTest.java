@@ -717,7 +717,7 @@ public class AddWaiverTest
         violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
     applicableWaiversTable.noWaiversMessage().shouldBe(visible);
 
-    violationDetailsPage.detailsTile().addWaiverButton().shouldHave(cssClass("nx-btn--primary")).click();
+    violationDetailsPage.detailsTile().addWaiverSegmentedButton().shouldHave(cssClass("nx-btn--primary")).click();
 
     waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
     AddWaiverPage addWaiverPage = new AddWaiverPage();
@@ -735,7 +735,7 @@ public class AddWaiverTest
     violationDetailsPage.detailsTile().shouldBe(visible);
     violationDetailsPage.detailsTile().addWaiverButton().shouldBe(visible);
     violationDetailsPage.applicableWaiversTab().shouldBe(visible).shouldHave(text("1 Applicable Waivers"));
-    violationDetailsPage.detailsTile().addWaiverButton().shouldHave(cssClass("nx-btn--secondary"));
+    violationDetailsPage.detailsTile().addWaiverSegmentedButton().shouldHave(cssClass("nx-btn--secondary"));
     violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(2);
     violationDetailsPage.sidebarNav().navItem(1).shouldHave(cssClass("selected"));
 

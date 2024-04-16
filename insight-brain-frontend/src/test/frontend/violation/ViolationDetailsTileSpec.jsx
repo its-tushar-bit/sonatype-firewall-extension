@@ -9,6 +9,7 @@ import StageDisplay from 'MainRoot/violation/StageDisplay';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import { NxTextLink, NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 import PolicyViolationConstraintInfo from 'MainRoot/violation/PolicyViolationConstraintInfo';
+import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 
 describe('ViolationDetailsTile', function () {
   let timeAgoMock,
@@ -244,7 +245,10 @@ describe('ViolationDetailsTile', function () {
     });
 
     it('renders an Add Waiver menu button that navigates to the Add Waiver page when clicked', function () {
-      const addWaiverButton = getShallowComponent().find('#violation-page-add-waiver');
+      const addWaiverButton = getShallowComponent()
+        .find(AddOrRequestWaiverButton)
+        .dive()
+        .find('#violation-page-add-waiver');
 
       expect(addWaiverButton).toExist();
 
@@ -263,11 +267,15 @@ describe('ViolationDetailsTile', function () {
       });
 
       it('renders an Request Waiver menu button that navigates to the Add Waiver page when clicked', function () {
-        const requestWaiverButton = getShallowComponent().find('#violation-page-request-waiver');
+        const mountedComponent = getShallowComponent();
+        const requestWaiverButton = mountedComponent
+          .find(AddOrRequestWaiverButton)
+          .dive()
+          .find('#violation-page-request-waiver');
 
         expect(requestWaiverButton).toExist();
 
-        requestWaiverButton.simulate('click');
+        requestWaiverButton.at(0).simulate('click');
         expect(stateGoMock).toHaveBeenCalledWith('requestWaiver', {
           violationId: 'selectedViolationId',
         });

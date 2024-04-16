@@ -4,35 +4,52 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 
 describe('AddOrRequestWaiverButton', () => {
   let renderComponent;
-  let redirectSpy;
+  let addRedirectSpy;
+  let requestRedirectSpy;
   let initialProps;
 
   beforeEach(() => {
-    redirectSpy = jest.fn();
+    addRedirectSpy = jest.fn();
+    requestRedirectSpy = jest.fn();
 
     initialProps = {
       variant: 'primary',
       hasPermissionForAppWaivers: true,
-      onClick: redirectSpy,
+      onClickAddWaiver: addRedirectSpy,
+      onClickRequestWaiver: requestRedirectSpy,
     };
 
     renderComponent = (props = {}) => render(<AddOrRequestWaiverButton {...initialProps} {...props} />);
   });
 
   describe('application and organization', () => {
-    describe('add waiver button', () => {
-      it('render enabled button primary variant', () => {
+    describe('add waiver segmented button', () => {
+      it('renders enabled button primary variant', () => {
         renderComponent();
         const addWaiverButton = screen.getByRole('button', { name: 'Add Waiver' });
+        const dropdownButton = screen.getByLabelText('more options');
 
         expect(addWaiverButton).toBeEnabled();
+        expect(dropdownButton).toBeEnabled();
         expect(addWaiverButton).toHaveClass('nx-btn--primary');
+      });
+
+      it('renders request waiver button on dropdown click', () => {
+        renderComponent();
+        let requestWaiverButton = screen.queryByRole('button', { name: 'Request Waiver' });
+        const dropdownButton = screen.getByLabelText('more options');
+        expect(requestWaiverButton).toBeNull();
+
+        fireEvent.click(dropdownButton);
+
+        requestWaiverButton = screen.getByRole('button', { name: 'Request Waiver' });
+        expect(requestWaiverButton).toBeVisible();
       });
 
       it('call on click action', () => {
@@ -42,7 +59,15 @@ describe('AddOrRequestWaiverButton', () => {
         expect(addWaiverButton).toBeEnabled();
         addWaiverButton.click();
 
-        expect(redirectSpy).toHaveBeenCalledTimes(1);
+        expect(addRedirectSpy).toHaveBeenCalledTimes(1);
+
+        const dropdownButton = screen.getByLabelText('more options');
+
+        fireEvent.click(dropdownButton);
+
+        const requestWaiverButton = screen.getByRole('button', { name: 'Request Waiver' });
+        requestWaiverButton.click();
+        expect(requestRedirectSpy).toHaveBeenCalledTimes(1);
       });
 
       it('change button variant to secondary', () => {
@@ -56,12 +81,14 @@ describe('AddOrRequestWaiverButton', () => {
     });
 
     describe('request waiver button', () => {
-      it('render enabled button primary variant when no waiver edit permission', () => {
+      it('render enabled button primary variant when no waiver edit permission and does not render add waiver button', () => {
         renderComponent({ hasPermissionForAppWaivers: false });
         const requestWaiverButton = screen.getByRole('button', { name: 'Request Waiver' });
+        const addWaiverButton = screen.queryByRole('button', { name: 'Add Waiver' });
 
         expect(requestWaiverButton).toBeEnabled();
         expect(requestWaiverButton).toHaveClass('nx-btn--primary');
+        expect(addWaiverButton).toBe(null);
       });
 
       it('call on click action', () => {
@@ -71,7 +98,7 @@ describe('AddOrRequestWaiverButton', () => {
         expect(requestWaiverButton).toBeEnabled();
         requestWaiverButton.click();
 
-        expect(redirectSpy).toHaveBeenCalledTimes(1);
+        expect(requestRedirectSpy).toHaveBeenCalledTimes(1);
       });
 
       it('change button variant to secondary', () => {
@@ -86,11 +113,22 @@ describe('AddOrRequestWaiverButton', () => {
   });
 
   describe('firewall and repository', () => {
-    it('hide add waiver button on firewall and no waive permission', () => {
+    it('shows add waiver button on firewall and no segmented button', () => {
+      renderComponent({ isFirewallOrRepository: true });
+      const addWaiverButton = screen.getByRole('button', { name: 'Add Waiver' });
+      const dropdownButton = screen.queryByLabelText('more options');
+
+      expect(addWaiverButton).toBeVisible();
+      expect(dropdownButton).toBe(null);
+    });
+
+    it('hide add waiver and request waiver buttons on firewall and no waive permission', () => {
       renderComponent({ isFirewallOrRepository: true, hasPermissionForAppWaivers: false });
       const addWaiverButton = screen.queryByRole('button', { name: 'Add Waiver' });
+      const requestWaiverButton = screen.queryByRole('button', { name: 'Request Waiver' });
 
       expect(addWaiverButton).toBe(null);
+      expect(requestWaiverButton).toBe(null);
     });
   });
 });

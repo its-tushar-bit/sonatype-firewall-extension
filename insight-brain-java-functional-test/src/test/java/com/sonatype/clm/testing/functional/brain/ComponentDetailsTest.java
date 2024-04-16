@@ -55,6 +55,7 @@ import com.sonatype.clm.testing.functional.pages.CustomizeVulnerabilityDetailsPa
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
+import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -680,6 +681,41 @@ public class ComponentDetailsTest
     applicableWaiversTable.rows().shouldHaveSize(1);
     ListWaiversTableRow waiversTableRow = applicableWaiversTable.row(1);
     waiversTableRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_RequestWaiver() {
+    waiveFirstReportRow();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    SelenideElement row = policyViolationsTable.getRows().first();
+    row.click();
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+
+    violationDetailPopover.getAddWaiversSegmentedDropdownButton().shouldBe(visible).click();
+    violationDetailPopover.getRequestWaiversButton().shouldBe(visible).click();
+    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+    requestWaiverPage.root().shouldBe(visible);
+    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
+    requestWaiverPage.root().shouldHave(text(
+        "A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver" +
+            " requests is configured. If you are unsure about the webhook configuration, share the policy violation" +
+            " ID and the curl command with the designated approver."));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License-Banned"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License not approved in any situation"));
+    requestWaiverPage.requestWaiverReadOnlyData()
+        .shouldHave(text("Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
+    requestWaiverPage.comments().shouldHave(text(""));
+    requestWaiverPage.saveButton().shouldBe(visible);
+    requestWaiverPage.cancelButton().shouldBe(visible);
   }
 
   @Test
@@ -1493,7 +1529,7 @@ public class ComponentDetailsTest
     String componentIdentifier = "%7B\"format\":\"maven\",\"coordinates\":%7B\"artifactId\":\"license-maven-plugin\","
         + "\"classifier\":\"\",\"extension\":\"jar\",\"groupId\":\"com.mycila\",\"version\":\"2.11\"%7D%7D";
     waitUntilUrl(LegalApplicationDetailsPage.urlToComponentAtApplicationScopeByComponentIdentifier(
-            componentIdentifier, app.getPublicId()));
+        componentIdentifier, app.getPublicId()));
     ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 

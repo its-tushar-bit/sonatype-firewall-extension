@@ -164,12 +164,16 @@ public class ViolationDetailsPage
       return new Button("#violation-page-manage-waivers");
     }
 
-    public SelenideElement manageWaiversDropdownToggle() {
-      return child(".nx-segmented-btn__dropdown-btn");
+    public SelenideElement getAddWaiversSegmentedDropdownButton() {
+      return child("#violation-page-add-waiver .nx-segmented-btn__dropdown-btn");
     }
 
     public SelenideElement addWaiverButton() {
       return child("#violation-page-add-waiver");
+    }
+
+    public SelenideElement addWaiverSegmentedButton() {
+      return child("#violation-page-add-waiver .nx-segmented-btn__main-btn");
     }
 
     public SelenideElement requestWaiverButton() {

@@ -34,8 +34,6 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
-import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -46,6 +44,7 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.filter.ThrowableHandler;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
@@ -63,6 +62,8 @@ import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
@@ -477,6 +478,9 @@ public class InsightBrainService
         injector.getInstance(RepositoryManagerDAO.class)
     );
     getInjector().injectMembers(auditContainerRequestFilter);
+
+    addThrowableHandlers(env);
+
     env.jersey().register(auditContainerRequestFilter);
 
     env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
@@ -486,6 +490,16 @@ public class InsightBrainService
 
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
     log.debug("Features flags: {}", config.getFeatures());
+  }
+
+  private void addThrowableHandlers(final Environment env) {
+    ThrowableHandler applicationThrowableHandler = getInstance(ThrowableHandler.class);
+    applicationThrowableHandler.setHandler(env.getApplicationContext().getHandler());
+    env.getApplicationContext().setHandler(applicationThrowableHandler);
+
+    ThrowableHandler adminThrowableHandler = getInstance(ThrowableHandler.class);
+    adminThrowableHandler.setHandler(env.getAdminContext().getHandler());
+    env.getAdminContext().setHandler(adminThrowableHandler);
   }
 
   protected void addServletFilters(Environment env) {

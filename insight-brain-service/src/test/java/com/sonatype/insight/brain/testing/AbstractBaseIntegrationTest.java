@@ -75,8 +75,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -96,6 +96,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -198,6 +199,9 @@ public abstract class AbstractBaseIntegrationTest
   // note: this is a rule but is initialized in the test reset process
   protected static TestCLMServer testCLMServer;
 
+  private static Class<? extends AbstractBaseIntegrationTest> binderConfigurationClass =
+      AbstractBaseIntegrationTest.class;
+
   protected static JiraClient mockJiraClient = mock(JiraClient.class);
 
   private static JiraClientFactory mockJiraClientFactory = mock(JiraClientFactory.class);
@@ -257,6 +261,11 @@ public abstract class AbstractBaseIntegrationTest
     return getClass().getMethod(testMethod).isAnnotationPresent(ManualIqServerInit.class);
   }
 
+  private Class<? extends AbstractBaseIntegrationTest> getConfigureBinderClass() throws Exception {
+    return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configure", Binder.class)
+        .getDeclaringClass();
+  }
+
   protected void startIqTestServer() throws Exception {
     startIqTestServer(null);
   }
@@ -285,9 +294,11 @@ public abstract class AbstractBaseIntegrationTest
     return new DefaultInsightBrainServiceFactory();
   }
 
-  private void maybeStopTestIqServer(final Configurator configuratorToApply) {
+  private void maybeStopTestIqServer(final Configurator configuratorToApply) throws Exception {
     // default is the TestCLMServer is re-used and should not be restarted
     boolean stopIqServer = false;
+
+    Class<? extends AbstractBaseIntegrationTest> binderConfigurationClass = getConfigureBinderClass();
 
     if (testCLMServer != null) {
       if (!(testCLMServer.getCLMServer().getIsHdsProxyRequired() == isProxyRequiredToReachHds())) {
@@ -309,7 +320,17 @@ public abstract class AbstractBaseIntegrationTest
         log.info("Test IQ server is not reusable due to custom database settings. Will restart test IQ server.");
         stopIqServer = true;
       }
+
+      // If a test wants to change the binding configuration via overriding configure (e.g. to use mocks/spies)
+      // then we need to restart the server to account for those
+      // additionally when going back to the original configuration in this class the server will also need restarting
+      if (AbstractBaseIntegrationTest.binderConfigurationClass != binderConfigurationClass) {
+        log.info("Test IQ server is not reusable due to different binder configuration. Will restart test IQ server.");
+        stopIqServer = true;
+      }
     }
+
+    AbstractBaseIntegrationTest.binderConfigurationClass = binderConfigurationClass;
 
     if (stopIqServer) {
       stopClmServer();
@@ -421,20 +442,28 @@ public abstract class AbstractBaseIntegrationTest
     {
       @Override
       protected void configure() {
-        bind(ProductLicense.class).to(TestProductLicense.class);
-        bind(TestProductLicense.class).toInstance(testProductLicense);
-        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-        bind(TestProductLicenseManager.class).toInstance(licenseManager);
-        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
-        bind(TaskScheduler.class).to(TestTaskScheduler.class);
-
-        // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
-        bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
+        AbstractBaseIntegrationTest.this.configure(binder());
       }
     });
 
     return modules;
+  }
+
+  /**
+   * Note that overriding this method will cause the server to restart if it's already running.
+   * Additionally, the server will restart again once the overridden method is no longer being used.
+   */
+  public void configure(final Binder binder) {
+    binder.bind(ProductLicense.class).to(TestProductLicense.class);
+    binder.bind(TestProductLicense.class).toInstance(testProductLicense);
+    binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+    binder.bind(TestProductLicenseManager.class).toInstance(licenseManager);
+    binder.bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+    binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
+    binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
+
+    // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
+    binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
   }
 
   protected boolean isProxyRequiredToReachHds() {

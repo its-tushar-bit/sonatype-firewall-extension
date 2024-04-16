@@ -9,6 +9,8 @@ import javax.inject.Named;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.error.exception.BadRequestException;
+
 import com.google.common.net.InetAddresses;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -103,19 +105,19 @@ public class TenantUtil
 
   private static void validateTenantName(String serverName) {
     if ("localhost".equals(serverName)) {
-      throw new RuntimeException("You should not be accessing multi-tenant IQ via localhost. Use a fake vanity URL");
+      throw new BadRequestException("You should not be accessing multi-tenant IQ via localhost. Use a fake vanity URL");
     }
 
     if (serverName.startsWith(GLOBAL_TENANT.tenantSlug + ".")) {
-      throw new RuntimeException(TENANT_DOES_NOT_EXIST);
+      throw new BadRequestException(TENANT_DOES_NOT_EXIST);
     }
 
     if (serverName.startsWith(SINGLE_TENANT.tenantSlug + ".")) {
-      throw new RuntimeException(TENANT_DOES_NOT_EXIST);
+      throw new BadRequestException(TENANT_DOES_NOT_EXIST);
     }
 
     if (!isSupportedUrl(serverName)) {
-      throw new RuntimeException("Unsupported URL. Supported URLs must contain a tenant identifying slug");
+      throw new BadRequestException("Unsupported URL. Supported URLs must contain a tenant identifying slug");
     }
   }
 

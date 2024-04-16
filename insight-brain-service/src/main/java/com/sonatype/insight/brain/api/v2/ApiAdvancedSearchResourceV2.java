@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DefaultValue;
@@ -27,6 +26,10 @@ import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.88
@@ -34,6 +37,8 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2)
+@Tag(name = "Advanced Search",
+    description = "Use the Advanced Search REST API to perform searches on Lifecycle application scan reports.")
 public class ApiAdvancedSearchResourceV2
 {
   private final SearchService searchService;
@@ -54,18 +59,41 @@ public class ApiAdvancedSearchResourceV2
    * Search request to search the index.
    *
    * @param searchQuery - String holding a query to search for.
-   * @param pageSize - the amount of results per page
-   * @param page - the current page to start from, 0 indexed.
+   * @param pageSize    - the amount of results per page
+   * @param page        - the current page to start from, 0 indexed.
    * @return SearchResultDTO
    * @throws IOException on failing to search the index
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.PERFORM_ADVANCED_SEARCH)
+  @Operation(description = "Use this method to perform an Advanced Search. ")
+  @ApiResponse(responseCode = "409", description = "Search index does not exist or is unreadable.")
+  @ApiResponse(responseCode = "200", description = "Response JSON containing the search query sent in the API call, " +
+      "and other response fields as follows: \n" +
+      "1. searchQuery: search query sent in the request \n" +
+      "2. page: page number of search results requested \n" +
+      "3. pageSize: requested number of results per page \n" +
+      "4. totalNumberOfHits: total number of results returned \n" +
+      "5. isExactTotalNumberOfHits \n" +
+      "    * `true` indicates that the search results in the JSON is the same no. of search results that logically  " +
+      "    match the search query. \n" +
+      "    * `false` indicates that the search results in the JSON are lower bound because fetching all results is " +
+      "    too expensive to compute. \n" +
+      "6. groupingByDTOS: array of search results grouped on a field name \n" +
+      "7. groupIdentifier: field name that the search results have been grouped by \n" +
+      "8. groupBy: field value that the search results have been grouped by \n" +
+      "9. additionalInfo: shared information between groups, e.g. info if grouped by a security vulnerability \n" +
+      "10. searchResultItemDTOS: array of search results with each element containing an itemType, field names " +
+      "and values \n" +
+      "11. resultIndex: indicating the relevance of the search result w.r.t. the query",
+      useReturnTypeSchema = true)
   public SearchResultDTO searchIndex(
-      @QueryParam("query") String searchQuery,
-      @DefaultValue("10") @QueryParam("pageSize") int pageSize,
-      @QueryParam("page") int page,
+      @Parameter(description = "Enter your search query here") @QueryParam("query") String searchQuery,
+      @Parameter(description = "Enter the no. of results that should be visible per page") @DefaultValue("10")
+      @QueryParam("pageSize") int pageSize,
+      @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
+      @Parameter(description = "Set to `true` to retrieve results that include components with no violations")
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode) throws IOException
   {
@@ -77,6 +105,13 @@ public class ApiAdvancedSearchResourceV2
    */
   @POST
   @Path(INDEX_PATH)
+  @Operation(description =
+      "Use this method to create or rebuild the index for Advanced Search. " +
+          "This is a resource intensive operation. Avoid creating indexes during peak usage hours." +
+          "\n" +
+          "\n" +
+          "Permissions required: System Administrator")
+  @ApiResponse(responseCode = "200", description = "Index created successfully.")
   public void createSearchIndexAsync() {
     indexService.createSearchIndexAsync();
   }
@@ -84,8 +119,18 @@ public class ApiAdvancedSearchResourceV2
   @GET
   @Path(EXPORT_CSV_REPORT_PATH)
   @Produces("application/csv")
+  @Operation(description =
+      "Use this method to generate a csv file containing your search results. " +
+          "The default delimiter in the generated file is comma. " +
+          "Use the advancedSearchCSVExportDelimiter property of the Configuration REST API to change the delimiter " +
+          "in the generated file."
+  )
+  @ApiResponse(responseCode = "200", description = "Downloadable csv file generated successfully.")
+  @ApiResponse(responseCode = "409", description = "Search index does not exist or is unreadable.")
   public Response getExportResults(
+      @Parameter(description = "A well-formed search query.", required = true)
       @QueryParam("query") String searchQuery,
+      @Parameter(description = "Set to `true` to retrieve results that include components with no violations.")
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode)
   {

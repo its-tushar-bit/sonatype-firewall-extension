@@ -34,11 +34,11 @@ export default function SastScanPage() {
 
   return (
     <NxPageMain>
-      {/*TODO: Temporarily pointing to violations reports. This needs to be adjusted to the correct all sast scans page.*/}
+      {/*TODO: Temporarily pointing to the Development page. This needs to be adjusted to the correct all sast scans page.*/}
       <MenuBarBackButton
         data-analytics-id="sonatype-developer-sast-back-button"
-        text="All Scans"
-        stateName={'violations'}
+        text="Back to Development"
+        stateName={'integrations'}
       />
       <SastScanTitle title={getTitle()} description={getDescription()} />
       <SastScanContent sastScan={sastScan} />

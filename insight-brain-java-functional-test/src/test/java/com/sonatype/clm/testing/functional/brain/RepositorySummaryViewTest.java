@@ -13,22 +13,14 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
-import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
-import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
-import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
-import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
-import com.sonatype.clm.testing.functional.elements.PolicyTile;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
-import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -533,6 +525,42 @@ public class RepositorySummaryViewTest
     RepositoriesSummaryPage.accessTile().shouldBe(visible);
 
     eyesWatcher.eyesCheck("check tiles for hosted repository");
+  }
+
+  @Test
+  public void testRepositorySummaryView_actionMenuForProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+    Repository repo = tempEntity.newRepository(repoManager, "maven-central", RepositoryType.proxy,
+        ComponentIdentifier.FORMAT_MAVEN);
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+
+    ActionDropDown.menu().shouldBe(hidden);
+    ActionDropDown.actionButton().click();
+
+    // eyescheck with the action menu opened
+    eyesWatcher.eyesCheck("action menu for proxy repository");
+
+    ActionDropDown.viewRepositoryResults().shouldHave(text("View repository Results")).shouldBe(visible);
+    String repositoryResultsButtonUrl = ActionDropDown.viewRepositoryResults().attr("href");
+    String repositoryReportContainerPageUrl = RepositoryReportContainerPage.url(repo.getId()) + "?hideBackButton=true";
+    assertThat(repositoryResultsButtonUrl).isEqualTo(repositoryReportContainerPageUrl);
+  }
+
+  @Test
+  public void testRepositorySummaryView_actionMenuForHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
+    Repository repo = tempEntity.newRepository(repoManager, "npm-hosted", RepositoryType.hosted,
+            "npm");
+
+    refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+    waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
+
+    ActionDropDown.actionButton().shouldNotBe(visible);
+
+    // eyescheck with the action menu opened
+    eyesWatcher.eyesCheck("action menu for hosted repository");
   }
 
   public void checkDefaultSortForNamespaceConfusionTile(

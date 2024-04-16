@@ -16,6 +16,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import NamespaceConfusionProtectionTile from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
+import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import RepositorySummaryPills from './RepositorySummaryPills';
 
@@ -45,6 +46,11 @@ export default function RepositorySummaryView() {
               </span>
               <span>{repository.publicId}</span>
             </NxH1>
+            {!isHostedRepository && (
+              <div className="nx-btn-bar">
+                <ActionDropdown />
+              </div>
+            )}
           </NxPageTitle>
           <RepositorySummaryPills isHosted={isHostedRepository} />
         </header>

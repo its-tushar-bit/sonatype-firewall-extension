@@ -31,7 +31,7 @@ var reportModule = angular
           },
         });
         $stateProvider.state('repository-report', {
-          url: '/repository/{repositoryId}/result',
+          url: '/repository/{repositoryId}/result?hideBackButton={hideButton}',
           component: 'repositoryResultsSummaryPage',
         });
       },

@@ -24,6 +24,7 @@ import {
   selectPrevStateIsRepositoryManagerView,
   selectRouterCurrentParams,
   selectRouterPrevParams,
+  selectHideBackButtonParam,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -54,6 +55,7 @@ export default function RepositoryResultsSummaryPage() {
   const prevParams = useSelector(selectRouterPrevParams);
   const prevStateIsFirewall = useSelector(selectPrevStateIsFirewallDashboard);
   const prevStateIsRepositoryManagerView = useSelector(selectPrevStateIsRepositoryManagerView);
+  const hideBackButton = useSelector(selectHideBackButtonParam);
 
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
@@ -101,7 +103,7 @@ export default function RepositoryResultsSummaryPage() {
     <>
       <RepositoryResultsComponentsFilter repositoryId={params.repositoryId} />
       <NxPageMain>
-        <MenuBarBackButton href={backButtonHref()} text={`Back to ${backButtonText}`} />
+        {!hideBackButton && <MenuBarBackButton href={backButtonHref()} text={`Back to ${backButtonText}`} />}
         {showMaskSuccessDialog && <NxStatefulSubmitMask success={showReEvaluateMaskSuccess} message="Re-Evaluating" />}
         <NxLoadWrapper
           retryHandler={() => {

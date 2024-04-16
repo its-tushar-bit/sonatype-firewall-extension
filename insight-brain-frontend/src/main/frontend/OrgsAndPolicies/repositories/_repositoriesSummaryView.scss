@@ -74,6 +74,16 @@
   }
 
   #iq-owner-actions-dropdown {
+    &.repository-dropdown {
+      .nx-dropdown-menu {
+        width: 250px !important;
+        margin-left: -100px;
+
+        .nx-text-link--external {
+          color: var(--nx-color-link);
+        }
+      }
+    }
     .nx-dropdown-menu {
       width: 325px !important;
       margin-left: -175px;

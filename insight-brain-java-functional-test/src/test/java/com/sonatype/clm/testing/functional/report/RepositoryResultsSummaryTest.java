@@ -30,6 +30,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
@@ -1280,6 +1281,17 @@ public class RepositoryResultsSummaryTest
 
     waitUntilUrl(RepositoriesSummaryPage.url());
     RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repository Managers"));
+  }
+
+  @Test
+  public void testRepositoryResultPageBackButton_hideButton() {
+    String repositoryReportContainerHideBackButtonUrl = RepositoryReportContainerPage
+        .url(repo.getId()) + "?hideBackButton=true";
+    refreshOrOpen(repositoryReportContainerHideBackButtonUrl);
+
+    waitUntilUrl(repositoryReportContainerHideBackButtonUrl);
+
+    RepositoryResultDetailPage.backButton().shouldNotBe(visible);
   }
 
   private void riskRemediationSetup(List<ComponentDetails> componentDetailsArrayList) {

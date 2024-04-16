@@ -4,10 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import classNames from 'classnames';
 import {
   NxDropdown,
   NxFontAwesomeIcon,
   NxOverflowTooltip,
+  NxTextLink,
   NxTooltip,
   useToggle,
 } from '@sonatype/react-shared-components';
@@ -19,6 +21,7 @@ import {
   selectIsOrganization,
   selectIsRepositoriesRelated,
   selectIsRepositoryManager,
+  selectIsRepository,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
@@ -85,6 +88,7 @@ const ActionDropdown = () => {
   const isApp = useSelector(selectIsApplication);
   const isRepositories = useSelector(selectIsRepositoriesRelated);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isRepository = useSelector(selectIsRepository);
   const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
   const isLegacyViolationEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
@@ -152,6 +156,20 @@ const ActionDropdown = () => {
   };
 
   const dropdownOptions = () => {
+    if (isRepository) {
+      const repositoryResultUrl = `${uiRouterState.href('repository-report', {
+        repositoryId: owner.id,
+      })}?hideBackButton=true`;
+      return (
+        <>
+          <NxOverflowTooltip>
+            <NxTextLink className="nx-dropdown-button nx-truncate-ellipsis" external href={repositoryResultUrl}>
+              View repository Results
+            </NxTextLink>
+          </NxOverflowTooltip>
+        </>
+      );
+    }
     return (
       <>
         <button
@@ -304,10 +322,12 @@ const ActionDropdown = () => {
     );
   };
 
+  const dropDownClasses = classNames('nx-dropdown--short', { 'repository-dropdown': isRepository });
+
   return (
     <NxDropdown
       id="iq-owner-actions-dropdown"
-      className="nx-dropdown--short"
+      className={dropDownClasses}
       label="Actions"
       isOpen={isOpen}
       onToggleCollapse={onToggleCollapse}

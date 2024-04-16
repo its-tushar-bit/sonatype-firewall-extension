@@ -192,3 +192,5 @@ export const selectPrevStateIsFirewallDashboard = createSelector(selectRouterPre
 export const selectPrevStateIsRepositoryManagerView = createSelector(selectRouterPrevState, (prevState) =>
   prevState.name?.includes('management.view.repository_manager')
 );
+
+export const selectHideBackButtonParam = createSelector(selectRouterCurrentParams, propOr(false, 'hideBackButton'));

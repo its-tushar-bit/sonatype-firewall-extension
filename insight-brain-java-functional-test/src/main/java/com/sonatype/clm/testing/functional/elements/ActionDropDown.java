@@ -33,6 +33,10 @@ public class ActionDropDown
     return $("#app-org-link");
   }
 
+  public static SelenideElement viewRepositoryResults() {
+    return $(".nx-dropdown-menu .nx-text-link");
+  }
+
   public static SelenideElement moveOwner() {
     return $("#owner-move-link");
   }

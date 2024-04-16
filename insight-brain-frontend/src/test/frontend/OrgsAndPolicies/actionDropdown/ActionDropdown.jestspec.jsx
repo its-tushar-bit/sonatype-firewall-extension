@@ -111,8 +111,6 @@ describe('ActionDropdown', () => {
     axiosMock
       .onPut(getPermissionContextTestUrl('application', 'a28'), permissions)
       .reply(200, ['WRITE', 'EVALUATE_APPLICATION']);
-
-    SpecUtil.requestIdleCallbackInvokeImmediate();
   });
 
   let renderComponent = (preloadedState) =>
@@ -186,11 +184,6 @@ describe('ActionDropdown', () => {
               allowArtifactoryConnectionOverride: true,
             },
           },
-          ownerActions: {
-            loading: false,
-            loadError: null,
-            applicationSummary: null,
-          },
         },
       });
       const actionButton = screen.getByRole('button', { name: 'Actions' });
@@ -241,11 +234,6 @@ describe('ActionDropdown', () => {
               allowArtifactoryConnectionOverride: true,
             },
           },
-          ownerActions: {
-            loading: false,
-            loadError: null,
-            applicationSummary: null,
-          },
         },
       });
       const actionButton = screen.getByRole('button', { name: 'Actions' });
@@ -278,11 +266,6 @@ describe('ActionDropdown', () => {
               name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
             },
           },
-          ownerActions: {
-            loading: false,
-            loadError: null,
-            applicationSummary: null,
-          },
         },
       });
       const actionButton = screen.getByRole('button', { name: 'Actions' });
@@ -302,6 +285,35 @@ describe('ActionDropdown', () => {
       expect(axiosMock.history.put.length).toBe(0);
       expect(axiosMock.history.get.length).toBe(0);
     });
+
+    it('on Repository level', async () => {
+      renderComponent({
+        router: {
+          currentParams: { '#': null, repositoryId: 'repositoryId' },
+          currentState: {
+            name: 'management.view.repository',
+            url: '/repository/{repositoryId}',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: '0b9a675da0a14deabe26ad90df74a0cf',
+              name: '91D74F09-3FE2E0B7-DF2B86A6-969AE288-DE07E9B5',
+            },
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+
+      const link = screen.getByText('View repository Results');
+      expect(link).toBeInTheDocument();
+      expect(link.textContent).toBe('View repository Results');
+
+      expect(axiosMock.history.put.length).toBe(0);
+      expect(axiosMock.history.get.length).toBe(0);
+    });
   });
 
   describe('Change App ID', () => {
@@ -311,10 +323,10 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const changeAppIDButton = await screen.findByRole('button', { name: 'Change App ID' });
-        expect(changeAppIDButton).not.toHaveClassName('disabled');
+        expect(changeAppIDButton).not.toHaveClass('disabled');
         fireEvent.mouseOver(changeAppIDButton);
         const tooltip = screen.queryByRole('tooltip');
-        expect(tooltip).not.toBeInTheDocument();
+        expect(tooltip).toBeNull();
       });
     });
 
@@ -327,7 +339,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const changeAppIDButton = await screen.findByRole('button', { name: 'Change App ID' });
-        expect(changeAppIDButton).toHaveClassName('disabled');
+        expect(changeAppIDButton).toHaveClass('disabled');
         fireEvent.mouseOver(changeAppIDButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Insufficient permissions to change App ID')).toBeInTheDocument();
@@ -341,7 +353,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const changeAppIDButton = await screen.findByRole('button', { name: 'Change App ID' });
-        expect(changeAppIDButton).toHaveClassName('disabled');
+        expect(changeAppIDButton).toHaveClass('disabled');
         fireEvent.mouseOver(changeAppIDButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Insufficient permissions to change App ID')).toBeInTheDocument();
@@ -356,10 +368,10 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(legacyButton).not.toHaveClassName('disabled');
+        expect(legacyButton).not.toHaveClass('disabled');
         fireEvent.mouseOver(legacyButton);
         const tooltip = screen.queryByRole('tooltip');
-        expect(tooltip).not.toBeInTheDocument();
+        expect(tooltip).toBeNull();
       });
     });
 
@@ -395,7 +407,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(legacyButton).toHaveClassName('disabled');
+        expect(legacyButton).toHaveClass('disabled');
         fireEvent.mouseOver(legacyButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Legacy Violations are not supported by your license')).toBeInTheDocument();
@@ -411,11 +423,6 @@ describe('ActionDropdown', () => {
               data: { title: 'Application Management', viewportSized: true },
               name: 'management.view.application',
               url: '/application/{applicationPublicId}',
-            },
-          },
-          legacyViolations: {
-            data: {
-              enabled: false,
             },
           },
           orgsAndPolicies: {
@@ -439,7 +446,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const legacyButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
-        expect(legacyButton).toHaveClassName('disabled');
+        expect(legacyButton).toHaveClass('disabled');
         fireEvent.mouseOver(legacyButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(
@@ -456,10 +463,10 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const revokeButton = await screen.findByRole('button', { name: 'Revoke legacy status' });
-        expect(revokeButton).not.toHaveClassName('disabled');
+        expect(revokeButton).not.toHaveClass('disabled');
         fireEvent.mouseOver(revokeButton);
         const tooltip = screen.queryByRole('tooltip');
-        expect(tooltip).not.toBeInTheDocument();
+        expect(tooltip).toBeNull();
       });
     });
 
@@ -495,7 +502,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const revokeButton = await screen.findByRole('button', { name: 'Revoke legacy status' });
-        expect(revokeButton).toHaveClassName('disabled');
+        expect(revokeButton).toHaveClass('disabled');
         fireEvent.mouseOver(revokeButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Legacy Violations are not supported by your license')).toBeInTheDocument();
@@ -510,10 +517,10 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const evaluateButton = await screen.findByRole('button', { name: 'Evaluate a File' });
-        expect(evaluateButton).not.toHaveClassName('disabled');
+        expect(evaluateButton).not.toHaveClass('disabled');
         fireEvent.mouseOver(evaluateButton);
         const tooltip = screen.queryByRole('tooltip');
-        expect(tooltip).not.toBeInTheDocument();
+        expect(tooltip).toBeNull();
       });
     });
 
@@ -549,7 +556,7 @@ describe('ActionDropdown', () => {
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
         const evaluateButton = await screen.findByRole('button', { name: 'Evaluate a File' });
-        expect(evaluateButton).toHaveClassName('disabled');
+        expect(evaluateButton).toHaveClass('disabled');
         fireEvent.mouseOver(evaluateButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(within(tooltip).getByText('Evaluate application is not supported by your license.')).toBeInTheDocument();
@@ -564,7 +571,7 @@ describe('ActionDropdown', () => {
           const actionButton = screen.getByRole('button', { name: 'Actions' });
           fireEvent.click(actionButton);
           const evaluateButton = await screen.findByRole('button', { name: 'Evaluate a File' });
-          expect(evaluateButton).toHaveClassName('disabled');
+          expect(evaluateButton).toHaveClass('disabled');
           fireEvent.mouseOver(evaluateButton);
           const tooltip = await screen.findByRole('tooltip');
           expect(within(tooltip).getByText('Insufficient permissions to evaluate application')).toBeInTheDocument();
@@ -578,7 +585,7 @@ describe('ActionDropdown', () => {
           const actionButton = screen.getByRole('button', { name: 'Actions' });
           fireEvent.click(actionButton);
           const evaluateButton = await screen.findByRole('button', { name: 'Evaluate a File' });
-          expect(evaluateButton).toHaveClassName('disabled');
+          expect(evaluateButton).toHaveClass('disabled');
           fireEvent.mouseOver(evaluateButton);
           const tooltip = await screen.findByRole('tooltip');
           expect(within(tooltip).getByText('Insufficient permissions to evaluate application')).toBeInTheDocument();
@@ -678,11 +685,11 @@ describe('ActionDropdown', () => {
     const releaseReport = screen.getByRole('button', { name: 'View release report' });
     const operateReport = screen.getByRole('button', { name: 'View operate report' });
 
-    expect(sourceReport).not.toHaveClassName('disabled');
-    expect(buildReport).not.toHaveClassName('disabled');
-    expect(stageReport).not.toHaveClassName('disabled');
-    expect(releaseReport).not.toHaveClassName('disabled');
-    expect(operateReport).not.toHaveClassName('disabled');
+    expect(sourceReport).not.toHaveClass('disabled');
+    expect(buildReport).not.toHaveClass('disabled');
+    expect(stageReport).not.toHaveClass('disabled');
+    expect(releaseReport).not.toHaveClass('disabled');
+    expect(operateReport).not.toHaveClass('disabled');
 
     expect(sourceReport).toBeVisible();
     expect(buildReport).toBeVisible();

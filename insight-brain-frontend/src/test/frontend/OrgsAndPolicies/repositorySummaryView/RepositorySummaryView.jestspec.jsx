@@ -274,4 +274,38 @@ describe('RepositorySummaryView', () => {
     expect(await screen.findByTestId('policies-tile')).toBeVisible();
     expect(await screen.queryByTestId('namespace-confusion-protection-pill-configuration')).not.toBeInTheDocument();
   });
+
+  it('renders dropdown menu for proxy repositories', async () => {
+    renderComponent(preloadedState);
+
+    expect(await screen.findByText('repository 1')).toBeVisible();
+    const actionButton = await screen.findByRole('button', { name: 'Actions' });
+    expect(actionButton).toBeVisible();
+  });
+
+  it('does not renders dropdown menu for hosted repositories', async () => {
+    axiosMock.onGet(getRepositoryInfoUrl(ownerId)).reply(200, {
+      managerInstanceId: '7EDE7A0F-41612922-1613498A-165AA9D9-D1031992',
+      managerName: '7EDE7A0F-41612922-1613498A-165AA9D9-D1031992',
+      oldestEvalTimestamp: '1681749017083',
+      repository: {
+        auditEnabled: true,
+        format: 'maven2',
+        id: ownerId,
+        name: 'repository 1',
+        lastManualConfigureTime: null,
+        namespaceConfusionProtectionEnabled: false,
+        policyCompliantComponentSelectionEnabled: false,
+        publicId: 'repository 1',
+        quarantineEnabled: true,
+        repositoryManagerId: '655831bc0477421998b5600e64c05247',
+        repositoryType: 'hosted',
+      },
+    });
+    renderComponent(preloadedState);
+
+    expect(await screen.findByText('repository 1')).toBeVisible();
+    const actionButton = screen.queryByRole('button', { name: 'Actions' });
+    expect(actionButton).toBeNull();
+  });
 });

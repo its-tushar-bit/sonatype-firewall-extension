@@ -191,11 +191,17 @@ public class InsightWorkTest
 
   @Test
   public void testGetCacheDir() {
-    assertThat(work.getCacheDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "cache"));
+    assertThat(work.getClusterCacheDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "cache"));
   }
 
   @Test
   public void testGetScanDir_WithoutAppId() {
     assertThat(work.getScanDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "scan"));
+  }
+
+  @Test
+  public void testGetIerDashboardIconsDirectory() {
+    assertThat(work.getIerDashboardIconsDirectory()).isEqualTo(
+        new File(work.getNodeCacheDir(), "enterpriseReportingDashboardIcons"));
   }
 }

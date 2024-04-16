@@ -135,7 +135,7 @@ public class SupportService
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
     this.excludedDirs = Sets.newHashSet(
         work.getReportDir(),
-        work.getCacheDir(),
+        work.getClusterCacheDir(),
         work.getDataDir(),
         work.getTrashDir(),
         work.getSbomDir(),

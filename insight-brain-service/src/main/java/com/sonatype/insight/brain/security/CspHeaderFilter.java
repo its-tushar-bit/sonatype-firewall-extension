@@ -74,7 +74,7 @@ public class CspHeaderFilter
   String getFrameSrc() {
     String lookerHost = null;
     if (productLicense.isValid()) {
-      lookerHost = getUrlHost(enterpriseReportingService.getBaseUrl());
+      lookerHost = getUrlHost(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl());
     }
     return lookerHost != null ? String.format("frame-src 'self' %s; ", lookerHost) : "";
   }

@@ -5,22 +5,24 @@
  */
 package com.sonatype.insight.brain.enterprise.reporting;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -41,18 +43,16 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.utils.MostRecentMemoizingFunction;
+import com.sonatype.insight.brain.utils.ResettableExpiringMemoizingSupplier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shiro.authz.UnauthenticatedException;
-import org.jetbrains.annotations.NotNull;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -63,7 +63,8 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 @DisallowConcurrentExecution
-public class EnterpriseReportingService implements InsightJob
+public class EnterpriseReportingService
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
@@ -81,20 +82,22 @@ public class EnterpriseReportingService implements InsightJob
   public static final String ENTERPRISE_REPORTING_CURRENT_VERSION_PATH =
       ENTERPRISE_REPORTING_BASE_PATH + "/currentVersion";
 
-  public static final String DEFAULT_GUAVA_CACHE_KEY = "default";
-
-  static final String TASK_NAME = "UpdateEnterpriseDashboardLocalCache";
-
-  private AtomicReference<DashboardMetadataListDTO> dashboardMetadataRef = new AtomicReference<>();
-
-  static final String TASK_PARAM_CURRENT_VERSION = "CURRENT_VERSION";
-
-  final AtomicInteger currentVersion = new AtomicInteger(-1);
+  private static final String TASK_NAME = "UpdateEnterpriseDashboardLocalCache";
 
   // Visible for testing
-  volatile LoadingCache<String, Integer> currentVersionCache;
+  static final String TASK_PARAM_CURRENT_VERSION = "CURRENT_VERSION";
 
-  private volatile TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> lookerConfigCache;
+  // Visible for testing
+  final ResettableExpiringMemoizingSupplier<Integer> currentDashboardsVersionSupplier;
+
+  private final TenantReference<ResettableExpiringMemoizingSupplier<String>>
+      enterpriseReportingConfigDTOBaseUrlSupplier;
+
+  private final MostRecentMemoizingFunction<Integer, DashboardMetadataListDTO> dashboardMetadataGetter =
+      new MostRecentMemoizingFunction<>(version -> getDashboardMetadataListDTOFromHds());
+
+  private final MostRecentMemoizingFunction<Integer, Function<String, Supplier<byte[]>>> iconGetter =
+      new MostRecentMemoizingFunction<>(version -> getIcons());
 
   private final HdsClient hdsClient;
 
@@ -111,6 +114,12 @@ public class EnterpriseReportingService implements InsightJob
   private final TaskScheduler taskScheduler;
 
   private final Configuration configuration;
+
+  private final ReadWriteLock iconReadWriteLock = new ReentrantReadWriteLock();
+
+  private final Lock iconReadLock = iconReadWriteLock.readLock();
+
+  private final Lock iconWriteLock = iconReadWriteLock.writeLock();
 
   @Inject
   public EnterpriseReportingService(
@@ -131,243 +140,193 @@ public class EnterpriseReportingService implements InsightJob
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
+    this.currentDashboardsVersionSupplier = createDashboardsCurrentVersionSupplier();
+    this.enterpriseReportingConfigDTOBaseUrlSupplier =
+        new TenantReference<>(this::createEnterpriseReportingConfigDTOBaseUrlSupplier);
   }
 
-  //for testing only
-  EnterpriseReportingService(
-      final HdsClient hdsClient,
-      final CurrentUser currentUser,
-      final UserDAO userDAO,
-      final SamlUserDAO samlUserDAO,
-      final MembershipMappingService membershipMappingService,
-      final InsightWork insightWork,
-      final TenantReference<LoadingCache<String, EnterpriseReportingConfigDTO>> configCache,
-      final AtomicReference<DashboardMetadataListDTO> dashboardData,
-      final int currentVersion,
-      final LoadingCache<String, Integer> currentVersionCache,
-      final TaskScheduler taskScheduler,
-      final Configuration configuration)
-  {
-    this.hdsClient = hdsClient;
-    this.currentUser = currentUser;
-    this.userDAO = userDAO;
-    this.samlUserDAO = samlUserDAO;
-    this.membershipMappingService = membershipMappingService;
-    this.insightWork = insightWork;
-    this.lookerConfigCache = configCache;
-    this.dashboardMetadataRef = dashboardData;
-    this.currentVersion.set(currentVersion);
-    this.currentVersionCache = currentVersionCache;
-    this.taskScheduler = taskScheduler;
-    this.configuration = configuration;
+  private ResettableExpiringMemoizingSupplier<Integer> createDashboardsCurrentVersionSupplier() {
+    return new ResettableExpiringMemoizingSupplier<>(
+        () -> getDashboardsVersionDTOFromHds().version,
+        Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()),
+        value -> taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this,
+            Collections.singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(value)))
+    );
   }
 
-  private CacheLoader<String, EnterpriseReportingConfigDTO> newEnterpriseReportingConfigCacheLoader() {
-    return new CacheLoader<String, EnterpriseReportingConfigDTO>()
-    {
-      @Override
-      public EnterpriseReportingConfigDTO load(@NotNull final String key) {
-        return hdsClient.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH);
-      }
-    };
+  private ResettableExpiringMemoizingSupplier<String> createEnterpriseReportingConfigDTOBaseUrlSupplier() {
+    return new ResettableExpiringMemoizingSupplier<>(() -> getEnterpriseReportingConfigDTOFromHds().baseUrl,
+        Duration.ofHours(1));
   }
 
-  private CacheLoader<String, Integer> newCurrentVersionCacheLoader() {
-    return new CacheLoader<String, Integer>()
-    {
-      @Override
-      public Integer load(@NotNull final String key) {
-        DashboardsVersionDTO hdsVersion =
-            hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-        if (hdsVersion.version > currentVersion.get()) {
-          reloadCachesAndUpdateLocalVersion(hdsVersion);
-        }
-        return hdsVersion.version;
-      }
-    };
-  }
-
-  private void refreshCacheIfNeeded() {
-    if (this.currentVersion.get() == -1) {
-      DashboardsVersionDTO hdsVersion;
-      hdsVersion = hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-      reloadCachesAndUpdateLocalVersion(hdsVersion);
-      return;
-    }
-
-    if (this.currentVersionCache == null) {
-      this.currentVersionCache = CacheBuilder.newBuilder()
-          .expireAfterWrite(Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()))
-          .build(newCurrentVersionCacheLoader());
-    }
-
-    //this will trigger a cache refresh if needed
-    this.currentVersionCache.getUnchecked(DEFAULT_GUAVA_CACHE_KEY);
-  }
-
-  private void reloadCachesAndUpdateLocalVersion(
-      final DashboardsVersionDTO remoteEnterpriseReportingVersion)
-  {
-    try {
-      cacheDashboardMetadata();
-      cacheDashboardIcons();
-      this.currentVersion.set(remoteEnterpriseReportingVersion.version);
-      taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this, Collections
-          .singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(remoteEnterpriseReportingVersion.version)));
-    }
-    catch (Exception ex) {
-      log.error("error while fetching dashboard metadata from HDS.", ex);
-    }
-  }
-
-  void cacheDashboardMetadata() {
-    log.debug("refreshing enterprise reporting dashboard metadata cache");
-    this.dashboardMetadataRef.set(hdsClient.get(DashboardMetadataListDTO.class,
-        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH));
-  }
-
-  SSOEmbedUrlDTO createSSOEmbedUrl(DashboardRequestDTO lookerDashboard) {
-    AuditData.get().setLookerDashboard(lookerDashboard);
-    validateLookerDashboardValue(lookerDashboard);
-    String requestId = UUID.randomUUID().toString().replace("-", "");
-    SSOEmbedUrlDTO result = hdsClient.post(SSOEmbedUrlDTO.class, ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH,
-        buildRequest(requestId, lookerDashboard.dashboard));
-    result.baseUrl = getBaseUrl();
-    return result;
-  }
-
-  public String getBaseUrl() {
-    if (lookerConfigCache == null) {
-      lookerConfigCache = new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterWrite(Duration.ofHours(1))
-          .build(newEnterpriseReportingConfigCacheLoader()));
-    }
-
-    return lookerConfigCache.get().getUnchecked(DEFAULT_GUAVA_CACHE_KEY).baseUrl;
+  public SSOEmbedUrlDTO createSSOEmbedUrl(final DashboardRequestDTO dashboardRequestDTO) {
+    AuditData.get().setLookerDashboard(dashboardRequestDTO);
+    validate(dashboardRequestDTO);
+    SSOEmbedUrlRequest ssoEmbedUrlRequest = createSSOEmbedUrlRequest(dashboardRequestDTO.dashboard);
+    SSOEmbedUrlDTO ssoEmbedUrlDTO = getSSOEmbedUrlDTO(ssoEmbedUrlRequest);
+    ssoEmbedUrlDTO.baseUrl = getEnterpriseReportingConfigDTOBaseUrl();
+    return ssoEmbedUrlDTO;
   }
 
   public DashboardMetadataListDTO getDashboardMetadata() {
-    refreshCacheIfNeeded();
-
-    if (dashboardMetadataRef.get() == null) {
-      throw new InternalServerException("Error while fetching dashboard metadata from Sonatype data services");
-    }
-    else {
-      return dashboardMetadataRef.get();
-    }
+    return dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
   }
 
-  private void validateLookerDashboardValue(DashboardRequestDTO lookerDashboard) {
-    if (lookerDashboard == null || StringUtils.isBlank(lookerDashboard.dashboard)) {
+  public byte[] getIcon(final String iconName) {
+    validateIconName(iconName);
+    return iconGetter.apply(currentDashboardsVersionSupplier.get()).apply(iconName).get();
+  }
+
+  private void validate(final DashboardRequestDTO dashboardRequestDTO) {
+    if (dashboardRequestDTO == null || StringUtils.isBlank(dashboardRequestDTO.dashboard)) {
       log.debug("Bad data in request dashboard is null or empty");
       throw new BadRequestException("Dashboard is null or empty");
     }
   }
 
-  private SSOEmbedUrlRequest buildRequest(String requestId, String lookerDashboard) {
-    log.debug("Submitting Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
-    Pair<String, String> names = getUserFirstAndLastnames();
-    String userFirstName = names.getLeft();
-    String userLastName = names.getRight();
-    final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+  private SSOEmbedUrlRequest createSSOEmbedUrlRequest(final String lookerDashboard) {
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    if (userPrincipal == null) {
+      // At a minimum the user needs to be logged into access looker. see CLM-27812
+      throw new UnauthenticatedException("Anonymous access forbidden for createSSOEmbedUrl");
+    }
+    String username = userPrincipal.getUsername();
+    Set<String> membership = userPrincipal.getMembership();
 
-    return new SSOEmbedUrlRequest(requestId, getUsernameAndRealm(userPrincipal), userFirstName, userLastName,
-        lookerDashboard, membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
-            userPrincipal.getMembership()),
-        membershipMappingService.getApplicationIdsForUser(userPrincipal.getUsername(), userPrincipal.getMembership()));
+    String requestId = UUID.randomUUID().toString().replace("-", "");
+    String usernameAndRealm = getUsernameAndRealm(userPrincipal);
+    Pair<String, String> userFirstAndLastNames = getUserFirstAndLastNames(userPrincipal);
+    String userFirstName = userFirstAndLastNames.getLeft();
+    String userLastName = userFirstAndLastNames.getRight();
+    Set<String> userPermissions = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
+    Set<String> applicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+
+    return new SSOEmbedUrlRequest(
+        requestId,
+        usernameAndRealm,
+        userFirstName,
+        userLastName,
+        lookerDashboard,
+        userPermissions,
+        applicationIds
+    );
   }
 
   private String getUsernameAndRealm(final UserPrincipal userPrincipal) {
     return String.format("%s@%s", userPrincipal.getUsername(), userPrincipal.getRealmId());
   }
 
-  private Pair<String, String> getUserFirstAndLastnames() {
-    UserPrincipal principal = currentUser.getUserPrincipal();
-    if (principal == null) {
-      //At a minimum the user needs to be logged into access looker. see CLM-27812
-      throw new UnauthenticatedException("Anonymous access forbidden for createSSOEmbedUrl");
-    }
-
-    switch (principal.getRealmId()) {
+  private Pair<String, String> getUserFirstAndLastNames(final UserPrincipal userPrincipal) {
+    switch (userPrincipal.getRealmId()) {
       case InternalRealm.ID:
-        User user = getInternalUser(principal.getUsername());
+        User user = getInternalUser(userPrincipal.getUsername());
         return Pair.of(user.getFirstName(), user.getLastName());
       case SamlRealm.ID:
-        SamlUser samlUser = getSamlUser(principal.getUsername());
+        SamlUser samlUser = getSamlUser(userPrincipal.getUsername());
         return Pair.of(samlUser.getFirstName(), samlUser.getLastName());
       default:
-        return Pair.of(principal.getDisplayName(), "");
+        return Pair.of(userPrincipal.getDisplayName(), "");
     }
-  }
-
-  private SamlUser getSamlUser(final String username) {
-    return samlUserDAO.getByUsernameNotNull(username);
   }
 
   private User getInternalUser(final String username) {
     return userDAO.getByUsernameNotNull(username);
   }
 
-  void cacheDashboardIcons() {
-    try (InputStream is = hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH)) {
-      byte[] fetchedIcons = IOUtils.toByteArray(is);
-      deleteDashboardIcons();
-      extractIconFiles(fetchedIcons);
+  private SamlUser getSamlUser(final String username) {
+    return samlUserDAO.getByUsernameNotNull(username);
+  }
+
+  private SSOEmbedUrlDTO getSSOEmbedUrlDTO(final SSOEmbedUrlRequest ssoEmbedUrlRequest) {
+    log.debug("Submitting Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", ssoEmbedUrlRequest.requestId,
+        ssoEmbedUrlRequest.dashboardKey);
+    return hdsClient.post(SSOEmbedUrlDTO.class, ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH, ssoEmbedUrlRequest);
+  }
+
+  public String getEnterpriseReportingConfigDTOBaseUrl() {
+    return enterpriseReportingConfigDTOBaseUrlSupplier.get().get();
+  }
+
+  private void validateIconName(final String iconName) {
+    DashboardMetadataListDTO dashboardMetadataListDTO =
+        dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
+    boolean iconNameNotFound = dashboardMetadataListDTO.dashboardMetadata.stream()
+        .noneMatch(dashboardMetadataDTO -> iconName.equals(dashboardMetadataDTO.previewImage));
+    if (iconNameNotFound) {
+      throw new NotFoundException("Icon named " + iconName + " was not found");
+    }
+  }
+
+  private Function<String, Supplier<byte[]>> getIcons() {
+    InputStream dashboardIcons = getEnterpriseReportingDashboardIconsInputStreamFromHds();
+    return getIcons(dashboardIcons);
+  }
+
+  private Function<String, Supplier<byte[]>> getIcons(final InputStream iconsZipInputStream) {
+    Map<String, Supplier<byte[]>> result = new HashMap<>();
+    try {
+      iconWriteLock.lock();
+      FileUtils.deleteDirectory(insightWork.getIerDashboardIconsDirectory());
+      result = extractIconFiles(iconsZipInputStream);
     }
     catch (IOException e) {
-      log.debug("Error when saving dashboard icons", e);
+      log.error("Error deleting old dashboard icon(s)", e);
     }
+    finally {
+      iconWriteLock.unlock();
+    }
+    return result::get;
   }
 
-  private void deleteDashboardIcons() {
-    File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
-    if (iconsDirectory.exists()) {
-      try (Stream<Path> paths = Files.walk(iconsDirectory.toPath())) {
-        log.debug("Deleting cached dashboard icon files located in {}", iconsDirectory.getPath());
-        paths.map(it -> new File(String.valueOf(it))).forEach(File::delete);
-      }
-      catch (IOException e) {
-        log.error("Error deleting dashboard icon(s)", e);
-      }
-    }
-  }
-
-  private void extractIconFiles(byte[] iconsZipFile) {
-    try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(iconsZipFile))) {
-      for (ZipEntry ze; (ze = zipIn.getNextEntry()) != null; ) {
+  private Map<String, Supplier<byte[]>> extractIconFiles(final InputStream iconsZipInputStream) {
+    Map<String, Supplier<byte[]>> iconDataSupplierByIconName = new HashMap<>();
+    try (ZipInputStream zipInputStream = new ZipInputStream(iconsZipInputStream)) {
+      for (ZipEntry zipEntry; (zipEntry = zipInputStream.getNextEntry()) != null; ) {
         File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
-        Path iconPath = iconsDirectory.toPath().resolve(ze.getName()).normalize();
+        String iconName = zipEntry.getName();
+        Path iconPath = iconsDirectory.toPath().resolve(iconName).normalize();
         Files.createDirectories(iconPath.getParent());
-        Files.copy(zipIn, iconPath);
+        Files.copy(zipInputStream, iconPath);
+        iconDataSupplierByIconName.put(iconName, createIconDataSupplier(iconPath));
         log.debug("Cached dashboard icon {}", iconPath);
       }
     }
     catch (IOException e) {
-      log.error("Error caching dashboard icon", e);
+      log.error("Error extracting dashboard icon(s)", e);
     }
+    return iconDataSupplierByIconName;
   }
 
-  public byte[] getIcon(String iconName) {
-    boolean imageDoesNotExist = dashboardMetadataRef.get().dashboardMetadata.stream()
-        .noneMatch(it -> it.previewImage.equals(iconName));
-    if (imageDoesNotExist) {
-      throw new NotFoundException("Icon named " + iconName + " was not found");
-    }
-    return getIconImage(iconName);
+  private Supplier<byte[]> createIconDataSupplier(final Path iconPath) {
+    return () -> {
+      try {
+        iconReadLock.lock();
+        return Files.readAllBytes(iconPath);
+      }
+      catch (IOException e) {
+        log.error("Error reading dashboard icon {}", iconPath, e);
+        throw new InternalServerException("Could not read icon image", e);
+      }
+      finally {
+        iconReadLock.unlock();
+      }
+    };
   }
 
-  private byte[] getIconImage(String iconName) {
-    File iconImage = new File(insightWork.getIerDashboardIconsDirectory(), iconName);
-    try {
-      return Files.readAllBytes(Paths.get(iconImage.toURI()));
-    }
-    catch (IOException e) {
-      throw new InternalServerException("Could not read icon image", e);
-    }
+  private EnterpriseReportingConfigDTO getEnterpriseReportingConfigDTOFromHds() {
+    return hdsClient.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH);
   }
 
-  @Override
-  public String getJobName() {
-    return TASK_NAME;
+  private DashboardsVersionDTO getDashboardsVersionDTOFromHds() {
+    return hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+  }
+
+  private DashboardMetadataListDTO getDashboardMetadataListDTOFromHds() {
+    return hdsClient.get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+  }
+
+  private InputStream getEnterpriseReportingDashboardIconsInputStreamFromHds() {
+    return hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
   }
 
   @Override
@@ -376,18 +335,20 @@ public class EnterpriseReportingService implements InsightJob
 
     String latestVersionString = mergedJobDataMap.getString(TASK_PARAM_CURRENT_VERSION);
     if (StringUtils.isNotBlank(latestVersionString)) {
-      int latestVersion = new Integer(latestVersionString);
-      if (latestVersion > currentVersion.get()) {
-        //Caching icons is not required here because we expect the peer node to already download this
-        this.currentVersion.set(latestVersion);
-        cacheDashboardMetadata();
-      }
+      int latestVersion = Integer.parseInt(latestVersionString);
+      currentDashboardsVersionSupplier.setMemoizedValue(latestVersion);
     }
   }
 
-  public void clearLookerConfigCacheForTests() {
-    if (lookerConfigCache != null && lookerConfigCache.get() != null) {
-      lookerConfigCache.get().invalidateAll();
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
+  }
+
+  public void clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests() {
+    if (enterpriseReportingConfigDTOBaseUrlSupplier != null &&
+        enterpriseReportingConfigDTOBaseUrlSupplier.get() != null) {
+      enterpriseReportingConfigDTOBaseUrlSupplier.get().reset();
     }
   }
 }

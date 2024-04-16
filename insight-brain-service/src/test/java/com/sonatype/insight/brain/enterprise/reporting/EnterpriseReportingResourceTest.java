@@ -29,7 +29,8 @@ public class EnterpriseReportingResourceTest
   @Before
   @After
   public void clearLookerConfigCache() {
-    getCLMServer().getInstance(EnterpriseReportingService.class).clearLookerConfigCacheForTests();
+    getCLMServer().getInstance(EnterpriseReportingService.class)
+        .clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests();
   }
 
   @Before

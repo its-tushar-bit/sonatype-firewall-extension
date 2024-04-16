@@ -60,7 +60,7 @@ public class PendoCacheTest
 
   @Before
   public void before() throws Exception {
-    lenient().when(mockInsightWork.getCacheDir()).thenReturn(tempDir.newFolder());
+    lenient().when(mockInsightWork.getClusterCacheDir()).thenReturn(tempDir.newFolder());
   }
 
   @Test
@@ -144,11 +144,11 @@ public class PendoCacheTest
 
   @Test
   public void testInvalidate_DeletesFiles() throws Exception {
-    File pendoJsFile = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File pendoJsFile = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     Files.write(pendoJsFile.toPath(), "test".getBytes(StandardCharsets.UTF_8));
     assertThat(pendoJsFile).exists();
     File pendoCustomerTelemetryFile =
-        new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_CUSTOMER_TELEMETRY_FILENAME);
+        new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_CUSTOMER_TELEMETRY_FILENAME);
     Files.write(pendoCustomerTelemetryFile.toPath(), "test".getBytes(StandardCharsets.UTF_8));
     assertThat(pendoCustomerTelemetryFile).exists();
 
@@ -170,7 +170,7 @@ public class PendoCacheTest
   @Test
   public void testDeleteFileIfExists_DeletesFileIfItExists() throws Exception {
     PendoCache spyPendoCache = spy(pendoCache);
-    File file = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File file = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     Files.write(file.toPath(), "test".getBytes(StandardCharsets.UTF_8));
     assertThat(file).exists();
 
@@ -182,7 +182,7 @@ public class PendoCacheTest
   @Test
   public void testDeleteFileIfExists_DisallowConcurrentExecution() throws Exception {
     PendoCache spyPendoCache = spy(pendoCache);
-    File file = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File file = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     Files.write(file.toPath(), "test".getBytes(StandardCharsets.UTF_8));
     assertThat(file).exists();
     Callable<Void> callable = () -> {
@@ -202,7 +202,7 @@ public class PendoCacheTest
 
   @Test
   public void testLoadFile_DownloadsFileIfItDoesNotExist() throws Exception {
-    File file = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File file = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     String expectedContent = "test";
     when(mockHdsClient.get(InputStream.class, file.getName())).thenReturn(
         new ByteArrayInputStream(expectedContent.getBytes()));
@@ -219,7 +219,7 @@ public class PendoCacheTest
     PendoCache spyPendoCache = spy(pendoCache);
     long now = System.currentTimeMillis();
     when(spyPendoCache.getCurrentTimeMillis()).thenReturn(now);
-    File file = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File file = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     Files.write(file.toPath(), "old".getBytes(StandardCharsets.UTF_8));
     when(spyPendoCache.getLastModifiedTime(file)).thenReturn(now - Duration.ofDays(1).toMillis());
     String expectedContent = "new";
@@ -238,7 +238,7 @@ public class PendoCacheTest
     PendoCache spyPendoCache = spy(pendoCache);
     long now = System.currentTimeMillis();
     when(spyPendoCache.getCurrentTimeMillis()).thenReturn(now);
-    File file = new File(mockInsightWork.getCacheDir(), PendoCache.PENDO_JS_FILENAME);
+    File file = new File(mockInsightWork.getClusterCacheDir(), PendoCache.PENDO_JS_FILENAME);
     String expectedContent = "old";
     Files.write(file.toPath(), expectedContent.getBytes(StandardCharsets.UTF_8));
     when(spyPendoCache.getLastModifiedTime(file)).thenReturn(now - Duration.ofDays(1).toMillis() + 1);

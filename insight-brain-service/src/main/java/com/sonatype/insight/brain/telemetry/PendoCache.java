@@ -73,7 +73,7 @@ public class PendoCache
 
   // Visible for testing
   byte[] doLoadFile(String filename) throws IOException {
-    File file = new File(insightWork.getCacheDir(), filename);
+    File file = new File(insightWork.getClusterCacheDir(), filename);
     if (fileNeedsUpdating(file)) {
       try (InputStream in = hdsClient.get(InputStream.class, PendoCache.FILENAME_TO_HDS_PATH.get(file.getName()))) {
         FileUtils.copyToFile(in, file);
@@ -136,7 +136,7 @@ public class PendoCache
 
   // Visible for testing
   void deleteFileIfExists(String filename) {
-    File file = new File(insightWork.getCacheDir(), filename);
+    File file = new File(insightWork.getClusterCacheDir(), filename);
     if (file.exists()) {
       try (ClusterLock clusterLock = clusterLockManager.createForFilename(filename)) {
         clusterLock.lock();

@@ -366,8 +366,8 @@ public class SupportServiceTest
   public void testExcludeDirFilter_WithNestedDirectories() {
     IOFileFilter dirFilter = supportService.excludeDirFilter();
 
-    Assert.assertFalse(dirFilter.accept(insightWork.getCacheDir()));
-    Assert.assertFalse(dirFilter.accept(new File(insightWork.getCacheDir() + "/test")));
+    Assert.assertFalse(dirFilter.accept(insightWork.getClusterCacheDir()));
+    Assert.assertFalse(dirFilter.accept(new File(insightWork.getClusterCacheDir() + "/test")));
   }
 
   private File createFile(int sizeInBytes) throws Exception {

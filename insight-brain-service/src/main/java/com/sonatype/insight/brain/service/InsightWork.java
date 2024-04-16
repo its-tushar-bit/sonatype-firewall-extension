@@ -15,6 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.utils.IdValidationUtils;
 
 @Named
@@ -42,8 +43,12 @@ public class InsightWork
     return insightConfig.getSonatypeWork();
   }
 
-  public File getCacheDir() {
+  public File getClusterCacheDir() {
     return new File(insightConfig.getClusterDirectory(), "cache");
+  }
+
+  public File getNodeCacheDir() {
+    return new File(insightConfig.getSonatypeWork(), "cache");
   }
 
   public File getScanDir(final String appId) {
@@ -167,7 +172,8 @@ public class InsightWork
    * @since 1.170
    */
   public File getIerDashboardIconsDirectory() {
-    return new File(insightConfig.getSonatypeWork(), "enterpriseReportingDashboardIcons");
+    return TenantThreadLocal.runAsGlobal(
+        () -> new File(getNodeCacheDir(), "enterpriseReportingDashboardIcons"));
   }
 
   public File getSbomDir() {

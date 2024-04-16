@@ -3788,6 +3788,7 @@ public class TemporaryEntity
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
     fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }
@@ -3808,6 +3809,7 @@ public class TemporaryEntity
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setCpe(cpe);
     fileCoordinate.setSwid(swid);
+    fileCoordinate.setIdentificationSources("SBOM");
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

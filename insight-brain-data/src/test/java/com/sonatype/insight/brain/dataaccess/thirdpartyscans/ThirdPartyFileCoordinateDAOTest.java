@@ -67,18 +67,22 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartyFileCoordinate entity =
         new ThirdPartyFileCoordinate("filehash2", "source", "format",
             "name2", "version2", scannedFile.getId());
+    entity.setIdentificationSources("SBOM");
     thirdPartyFileCoordinateDAO.insert(entity);
     assertThat(entity.getId()).isNotNull();
 
     // Get
     ThirdPartyFileCoordinate retrievedCoordinateFile = thirdPartyFileCoordinateDAO.getById(entity.getId());
     assertThirdPartyCoordinateFile("filehash2", "source", "format", "name2", "version2", scannedFile.getId(), entity);
+    assertThat(entity.getIdentificationSources()).isEqualTo("SBOM");
 
     // Update
     retrievedCoordinateFile.setName("UpdatedName");
+    retrievedCoordinateFile.setIdentificationSources("OTHER");
     thirdPartyFileCoordinateDAO.update(retrievedCoordinateFile);
     ThirdPartyFileCoordinate updated = thirdPartyFileCoordinateDAO.getById(retrievedCoordinateFile.getId());
     assertThat(updated.getName()).isEqualTo("UpdatedName");
+    assertThat(updated.getIdentificationSources()).isEqualTo("OTHER");
 
     // Delete
     thirdPartyFileCoordinateDAO.delete(retrievedCoordinateFile);
@@ -453,6 +457,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(entity.getName()).isEqualTo(name);
     assertThat(entity.getFormat()).isEqualTo(format);
     assertThat(entity.getVersion()).isEqualTo(version);
+    assertThat(entity.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
     assertThat(entity.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
   }
 

@@ -68,6 +68,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "swid")
   private String swid;
 
+  @Column(name = "identification_sources")
+  private String identificationSources;
+
   @Override
   public String getId() {
     return id;
@@ -148,5 +151,13 @@ public class ThirdPartyFileCoordinate
 
   public void setSwid(String swid) {
     this.swid = swid;
+  }
+
+  public String getIdentificationSources() {
+    return identificationSources;
+  }
+
+  public void setIdentificationSources(String identificationSources) {
+    this.identificationSources = identificationSources;
   }
 }

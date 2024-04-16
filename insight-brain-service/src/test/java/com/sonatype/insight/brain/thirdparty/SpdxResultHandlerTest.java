@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -472,6 +473,8 @@ public class SpdxResultHandlerTest
             "\"tagId\":\"" + swidTagId + "\"," +
             "\"tagVersion\":0," +
             "\"patch\":false}");
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources())
+        .isEqualTo(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
   }
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {

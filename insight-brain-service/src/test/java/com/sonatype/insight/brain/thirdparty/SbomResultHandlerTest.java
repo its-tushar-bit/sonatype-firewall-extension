@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -132,7 +133,9 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(2);
-    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource()).isEqualTo("clair"));
+    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource()).isEqualTo("clair"))
+        .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
+            SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
 
   @Test
@@ -148,7 +151,9 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
-        .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)));
+            .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)))
+        .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
+            SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
 
   @Test

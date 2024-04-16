@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -242,6 +243,7 @@ public class SpdxResultHandler
     if (component.getSwid() != null) {
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
     }
+    fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
     saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);

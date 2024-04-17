@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
+import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -86,6 +87,10 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
 
     public PolicyThreatLevelFilter policyThreatLevelFilter() {
       return new PolicyThreatLevelFilter("#repository-threat-level-filter");
+    }
+
+    public static NxTreeViewMultiSelect violationsFilter() {
+      return new NxTreeViewMultiSelect("#components-violations-filter");
     }
 
     public SelenideElement closeButton() {

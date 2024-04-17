@@ -23,15 +23,18 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
+import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryFilterPopover;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
@@ -60,10 +63,15 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
+import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.not;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.brain.FirewallComponentDetailsPageTest.toLicenseDTO;
+import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 
 public class RepositoryResultsSummaryTest
     extends AbstractFunctionalTest
@@ -1281,6 +1289,73 @@ public class RepositoryResultsSummaryTest
 
     waitUntilUrl(RepositoriesSummaryPage.url());
     RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repository Managers"));
+  }
+
+  @Test
+  public void testRepositoryResultPageFilterPopOver_ViolationsFilter() {
+    Date jan1st2024 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0)
+        .atZone(ZoneId.systemDefault()).toInstant());
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("5E7PCC8D-3SAB6390-85FF543B-ECD79639-D431F7AE");
+    Repository repo = tempEntity.newRepository(repoManager, "maven-central");
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
+
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("maven-central Repository Results"));
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().get(0).shouldHave(text("No results"));
+
+    tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "path1", "hash1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), jan1st2024, jan1st2024, null);
+    tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "path2", "hash2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), jan1st2024, null, null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, "path1", false, Action.ID_FAIL, "1", "policy1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 5, "path2", false, Action.ID_WARN, "2", "policy2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
+
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("maven-central Repository Results"));
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
+    testRow(RepositoryResultDetailPage.table().row(1), "5", "policy2", "", "g2 : a2 : v2");
+
+    RepositoryResultDetailPage.filterPopoverButton().click();
+    RepositoryFilterPopover repositoryFilterPopover = RepositoryResultDetailPage.filterPopover();
+    NxTreeViewMultiSelect violationsFilter = repositoryFilterPopover.violationsFilter();
+
+    violationsFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
+    violationsFilter.multiSelectList().filter(visible).shouldBe(empty);
+    violationsFilter.twisty().shouldBe(visible).click();
+    violationsFilter.multiSelectList().filter(visible).shouldHave(size(5));
+    violationsFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
+    violationsFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text("Not Violating"));
+    violationsFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text("Open"));
+    violationsFilter.checkboxItem(4).shouldNotBe(selected).label().shouldHave(text("Quarantined"));
+    violationsFilter.checkboxItem(5).shouldNotBe(selected).label().shouldHave(text("Waived"));
+
+    violationsFilter.checkboxItem(4).click();
+
+    violationsFilter.checkboxItem(4).shouldBe(selected).label().shouldHave(text("Quarantined"));
+
+    repositoryFilterPopover.applyButton().click();
+
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
+
+    repositoryFilterPopover.clearButton().click();
+
+    violationsFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
+    violationsFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text("Not Violating"));
+    violationsFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text("Open"));
+    violationsFilter.checkboxItem(4).shouldNotBe(selected).label().shouldHave(text("Quarantined"));
+    violationsFilter.checkboxItem(5).shouldNotBe(selected).label().shouldHave(text("Waived"));
+
+    repositoryFilterPopover.applyButton().click();
+
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
+    testRow(RepositoryResultDetailPage.table().row(1), "5", "policy2", "", "g2 : a2 : v2");
   }
 
   @Test

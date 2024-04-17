@@ -83,27 +83,6 @@ public class MultiTenantPostgresTestCluster
 
       databaseProvisioner.migrateDatabase();
     });
-
-    // rename the template tenant schema to not be a real tenant
-    renameTemplateTenant();
-  }
-
-  private void renameTemplateTenant() {
-    String databaseName = TEMPLATE_DATABASE;
-    log.debug("Renaming template schema");
-    try {
-      String[] cmd = {
-          "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName, "--username", getUsername(),
-          "--command", "ALTER SCHEMA t_" + TEMPLATE_TENANT_NAME + " RENAME TO " + TEMPLATE_TENANT_NAME
-      };
-      ExecResult execResult = postgresTestContainer.execInContainer(cmd);
-      if (execResult.getExitCode() != 0) {
-        throw new Exception("psql returned " + execResult.getExitCode());
-      }
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Could not rename template schema", e);
-    }
   }
 
   public void cloneTenant(final String databaseName, final String databaseSchema) {
@@ -114,7 +93,7 @@ public class MultiTenantPostgresTestCluster
           "/usr/local/bin/pg_dump",
           "--username", postgresTestContainer.getUsername(),
           "--dbname", databaseName,
-          "--schema", TEMPLATE_TENANT_NAME,
+          "--schema", "t_" + TEMPLATE_TENANT_NAME,
           "|",
           "sed",
           "'s/t_templatetenant/" + databaseSchema + "/g'",

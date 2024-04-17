@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestInfoClient;
 import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sast.SastFinding;
@@ -98,10 +99,6 @@ public class SastPullRequestCommentingServiceTest
   public void before() {
     final Organization org = tempEntity.newOrganization();
     application = tempEntity.newApplication(org.getId());
-
-    doReturn(gitApiClient)
-        .when(gitClientFactory)
-        .createApiClient(any());
   }
 
   @Override
@@ -121,6 +118,7 @@ public class SastPullRequestCommentingServiceTest
       throws Exception
   {
     // Given: Developer is not included in the license
+    setUpGitApiClient();
     setUpSourceControl(true);
     doReturn(Collections.singleton(LicensedFeature.DASHBOARD))
         .when(featuresService)
@@ -150,6 +148,7 @@ public class SastPullRequestCommentingServiceTest
   public void testCreateOrUpdateSastPullRequestComment_CanComment_WhenPRsExist_AndOpenPRExists() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is included, a base URL is configured,
     // and the repo is private or internal
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -192,6 +191,7 @@ public class SastPullRequestCommentingServiceTest
   @Test
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenPRsExist_AndNoOpenPRExists() throws Exception {
     // Given: pull request commenting is enabled, and the Developer license feature is included
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
 
@@ -218,6 +218,7 @@ public class SastPullRequestCommentingServiceTest
   @Test
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenNoPRsExist() throws Exception {
     // Given: pull request commenting is enabled, and the Developer license feature is included
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
 
@@ -241,6 +242,7 @@ public class SastPullRequestCommentingServiceTest
   @Test
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenNoSastFindingsExist() throws Exception {
     // Given: pull request commenting is enabled, and the Developer license feature is included
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
 
@@ -266,6 +268,7 @@ public class SastPullRequestCommentingServiceTest
   @Test
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenPrCommentingIsDisabled() throws Exception {
     // Given: pull request commenting is NOT enabled, and the Developer license feature is included
+    setUpGitApiClient();
     setUpSourceControl(false);
     includeDeveloperLicenseFeature();
 
@@ -293,6 +296,7 @@ public class SastPullRequestCommentingServiceTest
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenRepoIsNotPrivateOrInternal() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, and the repo is NOT
     // private or internal
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
 
@@ -320,6 +324,7 @@ public class SastPullRequestCommentingServiceTest
   public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenNoBaseUrlIsConfigured() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is included, the repo is private or
     // internal, and NO base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -346,9 +351,32 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
+  public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenFailingToFetchCommitInfo() throws Exception {
+    // Given: pull request commenting is enabled
+    setUpSourceControl(true);
+
+    // Given: missing commit info
+    doThrow(SourceControlException.class)
+        .when(pullRequestInfoClient)
+        .getCommitInfoFromScm(any(), anyString());
+
+    // Given: at least 1 SAST finding
+    final SastScan sastScan = tempEntity.newSastScan(application.getId());
+    addSastFinding(sastScan, 1);
+
+    // When: PR commenting is attempted
+    pullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, COMMIT_HASH);
+
+    // Then: no PR comment is created
+    final SastPullRequestComment pullRequestComment = pullRequestCommentDAO.getBySastScanId(sastScan.getId());
+    assertThat(pullRequestComment).isNull();
+  }
+
+  @Test
   public void testCreateOrUpdateSastPullRequestComment_CreateComment_WhenNoPriorCommentForPrExists() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -398,6 +426,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -472,6 +501,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -511,6 +541,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -551,6 +582,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -594,6 +626,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -628,6 +661,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -672,6 +706,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -723,6 +758,7 @@ public class SastPullRequestCommentingServiceTest
   public void testCreateOrUpdateSastPullRequestComment_SendTelemetryAfterCommentUpdated() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -785,6 +821,7 @@ public class SastPullRequestCommentingServiceTest
   {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
+    setUpGitApiClient();
     setUpSourceControl(true);
     includeDeveloperLicenseFeature();
     setRepoPrivate();
@@ -826,6 +863,12 @@ public class SastPullRequestCommentingServiceTest
 
     // Then: telemetry data is not sent
     verify(telemetrySender, never()).send(any(TelemetryData.class));
+  }
+
+  private void setUpGitApiClient() {
+    doReturn(gitApiClient)
+        .when(gitClientFactory)
+        .createApiClient(any());
   }
 
   private void setUpSourceControl(final boolean prCommentingEnabled) throws PlexusCipherException {

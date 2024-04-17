@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestCommentingEligibilityValidator;
 import com.sonatype.insight.brain.git.PullRequestInfoClient;
 import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sast.SastFinding;
@@ -115,7 +116,16 @@ public class SastPullRequestCommentingService
           sastScan.getApplicationId());
       return;
     }
-    final CommitInformation commitInfo = pullRequestInfoClient.getCommitInfoFromScm(gitRepoInfo, commitHash);
+
+    final CommitInformation commitInfo;
+    try {
+      commitInfo = pullRequestInfoClient.getCommitInfoFromScm(gitRepoInfo, commitHash);
+    }
+    catch (final SourceControlException e) {
+      log.warn("Could not create SAST PR comment: {}", e.getMessage());
+      return;
+    }
+
     final PullRequest pullRequest = commitInfo.getPullRequests()
         .stream()
         .filter(pr -> PullRequestState.OPEN == pr.getState())

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental.sast;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.nonNull;
@@ -291,7 +293,9 @@ class ApiSastScanService
   }
 
   private SastFindingSeverity validateSeverityName(final String severityName) {
-    return Optional.ofNullable(SastFindingSeverity.getByName(severityName))
+    final String useName = StringUtils.capitalize(severityName.toLowerCase(Locale.ROOT));
+    final SastFindingSeverity severity = SastFindingSeverity.getByName(useName);
+    return Optional.ofNullable(severity)
         .orElseThrow(() -> new BadRequestException("Invalid name for SastFindingSeverity: " + severityName));
   }
 

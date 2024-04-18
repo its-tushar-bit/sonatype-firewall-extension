@@ -9,6 +9,7 @@ import { NxCard, NxH2, NxP } from '@sonatype/react-shared-components';
 import GithubLogo from 'MainRoot/img/third-party-logos/github.png';
 import GitlabLogo from 'MainRoot/img/third-party-logos/gitlab.png';
 import BitbucketLogo from 'MainRoot/img/third-party-logos/bitbucket.png';
+import AzureDevOpsLogo from 'MainRoot/img/third-party-logos/AzureDevOps.png';
 import IntegrationsCard from '../IntegrationsCard';
 
 const scmIntegrations = [
@@ -38,6 +39,15 @@ const scmIntegrations = [
     linkText: 'Click here for installation help.',
     linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/bitbucket',
     dataAnalyticsId: 'sonatype-developer-scm-bitbucket',
+  },
+  {
+    title: 'Azure DevOps',
+    imgUrl: AzureDevOpsLogo,
+    description:
+      'Lifecycle pushes component intelligence into Azure DevOps where developers can view and remediate policy violations with detailed Code Insights.',
+    linkText: 'Click here for installation help.',
+    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/azure-devops',
+    dataAnalyticsId: 'sonatype-developer-scm-azure-devops',
   },
 ];
 

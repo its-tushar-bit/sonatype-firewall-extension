@@ -364,8 +364,11 @@ public class ComponentLoader
           for (JsonNode aggregateFileNode : componentJson.path("aggregateFiles")) {
             addAggregateFile(aggregateFileNode, component);
           }
-          component.setDisplayName(JsonUtils.getTypeToString(componentJson.path(DISPLAY_NAME_FIELD),
-              ComponentDisplayName.class));
+          if (componentJson.has(DISPLAY_NAME_FIELD)) {
+            component.setDisplayName(JsonUtils.getTypeToString(componentJson.path(DISPLAY_NAME_FIELD),
+                ComponentDisplayName.class));
+          }
+
           component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
           if (!matchState.equals(MatchState.UNKNOWN)) {
             Integer relativePopularity = null;

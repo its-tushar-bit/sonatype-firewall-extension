@@ -13,7 +13,7 @@ public final class ReportEntry
 
   public final byte[] buf;
 
-  ReportEntry(final String name, final long time, final byte[] buf) {
+  public ReportEntry(final String name, final long time, final byte[] buf) {
     this.name = name;
     this.time = time;
     this.buf = buf;

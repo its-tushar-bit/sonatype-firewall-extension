@@ -94,6 +94,8 @@ public final class Report
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
+  public static final String POLICY_THREATS = "policythreats.json";
+
   public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
       THIRD_PARTY_SECURITY_JSON_FILENAME, THIRD_PARTY_LICENSE_JSON_FILENAME);
 

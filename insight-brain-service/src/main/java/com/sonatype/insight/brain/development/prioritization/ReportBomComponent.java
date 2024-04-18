@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.component;
+
+package com.sonatype.insight.brain.development.prioritization;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +24,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.model.component.ComponentCategory;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
@@ -33,7 +39,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ART
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
-public class Component
+public class ReportBomComponent
     implements ComponentIdentifierAndHashComparable
 {
   private String hash;
@@ -78,13 +84,13 @@ public class Component
 
   private List<AggregateFile> aggregateFiles = new ArrayList<>();
 
-  private String displayName;
+  private ReportBomDisplayName displayName;
 
   private List<ComponentCategory> componentCategories = new ArrayList<>();
 
-  private HygieneRating hygieneRating;
+  private HygieneRatingDeserializer hygieneRating;
 
-  private IntegrityRating integrityRating;
+  private IntegrityRatingDeserializer integrityRating;
 
   private ComponentIdentifier componentIdentifier;
 
@@ -100,10 +106,10 @@ public class Component
 
   private boolean hiddenObservedLicenses;
 
-  public Component() {
+  public ReportBomComponent() {
   }
 
-  public Component(final ComponentIdentifier componentIdentifier) {
+  public ReportBomComponent(final ComponentIdentifier componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
   }
 
@@ -143,12 +149,12 @@ public class Component
     return componentDisplayName != null ? componentDisplayName.toString() : null;
   }
 
-  public String getDisplayName() {
+  public ReportBomDisplayName getDisplayName() {
     return displayName;
   }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  public void setDisplayName(ReportBomDisplayName reportBomDisplayName) {
+    this.displayName = reportBomDisplayName;
   }
 
   public Set<String> getDeclaredMultiLicenseIds() {
@@ -373,8 +379,8 @@ public class Component
     this.identificationSource = IdentificationSource.getById(id);
   }
 
-  public void setIntegrityRating(final String id) {
-    this.integrityRating = IntegrityRating.getById(id);
+  public void setIntegrityRating(IntegrityRatingDeserializer integrityRating) {
+    this.integrityRating = integrityRating;
   }
 
   public void setLicenseOverrideIds(Set<String> licenseOverrideIds) {
@@ -447,20 +453,16 @@ public class Component
     componentCategories.add(componentCategory);
   }
 
-  public HygieneRating getHygieneRating() {
+  public HygieneRatingDeserializer getHygieneRating() {
     return hygieneRating;
   }
 
-  public void setHygieneRating(final HygieneRating hygieneRating) {
+  public void setHygieneRating(final HygieneRatingDeserializer hygieneRating) {
     this.hygieneRating = hygieneRating;
   }
 
-  public IntegrityRating getIntegrityRating() {
+  public IntegrityRatingDeserializer getIntegrityRating() {
     return integrityRating;
-  }
-
-  public void setIntegrityRating(final IntegrityRating integrityRating) {
-    this.integrityRating = integrityRating;
   }
 
   public AnalyzerFeatures getAnalyzerFeatures() {

@@ -273,6 +273,53 @@ const editAppState = {
   },
 };
 
+const sbomManagerEditOrgState = {
+  router: {
+    currentState: {
+      name: 'sbomManager.management.view.application',
+    },
+    currentParams: {
+      organizationId: 'organizationOneID',
+    },
+  },
+  orgsAndPolicies: {
+    applications: {
+      applications: APPS,
+    },
+    organizations: {
+      organizations: ORGS,
+    },
+    root: {
+      selectedOwner: ORGS[0],
+    },
+    ownerSideNav: {
+      displayedOrganization: {
+        type: 'organization',
+        id: ORGS[0].id,
+        name: ORGS[0].name,
+      },
+      ownersMap,
+    },
+    ownerActions: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: true,
+        isApplication: false,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('OrganizationOneName', validateNonEmpty),
+        appId: rscInitialState('', validateNonEmpty),
+        isDirty: false,
+        isUnsavedChangesModalOpen: false,
+      },
+    },
+  },
+};
+
 describe('OwnerModal', () => {
   let mock, renderComponent, routerContext;
 
@@ -558,6 +605,11 @@ describe('OwnerModal', () => {
       renderComponent(editOrgState);
 
       expect(screen.getByText('Edit Organization')).toBeVisible();
+    });
+
+    it('renders the correct field label when it is Sbom Manager', () => {
+      renderComponent(sbomManagerEditOrgState);
+      expect(screen.getByText(`Organization Name`)).toBeVisible();
     });
 
     it('renders modal with correct content', () => {

@@ -21,6 +21,7 @@ import {
   selectIsOrganization,
   selectIsRepositoryManager,
   selectIsRootOrganization,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -66,6 +67,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
   const isApp = useSelector(selectIsApplication);
   const isOrganization = useSelector(selectIsOrganization);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
+  const isSbomManager = useSelector(selectIsSbomManager);
   const isScmOnboarding = useSelector(selectIsScmOnboarding);
   const newOwnerName = useSelector(selectNewOwnerName);
   const ownerAppId = useSelector(selectNewOwnerAppId);
@@ -139,7 +141,7 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
     if (isApp) {
       return 'Application';
     }
-    if (isOrganization || isScmOnboarding) {
+    if (isOrganization || isScmOnboarding || isSbomManager) {
       return 'Organization';
     }
     if (isRepositoryManager) {

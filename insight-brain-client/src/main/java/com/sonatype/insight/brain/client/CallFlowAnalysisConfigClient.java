@@ -14,7 +14,7 @@ import com.sonatype.insight.client.utils.Result;
 public class CallFlowAnalysisConfigClient extends AbstractRequestClient
 {
   public static final String RESOURCE_PATH =
-      "api/v2/callFlowAnalysis/configuration";
+      "api/experimental/callFlowAnalysis/configuration";
 
   protected CallFlowAnalysisConfigClient(final Configuration config) {
     super(config);

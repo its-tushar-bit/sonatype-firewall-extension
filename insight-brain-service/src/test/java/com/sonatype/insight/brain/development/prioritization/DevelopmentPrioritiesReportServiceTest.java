@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -64,7 +65,7 @@ public class DevelopmentPrioritiesReportServiceTest
   private DevelopmentPrioritiesReportService developmentPrioritiesReportService;
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     developmentPrioritiesReportService = new DevelopmentPrioritiesReportService(
         applicationDAO,
         reportService,

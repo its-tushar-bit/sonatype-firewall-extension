@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -212,5 +213,27 @@ public class ExternalTelemetryServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.JIRA_PLUGIN_USAGE_METRICS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
+  @Test
+  public void testSendTelemetry_NoTelemetryValues() {
+    Map<String, String> telemetryValues = new HashMap<>();
+
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry("user-agent", telemetryValues))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Telemetry values are required.");
+
+    verifyNoInteractions(telemetrySenderMock);
+  }
+
+  @Test
+  public void testSendTelemetry_NullTelemetryValues() {
+    Map<String, String> telemetryValues = null;
+
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry("user-agent", telemetryValues))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Telemetry values are required.");
+
+    verifyNoInteractions(telemetrySenderMock);
   }
 }

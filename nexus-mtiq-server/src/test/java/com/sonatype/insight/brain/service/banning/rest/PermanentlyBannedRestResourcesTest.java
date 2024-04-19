@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.service.banning.rest;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesResource;
 import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
-import com.sonatype.insight.brain.api.v2.ApiExternalTelemetryResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.support.SupportResource;
 
@@ -24,7 +23,6 @@ public class PermanentlyBannedRestResourcesTest
 
     assertThat(underTest.isBanned(ApiCrowdConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiDataRetentionPolicyResource.class)).isTrue();
-    assertThat(underTest.isBanned(ApiExternalTelemetryResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiConfigFeaturesResource.class)).isTrue();
     assertThat(underTest.isBanned(SupportResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiSourceControlConfigurationResource.class)).isTrue();

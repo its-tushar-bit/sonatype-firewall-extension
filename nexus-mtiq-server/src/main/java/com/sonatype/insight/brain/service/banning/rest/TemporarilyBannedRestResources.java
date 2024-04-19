@@ -8,12 +8,11 @@ package com.sonatype.insight.brain.service.banning.rest;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
-import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.labs.LabsResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
@@ -29,13 +28,10 @@ import com.google.common.collect.ImmutableList;
 public class TemporarilyBannedRestResources
     implements BannedImplementation
 {
-  private static final List<Class> BANNED_REST_RESOURCES = ImmutableList.of(
+  private static final List<Class<?>> BANNED_REST_RESOURCES = ImmutableList.of(
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
       SuccessMetricsResource.class,
-
-      // Integrations CLM-27720
-      IdeResource.class,
 
       // Labs CLM-27720
       LabsResource.class,

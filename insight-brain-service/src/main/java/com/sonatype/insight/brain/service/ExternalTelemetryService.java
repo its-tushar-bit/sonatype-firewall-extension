@@ -39,6 +39,11 @@ public class ExternalTelemetryService
   }
 
   public void sendTelemetry(String userAgent, Map<String, String> telemetryValues) {
+    if (telemetryValues == null || telemetryValues.isEmpty()) {
+      log.info("External telemetry endpoint called without any telemetry values.");
+      throw new BadRequestException("Telemetry values are required.");
+    }
+
     String purpose = telemetryValues.get("telemetry_purpose");
     if (purpose == null) {
       log.info("External telemetry endpoint called without the required field `telemetry_purpose`.");

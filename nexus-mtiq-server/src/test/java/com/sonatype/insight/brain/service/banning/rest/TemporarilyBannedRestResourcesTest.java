@@ -6,13 +6,12 @@
 package com.sonatype.insight.brain.service.banning.rest;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
-import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiAdvancedSearchResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.labs.LabsResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
@@ -30,8 +29,6 @@ public class TemporarilyBannedRestResourcesTest
     assertThat(underTest.isBanned(LdapResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiProxyServerConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(SuccessMetricsResource.class)).isTrue();
-
-    assertThat(underTest.isBanned(IdeResource.class)).isTrue();
 
     assertThat(underTest.isBanned(AdvancedSearchResource.class)).isFalse();
     assertThat(underTest.isBanned(ApiAdvancedSearchResourceV2.class)).isFalse();

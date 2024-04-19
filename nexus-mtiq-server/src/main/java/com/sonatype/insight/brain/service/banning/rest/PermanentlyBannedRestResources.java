@@ -10,7 +10,6 @@ import java.util.List;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesResource;
 import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
-import com.sonatype.insight.brain.api.v2.ApiExternalTelemetryResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.support.SupportResource;
@@ -24,10 +23,9 @@ import com.google.common.collect.ImmutableList;
 public class PermanentlyBannedRestResources
     implements BannedImplementation
 {
-  private static final List<Class> BANNED_REST_RESOURCES = ImmutableList.of(
+  private static final List<Class<?>> BANNED_REST_RESOURCES = ImmutableList.of(
       ApiCrowdConfigurationResource.class,
       ApiDataRetentionPolicyResource.class,
-      ApiExternalTelemetryResource.class,
       ApiConfigFeaturesResource.class,
       SupportResource.class,
       ApiSourceControlConfigurationResource.class

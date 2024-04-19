@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -77,7 +78,8 @@ public class SourceControlEventProcessor
       SourceControlScanService sourceControlScanService,
       SourceControlService sourceControlService,
       CurrentUser currentUser,
-      Configuration configuration)
+      Configuration configuration,
+      ShutdownHandler shutdownHandler)
   {
     this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
@@ -90,8 +92,13 @@ public class SourceControlEventProcessor
 
     repoAccessController = new TenantReference<>(() -> new SemaphorePool(threadPoolSize));
     lazyInitThreadPoolExecutor = new LazyInitThreadPoolExecutor(threadPoolSize, threadPoolSize,
-        "SourceControlEventProcessor-%s", CORE_THREAD_KEEP_ALIVE_SECONDS)
+        "SourceControlEventProcessor-%s", CORE_THREAD_KEEP_ALIVE_SECONDS, shutdownHandler)
         .setShouldClearShiroThreadContextBeforeThreadStart(true);
+  }
+
+  // Visible for testing
+  LazyInitThreadPoolExecutor getLazyInitThreadPoolExecutor() {
+    return lazyInitThreadPoolExecutor;
   }
 
   public void processEvent(SourceControlEvent event, SourceControlEventStatusListener statusListener) {

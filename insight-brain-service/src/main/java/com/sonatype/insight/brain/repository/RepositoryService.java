@@ -12,12 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -65,6 +63,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -110,6 +109,8 @@ public class RepositoryService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final ThreadPoolExecutor reevalExecutor;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -122,7 +123,8 @@ public class RepositoryService
       ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      ShutdownHandler shutdownHandler)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -135,6 +137,13 @@ public class RepositoryService
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
     this.clusterLockManager = clusterLockManager;
+    reevalExecutor = createReevaluationExecutor();
+    shutdownHandler.add(() -> reevalExecutor.getActiveCount() != 0 || !reevalExecutor.getQueue().isEmpty());
+  }
+
+  // Visible for testing
+  ThreadPoolExecutor getReevalExecutor() {
+    return reevalExecutor;
   }
 
   /**
@@ -235,22 +244,19 @@ public class RepositoryService
     return repositoryDTO;
   }
 
-  private final Executor reevalExecutor = createReevaluationExecutor();
-
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    AuditData.get().continueAsync(reevalExecutor, new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator,
-        reevalExecutor, MAX_REPOSITORY_EVALUATION_REQUEST_SIZE, repositoryComponentDAO, clusterLockManager));
+    AuditData.get().continueAsync(reevalExecutor,
+        new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,
+            MAX_REPOSITORY_EVALUATION_REQUEST_SIZE, repositoryComponentDAO, clusterLockManager));
   }
 
-  private static Executor createReevaluationExecutor() {
+  private static ThreadPoolExecutor createReevaluationExecutor() {
     ThreadPoolExecutor executor = new TenantThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setDaemon(true)
-            .setNameFormat("ReevaluateRepository-%s").build());
-
+        new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true)
+        .setNameFormat("ReevaluateRepository-%s").build());
     executor.allowCoreThreadTimeOut(true);
-
     return executor;
   }
 

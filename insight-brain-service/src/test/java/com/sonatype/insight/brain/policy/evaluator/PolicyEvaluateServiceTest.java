@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -88,6 +89,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -140,6 +142,9 @@ public class PolicyEvaluateServiceTest
 
   private TelemetrySender mockTelemetrySender;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Override
   public void configure(Binder binder) {
     mockReportDownloader = new MockReportDownloader();
@@ -151,6 +156,7 @@ public class PolicyEvaluateServiceTest
     mockScanHandler = mock(ScanHandler.class);
     binder.bind(ScanHandler.class).toInstance(mockScanHandler);
     binder.bind(TaskScheduler.class).toInstance(mock(TaskScheduler.class));
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
 
     super.configure(binder);
   }
@@ -164,6 +170,11 @@ public class PolicyEvaluateServiceTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     mailConfigurationDAO.set(mailConfiguration);
+  }
+
+  @Test
+  public void testDefaultPolicyEvaluateService_AddsExecutorToShutdownHandler() {
+    verify(mockShutdownHandler).add(policyEvaluateService.getExecutor(), 2);
   }
 
   private void assertPolicyEvaluation(

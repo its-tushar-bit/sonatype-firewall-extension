@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -92,7 +93,8 @@ public class ApiComponentEvaluationServiceV2
                                          final ApiComponentDetailsAdapter componentDetailsAdapter,
                                          final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
                                          final InsightWork work,
-                                         final ErrorResponseGenerator errorResponseGenerator)
+                                         final ErrorResponseGenerator errorResponseGenerator,
+                                         final ShutdownHandler shutdownHandler)
   {
     this.applicationDAO = applicationDAO;
     this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
@@ -101,6 +103,12 @@ public class ApiComponentEvaluationServiceV2
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
+    shutdownHandler.add(executor);
+  }
+
+  // Visible for testing
+  ExecutorService getExecutor() {
+    return executor;
   }
 
   @Override

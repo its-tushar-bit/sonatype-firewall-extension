@@ -63,6 +63,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -173,7 +174,8 @@ public class ScmOnboardingService
       final IqForScmLicenseChecker licenseChecker,
       final SourceControlUtils sourceControlUtils,
       final InsightProxy insightProxy,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ShutdownHandler shutdownHandler)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -191,6 +193,12 @@ public class ScmOnboardingService
     this.sourceControlUtils = sourceControlUtils;
     this.insightProxy = insightProxy;
     this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
+    shutdownHandler.add(() -> executor.getActiveCount() != 0 || !executor.getQueue().isEmpty());
+  }
+
+  // Visible for testing
+  SourceControlImportThreadPoolExecutor getExecutor() {
+    return executor;
   }
 
   @Override

@@ -5,17 +5,210 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
+import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.utils.CheckedRunnable;
+
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 public class AdminServletTest
     extends AbstractBrainServiceIntegrationTest
 {
+  @Override
+  public void configure(final Binder binder) {
+    super.configure(binder);
+    binder.bind(ShutdownHandler.class).toInstance(spy(new TestShutdownHandler()));
+  }
+
   @Test(timeout = 60_000)
   public void testCpuProfiling_NoEndlessBusyLoopOnNegativeFrequency_CLM_16983() throws Exception {
     assertThat(adminRequest().path("pprof").query("frequency", -1).query("duration", "1").get()).isNotNull();
+  }
+
+  @Test
+  public void testTasksShutdown_WaitsForActiveRequests() throws Exception {
+    TestBlockResource testBlockResource = getCLMServer().getInstance(TestBlockResource.class);
+    AtomicReference<HttpResponse> blockResponse = new AtomicReference<>();
+    testTasksShutdown_WaitsFor(
+        () -> tryCheckedRunnable(() -> blockResponse.set(restRequest().path("test", "block").post())),
+        testBlockResource.blocker,
+        Duration.ofMinutes(1),
+        () -> assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503)
+    );
+    assertThat(blockResponse.get().getStatusCode()).isEqualTo(204);
+  }
+
+  @Test
+  public void testTasksShutdown_WaitsForScheduler() throws Exception {
+    TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
+    try {
+      taskScheduler.disableForTesting = false;
+      taskScheduler.start();
+      TestBlockJob testBlockJob = getCLMServer().getInstance(TestBlockJob.class);
+      testTasksShutdown_WaitsFor(
+          () -> taskScheduler.scheduleOneTimeTask(testBlockJob),
+          testBlockJob.blocker,
+          Duration.ofMinutes(1)
+      );
+      assertThat(taskScheduler.getScheduler()).isNull();
+    }
+    finally {
+      taskScheduler.disableForTesting = true;
+    }
+  }
+
+  @Test
+  public void testTasksShutdown_WaitsForThread() throws Exception {
+    ShutdownHandler shutdownHandler = getCLMServer().getInstance(ShutdownHandler.class);
+    Blocker blocker = new Blocker();
+    Thread thread = new Thread(() -> tryCheckedRunnable(blocker::block));
+    shutdownHandler.add(thread);
+    testTasksShutdown_WaitsFor(
+        thread::start,
+        blocker,
+        Duration.ofMinutes(1)
+    );
+    assertThat(thread.isAlive()).isFalse();
+  }
+
+  @Test
+  public void testTasksShutdown_WaitsForExecutorService() throws Exception {
+    ShutdownHandler shutdownHandler = getCLMServer().getInstance(ShutdownHandler.class);
+    Blocker blocker = new Blocker();
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    shutdownHandler.add(executorService);
+    testTasksShutdown_WaitsFor(
+        () -> executorService.submit(() -> tryCheckedRunnable(blocker::block)),
+        blocker,
+        Duration.ofMinutes(1)
+    );
+  }
+
+  private void testTasksShutdown_WaitsFor(
+      final Runnable blockerTrigger,
+      final Blocker blocker,
+      final Duration timeout,
+      final CheckedRunnable... assertions) throws Exception
+  {
+    long extraMillisToWait = 1000;
+    long end = System.currentTimeMillis() + timeout.toMillis() + extraMillisToWait;
+    try {
+      // Start whatever should block shutdown until we decide to unblock it
+      new Thread(blockerTrigger).start();
+      await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS).until(blocker::isBlocking);
+
+      // Start shutdown
+      AtomicReference<HttpResponse> shutdownResponse = new AtomicReference<>();
+      Thread shutdownTaskThread = new Thread(
+          () -> tryCheckedRunnable(() -> shutdownResponse.set(adminRequest().path("tasks", "shutdown").post())));
+      shutdownTaskThread.start();
+
+      // Wait some time
+      Thread.sleep(extraMillisToWait);
+
+      // Check shutdown is still blocked
+      assertThat(blocker.isBlocking()).isTrue();
+      assertThat(shutdownTaskThread.isAlive()).isTrue();
+
+      // Unblock shutdown
+      blocker.unblock();
+      // Wait for shutdown to finish
+      await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+          .untilAsserted(() -> assertThat(blocker.isBlocking()).isFalse());
+      await().atMost(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+          .untilAsserted(() -> assertThat(shutdownResponse.get()).isNotNull());
+      assertThat(shutdownResponse.get().getStatusCode()).isEqualTo(200);
+      TestShutdownHandler spyTestShutdownHandler =
+          (TestShutdownHandler) getCLMServer().getInstance(ShutdownHandler.class);
+      verify(spyTestShutdownHandler, timeout(end - System.currentTimeMillis())).exit(0);
+      for (CheckedRunnable checkedRunnable : assertions) {
+        checkedRunnable.run();
+      }
+    }
+    finally {
+      stopClmServer();
+    }
+  }
+
+  public static final class Blocker
+  {
+    private final Semaphore semaphore = new Semaphore(0);
+
+    public void block() throws InterruptedException {
+      semaphore.acquire();
+    }
+
+    public void unblock() {
+      semaphore.release();
+    }
+
+    public boolean isBlocking() {
+      return semaphore.hasQueuedThreads();
+    }
+  }
+
+  @Named
+  @Singleton
+  @Path("test/block")
+  public static final class TestBlockResource
+  {
+    private final Blocker blocker = new Blocker();
+
+    @POST
+    @UnlicensedPath
+    public void block() throws InterruptedException {
+      blocker.block();
+    }
+  }
+
+  @Named
+  @Singleton
+  public static final class TestBlockJob
+      implements InsightJob
+  {
+    private final Blocker blocker = new Blocker();
+
+    @Override
+    public String getJobName() {
+      return "TestBlockJob";
+    }
+
+    @Override
+    public void execute(final JobExecutionContext context) throws JobExecutionException {
+      tryCheckedRunnable(blocker::block);
+    }
+  }
+
+  private static void tryCheckedRunnable(final CheckedRunnable checkedRunnable) {
+    try {
+      checkedRunnable.run();
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
   }
 }

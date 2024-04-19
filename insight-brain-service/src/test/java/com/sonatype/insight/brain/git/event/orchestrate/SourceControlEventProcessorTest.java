@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.git.event.orchestrate;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.insight.brain.concurrent.LazyInitThreadPoolExecutor;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 
@@ -76,6 +79,9 @@ public class SourceControlEventProcessorTest
   @Mock
   private Configuration configuration;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private SourceControlEventProcessor sourceControlEventProcessor;
 
   public SourceControlEventProcessorTest() {
@@ -93,7 +99,15 @@ public class SourceControlEventProcessorTest
     sourceControlEventProcessor =
         spy(new SourceControlEventProcessor(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
             mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService, mockCurrentUser,
-            configuration));
+            configuration, mockShutdownHandler));
+  }
+
+  @Test
+  public void testSourceControlEventProcessor_AddsExecutorToShutdownHandler() {
+    LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor = sourceControlEventProcessor.getLazyInitThreadPoolExecutor();
+    ThreadPoolExecutor threadPoolExecutor = lazyInitThreadPoolExecutor.getThreadPoolExecutor();
+
+    verify(mockShutdownHandler).add(threadPoolExecutor, 1);
   }
 
   @Test

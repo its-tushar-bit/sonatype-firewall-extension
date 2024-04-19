@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
@@ -51,6 +52,9 @@ public class SourceControlEventOrchestratorMtiqTest
   @Mock
   private ApiConfigFeaturesService mockApiConfigFeaturesService;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private SourceControlEventOrchestrator underTest;
 
   @Before
@@ -66,7 +70,7 @@ public class SourceControlEventOrchestratorMtiqTest
     SourceControlEventOrchestrator orchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService
+        mockApiConfigFeaturesService, mockShutdownHandler
     );
 
     underTest = Mockito.spy(orchestrator);

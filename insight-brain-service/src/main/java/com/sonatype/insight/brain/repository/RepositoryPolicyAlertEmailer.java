@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -54,7 +54,8 @@ public class RepositoryPolicyAlertEmailer
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final PolicyAlertEmailResolver policyAlertEmailResolver,
                                       final BaseUrl baseUrl,
-                                      final AuditRecorder auditRecorder)
+                                      final AuditRecorder auditRecorder,
+                                      final ShutdownHandler shutdownHandler)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
@@ -63,6 +64,12 @@ public class RepositoryPolicyAlertEmailer
     executor = new TenantThreadPoolExecutor(1000, 1000, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setNameFormat("RepositoryPolicyAlertEmailNotifier-%d").build());
     executor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(executor, 3);
+  }
+
+  // Visible for testing
+  ThreadPoolExecutor getExecutor() {
+    return executor;
   }
 
   public void sendNotifications(Repository repository, List<PolicyNotification> notifications) {

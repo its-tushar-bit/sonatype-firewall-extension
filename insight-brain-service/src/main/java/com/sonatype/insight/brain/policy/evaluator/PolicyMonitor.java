@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -98,7 +99,8 @@ public class PolicyMonitor
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ShutdownHandler shutdownHandler)
   {
     this.work = work;
     this.uploader = uploader;
@@ -112,6 +114,12 @@ public class PolicyMonitor
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationMonitorForkJoinPool = initThreadPool(configuration);
+    shutdownHandler.add(this.applicationMonitorForkJoinPool);
+  }
+
+  // Visible for testing
+  ForkJoinPool getApplicationMonitorForkJoinPool() {
+    return applicationMonitorForkJoinPool;
   }
 
   private ForkJoinPool initThreadPool(Configuration configuration) {

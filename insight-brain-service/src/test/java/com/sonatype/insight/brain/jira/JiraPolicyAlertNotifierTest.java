@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -42,6 +43,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
@@ -84,12 +87,19 @@ public class JiraPolicyAlertNotifierTest
   @Mock
   private JiraService jiraService;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
+  @Captor
+  private ArgumentCaptor<Thread> threadArgumentCaptor;
+
   @Override
   public void configure(Binder binder) {
     lenient().when(jiraService.client(any())).thenReturn(jiraClient);
     lenient().when(jiraService.getConfiguration()).thenReturn(new JiraConfiguration());
 
     binder.bind(JiraService.class).toInstance(jiraService);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -133,6 +143,8 @@ public class JiraPolicyAlertNotifierTest
     assertThat(issueMeta).containsEntry("id", issueTypeId);
     String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
     assertThat(summary).isEqualTo("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts");
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertJIRANotifierForScan");
   }
 
   @Test

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResult
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -65,7 +66,8 @@ public class ApiPromoteScanServiceV2
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyEvaluateService policyEvaluateService,
       InsightWork work,
-      PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils)
+      PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
+      ShutdownHandler shutdownHandler)
   {
     super(applicationDAO, policyEvaluateService);
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -75,6 +77,12 @@ public class ApiPromoteScanServiceV2
     executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
     executor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(executor);
+  }
+
+  // Visible for testing
+  ThreadPoolExecutor getExecutor() {
+    return executor;
   }
 
   private void validateRequest(final ApiPromoteScanRequestDTOV2 requestDTO, final String applicationId) {

@@ -15,12 +15,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -47,6 +48,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationI
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent.ImportStatus;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -59,7 +61,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -159,10 +160,14 @@ public class ScmOnboardingServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Override
   public void configure(final Binder binder) {
     binder.bind(SourceControlEventPublisher.class).toInstance(mockSourceControlEventPublisher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -177,6 +182,20 @@ public class ScmOnboardingServiceTest
     rootOrgSourceControl.setSourceControlEvaluationsEnabled(true);
     sourceControlDAO.update(rootOrgSourceControl);
     setScmParallelImportThreshold(100);
+  }
+
+  @Test
+  public void testScmOnboardingService_AddsToShutdownHandler() throws Exception {
+    ArgumentCaptor<BooleanSupplier> booleanSupplierArgumentCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
+    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture());
+    BooleanSupplier booleanSupplier = booleanSupplierArgumentCaptor.getValue();
+
+    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
+    Future<?> future = scmOnboardingService.getExecutor().submit(() -> {
+      await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isTrue());
+    });
+    future.get(5, TimeUnit.SECONDS);
+    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
   }
 
   @Test

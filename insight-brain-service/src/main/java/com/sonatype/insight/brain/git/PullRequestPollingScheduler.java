@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
@@ -55,16 +56,19 @@ public class PullRequestPollingScheduler
 
   private final int pullRequestDiscoveryDelaySeconds;
 
+  private final ShutdownHandler shutdownHandler;
+
   public boolean disableForTesting;
 
   @Inject
   public PullRequestPollingScheduler(
       final PullRequestPollingService pullRequestPollingService,
       final IqForScmLicenseChecker licenseChecker,
-      final ApiConfigFeaturesService apiConfigFeaturesService)
+      final ApiConfigFeaturesService apiConfigFeaturesService,
+      final ShutdownHandler shutdownHandler)
   {
     this(pullRequestPollingService, licenseChecker, apiConfigFeaturesService,
-        PULL_REQUEST_DISCOVERY_DELAY_SECONDS, PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS);
+        PULL_REQUEST_DISCOVERY_DELAY_SECONDS, PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS, shutdownHandler);
   }
 
   @VisibleForTesting
@@ -73,7 +77,8 @@ public class PullRequestPollingScheduler
       IqForScmLicenseChecker licenseChecker,
       final ApiConfigFeaturesService apiConfigFeaturesService,
       int pullRequestDiscoveryDelaySeconds,
-      int pullRequestDiscoveryIntervalSeconds)
+      int pullRequestDiscoveryIntervalSeconds,
+      ShutdownHandler shutdownHandler)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
@@ -81,6 +86,7 @@ public class PullRequestPollingScheduler
     this.pullRequestDiscoveryDelaySeconds = pullRequestDiscoveryDelaySeconds;
     this.pullRequestDiscoveryIntervalSeconds = pullRequestDiscoveryIntervalSeconds;
     this.tenantScheduledExecutorServices = new TenantReference<>(() -> newExecutor());
+    this.shutdownHandler = shutdownHandler;
   }
 
   @Override
@@ -93,10 +99,14 @@ public class PullRequestPollingScheduler
     stopPullRequestPolling();
   }
 
-  private ScheduledExecutorService newExecutor() {
+  // Visible for testing
+  ScheduledExecutorService newExecutor() {
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat("PullRequestPolling-%d").setDaemon(true).build();
-    return new TenantScheduledThreadPoolExecutor(PULL_REQUEST_DISCOVERY_TENANT_THREAD_COUNT, threadFactory);
+    TenantScheduledThreadPoolExecutor tenantScheduledThreadPoolExecutor =
+        new TenantScheduledThreadPoolExecutor(PULL_REQUEST_DISCOVERY_TENANT_THREAD_COUNT, threadFactory);
+    shutdownHandler.add(tenantScheduledThreadPoolExecutor);
+    return tenantScheduledThreadPoolExecutor;
   }
 
   private void startPullRequestPolling() {

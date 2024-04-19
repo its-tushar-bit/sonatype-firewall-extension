@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -31,6 +32,8 @@ public class LazyInitThreadPoolExecutor
 
   private final long keepAliveTimeInSeconds;
 
+  private final ShutdownHandler shutdownHandler;
+
   // clear any data that might be in a pooled thread's ThreadContext before the thread is used?  by default, Shiro
   // will propagate the security manager and subject to child threads, but only when the child threads are first created
   private boolean shouldClearShiroThreadContextBeforeThreadStart;
@@ -41,12 +44,14 @@ public class LazyInitThreadPoolExecutor
       int threadPoolSize,
       int taskQueueCapacity,
       String nameFormat,
-      long keepAliveTimeInSeconds)
+      long keepAliveTimeInSeconds,
+      ShutdownHandler shutdownHandler)
   {
     this.threadPoolSize = threadPoolSize;
     this.taskQueueCapacity = taskQueueCapacity;
     this.nameFormat = nameFormat;
     this.keepAliveTimeInSeconds = keepAliveTimeInSeconds;
+    this.shutdownHandler = shutdownHandler;
   }
 
   public ThreadPoolExecutor getThreadPoolExecutor() {
@@ -79,6 +84,7 @@ public class LazyInitThreadPoolExecutor
         new LinkedBlockingQueue<>(taskQueueCapacity),
         threadFactory);
     localThreadPoolExecutor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(localThreadPoolExecutor, 1);
     return localThreadPoolExecutor;
   }
 

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.LogOutput;
@@ -89,6 +90,9 @@ public class PullRequestPollingSchedulerSingleTenantTest
   @Mock
   private PullRequestInfoProvider pullRequestInfoProviderMock;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private GitClientFactory gitClientFactorySpy;
 
   private PullRequestPollingScheduler scheduler;
@@ -152,7 +156,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
 
     when(licenseCheckerMock.isPullRequestCommentingSupported()).thenReturn(true);
     scheduler = spy(new PullRequestPollingScheduler(service, licenseCheckerMock, apiConfigFeaturesService,
-        delaySeconds, intervalSeconds));
+        delaySeconds, intervalSeconds, mockShutdownHandler));
   }
 
   @After

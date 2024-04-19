@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.eventbus.AsyncEventBusImpl;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 @Named
 @Singleton
@@ -22,8 +23,9 @@ public class AsyncEventBusProvider
   private final AsyncEventBus asyncEventBus;
 
   @Inject
-  public AsyncEventBusProvider(Configuration configuration) {
+  public AsyncEventBusProvider(Configuration configuration, ShutdownHandler shutdownHandler) {
     asyncEventBus = new AsyncEventBusImpl(configuration.getEventBusMaxThreadPoolSize());
+    shutdownHandler.add(asyncEventBus.getThreadPoolExecutor(), 4);
   }
 
   @Override

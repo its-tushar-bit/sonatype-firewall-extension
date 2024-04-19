@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -41,6 +42,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 public class ApiComponentEvaluationServiceV2Test
     extends AbstractComponentTest
@@ -60,6 +62,9 @@ public class ApiComponentEvaluationServiceV2Test
   @Mock
   private HdsClient client;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private ComponentEvaluationV2Helper componentEvaluationV2Helper;
 
   private Organization org;
@@ -69,6 +74,7 @@ public class ApiComponentEvaluationServiceV2Test
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(client);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -80,6 +86,11 @@ public class ApiComponentEvaluationServiceV2Test
     app = tempEntity.newApplication(org.getId());
 
     apiComponentEvaluationService.setChunkSize(CHUNK_SIZE);
+  }
+
+  @Test
+  public void testApiComponentEvaluationServiceV2_AddsExecutorToShutdownHandler() {
+    verify(mockShutdownHandler).add(apiComponentEvaluationService.getExecutor());
   }
 
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {

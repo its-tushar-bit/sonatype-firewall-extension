@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.naming.NamingException;
 
@@ -69,6 +68,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -89,6 +89,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
@@ -154,12 +155,19 @@ public class PolicyAlertEmailerTest
   @Inject
   private LdapUserMappingDAO ldapUserMappingDAO;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
+  @Captor
+  private ArgumentCaptor<Thread> threadArgumentCaptor;
+
   @Override
   public void configure(Binder binder) {
     lenient().when(mailer.getServer()).thenReturn("localhost:587");
     lenient().when(mailer.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
     binder.bind(InsightMail.class).toInstance(mailer);
     binder.bind(CrowdClientFactory.class).toInstance(mockCrowdClientFactory);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -207,6 +215,8 @@ public class PolicyAlertEmailerTest
             + " in stage " + eval.getStageTypeId()
             + ". There are either no recipients configured, or no new policy violations "
             + "for policies configured to send notifications"));
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertEmailNotifierForScan");
   }
 
   @Test
@@ -522,7 +532,8 @@ public class PolicyAlertEmailerTest
         userDirectory,
         policyAlertEmailResolver,
         new AuditRecorder(null),
-        testProductLicense
+        testProductLicense,
+        mockShutdownHandler
     );
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);

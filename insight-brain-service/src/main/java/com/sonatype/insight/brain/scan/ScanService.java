@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -78,7 +79,8 @@ public class ScanService
       Provider<ScanTask> scanTaskProvider,
       PersistedScanTicketDAO persistedScanTicketDAO,
       ApplicationDAO applicationDAO,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      ShutdownHandler shutdownHandler)
   {
     this.fileCleaner = fileCleaner;
     this.scanTaskProvider = scanTaskProvider;
@@ -96,8 +98,14 @@ public class ScanService
           threadFactory
       );
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;
     });
+  }
+
+  // Visible for testing
+  TenantReference<TenantThreadPoolExecutor> getExecutors() {
+    return executors;
   }
 
   /**

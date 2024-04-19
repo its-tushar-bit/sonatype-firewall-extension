@@ -13,10 +13,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -30,7 +31,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
@@ -76,6 +78,7 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -131,6 +134,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
 
   @Override
@@ -139,6 +145,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -151,6 +158,20 @@ public class RepositoryServiceTest extends AbstractComponentTest
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Collections.singletonList("a"));
     lenient().when(hdsClient.get(eq(FirewallIgnorePatterns.class),
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+  }
+
+  @Test
+  public void testRepositoryService_AddsToShutdownHandler() throws Exception {
+    ArgumentCaptor<BooleanSupplier> booleanSupplierArgumentCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
+    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture());
+    BooleanSupplier booleanSupplier = booleanSupplierArgumentCaptor.getValue();
+
+    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
+    Future<?> future = repositoryService.getReevalExecutor().submit(() -> {
+      await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isTrue());
+    });
+    future.get(5, TimeUnit.SECONDS);
+    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
   }
 
   @Test

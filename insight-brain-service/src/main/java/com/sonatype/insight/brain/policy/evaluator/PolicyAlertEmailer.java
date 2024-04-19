@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -54,6 +55,8 @@ public class PolicyAlertEmailer
 
   private final ProductLicense productLicense;
 
+  private final ShutdownHandler shutdownHandler;
+
   @Inject
   public PolicyAlertEmailer(
       final InsightMail mail,
@@ -61,13 +64,15 @@ public class PolicyAlertEmailer
       final UserDirectory userDirectory,
       final PolicyAlertEmailResolver policyAlertEmailResolver,
       final AuditRecorder auditRecorder,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final ShutdownHandler shutdownHandler)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.userDirectory = userDirectory;
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
+    this.shutdownHandler = shutdownHandler;
   }
 
   public void sendNotifications(
@@ -83,7 +88,7 @@ public class PolicyAlertEmailer
       return;
     }
 
-    new Thread(new TenantAwareOneTimeRunnable(() -> {
+    Thread emailNotificationThread = new Thread(new TenantAwareOneTimeRunnable(() -> {
       try {
         String applicationPublicId = app.getPublicId();
         String mailServer = getMail().getServer();
@@ -136,7 +141,9 @@ public class PolicyAlertEmailer
       }
     }), "PolicyAlertEmailNotifierForScan-" + scanId
 
-    ).start();
+    );
+    shutdownHandler.add(emailNotificationThread, 3);
+    emailNotificationThread.start();
   }
 
   protected Map<String, Object> createPolicyMailModel(

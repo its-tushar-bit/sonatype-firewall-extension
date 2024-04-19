@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -69,6 +70,8 @@ public class JiraPolicyAlertNotifier
 
   private final ProductLicense productLicense;
 
+  private final ShutdownHandler shutdownHandler;
+
   private Boolean cloudDeployment;
 
   @Inject
@@ -77,13 +80,15 @@ public class JiraPolicyAlertNotifier
       final JiraService jiraService,
       final BaseUrl baseUrl,
       final AuditRecorder auditRecorder,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final ShutdownHandler shutdownHandler)
   {
     this.userDirectory = userDirectory;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
+    this.shutdownHandler = shutdownHandler;
 
     // resolve template used to render issue description
     try {
@@ -116,7 +121,7 @@ public class JiraPolicyAlertNotifier
 
     log.debug("Sending JIRA notifications for application: {}, scan: {}, stage: {}", app.getId(), scanId, stage);
 
-    new Thread(new TenantAwareOneTimeRunnable(() -> {
+    Thread jiraNotificationThread = new Thread(new TenantAwareOneTimeRunnable(() -> {
       Map<String, Object> customFields = jiraConfiguration.getCustomFields();
 
       Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = getPolicyFactsByJiraNotifications(
@@ -175,7 +180,9 @@ public class JiraPolicyAlertNotifier
           }
         }
       }
-    }), "PolicyAlertJIRANotifierForScan-" + scanId).start();
+    }), "PolicyAlertJIRANotifierForScan-" + scanId);
+    shutdownHandler.add(jiraNotificationThread, 3);
+    jiraNotificationThread.start();
   }
 
   private Object createDescription(

@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,8 +36,21 @@ public class PullRequestPollingSchedulerTest
   @Mock
   private ApiConfigFeaturesService mockApiConfigFeaturesService;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   public PullRequestPollingSchedulerTest() {
     super(PullRequestPollingScheduler.class);
+  }
+
+  @Test
+  public void testNewExecutor() {
+    PullRequestPollingScheduler pullRequestPollingScheduler = new PullRequestPollingScheduler(pullRequestPollingService,
+        licenseChecker, mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
+
+    ScheduledExecutorService scheduledExecutorService = pullRequestPollingScheduler.newExecutor();
+
+    verify(mockShutdownHandler).add(scheduledExecutorService);
   }
 
   @Test
@@ -43,7 +59,7 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-        mockApiConfigFeaturesService, delaySeconds, intervalSeconds);
+        mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler);
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
@@ -96,7 +112,7 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-            mockApiConfigFeaturesService, delaySeconds, intervalSeconds);
+            mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler);
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
@@ -152,8 +168,8 @@ public class PullRequestPollingSchedulerTest
   @Test
   public void testPullRequestPollingScheduler_unlicensed() throws Exception {
     // given: valid scheduler instance but missing license feature
-    PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, mockApiConfigFeaturesService, 2, 1);
+    PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
@@ -177,8 +193,8 @@ public class PullRequestPollingSchedulerTest
     lenient().when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
 
-    PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, mockApiConfigFeaturesService, 2, 1);
+    PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.register();

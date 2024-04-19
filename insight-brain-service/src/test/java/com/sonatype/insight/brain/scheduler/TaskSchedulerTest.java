@@ -21,9 +21,10 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -32,6 +33,7 @@ import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
 import org.quartz.Job;
@@ -52,6 +54,7 @@ import org.quartz.utils.DBConnectionManager;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TaskSchedulerTest
@@ -72,11 +75,15 @@ public class TaskSchedulerTest
   @Inject
   private OperationalDataStore operationalDataStore;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Override
   public void configure(Binder binder) {
     // add some AOP to the mix to more closely reflect the normal runtime setup
     MethodInterceptor noop = Joinpoint::proceed;
     binder.bindInterceptor(Matchers.subclassesOf(TestJob.class), Matchers.any(), noop);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -110,6 +117,7 @@ public class TaskSchedulerTest
     List<TriggerListener> triggerListeners = scheduler.getListenerManager().getTriggerListeners();
     assertThat(triggerListeners).hasSize(1);
     assertThat(triggerListeners.get(0)).isInstanceOf(QuartzTriggerListener.class);
+    verify(mockShutdownHandler).add(scheduler, -1);
   }
 
   @Test

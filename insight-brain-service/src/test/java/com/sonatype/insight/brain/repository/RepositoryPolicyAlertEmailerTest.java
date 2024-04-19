@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -40,6 +39,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -69,15 +69,24 @@ public class RepositoryPolicyAlertEmailerTest
   @Mock
   private InsightMail mail;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(InsightMail.class).toInstance(mail);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
   @Before
   public void before() {
     setBaseUrl("http://baseUrl");
+  }
+
+  @Test
+  public void testRepositoryPolicyAlertEmailer_AddsExecutorToShutdownHandler() {
+    verify(mockShutdownHandler).add(emailer.getExecutor(), 3);
   }
 
   @Test

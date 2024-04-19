@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
@@ -76,6 +78,8 @@ public class TaskScheduler
 
   private final QuartzTriggerListener quartzTriggerListener;
 
+  private final ShutdownHandler shutdownHandler;
+
   public boolean disableForTesting;
 
   @Inject
@@ -83,12 +87,14 @@ public class TaskScheduler
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
-      QuartzTriggerListener quartzTriggerListener)
+      QuartzTriggerListener quartzTriggerListener,
+      ShutdownHandler shutdownHandler)
   {
     this.quartzJobStoreTX = quartzJobStoreTX;
     this.jobFactory = jobFactory;
     this.schedulerName = schedulerName;
     this.quartzTriggerListener = quartzTriggerListener;
+    this.shutdownHandler = shutdownHandler;
   }
 
   SimpleThreadPool createThreadPool() {
@@ -113,6 +119,7 @@ public class TaskScheduler
       scheduler.setJobFactory(jobFactory);
       scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
       scheduler.getListenerManager().addTriggerListener(quartzTriggerListener);
+      shutdownHandler.add(scheduler, -1);
       return scheduler;
     }
     catch (SchedulerException e) {
@@ -212,7 +219,7 @@ public class TaskScheduler
 
   public boolean isJobTriggered(InsightJob insightJob, Map<String, Object> data) {
     try {
-      for (Trigger trigger : getScheduler(insightJob).getTriggersOfJob(toJobKey(insightJob))) {
+      for (Trigger trigger : getTriggersForJob(insightJob)) {
         if (data.equals(trigger.getJobDataMap().getWrappedMap())) {
           return true;
         }
@@ -222,6 +229,15 @@ public class TaskScheduler
     catch (SchedulerException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  private List<? extends Trigger> getTriggersForJob(InsightJob insightJob) throws SchedulerException {
+    JobKey jobKey = toJobKey(insightJob);
+    Scheduler scheduler = getScheduler(insightJob);
+    if (scheduler != null) {
+      return scheduler.getTriggersOfJob(jobKey);
+    }
+    return getQuartzJobStoreTX(insightJob).getTriggersForJob(jobKey);
   }
 
   public void schedulePeriodicTask(InsightJob insightJob, Duration interval) {
@@ -321,12 +337,24 @@ public class TaskScheduler
 
   protected boolean unscheduleTask(JobKey jobKey, InsightJob insightJob) {
     Scheduler scheduler = getScheduler(insightJob);
-    return unscheduleTask(jobKey, scheduler);
+    if (scheduler != null) {
+      return unscheduleTask(jobKey, scheduler);
+    }
+    return unscheduleTask(jobKey, getQuartzJobStoreTX(insightJob));
   }
 
   protected boolean unscheduleTask(JobKey jobKey, Scheduler scheduler) {
     try {
       return scheduler.deleteJob(jobKey);
+    }
+    catch (SchedulerException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected boolean unscheduleTask(JobKey jobKey, QuartzJobStoreTX quartzJobStoreTX) {
+    try {
+      return quartzJobStoreTX.removeJob(jobKey);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -381,6 +409,14 @@ public class TaskScheduler
     }
   }
 
+  protected QuartzJobStoreTX getQuartzJobStoreTX(InsightJob insightJob) {
+    return quartzJobStoreTX;
+  }
+
+  public List<String> getJobGroupNames(QuartzJobStoreTX quartzJobStoreTX) throws JobPersistenceException {
+    return quartzJobStoreTX.getJobGroupNames();
+  }
+
   // Visible for testing
   public void clear() throws Exception {
     clearScheduler(getScheduler());
@@ -413,7 +449,11 @@ public class TaskScheduler
 
   private boolean isTaskScheduled(JobKey jobKey, InsightJob insightJob) {
     try {
-      return getScheduler(insightJob).checkExists(jobKey);
+      Scheduler scheduler = getScheduler(insightJob);
+      if (scheduler != null) {
+        return scheduler.checkExists(jobKey);
+      }
+      return getQuartzJobStoreTX(insightJob).checkExists(jobKey);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);

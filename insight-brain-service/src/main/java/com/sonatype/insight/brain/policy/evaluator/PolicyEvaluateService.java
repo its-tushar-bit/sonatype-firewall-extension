@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -97,7 +98,8 @@ public class PolicyEvaluateService
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      ShutdownHandler shutdownHandler)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -111,6 +113,12 @@ public class PolicyEvaluateService
     this.telemetryUtils = telemetryUtils;
 
     executor = new PolicyEvaluationThreadPoolExecutor();
+    shutdownHandler.add(executor, 2);
+  }
+
+  // Visible for testing
+  PolicyEvaluationThreadPoolExecutor getExecutor() {
+    return executor;
   }
 
   @Override

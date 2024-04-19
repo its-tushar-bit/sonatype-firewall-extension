@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -41,6 +42,9 @@ public class PullRequestPollingSchedulerTest
   @Mock
   private ApiConfigFeaturesService mockApiConfigFeaturesService;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private PullRequestPollingScheduler scheduler;
 
   private final int delaySeconds = 1;
@@ -52,7 +56,7 @@ public class PullRequestPollingSchedulerTest
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, mockApiConfigFeaturesService,
-        delaySeconds, intervalSeconds);
+        delaySeconds, intervalSeconds, mockShutdownHandler);
   }
 
   @Test

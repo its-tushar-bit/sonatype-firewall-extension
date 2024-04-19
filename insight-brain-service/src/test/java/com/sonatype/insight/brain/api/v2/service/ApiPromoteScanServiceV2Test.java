@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -88,6 +89,9 @@ public class ApiPromoteScanServiceV2Test
   @Inject
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
@@ -99,7 +103,13 @@ public class ApiPromoteScanServiceV2Test
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
     binder.bind(PolicyAlertNotifier.class).toInstance(policyAlertNotifier);
     binder.bind(ScanPolicyEvaluator.class).toInstance(scanPolicyEvaluator);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
+  }
+
+  @Test
+  public void testApiPromoteScanServiceV2_AddsExecutorToShutdownHandler() {
+    verify(mockShutdownHandler).add(service.getExecutor());
   }
 
   @Test

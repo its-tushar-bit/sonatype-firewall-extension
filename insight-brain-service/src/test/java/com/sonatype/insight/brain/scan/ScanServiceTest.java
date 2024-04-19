@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -31,8 +30,10 @@ import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -56,6 +57,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ScanServiceTest
@@ -82,6 +84,9 @@ public class ScanServiceTest
   @Inject
   private Configuration configuration;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private Application app;
 
   private ScanTicket scanTicket;
@@ -94,6 +99,7 @@ public class ScanServiceTest
   public void configure(Binder binder) {
     binder.bind(ScanUploader.class).toInstance(scanUploader);
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -124,6 +130,13 @@ public class ScanServiceTest
       Thread.yield();
       scanTicket = scanService.getTicket(scanTicket.applicationPublicId, scanTicket.ticketId);
     }
+  }
+
+  @Test
+  public void testScanService_AddsExecutorToShutdownHandler() {
+    TenantThreadPoolExecutor tenantThreadPoolExecutor = scanService.getExecutors().get();
+
+    verify(mockShutdownHandler).add(tenantThreadPoolExecutor);
   }
 
   @Test

@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -62,9 +63,10 @@ public class MultiTenantTaskScheduler
       TenantContextJobListener tenantContextJobListener,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantManager tenantManager,
-      TenantUtil tenantUtil)
+      TenantUtil tenantUtil,
+      ShutdownHandler shutdownHandler)
   {
-    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener);
+    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler);
 
     this.mtiqBatchJobStoreTX = mtiqBatchJobStoreTX;
     this.tenantContextJobListener = tenantContextJobListener;
@@ -143,7 +145,7 @@ public class MultiTenantTaskScheduler
     // When no tenant is specified (e.g. global) unschedule this task for all tenants
     if (tenantUtil.isGlobalTenant()) {
       try {
-        List<String> tenantSlugs = getSchedulerForJobType(insightJob.getClass()).getJobGroupNames();
+        List<String> tenantSlugs = getJobGroupNames(getQuartzJobStoreTX(insightJob));
 
         boolean unscheduled = false;
         for (String tenantSlug : tenantSlugs) {
@@ -208,8 +210,13 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
+  protected QuartzJobStoreTX getQuartzJobStoreTX(InsightJob insightJob) {
+    return getQuartzJobStoreTXForJobType(insightJob.getClass());
+  }
+
+  @Override
   protected boolean unscheduleTask(JobKey jobKey, InsightJob insightJob) {
-    return super.unscheduleTask(jobKey, getSchedulerForJobType(insightJob.getClass()));
+    return super.unscheduleTask(jobKey, insightJob);
   }
 
   private Scheduler getSchedulerForJobType(Class<? extends Job> jobType) {
@@ -218,6 +225,15 @@ public class MultiTenantTaskScheduler
     }
     else {
       return getScheduler();
+    }
+  }
+
+  private QuartzJobStoreTX getQuartzJobStoreTXForJobType(Class<? extends Job> jobType) {
+    if (tenantUtil.isMtiqBatchMode() && tenantUtil.isMtiqBatchJob(jobType)) {
+      return mtiqBatchJobStoreTX;
+    }
+    else {
+      return quartzJobStoreTX;
     }
   }
 }

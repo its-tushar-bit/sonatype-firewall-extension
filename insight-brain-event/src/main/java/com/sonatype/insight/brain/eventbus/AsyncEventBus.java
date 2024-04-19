@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.eventbus;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 public interface AsyncEventBus
 {
   int DEFAULT_MAX_POOL_SIZE = 500;
@@ -18,4 +20,6 @@ public interface AsyncEventBus
   int getMaxPoolSize();
 
   void setMaxPoolSize(int maxPoolSize);
+
+  ThreadPoolExecutor getThreadPoolExecutor();
 }

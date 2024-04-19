@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.Simultane
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApplicationSelectionRule;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
@@ -82,6 +83,8 @@ public class UserEventManager
 
   private final List<EventProcessedListener> eventProcessedListeners;
 
+  private final ShutdownHandler shutdownHandler;
+
   private boolean backupTriggerEnabled = true;
 
   private LocalDateTime eventsLastPushedTime = LocalDateTime.now();
@@ -95,7 +98,8 @@ public class UserEventManager
       SourceControlLoadBalancer sourceControlLoadBalancer,
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlProvider sourceControlProvider,
-      SourceControlUtils sourceControlUtils)
+      SourceControlUtils sourceControlUtils,
+      ShutdownHandler shutdownHandler)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlLoadBalancer = sourceControlLoadBalancer;
@@ -105,6 +109,7 @@ public class UserEventManager
     this.simultaneousEventSelectionRule = new SimultaneousEventSelectionRule(sourceControlProvider);
     eventProcessedListeners = ImmutableList.of(applicationScopeEventProcessingSuspensionRule,
         eventProcessingErrorRetryRule, performanceThrottlingRule, repositoryUrlErrorRule);
+    this.shutdownHandler = shutdownHandler;
     startBackupEventPushTrigger();
   }
 
@@ -374,10 +379,14 @@ public class UserEventManager
     return eventsLastPushedTime.plusSeconds(EVENT_PUSH_MAX_QUIET_PERIOD_SECONDS).isBefore(LocalDateTime.now());
   }
 
-  private ScheduledExecutorService newExecutor() {
+  // Visible for testing
+  ScheduledExecutorService newExecutor() {
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat("UserEventManager-%d").setDaemon(true).build();
-    return new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    TenantScheduledThreadPoolExecutor tenantScheduledThreadPoolExecutor =
+        new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    shutdownHandler.add(tenantScheduledThreadPoolExecutor);
+    return tenantScheduledThreadPoolExecutor;
   }
 
   @VisibleForTesting

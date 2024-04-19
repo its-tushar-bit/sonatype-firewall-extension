@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -89,6 +90,8 @@ public class SourceControlEventOrchestrator
 
   private final TenantReference<ScheduledExecutorService> tenantScheduledExecutorServices;
 
+  private final ShutdownHandler shutdownHandler;
+
   private int otherInstanceEventProcessingIntervalSeconds = SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS;
 
   private int otherInstanceEventProcessingStartupDelaySeconds = DEFAULT_EVENT_PROCESSING_STARTUP_DELAY_SECONDS;
@@ -103,7 +106,8 @@ public class SourceControlEventOrchestrator
       SourceControlLoadBalancer sourceControlLoadBalancer,
       IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils,
-      ApiConfigFeaturesService apiConfigFeaturesService)
+      ApiConfigFeaturesService apiConfigFeaturesService,
+      ShutdownHandler shutdownHandler)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
@@ -113,15 +117,20 @@ public class SourceControlEventOrchestrator
     this.sourceControlUtils = sourceControlUtils;
     this.apiConfigFeaturesService = apiConfigFeaturesService;
     this.tenantScheduledExecutorServices = new TenantReference<>(this::newExecutor);
+    this.shutdownHandler = shutdownHandler;
   }
 
-  private ScheduledExecutorService newExecutor() {
+  // Visible for testing
+  ScheduledExecutorService newExecutor() {
     String threadNameFormat = String.format("SourceControlEventOrchestrator_%s",
         new TenantUtil().getTenantSlugForSynchronization());
 
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat(threadNameFormat + "-%d").setDaemon(true).build();
-    return new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    TenantScheduledThreadPoolExecutor tenantScheduledThreadPoolExecutor =
+        new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    shutdownHandler.add(tenantScheduledThreadPoolExecutor);
+    return tenantScheduledThreadPoolExecutor;
   }
 
   /**
@@ -176,7 +185,8 @@ public class SourceControlEventOrchestrator
             sourceControlLoadBalancer,
             sourceControlEventProcessor,
             gitRepositoryInfo.getProvider(),
-            sourceControlUtils)
+            sourceControlUtils,
+            shutdownHandler)
     );
     userEventManager.addEvent(event);
   }

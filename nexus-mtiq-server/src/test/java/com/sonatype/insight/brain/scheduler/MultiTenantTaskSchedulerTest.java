@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scheduler;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -69,6 +70,9 @@ public class MultiTenantTaskSchedulerTest
   @Mock
   private ListenerManager listenerManager;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   private MultiTenantTaskScheduler underTest;
 
   @Before
@@ -76,7 +80,7 @@ public class MultiTenantTaskSchedulerTest
     try {
       underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, multiTenantBatchModeJobStoreTX,
           jobFactory, testName.getMethodName(), quartzTriggerListener, tenantContextJobListener,
-          systemConfigurationPropertyDAO, tenantManager, scheduler, tenantUtil);
+          systemConfigurationPropertyDAO, tenantManager, scheduler, tenantUtil, mockShutdownHandler);
 
       when(scheduler.getListenerManager()).thenReturn(listenerManager);
     }
@@ -116,7 +120,7 @@ public class MultiTenantTaskSchedulerTest
     ImmutableList<String> tenants = ImmutableList.of("tenant1", "tenant2");
 
     when(tenantUtil.isGlobalTenant()).thenReturn(true);
-    when(scheduler.getJobGroupNames()).thenReturn(tenants);
+    when(quartzJobStoreTX.getJobGroupNames()).thenReturn(tenants);
     InsightJob mockInsightJob = mock(InsightJob.class);
     when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
 
@@ -170,11 +174,12 @@ public class MultiTenantTaskSchedulerTest
         SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
         TenantManager tenantManager,
         Scheduler scheduler,
-        TenantUtil tenantUtil)
+        TenantUtil tenantUtil,
+        ShutdownHandler shutdownHandler)
     {
       super(quartzJobStoreTX, multiTenantBatchModeJobStoreTX, jobFactory, schedulerName,
           quartzTriggerListener,
-          tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager, tenantUtil);
+          tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager, tenantUtil, shutdownHandler);
       this.scheduler = scheduler;
     }
 

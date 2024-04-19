@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
@@ -103,6 +104,8 @@ public class PullRequestMonitor
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
+  private final ShutdownHandler shutdownHandler;
+
   public boolean disableForTesting;
 
   @Inject
@@ -117,7 +120,8 @@ public class PullRequestMonitor
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
       PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
-      ApiConfigFeaturesService apiConfigFeaturesService)
+      ApiConfigFeaturesService apiConfigFeaturesService,
+      ShutdownHandler shutdownHandler)
   {
     super("monitorPRs");
     this.configuration = configuration;
@@ -131,9 +135,11 @@ public class PullRequestMonitor
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
     this.apiConfigFeaturesService = apiConfigFeaturesService;
+    this.shutdownHandler = shutdownHandler;
   }
 
-  private ExecutorService getExecutorService() {
+  // Visible for testing
+  ExecutorService getExecutorService() {
     if (executorService == null) {
       ThreadFactory threadFactory =
           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestMonitor-%s").build();
@@ -141,6 +147,7 @@ public class PullRequestMonitor
           TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
       threadPoolExecutor.allowCoreThreadTimeOut(true);
       executorService = threadPoolExecutor;
+      shutdownHandler.add(executorService);
     }
     return executorService;
   }

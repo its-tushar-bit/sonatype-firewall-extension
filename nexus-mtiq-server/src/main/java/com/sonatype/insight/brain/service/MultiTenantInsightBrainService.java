@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFi
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkAuth0Provider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkLocalProvider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
+import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCounterFilter;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
@@ -61,6 +62,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.service.banning.rest.BlockEndpointsContainerRequestFilter;
+import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
@@ -242,6 +244,8 @@ public class MultiTenantInsightBrainService
 
   @Override
   protected void addServletFilters(Environment env) {
+    addServletFilter(env, true, ActiveRequestCounterFilter.class, "/*");
+
     addServletFilter(env, true, TenantUrlFilter.class, "/*");
 
     // We need to add the Header filter for the Admin endpoints before Admin Resources filter
@@ -352,6 +356,8 @@ public class MultiTenantInsightBrainService
 
         bind(MeterRegistryProvider.class).to(MultiTenantMeterRegistryProvider.class);
 
+        bind(ActiveRequestCounterFilter.class).to(MultiTenantActiveRequestCounterFilter.class);
+        
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {
           bind(EncryptionKeyStore.class).to(DefaultEncryptionKeyStore.class).in(Singleton.class);

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
@@ -41,6 +42,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,6 +85,9 @@ public class PolicyAlertScmNotifierTest
   @Mock
   SourceControlUtils sourceControlUtils;
 
+  @Mock
+  ShutdownHandler mockShutdownHandler;
+
   private PolicyAlertScmNotifier scmNotifier;
 
   private Application application;
@@ -92,12 +98,15 @@ public class PolicyAlertScmNotifierTest
   @Inject
   private OrganizationDAO organizationDAO;
 
+  @Captor
+  private ArgumentCaptor<Thread> threadArgumentCaptor;
+
   @Before
   public void setup() {
     scmNotifier =
         new PolicyAlertScmNotifier(remediationPullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
             new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
-            mockSourceControlEventPublisher, organizationDAO);
+            mockSourceControlEventPublisher, organizationDAO, mockShutdownHandler);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -183,6 +192,8 @@ public class PolicyAlertScmNotifierTest
 
     // and the source control event service didn't have an event published to it
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(3));
+    assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertScmNotifierForScan");
   }
 
   @Test

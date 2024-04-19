@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
@@ -71,6 +72,8 @@ public class PolicyAlertScmNotifier
 
   private final OrganizationDAO organizationDAO;
 
+  private final ShutdownHandler shutdownHandler;
+
   @VisibleForTesting
   PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
 
@@ -91,7 +94,8 @@ public class PolicyAlertScmNotifier
       final SourceControlUtils sourceControlUtils,
       final PullRequestRemediationService pullRequestRemediationService,
       final SourceControlEventPublisher sourceControlEventPublisher,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO,
+      final ShutdownHandler shutdownHandler)
   {
     this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.remediationService = remediationService;
@@ -101,6 +105,7 @@ public class PolicyAlertScmNotifier
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.organizationDAO = organizationDAO;
+    this.shutdownHandler = shutdownHandler;
   }
 
   /**
@@ -212,10 +217,13 @@ public class PolicyAlertScmNotifier
   /**
    * Invoke the PR runnable in a named thread. Package-private to allow for mocking in tests.
    */
-  static class PullRequestInvoker
+  class PullRequestInvoker
   {
     public void execute(final String scanId, Runnable runnable) {
-      new Thread(new TenantAwareOneTimeRunnable(runnable), "PolicyAlertScmNotifierForScan-" + scanId).start();
+      Thread scmNotificationThread =
+          new Thread(new TenantAwareOneTimeRunnable(runnable), "PolicyAlertScmNotifierForScan-" + scanId);
+      shutdownHandler.add(scmNotificationThread, 3);
+      scmNotificationThread.start();
     }
   }
 }

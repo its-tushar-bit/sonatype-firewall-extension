@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
@@ -503,6 +504,7 @@ public class InsightBrainService
   }
 
   protected void addServletFilters(Environment env) {
+    addServletFilter(env, true, ActiveRequestCounterFilter.class, "/*");
     addServletFilters(env, false);
   }
 

@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -93,6 +95,9 @@ public class PullRequestMonitorTest
   @Inject
   private Configuration configuration;
 
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Override
   public void configure(Binder binder) {
     lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
@@ -103,12 +108,20 @@ public class PullRequestMonitorTest
     binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
     binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
     binder.bind(ApiConfigFeaturesService.class).toInstance(mockApiConfigFeaturesService);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
   @Before
   public void before() {
     lenient().when(gitApiFactoryMock.createGitApi(any())).thenReturn(gitApiMock);
+  }
+
+  @Test
+  public void testGetExecutorService() {
+    ExecutorService executorService = pullRequestMonitor.getExecutorService();
+
+    verify(mockShutdownHandler).add(executorService);
   }
 
   @Test

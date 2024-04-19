@@ -63,4 +63,9 @@ public class AsyncEventBusImpl
   public void setMaxPoolSize(int maxPoolSize) {
     threadPoolExecutor.setMaximumPoolSize(maxPoolSize);
   }
+
+  @Override
+  public ThreadPoolExecutor getThreadPoolExecutor() {
+    return threadPoolExecutor;
+  }
 }

@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -30,9 +31,10 @@ public class TestTaskScheduler
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
       QuartzTriggerListener quartzTriggerListener,
-      OperationalDataStore operationalDataStore)
+      OperationalDataStore operationalDataStore,
+      ShutdownHandler shutdownHandler)
   {
-    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener);
+    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener, shutdownHandler);
     this.operationalDataStore = operationalDataStore;
   }
 

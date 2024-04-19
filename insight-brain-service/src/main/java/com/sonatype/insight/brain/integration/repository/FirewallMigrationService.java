@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -87,7 +88,8 @@ public class FirewallMigrationService
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final LicenseOverrideDAO licenseOverrideDAO,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
-      final PolicyWaiverDAO policyWaiverDAO)
+      final PolicyWaiverDAO policyWaiverDAO,
+      final ShutdownHandler shutdownHandler)
   {
     this.versionService = versionService;
     this.productLicense = productLicense;
@@ -101,6 +103,12 @@ public class FirewallMigrationService
     this.policyWaiverDAO = policyWaiverDAO;
 
     executor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(executor);
+  }
+
+  // Visible for testing
+  ThreadPoolExecutor getExecutor() {
+    return executor;
   }
 
   private void checkLicenseFeature() {

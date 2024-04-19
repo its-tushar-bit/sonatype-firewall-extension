@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.16.0
@@ -26,6 +30,10 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_DETAILS_PATH_V2)
+@Tag(name = "Components",
+    description = "Use this REST API to retrieve a component's security vulnerability data, license data, age and " +
+        "popularity.")
+
 public class ApiComponentDetailsResourceV2
 {
   private final ApiComponentDetailsServiceV2 componentDetailsService;
@@ -38,7 +46,24 @@ public class ApiComponentDetailsResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiComponentDetailsResultDTOV2 getComponentDetails(ApiComponentDetailsRequestDTOV2 componentDetailsRequest) {
+  @Operation(description = "Use this method to retrieve data related to a component.",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description =
+                  "The response contains a detailed description of the component. The hash value returned here " +
+                      "is truncated and not intended to be used as a checksum. It can be used as an identifier " +
+                      "to pass to other REST API calls.",
+              useReturnTypeSchema = true
+          )
+      })
+  public ApiComponentDetailsResultDTOV2 getComponentDetails(
+      @Parameter(description = "You can retrieve component data in any one of the 3 ways via:\n" +
+          "1. Component identifier\n" +
+          "2. Package URL\n" +
+          "3. Hash",
+          required = true) ApiComponentDetailsRequestDTOV2 componentDetailsRequest)
+  {
     return componentDetailsService.getComponentDetails(componentDetailsRequest);
   }
 }

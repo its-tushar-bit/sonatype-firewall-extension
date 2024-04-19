@@ -71,7 +71,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -504,12 +503,18 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
             "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
+    //Update Scenario 1: existing third party security in db is not modified if not present in report zip or in sonatype
+    //FG-R00228 not in report zip but in db with minimal third party vulnerability data
+    //No Sonatype vulnerability data returned from HDS mock call (no data in DataMart)
     ThirdPartyCoordinateSecurity tpVuln1 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "description", null, 0f, null,
-            null);
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "", null, 0f, null, null,
+            null, null, null, null, null, null);
     tpVuln1.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
+    //Update Scenario 2: existing third party coordinate security record in db is modified with sonatype data
+    //FG-R00229 with complete third party vulnerability data
+    //Complete Sonatype vulnerability data returned from HDS mock call
     ThirdPartyCoordinateSecurity tpVuln2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00229", "description1", "link1", 1.0f,
             "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
@@ -517,43 +522,73 @@ public class ThirdPartyDataServiceTest
     tpVuln2.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
-    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00230", "description", null, 0f, null,
-        null);
+    //Insert Scenario 1: new third party coordinate security record is inserted in db with the minimal sonatype data
+    //FG-R00274 with no third party vulnerability data in report zip or db
+    //Minimal Sonatype vulnerability data returned from HDS mock call
 
-    ThirdPartyCoordinateSecurity tpVuln3 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00274", "description2", "link2", 1.0f,
-            "fixedBy2", "vulnSource2", "vectorString2", "high2", "cwes2", "deepdive2", "recommendations2",
-            "advisories2");
-    tpVuln3.setIdentificationSources("SBOM");
-    thirdPartyCoordinateSecurityDAO.update(tpVuln3);
+    //Insert Scenario 2: new third party coordinate security record is inserted in db with complete sonatype data
+    //FG-R00275 with no third party vulnerability data in report zip or db
+    //Complete Sonatype vulnerability data returned from HDS mock call
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
     final File reportZip =
-        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-security-data", tempDir).toURI())
+            .toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
-    assertThat(thirdPartyCoordinateSecurityList).hasSize(8);
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(7);
 
+    //Update Scenario 1
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
-    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isBlank();
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
 
+    //Update Scenario 2
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url1");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes1");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description1");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link1");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations1");
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(1.1d);
 
-    thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
-    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
-
+    //Insert Scenario 1
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00274");
-    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isBlank();
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
+
+    //Insert Scenario 2
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00275");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url5");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString5");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes5");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description5");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link5");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations5");
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(5d);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
@@ -566,57 +601,43 @@ public class ThirdPartyDataServiceTest
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("CVE-2012-5783");
-    securityVulnerabilityData1.description = "";
-    securityVulnerabilityData1.explanationMarkdown = "some explanation markdown";
-    lenient().when(
-        mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData1.identifier),
-            any(), eq(true))).thenReturn(securityVulnerabilityData1);
-
-    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("CVE-2012-5784");
-    securityVulnerabilityData2.description = "";
-    securityVulnerabilityData2.explanationMarkdown = "some other explanation markdown";
-    lenient().when(
-        mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData2.identifier),
-            any(), eq(true))).thenReturn(securityVulnerabilityData2);
+    mockSecurityVulnerabilityDataHdsResponse();
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
 
-    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
-        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
-            "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
+            "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
-    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1, "CVE-2012-5783", "", null, 0f, null,
-        null);
-
-    ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
-        tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "a", "1",
-            "964cd74171f427720481", "pkg:maven/g/a@1?type=jar");
+    ThirdPartyCoordinateSecurity tpVuln1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00100", "", null, 1f, null, null,
+            null, null, null, null, null, null);
+    tpVuln1.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
     final File reportZip =
-        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-license-data", tempDir).toURI())
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-security-data", tempDir).toURI())
             .toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
-        thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
-            Arrays.asList(thirdPartyFileCoordinate1.getId(), thirdPartyFileCoordinate2.getId()));
-    assertThat(thirdPartyCoordinateSecurityList).hasSize(2);
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(6);
 
-    // updated record
+    //Update Scenario
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate1.getId(),
-            "CVE-2012-5783");
-    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00100");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("some explanation markdown");
 
-    // inserted record
+    //Insert Scenario
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate2.getId(),
-            "CVE-2012-5784");
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00101");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("some other explanation markdown");
   }
 
@@ -667,9 +688,12 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link3");
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
+    //Insert
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-1.0");
     assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-1.0");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-1.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("url.1");
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
 
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
@@ -771,34 +795,20 @@ public class ThirdPartyDataServiceTest
     SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("FG-R00229");
     securityVulnerabilityData1.description = "new description1";
     securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
-    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 2.0f);
+    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 1.1f);
     securityVulnerabilityData1.advisories =
         Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
+    securityVulnerabilityData1.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData1.customData.cvssVector = "new vectorString1";
+    securityVulnerabilityData1.customData.cweId = "new cwes1";
+    securityVulnerabilityData1.recommendationMarkdown = "new recommendations1";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData1.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData1);
 
     SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("FG-R00274");
-    securityVulnerabilityData2.description = "new description2";
-    securityVulnerabilityData2.vulnerabilityLink = new URI("new.link2");
-    securityVulnerabilityData2.mainSeverity = new SecurityVulnerabilitySeverity("new source2", "new label2", 2.2f);
-    securityVulnerabilityData2.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType2", "new.url2"));
-
-    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("FG-R00099");
-    securityVulnerabilityData3.description = "new description3";
-    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
-    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 3.0f);
-    securityVulnerabilityData3.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
-    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData3.identifier),
-        any(), eq(true))).thenReturn(securityVulnerabilityData3);
-
-    SecurityVulnerabilityData securityVulnerabilityData4 = new SecurityVulnerabilityData("FG-R00100");
-    securityVulnerabilityData4.description = "new description4";
-    securityVulnerabilityData4.vulnerabilityLink = new URI("new.link4");
-    securityVulnerabilityData4.mainSeverity = new SecurityVulnerabilitySeverity("new source4", "new label4", 4.0f);
-    securityVulnerabilityData4.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType4", "new.url4"));
-    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData4.identifier),
-        any(), eq(true))).thenReturn(securityVulnerabilityData4);
+    securityVulnerabilityData2.description = "";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData2.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData2);
 
     SecurityVulnerabilityData securityVulnerabilityData5 = new SecurityVulnerabilityData("FG-R00275");
     securityVulnerabilityData5.description = "new description5";
@@ -806,17 +816,41 @@ public class ThirdPartyDataServiceTest
     securityVulnerabilityData5.mainSeverity = new SecurityVulnerabilitySeverity("new source5", "new label5", 5.0f);
     securityVulnerabilityData5.advisories =
         Collections.singletonList(new ReferenceLink("new referenceType5", "new.url5"));
-    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData5.identifier),
-        any(), eq(true))).thenReturn(securityVulnerabilityData5);
+    securityVulnerabilityData5.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData5.customData.cvssVector = "new vectorString5";
+    securityVulnerabilityData5.customData.cweId = "new cwes5";
+    securityVulnerabilityData5.recommendationMarkdown = "new recommendations5";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData5.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData5);
+
+    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("FG-R00099");
+    securityVulnerabilityData3.description = "new description3";
+    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
+    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 3.0f);
+    securityVulnerabilityData3.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData3.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData3);
+
+    SecurityVulnerabilityData securityVulnerabilityData4 = new SecurityVulnerabilityData("FG-R00100");
+    securityVulnerabilityData4.description = "";
+    securityVulnerabilityData4.explanationMarkdown = "some explanation markdown";
+    securityVulnerabilityData4.vulnerabilityLink = new URI("new.link4");
+    securityVulnerabilityData4.mainSeverity = new SecurityVulnerabilitySeverity("new source4", "new label4", 4.0f);
+    securityVulnerabilityData4.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType4", "new.url4"));
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData4.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData4);
 
     SecurityVulnerabilityData securityVulnerabilityData6 = new SecurityVulnerabilityData("FG-R00101");
-    securityVulnerabilityData6.description = "new description6";
+    securityVulnerabilityData6.description = "";
+    securityVulnerabilityData6.explanationMarkdown = "some other explanation markdown";
     securityVulnerabilityData6.vulnerabilityLink = new URI("new.link6");
     securityVulnerabilityData6.mainSeverity = new SecurityVulnerabilitySeverity("new source6", "new label6", 6.0f);
     securityVulnerabilityData6.advisories =
         Collections.singletonList(new ReferenceLink("new referenceType6", "new.url6"));
-    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetails(eq(securityVulnerabilityData6.identifier),
-        any(), eq(true))).thenReturn(securityVulnerabilityData6);
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData6.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData6);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {

@@ -81,7 +81,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -505,19 +504,24 @@ public class ThirdPartyDataService
       for (String sonatypeVuln : sonatypeVulns) {
         ThirdPartyCoordinateSecurity sbomVulnerability =
             thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(sbomComponent.getId(), sonatypeVuln);
+        SecurityVulnerabilityData sonatypeVulnerabilityData =
+            securityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(sonatypeVuln,
+                bomComponentIdentifier, true);
         if (sbomVulnerability != null) {
           //matching sbom vulnerability found, update record
-          updateSbomVulnerability(sbomVulnerability);
+          if (sonatypeVulnerabilityData != null && sonatypeVulnerabilityData.mainSeverity != null &&
+              sonatypeVulnerabilityData.mainSeverity.score > 0) {
+            populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
+            thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
+          }
         }
         else {
           //no matching sbom vulnerability, insert sonatype data
-          SecurityVulnerabilityData sonatypeVulnerabilityData =
-              securityVulnerabilityDataService.getSecurityVulnerabilityDetails(sonatypeVuln, bomComponentIdentifier,
-                  true);
-          if (sonatypeVulnerabilityData != null) {
-            thirdPartyCoordinateSecurityDAO.insert(
-                newThirdPartyCoordinateSecurity(sbomComponent, sonatypeVuln, sonatypeVulnerabilityData));
-          }
+          ThirdPartyCoordinateSecurity newThirdPartySecurity = new ThirdPartyCoordinateSecurity();
+          newThirdPartySecurity.setFileCoordinateId(sbomComponent.getId());
+          newThirdPartySecurity.setRefId(sonatypeVuln);
+          populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity, sonatypeVulnerabilityData);
+          thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
         }
       }
     }
@@ -536,42 +540,20 @@ public class ThirdPartyDataService
                 sonatypeLicenseEntry.getKey());
         if (sbomLicense != null) {
           //matching sbom license found, update record
-          updateSbomLicense(sbomLicense);
+          populateMissingThirdPartyCoordinateLicenseWithSonatypeData(sbomLicense, sonatypeLicenseEntry.getValue());
+          thirdPartyCoordinateLicenseDAO.update(sbomLicense);
         }
         else {
           //no matching sbom license, insert sonatype data
-          thirdPartyCoordinateLicenseDAO.insert(
-              newThirdPartyCoordinateLicense(sbomComponent, sonatypeLicenseEntry.getKey(),
-                  sonatypeLicenseEntry.getValue()));
+          ThirdPartyCoordinateLicense newThirdPartyLicense = new ThirdPartyCoordinateLicense();
+          newThirdPartyLicense.setFileCoordinateId(sbomComponent.getId());
+          newThirdPartyLicense.setLicenseId(sonatypeLicenseEntry.getKey());
+          populateMissingThirdPartyCoordinateLicenseWithSonatypeData(newThirdPartyLicense,
+              sonatypeLicenseEntry.getValue());
+          thirdPartyCoordinateLicenseDAO.insert(newThirdPartyLicense);
         }
       }
     }
-  }
-
-  private void updateSbomLicense(final ThirdPartyCoordinateLicense thirdPartyLicense) {
-    if (thirdPartyLicense.getIdentificationSources() == null) {
-      thirdPartyLicense.setIdentificationSources(IdentificationSource.SONATYPE.getId());
-    }
-    else if (!thirdPartyLicense.getIdentificationSources()
-        .contains(IdentificationSource.SONATYPE.getId())) {
-      thirdPartyLicense.setIdentificationSources(
-          thirdPartyLicense.getIdentificationSources() + "," + IdentificationSource.SONATYPE.getId());
-    }
-    thirdPartyCoordinateLicenseDAO.update(thirdPartyLicense);
-  }
-
-  private void updateSbomVulnerability(
-      final ThirdPartyCoordinateSecurity thirdPartySecurity)
-  {
-    if (thirdPartySecurity.getIdentificationSources() == null) {
-      thirdPartySecurity.setIdentificationSources(IdentificationSource.SONATYPE.getId());
-    }
-    else if (!thirdPartySecurity.getIdentificationSources().contains(
-        IdentificationSource.SONATYPE.getId())) {
-      thirdPartySecurity.setIdentificationSources(
-          thirdPartySecurity.getIdentificationSources() + "," + IdentificationSource.SONATYPE.getId());
-    }
-    thirdPartyCoordinateSecurityDAO.update(thirdPartySecurity);
   }
 
   private Map<ComponentIdentifier, Map<String, JsonNode>> readSonatypeLicenseResults(
@@ -606,56 +588,61 @@ public class ThirdPartyDataService
     return secResults;
   }
 
-  @NotNull
-  private static ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
-      final ThirdPartyFileCoordinate thirdPartyComponent,
-      final String refId,
-      final SecurityVulnerabilityData data)
+  private void populateMissingThirdPartyCoordinateSecurityWithSonatypeData(
+      final ThirdPartyCoordinateSecurity thirdPartySecurity,
+      final SecurityVulnerabilityData sonatypeVulnerabilityData)
   {
-    ThirdPartyCoordinateSecurity sonatypeCve = new ThirdPartyCoordinateSecurity();
-    sonatypeCve.setFileCoordinateId(thirdPartyComponent.getId());
-    sonatypeCve.setRefId(refId);
-    if (data != null) {
-      if (data.advisories != null) {
-        sonatypeCve.setAdvisories(data.advisories.stream().map(a -> a.url).collect(Collectors.joining(",")));
-      }
-      if (data.customData != null) {
-        sonatypeCve.setAttackVector(data.customData.cvssVector);
-        sonatypeCve.setCwes(data.customData.cweId);
-      }
-      if (StringUtils.isNotBlank(data.description)) {
-        sonatypeCve.setDescription(data.description);
-      }
-      else if (StringUtils.isNotBlank(data.explanationMarkdown)) {
-        sonatypeCve.setDescription(data.explanationMarkdown);
-      }
-      sonatypeCve.setIdentificationSources(IdentificationSource.SONATYPE.getId());
-      if (data.vulnerabilityLink != null) {
-        sonatypeCve.setLink(data.vulnerabilityLink.toString());
-      }
-      sonatypeCve.setRecommendations(data.recommendationMarkdown);
-      if (data.mainSeverity != null && data.mainSeverity.score > 0) {
-        sonatypeCve.setSeverity(data.mainSeverity.score);
-      }
+    if (sonatypeVulnerabilityData == null) {
+      return;
     }
-    return sonatypeCve;
+
+    if (CollectionUtils.isNotEmpty(sonatypeVulnerabilityData.advisories)) {
+      thirdPartySecurity.setAdvisories(
+          sonatypeVulnerabilityData.advisories.stream().map(a -> a.url).collect(Collectors.joining(",")));
+    }
+    if (sonatypeVulnerabilityData.customData != null &&
+        StringUtils.isNotBlank(sonatypeVulnerabilityData.customData.cvssVector)) {
+      thirdPartySecurity.setAttackVector(sonatypeVulnerabilityData.customData.cvssVector);
+    }
+    if (sonatypeVulnerabilityData.customData != null &&
+        StringUtils.isNotBlank(sonatypeVulnerabilityData.customData.cweId)) {
+      thirdPartySecurity.setCwes(sonatypeVulnerabilityData.customData.cweId);
+    }
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.description)) {
+      thirdPartySecurity.setDescription(sonatypeVulnerabilityData.description);
+    }
+    else if (StringUtils.isNotBlank(sonatypeVulnerabilityData.explanationMarkdown)) {
+      thirdPartySecurity.setDescription(sonatypeVulnerabilityData.explanationMarkdown);
+    }
+    if (sonatypeVulnerabilityData.vulnerabilityLink != null) {
+      thirdPartySecurity.setLink(sonatypeVulnerabilityData.vulnerabilityLink.toString());
+    }
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.recommendationMarkdown)) {
+      thirdPartySecurity.setRecommendations(sonatypeVulnerabilityData.recommendationMarkdown);
+    }
+    if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.score > 0) {
+      thirdPartySecurity.setSeverity(sonatypeVulnerabilityData.mainSeverity.score);
+    }
+
+    thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }
 
-  @NotNull
-  private ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense(
-      final ThirdPartyFileCoordinate thirdPartyComponent,
-      final String licenseId,
+  private void populateMissingThirdPartyCoordinateLicenseWithSonatypeData(
+      final ThirdPartyCoordinateLicense thirdPartyLicense,
       final JsonNode licenseJsonNode)
   {
-    ThirdPartyCoordinateLicense sonatypeLicense = new ThirdPartyCoordinateLicense();
-    sonatypeLicense.setFileCoordinateId(thirdPartyComponent.getId());
-    sonatypeLicense.setLicenseId(licenseId);
-    if (licenseJsonNode != null) {
-      sonatypeLicense.setName(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_NAME)));
-      sonatypeLicense.setUrl(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_URL)));
-      sonatypeLicense.setIdentificationSources(IdentificationSource.SONATYPE.getId());
+    if (licenseJsonNode == null) {
+      return;
     }
-    return sonatypeLicense;
+
+    if (StringUtils.isNotBlank(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_NAME)))) {
+      thirdPartyLicense.setName(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_NAME)));
+    }
+    if (StringUtils.isNotBlank(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_URL)))) {
+      thirdPartyLicense.setUrl(JsonUtils.getNullableString(licenseJsonNode.get(FIELD_LICENSE_URL)));
+    }
+
+    thirdPartyLicense.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }
 
   private void collectTelemetryData(

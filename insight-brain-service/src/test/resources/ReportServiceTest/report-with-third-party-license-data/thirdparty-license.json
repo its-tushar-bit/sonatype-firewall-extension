@@ -33,5 +33,25 @@
       "name" : "GPL-2.0",
       "url" : null
     } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-httpclient",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-httpclient",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "effectiveLicenses" : [ {
+      "id" : "AGPL-1.0",
+      "name" : "AGPL-1.0",
+      "url" : "url.1"
+    } ]
   } ]
 }

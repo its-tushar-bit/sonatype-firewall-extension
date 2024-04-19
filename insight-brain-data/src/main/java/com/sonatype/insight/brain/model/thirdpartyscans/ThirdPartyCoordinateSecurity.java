@@ -206,4 +206,13 @@ public class ThirdPartyCoordinateSecurity
   public void setIdentificationSources(String identificationSources) {
     this.identificationSources = identificationSources;
   }
+
+  public void addIdentificationSource(String identificationSource) {
+    if (this.identificationSources == null) {
+      setIdentificationSources(identificationSource);
+    }
+    else if (!this.identificationSources.contains(identificationSource)) {
+      setIdentificationSources(getIdentificationSources() + "," + identificationSource);
+    }
+  }
 }

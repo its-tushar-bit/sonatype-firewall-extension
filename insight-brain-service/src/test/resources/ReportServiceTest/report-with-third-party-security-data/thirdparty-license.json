@@ -1,0 +1,39 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "file",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "namespace" : "internal.sonatype.iac-security.regulator",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "502268802a7aa92f89a5",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "file",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "namespace" : "internal.sonatype.iac-security.regulator",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9fa042100a463b1485f5",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

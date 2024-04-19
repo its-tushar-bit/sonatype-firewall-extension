@@ -1322,7 +1322,7 @@ public class RepositoryResultsSummaryTest
 
     RepositoryResultDetailPage.filterPopoverButton().click();
     RepositoryFilterPopover repositoryFilterPopover = RepositoryResultDetailPage.filterPopover();
-    NxTreeViewMultiSelect violationsFilter = repositoryFilterPopover.violationsFilter();
+    NxTreeViewMultiSelect violationsFilter = RepositoryFilterPopover.violationsFilter();
 
     violationsFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
     violationsFilter.multiSelectList().filter(visible).shouldBe(empty);

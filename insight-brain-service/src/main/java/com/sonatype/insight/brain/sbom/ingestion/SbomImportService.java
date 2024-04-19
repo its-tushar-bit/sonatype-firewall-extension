@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -62,19 +64,23 @@ public class SbomImportService
 
   private final SbomMetadataUtils sbomMetadataUtils;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public SbomImportService(
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
       SbomFileDetector sbomFileDetector,
       PolicyEvaluateService policyEvaluateService,
-      SbomMetadataUtils sbomMetadataUtils)
+      SbomMetadataUtils sbomMetadataUtils,
+      ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
     this.sbomFileDetector = sbomFileDetector;
     this.policyEvaluateService = policyEvaluateService;
     this.sbomMetadataUtils = sbomMetadataUtils;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -84,6 +90,11 @@ public class SbomImportService
   {
     if (applicationDAO.getById(applicationId) == null) {
       throw new NotFoundException("Application with id " + applicationId + " does not exist");
+    }
+
+    if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      throw new PaymentRequiredException("You have exceeded the licensed limit of " + productLicense.getMaxSboms()
+          + " sboms.");
     }
 
     String fileNameUUID = UUID.randomUUID().toString().replace("-", "");
@@ -116,8 +127,11 @@ public class SbomImportService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String requestId, String clientUserAgent)
   {
+    if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      throw new PaymentRequiredException("You have exceeded the licensed limit of " + productLicense.getMaxSboms()
+          + " sboms.");
+    }
     String[] decodedRequestId;
-
     try {
       decodedRequestId = new String(Base64.getDecoder().decode(requestId)).split("-");
 

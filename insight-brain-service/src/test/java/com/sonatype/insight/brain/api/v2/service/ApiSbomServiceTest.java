@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.brain.utils.SbomTestsHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
@@ -82,6 +84,9 @@ public class ApiSbomServiceTest
 
   @Inject
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Mock
   private HdsClient mockHdsClient;
@@ -425,6 +430,21 @@ public class ApiSbomServiceTest
       assertThat(ticketDTO.statusUrl).isNotEmpty()
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
     }
+  }
+
+  @Test
+  public void testImportSbom_ValidFile_MaxSbomLimitHasBeenReached() throws IOException {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+    testProductLicense.setMaxSbom(0);
+    try (InputStream inputStream = getClass().getResourceAsStream(
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+      assertThatExceptionOfType(PaymentRequiredException.class)
+          .isThrownBy(
+              () -> service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT))
+          .withMessage("You have exceeded the licensed limit of 0 sboms.");
+    }
+    testProductLicense.reset();
   }
 
   @Test

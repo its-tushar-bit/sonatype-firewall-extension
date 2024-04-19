@@ -62,7 +62,7 @@ public class SbomMetadataUtils
   }
 
   public boolean hasMaxSbomLimitBeenReached() {
-    long currentSbomFiles = thirdPartySbomMetadataDAO.getActiveSbomCount();
+    long currentSbomFiles = thirdPartySbomMetadataDAO.getSbomCount();
     Integer licenseMaxSboms = productLicense.getMaxSboms();
     if (licenseMaxSboms != null && currentSbomFiles < licenseMaxSboms) {
       return false;
@@ -74,6 +74,12 @@ public class SbomMetadataUtils
           licenseMaxSboms);
       return true;
     }
+  }
+
+  public boolean hasMaxActiveSbomLimitBeenReached() {
+    long currentActiveSbomFiles = thirdPartySbomMetadataDAO.getActiveSbomCount();
+    Integer licensedMaxSboms = productLicense.getMaxSboms();
+    return licensedMaxSboms == null || currentActiveSbomFiles >= licensedMaxSboms;
   }
 
   public ScanResult scanSbomFile(

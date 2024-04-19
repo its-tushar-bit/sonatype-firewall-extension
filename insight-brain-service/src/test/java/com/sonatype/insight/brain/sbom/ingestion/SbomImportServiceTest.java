@@ -22,11 +22,13 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
@@ -44,6 +46,9 @@ public class SbomImportServiceTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private TestProductLicense productLicense;
 
   private Application application;
 
@@ -186,6 +191,25 @@ public class SbomImportServiceTest
     assertThrows("The provided requestId " + requestId + " is not valid.", BadRequestException.class,
         () ->
             sbomImportService.importDetectedSbom(application.getId(), requestId, "userAgent"));
+  }
+
+  @Test
+  public void testImportDetectedSbom_MaxSbomLimitHasBeenReached() {
+    productLicense.setMaxSbom(0);
+    assertThrows("You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.",
+        PaymentRequiredException.class, () ->
+            sbomImportService.importDetectedSbom(application.getId(),
+                "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent"));
+    productLicense.reset();
+  }
+
+  @Test
+  public void testDetectSbom_Failure_MaxSbomLimitHasBeenReached() {
+    productLicense.setMaxSbom(0);
+    assertThrows("You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.",
+        PaymentRequiredException.class,
+        () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0])));
+    productLicense.reset();
   }
 
   private void assertTempSbomFile(String requestId, boolean success) {

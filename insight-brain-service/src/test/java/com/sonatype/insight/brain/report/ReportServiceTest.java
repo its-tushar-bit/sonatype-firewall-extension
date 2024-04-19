@@ -637,7 +637,7 @@ public class ReportServiceTest
 
     reportService.processThirdPartyData(scanId, reportZip, app.getId());
 
-    assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
+    assertThat(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).isFalse();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(scanId);
     assertThat(sbomFile).exists();
     assertThat(sbomFile.delete()).isTrue();
@@ -668,7 +668,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(true);
+    when(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).thenReturn(true);
 
     reportService.processThirdPartyData(scanId, reportZip, app.getId());
 

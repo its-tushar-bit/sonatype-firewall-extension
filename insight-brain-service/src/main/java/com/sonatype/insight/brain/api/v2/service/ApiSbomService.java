@@ -230,6 +230,10 @@ public class ApiSbomService
       InputStream fileInputStream,
       String clientUserAgent)
   {
+    if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      throw new PaymentRequiredException(
+          "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
+    }
     String sbomContentAsString = getSbomContentAsString(fileInputStream);
     SbomDetectionResult sbomMetadata = sbomFileDetector.getSbomDetectionResult(sbomContentAsString);
     if (!sbomMetadata.isSbom) {

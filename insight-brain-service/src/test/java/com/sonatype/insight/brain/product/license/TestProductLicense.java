@@ -34,6 +34,8 @@ public class TestProductLicense
 
   private Optional<Integer> maxApplications;
 
+  private Optional<Integer> maxSboms;
+
   @Inject
   public TestProductLicense(TestProductLicenseManager testProductLicenseManager) {
     this(testProductLicenseManager, true);
@@ -53,6 +55,7 @@ public class TestProductLicense
     try {
       testProductLicenseManager.reset();
       maxApplications = null;
+      maxSboms = null;
       ProductLicenseKey productLicenseKey =
           testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
       set(productLicenseKey, "1234",
@@ -76,8 +79,20 @@ public class TestProductLicense
     return super.getMaxApplications();
   }
 
+  @Override
+  public Integer getMaxSboms() {
+    if (maxSboms != null) {
+      return maxSboms.orElse(null);
+    }
+    return super.getMaxSboms();
+  }
+
   public void setMaxApplications(Integer maxApplications) {
     this.maxApplications = Optional.ofNullable(maxApplications);
+  }
+
+  public void setMaxSbom(Integer maxSboms) {
+    this.maxSboms = Optional.ofNullable(maxSboms);
   }
 
   @Override

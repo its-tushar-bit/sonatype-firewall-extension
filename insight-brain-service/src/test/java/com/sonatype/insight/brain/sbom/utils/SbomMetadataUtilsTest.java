@@ -58,7 +58,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_Less() {
-    when(thirdPartySbomMetadataDAO.getActiveSbomCount()).thenReturn(1L);
+    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(1L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
@@ -66,7 +66,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_Equal() {
-    when(thirdPartySbomMetadataDAO.getActiveSbomCount()).thenReturn(2L);
+    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
@@ -74,7 +74,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_More() {
-    when(thirdPartySbomMetadataDAO.getActiveSbomCount()).thenReturn(3L);
+    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(3L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
@@ -82,7 +82,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_NullSbomLimit() {
-    when(thirdPartySbomMetadataDAO.getActiveSbomCount()).thenReturn(2L);
+    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
     when(productLicense.getMaxSboms()).thenReturn(null);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();

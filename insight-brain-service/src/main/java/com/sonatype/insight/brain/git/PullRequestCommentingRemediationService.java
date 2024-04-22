@@ -67,7 +67,7 @@ public class PullRequestCommentingRemediationService
 
   /**
    * Returns a map of component identifier and remediation versions for a given set of component identifiers. The map
-   * will contains entries only for the components for which a remediation version is found.
+   * will contain entries only for the components for which a remediation version is found.
    */
   public SortedMap<ComponentIdentifier, RemediationVersionDTO> getRemediationVersionMap(
       final List<PolicyViolation> policyViolations,

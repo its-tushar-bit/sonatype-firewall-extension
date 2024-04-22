@@ -56,6 +56,10 @@ public class ComponentLabelService
                                           @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                           final String hash)
   {
+    return getComponentLabelsNoAuth(ownerType, ownerId, hash);
+  }
+
+  public AppliedLabels getComponentLabelsNoAuth(final OwnerType ownerType, String ownerId, final String hash) {
     AuditData.get().setComponentHash(hash);
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 

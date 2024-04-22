@@ -38,6 +38,8 @@ public class PrioritizedComponent
 
   public final String highestThreatPolicyConstraintName;
 
+  private final boolean securityReachable;
+
   private final int priority;
 
   public PrioritizedComponent(
@@ -50,6 +52,7 @@ public class PrioritizedComponent
       final int highestThreat,
       final String highestThreatPolicyName,
       final String highestThreatPolicyConstraintName,
+      final boolean securityReachable,
       final int priority
   )
   {
@@ -62,6 +65,7 @@ public class PrioritizedComponent
     this.highestThreatPolicyName = highestThreatPolicyName;
     this.action = action;
     this.highestThreatPolicyConstraintName = highestThreatPolicyConstraintName;
+    this.securityReachable = securityReachable;
     this.priority = priority;
   }
 
@@ -101,6 +105,10 @@ public class PrioritizedComponent
     return action;
   }
 
+  public boolean isSecurityReachable() {
+    return securityReachable;
+  }
+
   public int getPriority() {
     return priority;
   }
@@ -116,6 +124,7 @@ public class PrioritizedComponent
     PrioritizedComponent that = (PrioritizedComponent) o;
     return highestThreat == that.highestThreat &&
         priority == that.priority &&
+        securityReachable == that.securityReachable &&
         Objects.equals(displayName, that.displayName) &&
         Objects.equals(componentIdentifier, that.componentIdentifier) &&
         Objects.equals(componentHash,that.componentHash) &&
@@ -138,6 +147,7 @@ public class PrioritizedComponent
         highestThreat,
         highestThreatPolicyName,
         highestThreatPolicyConstraintName,
+        securityReachable,
         priority);
   }
 
@@ -153,6 +163,7 @@ public class PrioritizedComponent
         ", highestThreat=" + highestThreat +
         ", highestThreatPolicyName=" + highestThreatPolicyName +
         ", highestThreatPolicyConstraintName=" + highestThreatPolicyConstraintName +
+        ", securityReachable=" + securityReachable +
         ", priority=" + priority +
         '}';
   }

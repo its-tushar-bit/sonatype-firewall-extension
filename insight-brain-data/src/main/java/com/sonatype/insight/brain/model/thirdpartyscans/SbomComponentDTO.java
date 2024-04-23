@@ -29,6 +29,10 @@ public class SbomComponentDTO
 
   private String packageUrl;
 
+  private String name;
+
+  private String version;
+
   private ComponentIdentifier componentIdentifier;
 
   private String displayName;
@@ -51,14 +55,20 @@ public class SbomComponentDTO
 
   public SbomComponentDTO(Object[] array) {
     hash = (String) array[0];
-
     packageUrl = (String) array[1];
+    name = (String) array[2];
+    version = (String) array[3];
+
     if (StringUtils.isNotBlank(packageUrl)) {
       componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
       displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
     }
 
-    String licensesJson = (String) array[2];
+    if (StringUtils.isBlank(displayName)) {
+      displayName = name + ":" + version;
+    }
+
+    String licensesJson = (String) array[4];
     if (StringUtils.isNotBlank(licensesJson)) {
       try {
         licenses = JsonUtils.parse(licensesJson, LICENSE_TYPE_REFERENCE);
@@ -68,11 +78,11 @@ public class SbomComponentDTO
       }
     }
 
-    vulnerabilitySeverityNoneCount = longToInt(array[3]);
-    vulnerabilitySeverityLowCount = longToInt(array[4]);
-    vulnerabilitySeverityMediumCount = longToInt(array[5]);
-    vulnerabilitySeverityHighCount = longToInt(array[6]);
-    vulnerabilitySeverityCriticalCount = longToInt(array[7]);
+    vulnerabilitySeverityNoneCount = longToInt(array[5]);
+    vulnerabilitySeverityLowCount = longToInt(array[6]);
+    vulnerabilitySeverityMediumCount = longToInt(array[7]);
+    vulnerabilitySeverityHighCount = longToInt(array[8]);
+    vulnerabilitySeverityCriticalCount = longToInt(array[9]);
   }
 
   public String getHash() {
@@ -105,6 +115,22 @@ public class SbomComponentDTO
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
   }
 
   public Set<License> getLicenses() {

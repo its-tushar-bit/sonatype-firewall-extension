@@ -339,6 +339,8 @@ public class ApiSbomServiceTest
     assertThat(results)
         .filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
         .allSatisfy(component -> {
+          assertThat(component.getName()).isEqualTo(packageUrlIdentifier1.getName());
+          assertThat(component.getVersion()).isEqualTo(packageUrlIdentifier1.getVersion());
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier1.getPackageUrl());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1).toString());
@@ -353,9 +355,76 @@ public class ApiSbomServiceTest
     assertThat(results)
         .filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
         .allSatisfy(component -> {
+          assertThat(component.getName()).isEqualTo(packageUrlIdentifier2.getName());
+          assertThat(component.getVersion()).isEqualTo(packageUrlIdentifier2.getVersion());
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2).toString());
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+          assertThat(component.getLicenses())
+              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+          assertThat(component.getLicenses())
+              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+        });
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_WithResults_EmptyPackageUrl() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1",
+        componentIdentifier1.getFormat(), componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID),
+        componentIdentifier1.get(ComponentIdentifier.VERSION), "h1", null);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2",
+        componentIdentifier2.getFormat(), componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID),
+        componentIdentifier2.get(ComponentIdentifier.VERSION), "h2", null);
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
+
+    List<SbomComponentDTO> results =
+        service.getSbomComponents(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+
+    assertThat(results).isNotEmpty();
+    assertThat(results).extracting(SbomComponentDTO::getHash).containsExactlyInAnyOrder(coordinate1.getHash(),
+        coordinate2.getHash());
+
+    assertThat(results)
+        .filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
+        .allSatisfy(component -> {
+          assertThat(component.getName()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID));
+          assertThat(component.getVersion()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.VERSION));
+          assertThat(component.getPackageUrl()).isEqualTo(null);
+          assertThat(component.getDisplayName()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID)
+                  + ":" + componentIdentifier1.get(ComponentIdentifier.VERSION));
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+          assertThat(component.getLicenses()).isNullOrEmpty();
+        });
+
+    assertThat(results)
+        .filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
+        .allSatisfy(component -> {
+          assertThat(component.getName()).isEqualTo(componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID));
+          assertThat(component.getVersion()).isEqualTo(componentIdentifier2.get(ComponentIdentifier.VERSION));
+          assertThat(component.getPackageUrl()).isEqualTo(null);
+          assertThat(component.getDisplayName())
+              .isEqualTo(componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID)
+                  + ":" + componentIdentifier2.get(ComponentIdentifier.VERSION));
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
           assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();

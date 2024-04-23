@@ -120,6 +120,8 @@ public class ThirdPartyFileCoordinateDAO
     String sQuery = "" + //
         "SELECT fc.hash," + //
         "       fc.package_url," + //
+        "       fc.name," + //
+        "       fc.version," + //
         "       lic.licenses ::TEXT as licenses_json," + //
         "       COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) AS severity_none," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS severity_low," + //
@@ -137,7 +139,7 @@ public class ThirdPartyFileCoordinateDAO
         "         GROUP BY cl.file_coordinate_id) lic" + //
         "    ON lic.file_coordinate_id = fc.file_coordinate_id" + //
         " WHERE fc.third_party_file_id = ?10" + //
-        " GROUP BY fc.hash, fc.package_url, licenses_json";
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json";
 
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(), LOW.getStartScoreRange(),

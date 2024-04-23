@@ -36,8 +36,8 @@ public class TenantResourceTest
     List<String> tenantsList = response.getBodyList();
 
     assertResponseStatus(200, response);
-    // the 2 new tenants + tenant created by test setup in super class + template tenant
-    assertThat(tenantsList).hasSize(4);
+    // the 2 new tenants + tenant created by test setup in super class
+    assertThat(tenantsList).hasSize(3);
     assertThat(tenantsList).contains(tenant1Slug, tenant2Slug);
   }
 

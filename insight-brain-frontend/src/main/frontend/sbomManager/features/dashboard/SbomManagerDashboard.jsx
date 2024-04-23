@@ -5,13 +5,21 @@
  */
 
 import React from 'react';
-import { NxH1, NxLoadWrapper, NxP, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
+import { NxH1, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import TotalSbomsStoredTile from './totalSbomsStoredTile/TotalSbomsStoredTile';
+// import ApplicationsHistoryTile from './applicationsHistoryTile/ApplicationsHistoryTile';
+// import VulnerabilitiesByThreatLevelTile from './vulnerabilitiesByThreatLevelTile/VulnerabilitiesByThreatLevelTile';
+// import HighPriorityVulnerabilitiesTile from './highPriorityVulnerabilitiesTile/HighPriorityVulnerabilitiesTile';
+// import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
+// import RecentlyImportedSbomsTile from './recentlyImportedSbomsTile/RecentlyImportedSbomsTile';
+
+import './SbomManagerDashboard.scss';
 
 export default function SbomManagerDashboard() {
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
@@ -27,12 +35,25 @@ export default function SbomManagerDashboard() {
         loading={isProductFeaturesLoading}
         error={errorLoadingProductFeatures || noSbomManagerEnabledError}
       >
-        <div>
+        <>
           <NxPageTitle>
-            <NxH1>Dashboard</NxH1>
+            <NxH1>SBOM Manager Dashboard</NxH1>
           </NxPageTitle>
-          <NxP>Content for Dashboard</NxP>
-        </div>
+          <div className="sbom-manager-dashboard-tiles">
+            <TotalSbomsStoredTile />
+            {/*
+              CLM-30199
+              Incomplete dashboard tiles are hidden
+              until they are implemented.
+
+              <ApplicationsHistoryTile />
+              <VulnerabilitiesByThreatLevelTile />
+              <HighPriorityVulnerabilitiesTile />
+              <SbomReleaseStatusTile />
+              <RecentlyImportedSbomsTile />
+            */}
+          </div>
+        </>
       </NxLoadWrapper>
     </NxPageMain>
   );

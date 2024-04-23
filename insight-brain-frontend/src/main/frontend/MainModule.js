@@ -130,7 +130,7 @@ export const InitModule = angular
                   const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer(state);
 
                   if (checkSbomManagerIsOnlyProductEnabled(state)) {
-                    return 'sbomManager';
+                    return 'sbomManager.dashboard';
                   }
 
                   if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {

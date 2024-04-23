@@ -770,6 +770,12 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getTotalSbomsAnalyzedUrl', function () {
+    it('should return the url for getting total SBOMs analyzed', function () {
+      expect(CLMLocation.getTotalSbomsAnalyzedUrl()).toBe('/api/v2/sbom/dashboard/sbomsAnalyzed');
+    });
+  });
+
   describe('getExportCycloneDx', function () {
     it('should return SBOM url', () => {
       expect(CLMLocation.getExportCycloneDxUrl('applicationId', 'scanId')).toBe(

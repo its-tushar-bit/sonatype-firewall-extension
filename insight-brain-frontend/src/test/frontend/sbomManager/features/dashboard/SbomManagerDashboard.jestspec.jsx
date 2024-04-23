@@ -25,7 +25,7 @@ describe('SbomManagerDashboard page', () => {
 
   it('Renders the page', async () => {
     renderComponent();
-    expect(await screen.findByText('Content for Dashboard')).toBeVisible();
+    expect(await screen.getByRole('heading', { name: /SBOM Manager Dashboard/i })).toBeVisible();
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {

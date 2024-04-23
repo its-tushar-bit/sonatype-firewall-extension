@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomDashboardService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -31,6 +32,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class ApiSbomDashboardResource
 {
   static final String SBOMS_ANALYZED_PATH = "sbomsAnalyzed";
+
+  static final String SBOMS_HISTORY_METRICS_PATH = "sbomsHistoryMetrics";
 
   private final ApiSbomDashboardService service;
 
@@ -54,5 +57,13 @@ public class ApiSbomDashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   public SbomsAnalyzedMetricsDTO getSbomsAnalyzedMetrics() {
     return service.getSbomsAnalyzedMetrics();
+  }
+
+  @GET
+  @Path(SBOMS_HISTORY_METRICS_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiSbomApplicationsHistoryMetricDTO getApplicationsHistoryMetric() {
+    return service.getApplicationsHistoryMetric();
   }
 }

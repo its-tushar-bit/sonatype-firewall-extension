@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -27,5 +28,9 @@ public class ApiSbomDashboardService
 
   public SbomsAnalyzedMetricsDTO getSbomsAnalyzedMetrics() {
     return new SbomsAnalyzedMetricsDTO(thirdPartySbomMetadataDAO.getActiveSbomCount(), productLicense.getMaxSboms());
+  }
+
+  public ApiSbomApplicationsHistoryMetricDTO getApplicationsHistoryMetric() {
+    return thirdPartySbomMetadataDAO.getSbomsHistoryMetrics();
   }
 }

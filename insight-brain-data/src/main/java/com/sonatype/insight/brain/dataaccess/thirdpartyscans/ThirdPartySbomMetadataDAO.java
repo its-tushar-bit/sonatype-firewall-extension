@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.time.LocalDate;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -118,5 +120,26 @@ public class ThirdPartySbomMetadataDAO
   @Override
   protected SearchIndexChange newSearchIndexChangeForInsert(ThirdPartySbomMetadata sbomMetadata) {
     return null;
+  }
+
+  public ApiSbomApplicationsHistoryMetricDTO getSbomsHistoryMetrics() {
+    String sQuery = "" + //
+        "SELECT COUNT(1) AS total," + //
+        "       COUNT(CASE WHEN (sm.created_at >= ?1) THEN 1 END) AS last_year," + //
+        "       COUNT(CASE WHEN (sm.created_at >= ?2) THEN 1 END) AS last_month," + //
+        "       COUNT(CASE WHEN (sm.created_at >= ?3) THEN 1 END) AS last_week" + //
+        "  FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " WHERE sm.status = ?4";
+
+    LocalDate now = LocalDate.now();
+    LocalDate lastWeek = now.minusWeeks(1);
+    LocalDate lastMonth = now.minusMonths(1);
+    LocalDate lastYear = now.minusYears(1);
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, "ACTIVE");
+      Object[] result = (Object[]) query.getSingleResult();
+      return new ApiSbomApplicationsHistoryMetricDTO(result);
+    }
   }
 }

@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -36,6 +37,31 @@ public class ApiSbomDashboardResourceTest
 
   @Test
   public void testGetSbomsAnalyzedMetrics() throws Exception {
+    insertSbomData();
+    HttpResponse response = restRequest().path(ApiSbomDashboardResource.SBOMS_ANALYZED_PATH).get();
+    assertResponseStatus(200, response);
+
+    SbomsAnalyzedMetricsDTO result = response.getBody(SbomsAnalyzedMetricsDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotal()).isEqualTo(7);
+    assertThat(result.getThreshold()).isEqualTo(testProductLicense.getMaxSboms().longValue());
+  }
+
+  @Test
+  public void testGetSbomsHistoryMetrics() throws Exception {
+    insertSbomData();
+    HttpResponse response = restRequest().path(ApiSbomDashboardResource.SBOMS_HISTORY_METRICS_PATH).get();
+    assertResponseStatus(200, response);
+
+    ApiSbomApplicationsHistoryMetricDTO result = response.getBody(ApiSbomApplicationsHistoryMetricDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.totalScannedApplications).isEqualTo(7);
+    assertThat(result.applicationsUpdatedLastYear).isEqualTo(7);
+    assertThat(result.applicationsUpdatedLastMonth).isEqualTo(4);
+    assertThat(result.applicationsUpdatedLastWeek).isEqualTo(3);
+  }
+
+  private void insertSbomData() {
     Date now = new Date();
     Date oneYearAgo = DateUtils.addYears(now, -1);
     Date sixMonthsAgo = DateUtils.addMonths(now, -6);
@@ -52,13 +78,5 @@ public class ApiSbomDashboardResourceTest
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
-
-    HttpResponse response = restRequest().path(ApiSbomDashboardResource.SBOMS_ANALYZED_PATH).get();
-    assertResponseStatus(200, response);
-
-    SbomsAnalyzedMetricsDTO result = response.getBody(SbomsAnalyzedMetricsDTO.class);
-    assertThat(result).isNotNull();
-    assertThat(result.getTotal()).isEqualTo(7);
-    assertThat(result.getThreshold()).isEqualTo(testProductLicense.getMaxSboms().longValue());
   }
 }

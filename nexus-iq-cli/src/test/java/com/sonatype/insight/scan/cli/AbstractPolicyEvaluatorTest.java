@@ -6,7 +6,6 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -14,8 +13,6 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -23,19 +20,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.LogOutput;
 
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -84,21 +72,6 @@ public abstract class AbstractPolicyEvaluatorTest
     insightServerUrl = getCLMServer().getClientConfiguration().getServerUrl();
 
     scanReader = getCLMServer().getInstance(ScanReader.class);
-  }
-
-  @Override
-  protected List<Module> getBrainModules() {
-    Module testModule = new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(ProductLicense.class).to(TestProductLicense.class);
-        bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
-        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-        bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
-      }
-    };
-    return Collections.singletonList(testModule);
   }
 
   protected ScanReceipt newReceipt() {

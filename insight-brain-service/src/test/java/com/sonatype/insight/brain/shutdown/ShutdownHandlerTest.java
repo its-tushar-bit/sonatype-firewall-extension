@@ -221,7 +221,7 @@ public class ShutdownHandlerTest
     private Integer executeCount;
 
     public TestShutdownRequest(final T item, final int order) {
-      super(item, order);
+      super(item, order, null);
     }
 
     @Override

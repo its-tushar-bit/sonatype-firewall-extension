@@ -13,8 +13,12 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorServiceShutdownRequest
     extends WeakReferenceShutdownRequest<ExecutorService>
 {
-  public ExecutorServiceShutdownRequest(final WeakReference<ExecutorService> item, final int order) {
-    super(item, order);
+  public ExecutorServiceShutdownRequest(
+      final WeakReference<ExecutorService> item,
+      final int order,
+      final String origin)
+  {
+    super(item, order, origin);
   }
 
   @Override

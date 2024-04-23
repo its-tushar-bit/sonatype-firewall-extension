@@ -29,7 +29,7 @@ public class SchedulerShutdownRequestTest
     doReturn(future).when(mockExecutorService).submit(any(Runnable.class));
     Scheduler mockScheduler = mock(Scheduler.class);
     SchedulerShutdownRequest schedulerShutdownRequest =
-        new SchedulerShutdownRequest(new WeakReference<>(mockScheduler), 0);
+        new SchedulerShutdownRequest(new WeakReference<>(mockScheduler), 0, null);
 
     Future<?> result = schedulerShutdownRequest.execute(mockExecutorService);
 

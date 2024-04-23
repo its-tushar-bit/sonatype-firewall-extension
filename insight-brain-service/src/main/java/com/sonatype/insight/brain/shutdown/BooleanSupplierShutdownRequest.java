@@ -17,12 +17,17 @@ public class BooleanSupplierShutdownRequest
 
   private final Duration pollDuration;
 
-  public BooleanSupplierShutdownRequest(final BooleanSupplier item, final int order) {
-    this(item, order, DEFAULT_POLL_DURATION);
+  public BooleanSupplierShutdownRequest(final BooleanSupplier item, final int order, final String origin) {
+    this(item, order, origin, DEFAULT_POLL_DURATION);
   }
 
-  public BooleanSupplierShutdownRequest(final BooleanSupplier item, final int order, final Duration pollDuration) {
-    super(item, order);
+  public BooleanSupplierShutdownRequest(
+      final BooleanSupplier item,
+      final int order,
+      final String origin,
+      final Duration pollDuration)
+  {
+    super(item, order, origin);
     this.pollDuration = pollDuration;
   }
 

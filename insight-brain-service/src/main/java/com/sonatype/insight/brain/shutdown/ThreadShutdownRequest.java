@@ -12,8 +12,8 @@ import java.util.concurrent.Future;
 public class ThreadShutdownRequest
     extends WeakReferenceShutdownRequest<Thread>
 {
-  public ThreadShutdownRequest(final WeakReference<Thread> item, final int order) {
-    super(item, order);
+  public ThreadShutdownRequest(final WeakReference<Thread> item, final int order, final String origin) {
+    super(item, order, origin);
   }
 
   @Override

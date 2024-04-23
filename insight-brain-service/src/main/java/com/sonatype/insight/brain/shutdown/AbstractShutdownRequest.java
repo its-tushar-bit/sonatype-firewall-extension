@@ -12,9 +12,12 @@ public abstract class AbstractShutdownRequest<T>
 
   private final int order;
 
-  protected AbstractShutdownRequest(final T item, final int order) {
+  private final String origin;
+
+  protected AbstractShutdownRequest(final T item, final int order, final String origin) {
     this.item = item;
     this.order = order;
+    this.origin = origin;
   }
 
   @Override
@@ -25,5 +28,10 @@ public abstract class AbstractShutdownRequest<T>
   @Override
   public int getOrder() {
     return order;
+  }
+
+  @Override
+  public String getOrigin() {
+    return origin;
   }
 }

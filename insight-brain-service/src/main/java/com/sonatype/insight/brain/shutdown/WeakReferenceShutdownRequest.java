@@ -13,17 +13,14 @@ import java.util.concurrent.Future;
 public abstract class WeakReferenceShutdownRequest<T>
     extends AbstractShutdownRequest<WeakReference<T>>
 {
-  protected WeakReferenceShutdownRequest(final WeakReference<T> item, final int order) {
-    super(item, order);
+  protected WeakReferenceShutdownRequest(final WeakReference<T> item, final int order, final String origin) {
+    super(item, order, origin);
   }
 
   @Override
   public Future<?> execute(final ExecutorService executorService) throws Exception {
     T item = getItem().get();
-    if (item != null) {
-      return execute(executorService, item);
-    }
-    return CompletableFuture.completedFuture(null);
+    return item == null ? CompletableFuture.completedFuture(null) : execute(executorService, item);
   }
 
   /**
@@ -37,5 +34,11 @@ public abstract class WeakReferenceShutdownRequest<T>
   @Override
   public boolean isValid() {
     return getItem().get() != null;
+  }
+
+  @Override
+  public String getItemToString() {
+    T item = getItem().get();
+    return item == null ? null : super.getItemToString(item);
   }
 }

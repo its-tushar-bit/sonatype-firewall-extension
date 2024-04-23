@@ -29,7 +29,8 @@ public class ExecutorServiceShutdownRequestTest
 
   @Before
   public void before() {
-    executorServiceShutdownRequest = new ExecutorServiceShutdownRequest(new WeakReference<>(mockExecutorService), 0);
+    executorServiceShutdownRequest =
+        new ExecutorServiceShutdownRequest(new WeakReference<>(mockExecutorService), 0, null);
   }
 
   @Test

@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractShutdownRequestTest
 {
-  private final ShutdownRequest<String> shutdownRequest = new AbstractShutdownRequest<String>("test", 1)
+  private final ShutdownRequest<String> shutdownRequest = new AbstractShutdownRequest<String>("test", 1, null)
   {
     @Override
     public Future<?> execute(final ExecutorService executorService) {

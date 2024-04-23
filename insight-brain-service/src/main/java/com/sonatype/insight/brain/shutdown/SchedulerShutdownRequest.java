@@ -14,8 +14,8 @@ import org.quartz.Scheduler;
 public class SchedulerShutdownRequest
     extends WeakReferenceShutdownRequest<Scheduler>
 {
-  public SchedulerShutdownRequest(final WeakReference<Scheduler> item, final int order) {
-    super(item, order);
+  public SchedulerShutdownRequest(final WeakReference<Scheduler> item, final int order, final String origin) {
+    super(item, order, origin);
   }
 
   @Override

@@ -23,6 +23,11 @@ public interface ShutdownRequest<T>
   int getOrder();
 
   /**
+   * @return the origin of the shutdown request.
+   */
+  String getOrigin();
+
+  /**
    * Initiates the item shutdown via non-blocking actions and returns a {@link Future} where {@link Future#get()} will
    * block until the item shutdown is complete. This method should not block. A {@link CompleteOnGetFuture} should be
    * returned when waiting for the item shutdown can happen in the current thread.
@@ -44,5 +49,20 @@ public interface ShutdownRequest<T>
   @Override
   default int compareTo(final ShutdownRequest<?> other) {
     return Long.compare(getOrder(), other.getOrder());
+  }
+
+  /**
+   * See {@link ShutdownRequest#getItemToString(Object)}.
+   */
+  default String getItemToString() {
+    return getItemToString(getItem());
+  }
+
+  /**
+   * @param item the item to return a String representation for.
+   * @return a basic representation matching {@link Object#toString()} to avoid showing too much information.
+   */
+  default String getItemToString(final Object item) {
+    return item.getClass().getName() + "@" + Integer.toHexString(item.hashCode());
   }
 }

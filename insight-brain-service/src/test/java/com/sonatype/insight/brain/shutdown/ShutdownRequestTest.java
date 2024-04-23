@@ -52,6 +52,11 @@ public class ShutdownRequestTest
     }
 
     @Override
+    public String getOrigin() {
+      return null;
+    }
+
+    @Override
     public Future<?> execute(final ExecutorService executorService) {
       return CompletableFuture.completedFuture(null);
     }
@@ -68,6 +73,11 @@ public class ShutdownRequestTest
     @Override
     public int getOrder() {
       return 2;
+    }
+
+    @Override
+    public String getOrigin() {
+      return null;
     }
 
     @Override

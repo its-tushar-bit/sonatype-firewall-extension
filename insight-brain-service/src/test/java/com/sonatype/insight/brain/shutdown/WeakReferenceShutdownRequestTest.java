@@ -30,7 +30,7 @@ public class WeakReferenceShutdownRequestTest
   private final Object object = new Object();
 
   private final WeakReferenceShutdownRequest<Object> spyWeakReferenceShutdownRequestNonNullReferent =
-      spy(new WeakReferenceShutdownRequest<Object>(new WeakReference<>(object), 0)
+      spy(new WeakReferenceShutdownRequest<Object>(new WeakReference<>(object), 0, null)
       {
         @Override
         public Future<?> execute(final ExecutorService executorService, final Object item) {
@@ -39,7 +39,7 @@ public class WeakReferenceShutdownRequestTest
       });
 
   private final WeakReferenceShutdownRequest<Object> spyWeakReferenceShutdownRequestNullReferent =
-      spy(new WeakReferenceShutdownRequest<Object>(new WeakReference<>(null), 0)
+      spy(new WeakReferenceShutdownRequest<Object>(new WeakReference<>(null), 0, null)
       {
         @Override
         public Future<?> execute(final ExecutorService executorService, final Object item) {

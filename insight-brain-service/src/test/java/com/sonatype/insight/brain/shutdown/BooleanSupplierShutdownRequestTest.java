@@ -27,7 +27,7 @@ public class BooleanSupplierShutdownRequestTest
     BooleanSupplier item = () -> atomicInteger.getAndDecrement() != 0;
     Duration pollDuration = Duration.ofMillis(200);
     BooleanSupplierShutdownRequest spyBooleanSupplierShutdownRequest =
-        spy(new BooleanSupplierShutdownRequest(item, 0, pollDuration));
+        spy(new BooleanSupplierShutdownRequest(item, 0, null, pollDuration));
 
     long start = System.currentTimeMillis();
     Thread thread = new Thread(() -> {

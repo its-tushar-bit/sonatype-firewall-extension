@@ -19,7 +19,7 @@ public class ThreadShutdownRequestTest
   @Test
   public void testExecute() throws Exception {
     Thread mockThread = mock(Thread.class);
-    ThreadShutdownRequest threadShutdownRequest = new ThreadShutdownRequest(new WeakReference<>(mockThread), 0);
+    ThreadShutdownRequest threadShutdownRequest = new ThreadShutdownRequest(new WeakReference<>(mockThread), 0, null);
 
     Future<?> shutdown = threadShutdownRequest.execute(null);
 

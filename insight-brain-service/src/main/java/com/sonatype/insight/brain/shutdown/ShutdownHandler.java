@@ -113,7 +113,7 @@ public class ShutdownHandler
   }
 
   public void add(final ExecutorService executorService, final int order) {
-    addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), order));
+    addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), order, getOrigin()));
   }
 
   public void add(final Thread thread) {
@@ -121,7 +121,7 @@ public class ShutdownHandler
   }
 
   public void add(final Thread thread, final int order) {
-    addAndClean(new ThreadShutdownRequest(new WeakReference<>(thread), order));
+    addAndClean(new ThreadShutdownRequest(new WeakReference<>(thread), order, getOrigin()));
   }
 
   public void add(final Scheduler scheduler) {
@@ -129,7 +129,7 @@ public class ShutdownHandler
   }
 
   public void add(final Scheduler scheduler, final int order) {
-    addAndClean(new SchedulerShutdownRequest(new WeakReference<>(scheduler), order));
+    addAndClean(new SchedulerShutdownRequest(new WeakReference<>(scheduler), order, getOrigin()));
   }
 
   public void add(final BooleanSupplier booleanSupplier) {
@@ -137,7 +137,17 @@ public class ShutdownHandler
   }
 
   public void add(final BooleanSupplier booleanSupplier, final int order) {
-    addAndClean(new BooleanSupplierShutdownRequest(booleanSupplier, order));
+    addAndClean(new BooleanSupplierShutdownRequest(booleanSupplier, order, getOrigin()));
+  }
+
+  private String getOrigin() {
+    StackTraceElement[] stackTrace = new Throwable().getStackTrace();
+    for (StackTraceElement stackTraceElement : stackTrace) {
+      if (!getClass().getName().equals(stackTraceElement.getClassName())) {
+        return stackTraceElement.getClassName();
+      }
+    }
+    return null;
   }
 
   synchronized void trigger(final Duration timeout) {
@@ -159,15 +169,23 @@ public class ShutdownHandler
         // initiate the shutdown, possibly in a new thread
         int order = shutdownRequests.peek().getEntry().getOrder();
         List<Future<?>> futures = new ArrayList<>();
+        List<String> descriptions = new ArrayList<>();
         while (shutdownRequests.peek() != null && shutdownRequests.peek().getEntry().getOrder() == order) {
-          futures.add(shutdownRequests.poll().getEntry().execute(threadPoolExecutor));
+          ShutdownRequest<?> shutdownRequest = shutdownRequests.poll().getEntry();
+          String description =
+              String.format("shutdown for order '%s', origin '%s', item '%s'", shutdownRequest.getOrder(),
+                  shutdownRequest.getOrigin(), shutdownRequest.getItemToString());
+          log.debug("Initiating {}.", description);
+          futures.add(shutdownRequest.execute(threadPoolExecutor));
+          descriptions.add(description);
         }
 
         // Wait for the shutdowns for this group to complete, but do not wait beyond the timeout
         // use a separate thread to enforce a timeout in case Future#get(long, TimeUnit) is unsupported
         Future<?> groupFuture = threadPoolExecutor.submit(() -> tryCheckedRunnable(() -> {
-          for (Future<?> future : futures) {
-            future.get();
+          for (int i = 0; i < futures.size(); i++) {
+            log.debug("Waiting for {}.", descriptions.get(i));
+            futures.get(i).get();
           }
         }));
         groupFuture.get(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS);

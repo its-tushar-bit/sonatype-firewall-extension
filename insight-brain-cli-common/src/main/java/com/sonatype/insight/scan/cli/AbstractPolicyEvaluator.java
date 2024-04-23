@@ -6,12 +6,16 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -34,6 +38,7 @@ import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
@@ -77,6 +82,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   void run(P params) throws ExitException {
+    logCliAndEnvironmentInfo();
+
     RestClient restClient = createClient(params);
 
     validate(params, restClient);
@@ -563,5 +570,113 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       return new ArrayList<>(iqCallFlowParams.namespaces);
     }
     return null;
+  }
+
+  private void logCliAndEnvironmentInfo() {
+    logCliVersion();
+    logJavaVersionAndHome();
+    logLocaleAndEncoding();
+    logOsInformation();
+  }
+
+  private void logCliVersion() {
+    try {
+      String name = null;
+      String clientName = UserAgentUtils.getClientName();
+      if ("Sonatype_CLM_CLI".equals(clientName)) {
+        name = "Sonatype IQ CLI";
+      }
+      else if ("Docker_Nexus_IQ_CLI".equals(clientName)) {
+        name = "Sonatype IQ CLI (Docker)";
+      }
+      else if ("Sonatype_CLM_CLI_NATIVE".equals(clientName)) {
+        name = "Sonatype IQ CLI (Native)";
+      }
+      String version = UserAgentUtils.getClientVersion();
+      if (name != null && StringUtils.isNotEmpty(version)) {
+        String jarSha1 = getJarSha1();
+        if (StringUtils.isNotEmpty(jarSha1)) {
+          log.info("{} version: {} ({})", name, version, jarSha1);
+        }
+        else {
+          log.info("{} version: {}", name, version);
+        }
+      }
+    }
+    catch (Exception e) {
+      log.info("Could not log iq cli version and sha1.", e);
+    }
+  }
+
+  private void logJavaVersionAndHome() {
+    try {
+      String javaVersion = System.getProperty("java.version");
+      String javaHome = System.getProperty("java.home");
+      if (StringUtils.isAnyEmpty(javaVersion, javaHome)) {
+        log.debug("Could not log java version and java home information.");
+      }
+      else {
+        log.info("Java version: {}, Java Home: {}", javaVersion, javaHome);
+      }
+    }
+    catch (Exception e) {
+      log.debug("Could not log java version and java home information.", e);
+    }
+  }
+
+  private void logLocaleAndEncoding() {
+    try {
+      String locale = Locale.getDefault().toString();
+      String fileEncoding = System.getProperty("file.encoding");
+      if (StringUtils.isAnyEmpty(locale, fileEncoding)) {
+        log.debug("Could not log locale and file encoding.");
+      }
+      else {
+        log.info("Default locale: {}, platform encoding: {}", locale, fileEncoding);
+      }
+    }
+    catch (Exception e) {
+      log.debug("Could not log locale and file encoding.", e);
+    }
+  }
+
+  private void logOsInformation() {
+    try {
+      String osName = System.getProperty("os.name");
+      String osVersion = System.getProperty("os.version");
+      String osArch = System.getProperty("os.arch");
+      if (StringUtils.isAnyEmpty(osName, osVersion, osArch)) {
+        log.debug("Could not log OS information");
+      }
+      else {
+        log.info("OS name: {}, version: {}, arch: {}", osName, osVersion, osArch);
+      }
+    }
+    catch (Exception e) {
+      log.debug("Could not log OS information", e);
+    }
+  }
+
+  private String getJarSha1() {
+    try {
+      String filePath = Scanner.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+      StringBuilder hexString = new StringBuilder();
+      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      try (FileInputStream fis = new FileInputStream(filePath);
+           DigestInputStream dis = new DigestInputStream(fis, md)) {
+        byte[] buffer = new byte[8192];
+        while (dis.read(buffer) != -1) {
+        }
+        byte[] digest = md.digest();
+        for (byte b : digest) {
+          hexString.append(String.format("%02x", b));
+        }
+      }
+      return hexString.toString();
+    }
+    catch (Exception e) {
+      log.debug("Could not extract jar sha-1.", e);
+      return "";
+    }
   }
 }

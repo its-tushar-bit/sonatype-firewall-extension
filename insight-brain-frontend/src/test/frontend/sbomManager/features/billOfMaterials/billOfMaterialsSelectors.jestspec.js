@@ -8,6 +8,8 @@ import {
   selectInternalApplicationId,
   selectInternalApplicationIdIsLoading,
   selectInternalApplicationIdError,
+  selectSbomVersions,
+  selectErrorSbomVersions,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors.js';
 
 let mockState;
@@ -20,6 +22,8 @@ describe('sbomTileSelectors returns the correct state for the following selector
         errorInternalAppId: null,
         internalAppId: null,
         publicAppId: null,
+        errorSbomVersions: null,
+        sbomVersions: null,
       },
     };
   });
@@ -38,5 +42,13 @@ describe('sbomTileSelectors returns the correct state for the following selector
 
   it('selectInternalApplicationIdError', () => {
     expect(selectInternalApplicationIdError(mockState)).toEqual(mockState.billOfMaterialsPage.errorInternalAppId);
+  });
+
+  it('selectSbomVersions', () => {
+    expect(selectSbomVersions(mockState)).toEqual(mockState.billOfMaterialsPage.sbomVersions);
+  });
+
+  it('selectErrorSbomVersions', () => {
+    expect(selectErrorSbomVersions(mockState)).toEqual(mockState.billOfMaterialsPage.errorSbomVersions);
   });
 });

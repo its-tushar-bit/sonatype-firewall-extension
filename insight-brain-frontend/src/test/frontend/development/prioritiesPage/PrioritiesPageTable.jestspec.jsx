@@ -5,21 +5,23 @@
  */
 
 import React from 'react';
-import { render, screen, within, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
+import { mockData } from './prioritiesPageTableMockData';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
-import { getPrioritiesPageTableData } from 'MainRoot/util/CLMLocation';
-import { faker } from '@faker-js/faker';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
 describe('PrioritiesPageTable', () => {
-  let renderComponent, stateGoSpy, axiosMock;
-
-  const mockResponse = generateMockResponse();
+  let renderComponent, stateGoSpy;
 
   const defaultPreloadedState = {
+    applicationReport: {
+      selectedReport: {
+        displayedEntries: mockData,
+      },
+    },
     router: {
       currentParams: {
         publicAppId,
@@ -29,83 +31,26 @@ describe('PrioritiesPageTable', () => {
   };
 
   beforeEach(() => {
-    axiosMock = axiosMockAdapter();
-
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
 
     renderComponent = (preloadedState) =>
       render(<PrioritiesPageTable />, { preloadedState: preloadedState || defaultPreloadedState });
-
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(200, mockResponse);
   });
 
-  it('makes correct network request', () => {
-    renderComponent();
-
-    expect(axiosMock.history.get.length).toBe(1);
-    expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-
-    const table = screen.getByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const loading = within(table).getByText('Loading…');
-    expect(loading).toBeInTheDocument();
-  });
-
-  it('renders a loading spinner within the table', () => {
+  it('renders a table with 4 column headers', () => {
     renderComponent();
 
     const table = screen.getByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const loading = within(table).getByText('Loading…');
-    expect(loading).toBeInTheDocument();
-  });
-
-  it('renders an error within the table when network call fails', async () => {
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(500, 'Error');
-
-    renderComponent();
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const alert = within(table).getByRole('alert');
-    expect(alert).toBeInTheDocument();
-  });
-
-  it('clicking the retry button on error alert makes correct network request', async () => {
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(500, 'Error');
-
-    renderComponent();
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
-
-    expect(axiosMock.history.get.length).toBe(1);
-    expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-
-    const retryBtn = within(table).getByRole('button');
-    fireEvent.click(retryBtn);
-
-    expect(axiosMock.history.get.length).toBe(2);
-    expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-  });
-
-  it('renders a table with 4 column headers', async () => {
-    renderComponent();
-
-    const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
     const columnheaders = within(table).getAllByRole('columnheader');
     expect(columnheaders.length).toBe(4 + 1); //last column is to render chevron icon for clickable rows
   });
 
-  it('renders column headers with correct names in the correct order', async () => {
+  it('renders column headers with correct names in the correct order', () => {
     renderComponent();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
 
     const columnHeaders = within(table).getAllByRole('columnheader');
@@ -117,9 +62,6 @@ describe('PrioritiesPageTable', () => {
 
   it('renders the priority column header with an icon and tooltip', async () => {
     renderComponent();
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
 
     const priorityColumnHeader = screen.getByRole('columnheader', { name: /priority/i });
 
@@ -134,11 +76,8 @@ describe('PrioritiesPageTable', () => {
   });
 
   describe('accordions', () => {
-    it('renders 2 open accordions with title "Top Priorities" and "All Other Findings"', async () => {
+    it('renders 2 open accordions with title "Top Priorities" and "All Other Findings"', () => {
       renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
 
       const accordions = screen.getAllByRole('group');
       expect(accordions).toHaveLength(2);
@@ -153,11 +92,8 @@ describe('PrioritiesPageTable', () => {
       expect(within(allFindingsAccordion).getByRole('button')).toHaveAccessibleName(/all other findings/i);
     });
 
-    it('"Top Priorities" accordion when clicked hides the priority rows', async () => {
+    it('"Top Priorities" accordion when clicked hides the priority rows', () => {
       renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
       expect(rows.length).toBe(7);
@@ -184,11 +120,8 @@ describe('PrioritiesPageTable', () => {
       expect(rows.length).toBe(7);
     });
 
-    it('"All Findings" accordion when clicked hides the all findings rows', async () => {
+    it('"All Findings" accordion when clicked hides the all findings rows', () => {
       renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
       expect(rows.length).toBe(7);
@@ -216,19 +149,16 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
-  it('renders rows that when clicked navigates to component details page - violations section', async () => {
+  it('renders rows that when clicked navigates to component details page - violations section', () => {
     renderComponent();
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
 
     const rows = screen.getAllByRole('row');
     // 1st row is header row, 2nd row is Top Priorities row, 3rd row is the first component row
     const firstComponentRow = rows[2];
-    const firstComponentHash = mockResponse[0].componentHash;
+    const firstComponentHash = mockData[0].hash;
 
     const secondComponentRow = rows[3];
-    const secondComponentHash = mockResponse[1].componentHash;
+    const secondComponentHash = mockData[1].hash;
 
     fireEvent.click(firstComponentRow);
     expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.violations', {
@@ -245,69 +175,111 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
-  it('renders correct component information in the rows', async () => {
-    renderComponent();
-
-    for (let i = 0; i < mockResponse.length; i++) {
-      const {
-        priority,
-        displayName,
-        dependencyType,
-        highestThreat,
-        highestThreatPolicyName,
-        highestThreatPolicyConstraintName,
-        action,
-      } = mockResponse[i];
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
+  describe('renders correct component information the rows', () => {
+    it('first component details', () => {
+      renderComponent();
 
       const rows = screen.getAllByRole('row');
-      const row = rows[i + 2 + (i === 3 ? 1 : 0)]; //skip "all other findings" header row for 4th component info
-      const cells = within(row).getAllByRole('cell');
+      const firstComponentRow = rows[2];
+      const firstComponentCells = within(firstComponentRow).getAllByRole('cell');
 
-      const priorityCell = cells[0];
-      expect(priorityCell).toHaveTextContent(priority);
+      const priority = firstComponentCells[0];
+      expect(priority).toHaveTextContent('1');
 
-      const componentCell = cells[1];
-      expect(componentCell).toHaveTextContent(displayName);
-      expect(screen.getAllByTestId('dependency-type')[i]).toHaveTextContent(dependencyType.substring(0, 1));
+      const component = firstComponentCells[1];
+      expect(component).toHaveTextContent('axis : axis : 1.2');
+      expect(component).toHaveTextContent('D');
 
-      const policyCell = cells[2];
-      expect(policyCell).toHaveTextContent(highestThreat);
-      expect(policyCell).toHaveTextContent(highestThreatPolicyName);
-      expect(policyCell).toHaveTextContent(highestThreatPolicyConstraintName);
-
-      if (action !== 'none') {
-        expect(policyCell).toHaveTextContent(action);
-      }
+      const policyDetails = firstComponentCells[2];
+      expect(policyDetails).toHaveTextContent('10');
+      expect(policyDetails).toHaveTextContent('Critical risk CVSS score');
+      expect(policyDetails).toHaveTextContent('Security-Critical');
+      expect(policyDetails).toHaveTextContent('fail');
 
       //TODO
       // const remediation = firstComponentCells[3];
       // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
       // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
-    }
+    });
+
+    it('second component details', () => {
+      renderComponent();
+
+      const rows = screen.getAllByRole('row');
+      const secondComponentRow = rows[3];
+      const secondComponentCells = within(secondComponentRow).getAllByRole('cell');
+
+      const priority = secondComponentCells[0];
+      expect(priority).toHaveTextContent('2');
+
+      const components = secondComponentCells[1];
+      expect(components).toHaveTextContent('com.fasterxml.jackson.core : jackson-databind : 2.0.4');
+      expect(components).toHaveTextContent('D');
+
+      const policyDetails = secondComponentCells[2];
+      expect(policyDetails).toHaveTextContent('8');
+      expect(policyDetails).toHaveTextContent('High risk CVSS score');
+      expect(policyDetails).toHaveTextContent('Security-High');
+      expect(policyDetails).toHaveTextContent('warn');
+
+      //TODO
+      // const remediation = firstComponentCells[3];
+      // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
+      // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
+    });
+
+    it('third component details', () => {
+      renderComponent();
+
+      const rows = screen.getAllByRole('row');
+      const thirdComponentRow = rows[4];
+      const thirdComponentCells = within(thirdComponentRow).getAllByRole('cell');
+
+      const priority = thirdComponentCells[0];
+      expect(priority).toHaveTextContent('3');
+
+      const components = thirdComponentCells[1];
+      expect(components).toHaveTextContent('commons-collections : commons-collections : 3.1');
+      expect(components).toHaveTextContent('T');
+
+      const policyDetails = thirdComponentCells[2];
+      expect(policyDetails).toHaveTextContent('7');
+      expect(policyDetails).toHaveTextContent('Medium risk CVSS score');
+      expect(policyDetails).toHaveTextContent('Security-Medium');
+      expect(policyDetails).toHaveTextContent('warn');
+
+      //TODO
+      // const remediation = firstComponentCells[3];
+      // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
+      // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
+    });
+
+    it('fourth component details', () => {
+      renderComponent();
+
+      const rows = screen.getAllByRole('row');
+      const fourthComponentRow = rows[6];
+      const fourthComponentCells = within(fourthComponentRow).getAllByRole('cell');
+
+      const priority = fourthComponentCells[0];
+      // TODO final implementation will have priority 4 since this will be under the All Findings Accordion
+      expect(priority).toHaveTextContent('1');
+
+      const components = fourthComponentCells[1];
+      expect(components).toHaveTextContent('hsqldb : hsqldb : 1.8.0.7');
+      expect(components).toHaveTextContent('D');
+
+      const policyDetails = fourthComponentCells[2];
+      expect(policyDetails).toHaveTextContent('7');
+      expect(policyDetails).toHaveTextContent('Medium risk CVSS score');
+      expect(policyDetails).toHaveTextContent('Security-Medium');
+      expect(policyDetails).not.toHaveTextContent('fail');
+      expect(policyDetails).not.toHaveTextContent('warn');
+
+      //TODO
+      // const remediation = firstComponentCells[3];
+      // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
+      // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
+    });
   });
 });
-
-function generateMockResponse() {
-  const response = [];
-  const NUM_OF_RESULTS = 4;
-
-  for (let i = 0; i < NUM_OF_RESULTS; i++) {
-    const hasFail = faker.datatype.boolean();
-    response.push({
-      displayName: faker.lorem.word(1),
-      componentHash: faker.git.commitSha(),
-      dependencyType: faker.helpers.arrayElement(['Direct', 'Transitive', 'Inner Source']),
-      hasFailActionOnComponent: hasFail,
-      action: hasFail ? 'fail' : faker.helpers.arrayElement(['none', 'warn']),
-      highestThreat: faker.datatype.number({ min: 0, max: 10 }),
-      highestThreatPolicyName: faker.lorem.slug(),
-      highestThreatPolicyConstraintName: faker.lorem.sentence(),
-      priority: i,
-    });
-  }
-
-  return response;
-}

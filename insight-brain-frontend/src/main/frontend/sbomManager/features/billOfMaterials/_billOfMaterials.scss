@@ -54,4 +54,10 @@
   .bom-component-licenses {
     width: 196px;
   }
+
+  .sbom-manager-sbom-version-dropdown {
+    .nx-dropdown__toggle-label span {
+      font-weight: normal;
+    }
+  }
 }

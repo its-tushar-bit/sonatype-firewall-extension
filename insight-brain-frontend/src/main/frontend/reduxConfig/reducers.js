@@ -98,7 +98,6 @@ import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/en
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
 import componentsBillOfMaterialsSlice from 'MainRoot/sbomManager/features/componentsTile/componentsBillOfMaterialsSlice';
 import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
-import prioritiesPageSlice from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import sbomManagerDashboardSlice from 'MainRoot/sbomManager/features/dashboard/sbomManagerDashboardSlice';
 
 export default combineReducers({
@@ -196,6 +195,5 @@ export default combineReducers({
   sast: sastReportSlice,
   componentsBillOfMaterialsTile: componentsBillOfMaterialsSlice,
   billOfMaterialsPage: billsOfMaterialsPageSlice,
-  prioritiesPage: prioritiesPageSlice,
   sbomManagerDashboard: sbomManagerDashboardSlice,
 });

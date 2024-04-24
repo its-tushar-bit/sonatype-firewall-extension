@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NxCode, NxFontAwesomeIcon, NxH1, NxPageTitle, NxTooltip } from '@sonatype/react-shared-components';
-import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { faCheckCircle, faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import moment from 'moment';
@@ -25,9 +25,10 @@ const COPY_STATUS_TOOLTIP_TIMEOUT = 1500;
 const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 export default function PrioritiesPageHeader() {
-  const { metadata } = useSelector(selectPrioritiesPageSlice);
+  const metadataDetails = useSelector(selectApplicationReportMetaData);
 
-  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash, stageId, application } = metadata || {};
+  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash, stageId, application } =
+    metadataDetails || {};
 
   const appName = application?.name;
   const triggerText = scanTriggerType

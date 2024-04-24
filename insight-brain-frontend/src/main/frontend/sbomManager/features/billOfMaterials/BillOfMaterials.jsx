@@ -10,12 +10,13 @@ import {
   NxButtonBar,
   NxFontAwesomeIcon,
   NxH1,
-  NxLoadWrapper,
   NxPageTitle,
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import ComponentsBillOfMaterialsTile from 'MainRoot/sbomManager/features/componentsTile/ComponentsBillOfMaterialsTile';
+import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import {
   selectLoadErrorFeatures,
@@ -30,6 +31,8 @@ import {
   selectInternalApplicationId,
   selectInternalApplicationIdError,
   selectInternalApplicationIdIsLoading,
+  selectSbomVersions,
+  selectErrorSbomVersions,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 
 export default function BillOfMaterials() {
@@ -38,12 +41,14 @@ export default function BillOfMaterials() {
   const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const routerParams = useSelector(selectRouterCurrentParams);
-  const internalAppId = useSelector(selectInternalApplicationId);
   const isInternalAppIdLoading = useSelector(selectInternalApplicationIdIsLoading);
   const internalAppIdError = useSelector(selectInternalApplicationIdError);
+  const internalAppId = useSelector(selectInternalApplicationId);
 
   const publicApplicationId = routerParams.applicationPublicId;
-  const sbomVersion = routerParams.versionId;
+  const currentSbomVersion = routerParams.versionId;
+  const allSbomVersions = useSelector(selectSbomVersions);
+  const errorSbomVersionsDropdown = useSelector(selectErrorSbomVersions);
 
   const doLoad = () => {
     dispatch(actions.setPublicAppId(publicApplicationId));
@@ -54,21 +59,32 @@ export default function BillOfMaterials() {
     doLoad();
   }, []);
 
+  useEffect(() => {
+    if (internalAppId) dispatch(actions.loadApplicationSbomVersions(internalAppId));
+  }, [internalAppId]);
+
   return (
     <div id="sbom-manager-bom">
-      <NxLoadWrapper
-        retryHandler={() => {
-          doLoad();
-        }}
+      <LoadWrapper
+        retryHandler={() => doLoad()}
         loading={isProductFeaturesLoading || isInternalAppIdLoading}
-        error={errorLoadingProductFeatures || noSbomManagerEnabledError || internalAppIdError}
+        error={
+          errorLoadingProductFeatures || noSbomManagerEnabledError || internalAppIdError || errorSbomVersionsDropdown
+        }
       >
         <NxPageTitle>
           <NxH1>Bill Of Materials</NxH1>
           <NxButtonBar>
+            {allSbomVersions && (
+              <SbomVersionDropdown
+                publicApplicationId={publicApplicationId}
+                allSbomVersions={allSbomVersions}
+                currentSbomVersion={currentSbomVersion}
+              />
+            )}
             <NxButton
               variant="primary"
-              onClick={() => window.open(getDownloadSbomFileUrl(internalAppId, sbomVersion), '_blank')}
+              onClick={() => window.open(getDownloadSbomFileUrl(internalAppId, currentSbomVersion), '_blank')}
             >
               <NxFontAwesomeIcon icon={faDownload} />
               <span>Download</span>
@@ -89,10 +105,10 @@ export default function BillOfMaterials() {
         </NxPageTitle>
         <ComponentsBillOfMaterialsTile
           internalAppId={internalAppId}
-          sbomVersion={sbomVersion}
+          sbomVersion={currentSbomVersion}
           isInternalAppIdLoading={isInternalAppIdLoading}
         />
-      </NxLoadWrapper>
+      </LoadWrapper>
     </div>
   );
 }

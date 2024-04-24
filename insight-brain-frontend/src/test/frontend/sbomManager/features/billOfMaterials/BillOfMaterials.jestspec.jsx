@@ -7,11 +7,13 @@ import React from 'react';
 import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
 import { screen } from '@testing-library/dom';
-import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationSummaryUrl, getAllApplicationSbomVersions } from 'MainRoot/util/CLMLocation';
 
 describe('BillOfMaterials page', () => {
   let renderPage;
   const applicationPublicId = 'app_123';
+  const internalAppId = 'abc123';
+  const axiosMock = axiosMockAdapter();
 
   beforeEach(() => {
     const preloadedState = {
@@ -25,7 +27,7 @@ describe('BillOfMaterials page', () => {
         currentState: { name: 'sbomManager.management.view.bom' },
         currentParams: {
           applicationPublicId: applicationPublicId,
-          versionId: '1.0-SNAPSHOT_TEST',
+          versionId: '1.0-SNAPSHOT',
         },
       },
       billOfMaterialsPage: {
@@ -40,10 +42,12 @@ describe('BillOfMaterials page', () => {
   });
 
   it('Renders page content', async () => {
-    const axiosMock = axiosMockAdapter();
     axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: 'abc123',
+      id: internalAppId,
     });
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(internalAppId))
+      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
     renderPage();
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
     expect(await screen.findByText('Bill Of Materials')).toBeVisible();
@@ -54,6 +58,8 @@ describe('BillOfMaterials page', () => {
     expect(screen.getByText('Low')).toBeVisible();
     expect(screen.getByText('None')).toBeVisible();
     expect(screen.getByText('Components')).toBeVisible();
+    const field = await screen.findByRole('button', { name: /Viewing:/i });
+    expect(field).toHaveTextContent('Viewing: 1.0-SNAPSHOT');
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {
@@ -68,6 +74,23 @@ describe('BillOfMaterials page', () => {
     const errorMessage = await screen.findByText(
       'An error occurred loading data. The SBOM Manager license feature is not enabled.'
     );
+    expect(errorMessage).toBeVisible();
+  });
+
+  it('shows error when Application SBOM versions fail to load.', async () => {
+    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
+      id: internalAppId,
+    });
+    axiosMock.onGet(getAllApplicationSbomVersions(internalAppId)).reply(() =>
+      Promise.reject({
+        response: {
+          data: 'Error',
+        },
+      })
+    );
+    renderPage();
+
+    const errorMessage = await screen.findByText('An error occurred loading data. Error');
     expect(errorMessage).toBeVisible();
   });
 });

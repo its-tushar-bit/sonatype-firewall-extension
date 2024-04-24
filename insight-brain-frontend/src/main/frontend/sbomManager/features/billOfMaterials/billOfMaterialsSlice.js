@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { always } from 'ramda';
-import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationSummaryUrl, getAllApplicationSbomVersions } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
@@ -16,6 +16,8 @@ export const initialState = {
   errorInternalAppId: null,
   internalAppId: null,
   publicAppId: null,
+  errorSbomVersions: null,
+  sbomVersions: null,
 };
 
 const loadInternalApplicationIdRequested = (state) => {
@@ -36,11 +38,38 @@ const loadInternalApplicationIdFulfilled = (state, { payload }) => {
   state.internalAppId = payload.id;
 };
 
+const loadApplicationSbomVersionsRequested = (state) => {
+  state.loading = true;
+  state.errorSbomVersions = null;
+};
+
+const loadApplicationSbomVersionsFailed = (state, { payload }) => {
+  state.errorSbomVersions = payload;
+  state.sbomVersions = null;
+  state.loading = false;
+};
+
+const loadApplicationSbomVersionsFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.errorSbomVersions = null;
+  state.sbomVersions = payload;
+};
+
 const loadInternalApplicationId = createAsyncThunk(
   `${REDUCER_NAME}/loadInternalApplicationId`,
   async (publicApplicationId, { rejectWithValue }) => {
     return axios
       .get(getApplicationSummaryUrl(publicApplicationId))
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err));
+  }
+);
+
+const loadApplicationSbomVersions = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicationSbomVersions`,
+  async (internalApplicationId, { rejectWithValue }) => {
+    return axios
+      .get(getAllApplicationSbomVersions(internalApplicationId))
       .then((response) => response.data)
       .catch((err) => rejectWithValue(err));
   }
@@ -58,6 +87,9 @@ const billsOfMaterialsPageSlice = createSlice({
     [loadInternalApplicationId.pending]: loadInternalApplicationIdRequested,
     [loadInternalApplicationId.fulfilled]: loadInternalApplicationIdFulfilled,
     [loadInternalApplicationId.rejected]: loadInternalApplicationIdFailed,
+    [loadApplicationSbomVersions.pending]: loadApplicationSbomVersionsRequested,
+    [loadApplicationSbomVersions.fulfilled]: loadApplicationSbomVersionsFulfilled,
+    [loadApplicationSbomVersions.rejected]: loadApplicationSbomVersionsFailed,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
@@ -65,6 +97,7 @@ const billsOfMaterialsPageSlice = createSlice({
 export const actions = {
   ...billsOfMaterialsPageSlice.actions,
   loadInternalApplicationId,
+  loadApplicationSbomVersions,
 };
 
 export default billsOfMaterialsPageSlice.reducer;

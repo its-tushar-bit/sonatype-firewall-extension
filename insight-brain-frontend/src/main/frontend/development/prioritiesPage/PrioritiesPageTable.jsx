@@ -4,16 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxAccordion, NxFontAwesomeIcon, NxTable, NxTooltip, useToggle } from '@sonatype/react-shared-components';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { selectDisplayedComponentList } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectComponent } from 'MainRoot/applicationReport/applicationReportActions';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
-import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 
 const NUM_OF_PRIORITY_ROWS_TO_SHOW = 3;
 
@@ -21,16 +20,9 @@ export default function PrioritiesPageTable() {
   const [showPriorityFindings, toggleShowPriorityFindings] = useToggle(true);
   const [showAllFindings, toggleShowAllFindings] = useToggle(true);
 
-  const dispatch = useDispatch();
-  const doLoad = () => dispatch(actions.loadTableData());
-
-  const { loadingTableData, loadErrorTableData, tableData } = useSelector(selectPrioritiesPageSlice);
-  const priorityRows = tableData?.slice(0, NUM_OF_PRIORITY_ROWS_TO_SHOW);
-  const allRows = tableData?.slice(NUM_OF_PRIORITY_ROWS_TO_SHOW, tableData.length);
-
-  useEffect(() => {
-    doLoad();
-  }, []);
+  const displayedEntries = useSelector(selectDisplayedComponentList);
+  const priorityRows = displayedEntries?.slice(0, NUM_OF_PRIORITY_ROWS_TO_SHOW);
+  const allRows = displayedEntries?.slice(NUM_OF_PRIORITY_ROWS_TO_SHOW, displayedEntries.length);
 
   return (
     <NxTable className="iq-priorities-page-table">
@@ -49,7 +41,7 @@ export default function PrioritiesPageTable() {
           <NxTable.Cell chevron />
         </NxTable.Row>
       </NxTable.Head>
-      <NxTable.Body isLoading={loadingTableData} retryHandler={doLoad} error={loadErrorTableData}>
+      <NxTable.Body>
         <NxTable.Row>
           <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
             <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
@@ -84,13 +76,20 @@ function DataRows({ dataset }) {
 
   if (!dataset) return [];
   return dataset.map((component, index) => {
-    const { componentHash } = component;
+    const { policyViolationId, hash } = component;
 
     const onRowClick = () => {
       setSelectedComponent(index);
-      goToCDPPage(componentHash);
+      goToCDPPage(hash);
     };
 
-    return <PrioritiesPageRow key={component.displayName} component={component} onClick={onRowClick} />;
+    return (
+      <PrioritiesPageRow
+        key={policyViolationId || hash}
+        component={component}
+        onClick={onRowClick}
+        priority={index} //to be changed later. exists only for table design purposes
+      />
+    );
   });
 }

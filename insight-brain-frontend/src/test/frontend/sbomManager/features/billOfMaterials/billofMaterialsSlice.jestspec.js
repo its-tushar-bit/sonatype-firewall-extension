@@ -80,6 +80,64 @@ describe('billOfMaterialsPage reducers have the correct state when the following
     });
   });
 
+  describe('billOfMaterialsPage/loadApplicationSbomVersions', function () {
+    it('/pending', () => {
+      const state = {
+        loading: false,
+        errorSbomVersions: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadApplicationSbomVersions/pending',
+      });
+
+      expect(newState.loading).toBe(true);
+      expect(newState.errorSbomVersions).toBe(null);
+    });
+
+    it('/rejected', () => {
+      const state = {
+        loading: false,
+        errorSbomVersions: null,
+        sbomVersions: null,
+      };
+
+      const payload = {
+        response: {
+          data: 'Error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadApplicationSbomVersions/rejected',
+        payload: payload,
+      });
+
+      expect(newState.loading).toBe(false);
+      expect(newState.errorSbomVersions).toBe(payload);
+      expect(newState.sbomVersions).toBe(null);
+    });
+
+    it('/fulfilled', () => {
+      const state = {
+        loading: false,
+        errorSbomVersions: null,
+        sbomVersions: null,
+      };
+
+      const payload = ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT'];
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadApplicationSbomVersions/fulfilled',
+        payload: payload,
+      });
+
+      expect(newState.loading).toBe(false);
+      expect(newState.errorSbomVersions).toBe(null);
+      expect(newState.sbomVersions).toBe(payload);
+    });
+  });
+
   describe('UI_ROUTER_ON_FINISH', () => {
     it('clears state on onFinish', () => {
       const state = Object.freeze({

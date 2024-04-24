@@ -6,38 +6,22 @@
 
 import React from 'react';
 import { NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
-import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
-import PropTypes from 'prop-types';
+import { DependencyIndicators } from 'MainRoot/applicationReport/DependencyIndicators';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
-const dependencyTypeMap = {
-  Direct: 'direct',
-  Transitive: 'transitive',
-  'Inner Source': 'inner-source',
-  Unknown: 'unknown',
-};
-
-export default function PrioritiesPageRow({ component, onClick }) {
-  const {
-    displayName,
-    dependencyType,
-    action,
-    highestThreat,
-    priority,
-    highestThreatPolicyName,
-    highestThreatPolicyConstraintName,
-  } = component;
-  const policyAction = action === 'none' ? null : action;
-
+export default function PrioritiesPageRow({ component, onClick, priority }) {
+  const { policyThreatLevel, policyName, constraints, actions } = component;
+  const policyAction = !isNilOrEmpty(actions) && actions[0].actionType; //to be changed later
   return (
     <NxTable.Row isClickable onClick={onClick}>
-      <NxTable.Cell className="iq-priorities-page-priority">{priority}</NxTable.Cell>
+      <NxTable.Cell className="iq-priorities-page-priority">{priority + 1}</NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-components">
           <div className="iq-priorities-page-components__component">
-            <span data-testid="dependency-type">
-              <DependencyIndicator type={dependencyTypeMap[dependencyType]} />
-            </span>
-            {displayName}
+            <DependencyIndicators component={component} />
+
+            <ComponentDisplay component={component} />
           </div>
           <div className="iq-priorities-page-components__detail">
             <NxTag className="iq-priorities-page-components__detail-tag">Security-Reachable</NxTag>
@@ -49,18 +33,17 @@ export default function PrioritiesPageRow({ component, onClick }) {
           <div className="iq-priorities-page-policy-details__desc">
             <NxThreatIndicator
               className="iq-priorities-page-policy-details__desc-threat-indicator"
-              policyThreatLevel={highestThreat}
+              policyThreatLevel={policyThreatLevel}
             />
-            <span className="iq-priorities-page-policy-details__desc-threat">{highestThreat}</span>
-
-            {policyAction && (
-              <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
-                {policyAction}
-              </span>
-            )}
+            <span className="iq-priorities-page-policy-details__desc-threat">{policyThreatLevel}</span>
+            <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
+              {policyAction}
+            </span>
           </div>
-          <div className="iq-priorities-page-policy-details__constraint">{highestThreatPolicyConstraintName}</div>
-          <div className="iq-priorities-page-policy-details__policy">{highestThreatPolicyName}</div>
+          <div className="iq-priorities-page-policy-details__constraint">
+            {constraints && constraints[0].constraintName}
+          </div>
+          <div className="iq-priorities-page-policy-details__policy">{policyName}</div>
         </div>
       </NxTable.Cell>
       <NxTable.Cell>
@@ -75,16 +58,3 @@ export default function PrioritiesPageRow({ component, onClick }) {
     </NxTable.Row>
   );
 }
-
-PrioritiesPageRow.propTypes = {
-  component: PropTypes.shape({
-    displayName: PropTypes.string.isRequired,
-    dependencyType: PropTypes.string.isRequired,
-    action: PropTypes.string.isRequired,
-    highestThreat: PropTypes.number.isRequired,
-    priority: PropTypes.number.isRequired,
-    highestThreatPolicyName: PropTypes.string,
-    highestThreatPolicyConstraintName: PropTypes.string,
-  }).isRequired,
-  onClick: PropTypes.func.isRequired,
-};

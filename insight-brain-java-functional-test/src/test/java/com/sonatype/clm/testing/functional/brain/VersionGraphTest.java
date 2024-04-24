@@ -49,6 +49,8 @@ public class VersionGraphTest
 
   public static final String SECOND_COMPONENT_HASH = "7ebd60d15eec1f9e796d";
 
+  public static final String BABEL_COMPONENT_HASH = "a983fb1aeb2ec3f6ed04";
+
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
   private Application app;
@@ -114,6 +116,27 @@ public class VersionGraphTest
     table.versionRow().get(2).shouldHave(text("3.2.7"));
 
     eyesWatcher.eyesCheck("Version Graph - debug component - recommended version selected");
+  }
+
+  /**
+   *  tests CLM-29546
+   * */
+  @Test
+  public void testVersionGraph_babel_plugin_syntax_showDefaultVersionBar() {
+    mockHdsResponseForBabelComponent();
+    mockHdsResponseForBabelComponentVersionList();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(3, BABEL_COMPONENT_HASH);
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    riskRemediation.shouldBe(visible);
+
+    VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
+    versionExplorerSection.shouldBe(visible);
+    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
+    ScrollUtil.scrollIntoView(versionExplorerSection.content());
+    versionExplorerSection.content().shouldBe(visible);
+    eyesWatcher.eyesCheck("Version Graph - @babel/plugin-syntax-async-generators component - initial render");
   }
 
   /**
@@ -188,6 +211,23 @@ public class VersionGraphTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+  }
+
+  private void mockHdsResponseForBabelComponent() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsPluginSyntaxAsyncGenerators-7.8.4.json"))
+        .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
+
+  }
+
+  private void mockHdsResponseForBabelComponentVersionList() {
+    testCLMServer.getHdsServer()
+        .respondWith(
+            getClass().getResource("/componentDetails/babelComponentVersionList7.8.4.json"))
+        .atUri("rest/ci/componentDetails/list");
   }
 
   private void mockHdsResponseForFirstComponentRecommendedVersion() {

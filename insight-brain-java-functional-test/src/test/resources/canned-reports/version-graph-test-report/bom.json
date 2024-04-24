@@ -235,6 +235,62 @@
       } ],
       "name" : "debug : 3.0.0"
     }
-  } ],
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "@babel/plugin-syntax-async-generators",
+        "version" : "7.8.4"
+      }
+    },
+    "packageUrl" : "pkg:npm/%40babel/plugin-syntax-async-generators@7.8.4",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "@babel/plugin-syntax-async-generators:7.8.4" ],
+    "pathnames" : [ "dependency:/package-lock.json/@babel\\plugin-syntax-async-generators:7.8.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a983fb1aeb2ec3f6ed04",
+    "relativePopularity" : null,
+    "createTime" : 1578950149301,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "@babel/plugin-syntax-async-generators"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "7.8.4"
+      } ],
+      "name" : "@babel/plugin-syntax-async-generators : 7.8.4"
+    }
+  }
+  ],
   "dependencyDataIncluded" : true
 }

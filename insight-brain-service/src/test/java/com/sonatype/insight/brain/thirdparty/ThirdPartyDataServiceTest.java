@@ -709,6 +709,95 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
+  public void testMergeSonatypeDataWithSbomData_VerifyPythonSecurityAndVulnerabilityUpdates()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+    mockSecurityVulnerabilityDataHdsResponseForPythonComponents();
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "pypi", "pip", "24.0",
+            "964cd74171f427720480", "pkg:pypi/pip@24.0");
+
+    ThirdPartyCoordinateLicense license =
+        tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "GPL-2.0", "GPL-2.0", null);
+    license.setIdentificationSources("SBOM");
+
+    thirdPartyCoordinateLicenseDAO.update(license);
+
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ThirdPartyDataServiceTest/report-with-python-components", tempDir).toURI())
+            .toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = thirdPartyCoordinateSecurityDAO
+        .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+
+    assertThat(thirdPartyCoordinateLicenseList).hasSize(2);
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(3);
+
+    ThirdPartyCoordinateLicense thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "GPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("GPL-2.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isNull();
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM");
+
+    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "MIT");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("MIT");
+    assertThat(thirdPartyCoordinateLicense.getName()).isNull();
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isNull();
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
+
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
+        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2018-20225");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url1");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes1");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description1");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link1");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations1");
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(5.5d);
+
+    thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
+        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2023-45803");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url2");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString2");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes2");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description2");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link2");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations2");
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(3.6d);
+
+    thirdPartyCoordinateSecurity = thirdPartyCoordinateSecurityDAO
+        .getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "CVE-2024-3651");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url3");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString3");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes3");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description3");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link3");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations3");
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(9d);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
   public void testSendIacMetricsTelemetry() {
     Map<String, Integer> inputTypeCount = new HashMap<>();
     Map<String, Integer> providerCount = new HashMap<>();
@@ -851,6 +940,47 @@ public class ThirdPartyDataServiceTest
         Collections.singletonList(new ReferenceLink("new referenceType6", "new.url6"));
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
         eq(securityVulnerabilityData6.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData6);
+  }
+
+  private void mockSecurityVulnerabilityDataHdsResponseForPythonComponents() throws URISyntaxException {
+    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("CVE-2018-20225");
+    securityVulnerabilityData1.description = "new description1";
+    securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
+    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 5.5f);
+    securityVulnerabilityData1.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
+    securityVulnerabilityData1.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData1.customData.cvssVector = "new vectorString1";
+    securityVulnerabilityData1.customData.cweId = "new cwes1";
+    securityVulnerabilityData1.recommendationMarkdown = "new recommendations1";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData1.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData1);
+
+    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("CVE-2023-45803");
+    securityVulnerabilityData2.description = "new description2";
+    securityVulnerabilityData2.vulnerabilityLink = new URI("new.link2");
+    securityVulnerabilityData2.mainSeverity = new SecurityVulnerabilitySeverity("new source2", "new label2", 3.6f);
+    securityVulnerabilityData2.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType2", "new.url2"));
+    securityVulnerabilityData2.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData2.customData.cvssVector = "new vectorString2";
+    securityVulnerabilityData2.customData.cweId = "new cwes2";
+    securityVulnerabilityData2.recommendationMarkdown = "new recommendations2";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData2.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData2);
+
+    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("CVE-2024-3651");
+    securityVulnerabilityData3.description = "new description3";
+    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
+    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 9.0f);
+    securityVulnerabilityData3.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
+    securityVulnerabilityData3.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData3.customData.cvssVector = "new vectorString3";
+    securityVulnerabilityData3.customData.cweId = "new cwes3";
+    securityVulnerabilityData3.recommendationMarkdown = "new recommendations3";
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(securityVulnerabilityData3.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData3);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {

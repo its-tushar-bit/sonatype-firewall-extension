@@ -475,9 +475,11 @@ public class ThirdPartyDataService
         continue;
       }
 
-      String bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier).getPackageUrl();
-      ThirdPartyFileCoordinate sbomComponent =
-          thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(bomPurl, scanId);
+      PackageUrlIdentifier bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier);
+
+      ThirdPartyFileCoordinate sbomComponent = thirdPartyFileCoordinateDAO
+          .getByFormatNameVersionAndScanID(bomComponentIdentifier.getFormat(), bomPurl.getName(), bomPurl.getVersion(),
+              scanId);
       if (sbomComponent == null) {
         log.debug("Could not locate matching third party coordinate entry for component identifier {} and scanId {}",
             bomComponentIdentifier, scanId);

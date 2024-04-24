@@ -9,6 +9,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -26,7 +28,6 @@ import com.sonatype.nexus.iq.manager.PullRequestCommandBuilder;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
-import com.google.inject.Inject;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

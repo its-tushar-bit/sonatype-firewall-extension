@@ -13,16 +13,17 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
-import com.google.inject.Inject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

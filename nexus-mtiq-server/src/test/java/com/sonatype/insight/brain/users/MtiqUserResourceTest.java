@@ -9,14 +9,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -27,7 +29,6 @@ import com.sonatype.insight.jaxrs.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
 import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Test;

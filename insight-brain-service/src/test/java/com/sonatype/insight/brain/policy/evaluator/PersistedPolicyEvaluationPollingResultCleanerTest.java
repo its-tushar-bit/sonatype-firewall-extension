@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Date;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;

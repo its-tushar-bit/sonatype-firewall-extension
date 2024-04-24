@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentCategoryList;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -14,7 +16,6 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;

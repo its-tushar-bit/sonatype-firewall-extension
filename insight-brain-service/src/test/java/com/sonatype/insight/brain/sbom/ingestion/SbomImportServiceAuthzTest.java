@@ -7,11 +7,12 @@ package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.ByteArrayInputStream;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;

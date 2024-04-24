@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.filter;
 
 import java.io.PrintWriter;
+
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
@@ -15,7 +17,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.eclipse.jetty.server.Handler;
 import org.junit.Test;
 import org.mockito.InOrder;

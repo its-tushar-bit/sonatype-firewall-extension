@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -39,7 +41,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;

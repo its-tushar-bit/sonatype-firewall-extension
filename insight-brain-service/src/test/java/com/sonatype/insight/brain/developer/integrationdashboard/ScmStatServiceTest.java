@@ -13,12 +13,13 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 

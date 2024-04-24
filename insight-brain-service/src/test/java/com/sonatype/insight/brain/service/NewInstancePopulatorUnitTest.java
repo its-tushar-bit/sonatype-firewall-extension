@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.service;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
+
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 

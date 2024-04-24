@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.telemetry;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -18,7 +20,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

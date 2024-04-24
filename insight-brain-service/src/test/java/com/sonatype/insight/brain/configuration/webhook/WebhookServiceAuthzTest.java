@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.configuration.webhook;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -12,7 +14,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;

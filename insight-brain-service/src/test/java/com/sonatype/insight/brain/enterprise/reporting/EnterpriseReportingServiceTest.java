@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -40,7 +42,6 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

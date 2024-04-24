@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -12,7 +13,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
-import com.google.inject.Inject;
 import org.junit.After;
 import org.junit.Test;
 import org.quartz.Scheduler;

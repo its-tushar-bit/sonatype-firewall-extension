@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
+
+import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -30,7 +32,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
-import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;

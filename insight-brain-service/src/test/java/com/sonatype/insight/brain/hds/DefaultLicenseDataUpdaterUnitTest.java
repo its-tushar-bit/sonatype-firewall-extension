@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater.LicenseData;
@@ -15,7 +17,6 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;

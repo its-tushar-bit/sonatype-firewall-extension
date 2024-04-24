@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.filter.AdvancedLegalPackDashboardFilter;
@@ -19,7 +21,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.service;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -17,7 +19,6 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.ConfigurationException;
-import com.google.inject.Inject;
 import com.google.inject.Module;
 import org.junit.Test;
 

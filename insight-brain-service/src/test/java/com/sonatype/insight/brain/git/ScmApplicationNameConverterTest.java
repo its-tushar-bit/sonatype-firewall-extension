@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.git;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
-import com.google.inject.Inject;
 import org.junit.Test;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;

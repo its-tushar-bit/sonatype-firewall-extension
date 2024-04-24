@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -28,7 +30,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import com.google.inject.matcher.Matchers;
 import org.junit.After;
 import org.junit.Before;

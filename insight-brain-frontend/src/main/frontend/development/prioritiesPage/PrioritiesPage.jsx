@@ -14,10 +14,8 @@ import {
   selectLoadingFeatures,
   selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
-import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { pick } from 'ramda';
+import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
+import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 
 export default function PrioritiesPage() {
   return (
@@ -41,31 +39,29 @@ function PageContents() {
 }
 
 function PrioritiesPageContents() {
-  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-  const applicationReport = useSelector(selectApplicationReportSlice);
-  const loading =
-    !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata);
-  const { loadError } = pick(['loadError'], applicationReport);
-
   const dispatch = useDispatch();
+  const { loadingMetadata, loadErrorMetadata, metadata } = useSelector(selectPrioritiesPageSlice);
 
   const doLoad = () => {
-    dispatch(setReportParameters(publicAppId, scanId));
-    dispatch(loadReportIfNeeded());
+    dispatch(actions.loadMetadata());
   };
 
   useEffect(() => {
-    if (publicAppId && scanId) {
-      doLoad();
-    }
-  }, [publicAppId, scanId]);
+    doLoad();
+
+    return () => dispatch(actions.resetState());
+  }, []);
 
   return (
-    <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-      <NxPageTitle>
-        <PrioritiesPageHeader />
-      </NxPageTitle>
-      <PrioritiesPageTable />
+    <NxLoadWrapper loading={loadingMetadata} error={loadErrorMetadata} retryHandler={doLoad}>
+      {metadata && (
+        <>
+          <NxPageTitle>
+            <PrioritiesPageHeader />
+          </NxPageTitle>
+          <PrioritiesPageTable />
+        </>
+      )}
     </NxLoadWrapper>
   );
 }

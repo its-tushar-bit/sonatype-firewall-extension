@@ -1418,6 +1418,9 @@ export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applica
 export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
 
+export const getPrioritiesPageTableData = (applicationId, scanId) =>
+  uriTemplate`/api/experimental/priorities/${applicationId}/${scanId}`;
+
 export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsAnalyzed`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [

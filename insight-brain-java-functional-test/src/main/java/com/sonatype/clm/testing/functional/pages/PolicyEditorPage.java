@@ -26,7 +26,10 @@ public class PolicyEditorPage
   public static final int DEFAULT_THREAT_LEVEL = 5;
 
   public static String urlToEdit(Owner owner, String policyId) {
-    return urlToEdit(owner.getType(), owner.getPublicId(), policyId);
+    boolean isOrgOrApp = owner.getType().equals(OwnerType.ORGANIZATION) ||
+            owner.getType().equals(OwnerType.APPLICATION);
+    String ownerId = isOrgOrApp ? owner.getPublicId() : owner.getId();
+    return urlToEdit(owner.getType(), ownerId, policyId);
   }
 
   public static String urlToEdit(OwnerType ownerType, String ownerId, String policyId) {
@@ -34,7 +37,10 @@ public class PolicyEditorPage
   }
 
   public static String urlToCreate(Owner owner) {
-    return urlToCreate(owner.getType(), owner.getPublicId());
+    boolean isOrgOrApp = owner.getType().equals(OwnerType.ORGANIZATION) ||
+            owner.getType().equals(OwnerType.APPLICATION);
+    String ownerId = isOrgOrApp ? owner.getPublicId() : owner.getId();
+    return urlToCreate(owner.getType(), ownerId);
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {

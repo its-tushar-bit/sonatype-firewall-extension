@@ -31,6 +31,673 @@ export const conditionValueType = [
 ];
 
 export const applicablePolicies = {
+  repository: {
+    'sonatype-internal': {
+      policiesByOwner: [
+        {
+          ownerId: '2434af435d874fa9a67be88b275c11b3',
+          ownerName: 'cocoapods-proxy',
+          ownerType: 'repository',
+          policies: [
+            {
+              id: 'ec1394dcbd344633a82f1f0d6fd54e97',
+              name: 'Repository Level Policy',
+              ownerId: '2434af435d874fa9a67be88b275c11b3',
+              threatLevel: 5,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: '0aac3b6c62c046d79b4484666adadc81',
+                  name: 'Repository Level Constraint',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'AgeInDays',
+                      operator: 'older than',
+                      value: '4380',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [],
+        },
+        {
+          ownerId: 'b50fe58ba4404d5ca50d578356337b07',
+          ownerName: 'ED30BBFA-921B144C-75D6BF55-8B330B8B-64F1FD2F',
+          ownerType: 'repository_manager',
+          policies: [
+            {
+              id: '4df1283a48d642bb92be2c5b1b2adf11',
+              name: 'Repository Manager Policy',
+              ownerId: 'b50fe58ba4404d5ca50d578356337b07',
+              threatLevel: 5,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: 'a1aab0d7fd894a59a19077bd7761381a',
+                  name: 'RP Constraint',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'AgeInDays',
+                      operator: 'older than',
+                      value: '4380',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {
+                proxy: 'warn',
+              },
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [],
+        },
+        {
+          ownerId: 'REPOSITORY_CONTAINER_ID',
+          ownerName: 'Repository Managers',
+          ownerType: 'repository_container',
+          policies: [
+            {
+              id: '69b9f7876bd340e1bfcfed1931066cfa',
+              name: 'RMs Policy',
+              ownerId: 'REPOSITORY_CONTAINER_ID',
+              threatLevel: 5,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: '66439b326a0a4861a7950aaaf863ac83',
+                  name: 'RMs Contraint',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'AgeInDays',
+                      operator: 'older than',
+                      value: '730',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [
+                  {
+                    stageIds: ['proxy'],
+                    roleId: '2cb71b3468d649789163ea2e212b541e',
+                    roleName: null,
+                  },
+                ],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [],
+        },
+        {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          policies: [
+            {
+              id: '50ed7d8a8b1147a39065df80f3fc2a28',
+              name: 'Architecture-Cleanup',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 1,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: '4255fedad35848009ecf58bf7c7dae06',
+                  name: 'Test components',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'Coordinates',
+                      operator: 'match',
+                      value: 'maven:junit:junit:*:*:*',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'Coordinates',
+                      operator: 'match',
+                      value: 'maven:ant:ant:*:*:*',
+                      conditionIndex: 1,
+                    },
+                    {
+                      conditionTypeId: 'Coordinates',
+                      operator: 'match',
+                      value: 'maven:org.apache.ant:ant:*:*:*',
+                      conditionIndex: 2,
+                    },
+                    {
+                      conditionTypeId: 'Coordinates',
+                      operator: 'match',
+                      value: 'maven:org.seleniumhq.selenium:*:*:*:*',
+                      conditionIndex: 3,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '33865bdbfadf4585b1c05b0af2cf9da5',
+              name: 'Architecture-Quality',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 1,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: 'b2530bffba25446fa80ae234c3a59945',
+                  name: 'Version is old',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'AgeInDays',
+                      operator: 'older than',
+                      value: '1825',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+                {
+                  id: 'd2057bc464114a3aaf7cb645101e6935',
+                  name: 'Version is unpopular',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'RelativePopularity',
+                      operator: '<=',
+                      value: '10',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '2deb7883d91e414eacb6591193c41621',
+              name: 'Component-Similar',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 7,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: 'e20db8c022dd40109e94bf0be3a316aa',
+                  name: 'Unknown modification to component',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'MatchState',
+                      operator: 'is',
+                      value: 'similar',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'Coordinates',
+                      operator: 'do not match',
+                      value: 'maven:org.eclipse.*:*:*:*:*',
+                      conditionIndex: 1,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '1fe7af4639a248078c18531c4a562a7c',
+              name: 'Component-Unknown',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 2,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: '4c2be71e5e41426d8445b9ffb96f515d',
+                  name: 'Unknown 3rd party component',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'MatchState',
+                      operator: 'is',
+                      value: 'unknown',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'Proprietary',
+                      operator: 'is false',
+                      value: null,
+                      conditionIndex: 1,
+                    },
+                    {
+                      conditionTypeId: 'DataSource',
+                      operator: 'has support for',
+                      value: 'identity',
+                      conditionIndex: 2,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: 'b3ea3ba8943d444296961c30333ba665',
+              name: 'Integrity-Rating',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 9,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: '09a8e0ca174a4c09add38eed703251db',
+                  name: 'Pending integrity rating',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'IntegrityRating',
+                      operator: 'is',
+                      value: '2',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+                {
+                  id: 'f328065a40154080b2ccef440b7afa33',
+                  name: 'Suspicious integrity rating',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'IntegrityRating',
+                      operator: 'is',
+                      value: '1',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '4304cb96ee52467a92ad2f14d1f64315',
+              name: 'License-Banned',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 10,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: 'cb9de8d4e3c949fda2884eabaf51c8cd',
+                  name: 'License not approved in any situation',
+                  operator: 'OR',
+                  conditions: [
+                    {
+                      conditionTypeId: 'License Threat Group',
+                      operator: 'is',
+                      value: '30373520dd694d4daf3964e7b192ce4c',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '41253ae54c344f568e6ea8e86f573d09',
+              name: 'License-Threat Not Assigned',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 7,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: '4f106df17a25472cb3e83b5bfb05d1db',
+                  name: 'License threat group has not been assigned',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'License Threat Group',
+                      operator: 'is',
+                      value: 'UNASSIGNED_LICENSE_THREAT_GROUP_ID',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: 'be55c98423ee48f2a7fba754ab009ff7',
+              name: 'Security-Critical',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 10,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: '6340d7804ca04eb2b6f712025fe1ea3a',
+                  name: 'Critical risk CVSS score',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '>=',
+                      value: '9',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '61ff524330f54cdead833194df783cd5',
+              name: 'Security-High',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 9,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: 'cc17953f3d4544e4b9d0def12b56bf0a',
+                  name: 'High risk CVSS score',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '>=',
+                      value: '7',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '<',
+                      value: '9',
+                      conditionIndex: 1,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: 'c17bfff6e2504c9691f22b26e8de2bb6',
+              name: 'Security-Low',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 3,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: 'a9b061c3beb54393a4609dc3bd4eb9d9',
+                  name: 'Low risk CVSS score',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '>=',
+                      value: '0',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '<',
+                      value: '4',
+                      conditionIndex: 1,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: '2870533d27e94cc7adf9523cef4d650d',
+              name: 'Security-Malicious',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 10,
+              legacyViolationAllowed: false,
+              constraints: [
+                {
+                  id: '9783be5c52d748afae3a6872ff87b6be',
+                  name: 'Malicious vulnerability category',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'SecurityVulnerabilityCategory',
+                      operator: 'is',
+                      value: 'malicious_code',
+                      conditionIndex: 0,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+            {
+              id: 'b760cc904be5495b86417837d6827f4c',
+              name: 'Security-Medium',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 7,
+              legacyViolationAllowed: true,
+              constraints: [
+                {
+                  id: 'a2797dcca6b0400cab905f34d405101d',
+                  name: 'Medium risk CVSS score',
+                  operator: 'AND',
+                  conditions: [
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '>=',
+                      value: '4',
+                      conditionIndex: 0,
+                    },
+                    {
+                      conditionTypeId: 'SecurityVulnerabilitySeverity',
+                      operator: '<',
+                      value: '7',
+                      conditionIndex: 1,
+                    },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [
+            {
+              id: 'c6ed2eb7c91541d59276549384d75c4b',
+              policyId: '52ca1facb6d144feaa035dc6f63e0a20',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: '845f9e239ac1404b98a93340078292b1',
+              policyId: '4a8287d32780470aa29b4bbfa4a76d89',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: '021dce5bf685497d8c0e1a5cbb91bd7c',
+              policyId: '395a73268a484ec998fc191705a180ce',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: '8a9d04c8db0e422fa6a7cd6cab485699',
+              policyId: '6e304a189fb540cdbb0e730189b3bdd0',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: '7b7040630a9f4d8f927b7f86a893ecfe',
+              policyId: '0a5b3e21b33d41899c5edabc2a12c01d',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: '1b32ac9e435341d28fb0c72b1b5b5b9b',
+              policyId: 'f1db71f1c55d472eb133e579be8b919b',
+              tagId: '9a95eb6435dc4bca8fc12cba587596f9',
+            },
+            {
+              id: 'e902b90f1cc4480493d8b4a6b6b8d0b0',
+              policyId: '52ca1facb6d144feaa035dc6f63e0a20',
+              tagId: 'a63028e7573e4253afa6116f9a28f2ea',
+            },
+            {
+              id: '7cf7953f08de46d6914158645b2d310a',
+              policyId: '6e304a189fb540cdbb0e730189b3bdd0',
+              tagId: 'a63028e7573e4253afa6116f9a28f2ea',
+            },
+            {
+              id: '440e7e7a96ab422783afda6b3967707c',
+              policyId: 'f1db71f1c55d472eb133e579be8b919b',
+              tagId: 'a63028e7573e4253afa6116f9a28f2ea',
+            },
+          ],
+        },
+      ],
+    },
+  },
   repository_manager: {
     'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232': {
       policiesByOwner: [

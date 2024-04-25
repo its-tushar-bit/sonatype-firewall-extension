@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, fireEvent, within, waitFor } from 'TestRoot/SpecUtil';
 import {
   getActionStageUrl,
   getApplicableCategoriesUrl,
@@ -40,12 +40,14 @@ describe('PolicyEditorSpec', () => {
   const POLICY_ID_OVERRIDE_ENABLED_INHERITED = '9d5c30f793a54446a9601cf36c18e9e3';
   const POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN = '12f2086417ab44f9a63ba5e91786c570';
   const POLICY_ID_OVERRIDE_NOT_ENABLED = '2a1cb71651d14a60b0fa77ef829f5ec0';
+  const REPOSITORY_POLICY_ID = 'ec1394dcbd344633a82f1f0d6fd54e97';
   const ROOT_ORG_ID = 'ROOT_ORGANIZATION_ID';
   const REPOSITORY_CONTAINER_ID = 'REPOSITORY_CONTAINER_ID';
   const REPOSITORY_MANAGER_ID = 'F2BC2A0B-E7D0DDA9-425601AB-F0AAD535-FDF19232';
   const ORG_ID = '05602dd5ba934c318ad011ca4e4f5cfe';
   const APP_ID = 'testapp';
-  const REPO_ID = 'REPOSITORY_CONTAINER_ID';
+  const REPO_CONTAINER_ID = 'REPOSITORY_CONTAINER_ID';
+  const REPO_ID = 'sonatype-internal';
   let mockAxiosCalls;
 
   const setInitStateAndMockHttpRequests = (ownerType, ownerId, policyId, mockNotificationEndpoints, permissions) => {
@@ -67,11 +69,13 @@ describe('PolicyEditorSpec', () => {
       },
     };
     if (ownerType === 'repository_container') {
-      initState.router.currentParams = { repositoryContainerId: REPO_ID };
+      initState.router.currentParams = { repositoryContainerId: REPO_CONTAINER_ID };
     } else if (ownerType === 'repository_manager') {
       initState.router.currentParams = { repositoryManagerId: ownerId };
     } else if (ownerType === 'organization') {
       initState.router.currentParams = { organizationId: ownerId };
+    } else if (ownerType === 'repository') {
+      initState.router.currentParams = { repositoryId: ownerId };
     } else {
       initState.router.currentParams = { applicationPublicId: ownerId };
     }
@@ -611,7 +615,12 @@ describe('PolicyEditorSpec', () => {
     });
 
     it('enables the update button when the actions override status changes for repository container', async () => {
-      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      setInitStateAndMockHttpRequests(
+        'repository_container',
+        REPO_CONTAINER_ID,
+        POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN,
+        true
+      );
       renderComponent({
         ...initState,
         orgsAndPolicies: {
@@ -645,7 +654,12 @@ describe('PolicyEditorSpec', () => {
     });
 
     it('enables the update button when the notifications override status changes for repository container', async () => {
-      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      setInitStateAndMockHttpRequests(
+        'repository_container',
+        REPO_CONTAINER_ID,
+        POLICY_ID_OVERRIDE_ENABLED_INHERITED,
+        true
+      );
       const rolesUrl = getRoleMappingForCurrentOwnerUrl('global', 'global');
       const roles = [{ roleId: '1', roleName: 'developer' }];
       mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
@@ -664,11 +678,11 @@ describe('PolicyEditorSpec', () => {
     });
 
     it('saves a policy successfully when adding an action override from repository container, shows the save mask with the success message', async () => {
-      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      setInitStateAndMockHttpRequests('repository_container', REPO_CONTAINER_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
       mockAxiosCalls
-        .onPut(getPolicyOverridesUrl('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .onPut(getPolicyOverridesUrl('repository_container', REPO_CONTAINER_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
         .reply(200, savedPolicy);
-      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_ID)).reply(200, {});
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_CONTAINER_ID)).reply(200, {});
       renderComponent(initState);
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       fireEvent.click(overrideParentActionsInput);
@@ -682,14 +696,19 @@ describe('PolicyEditorSpec', () => {
     });
 
     it('saves a policy successfully when adding a notification override from repository container, shows the save mask with the success message', async () => {
-      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      setInitStateAndMockHttpRequests(
+        'repository_container',
+        REPO_CONTAINER_ID,
+        POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN,
+        true
+      );
       const rolesUrl = getRoleMappingForCurrentOwnerUrl('global', 'global');
       const roles = [{ roleId: '1', roleName: 'developer' }];
       mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
       mockAxiosCalls
-        .onPut(getPolicyOverridesUrl('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .onPut(getPolicyOverridesUrl('repository_container', REPO_CONTAINER_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
         .reply(200, savedPolicy);
-      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_ID)).reply(200, {});
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_CONTAINER_ID)).reply(200, {});
       renderComponent(initState);
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       fireEvent.click(overrideParentNotificationsInput);
@@ -742,6 +761,17 @@ describe('PolicyEditorSpec', () => {
       } catch (error) {
         expect(inheritance).toBeUndefined();
       }
+    });
+
+    it('hides the inheritance section when the owner is an repository', async () => {
+      setInitStateAndMockHttpRequests('repository', REPO_ID, REPOSITORY_POLICY_ID);
+      renderComponent({ ...initState });
+
+      await waitFor(() => expect(screen.getByText('Summary')).toBeVisible());
+
+      const inheritance = screen.queryByText('This Policy Inherits to:');
+
+      expect(inheritance).not.toBeInTheDocument();
     });
   });
 });

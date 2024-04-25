@@ -16,6 +16,10 @@ public class OwnerSummaryTile
     super("#owner-summary");
   }
 
+  public OwnerSummaryTile(String rootSelector) {
+    super(rootSelector);
+  }
+
   public SelenideElement name() {
     return child(".nx-h1");
   }

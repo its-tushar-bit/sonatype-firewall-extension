@@ -428,7 +428,15 @@ public class RepositoryContainerPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldBe(visible, disabled);
     inheritance.specifiedChildrenInheritRadio().shouldBe(visible, disabled);
     inheritance.policyActionsOverrideCheckbox().shouldBe(visible, disabled);
+    inheritance.policyActionsOverrideCheckbox().label().shouldHave(
+        text("Allow action overrides at organization, application and repositories levels")
+    );
     inheritance.policyNotificationsOverrideCheckbox().shouldBe(visible, disabled);
+    inheritance.policyNotificationsOverrideCheckbox().label().shouldHave(
+        text("Allow notification overrides at organization, application and repositories levels")
+    );
+
+    eyesWatcher.eyesCheck("Policy Editor Inheritance section at repository container level for root org policy");
 
     //Constraints Section
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();

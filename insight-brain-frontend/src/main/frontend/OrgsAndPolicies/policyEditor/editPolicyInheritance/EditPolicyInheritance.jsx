@@ -33,13 +33,7 @@ import {
   selectIsOrgOwner,
   selectIsRepositoryContainerOwner,
   selectIsRepositoryManagerOwner,
-  selectIsRepositoryOwner,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
-import {
-  selectIsRepositoryContainer,
-  selectIsRepositoryManager,
-  selectIsRepository,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
 
@@ -61,12 +55,6 @@ export default function EditPolicyInheritance() {
   const isOrgOwner = useSelector(selectIsOrgOwner);
   const isRepoContainerOwner = useSelector(selectIsRepositoryContainerOwner);
   const isRepoManagerOwner = useSelector(selectIsRepositoryManagerOwner);
-  const isRepositoryOwner = useSelector(selectIsRepositoryOwner);
-  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
-  const isRepositoryManager = useSelector(selectIsRepositoryManager);
-  const isRepository = useSelector(selectIsRepository);
-  const showInheritedForRepository = !isRepositoryOwner && !(isRepository && isRepoManagerOwner);
-  const showOnlyForOrgsAndAppsLevel = isOrgOwner && !(isRepositoryContainer || isRepositoryManager || isRepository);
 
   const onCategoryToggled = (category) => {
     const categoryIndexForToggle = categories.findIndex(propEq('id', category.id));
@@ -99,12 +87,10 @@ export default function EditPolicyInheritance() {
         <div className="nx-modal-content">
           <NxWarningAlert>
             {isOrgOwner &&
-              `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} organizations and applications.`}
-            {isRepositoryContainer &&
-              `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} ${repositoryPluralized(
-                overridesCount
-              )}.`}
-            {isRepositoryManager &&
+              (isRootOrg
+                ? `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} organizations, applications and repositories.`
+                : `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} organizations and applications.`)}
+            {(isRepoContainerOwner || isRepoManagerOwner) &&
               `Caution: Disabling overrides will reset ${overridesType} for ${overridesCount} ${repositoryPluralized(
                 overridesCount
               )}.`}
@@ -127,7 +113,12 @@ export default function EditPolicyInheritance() {
       <NxH2>Inheritance</NxH2>
 
       {isOrgOwner && (
-        <NxFieldset id="editor-policy-inherit" label="This Policy Inherits to:" isRequired={true}>
+        <NxFieldset
+          id="editor-policy-inherit"
+          data-testid="editor-policy-inherit"
+          label="This Policy Inherits to:"
+          isRequired={true}
+        >
           <NxRadio
             name="hasCategories"
             value={null}
@@ -163,9 +154,9 @@ export default function EditPolicyInheritance() {
         </NxFieldset>
       )}
 
-      {isRepositoryContainer && <NxP>This Policy Inherits to All Repository Managers and Repositories within Them</NxP>}
+      {isRepoContainerOwner && <NxP>This Policy Inherits to All Repository Managers and Repositories within Them</NxP>}
 
-      {(isRepositoryManager || isRepository) && <NxP>This policy inherits to all Repositories in {ownerName}</NxP>}
+      {isRepoManagerOwner && <NxP>This policy inherits to all Repositories in {ownerName}</NxP>}
 
       {showActionsOverridesConfirmationModal &&
         createOverridesConfirmationModal(
@@ -189,46 +180,48 @@ export default function EditPolicyInheritance() {
           }
         )}
 
-      {showInheritedForRepository && (
-        <NxFieldset id="editor-inheritance-overrides-fieldset" label="Inheritance Overrides">
-          <NxCheckbox
-            id="editor-policy-actions-override"
-            isChecked={!!currentPolicy.policyActionsOverrideAllowed}
-            disabled={isInherited || !hasEditIqPermission}
-            onChange={
-              currentPolicy.policyActionsOverrideAllowed && actionsOverridesCount > 0
-                ? toggleShowActionsOverridesConfirmationModal
-                : togglePolicyActionsOverrideAllowed
-            }
-          >
-            {isRepositoryContainer && 'Allow action overrides at repository manager and repository levels'}
-            {(showOnlyForOrgsAndAppsLevel ||
-              (!isRepoManagerOwner && isRepositoryManager && !isRepoContainerOwner) ||
-              (isOrgOwner && isRepositoryContainer)) &&
-              'Allow action overrides at organization and application levels'}
-            {(isRepoManagerOwner || isRepositoryManager || isRepository) &&
-              'Allow action overrides at repository level'}
-          </NxCheckbox>
-          <NxCheckbox
-            id="editor-policy-notifications-override"
-            isChecked={!!currentPolicy.policyNotificationsOverrideAllowed}
-            disabled={isInherited || !hasEditIqPermission}
-            onChange={
-              currentPolicy.policyNotificationsOverrideAllowed && notificationsOverridesCount > 0
-                ? toggleShowNotificationsOverridesConfirmationModal
-                : togglePolicyNotificationsOverrideAllowed
-            }
-          >
-            {isRepositoryContainer && 'Allow notification overrides at repository manager and repository levels'}
-            {(showOnlyForOrgsAndAppsLevel ||
-              (!isRepoManagerOwner && isRepositoryManager && !isRepoContainerOwner) ||
-              (isOrgOwner && isRepositoryContainer)) &&
-              'Allow notification overrides at organization and application levels'}
-            {(isRepoManagerOwner || isRepositoryManager || isRepository) &&
-              'Allow notification overrides at repository level'}
-          </NxCheckbox>
-        </NxFieldset>
-      )}
+      <NxFieldset
+        id="editor-inheritance-overrides-fieldset"
+        data-testid="editor-inheritance-overrides-fieldset"
+        label="Inheritance Overrides"
+      >
+        <NxCheckbox
+          id="editor-policy-actions-override"
+          className="iq-policy-actions-override-checkbox"
+          isChecked={!!currentPolicy.policyActionsOverrideAllowed}
+          disabled={isInherited || !hasEditIqPermission}
+          onChange={
+            currentPolicy.policyActionsOverrideAllowed && actionsOverridesCount > 0
+              ? toggleShowActionsOverridesConfirmationModal
+              : togglePolicyActionsOverrideAllowed
+          }
+        >
+          {isOrgOwner &&
+            (isRootOrg
+              ? 'Allow action overrides at organization, application and repositories levels'
+              : 'Allow action overrides at organization and application levels')}
+          {isRepoContainerOwner && 'Allow action overrides at repository manager and repository levels'}
+          {isRepoManagerOwner && 'Allow action overrides at repository level'}
+        </NxCheckbox>
+        <NxCheckbox
+          id="editor-policy-notifications-override"
+          className="iq-policy-notifications-override-checkbox"
+          isChecked={!!currentPolicy.policyNotificationsOverrideAllowed}
+          disabled={isInherited || !hasEditIqPermission}
+          onChange={
+            currentPolicy.policyNotificationsOverrideAllowed && notificationsOverridesCount > 0
+              ? toggleShowNotificationsOverridesConfirmationModal
+              : togglePolicyNotificationsOverrideAllowed
+          }
+        >
+          {isOrgOwner &&
+            (isRootOrg
+              ? 'Allow notification overrides at organization, application and repositories levels'
+              : 'Allow notification overrides at organization and application levels')}
+          {isRepoContainerOwner && 'Allow notification overrides at repository manager and repository levels'}
+          {isRepoManagerOwner && 'Allow notification overrides at repository level'}
+        </NxCheckbox>
+      </NxFieldset>
 
       <NxDivider />
     </div>

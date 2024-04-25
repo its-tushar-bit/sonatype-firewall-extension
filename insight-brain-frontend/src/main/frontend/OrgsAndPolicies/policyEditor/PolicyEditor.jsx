@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
@@ -22,6 +23,8 @@ import {
   selectOverrideNeedsToBeUpdated,
   selectHasEditIqPermission,
   selectIsDirty,
+  selectIsRepositoryContainerOwner,
+  selectIsRepositoryManagerOwner,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLoading as selectOwnerDetailTreeLoading } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSelectors';
 
@@ -40,13 +43,7 @@ import ConstraintsEditor from './constraints/ConstraintsEditor';
 import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotificationsEditor';
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectEntityId } from '../orgsAndPoliciesSelectors';
-import classNames from 'classnames';
-import {
-  selectIsRepositoriesRelated,
-  selectIsRepositoryContainer,
-  selectIsRepositoryManager,
-  selectIsRepository,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
@@ -57,6 +54,8 @@ export default function PolicyEditor() {
   const dirtyPolicy = useSelector(selectCurrentPolicy);
   const ownerDetailTreeLoading = useSelector(selectOwnerDetailTreeLoading);
   const isOrgOwner = useSelector(selectIsOrgOwner);
+  const isRepoContainerOwner = useSelector(selectIsRepositoryContainerOwner);
+  const isRepoManagerOwner = useSelector(selectIsRepositoryManagerOwner);
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isDirty = useSelector(selectIsDirty);
@@ -68,13 +67,9 @@ export default function PolicyEditor() {
   const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
-  const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
-  const isRepositoryManager = useSelector(selectIsRepositoryManager);
-  const isRepository = useSelector(selectIsRepository);
   const isLoading = ownerDetailTreeLoading || loading;
 
-  const showInheretedForRepository = isInherited && isRepository;
-  const showInheritedSection = isOrgOwner || isRepositoryContainer || isRepositoryManager || showInheretedForRepository;
+  const showInheritedSection = isOrgOwner || isRepoContainerOwner || isRepoManagerOwner;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
   const savePolicy = () => dispatch(actions.savePolicy());
   const updateOverrides = () => dispatch(actions.updateOverrides());

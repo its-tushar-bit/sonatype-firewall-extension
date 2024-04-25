@@ -23,6 +23,7 @@ describe('EditPolicyInheritance', () => {
         },
         policy: {
           ...initialState,
+          isRootOrg: false,
           isInherited: false,
           isOrgOwner: true,
           isRepositoryContainerOwner: false,
@@ -148,6 +149,18 @@ describe('EditPolicyInheritance', () => {
 
       const actionsOverrideCheckbox = screen.getByLabelText(
         /Allow action overrides at organization and application levels/i
+      );
+
+      expect(actionsOverrideCheckbox).toBeVisible();
+      expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders actions override checkbox for root org', () => {
+      state.orgsAndPolicies.policy.isRootOrg = true;
+      renderComponent();
+
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization, application and repositories levels/i
       );
 
       expect(actionsOverrideCheckbox).toBeVisible();
@@ -411,6 +424,31 @@ describe('EditPolicyInheritance', () => {
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     });
 
+    it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist for root organization', () => {
+      const spy = jest.spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal');
+      state.orgsAndPolicies.policy.isRootOrg = true;
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization, application and repositories levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+      expect(
+        screen.getByText(
+          'Caution: Disabling overrides will reset actions for 1 organizations, applications and repositories.'
+        )
+      ).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    });
+
     it('dispatches togglePolicyActionsOverrideAllowed action when disabling if action overrides do not exist', () => {
       const spy = jest.spyOn(policyActions, 'togglePolicyActionsOverrideAllowed');
       renderComponent();
@@ -547,6 +585,18 @@ describe('EditPolicyInheritance', () => {
 
       const notificationsOverrideCheckbox = screen.getByLabelText(
         /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeVisible();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders checked notifications override checkbox when policy notifications override is allowed for root org', () => {
+      state.orgsAndPolicies.policy.isRootOrg = true;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization, application and repositories levels/i
       );
 
       expect(notificationsOverrideCheckbox).toBeVisible();

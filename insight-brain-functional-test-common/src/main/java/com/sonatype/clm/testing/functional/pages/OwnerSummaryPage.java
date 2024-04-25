@@ -58,6 +58,10 @@ public class OwnerSummaryPage
     return new OwnerSummaryTile();
   }
 
+  public static OwnerSummaryTile summaryTile(String rootSelector) {
+    return new OwnerSummaryTile(rootSelector);
+  }
+
   public static CategoryTile categoryTile() {
     return new CategoryTile();
   }

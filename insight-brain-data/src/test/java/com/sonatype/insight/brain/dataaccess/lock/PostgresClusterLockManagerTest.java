@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +54,7 @@ public class PostgresClusterLockManagerTest
   }
 
   @Override
-  protected CountDownLatch startConcurrentDeleteLockThread(final String lockId) {
+  protected Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(final String lockId) {
     CountDownLatch commitLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
       try (TransactionContext tx = lockDAO.createTransactionContext()) {
@@ -64,7 +65,7 @@ public class PostgresClusterLockManagerTest
       }
     });
     other.start();
-    return commitLatch;
+    return Pair.of(commitLatch, other);
   }
 
   @Override
@@ -116,9 +117,12 @@ public class PostgresClusterLockManagerTest
   @Test(timeout = 60_000)
   public void testLock_Postgres_LocksDoNotCompeteWithRegularQueriesForConnections() throws Exception {
     String lockId = "test";
+    Thread other;
     try (ClusterLock clusterLock = createClusterLock(lockId)) {
       clusterLock.lock();
-      CountDownLatch latch = startConcurrentLockThread(lockId);
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentLockThread(lockId);
+      CountDownLatch latch = countDownLatchThreadPair.getLeft();
+      other = countDownLatchThreadPair.getRight();
       assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
 
       // both this and the concurrent thread have one active tx/connection for the lock
@@ -128,10 +132,11 @@ public class PostgresClusterLockManagerTest
       clusterLock.unlock();
       assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     }
+    other.join(10000);
   }
 
   @Test
-  public void testLock_FIFO_Postgres() {
+  public void testLock_FIFO_Postgres() throws Exception {
     testLock_FIFO(false);
   }
 }

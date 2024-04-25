@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public abstract class AbstractClusterLockManagerTest
 
   protected abstract ClusterLock createClusterLock(final String lockId);
 
-  protected abstract CountDownLatch startConcurrentDeleteLockThread(String lockId);
+  protected abstract Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(String lockId);
 
   protected abstract void deleteForPdfGeneration(final Application application);
 
@@ -47,7 +48,7 @@ public abstract class AbstractClusterLockManagerTest
     return abstractClusterLockManager.lockExists(lockId);
   }
 
-  protected CountDownLatch startConcurrentLockThread(String lockId) throws Exception {
+  protected Pair<CountDownLatch, Thread> startConcurrentLockThread(String lockId) throws Exception {
     CountDownLatch lockLatch = new CountDownLatch(1);
     CountDownLatch unlockLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
@@ -60,20 +61,24 @@ public abstract class AbstractClusterLockManagerTest
     });
     other.start();
     assertThat(lockLatch.await(10, TimeUnit.SECONDS)).isTrue();
-    return unlockLatch;
+    return Pair.of(unlockLatch, other);
   }
 
   @Test
   public void testBlockingOnSameLock() throws Exception {
     String lockId = "test-lock";
     CountDownLatch latch;
+    Thread other;
     try (ClusterLock clusterLock = createClusterLock(lockId)) {
       clusterLock.lock();
-      latch = startConcurrentLockThread(lockId);
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentLockThread(lockId);
+      latch = countDownLatchThreadPair.getLeft();
+      other = countDownLatchThreadPair.getRight();
       assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
       clusterLock.unlock();
     }
     assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+    other.join(10000);
   }
 
   @Test
@@ -81,12 +86,16 @@ public abstract class AbstractClusterLockManagerTest
     String lockId1 = "test-lock-1";
     String lockId2 = "test-lock-2";
     CountDownLatch latch;
+    Thread other;
     try (ClusterLock clusterLock = createClusterLock(lockId1)) {
       clusterLock.lock();
-      latch = startConcurrentLockThread(lockId2);
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentLockThread(lockId2);
+      latch = countDownLatchThreadPair.getLeft();
+      other = countDownLatchThreadPair.getRight();
       assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
       clusterLock.unlock();
     }
+    other.join(10000);
   }
 
   @Test
@@ -162,14 +171,18 @@ public abstract class AbstractClusterLockManagerTest
   public void testDeleteLock_WaitsForLocks() throws Exception {
     String lockId = "test-lock";
     CountDownLatch latch;
+    Thread other;
     try (ClusterLock clusterLock = createClusterLock(lockId)) {
       clusterLock.lock();
-      latch = startConcurrentDeleteLockThread(lockId);
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentDeleteLockThread(lockId);
+      latch = countDownLatchThreadPair.getLeft();
+      other = countDownLatchThreadPair.getRight();
       assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
       clusterLock.unlock();
     }
     assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     assertThat(lockExists(lockId)).isFalse();
+    other.join(10000);
   }
 
   @Test
@@ -178,8 +191,11 @@ public abstract class AbstractClusterLockManagerTest
     try (ClusterLock clusterLock = createClusterLock(lockId)) {
       clusterLock.lock();
     }
-    CountDownLatch latch = startConcurrentLockThread(lockId);
+    Pair<CountDownLatch, Thread> countDownLatchThreadPair = startConcurrentLockThread(lockId);
+    CountDownLatch latch = countDownLatchThreadPair.getLeft();
+    Thread other = countDownLatchThreadPair.getRight();
     assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+    other.join(10000);
   }
 
   @Test
@@ -213,24 +229,36 @@ public abstract class AbstractClusterLockManagerTest
     lockCloser.start();
     assertThat(lockCloserEnd.await(3, TimeUnit.SECONDS)).isTrue();
     assertThat(lockWaiterEnd.await(3, TimeUnit.SECONDS)).isTrue();
+
+    lockInitializerAndTaker.join(10000);
+    lockWaiter.join(10000);
+    lockCloser.join(10000);
   }
 
   @Test
   public void testLockWithNoWait() throws Exception {
     String lockId = "test-lock";
+    Thread thread1;
+    Thread thread2;
     try (ClusterLock clusterLock = createClusterLock(lockId)) {
       // Take the lock in the main thread
       clusterLock.lock();
       AtomicBoolean failedToLock = new AtomicBoolean();
-      assertThat(startConcurrentLockWithNoWait(failedToLock, lockId).await(3, TimeUnit.SECONDS)).isTrue();
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair1 = startConcurrentLockWithNoWait(failedToLock, lockId);
+      thread1 = countDownLatchThreadPair1.getRight();
+      assertThat(countDownLatchThreadPair1.getLeft().await(3, TimeUnit.SECONDS)).isTrue();
       assertThat(failedToLock.get()).isTrue();
       failedToLock = new AtomicBoolean();
-      assertThat(startConcurrentLockWithNoWait(failedToLock, lockId).await(3, TimeUnit.SECONDS)).isTrue();
+      Pair<CountDownLatch, Thread> countDownLatchThreadPair2 = startConcurrentLockWithNoWait(failedToLock, lockId);
+      thread2 = countDownLatchThreadPair2.getRight();
+      assertThat(countDownLatchThreadPair2.getLeft().await(3, TimeUnit.SECONDS)).isTrue();
       assertThat(failedToLock.get()).isTrue();
     }
+    thread1.join(10000);
+    thread2.join(10000);
   }
 
-  private CountDownLatch startConcurrentLockWithNoWait(AtomicBoolean failedToLock, String lockId) {
+  private Pair<CountDownLatch, Thread> startConcurrentLockWithNoWait(AtomicBoolean failedToLock, String lockId) {
     CountDownLatch concurrentThreadEnd = new CountDownLatch(1);
     Thread concurrentThread = new Thread(() -> {
       try (ClusterLock clusterLock = createClusterLock(lockId)) {
@@ -242,7 +270,7 @@ public abstract class AbstractClusterLockManagerTest
       }
     });
     concurrentThread.start();
-    return concurrentThreadEnd;
+    return Pair.of(concurrentThreadEnd, concurrentThread);
   }
 
   @Test
@@ -491,7 +519,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testLock_AllowsConcurrentShared() {
+  public void testLock_AllowsConcurrentShared() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
     ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, true);
@@ -508,7 +536,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testLock_SharedDoesNotAllowExclusive() {
+  public void testLock_SharedDoesNotAllowExclusive() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, true);
     ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
@@ -526,7 +554,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testLock_ExclusiveDoesNotAllowShared() {
+  public void testLock_ExclusiveDoesNotAllowShared() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
     ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, true);
@@ -544,7 +572,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() {
+  public void testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
     ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, true);
@@ -567,7 +595,7 @@ public abstract class AbstractClusterLockManagerTest
     assertThat(exclusive.exception).isNull();
   }
 
-  protected void testLock_FIFO(boolean expectFIFO) {
+  protected void testLock_FIFO(boolean expectFIFO) throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
     ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
@@ -607,7 +635,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testTryLock_AllowsConcurrentShared() {
+  public void testTryLock_AllowsConcurrentShared() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, false);
     ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, false);
@@ -624,7 +652,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testTryLock_SharedDoesNotAllowExclusive() {
+  public void testTryLock_SharedDoesNotAllowExclusive() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, false);
     ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, false);
@@ -642,7 +670,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testTryLock_ExclusiveDoesNotAllowShared() {
+  public void testTryLock_ExclusiveDoesNotAllowShared() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, false);
     ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, false);
@@ -660,7 +688,7 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
-  public void testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() {
+  public void testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() throws Exception {
     String lockId = "test-lock";
     ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, false);
     ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, false);
@@ -721,8 +749,9 @@ public abstract class AbstractClusterLockManagerTest
       }
     }
 
-    public void allowClose() {
+    public void allowClose() throws Exception {
       endLatch.countDown();
+      join(10000);
     }
   }
 }

@@ -10,6 +10,7 @@ import java.util.concurrent.Semaphore;
 
 import com.sonatype.insight.brain.model.Application;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,14 +33,14 @@ public class H2ClusterLockManagerTest
   }
 
   @Override
-  protected CountDownLatch startConcurrentDeleteLockThread(final String lockId) {
+  protected Pair<CountDownLatch, Thread> startConcurrentDeleteLockThread(final String lockId) {
     CountDownLatch commitLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
       h2ClusterLockManager.deleteLock(null, lockId);
       commitLatch.countDown();
     });
     other.start();
-    return commitLatch;
+    return Pair.of(commitLatch, other);
   }
 
   @Override
@@ -80,7 +81,7 @@ public class H2ClusterLockManagerTest
   }
 
   @Test
-  public void testLock_FIFO_H2() {
+  public void testLock_FIFO_H2() throws Exception {
     testLock_FIFO(true);
   }
 }

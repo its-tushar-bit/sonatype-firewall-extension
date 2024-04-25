@@ -177,7 +177,7 @@ public class ComponentLabelResourceTest
   }
 
   @Test
-  public void testSetComponentLabel_RespoistoryContainerLevel() throws Exception {
+  public void testSetComponentLabel_RepositoryContainerLevel() throws Exception {
     setComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
         rootOrgLabel);
   }

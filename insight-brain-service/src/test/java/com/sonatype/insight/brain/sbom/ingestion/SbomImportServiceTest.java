@@ -22,6 +22,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -50,6 +51,9 @@ public class SbomImportServiceTest
 
   @Inject
   private TestProductLicense productLicense;
+
+  @Inject
+  private PolicyEvaluationHelper policyEvaluationHelper;
 
   private Application application;
 
@@ -166,6 +170,9 @@ public class SbomImportServiceTest
     assertThat(status.statusUrl).isNotEmpty()
         .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
     assertThat(Files.exists(tempFile.toPath())).isFalse();
+
+    // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
+    policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);
   }
 
   @Test

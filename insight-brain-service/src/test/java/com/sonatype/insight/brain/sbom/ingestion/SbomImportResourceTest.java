@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -27,10 +28,14 @@ public class SbomImportResourceTest
 {
   private Application application;
 
+  private PolicyEvaluationHelper policyEvaluationHelper;
+
   @Before
   public void before() {
     licenseManager.setFeatures(LicensedFeature.SBOM_MANAGER);
     application = tempEntity.newApplicationWithParent();
+
+    policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
   }
 
   @Override
@@ -150,5 +155,12 @@ public class SbomImportResourceTest
     assertThat(responseCommitBody).isNotNull();
     assertThat(responseCommitBody.statusUrl).isNotEmpty();
     assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
+
+    // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
+    policyEvaluationHelper.awaitEvaluationFinished(application.getId(), getStatusId(responseCommitBody.statusUrl));
+  }
+
+  private String getStatusId(String statusUrl) {
+    return statusUrl.substring(statusUrl.lastIndexOf("/") + 1);
   }
 }

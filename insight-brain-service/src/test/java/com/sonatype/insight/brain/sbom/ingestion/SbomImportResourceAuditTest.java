@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
@@ -26,9 +28,12 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
 {
   private Application app;
 
+  private PolicyEvaluationHelper policyEvaluationHelper;
+
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent();
+    policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
   }
 
   @Test
@@ -55,6 +60,13 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
     assertCustomData(auditDTOs.get(0), "status", "PENDING");
     assertCustomData(auditDTOs.get(0), "operation", "CREATE");
     assertCustomData(auditDTOs.get(0), "stageId", "release");
+
+    ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);
+    policyEvaluationHelper.awaitEvaluationFinished(app.getId(), getStatusId(responseCommitBody.statusUrl));
+  }
+
+  private String getStatusId(String statusUrl) {
+    return statusUrl.substring(statusUrl.lastIndexOf("/") + 1);
   }
 
   @Test

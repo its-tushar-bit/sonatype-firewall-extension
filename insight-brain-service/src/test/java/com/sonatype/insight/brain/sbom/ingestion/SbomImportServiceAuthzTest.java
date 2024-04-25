@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.sbom.ingestion;
 import java.io.ByteArrayInputStream;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -22,6 +25,9 @@ public class SbomImportServiceAuthzTest
 {
   @Inject
   private SbomImportService sbomImportService;
+
+  @Inject
+  private PolicyEvaluationHelper policyEvaluationHelper;
 
   @Test(expected = UnauthenticatedException.class)
   public void testDetectSbom_Unauthenticated() {
@@ -58,7 +64,9 @@ public class SbomImportServiceAuthzTest
   public void testImportDetectedSbom_Authorized() {
     grantWritePermission();
     Application application = tempEntity.newApplicationWithParent();
-    sbomImportService.importDetectedSbom(application.getId(),
+    Response response = sbomImportService.importDetectedSbom(application.getId(),
         "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent");
+    ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
+    policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);
   }
 }

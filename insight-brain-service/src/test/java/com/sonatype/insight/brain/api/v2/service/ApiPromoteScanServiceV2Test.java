@@ -21,10 +21,10 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
@@ -49,7 +49,6 @@ import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,6 +78,9 @@ public class ApiPromoteScanServiceV2Test
   private ScanPolicyEvaluator scanPolicyEvaluator;
 
   @Inject
+  private PolicyEvaluationHelper policyEvaluationHelper;
+
+  @Inject
   private ApiPromoteScanServiceV2 service;
 
   @Inject
@@ -86,9 +88,6 @@ public class ApiPromoteScanServiceV2Test
 
   @Inject
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
-
-  @Inject
-  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
@@ -148,7 +147,7 @@ public class ApiPromoteScanServiceV2Test
 
     // await successful completion
     String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
-    awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), scanPromotionStatusId);
     assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
     verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
   }
@@ -227,7 +226,7 @@ public class ApiPromoteScanServiceV2Test
 
       // await successful completion
       String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
-      awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), scanPromotionStatusId);
       assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
       verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
     }
@@ -271,7 +270,7 @@ public class ApiPromoteScanServiceV2Test
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
     String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
-    awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+    policyEvaluationHelper.awaitEvaluationFailed(app.getId(), scanPromotionStatusId);
 
     ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
         service.getApplicationEvaluationStatus(app.getId(), scanPromotionStatusId);
@@ -283,12 +282,6 @@ public class ApiPromoteScanServiceV2Test
     assertThat(apiApplicationEvaluationResultDTOV2.embeddableReportHtmlUrl).isNull();
     assertThat(apiApplicationEvaluationResultDTOV2.reportPdfUrl).isNull();
     assertThat(apiApplicationEvaluationResultDTOV2.reportDataUrl).isNull();
-  }
-
-  private void awaitPromoteScanResult(String statusId, long timeout, TimeUnit unit) {
-    await().atMost(timeout, unit)
-        .until(() -> !PolicyEvaluationStatus.PENDING.equals(persistedPolicyEvaluationPollingResultDAO
-            .getByApplicationIdAndStatusId(app.getId(), statusId).getPolicyEvaluationPollingResult().getStatus()));
   }
 
   @Test
@@ -306,7 +299,7 @@ public class ApiPromoteScanServiceV2Test
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, toStageId), null /* userAgent */);
     String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
-    awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), scanPromotionStatusId);
 
     ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
         service.getApplicationEvaluationStatus(app.getId(), getStatusId(scanPromotionStatusId));

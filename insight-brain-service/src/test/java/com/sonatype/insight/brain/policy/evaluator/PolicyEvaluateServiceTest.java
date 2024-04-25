@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -131,6 +133,9 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private ApplicationDAO applicationDAO;
+
+  @Inject
+  private PolicyEvaluationHelper policyEvaluationHelper;
 
   private Application app;
 
@@ -520,9 +525,8 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService.evaluateWithPolling(integrationType,
         app.getPublicId(), ClientScanType.SONATYPE, mockHttpServletRequest, stage);
 
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
-            p ->  p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), policyEvaluationReceipt.getStatusId());
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationPollingResult.getResult();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
@@ -557,8 +561,7 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, req, stage);
 
-    waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
-        p -> p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), policyEvaluationReceipt.getStatusId());
 
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getAllValues().get(0);
     assertThat(telemetryData).isNotNull();
@@ -622,9 +625,10 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
   }
 
-  private PolicyEvaluationPollingResult waitForResult(String appId, String scanId,
-                                                      Function<PolicyEvaluationPollingResult, Boolean> readyTest)
-      throws Exception
+  private PolicyEvaluationPollingResult waitForResult(
+      String appId,
+      String scanId,
+      Function<PolicyEvaluationPollingResult, Boolean> readyTest) throws Exception
   {
     long endTime = System.currentTimeMillis() + 20000;
     PolicyEvaluationPollingResult result;
@@ -680,8 +684,7 @@ public class PolicyEvaluateServiceTest
             new Stage(Stage.ID_BUILD));
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        waitForResult(app.getPublicId(), receipt.getStatusId(),
-            p ->  !p.getStatus().equals(PolicyEvaluationStatus.PENDING));
+        policyEvaluationHelper.awaitEvaluationFailed(app.getId(), receipt.getStatusId());
 
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
@@ -712,8 +715,7 @@ public class PolicyEvaluateServiceTest
             new Stage(Stage.ID_BUILD));
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        waitForResult(app.getPublicId(), receipt.getStatusId(),
-            p -> p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
 
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
@@ -776,8 +778,7 @@ public class PolicyEvaluateServiceTest
         app.getPublicId().toLowerCase(Locale.ENGLISH), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        waitForResult(app.getPublicId().toUpperCase(Locale.ENGLISH), receipt.getStatusId(),
-            p -> !p.getStatus().equals(PolicyEvaluationStatus.PENDING));
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
 
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);

@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
@@ -22,10 +22,9 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
@@ -60,7 +59,6 @@ import org.mockito.internal.stubbing.answers.Returns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -83,7 +81,7 @@ public class ApiSbomServiceTest
   private InsightWork insightWork;
 
   @Inject
-  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+  private PolicyEvaluationHelper policyEvaluationHelper;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -483,6 +481,9 @@ public class ApiSbomServiceTest
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
+      policyEvaluationHelper.awaitEvaluationFinished(app.getId(), ticketDTO.requestId);
     }
   }
 
@@ -498,6 +499,9 @@ public class ApiSbomServiceTest
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
+      policyEvaluationHelper.awaitEvaluationFinished(app.getId(), ticketDTO.requestId);
     }
   }
 
@@ -540,11 +544,7 @@ public class ApiSbomServiceTest
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
 
-      await().atMost(10, TimeUnit.SECONDS).until(() ->
-              persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
-          pollingResult -> pollingResult != null &&
-              pollingResult.getPolicyEvaluationPollingResult().getStatus().equals(PolicyEvaluationStatus.COMPLETED)
-      );
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), importRequestId);
 
       ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
       assertThat(apiSbomStatusDTO.applicationId).isEqualTo(app.getId());
@@ -570,10 +570,7 @@ public class ApiSbomServiceTest
           .isThrownBy(() -> service.getImportStatus(app.getId(), importRequestId))
           .withMessage("Sbom version import is still in progress");
 
-      await().atMost(10, TimeUnit.SECONDS).until(
-          () -> persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
-          pollingResult -> pollingResult.getPolicyEvaluationPollingResult().getStatus()
-              .equals(PolicyEvaluationStatus.COMPLETED));
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), importRequestId);
     }
   }
 
@@ -590,10 +587,7 @@ public class ApiSbomServiceTest
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       String importRequestId = ticketDTO.statusUrl.substring(ticketDTO.statusUrl.lastIndexOf("/") + 1);
 
-      await().atMost(10, TimeUnit.SECONDS).until(
-          () -> persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), importRequestId),
-          pollingResult -> pollingResult != null
-              && pollingResult.getPolicyEvaluationPollingResult().getStatus().equals(PolicyEvaluationStatus.FAILED));
+      policyEvaluationHelper.awaitEvaluationFailed(app.getId(), importRequestId);
 
       ApiSbomStatusDTO apiSbomStatusDTO = service.getImportStatus(app.getId(), importRequestId);
       assertThat(apiSbomStatusDTO.isError).isTrue();

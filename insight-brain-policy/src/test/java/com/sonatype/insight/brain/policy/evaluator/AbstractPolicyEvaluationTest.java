@@ -333,18 +333,11 @@ public abstract class AbstractPolicyEvaluationTest
     LqaFormat lqaFormat = LqaFormat.getByLqaFormat(format);
     if (lqaFormat != null) {
       Map<String, String> coords;
-      switch (lqaFormat) {
-        case ALPINE:
-        case BOWER:
-        case DRUPAL:
-          coords = ImmutableMap.of("name", coord[1], "version", coord[2]);
-          return new ComponentIdentifier(format, coords);
-        case DEBIAN:
-          coords = ImmutableMap.of("namespace", coord[0], "name", coord[1], "version", coord[2]);
-          return new ComponentIdentifier(format, coords);
-        default:
-          return createGenericComponentIdentifier(format, coord);
+      if (lqaFormat == LqaFormat.DEBIAN) {
+        coords = ImmutableMap.of("namespace", coord[0], "name", coord[1], "version", coord[2]);
+        return new ComponentIdentifier(format, coords);
       }
+      return createGenericComponentIdentifier(format, coord);
     }
     return createGenericComponentIdentifier(format, coord);
   }

@@ -476,27 +476,9 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Bower_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.BOWER.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.BOWER.format, constraint, "(matches package URL pkg:bower/a2@v*)");
-  }
-
-  @Test
-  public void testEvaluate_Alpine_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.ALPINE.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.ALPINE.format, constraint, "(matches package URL pkg:alpine/a2@v*)");
-  }
-
-  @Test
   public void testEvaluate_Debian_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.DEBIAN.format + "/g2/a2@v*");
     testEvaluate_MatchExact(LqaFormat.DEBIAN.format, constraint, "(matches package URL pkg:deb/g2/a2@v*)");
-  }
-
-  @Test
-  public void testEvaluate_Drupal_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.DRUPAL.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.DRUPAL.format, constraint, "(matches package URL pkg:drupal/a2@v*)");
   }
 
   @Test

@@ -225,9 +225,9 @@ public abstract class AbstractLTGEditorTest
 
     String filterText = "Adobe";
     picker.filter().val(filterText);
-    picker.availableItems().shouldHaveSize(9);
+    picker.availableItems().shouldHaveSize(10);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 9; i++) {
       SelenideElement item = picker.availableItem(i);
       item.shouldBe(visible).shouldHave(text(filterText));
     }

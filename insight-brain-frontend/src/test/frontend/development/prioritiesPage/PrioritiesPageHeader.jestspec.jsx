@@ -32,7 +32,7 @@ describe('PrioritiesPageHeader', () => {
   };
 
   const defaultPreloadedState = {
-    applicationReport: {
+    prioritiesPage: {
       metadata,
     },
   };
@@ -64,7 +64,7 @@ describe('PrioritiesPageHeader', () => {
 
       it('renders text (Continuous Monitoring) if forMonitoring is true', () => {
         renderComponent({
-          applicationReport: {
+          prioritiesPage: {
             metadata: {
               ...metadata,
               forMonitoring: true,
@@ -76,7 +76,7 @@ describe('PrioritiesPageHeader', () => {
 
       it('renders text (Re-evaluation) if reevaluation is true', () => {
         renderComponent({
-          applicationReport: {
+          prioritiesPage: {
             metadata: {
               ...metadata,
               reevaluation: true,
@@ -110,9 +110,9 @@ describe('PrioritiesPageHeader', () => {
         const commitHash = '473a9adb0824525dd69d375f067de0290deb2183';
         const expectedCommitHash = commitHash.substring(0, 7);
         renderComponent({
-          applicationReport: {
+          prioritiesPage: {
             metadata: {
-              ...defaultPreloadedState.applicationReport.metadata,
+              ...defaultPreloadedState.prioritiesPage.metadata,
               commitHash,
             },
           },
@@ -124,9 +124,9 @@ describe('PrioritiesPageHeader', () => {
       it('renders with a copy icon that copies the commit hash if commit hash is present', async () => {
         const commitHash = '473a9adb0824525dd69d375f067de0290deb2183';
         renderComponent({
-          applicationReport: {
+          prioritiesPage: {
             metadata: {
-              ...defaultPreloadedState.applicationReport.metadata,
+              ...defaultPreloadedState.prioritiesPage.metadata,
               commitHash,
             },
           },
@@ -141,9 +141,9 @@ describe('PrioritiesPageHeader', () => {
     describe('stage section', () => {
       it('does not render if stageId is null', () => {
         renderComponent({
-          applicationReport: {
+          prioritiesPage: {
             metadata: {
-              ...defaultPreloadedState.applicationReport.metadata,
+              ...defaultPreloadedState.prioritiesPage.metadata,
               stageId: null,
             },
           },

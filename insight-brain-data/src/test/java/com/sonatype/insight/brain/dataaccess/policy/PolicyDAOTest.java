@@ -456,6 +456,14 @@ public class PolicyDAOTest
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
     assertThat(policies).isEmpty();
 
+    // For repository managers, must retrieve only the org policies that don't have any tags
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repositoryManager.getId());
+    assertThat(policies).isEmpty();
+
+    // For repository containers, must retrieve only the org policies that don't have any tags
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(RepositoryContainer.SINGLETON.getId());
+    assertThat(policies).isEmpty();
+
     // For orgs, must retrieve all org policies, regardless of the tags associated with them
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly("policyOrg1", "policyOrg2", "policyRootOrg1",

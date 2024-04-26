@@ -249,16 +249,16 @@ public class PolicyDAO
     for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
       List<Policy> orgPolicies = getByOwnerId(tx, currentOwner.getId());
       switch (owner.getType()) {
-        case APPLICATION:
-        case REPOSITORY:
+        case ORGANIZATION:
+          result.addAll(orgPolicies);
+          break;
+        default:
           for (Policy orgPolicy : orgPolicies) {
             if (policyTagDAO.isPolicyApplicable(tx, orgPolicy.getId(), tagIds)) {
               result.add(orgPolicy);
             }
           }
           break;
-        default:
-          result.addAll(orgPolicies);
       }
     }
     return result;

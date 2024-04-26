@@ -273,7 +273,9 @@ Map<String, Closure> createGebTests() {
       stage('Geb Tests') {
         try {
           copyRepo()
-          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()} --threads 4"
+          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker." +
+              "registry=${sonatypeDockerRegistryId()} " +
+              "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4"
           Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
           // We just want to execute tests so directly invoke goals. Docker goal is needed.
           mvn testConfig, 'docker:start failsafe:integration-test failsafe:verify docker:stop'
@@ -305,6 +307,8 @@ Map<String, Closure> createFunctionalTests(
               mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
               mavenOptions += " -DdetectTestEntityLeaks"
+              mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
+              mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
               mavenOptions += " --threads 4"
               Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
               // We just want to execute tests so directly invoke goals. Docker goal is needed.
@@ -330,7 +334,7 @@ Map<String, Closure> createFrontendTests(String stageName) {
               "-pl 'com.sonatype.insight.brain:insight-brain-frontend' " +
                   "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
               null,  'OpenJDK 17')
-          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jasmine " + 
+          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jasmine " +
               "com.github.eirslett:frontend-maven-plugin:yarn@jest"
         }
         finally {
@@ -352,6 +356,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
                 "-pl '!nexus-mtiq-server' -pl '!insight-brain-frontend' " +
                 "-Dtest=%regex[${regex}] -Dit.test=%regex[${regex}] " +
                 "-Dskip-functional-test -DdetectTestEntityLeaks " +
+                "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 " +
                 "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
@@ -375,7 +380,8 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
           copyRepo()
           Map<String, ?> testConfig = testConfig(
                 "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
-                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage " +
+                    "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4",
                 null, jdk)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
         }

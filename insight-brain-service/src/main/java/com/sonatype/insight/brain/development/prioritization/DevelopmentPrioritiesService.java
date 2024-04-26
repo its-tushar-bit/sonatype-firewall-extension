@@ -58,7 +58,7 @@ public class DevelopmentPrioritiesService
     this.componentLabelService = componentLabelService;
   }
 
-  public ApiPageResult<PrioritizedComponent> getPrioritizedFindings(
+  public DevelopmentPrioritizationResults getPrioritizedFindings(
       final String applicationPublicId,
       final String scanId,
       final int page,
@@ -131,15 +131,34 @@ public class DevelopmentPrioritiesService
         .sorted(this::compareScoreDescending)
         .collect(Collectors.toList());
 
-    // get total size before adjusting for pagination
-    final long totalSize = sortedComponents.size();
+    final List<PrioritizedComponent> allPrioritizedFindings = addPrioritiesToSortedList(sortedComponents, 1);
 
-    // apply a priority based on position in the sort to anything in the page
-    final List<PrioritizedComponent> prioritizedComponents = addPrioritiesToSortedList(
-        sortedComponents.stream().skip(skipCount).limit(pageSize).collect(Collectors.toList()),
-        skipCount + 1);
+    // pluck off top 3
+    final int top3Bound = Math.min(allPrioritizedFindings.size(), 3);
+    final List<PrioritizedComponent> top3Priorities = allPrioritizedFindings.subList(0, top3Bound);
 
-    return new ApiPageResult<>(totalSize, page, pageSize, prioritizedComponents);
+    final List<PrioritizedComponent> remainingPrioritiesAll;
+
+    if (allPrioritizedFindings.size() > 3) {
+      remainingPrioritiesAll = allPrioritizedFindings.subList(3, allPrioritizedFindings.size());
+    }
+    else {
+      remainingPrioritiesAll = new ArrayList<>();
+    }
+
+    // get total size before adjusting for pagination (pagination is only over remaining non-top 3 components
+    final long totalSize = remainingPrioritiesAll.size();
+
+    // take a page from remaining priorities
+    final List<PrioritizedComponent> remainingPriorities = remainingPrioritiesAll
+        .stream()
+        .skip(skipCount)
+        .limit(pageSize)
+        .collect(Collectors.toList());
+
+    return new DevelopmentPrioritizationResults(
+        top3Priorities,
+        new ApiPageResult<>(totalSize, page, pageSize, remainingPriorities));
   }
 
   private String getDependencyType(ApiReportComponentDTOV2 reportBomComponent) {

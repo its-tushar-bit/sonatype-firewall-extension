@@ -56,15 +56,15 @@
     grid-auto-columns: auto;
     grid-template-columns:
       67px
-      minmax(78px, 1fr)
-      minmax(75px, $stagesMaxWidth)
-      minmax(75px, $stagesMaxWidth)
-      minmax(75px, $stagesMaxWidth)
+      minmax(70px, 1fr)
       minmax(70px, $stagesMaxWidth)
       minmax(70px, $stagesMaxWidth)
       minmax(70px, $stagesMaxWidth)
-      minmax(71px, $stagesMaxWidth)
-      26px;
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
+      max-content;
 
     .nx-threat-indicator {
       margin-left: 0;

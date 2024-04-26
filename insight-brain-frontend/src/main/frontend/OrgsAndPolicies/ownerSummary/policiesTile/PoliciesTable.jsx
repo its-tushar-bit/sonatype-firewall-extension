@@ -66,7 +66,7 @@ export default function PoliciesTable({
             onClick={() => sort('threatLevel')}
           />
           <NxTable.Cell isSortable={sortingEnabled} sortDir={getSortCollapseDir('name')} onClick={() => sort('name')}>
-            Name
+            <div className="policy-tile__cell--overflow">Name</div>
           </NxTable.Cell>
           {stages?.map((stage) => (
             <NxTable.Cell

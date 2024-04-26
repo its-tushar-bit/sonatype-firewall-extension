@@ -70,6 +70,15 @@ public class ReferencePolicyImportIntegrationTest
     // noop - do not set up test LTGs for this test
   }
 
+  /*
+   * Every now and then, when hds version is bumped, this test will fail. An example for what must be done can be found
+   * in: https://github.com/sonatype/insight-brain/pull/8781
+   * To automate this we added ReferenceLicenseUpdater. Run the main method within that class and it will refresh the
+   * required sql files. Run the test again with the refreshed files and the test should be passing. Do not forget to
+   * commit and push the new sql files generated.
+   *
+   * There will most likely be applitools differences. Accept the ones that are caused by the added licenses.
+   */
   @Test
   @ManualIqServerInit
   public void testImportCurrentReferencePolicies() throws Exception {

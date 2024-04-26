@@ -80,8 +80,8 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
     createRepositories();
 
     Date now = new Date();
-    Date oneYearAgo = DateUtils.addHours(DateUtils.addYears(now, -1), 1);
-    Date moreThanOneYearAgo = DateUtils.addDays(oneYearAgo, -1);
+    Date oneYearAgo = DateUtils.addHours(DateUtils.addYears(now, -1), 2);
+    Date moreThanOneYearAgo = DateUtils.addDays(oneYearAgo, -2);
 
     Policy policy1 = tempEntity.newPolicy(repository1);
     Policy policy2 = tempEntity.newPolicy(repository2);

@@ -102,7 +102,7 @@ class ApiSastScanService
     return toSastScanDTO(sastScan, sastScmScanContext, sastPullRequestUrl);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   SastScanResponseDTO createSastScan(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final SastScanRequestDTO sastScanRequestDTO)

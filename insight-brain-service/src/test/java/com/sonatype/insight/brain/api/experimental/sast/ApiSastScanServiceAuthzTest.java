@@ -50,7 +50,7 @@ public class ApiSastScanServiceAuthzTest
 
   @Test
   public void testCreateSastScan_Authorized() throws Exception {
-    grantWritePermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
     apiSastScanService.createSastScan(app.getPublicId(), new SastScanRequestDTO());
   }
 }

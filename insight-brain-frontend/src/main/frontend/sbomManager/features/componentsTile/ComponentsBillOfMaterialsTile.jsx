@@ -12,6 +12,7 @@ import {
   NxOverflowTooltip,
   NxSmallThreatCounter,
   NxLoadWrapper,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import {
@@ -22,6 +23,8 @@ import {
 } from './componentsBillOfMaterialsSelectors.js';
 import { actions } from './componentsBillOfMaterialsSlice.js';
 import * as PropTypes from 'prop-types';
+
+import './componentsBillOfMaterialsTile.scss';
 
 export default function ComponentsBillOfMaterialsTile(props) {
   const { internalAppId, sbomVersion, isInternalAppIdLoading } = props;
@@ -51,9 +54,15 @@ export default function ComponentsBillOfMaterialsTile(props) {
           {componentsTableData.map((component) => (
             <NxTable.Row key={component.hash}>
               <NxTable.Cell>
-                <NxOverflowTooltip>
-                  <div className="nx-truncate-ellipsis bom-component-display-name">{component.displayName}</div>
-                </NxOverflowTooltip>
+                <NxTooltip
+                  title={component.displayName}
+                  className="sbom-manager-bills-of-materials-tile-table__tooltip"
+                  isName
+                >
+                  <span className="sbom-manager-bills-of-materials-tile-table__display-name">
+                    {component.displayName}
+                  </span>
+                </NxTooltip>
               </NxTable.Cell>
               <NxTable.Cell>
                 <NxSmallThreatCounter
@@ -65,11 +74,15 @@ export default function ComponentsBillOfMaterialsTile(props) {
                 />
               </NxTable.Cell>
               <NxTable.Cell>
-                <NxOverflowTooltip>
-                  <div className="nx-truncate-ellipsis bom-component-licenses">
+                <NxTooltip
+                  title={getLicenseList(component.licenses)}
+                  className="sbom-manager-bills-of-materials-tile-table__tooltip"
+                  isName
+                >
+                  <span className="sbom-manager-bills-of-materials-tile-table__licenses">
                     {getLicenseList(component.licenses)}
-                  </div>
-                </NxOverflowTooltip>
+                  </span>
+                </NxTooltip>
               </NxTable.Cell>
             </NxTable.Row>
           ))}
@@ -80,14 +93,14 @@ export default function ComponentsBillOfMaterialsTile(props) {
 
   return (
     <NxLoadWrapper retryHandler={doLoad} loading={isInternalAppIdLoading || isTableLoading} error={errorTableLoading}>
-      <NxTile>
+      <NxTile className="sbom-manager-bills-of-materials-tile">
         <NxTile.Header>
           <NxTile.HeaderTitle>
             <NxH2>Components</NxH2>
           </NxTile.HeaderTitle>
         </NxTile.Header>
         <NxTile.Content>
-          <NxTable>
+          <NxTable className="sbom-manager-bills-of-materials-tile-table">
             <NxTable.Head>
               <NxTable.Row>
                 <NxTable.Cell isSortable sortDir={sortDir} onClick={() => dispatch(actions.toggleSortDir())}>

@@ -13,7 +13,7 @@ import {
   NxH2,
   NxLoadWrapper,
   NxTable,
-  NxOverflowTooltip,
+  NxTooltip,
   NxSmallThreatCounter,
   NxPagination,
   NxIconDropdown,
@@ -84,9 +84,13 @@ export default function SbomsTile() {
           {sbomTableData.map((sbom) => (
             <NxTable.Row key={sbom.applicationVersion}>
               <NxTable.Cell>
-                <NxOverflowTooltip>
+                <NxTooltip
+                  title={sbom.applicationVersion}
+                  isName
+                  className="sbom-manager-owner-summary-sboms-tile-table__version-link-tooltip"
+                >
                   <NxTextLink
-                    className="nx-truncate-ellipsis"
+                    className="sbom-manager-owner-summary-sboms-tile-table__version-link"
                     href={uiRouterState.href('sbomManager.management.view.bom', {
                       applicationPublicId: selectedApplication.publicId,
                       versionId: sbom.applicationVersion,
@@ -94,7 +98,7 @@ export default function SbomsTile() {
                   >
                     {sbom.applicationVersion}
                   </NxTextLink>
-                </NxOverflowTooltip>
+                </NxTooltip>
               </NxTable.Cell>
               <NxTable.Cell>
                 <NxSmallThreatCounter
@@ -168,7 +172,7 @@ export default function SbomsTile() {
           </NxTile.Headings>
         </NxTile.Header>
         <NxTile.Content>
-          <NxTable>
+          <NxTable className="sbom-manager-owner-summary-sboms-tile-table">
             <NxTable.Head>
               <NxTable.Row>
                 <NxTable.Cell>Versions</NxTable.Cell>

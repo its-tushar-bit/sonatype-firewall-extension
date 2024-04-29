@@ -3,30 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-
-#owner-pill-sboms {
-  .delete-sbom {
-    color: var(--nx-swatch-red-40);
+.sbom-manager-bills-of-materials-tile-table {
+  &__display-name {
+    display: inline-block;
+    min-width: 320px;
+    text-wrap: wrap;
+    word-break: break-all;
   }
 
-  .nx-table {
-    overflow-y: visible;
-  }
-
-  .nx-table-container__footer {
-    z-index: auto;
-  }
-}
-
-.sbom-manager-owner-summary-sboms-tile-table {
-  &__version-link {
+  &__licenses {
     text-wrap: wrap;
     word-break: break-all;
   }
 
   @media only screen and (min-width: 1366px) {
-    &__version-link-tooltip {
+    &__tooltip {
       display: none;
     }
   }

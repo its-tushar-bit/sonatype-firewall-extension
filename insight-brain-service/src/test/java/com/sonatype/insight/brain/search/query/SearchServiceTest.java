@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportTestUtils;
-import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
@@ -630,13 +630,13 @@ public class SearchServiceTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
     tempEntity.newSbomEvaluation(app,
         "1.1",
-        SbomFileDetector.SPEC_SPDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false);
@@ -670,7 +670,7 @@ public class SearchServiceTest
     assertThat(securityVulnerabilities).hasSize(1);
     SearchResultItemDTO securityVulnerability = securityVulnerabilities.get(0);
     assertThat(securityVulnerability.applicationVersion).isEqualTo("1.0");
-    assertThat(securityVulnerability.sbomSpecification).isEqualTo(SbomFileDetector.SPEC_CYCLONEDX);
+    assertThat(securityVulnerability.sbomSpecification).isEqualTo(SbomSpecification.CYCLONEDX.toString());
     assertThat(securityVulnerability.policyEvaluationStage).isNull();
     assertThat(securityVulnerability.reportId).isNull();
     List<SearchResultItemDTO> nonVulnerableComponents =
@@ -678,7 +678,7 @@ public class SearchServiceTest
     assertThat(nonVulnerableComponents).hasSize(1);
     SearchResultItemDTO nonVulnerableComponent = nonVulnerableComponents.get(0);
     assertThat(nonVulnerableComponent.applicationVersion).isEqualTo("1.1");
-    assertThat(nonVulnerableComponent.sbomSpecification).isEqualTo(SbomFileDetector.SPEC_SPDX);
+    assertThat(nonVulnerableComponent.sbomSpecification).isEqualTo(SbomSpecification.SPDX.toString());
     assertThat(nonVulnerableComponent.policyEvaluationStage).isNull();
     assertThat(nonVulnerableComponent.reportId).isNull();
     assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "someScanId3".equals(s.reportId))).isEmpty();
@@ -694,13 +694,13 @@ public class SearchServiceTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
     tempEntity.newSbomEvaluation(app,
         "1.1",
-        SbomFileDetector.SPEC_SPDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false);
@@ -744,13 +744,13 @@ public class SearchServiceTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
     tempEntity.newSbomEvaluation(app,
         "1.1",
-        SbomFileDetector.SPEC_SPDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false);
@@ -819,13 +819,13 @@ public class SearchServiceTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
     tempEntity.newSbomEvaluation(app,
         "1.1",
-        SbomFileDetector.SPEC_SPDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
         false);

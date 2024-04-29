@@ -5,24 +5,29 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
+import org.cyclonedx.BomParserFactory;
+import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Service;
-import org.cyclonedx.model.Tool;
 import org.cyclonedx.model.OrganizationalContact;
 import org.cyclonedx.model.OrganizationalEntity;
+import org.cyclonedx.model.Service;
+import org.cyclonedx.model.Tool;
+import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +35,7 @@ public class SbomCycloneDxUtils
 {
   private static final Logger log = LoggerFactory.getLogger(SbomCycloneDxUtils.class);
 
-  private static final Gson gson =  new GsonBuilder().create();
+  private static final Gson gson = new GsonBuilder().create();
 
   private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -109,8 +114,9 @@ public class SbomCycloneDxUtils
     }
   }
 
-  private static void buildCreatorsWithManufacturer(SbomCreationDetails extractedMetadata,
-                                                    Metadata metadataFromSbomFile)
+  private static void buildCreatorsWithManufacturer(
+      SbomCreationDetails extractedMetadata,
+      Metadata metadataFromSbomFile)
   {
     OrganizationalEntity manufactureFromSbomFile = metadataFromSbomFile.getManufacture();
     if (manufactureFromSbomFile != null) {
@@ -137,7 +143,7 @@ public class SbomCycloneDxUtils
       String creatorType,
       List<String> urls)
   {
-    SbomCreationDetails.Creator creator = mapOrganizationalContactToCreator(organizationalContact,creatorType);
+    SbomCreationDetails.Creator creator = mapOrganizationalContactToCreator(organizationalContact, creatorType);
     StringBuilder creatorUrls = new StringBuilder();
     if (!CollectionUtils.isEmpty(urls)) {
       for (int i = 0; i < urls.size(); i++) {
@@ -155,17 +161,17 @@ public class SbomCycloneDxUtils
 
   private static SbomCreationDetails.Creator mapOrganizationalContactToCreator(
       OrganizationalContact organizationalContact,
-       String creatorType)
+      String creatorType)
   {
     SbomCreationDetails.Creator creator = new SbomCreationDetails.Creator();
     creator.type = creatorType;
-    if (organizationalContact.getName() != null ) {
+    if (organizationalContact.getName() != null) {
       creator.name = organizationalContact.getName();
     }
-    if (organizationalContact.getEmail() != null ) {
+    if (organizationalContact.getEmail() != null) {
       creator.email = organizationalContact.getEmail();
     }
-    if (organizationalContact.getPhone() != null ) {
+    if (organizationalContact.getPhone() != null) {
       creator.phone = organizationalContact.getPhone();
     }
     return creator;
@@ -194,8 +200,9 @@ public class SbomCycloneDxUtils
     }
   }
 
-  private static void buildToolsWithToolChoiceComponents(SbomCreationDetails extractedMetadata,
-                                               List<Component> toolComponentsFromSbom)
+  private static void buildToolsWithToolChoiceComponents(
+      SbomCreationDetails extractedMetadata,
+      List<Component> toolComponentsFromSbom)
   {
     extractedMetadata.tools.addAll(toolComponentsFromSbom.stream().map(bomTool -> {
       SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
@@ -215,8 +222,9 @@ public class SbomCycloneDxUtils
     }).collect(Collectors.toList()));
   }
 
-  private static void buildToolsWithToolChoiceServices(SbomCreationDetails extractedMetadata,
-                                                       List<Service> toolServicesFromSbom)
+  private static void buildToolsWithToolChoiceServices(
+      SbomCreationDetails extractedMetadata,
+      List<Service> toolServicesFromSbom)
   {
     extractedMetadata.tools.addAll(toolServicesFromSbom.stream().map(bomService -> {
       SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
@@ -233,8 +241,9 @@ public class SbomCycloneDxUtils
     }).collect(Collectors.toList()));
   }
 
-  private static void buildToolsWithLegacyTool(SbomCreationDetails extractedMetadata,
-                                               List<Tool> legacyToolsFromSbomFile)
+  private static void buildToolsWithLegacyTool(
+      SbomCreationDetails extractedMetadata,
+      List<Tool> legacyToolsFromSbomFile)
   {
     extractedMetadata.tools.addAll(legacyToolsFromSbomFile.stream().map(bomTool -> {
       SbomCreationDetails.Tool tool = new SbomCreationDetails.Tool();
@@ -246,5 +255,21 @@ public class SbomCycloneDxUtils
       }
       return tool;
     }).collect(Collectors.toList()));
+  }
+
+  public static Bom parseContentNoValidation(final String content) {
+    try {
+      byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+      Parser parser = BomParserFactory.createParser(bytes);
+      return parser.parse(bytes);
+    }
+    catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
+    return bom.getComponents().stream().filter(
+        bc -> bc.getPurl().equals(packageUrl) ).findFirst();
   }
 }

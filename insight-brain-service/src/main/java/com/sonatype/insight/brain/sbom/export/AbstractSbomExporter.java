@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.export;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.zip.GZIPInputStream;
+
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.scan.file.SbomFormat;
+
+import org.apache.commons.io.IOUtils;
+import org.cyclonedx.BomGeneratorFactory;
+import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.model.Bom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spdx.jacksonstore.MultiFormatStore;
+import org.spdx.jacksonstore.MultiFormatStore.Format;
+import org.spdx.jacksonstore.MultiFormatStore.Verbose;
+import org.spdx.library.model.SpdxDocument;
+
+public abstract class AbstractSbomExporter
+    implements SbomExporter
+{
+  protected final Logger log = LoggerFactory.getLogger(getClass());
+
+  private final InsightWork insightWork;
+
+  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
+  protected SbomExportParams exportParams;
+
+  protected AbstractSbomExporter(
+      final InsightWork insightWork,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO)
+  {
+    this.insightWork = insightWork;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
+  }
+
+  protected String getOriginalSbomContentAsString() {
+    if (exportParams == null) {
+      throw new IllegalStateException("Sbom exporter initialized without export parameters");
+    }
+
+    try (GZIPInputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+      return IOUtils.toString(gis, StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  protected File getOriginalSbomFile() {
+    File sbomDir = insightWork.getSbomDir(exportParams.sbomMetadata.getApplicationId());
+    return new File(sbomDir, exportParams.sbomMetadata.getFilename());
+  }
+
+  void setExportParams(final SbomExportParams exportParams) {
+    this.exportParams = exportParams;
+  }
+
+  protected String generateTargetSbomString(Bom bom) throws GeneratorException {
+    String versionStr = exportParams.exportSpecification.getVersion();
+    Optional<Version> cycloneDxEnumVersion = Arrays.stream(Version.values()).filter(cycloneDxVersion
+        -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionStr)).findFirst();
+    if (cycloneDxEnumVersion.isPresent()) {
+      if (exportParams.targetFormat.equals(SbomFormat.XML)) {
+        return BomGeneratorFactory.createXml(cycloneDxEnumVersion.get(), bom).toXmlString();
+      }
+      else if (exportParams.targetFormat.equals(SbomFormat.JSON)) {
+        return BomGeneratorFactory.createJson(cycloneDxEnumVersion.get(), bom).toJsonString();
+      }
+      else {
+        throw new SbomExportException("Unsupported target format: " + exportParams.targetFormat);
+      }
+    }
+    else {
+      throw new SbomExportException("Unsupported target version: " + versionStr);
+    }
+  }
+
+  protected String generateTargetSbomString(SpdxDocument document) {
+    Format spdxFormat = SbomFormat.JSON.equals(exportParams.targetFormat) ? Format.JSON_PRETTY : Format.XML;
+    try (MultiFormatStore multiFormatStore =
+             new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
+         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      multiFormatStore.serialize(document.getDocumentUri(), out);
+      return out.toString(StandardCharsets.UTF_8.toString());
+    }
+    catch (Exception e) {
+      throw new SbomExportException("Internal error generating the target SBOM", e);
+    }
+  }
+}

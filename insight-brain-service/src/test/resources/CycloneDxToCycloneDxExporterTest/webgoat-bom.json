@@ -1,0 +1,969 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:218214e0-8527-4865-9076-521b3b8ee137",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-03-29T18:32:15Z",
+    "tools": [
+      {
+        "vendor": "Sonatype Inc.",
+        "name": "Nexus IQ Server",
+        "version": "1.175.0-SNAPSHOT",
+        "hashes": [],
+        "externalReferences": []
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "c9f3c210-670e-41c0-993b-af8a7768f25b",
+      "group": "sonatype",
+      "name": "iq_application_webgoat",
+      "version": "218214e0852748659076521b3b8ee137",
+      "licenses": [],
+      "purl": "pkg:generic/sonatype/iq_application_webgoat@218214e0852748659076521b3b8ee137"
+    },
+    "licenses": [],
+    "properties": [
+      {
+        "name": "Scan ID",
+        "value": "218214e0852748659076521b3b8ee137"
+      }
+    ],
+    "lifecycles": []
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "c14811e8-946a-46c1-a0d5-fd7dcc57f264",
+      "group": "idb",
+      "name": "idb",
+      "version": "3.26",
+      "licenses": [
+        {
+          "license": {
+            "name": "Not Declared",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/idb/idb@3.26?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/idb.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+      "group": "log4j",
+      "name": "log4j",
+      "version": "1.2.8",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-1.1"
+          }
+        },
+        {
+          "license": {
+            "name": "Non-standard"
+          }
+        }
+      ],
+      "purl": "pkg:maven/log4j/log4j@1.2.8?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/log4j-1.2.8.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "e6a49891-d1d5-4358-8688-b5a03a546f90",
+      "group": "commons-collections",
+      "name": "commons-collections",
+      "version": "3.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-collections/commons-collections@3.1?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "40fb048097caeacdb11d"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/commons-collections-3.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "333584e5-0101-4a21-8f5b-61b10926cf3c",
+      "group": "commons-digester",
+      "name": "commons-digester",
+      "version": "1.4.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-1.1",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-digester/commons-digester@1.4.1?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "51031e9c43ae47693c99"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/commons-digester.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "6e4ac3f8-0e29-4977-811f-7592f0b62548",
+      "group": "axis",
+      "name": "axis-jaxrpc",
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/axis/axis-jaxrpc@1.2?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "56b85e05daa39a9bb410"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/jaxrpc.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "85e600ff-6842-4b60-bbc5-56a45e3a357c",
+      "group": "commons-discovery",
+      "name": "commons-discovery",
+      "version": "0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-1.1",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-discovery/commons-discovery@0.2?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "7773ac7a7248f08ed2b8"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/commons-discovery-0.2.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3",
+      "group": "axis",
+      "name": "axis",
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-1.1",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/axis/axis@1.2?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "892c772f7c486b3c09d2"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/axis.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "e29f7553-69d9-4909-880a-2fabec476d60",
+      "group": "wsdl4j",
+      "name": "wsdl4j",
+      "version": "1.5.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "Non-Standard",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/wsdl4j/wsdl4j@1.5.1?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "bd804633b9c2cf062586"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/wsdl4j-1.5.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "4007770a-f3f6-4855-99bc-20a143fc0566",
+      "name": "org.owasp.webgoat webgoat-container",
+      "version": "7.0",
+      "licenses": [
+        {
+          "license": {
+            "name": "Not Supported",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:a-name/org.owasp.webgoat%20webgoat-container@7.0",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "cf589d4746179e58dc8e"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/javascript/makeWindow.js"
+          },
+          {
+            "location": "Unix_WebGoat-5.0.war/javascript/toggle.js"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "676d7090-5b88-451a-b61c-0b13893db403",
+      "group": "axis",
+      "name": "axis-saaj",
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/axis/axis-saaj@1.2?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "e5681df2b55d3e6f4795"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/saaj.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "0cd0109c-4389-4c65-b95a-1d3b552d902a",
+      "group": "commons-logging",
+      "name": "commons-logging",
+      "version": "1.0.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-logging/commons-logging@1.0.4?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "f029a2aefe2b3e151757"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/commons-logging-1.0.4.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "c5950b54-622e-450c-a79d-274070a2c730",
+      "group": "axis",
+      "name": "axis-ant",
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Not Declared",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/axis/axis-ant@1.2?type=jar",
+      "modified": false,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "f07ed3d1d32434426a42"
+        },
+        {
+          "name": "Match State",
+          "value": "exact"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/axis-ant.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "b718446c-3afc-43de-9fad-c989f19a60c0",
+      "group": "ecs",
+      "name": "ecs",
+      "version": "1.4.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-1.1",
+            "properties": []
+          }
+        }
+      ],
+      "purl": "pkg:maven/ecs/ecs@1.4.2?type=jar",
+      "modified": true,
+      "properties": [
+        {
+          "name": "Sonatype truncated SHA1",
+          "value": "39a433a5632ef7103c98"
+        },
+        {
+          "name": "Match State",
+          "value": "similar"
+        },
+        {
+          "name": "Identification Source",
+          "value": "Sonatype"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "Unix_WebGoat-5.0.war/WEB-INF/lib/ecs-1.4.2.jar"
+          }
+        ]
+      }
+    }
+  ],
+  "externalReferences": [
+    {
+      "url": "http://localhost:8070/ui/links/application/webgoat/report/218214e0852748659076521b3b8ee137",
+      "type": "bom",
+      "comment": "IQ Report",
+      "hashes": []
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "c9f3c210-670e-41c0-993b-af8a7768f25b",
+      "dependsOn": [
+        "333584e5-0101-4a21-8f5b-61b10926cf3c",
+        "b718446c-3afc-43de-9fad-c989f19a60c0",
+        "32dd9982-7edc-4cde-85f6-8946cabca003",
+        "85e600ff-6842-4b60-bbc5-56a45e3a357c",
+        "c14811e8-946a-46c1-a0d5-fd7dcc57f264",
+        "c5950b54-622e-450c-a79d-274070a2c730",
+        "e29f7553-69d9-4909-880a-2fabec476d60",
+        "676d7090-5b88-451a-b61c-0b13893db403",
+        "6e4ac3f8-0e29-4977-811f-7592f0b62548",
+        "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3"
+      ]
+    },
+    {
+      "ref": "333584e5-0101-4a21-8f5b-61b10926cf3c",
+      "dependsOn": [
+        "e6a49891-d1d5-4358-8688-b5a03a546f90",
+        "0cd0109c-4389-4c65-b95a-1d3b552d902a"
+      ]
+    },
+    {
+      "ref": "e6a49891-d1d5-4358-8688-b5a03a546f90"
+    },
+    {
+      "ref": "0cd0109c-4389-4c65-b95a-1d3b552d902a"
+    },
+    {
+      "ref": "b718446c-3afc-43de-9fad-c989f19a60c0"
+    },
+    {
+      "ref": "32dd9982-7edc-4cde-85f6-8946cabca003"
+    },
+    {
+      "ref": "85e600ff-6842-4b60-bbc5-56a45e3a357c",
+      "dependsOn": [
+        "0cd0109c-4389-4c65-b95a-1d3b552d902a"
+      ]
+    },
+    {
+      "ref": "c14811e8-946a-46c1-a0d5-fd7dcc57f264"
+    },
+    {
+      "ref": "c5950b54-622e-450c-a79d-274070a2c730"
+    },
+    {
+      "ref": "e29f7553-69d9-4909-880a-2fabec476d60"
+    },
+    {
+      "ref": "676d7090-5b88-451a-b61c-0b13893db403"
+    },
+    {
+      "ref": "6e4ac3f8-0e29-4977-811f-7592f0b62548"
+    },
+    {
+      "ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3"
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "sonatype-2010-0053",
+      "source": {
+        "name": "SONATYPE",
+        "url": "http://localhost:8070/ui/links/vln/sonatype-2010-0053"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "SONATYPE"
+          },
+          "score": 7.8,
+          "severity": "critical",
+          "method": "other",
+          "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        426
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2019-0227",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-0227"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 7.5,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        918
+      ],
+      "advisories": [],
+      "analysis": {
+        "state": "in_triage",
+        "justification": "code_not_present",
+        "response": [],
+        "detail": "lorem ipsum CVE-2019-0227"
+      },
+      "affects": [
+        {
+          "ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2022-23307",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 8.8,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "advisories": [],
+      "analysis": {
+        "state": "exploitable",
+        "justification": "code_not_present",
+        "response": [
+          "can_not_fix",
+          "will_not_fix"
+        ],
+        "detail": "lorem ipsum CVE-2022-23307"
+      },
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2012-5784",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5784"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 5.8,
+          "severity": "high",
+          "method": "CVSSv2",
+          "vector": "AV:N/AC:M/Au:N/C:P/I:P/A:N"
+        }
+      ],
+      "cwes": [
+        20
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2021-4104",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-4104"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 7.5,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2022-23305",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23305"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 9.8,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        89
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2023-26464",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-26464"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 7.5,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes": [
+        400
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2022-23302",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23302"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 8.8,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2019-17571",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17571"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 9.8,
+          "severity": "critical",
+          "method": "CVSSv3",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "32dd9982-7edc-4cde-85f6-8946cabca003",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2014-3596",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3596"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 5.8,
+          "severity": "high",
+          "method": "CVSSv2",
+          "vector": "AV:N/AC:M/Au:N/C:P/I:P/A:N"
+        }
+      ],
+      "cwes": [
+        297
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "sonatype-2015-0002",
+      "source": {
+        "name": "SONATYPE",
+        "url": "http://localhost:8070/ui/links/vln/sonatype-2015-0002"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "SONATYPE"
+          },
+          "score": 9.0,
+          "severity": "critical",
+          "method": "other",
+          "vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H"
+        }
+      ],
+      "cwes": [
+        502
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "e6a49891-d1d5-4358-8688-b5a03a546f90",
+          "versions": []
+        }
+      ],
+      "properties": []
+    },
+    {
+      "id": "CVE-2007-2353",
+      "source": {
+        "name": "NVD",
+        "url": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-2353"
+      },
+      "references": [],
+      "ratings": [
+        {
+          "source": {
+            "name": "NVD"
+          },
+          "score": 5.0,
+          "severity": "high",
+          "method": "CVSSv2",
+          "vector": "AV:N/AC:L/Au:N/C:P/I:N/A:N"
+        }
+      ],
+      "cwes": [
+        200
+      ],
+      "advisories": [],
+      "affects": [
+        {
+          "ref": "bbef5b0d-b0c0-41ed-93d8-38dd6ca220c3",
+          "versions": []
+        }
+      ],
+      "properties": []
+    }
+  ],
+  "annotations": [],
+  "properties": [],
+  "formulation": []
+}

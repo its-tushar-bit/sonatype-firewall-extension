@@ -3722,14 +3722,32 @@ public class TemporaryEntity
       String status,
       String fileName)
   {
+    String sbomVersion = RandomStringUtils.random(10, true, true);
+    String spec = "CycloneDx";
+    String specVersion = "1.5";
+    String specFormat = "XML";
+    return newThirdPartySbomMetadata(thirdPartyFileId, applicationId, sbomVersion, status, fileName, spec, specFormat,
+        specVersion);
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String thirdPartyFileId,
+      String applicationId,
+      String sbomVersion,
+      String status,
+      String fileName,
+      String spec,
+      String specFormat,
+      String specVersion)
+  {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpec(spec);
+    thirdPartySbomMetadata.setSpecFormat(specFormat);
+    thirdPartySbomMetadata.setSpecVersion(specVersion);
     thirdPartySbomMetadata.setStatus(status);
-    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSbomVersion(sbomVersion);
     thirdPartySbomMetadata.setApplicationId(applicationId);
     thirdPartySbomMetadata.setFilename(fileName);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
@@ -3828,7 +3846,7 @@ public class TemporaryEntity
       String fixedBy)
   {
     return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, fixedBy, "source",
-        "v:1", severityDescription, "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
+        "v:1", severityDescription, "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "SBOM");
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -3844,7 +3862,8 @@ public class TemporaryEntity
       String cwes,
       String ratingMethod,
       String recommendations,
-      String advisories)
+      String advisories,
+      String identificationSources)
   {
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, description, link, severity, fixedBy);
@@ -3855,13 +3874,14 @@ public class TemporaryEntity
     coordinateSecurity.setRatingMethod(ratingMethod);
     coordinateSecurity.setRecommendations(recommendations);
     coordinateSecurity.setAdvisories(advisories);
+    coordinateSecurity.setIdentificationSources(identificationSources);
     thirdPartyCoordinateSecurityDAO.insert(coordinateSecurity);
     return coordinateSecurity;
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
     return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5d, "1.1", "source",
-        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
+        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "SBOM");
   }
 
   public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense() {
@@ -3874,8 +3894,19 @@ public class TemporaryEntity
       String name,
       String url)
   {
+    return newThirdPartyCoordinateLicense(fileCoordinate, licenseId, name, url, "SBOM");
+  }
+
+  public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String licenseId,
+      String name,
+      String url,
+      String identificationSources)
+  {
     ThirdPartyCoordinateLicense coordinateLicense =
         new ThirdPartyCoordinateLicense(fileCoordinate.getId(), licenseId, name, url);
+    coordinateLicense.setIdentificationSources(identificationSources);
     thirdPartyCoordinateLicenseDAO.insert(coordinateLicense);
     return coordinateLicense;
   }
@@ -4786,7 +4817,7 @@ public class TemporaryEntity
     if (isVulnerable) {
       newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
           5.5d, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
-          "aRMethod", "someRecommendations", "someAdvisories");
+          "aRMethod", "someRecommendations", "someAdvisories", "SBOM");
     }
 
     return sbomMetadata;

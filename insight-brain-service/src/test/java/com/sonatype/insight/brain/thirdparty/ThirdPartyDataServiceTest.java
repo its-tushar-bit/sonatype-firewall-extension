@@ -143,16 +143,16 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity
             .newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null, "s1", "v:1", "sd1", "<dd>123</dd>",
-                "m1", "<dd>r1</dd>", "<dd>a1</dd>");
+                "m1", "<dd>r1</dd>", "<dd>a1</dd>", "SBOM");
     final ThirdPartyCoordinateSecurity sec2coord1 =
         tempEntity
             .newThirdPartyCoordinateSecurity(coord1, "r2", "desc2", "l2", 1f, null, "s2", "v:2", "sd2", "<dd>444</dd>",
-                "m2", "<dd>r2</dd>", "<dd>a2</dd>");
+                "m2", "<dd>r2</dd>", "<dd>a2</dd>", "SBOM");
 
     final ThirdPartyCoordinateSecurity sec1coord2 =
         tempEntity
             .newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null, "s3", "v:3", "sd3", "<dd>333</dd>",
-                "m3", "<dd>r3</dd>", "<dd>a3</dd>");
+                "m3", "<dd>r3</dd>", "<dd>a3</dd>", "SBOM");
 
     final ThirdPartyCoordinateLicense lic1coord1 =
         tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
@@ -183,7 +183,7 @@ public class ThirdPartyDataServiceTest
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1, sec2coord1);
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
 
-    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1,lic2coord1);
+    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1, lic2coord1);
     assertLicenseRowsForComponent(scanData.licenseRows, coord2, 1, lic1coord2);
     assertLicenseNotProvided(scanData.licenseRows, coord3);
     assertLicenseNotProvided(scanData.licenseRows, coord4);
@@ -203,7 +203,7 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity
             .newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null, "s1", "v:1", "sd1", "<dd>123</dd>",
-                "m1", "<dd>r1</dd>", "<dd>a1</dd>");
+                "m1", "<dd>r1</dd>", "<dd>a1</dd>", "SBOM");
 
     final ThirdPartyVulnerabilityExploitabilityExchange vex =
         tempEntity
@@ -507,8 +507,7 @@ public class ThirdPartyDataServiceTest
     //FG-R00228 not in report zip but in db with minimal third party vulnerability data
     //No Sonatype vulnerability data returned from HDS mock call (no data in DataMart)
     ThirdPartyCoordinateSecurity tpVuln1 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "", null, 0f, null, null,
-            null, null, null, null, null, null);
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "", null, 0f, null, null);
     tpVuln1.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
@@ -517,8 +516,7 @@ public class ThirdPartyDataServiceTest
     //Complete Sonatype vulnerability data returned from HDS mock call
     ThirdPartyCoordinateSecurity tpVuln2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00229", "description1", "link1", 1.0f,
-            "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
-            "advisories1");
+            "deepdive1", "fixedby1");
     tpVuln2.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
@@ -546,12 +544,12 @@ public class ThirdPartyDataServiceTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
-    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isNull();
-    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isNull();
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("<dd>a1<dd/>");
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("v:1");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("<dd>1234</dd>");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isBlank();
     assertThat(thirdPartyCoordinateSecurity.getLink()).isNull();
-    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("<dd>r1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
 
     //Update Scenario 2
@@ -611,8 +609,7 @@ public class ThirdPartyDataServiceTest
             "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
     ThirdPartyCoordinateSecurity tpVuln1 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00100", "", null, 1f, null, null,
-            null, null, null, null, null, null);
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00100", "", null, 1f, null, null);
     tpVuln1.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
@@ -701,7 +698,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache-2.0");
     assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("Apache-2.0");
     assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link1");
-    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();

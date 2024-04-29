@@ -114,6 +114,15 @@ public class ThirdPartyFileCoordinateDAO
     return getList(tx, sQuery, thirdPartyFileId);
   }
 
+  public ThirdPartyFileCoordinate getByThirdPartyFileIdAndPackageUrl(
+      final String thirdPartyFileId,
+      final String purl)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
+        " WHERE entity.thirdPartyFileId=?1 AND entity.packageUrl=?2";
+    return get(sQuery, thirdPartyFileId, purl);
+  }
+
   public List<ThirdPartyFileCoordinate> getBySbomMetadataId(String sbomMetadataId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getBySbomMetadataId(tx, sbomMetadataId);

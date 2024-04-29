@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.scan.application.ScannerDriver;
@@ -131,10 +132,10 @@ public class SbomMetadataUtils
   }
 
   public ItemContentType determineItemContentType(String sbomSpecification) {
-    if (SbomFileDetector.SPEC_SPDX.equals(sbomSpecification)) {
+    if (SbomSpecification.SPDX.toString().equals(sbomSpecification)) {
       return ItemContentType.SPDX;
     }
-    else if (SbomFileDetector.SPEC_CYCLONEDX.equals(sbomSpecification)) {
+    else if (SbomSpecification.CYCLONEDX.toString().equals(sbomSpecification)) {
       return ItemContentType.SBOM;
     }
     else {

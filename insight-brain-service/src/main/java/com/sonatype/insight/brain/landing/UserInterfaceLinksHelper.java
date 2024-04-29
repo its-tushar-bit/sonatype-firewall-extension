@@ -46,6 +46,9 @@ public class UserInterfaceLinksHelper
 
   public static final String ADD_WAIVER_PATH = "addWaiver/{violationId}";
 
+  public static final String SBOM_BOM_VIEW_PATH =
+      "sbomManager/management/view/application/{applicationPublicId}/bom/{version}";
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
   }
@@ -122,5 +125,14 @@ public class UserInterfaceLinksHelper
    */
   public static String getItemManagementPathEdit(String ownerType, String ownerId, String itemType, String itemId) {
     return buildStableUrl(ITEM_MANAGEMENT_EDIT_PATH, ownerType, ownerId, itemType, itemId);
+  }
+
+  /**
+   * Gets the relative URL to the Bill of material page of the SBOM document version for a given application
+   *
+   * @since 1.176
+   */
+  public static String getSBOMBillOfMaterialPath(String applicationPublicId, String version) {
+    return buildStableUrl(SBOM_BOM_VIEW_PATH, applicationPublicId, version);
   }
 }

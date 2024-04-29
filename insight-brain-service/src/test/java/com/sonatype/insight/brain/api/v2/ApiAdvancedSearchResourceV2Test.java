@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.export.SearchRowFactory;
@@ -99,7 +99,7 @@ public class ApiAdvancedSearchResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);
@@ -150,7 +150,7 @@ public class ApiAdvancedSearchResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app,
         "1.0",
-        SbomFileDetector.SPEC_CYCLONEDX,
+        SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
         true);

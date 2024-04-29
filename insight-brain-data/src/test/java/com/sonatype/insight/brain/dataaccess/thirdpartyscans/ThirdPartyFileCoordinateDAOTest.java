@@ -151,10 +151,10 @@ public class ThirdPartyFileCoordinateDAOTest
     final ThirdPartyCoordinateSecurity sec1 =
         tempEntity
             .newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f, "2.1", "CVE", "v:1", "Low", "<dd>c1</>",
-                "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>");
+                "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>", "SBOM");
     final ThirdPartyCoordinateSecurity sec2 = tempEntity
         .newThirdPartyCoordinateSecurity(coord1, "r2", "d2", "l2", 1.2f, "2.2", "CVE", "v:2", "Low", "<dd>c2</>",
-            "CVSSv2", "<dd>r2</dd>", "<dd>a2</dd>");
+            "CVSSv2", "<dd>r2</dd>", "<dd>a2</dd>", "SBOM");
 
     try (TransactionContext tx = thirdPartyFileCoordinateDAO.createTransactionContext()) {
       tx.begin();
@@ -175,7 +175,7 @@ public class ThirdPartyFileCoordinateDAOTest
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
     final ThirdPartyCoordinateSecurity sec =
         tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r1", "d1", "l1", 1.1f, "2.1", "CVE", "v:1", "Low",
-            "<dd>c1</>", "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>");
+            "<dd>c1</>", "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>", "SBOM");
     final ThirdPartyCoordinateLicense lic =
         tempEntity.newThirdPartyCoordinateLicense(coordinate, "lic1", "name1", "url");
 
@@ -367,6 +367,26 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getLicenses())
               .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
         });
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetByThirdPartyFileIdAndPackageUrl() {
+    ThirdPartyFile tpFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "npm", "juice", "1.0.1", "absdefghijklman",
+            "pkg:npm/guice@1.0.1");
+    tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "npm", "juice", "1.0.2", "absdefghijklman",
+        "pkg:npm/guice@1.0.2");
+
+    ThirdPartyFileCoordinate result = thirdPartyFileCoordinateDAO.getByThirdPartyFileIdAndPackageUrl(tpFile.getId(),
+        "pkg:npm/guice@1.0.1");
+    assertThat(result).isNotNull().hasFieldOrPropertyWithValue("packageUrl", "pkg:npm/guice@1.0.1");
+
+    result = thirdPartyFileCoordinateDAO.getByThirdPartyFileIdAndPackageUrl(tpFile.getId(), "pkg:npm/guice@1.0.2");
+    assertThat(result).isNotNull().hasFieldOrPropertyWithValue("packageUrl", "pkg:npm/guice@1.0.2");
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileIdAndPackageUrl(tpFile.getId(),
+        "pkg:npm/guice@0.0.0")).isNull();
   }
 
   @Test

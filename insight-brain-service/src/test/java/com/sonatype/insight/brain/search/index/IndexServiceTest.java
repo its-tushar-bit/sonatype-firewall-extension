@@ -556,7 +556,7 @@ public class IndexServiceTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
             5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
-            "someRecommendations", "someAdvisories");
+            "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
@@ -594,7 +594,7 @@ public class IndexServiceTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
             5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
-            "someRecommendations", "someAdvisories");
+            "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
@@ -632,7 +632,7 @@ public class IndexServiceTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
             5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
-            "someRecommendations", "someAdvisories");
+            "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
@@ -672,7 +672,7 @@ public class IndexServiceTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", null, "someLink",
             5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
-            "someRecommendations", "someAdvisories");
+            "someRecommendations", "someAdvisories","SBOM");
 
     assertFields(indexService.buildDocument(organization, application, thirdPartySbomMetadata, thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),

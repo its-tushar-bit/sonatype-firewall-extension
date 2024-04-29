@@ -19,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -50,10 +51,6 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 public class SbomFileDetector
 {
   private static final Logger log = LoggerFactory.getLogger(SbomFileDetector.class);
-
-  public static final String SPEC_CYCLONEDX = "CycloneDx";
-
-  public static final String SPEC_SPDX = "SPDX";
 
   public static final String SPDX_VERSION_PREFIX = "SPDX-";
 
@@ -197,7 +194,7 @@ public class SbomFileDetector
   {
     sbomResult.summary = new SbomSummary();
     sbomResult.summary.serialNumber = SbomSpdxUtils.getOrGenerateSpdxSerialNumber(document);
-    sbomResult.summary.specification = SPEC_SPDX;
+    sbomResult.summary.specification = SbomSpecification.SPDX.toString();
     sbomResult.summary.version = StringUtils.replace(document.getSpecVersion(), SPDX_VERSION_PREFIX, "");
     sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());
     sbomResult.summary.componentCount = CollectionUtils.size(SbomSpdxUtils.getAllPackages(document));
@@ -216,7 +213,7 @@ public class SbomFileDetector
       final Bom bom)
   {
     sbomResult.summary = new SbomSummary();
-    sbomResult.summary.specification = SPEC_CYCLONEDX;
+    sbomResult.summary.specification = SbomSpecification.CYCLONEDX.toString();
     sbomResult.summary.version = bom.getSpecVersion();
     sbomResult.summary.format = sbomFormat.toString();
     sbomResult.summary.componentCount = CollectionUtils.size(bom.getComponents());

@@ -49,6 +49,10 @@ make(
           iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
           failBuildOnNetworkError: true
 
+        if (isSASTEnabled()) {
+          runSastScan()
+        }
+
         if (stage == 'release') {
           build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
                 parameters: [
@@ -102,7 +106,10 @@ void configureBranchJob() {
           name: 'applitoolsEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
-          name: 'mtiqImagePushEnabled')
+          name: 'mtiqImagePushEnabled'),
+      booleanParam(defaultValue: true,
+                description: 'If checked will enable SAST analysis on Evaluate Policy step',
+                name: 'sastAnalysisEnabled')
       ]
 
   // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
@@ -410,6 +417,47 @@ void captureResultsAndCleanup() {
   deleteDir()
 }
 
+void runSastScan() {
+  pullAndExtractSastCli()
+  runSastOnJars()
+}
+
+void pullAndExtractSastCli() {
+  echo "Fetching and extracting SAST CLI"
+  sonatypeZionGitConfig()
+  sshagent(credentials: [sonatypeZionCredentialsId()]) {
+    sh '''
+      rm -rf sast-cli-dist
+      git clone git@github.com:sonatype/sast-cli-dist.git
+    '''
+  }
+  echo "Successfully extracted SAST CLI"
+}
+
+void runSastOnJars() {
+  echo "Running SAST CLI on generated jars"
+  echo "${pwd()}"
+  sh "rm -rf ./bundle-jars && mkdir ./bundle-jars"
+  def files = findFiles(glob: '**/nexus-iq-server*.tar.gz')
+  files.each { f ->
+    sh "tar -xvzf ${f.path} -C ./bundle-jars"
+  }
+
+  def bundleFiles = findFiles(glob: '**/bundle-jars/nexus-iq-*SNAPSHOT.jar')
+  def sastFileParams = []
+
+  bundleFiles.each { f ->
+    sastFileParams.add(f.path)
+  }
+
+  echo "Detected jar files to analyze: ${sastFileParams.join(', ')}"
+  withCredentials([usernamePassword(credentialsId: 'jenkins-saas-service-acct',
+    usernameVariable: 'IQ_USERNAME', passwordVariable: 'IQ_PASSWORD')]) {
+    runSafely "java -Xmx6g -Dspring.profiles.active=local_dev -jar ./sast-cli-dist/sast-cli.jar sast --include-packages=com.sonatype -a insight-brain --source . --host https://sonatype.sonatype.app/platform -u $IQ_USERNAME --password $IQ_PASSWORD ${sastFileParams.join(' ')}"
+  }
+  echo "Successfully ran SAST analysis on insight-brain bundle jars"
+}
+
 /**
  * Check to see if the Eyes Check should be enabled.  Defaults to true for the 'main' and any branch that ends in '_ui'
  * Can be overridden if a parameter has been defined and specified for the job.
@@ -418,4 +466,14 @@ void captureResultsAndCleanup() {
 boolean isEyesEnabled() {
   // if the params value isn't set (or hasn't been added to the job yet), default to true
   return params.applitoolsEnabled ?: true
+}
+
+/**
+ * Check to see if the SAST analysis should be enabled.
+ * Can be overridden if a parameter has been defined and specified for the job.
+ * @return true if enabled
+ */
+boolean isSASTEnabled() {
+  // if the params value isn't set (or hasn't been added to the job yet), default to true
+  return params.sastAnalysisEnabled ?: true
 }

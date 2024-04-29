@@ -30,7 +30,11 @@ export const selectSelectedViolationId = createSelector(
   selectComponentDetailsViolationsSlice,
   selectRouterCurrentParams,
   (componentDetailsPolicyViolations, routerCurrentParams) => {
-    return routerCurrentParams.id || componentDetailsPolicyViolations.selectedPolicyViolationId;
+    return (
+      routerCurrentParams.violationId ||
+      routerCurrentParams.id ||
+      componentDetailsPolicyViolations.selectedPolicyViolationId
+    );
   }
 );
 

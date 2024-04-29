@@ -9,6 +9,7 @@ import {
   selectComponentViolations,
   selectIsPolicyViolationsLoading,
   selectSelectedComponentPolicyViolation,
+  selectSelectedViolationId,
 } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 describe('policyViolationsSelectors', () => {
@@ -184,6 +185,43 @@ describe('policyViolationsSelectors', () => {
     it('returns undefined when there is no violation selected', () => {
       const result = selectSelectedComponentPolicyViolation.resultFunc(null, violations);
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectSelectedViolationId', () => {
+    it('selects the violation ID from the routerCurrentParams as violationId', () => {
+      const result = selectSelectedViolationId.resultFunc(
+        {
+          selectedPolicyViolationId: 'selectedPolicyViolationId',
+        },
+        {
+          violationId: 'violationId',
+          id: 'id',
+        }
+      );
+      expect(result).toEqual('violationId');
+    });
+
+    it('selects the violation ID from the routerCurrentParams as id', () => {
+      const result = selectSelectedViolationId.resultFunc(
+        {
+          selectedPolicyViolationId: 'selectedPolicyViolationId',
+        },
+        {
+          id: 'id',
+        }
+      );
+      expect(result).toEqual('id');
+    });
+
+    it('selects the violation ID from the componentDetailsPolicyViolations as selectedPolicyViolationId', () => {
+      const result = selectSelectedViolationId.resultFunc(
+        {
+          selectedPolicyViolationId: 'selectedPolicyViolationId',
+        },
+        {}
+      );
+      expect(result).toEqual('selectedPolicyViolationId');
     });
   });
 });

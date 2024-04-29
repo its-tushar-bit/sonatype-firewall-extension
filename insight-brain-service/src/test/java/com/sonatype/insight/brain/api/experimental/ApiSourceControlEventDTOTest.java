@@ -39,8 +39,6 @@ public class ApiSourceControlEventDTOTest
     assertThat(actual.getType()).isEqualTo(sourceControlEvent.getEventType());
     assertThat(actual.getPriority()).isEqualTo(sourceControlEvent.getEventPriority());
     assertThat(actual.getStatus()).isEqualTo(sourceControlEvent.getEventStatus());
-    assertThat(actual.getStatusDetails()).isEqualTo(sourceControlEvent.getEventStatusDetails());
-    assertThat(actual.getErrorDetails()).isEqualTo(sourceControlEvent.getEventErrorDetails());
     assertThat(actual.getCreateTime()).isEqualTo(sourceControlEvent.getCreateTime());
     assertThat(actual.getStartTime()).isEqualTo(sourceControlEvent.getStartTime());
     assertThat(actual.getCompleteTime()).isEqualTo(sourceControlEvent.getCompleteTime());

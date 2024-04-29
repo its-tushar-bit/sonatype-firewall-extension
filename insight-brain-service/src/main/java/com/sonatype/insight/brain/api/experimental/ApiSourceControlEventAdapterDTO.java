@@ -21,8 +21,11 @@ public final class ApiSourceControlEventAdapterDTO
     result.setType(sourceControlEvent.getEventType());
     result.setPriority(sourceControlEvent.getEventPriority());
     result.setStatus(sourceControlEvent.getEventStatus());
-    result.setStatusDetails(sourceControlEvent.getEventStatusDetails());
-    result.setErrorDetails(sourceControlEvent.getEventErrorDetails());
+    // Do not expose the status/error details, they may contain sensitive data.
+    // This was flagged in a pen test.
+    // See https://sonatype.atlassian.net/browse/CLM-29901 for details.
+    // result.setStatusDetails(sourceControlEvent.getEventStatusDetails());
+    // result.setErrorDetails(sourceControlEvent.getEventErrorDetails());
     result.setCreateTime(sourceControlEvent.getCreateTime());
     result.setStartTime(sourceControlEvent.getStartTime());
     result.setCompleteTime(sourceControlEvent.getCompleteTime());

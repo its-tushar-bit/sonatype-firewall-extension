@@ -21,9 +21,11 @@ public class ApiSourceControlEventDTO
 
   private String status;
 
-  private String statusDetails;
-
-  private String errorDetails;
+  // Do not expose the status/error details, they may contain sensitive data.
+  // This was flagged in a pen test.
+  // See https://sonatype.atlassian.net/browse/CLM-29901 for details.
+  // private String statusDetails;
+  // private String errorDetails;
 
   private Date createTime;
 
@@ -83,22 +85,6 @@ public class ApiSourceControlEventDTO
     this.status = status;
   }
 
-  public String getStatusDetails() {
-    return statusDetails;
-  }
-
-  public void setStatusDetails(String statusDetails) {
-    this.statusDetails = statusDetails;
-  }
-
-  public String getErrorDetails() {
-    return errorDetails;
-  }
-
-  public void setErrorDetails(String errorDetails) {
-    this.errorDetails = errorDetails;
-  }
-
   public Date getCreateTime() {
     return createTime;
   }
@@ -148,8 +134,6 @@ public class ApiSourceControlEventDTO
         ", type='" + type + '\'' +
         ", priority=" + priority +
         ", status='" + status + '\'' +
-        ", statusDetails='" + statusDetails + '\'' +
-        ", errorDetails='" + errorDetails + '\'' +
         ", createTime=" + createTime +
         ", startTime=" + startTime +
         ", completeTime=" + completeTime +

@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
-import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -61,8 +62,6 @@ public class ApiSourceControlEventServiceTest
     assertThat(result.get(0).getStartTime()).isEqualTo(event.getStartTime());
     assertThat(result.get(0).getType()).isEqualTo(event.getEventType());
     assertThat(result.get(0).getStatus()).isEqualTo(event.getEventStatus());
-    assertThat(result.get(0).getStatusDetails()).isEqualTo(event.getEventStatusDetails());
-    assertThat(result.get(0).getErrorDetails()).isEqualTo(event.getEventErrorDetails());
     assertThat(result.get(0).getUser()).isEqualTo(event.getScmUsername());
     assertThat(result.get(0).getTimeExecuting())
         .isEqualTo(event.getCompleteTime().getTime() - event.getStartTime().getTime());
@@ -99,8 +98,6 @@ public class ApiSourceControlEventServiceTest
     assertThat(result.get(0).getStartTime()).isEqualTo(event.getStartTime());
     assertThat(result.get(0).getType()).isEqualTo(event.getEventType());
     assertThat(result.get(0).getStatus()).isEqualTo(event.getEventStatus());
-    assertThat(result.get(0).getStatusDetails()).isEqualTo(event.getEventStatusDetails());
-    assertThat(result.get(0).getErrorDetails()).isEqualTo(event.getEventErrorDetails());
     assertThat(result.get(0).getUser()).isEqualTo(event.getScmUsername());
     assertThat(result.get(0).getTimeExecuting())
         .isEqualTo(event.getCompleteTime().getTime() - event.getStartTime().getTime());

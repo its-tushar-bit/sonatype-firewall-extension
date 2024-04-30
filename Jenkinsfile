@@ -86,6 +86,7 @@ make(
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
         postBuild()
+        triggerBumpMtiqVersion()
     },
     onUnstable: {
         postBuild()
@@ -234,14 +235,17 @@ void pushMTIQDockerImage() {
         }
       }
     }
+}
 
-    // On `main` branch builds trigger the MTIQ job to bump the image version in the K8S deployment
-    if (isMainBuild) {
-      build('job': '/insight/MTIQ/bump-mtiq-version',
-          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
-          wait: false,
-          propagate: false)
-    }
+void triggerBumpMtiqVersion() {
+  // On successful `main` branch builds trigger the MTIQ job to bump the image version in the K8S deployment
+  boolean isMainBuild = isDeployBranch(env, 'main')
+  if (isMainBuild) {
+    build('job': '/insight/MTIQ/bump-mtiq-version',
+        parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
+        wait: false,
+        propagate: false)
+  }
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

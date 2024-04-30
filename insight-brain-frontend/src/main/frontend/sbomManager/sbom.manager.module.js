@@ -79,6 +79,7 @@ function routes($stateProvider) {
       data: {
         title: 'SBOM Manager - Bill Of Materials',
         authenticationRequired: true,
+        noSidebar: true,
       },
     });
 

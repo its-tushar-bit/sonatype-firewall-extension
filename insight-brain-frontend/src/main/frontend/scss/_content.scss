@@ -43,6 +43,10 @@ ui-view {
   position: relative;
 }
 
+.nx-page-main.nx-page-main--no-sidebar {
+  grid-area: old-sidebar-start/old-sidebar-start/content-end/content-end;
+}
+
 // global errors
 .nx-page-main--error {
   display: flex;

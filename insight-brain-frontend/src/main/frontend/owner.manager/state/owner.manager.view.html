@@ -1,9 +1,9 @@
-<div class="nx-page-sidebar nx-viewport-sized iq-orgs-and-policies-summary-sidebar">
+<div class="nx-page-sidebar nx-viewport-sized iq-orgs-and-policies-summary-sidebar" ng-if="!$state.$current.data.noSidebar">
   <owner-side-nav class="nx-viewport-sized__container"></owner-side-nav>
 </div>
 <div id="owner-manager-main"
      class="nx-page-main"
-     ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }"
+     ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized, 'nx-page-main--no-sidebar': $state.$current.data.noSidebar }"
      ng-style="{'overflow-y' : $state.$current.data.hideOverflowY ? 'hidden' : ''}">
   <root-organization-migrate></root-organization-migrate>
   <ui-view></ui-view>

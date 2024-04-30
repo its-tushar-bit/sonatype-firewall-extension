@@ -20,6 +20,7 @@ make(
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
         List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
         issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
+        issues.addAll(getIssuesByFixVersion('INT', fixVersion))
         replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },

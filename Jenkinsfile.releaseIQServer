@@ -60,12 +60,6 @@ pipeline {
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Release Jira Version - Integrations') {
-      steps {
-        build(job: 'integrations/Set Jira Fix Version/',
-              parameters: [string(name: 'prefix', value: 'brain'), string(name: 'version', value: env.minorVersion)])
-      }
-    }
     stage('Deploy Binaries to Staging') {
       steps {
         build(job: 'insight/insight-brain/deploy',

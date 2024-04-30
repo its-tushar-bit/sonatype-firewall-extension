@@ -196,8 +196,8 @@ public class RepositoriesSummaryViewTest
     RepositoryReportContainerPage.backButton().click();
 
     waitUntilUrl(RepositoriesSummaryPage.url());
-    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2, 2), repositories.get(1));
     testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(1, 2), repositories.get(0));
+    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2, 2), repositories.get(1));
   }
 
   private void testRepositorySummaryView_configurationTile_deleteRepository(
@@ -1008,7 +1008,7 @@ public class RepositoriesSummaryViewTest
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
-    assertRowOrder("ee", "Ab", "df", "ac", "De", "bb");
+    assertRowOrder("De", "bb", "df", "ac", "ee","Ab");
   }
 
   @Test
@@ -1027,7 +1027,21 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
         attribute("aria-label", "Type unsorted"));
 
-    assertRowOrder("rm2", "a", "c", "f", "h", "j", "rm1", "b", "d", "e", "g", "i");
+    assertRowOrder("rm1", "b", "d", "e", "g", "i","rm2", "a", "c", "f", "h", "j");
+  }
+
+  @Test
+  public void testRepositoryConfigurationTableSorting_DefaultWithEmptyRepositoryManager() {
+    RepositoryManager rm1 = tempEntity.newRepositoryManager("rm1");
+    tempEntity.newRepositoryManager("rm2");
+    tempEntity.newProxyRepository(rm1, "i", "maven", true, false);
+    tempEntity.newProxyRepository(rm1, "b", "maven", true, true);
+    tempEntity.newProxyRepository(rm1, "g", "npm", false, false);
+
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+    RepositoryResultsSummaryPage.configurationTile().shouldBe(visible).shouldHave(text("Configuration"));
+
+    assertRowOrder("rm1", "b", "g", "i", "rm2", "There are no repositories registered with the server.");
   }
 
   private void assertRowOrder(String... ids) {
@@ -1050,7 +1064,52 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
 
-    assertRowOrder("rm2", "j", "h", "f", "c", "a", "rm1", "i", "g", "e", "d", "b");
+    assertRowOrder("rm1", "i", "g", "e", "d", "b", "rm2", "j", "h", "f", "c", "a");
+  }
+
+  @Test
+  public void testRepositoryConfigurationTableSorting_withEmptyAndNotEmptyRepoManagers() {
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1366, 1800));
+
+    RepositoryManager rm1 = tempEntity.newRepositoryManager("rmA");
+    tempEntity.newProxyRepository(rm1, "a", "maven", true, false);
+    tempEntity.newProxyRepository(rm1, "b", "maven", true, true);
+    tempEntity.newProxyRepository(rm1, "c", "npm", false, false);
+    RepositoryManager rm2 = tempEntity.newRepositoryManager("rmB");
+    tempEntity.newProxyRepository(rm2, "d", "maven", true, false);
+    tempEntity.newProxyRepository(rm2, "e", "maven", true, true);
+    tempEntity.newProxyRepository(rm2, "f", "npm", false, false);
+    tempEntity.newRepositoryManager("instanceId3", "rmAE","repoProductName3",
+            "repoProductVersion3");
+    RepositoryManager rm3 = tempEntity.newRepositoryManager("instanceId4", "rmBC","repoProductName4",
+            "repoProductVersion4");
+    tempEntity.newProxyRepository(rm3, "ad", "maven", true, false);
+    tempEntity.newProxyRepository(rm3, "ae", "maven", true, true);
+    tempEntity.newProxyRepository(rm3, "af", "npm", false, false);
+    tempEntity.newRepositoryManager("instanceId5", "emptyrmC","repoProductName5",
+            "repoProductVersion5");
+
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    assertRowOrder(
+        "emptyrmC", "There are no repositories registered with the server.",
+        "rmA", "a", "b", "c","rmAE", "There are no repositories registered with the server.",
+        "rmB", "d", "e", "f","rmBC", "ad", "ae", "af"
+    );
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
+            attribute("aria-label", "Repository descending"));
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    configurationTable.shouldBe(visible);
+
+    assertRowOrder(
+        "emptyrmC", "There are no repositories registered with the server.",
+        "rmA", "c", "b", "a","rmAE", "There are no repositories registered with the server.",
+        "rmB", "f", "e", "d","rmBC", "af", "ae", "ad"
+    );
   }
 
   @Test
@@ -1065,7 +1124,7 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
         attribute("aria-label", "Format ascending"));
 
-    assertRowOrder("rm2", "j", "f", "c", "h", "a", "rm1", "i", "e", "b", "g", "d");
+    assertRowOrder("rm1", "i", "e", "b", "g", "d", "rm2", "j", "f", "c", "h", "a");
 
     ScrollUtil.scrollIntoView(
         RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().getElement());
@@ -1073,7 +1132,7 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
         attribute("aria-label", "Format descending"));
 
-    assertRowOrder("rm2", "h", "a", "j", "f", "c", "rm1", "g", "d", "i", "e", "b");
+    assertRowOrder("rm1", "g", "d", "i", "e", "b", "rm2", "h", "a", "j", "f", "c");
   }
 
   @Test
@@ -1088,7 +1147,7 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
         attribute("aria-label", "Type ascending"));
 
-    assertRowOrder("rm2", "j", "a", "h", "f", "c", "rm1", "e", "d", "i", "g", "b");
+    assertRowOrder("rm1", "e", "d", "i", "g", "b", "rm2", "j", "a", "h", "f", "c");
 
     ScrollUtil.scrollIntoView(RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().getElement());
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().click();

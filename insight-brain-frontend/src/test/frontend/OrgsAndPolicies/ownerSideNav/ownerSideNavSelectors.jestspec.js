@@ -15,6 +15,9 @@ import {
   selectIsDisplayedOrganizationSynthetic,
   selectAllDescendantsByParentId,
   selectTopParentOrganizationId,
+  selectOwnersFlattenEntries,
+  selectRepoManagerOwnersEntries,
+  selectRepoManagerOwnersEntriesSorted,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 describe('ownerSideNavSelectors', () => {
@@ -93,6 +96,152 @@ describe('ownerSideNavSelectors', () => {
       const result = selectShowRepositories.resultFunc(state);
 
       expect(result).toEqual(state.showRepositories);
+    });
+  });
+
+  describe('selectOwnersFlattenEntries', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOwnersFlattenEntries.dependencies).toEqual([selectOwnersMap]);
+    });
+
+    it('selects flattern entries', () => {
+      const state = {
+        repository_manager_id_1: {
+          type: 'repository_manager',
+          id: 'repository_manager_id_1',
+          name: 'repository_manager_1',
+        },
+        'app-1': {
+          type: 'application',
+          id: '8f9a99df1f5d4e68895bd0ac445d03e4',
+          name: 'app-1',
+        },
+        '392e7830a78544c188ddd50a025fe3b2': {
+          type: 'repository',
+          id: '392e7830a78544c188ddd50a025fe3b2',
+          name: 'npm-hosted',
+        },
+        repository_manager_id_2: {
+          type: 'repository_manager',
+          id: 'repository_manager_id_2',
+          name: 'repository_manager_2',
+        },
+      };
+      const result = selectOwnersFlattenEntries.resultFunc(state);
+
+      expect(result).toEqual({
+        organizations: [],
+        applications: [
+          {
+            type: 'application',
+            id: '8f9a99df1f5d4e68895bd0ac445d03e4',
+            name: 'app-1',
+          },
+        ],
+        repositories: [
+          {
+            type: 'repository',
+            id: '392e7830a78544c188ddd50a025fe3b2',
+            name: 'npm-hosted',
+          },
+        ],
+        repositoryManagers: [
+          {
+            type: 'repository_manager',
+            id: 'repository_manager_id_1',
+            name: 'repository_manager_1',
+          },
+          {
+            type: 'repository_manager',
+            id: 'repository_manager_id_2',
+            name: 'repository_manager_2',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('selectRepoManagerOwnersEntries', () => {
+    it('is composed from the following selector', () => {
+      expect(selectRepoManagerOwnersEntries.dependencies).toEqual([selectOwnersFlattenEntries]);
+    });
+
+    it('selects repository managers entries', () => {
+      const state = {
+        organizations: [],
+        applications: [],
+        repositories: [],
+        repositoryManagers: [
+          {
+            type: 'repository_manager',
+            id: 'repoManagerId1',
+            name: 'repoManagerName1',
+          },
+          {
+            type: 'repository_manager',
+            id: 'repoManagerId2',
+            name: 'repoManagerName2',
+          },
+        ],
+      };
+      const result = selectRepoManagerOwnersEntries.resultFunc(state);
+
+      expect(result).toEqual(state.repositoryManagers);
+    });
+  });
+
+  describe('selectRepoManagerOwnersEntriesSorted', () => {
+    it('is composed from the following selector', () => {
+      expect(selectRepoManagerOwnersEntriesSorted.dependencies).toEqual([selectRepoManagerOwnersEntries]);
+    });
+
+    it('selects sorted repository managers entries by name ascending', () => {
+      const state = [
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId2',
+          name: 'repoManagerNameB',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId1',
+          name: 'repoManagerNameA',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId4',
+          name: 'repoManagerNameD',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId3',
+          name: 'repoManagerNameC',
+        },
+      ];
+      const result = selectRepoManagerOwnersEntriesSorted.resultFunc(state);
+
+      expect(result).toEqual([
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId1',
+          name: 'repoManagerNameA',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId2',
+          name: 'repoManagerNameB',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId3',
+          name: 'repoManagerNameC',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repoManagerId4',
+          name: 'repoManagerNameD',
+        },
+      ]);
     });
   });
 

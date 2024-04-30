@@ -63,6 +63,7 @@ export const initialState = {
   editRepositoryManagerNameModalInfo: {
     managerInstanceId: null,
     managerName: null,
+    repoManagerId: null,
   },
   sortConfiguration: initialSortConfiguration,
   repositoryPublicIdFilter: '',
@@ -75,9 +76,9 @@ const openDeleteModal = (state, { payload: { publicId, id } }) => {
   state.deleteError = null;
 };
 
-const openEditRepositoryManagerNameModal = (state, { payload: { managerInstanceId, managerName } }) => {
+const openEditRepositoryManagerNameModal = (state, { payload: { managerInstanceId, managerName, repoManagerId } }) => {
   state.showEditRepositoryManagerNameModal = true;
-  state.editRepositoryManagerNameModalInfo = { managerInstanceId, managerName };
+  state.editRepositoryManagerNameModalInfo = { managerInstanceId, managerName, repoManagerId };
   state.editRepositoryManagerNameError = null;
 };
 
@@ -218,10 +219,12 @@ const editRepositoryManagerName = createAsyncThunk(
   `${REDUCER_NAME}/editRepositoryManagerName`,
   (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
-    const { managerInstanceId, managerName } = selectEditRepositoryManagerNameModalInfo(getState());
+    const { managerInstanceId, managerName, repoManagerId } = selectEditRepositoryManagerNameModalInfo(getState());
     const originalRepositories = selectOriginalRepositories(state);
-    const managerId = originalRepositories.find((repository) => repository.managerInstanceId === managerInstanceId)
-      .repository.repositoryManagerId;
+    const managerId =
+      repoManagerId ||
+      originalRepositories.find((repository) => repository.managerInstanceId === managerInstanceId).repository
+        .repositoryManagerId;
     return axios
       .put(getRepositoryManagerUrl(managerId, managerName))
       .then(() => {

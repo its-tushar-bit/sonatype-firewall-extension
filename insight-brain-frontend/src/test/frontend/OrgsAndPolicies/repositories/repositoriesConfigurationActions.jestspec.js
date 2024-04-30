@@ -33,6 +33,7 @@ describe('repositoriesConfigurationSliceActions', () => {
         editRepositoryManagerNameModalInfo: {
           managerInstanceId: 'someManagerInstanceId',
           managerName: 'someManagerName',
+          repoManagerId: 'repoManagerId',
         },
       },
     };
@@ -41,7 +42,7 @@ describe('repositoriesConfigurationSliceActions', () => {
   describe('editRepositoryManagerName', () => {
     it('immediately dispatches a repositories/editRepositoryManagerName/pending action and an appropriate request', () => {
       store = SpecUtil.mockReduxStore(state);
-      axiosMock.onPut(getRepositoryManagerUrl('someManagerId', 'someManagerName')).reply(200, {});
+      axiosMock.onPut(getRepositoryManagerUrl('repoManagerId', 'someManagerName')).reply(200, {});
 
       store.dispatch(actions.editRepositoryManagerName());
 
@@ -49,12 +50,12 @@ describe('repositoriesConfigurationSliceActions', () => {
         type: 'repositories/editRepositoryManagerName/pending',
       });
       expect(axiosMock.history.put.length).toBe(1);
-      expect(axiosMock.history.put[0].url).toBe('/rest/repositories/repositoryManager/someManagerId/someManagerName');
+      expect(axiosMock.history.put[0].url).toBe('/rest/repositories/repositoryManager/repoManagerId/someManagerName');
     });
 
     it('dispatches a repositories/editRepositoryManagerName/fulfilled action after a successful request', (done) => {
       store = SpecUtil.mockReduxStore(state);
-      axiosMock.onPut(getRepositoryManagerUrl('someManagerId', 'someManagerName')).reply(200, {});
+      axiosMock.onPut(getRepositoryManagerUrl('repoManagerId', 'someManagerName')).reply(200, {});
       jest.useFakeTimers();
 
       store.dispatch(actions.editRepositoryManagerName()).then(() => {
@@ -132,12 +133,17 @@ describe('repositoriesConfigurationSliceActions', () => {
         actions.openEditRepositoryManagerNameModal({
           managerInstanceId: 'someManagerInstanceId',
           managerName: 'someManagerName',
+          repoManagerId: 'repoManagerId',
         })
       );
 
       expect(store.getActions()).toHaveAction({
         type: 'repositories/openEditRepositoryManagerNameModal',
-        payload: { managerInstanceId: 'someManagerInstanceId', managerName: 'someManagerName' },
+        payload: {
+          managerInstanceId: 'someManagerInstanceId',
+          managerName: 'someManagerName',
+          repoManagerId: 'repoManagerId',
+        },
       });
     });
   });

@@ -262,7 +262,10 @@ describe('RepositoryManagerSummaryView', () => {
 
   it('renders configuration tile', async () => {
     jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
-    jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue(ownerInfo);
+    jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+      ...ownerInfo,
+      instanceId: 'managerInstanceId',
+    });
     jest
       .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
       .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));

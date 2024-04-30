@@ -41,8 +41,8 @@ import {
   selectRepositoryFormatsFilter,
   selectRepositoryPublicIdFilter,
 } from './repositoriesConfigurationSelectors';
+import { selectRepoManagerOwnersEntriesSorted } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { keys } from 'ramda';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsRepositoryManager } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -66,6 +66,7 @@ const RepositoriesConfigurationTile = () => {
   const loadRepositoriesByManagerId = () => dispatch(actions.loadRepositoriesByManagerId(owner.id));
 
   const repositoriesByManagerInstanceId = useSelector(selectRepositoriesByManagerInstanceId);
+  const repoManagerOwnersEntries = useSelector(selectRepoManagerOwnersEntriesSorted);
   const isLoading = useSelector(selectRepositoriesLoading);
   const loadError = useSelector(selectRepositoriesLoadError);
   const deleteError = useSelector(selectRepositoriesDeleteError);
@@ -227,7 +228,51 @@ const RepositoriesConfigurationTile = () => {
 
   const showHighlight = (column) => (sortConfiguration[0].key === column ? sortConfiguration[0].dir : null);
 
-  const configTableRowAtRepoManagerLevel = (managerInstanceId) => {
+  const renderConfigTableRowsAtRepoContainerLevel = () => {
+    if (repoManagerOwnersEntries.length === 0) {
+      return [
+        <NxTable.Body
+          key="empty-repo-manager"
+          emptyMessage="There are no repositories registered with the server."
+          error={loadError}
+          isLoading={isLoading}
+          retryHandler={loadRepositories}
+        />,
+      ];
+    }
+
+    return repoManagerOwnersEntries.map((repoManager) => {
+      const headerTitle = repoManager.name || repoManager.instanceId;
+      return (
+        <NxTable.Body
+          key={repoManager.instanceId}
+          error={loadError}
+          isLoading={isLoading}
+          retryHandler={loadRepositories}
+        >
+          <IqCollapsibleRow
+            headerTitle={headerTitle}
+            noItemsMessage={'There are no repositories registered with the server.'}
+            isCollapsible={true}
+            colSpan={4}
+            rowBtnIcon={faPen}
+            rowBtnTitle="Edit"
+            rowBtnAction={() =>
+              openEditRepositoryManagerNameModal({
+                repoManagerId: repoManager.id,
+                managerName: repoManager.name,
+                managerInstanceId: repoManager.instanceId,
+              })
+            }
+          >
+            {repositoriesByManagerInstanceId[repoManager.instanceId]?.map(mapRepositoryToRow)}
+          </IqCollapsibleRow>
+        </NxTable.Body>
+      );
+    });
+  };
+
+  const renderConfigTableRowsAtRepoManagerLevel = () => {
     return (
       <NxTable.Body
         emptyMessage="There are no repositories registered with the server."
@@ -235,7 +280,7 @@ const RepositoriesConfigurationTile = () => {
         isLoading={isLoading}
         retryHandler={loadRepositoriesByManagerId}
       >
-        {repositoriesByManagerInstanceId[managerInstanceId].map(mapRepositoryToRow)}
+        {repositoriesByManagerInstanceId[owner.instanceId]?.map(mapRepositoryToRow)}
       </NxTable.Body>
     );
   };
@@ -314,47 +359,9 @@ const RepositoriesConfigurationTile = () => {
               <NxTable.Cell />
             </NxTable.Row>
           </NxTable.Head>
-          {keys(repositoriesByManagerInstanceId).length > 0 ? (
-            keys(repositoriesByManagerInstanceId).map((managerInstanceId) =>
-              !isRepositoryManager ? (
-                <NxTable.Body
-                  key={managerInstanceId}
-                  error={loadError}
-                  isLoading={isLoading}
-                  retryHandler={loadRepositories}
-                >
-                  <IqCollapsibleRow
-                    headerTitle={
-                      repositoriesByManagerInstanceId[managerInstanceId][0].managerName ||
-                      repositoriesByManagerInstanceId[managerInstanceId][0].managerInstanceId
-                    }
-                    noItemsMessage="None"
-                    isCollapsible={true}
-                    colSpan={4}
-                    rowBtnIcon={faPen}
-                    rowBtnTitle="Edit"
-                    rowBtnAction={() =>
-                      openEditRepositoryManagerNameModal({
-                        managerInstanceId: repositoriesByManagerInstanceId[managerInstanceId][0].managerInstanceId,
-                        managerName: repositoriesByManagerInstanceId[managerInstanceId][0].managerName,
-                      })
-                    }
-                  >
-                    {repositoriesByManagerInstanceId[managerInstanceId].map(mapRepositoryToRow)}
-                  </IqCollapsibleRow>
-                </NxTable.Body>
-              ) : (
-                configTableRowAtRepoManagerLevel(managerInstanceId)
-              )
-            )
-          ) : (
-            <NxTable.Body
-              emptyMessage="There are no repositories registered with the server."
-              error={loadError}
-              isLoading={isLoading}
-              retryHandler={loadRepositories}
-            ></NxTable.Body>
-          )}
+          {isRepositoryManager
+            ? renderConfigTableRowsAtRepoManagerLevel()
+            : renderConfigTableRowsAtRepoContainerLevel()}
         </NxTable>
         {showDeleteModal && deleteModal}
         {showEditRepositoryManagerNameModal && editRepositoryManagerNameModal}

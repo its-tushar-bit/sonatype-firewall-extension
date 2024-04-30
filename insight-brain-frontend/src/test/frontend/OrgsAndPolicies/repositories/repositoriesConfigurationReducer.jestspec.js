@@ -437,7 +437,11 @@ describe('repositoriesConfigurationSliceReducer', () => {
 
       const newState = reducer(state, {
         type: 'repositories/openEditRepositoryManagerNameModal',
-        payload: { managerInstanceId: 'someManagerInstanceId', managerName: 'someManagerName' },
+        payload: {
+          managerInstanceId: 'someManagerInstanceId',
+          managerName: 'someManagerName',
+          repoManagerId: 'repoManagerId1',
+        },
       });
 
       expect(newState).toEqual({
@@ -445,6 +449,7 @@ describe('repositoriesConfigurationSliceReducer', () => {
         editRepositoryManagerNameModalInfo: {
           managerInstanceId: 'someManagerInstanceId',
           managerName: 'someManagerName',
+          repoManagerId: 'repoManagerId1',
         },
         editRepositoryManagerNameError: null,
       });

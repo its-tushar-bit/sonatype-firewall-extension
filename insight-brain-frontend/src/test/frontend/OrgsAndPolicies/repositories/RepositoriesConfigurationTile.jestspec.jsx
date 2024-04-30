@@ -6,6 +6,7 @@
 import React from 'react';
 import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
+import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
 import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryListUrl } from 'MainRoot/util/CLMLocation';
@@ -74,8 +75,21 @@ describe('RepositoriesConfigurationTile', () => {
     },
   ];
 
+  const repoManagerOwnersEntries = [
+    {
+      type: 'repository_manager',
+      id: '134f25b4e96548a0b112941da77183b9',
+      name: '37243988-2A3E4AF9-BE920718-EF863E4B-703AE4FBCD',
+      instanceId: 'managerInstanceId',
+      repositoryIds: ['repository'],
+      parentId: 'REPOSITORY_CONTAINER_ID',
+    },
+  ];
+
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
+
+    jest.spyOn(ownerSideNavSelectors, 'selectRepoManagerOwnersEntries').mockReturnValue(repoManagerOwnersEntries);
 
     deleteRepositorySpy = jest.spyOn(repositoriesActions, 'deleteRepository');
     loadRepositoriesSpy = jest.spyOn(repositoriesActions, 'loadRepositories');
@@ -139,11 +153,30 @@ describe('RepositoriesConfigurationTile', () => {
         .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
         .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
       jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+      jest.spyOn(ownerSideNavSelectors, 'selectRepoManagerOwnersEntriesSorted').mockReturnValue([
+        {
+          type: 'repository_manager',
+          id: 'repositoryManagerIdA',
+          name: 'managerNameA',
+          instanceId: 'managerInstanceIdA',
+          repositoryIds: ['repositoryA'],
+          parentId: 'REPOSITORY_CONTAINER_ID',
+        },
+        {
+          type: 'repository_manager',
+          id: 'repositoryManagerIdB',
+          name: 'managerNameB',
+          instanceId: 'managerInstanceIdB',
+          repositoryIds: ['repositoryB'],
+          parentId: 'REPOSITORY_CONTAINER_ID',
+        },
+      ]);
     });
 
     it('renders page with all elements on the table', () => {
       renderComponent();
-
       const repositories = [
         {
           managerLabel: screen.getByText('managerNameA'),
@@ -153,7 +186,7 @@ describe('RepositoriesConfigurationTile', () => {
           enablement: screen.getByText('Audit, Quarantine'),
         },
         {
-          managerLabel: screen.getByText('managerInstanceIdB'),
+          managerLabel: screen.getByText('managerNameB'),
           publicId: screen.getByText('repositoryNameB'),
           format: screen.getByText('npm'),
           repositoryType: screen.getByText('hosted'),
@@ -307,7 +340,11 @@ describe('RepositoriesConfigurationTile', () => {
       jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
       jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
       jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
-      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue('repositoryManagerId');
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: 'repositoryManagerId',
+        instanceId: 'managerInstanceId',
+        name: 'managerName',
+      });
     });
 
     it('renders default empty message', () => {
@@ -324,10 +361,15 @@ describe('RepositoriesConfigurationTile', () => {
       jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
       jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
       jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
-      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue('repositoryManagerId');
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: 'repositoryManagerId',
+        instanceId: 'managerInstanceId',
+        name: 'managerName',
+      });
       jest
         .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
         .mockReturnValue(groupBy(prop('managerInstanceId'))(reposAtManagerLevel));
+      jest.spyOn(ownerSideNavSelectors, 'selectRepoManagerOwnersEntries').mockReturnValue([]);
     });
 
     it('renders page with all elements on the table', () => {

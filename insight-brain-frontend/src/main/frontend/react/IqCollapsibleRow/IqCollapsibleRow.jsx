@@ -34,7 +34,9 @@ function CollapsibleRow({
 
   const EmptyMessage = () => (
     <NxTableRow className="iq-collapsible-row__empty-message">
-      <NxTableCell colSpan="100%">{noItemsMessage}</NxTableCell>
+      <NxTableCell className="nx-cell--meta-info" colSpan="100%">
+        {noItemsMessage}
+      </NxTableCell>
     </NxTableRow>
   );
 

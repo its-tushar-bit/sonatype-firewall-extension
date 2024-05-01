@@ -235,8 +235,9 @@ void pushMTIQDockerImage() {
       }
     }
 
-    // On `main` branch builds trigger the MTIQ job to bump the image version in the K8S deployment
-    if (isMainBuild) {
+    // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
+    def isSuccess = currentBuild.currentResult == 'SUCCESS'
+    if (isMainBuild && isSuccess) {
       build('job': '/insight/MTIQ/bump-mtiq-version',
           parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
           wait: false,

@@ -25,7 +25,9 @@ export default function PrioritiesPageRow({ component, onClick }) {
     priority,
     highestThreatPolicyName,
     highestThreatPolicyConstraintName,
+    securityReachable,
   } = component;
+
   const policyAction = action === 'none' ? null : action;
 
   return (
@@ -40,7 +42,9 @@ export default function PrioritiesPageRow({ component, onClick }) {
             {displayName}
           </div>
           <div className="iq-priorities-page-components__detail">
-            <NxTag className="iq-priorities-page-components__detail-tag">Security-Reachable</NxTag>
+            {securityReachable ? (
+              <NxTag className="iq-priorities-page-components__detail-tag">Security-Reachable</NxTag>
+            ) : null}
           </div>
         </div>
       </NxTable.Cell>

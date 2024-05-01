@@ -9,31 +9,45 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getPrioritiesPageTableData, getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
+
+const TABLE_PAGE_SIZE = 10;
 
 const loadTableDataRequested = (state) => {
   return {
     ...state,
-    tableData: null,
+    topPrioritiesData: null,
+    additionalPrioritiesData: null,
     loadingTableData: true,
     loadErrorTableData: null,
   };
 };
 
 const loadTableDataFulfilled = (state, { payload }) => {
+  const {
+    topPriorities,
+    additionalPriorities: { total, page, pageSize, pageCount, results },
+  } = payload;
   return {
     ...state,
-    tableData: payload,
+    topPrioritiesData: topPriorities,
+    additionalPrioritiesData: results,
     loadingTableData: false,
     loadErrorTableData: null,
+    pageSize,
+    pageCount,
+    page,
+    total,
   };
 };
 
 const loadTableDataFailed = (state, { payload }) => {
   return {
     ...state,
-    tableData: null,
+    topPrioritiesData: null,
+    additionalPrioritiesData: null,
     loadingTableData: false,
     loadErrorTableData: Messages.getHttpErrorMessage(payload),
   };
@@ -45,9 +59,10 @@ const loadTableData = createAsyncThunk(
     const state = getState();
     const { publicAppId, scanId } = selectRouterCurrentParams(state);
     const tableDataUrl = getPrioritiesPageTableData(publicAppId, scanId);
+    const { page } = selectPrioritiesPageSlice(state);
 
     return axios
-      .get(tableDataUrl)
+      .get(tableDataUrl, { params: { pageSize: TABLE_PAGE_SIZE, page } })
       .then(({ data }) => data)
       .catch(rejectWithValue);
   }
@@ -94,10 +109,18 @@ const loadMetadata = createAsyncThunk(
   }
 );
 
+const setPage = (state, { payload }) => {
+  return {
+    ...state,
+    page: payload + 1,
+    loadingTableData: true,
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState: () => initialState() },
+  reducers: { resetState: () => initialState(), setPage },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
@@ -110,12 +133,17 @@ const prioritiesPageSlice = createSlice({
 
 function initialState() {
   return {
-    tableData: null,
+    topPrioritiesData: null,
+    additionalPrioritiesData: null,
     loadingTableData: false,
     loadErrorTableData: null,
     metadata: null,
     loadingMetadata: false,
     loadErrorMetaData: null,
+    pageSize: TABLE_PAGE_SIZE,
+    pageCount: 1,
+    page: 1,
+    total: null,
   };
 }
 

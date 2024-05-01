@@ -14,10 +14,16 @@ import { faker } from '@faker-js/faker';
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
+const NUM_OF_RESULTS_TOP_PRIORITIES = 3;
+const NUM_OF_RESULTS_ADDITIONAL_PRIORITIES = 20;
+const PAGE_SIZE = 10;
+
+const mockData = generateMockData();
+const mockResponsePage1 = generateMockResponseByPage(1);
+const mockResponsePage2 = generateMockResponseByPage(2);
+
 describe('PrioritiesPageTable', () => {
   let renderComponent, stateGoSpy, axiosMock;
-
-  const mockResponse = generateMockResponse();
 
   const defaultPreloadedState = {
     router: {
@@ -36,7 +42,12 @@ describe('PrioritiesPageTable', () => {
     renderComponent = (preloadedState) =>
       render(<PrioritiesPageTable />, { preloadedState: preloadedState || defaultPreloadedState });
 
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(200, mockResponse);
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .reply(200, mockResponsePage1);
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 2 } })
+      .reply(200, mockResponsePage2);
   });
 
   it('makes correct network request', () => {
@@ -44,6 +55,7 @@ describe('PrioritiesPageTable', () => {
 
     expect(axiosMock.history.get.length).toBe(1);
     expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
 
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
@@ -63,7 +75,9 @@ describe('PrioritiesPageTable', () => {
   });
 
   it('renders an error within the table when network call fails', async () => {
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(500, 'Error');
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .reply(500, 'Error');
 
     renderComponent();
 
@@ -75,7 +89,9 @@ describe('PrioritiesPageTable', () => {
   });
 
   it('clicking the retry button on error alert makes correct network request', async () => {
-    axiosMock.onGet(getPrioritiesPageTableData(publicAppId, scanId)).reply(500, 'Error');
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .reply(500, 'Error');
 
     renderComponent();
 
@@ -84,12 +100,14 @@ describe('PrioritiesPageTable', () => {
 
     expect(axiosMock.history.get.length).toBe(1);
     expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
 
     const retryBtn = within(table).getByRole('button');
     fireEvent.click(retryBtn);
 
     expect(axiosMock.history.get.length).toBe(2);
     expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+    expect(axiosMock.history.get[1].params).toEqual({ pageSize: 10, page: 1 });
   });
 
   it('renders a table with 4 column headers', async () => {
@@ -160,7 +178,7 @@ describe('PrioritiesPageTable', () => {
       expect(table).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(7);
+      expect(rows.length).toBe(16);
 
       const accordions = screen.getAllByRole('group');
 
@@ -174,14 +192,14 @@ describe('PrioritiesPageTable', () => {
       expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'false');
 
       rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(4);
+      expect(rows.length).toBe(13);
 
       fireEvent.click(topPrioritiesAccordionTitle);
 
       expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'true');
 
       rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(7);
+      expect(rows.length).toBe(16);
     });
 
     it('"All Findings" accordion when clicked hides the all findings rows', async () => {
@@ -191,7 +209,7 @@ describe('PrioritiesPageTable', () => {
       expect(table).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(7);
+      expect(rows.length).toBe(16);
 
       const accordions = screen.getAllByRole('group');
 
@@ -212,7 +230,7 @@ describe('PrioritiesPageTable', () => {
       expect(allFindingsAccordion).toHaveAttribute('aria-expanded', 'true');
 
       rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(7);
+      expect(rows.length).toBe(16);
     });
   });
 
@@ -225,78 +243,176 @@ describe('PrioritiesPageTable', () => {
     const rows = screen.getAllByRole('row');
     // 1st row is header row, 2nd row is Top Priorities row, 3rd row is the first component row
     const firstComponentRow = rows[2];
-    const firstComponentHash = mockResponse[0].componentHash;
+    const firstComponentHash = mockResponsePage1.topPriorities[0].componentHash;
 
     const secondComponentRow = rows[3];
-    const secondComponentHash = mockResponse[1].componentHash;
+    const secondComponentHash = mockResponsePage1.topPriorities[1].componentHash;
 
     fireEvent.click(firstComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.violations', {
+    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.overview', {
       hash: firstComponentHash,
       publicId: publicAppId,
       scanId,
     });
 
     fireEvent.click(secondComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.violations', {
+    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.overview', {
       hash: secondComponentHash,
       publicId: publicAppId,
       scanId,
     });
   });
 
-  it('renders correct component information in the rows', async () => {
-    renderComponent();
+  describe('pagination', () => {
+    it('renders a pagination section', async () => {
+      renderComponent();
+      const paginationBtnBar = await screen.findByRole('navigation');
+      expect(paginationBtnBar).toBeInTheDocument();
+    });
 
-    for (let i = 0; i < mockResponse.length; i++) {
-      const {
-        priority,
-        displayName,
-        dependencyType,
-        highestThreat,
-        highestThreatPolicyName,
-        highestThreatPolicyConstraintName,
-        action,
-      } = mockResponse[i];
+    it('makes correct network requests when page is changed', async () => {
+      renderComponent();
+      expect(axiosMock.history.get.length).toBe(1);
+      expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
 
       const table = await screen.findByRole('table');
       expect(table).toBeInTheDocument();
 
-      const rows = screen.getAllByRole('row');
-      const row = rows[i + 2 + (i === 3 ? 1 : 0)]; //skip "all other findings" header row for 4th component info
-      const cells = within(row).getAllByRole('cell');
+      let pagination = await screen.findByRole('navigation');
+      expect(within(pagination).getAllByRole('button').length).toBe(3);
 
-      const priorityCell = cells[0];
-      expect(priorityCell).toHaveTextContent(priority);
+      const nextPageBtn = within(pagination).getByRole('button', { name: /goto next page/i });
+      expect(nextPageBtn).toBeInTheDocument();
 
-      const componentCell = cells[1];
-      expect(componentCell).toHaveTextContent(displayName);
-      expect(screen.getAllByTestId('dependency-type')[i]).toHaveTextContent(dependencyType.substring(0, 1));
+      fireEvent.click(nextPageBtn);
 
-      const policyCell = cells[2];
-      expect(policyCell).toHaveTextContent(highestThreat);
-      expect(policyCell).toHaveTextContent(highestThreatPolicyName);
-      expect(policyCell).toHaveTextContent(highestThreatPolicyConstraintName);
+      expect(axiosMock.history.get.length).toBe(2);
+      expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+      expect(axiosMock.history.get[1].params).toEqual({ pageSize: 10, page: 2 });
 
-      if (action !== 'none') {
-        expect(policyCell).toHaveTextContent(action);
-      }
+      await screen.findByRole('table');
+      pagination = await screen.findByRole('navigation');
 
-      //TODO
-      // const remediation = firstComponentCells[3];
-      // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
-      // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
-    }
+      const prevPageBtn = within(pagination).getByRole('button', { name: /goto previous page/i });
+      expect(prevPageBtn).toBeInTheDocument();
+
+      fireEvent.click(prevPageBtn);
+
+      expect(axiosMock.history.get.length).toBe(3);
+      expect(axiosMock.history.get[2].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+      expect(axiosMock.history.get[2].params).toEqual({ pageSize: 10, page: 1 });
+    });
+
+    it('correct data when page is changed', async () => {
+      renderComponent();
+
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
+
+      let pagination = await screen.findByRole('navigation');
+      expect(within(pagination).getAllByRole('button').length).toBe(3);
+
+      await assertCorrectDataRowsByTypeAndPage('topPriorities', 1);
+      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 1);
+
+      const nextPageBtn = within(pagination).getByRole('button', { name: /goto next page/i });
+      expect(nextPageBtn).toBeInTheDocument();
+
+      fireEvent.click(nextPageBtn);
+
+      pagination = await screen.findByRole('navigation');
+
+      await assertCorrectDataRowsByTypeAndPage('topPriorities', 2);
+      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 2);
+
+      const prevPageBtn = within(pagination).getByRole('button', { name: /goto previous page/i });
+      expect(prevPageBtn).toBeInTheDocument();
+
+      fireEvent.click(prevPageBtn);
+
+      await screen.findByRole('table');
+      pagination = await screen.findByRole('navigation');
+
+      await assertCorrectDataRowsByTypeAndPage('topPriorities', 1);
+      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 1);
+    }, 20000);
   });
 });
 
-function generateMockResponse() {
-  const response = [];
-  const NUM_OF_RESULTS = 4;
+async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
+  const mockResponse = page === 1 ? mockResponsePage1 : mockResponsePage2;
 
-  for (let i = 0; i < NUM_OF_RESULTS; i++) {
+  const {
+    topPriorities,
+    additionalPriorities: { results },
+  } = mockResponse;
+
+  const responseArrayToAssertAgainst = priorityType === 'topPriorities' ? topPriorities : results;
+  for (let i = 0; i < responseArrayToAssertAgainst.length; i++) {
+    const {
+      priority,
+      displayName,
+      dependencyType,
+      highestThreat,
+      highestThreatPolicyName,
+      highestThreatPolicyConstraintName,
+      action,
+      securityReachable,
+    } = responseArrayToAssertAgainst[i];
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    const rows = screen.getAllByRole('row');
+
+    /*
+     * for top priority rows, skip table header and "top priorities" accordion row
+     * for additional priority rows, skip table header, top priority accordion and data rows,
+     * and all other findings accordion row
+     */
+    const row = rows[i + (priorityType === 'topPriorities' ? 2 : 6)];
+    const cells = within(row).getAllByRole('cell');
+
+    const priorityCell = cells[0];
+    expect(priorityCell).toHaveTextContent(priority);
+
+    const componentCell = cells[1];
+    expect(componentCell).toHaveTextContent(displayName);
+
+    /*
+     * for additional priority rows skip top priority data rows,
+     */
+    expect(screen.getAllByTestId('dependency-type')[i + (priorityType === 'topPriorities' ? 0 : 3)]).toHaveTextContent(
+      dependencyType.substring(0, 1)
+    );
+
+    if (securityReachable) {
+      expect(componentCell).toHaveTextContent('Security-Reachable');
+    }
+
+    const policyCell = cells[2];
+    expect(policyCell).toHaveTextContent(highestThreat);
+    expect(policyCell).toHaveTextContent(highestThreatPolicyName);
+    expect(policyCell).toHaveTextContent(highestThreatPolicyConstraintName);
+
+    if (action !== 'none') {
+      expect(policyCell).toHaveTextContent(action);
+    }
+
+    //TODO
+    // const remediation = firstComponentCells[3];
+    // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
+    // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
+  }
+}
+
+function generateMockData() {
+  const topPriorities = [];
+  const additionalPriorities = [];
+
+  const createEntry = (list, index) => {
     const hasFail = faker.datatype.boolean();
-    response.push({
+    list.push({
       displayName: faker.lorem.word(1),
       componentHash: faker.git.commitSha(),
       dependencyType: faker.helpers.arrayElement(['Direct', 'Transitive', 'Inner Source']),
@@ -305,9 +421,36 @@ function generateMockResponse() {
       highestThreat: faker.datatype.number({ min: 0, max: 10 }),
       highestThreatPolicyName: faker.lorem.slug(),
       highestThreatPolicyConstraintName: faker.lorem.sentence(),
-      priority: i,
+      priority: index,
+      securityReachable: faker.datatype.boolean(),
     });
+  };
+
+  for (let i = 1; i <= NUM_OF_RESULTS_TOP_PRIORITIES; i++) {
+    createEntry(topPriorities, i);
   }
 
-  return response;
+  for (let i = NUM_OF_RESULTS_TOP_PRIORITIES + 1; i <= NUM_OF_RESULTS_ADDITIONAL_PRIORITIES; i++) {
+    createEntry(additionalPriorities, i);
+  }
+
+  return {
+    topPriorities,
+    additionalPriorities,
+  };
+}
+
+function generateMockResponseByPage(page) {
+  const { topPriorities, additionalPriorities } = mockData;
+
+  return {
+    topPriorities,
+    additionalPriorities: {
+      total: NUM_OF_RESULTS_ADDITIONAL_PRIORITIES,
+      page,
+      pageSize: PAGE_SIZE,
+      pageCount: Math.floor(NUM_OF_RESULTS_ADDITIONAL_PRIORITIES / PAGE_SIZE),
+      results: additionalPriorities.slice((page - 1) * 10, page * 10),
+    },
+  };
 }

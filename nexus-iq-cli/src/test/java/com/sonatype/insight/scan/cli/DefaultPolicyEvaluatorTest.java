@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.label.Label;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ArtifactId;
 import com.sonatype.insight.scan.model.Dependency;
 import com.sonatype.insight.scan.model.DirectoryScanItem;
@@ -346,6 +348,24 @@ public abstract class DefaultPolicyEvaluatorTest
         .expectInfoLog("The detailed report can be viewed online at " + insightServerUrl
             + "ui/links/application/the-app-id/report/SCAN-ID")
         .doPolicyEvaluationRun();
+  }
+
+  @Test
+  public void testRun_PrioritiesUrl() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+    SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.setEnabled(true);
+
+    Set<LicensedFeature> features = new HashSet<>(testProductLicense.getFeatures());
+    features.add(LicensedFeature.DEVELOPER_DASHBOARD);
+    setFeatures(features.toArray(new LicensedFeature[0]));
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+            "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+            "src/test/data/artifact.jar");
+    withTestRunner(params)
+            .expectInfoLog("The detailed report can be viewed online at " + insightServerUrl
+                    + "assets/#/development/priorities/the-app-id/SCAN-ID")
+            .doPolicyEvaluationRun();
   }
 
   @Test

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.landing;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.service.InsightBrainService;
+
 public class UserInterfaceLinksHelper
 {
   public static final String RESOURCE_PATH = "ui/links";
@@ -26,6 +28,8 @@ public class UserInterfaceLinksHelper
   public static final String EMBEDDABLE_REPORT_PATH = "application/{applicationPublicId}/report/{scanId}/embeddable";
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
+
+  public static final String PRIORITIES_PATH = "/development/priorities/{applicationPublicId}/{scanId}";
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 
@@ -134,5 +138,17 @@ public class UserInterfaceLinksHelper
    */
   public static String getSBOMBillOfMaterialPath(String applicationPublicId, String version) {
     return buildStableUrl(SBOM_BOM_VIEW_PATH, applicationPublicId, version);
+  }
+
+  /**
+   * Gets the URL to the priorities report given an appId, and a scanId
+   *
+   * @since 1.176
+   */
+  public static String getPrioritiesUrl(String applicationPublicId, String scanId) {
+    return UriBuilder.fromPath(InsightBrainService.BRAIN_ASSET_PATH)
+        .fragment(PRIORITIES_PATH)
+        .build(applicationPublicId, scanId)
+        .toString();
   }
 }

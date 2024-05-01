@@ -6,6 +6,7 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -35,7 +36,7 @@ public abstract class PolicyEvaluator<P extends Parameters>
       PolicyAction outcome,
       RestClient restClient) throws ExitException
   {
-    String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
+    String reportUrl = getReportUrl(restClient, receipt, params);
 
     saveResultFile(params, restClient, receipt, eval, outcome);
 
@@ -80,6 +81,24 @@ public abstract class PolicyEvaluator<P extends Parameters>
         throw new ExitException(params.isIgnoreSystemErrors(), e);
       }
     }
+  }
+
+  private String getReportUrl(RestClient restClient, ScanReceipt receipt, Parameters params) {
+    boolean isDevelopmentDashboardEnabled = false;
+    boolean isPrioritizedFindingsReportEnabled = false;
+
+    try {
+      Set<String> licensedFeatures = restClient.getLicensedFeatures();
+      isDevelopmentDashboardEnabled = licensedFeatures.contains("developer-dashboard");
+      isPrioritizedFindingsReportEnabled = licensedFeatures.contains("prioritized-findings-report");
+    }
+    catch (IOException e) {
+      log.error("An error occurred while trying to validate the enabled features", e);
+    }
+
+    return isDevelopmentDashboardEnabled && isPrioritizedFindingsReportEnabled
+            ? receipt.resolvePrioritiesUrl(params.getServerUrl())
+            : receipt.resolveReportUrl(params.getServerUrl());
   }
 
   @Override

@@ -6,8 +6,10 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { reduce, keys, values } from 'ramda';
-import { NxH2, NxH3, NxLoadWrapper, NxTile, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
+import { NxH2, NxH3, NxTile, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { ResponsivePie } from '@nivo/pie';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import './VulnerabilitiesByThreatLevelTile.scss';
 
@@ -116,15 +118,15 @@ export default function VulnerabilitiesByThreatLevelTile() {
   const chartData = Object.keys(data).map((threat) => ({ id: threat, label: threat, value: data[threat].unannotated }));
 
   return (
-    <NxLoadWrapper retryHandler={doLoad}>
-      <NxTile id="vulnerabilities-by-threat-level-tile" className="sbom-manager-vulnerabilities-by-threat-level-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Vulnerabilities by Threat Level</NxH2>
-            <NxH3>(all time)</NxH3>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="vulnerabilities-by-threat-level-tile" className="sbom-manager-vulnerabilities-by-threat-level-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>Vulnerabilities by Threat Level</NxH2>
+          <NxH3>(all time)</NxH3>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={doLoad} error={null}>
           <ul className="sbom-manager-vulnerabilities-by-threat-level-list">
             <li className="sbom-manager-vulnerabilities-by-threat-level-list__item">
               <span>Total:</span>
@@ -144,8 +146,8 @@ export default function VulnerabilitiesByThreatLevelTile() {
           <div className="sbom-manager-vulnerabilities-by-threat-level-tile__action">
             <NxTextLink href="#">View Applications by most vulnerabilities</NxTextLink>
           </div>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

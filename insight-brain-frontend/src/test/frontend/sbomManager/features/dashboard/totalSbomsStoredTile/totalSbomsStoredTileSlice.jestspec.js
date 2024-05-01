@@ -13,7 +13,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
     it('/pending', () => {
       const state = {
         loading: true,
-        errorMessage: null,
+        loadError: null,
         total: null,
         threshold: null,
       };
@@ -23,7 +23,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
       });
 
       expect(newState.loading).toBe(true);
-      expect(newState.errorMessage).toBe(null);
+      expect(newState.loadError).toBe(null);
       expect(newState.total).toBe(null);
       expect(newState.threshold).toBe(null);
     });
@@ -31,7 +31,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
     it('/failed', () => {
       const state = {
         loading: true,
-        errorMessage: null,
+        loadError: null,
         total: null,
         threshold: null,
       };
@@ -47,7 +47,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
         payload: payload,
       });
 
-      expect(newState.errorMessage).toBe('payload error');
+      expect(newState.loadError).toEqual({ response: { data: 'payload error' } });
       expect(newState.loading).toBe(false);
       expect(newState.total).toBe(null);
       expect(newState.threshold).toBe(null);
@@ -56,7 +56,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
     it('/fulfilled', () => {
       const state = {
         loading: true,
-        errorMessage: null,
+        loadError: null,
         total: null,
         threshold: null,
       };
@@ -67,7 +67,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
       });
 
       expect(newState.loading).toBe(false);
-      expect(newState.errorMessage).toBe(null);
+      expect(newState.loadError).toBe(null);
       expect(newState.total).toBe(123);
       expect(newState.threshold).toBe(246);
     });
@@ -77,7 +77,7 @@ describe('totalSbomsStoredTile reducers have the correct state when the followin
     it('clears state on onFinish', () => {
       const state = Object.freeze({
         loading: false,
-        errorMessage: null,
+        loadError: null,
         total: 123,
         threshold: 246,
       });

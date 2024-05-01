@@ -16,7 +16,7 @@ describe('TotalSbomsStoredTile', () => {
       sbomManagerDashboard: {
         totalSbomsStoredTile: {
           loading: true,
-          errorMessage: null,
+          loadError: null,
           total: null,
           threshold: null,
         },
@@ -34,9 +34,8 @@ describe('TotalSbomsStoredTile', () => {
     });
     renderTile();
 
-    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
-
     expect(await screen.findByRole('heading', { name: /Total SBOMs Stored/i })).toBeVisible();
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     expect(screen.getByTestId('total-sboms-stored-tile-progress-label')).toHaveTextContent('SBOM License Usage');
     expect(screen.getByTestId('total-sboms-stored-tile-total')).toHaveTextContent('1,234(all time)');
@@ -48,7 +47,7 @@ describe('TotalSbomsStoredTile', () => {
     const axiosMock = axiosMockAdapter();
     axiosMock.onGet(getTotalSbomsAnalyzedUrl()).reply(500, 'some error');
     renderTile();
-    const error = await screen.findAllByRole('alert', /An error occurred loading data. some error/i);
-    expect(error[0]).toBeVisible();
+    const error = await screen.findByText(/An error occurred loading data. some error/i);
+    expect(error).toBeVisible();
   });
 });

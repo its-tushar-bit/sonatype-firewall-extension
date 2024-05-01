@@ -7,7 +7,6 @@ import React from 'react';
 import {
   NxFontAwesomeIcon,
   NxH2,
-  NxLoadWrapper,
   NxTextLink,
   NxThreatIndicator,
   NxTile,
@@ -15,6 +14,8 @@ import {
 } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import moment from 'moment';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import './HighPriorityVulnerabilitiesTile.scss';
 
@@ -90,23 +91,23 @@ export default function HighPriorityVulnerabilitiesTile() {
   ));
 
   return (
-    <NxLoadWrapper retryHandler={doLoad}>
-      <NxTile id="high-priority-vulnerabilities-tile" className="sbom-manager-high-priority-vulnerabilities-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>High Priority Vulnerabilities</NxH2>
-            <NxTooltip title="High severity vulnerabilities found in the most recent SBOM scans or import.">
-              <NxFontAwesomeIcon
-                icon={faInfoCircle}
-                className="sbom-manager-high-priority-vulnerabilities-tile__info-icon"
-              />
-            </NxTooltip>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="high-priority-vulnerabilities-tile" className="sbom-manager-high-priority-vulnerabilities-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>High Priority Vulnerabilities</NxH2>
+          <NxTooltip title="High severity vulnerabilities found in the most recent SBOM scans or import.">
+            <NxFontAwesomeIcon
+              icon={faInfoCircle}
+              className="sbom-manager-high-priority-vulnerabilities-tile__info-icon"
+            />
+          </NxTooltip>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={doLoad} error={null}>
           <ol className="sbom-manager-high-priority-vulnerabilities-tile-list">{vulnerabilityItems}</ol>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

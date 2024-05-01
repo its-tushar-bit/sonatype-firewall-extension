@@ -6,7 +6,9 @@
 import { combineReducers } from 'redux';
 
 import totalSbomsStoredTileSlice from './totalSbomsStoredTile/totalSbomsStoredTileSlice';
+import applicationsHistoryTileSlice from './applicationsHistoryTile/applicationsHistoryTileSlice';
 
 export default combineReducers({
   totalSbomsStoredTile: totalSbomsStoredTileSlice,
+  applicationsHistoryTile: applicationsHistoryTileSlice,
 });

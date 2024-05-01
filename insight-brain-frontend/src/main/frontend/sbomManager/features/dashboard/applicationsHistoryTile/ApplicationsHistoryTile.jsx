@@ -3,39 +3,48 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import {
-  NxTile,
-  NxH2,
-  NxLoadWrapper,
-  NxTextLink,
-  NxTooltip,
-  NxFontAwesomeIcon,
-} from '@sonatype/react-shared-components';
+import React, { useEffect } from 'react';
+import { NxTile, NxH2, NxTooltip, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { useDispatch, useSelector } from 'react-redux';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import { formatNumberLocale } from 'MainRoot/util/formatUtils';
+import { selectApplicationsHistoryTile } from './applicationsHistoryTileSelectors';
+import { actions } from './applicationsHistoryTileSlice';
 
 import './ApplicationsHistoryTile.scss';
 
 export default function ApplicationsHistoryTile() {
-  const doLoad = () => {};
+  const dispatch = useDispatch();
 
-  const totalScannedApplications = 18528;
-  const applicationsUpdatedLastYear = 18528;
-  const applicationsUpdatedLastMonth = 18528;
-  const applicationsUpdatedLastWeek = 18528;
+  const {
+    loading,
+    loadError,
+    totalScannedApplications,
+    applicationsUpdatedLastYear,
+    applicationsUpdatedLastMonth,
+    applicationsUpdatedLastWeek,
+  } = useSelector(selectApplicationsHistoryTile);
+
+  const load = () => dispatch(actions.loadApplicationsHistory());
+
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
-    <NxLoadWrapper retryHandler={doLoad}>
-      <NxTile id="applications-history-tile" className="sbom-manager-applications-history-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Applications History</NxH2>
-            <NxTooltip title="Track the number of applications with updated SBOMs.">
-              <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-applications-history-tile__info-icon" />
-            </NxTooltip>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="applications-history-tile" className="sbom-manager-applications-history-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>Applications History</NxH2>
+          <NxTooltip title="Track the number of applications with updated SBOMs.">
+            <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-applications-history-tile__info-icon" />
+          </NxTooltip>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={() => load()} loading={loading} error={loadError}>
           <dl className="sbom-manager-applications-history-tile-list">
             <dt className="sbom-manager-applications-history-tile-list__label">
               Total scanned appplications (all time)
@@ -43,40 +52,48 @@ export default function ApplicationsHistoryTile() {
             <dd
               id="applications-history-tile-total-scanned-applications"
               className="sbom-manager-applications-history-tile-list__value"
+              data-testid="applications-history-tile-total-scanned-applications"
             >
-              {totalScannedApplications.toLocaleString('en-US')}
+              {formatNumberLocale(totalScannedApplications)}
             </dd>
 
             <dt className="sbom-manager-applications-history-tile-list__label">Applications updated last year</dt>
             <dd
               id="applications-history-tile-applications-updated-last-year"
               className="sbom-manager-applications-history-tile-list__value"
+              data-testid="applications-history-tile-applications-updated-last-year"
             >
-              {applicationsUpdatedLastYear.toLocaleString('en-US')}
+              {formatNumberLocale(applicationsUpdatedLastYear)}
             </dd>
 
             <dt className="sbom-manager-applications-history-tile-list__label">Applications updated last month</dt>
             <dd
               id="applications-history-tile-applications-updated-last-month"
               className="sbom-manager-applications-history-tile-list__value"
+              data-testid="applications-history-tile-applications-updated-last-month"
             >
-              {applicationsUpdatedLastMonth.toLocaleString('en-US')}
+              {formatNumberLocale(applicationsUpdatedLastMonth)}
             </dd>
 
             <dt className="sbom-manager-applications-history-tile-list__label">Applications updated last week</dt>
             <dd
               id="applications-history-tile-applications-updated-last-week"
               className="sbom-manager-applications-history-tile-list__value"
+              data-testid="applications-history-tile-applications-updated-last-week"
             >
-              {applicationsUpdatedLastWeek.toLocaleString('en-US')}
+              {formatNumberLocale(applicationsUpdatedLastWeek)}
             </dd>
           </dl>
-          <hr className="nx-divider" />
-          <div className="sbom-manager-applications-history-tile__action">
-            <NxTextLink href="#">View Latest Application Versions</NxTextLink>
-          </div>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+          {/*
+            Hidden until CLM-29412 is implemented
+
+            <hr className="nx-divider" />
+            <div className="sbom-manager-applications-history-tile__action">
+              <NxTextLink href="#">View Latest Application Versions</NxTextLink>
+            </div>
+          */}
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

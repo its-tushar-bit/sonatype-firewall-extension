@@ -4,14 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxH2,
-  NxLoadWrapper,
-  NxSmallThreatCounter,
-  NxTable,
-  NxTextLink,
-  NxTile,
-} from '@sonatype/react-shared-components';
+import { NxH2, NxSmallThreatCounter, NxTable, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import './RecentlyImportedSbomsTile.scss';
 
@@ -53,14 +48,14 @@ export default function RecentlyImportedSboms() {
   ));
 
   return (
-    <NxLoadWrapper retryHandler={doLoad}>
-      <NxTile id="recently-imported-sboms-tile" className="sbom-manager-recently-imported-sboms-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Recently Imported SBOMs</NxH2>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="recently-imported-sboms-tile" className="sbom-manager-recently-imported-sboms-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>Recently Imported SBOMs</NxH2>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={doLoad} error={null}>
           <NxTable id="recently-imported-sboms-tile-table">
             <NxTable.Head>
               <NxTable.Row>
@@ -75,8 +70,8 @@ export default function RecentlyImportedSboms() {
             </NxTable.Head>
             <NxTable.Body>{sbomsRows}</NxTable.Body>
           </NxTable>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

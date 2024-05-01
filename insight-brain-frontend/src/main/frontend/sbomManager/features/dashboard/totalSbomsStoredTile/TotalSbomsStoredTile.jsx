@@ -4,14 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import {
-  NxFontAwesomeIcon,
-  NxH2,
-  NxLoadWrapper,
-  NxProgressBar,
-  NxTile,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxH2, NxProgressBar, NxTile, NxTooltip } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
@@ -20,11 +13,13 @@ import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 import { selectTotalSbomsStoredTile } from './totalSbomsStoredTileSelectors';
 import { actions } from './totalSbomsStoredTileSlice';
 
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+
 import './TotalSbomsStoredTile.scss';
 
 export default function TotalSbomsStoredTile() {
   const dispatch = useDispatch();
-  const { loading, total, threshold, errorMessage } = useSelector(selectTotalSbomsStoredTile);
+  const { loading, total, threshold, loadError } = useSelector(selectTotalSbomsStoredTile);
   const load = () => dispatch(actions.loadTotalSbomsStored());
 
   useEffect(() => {
@@ -39,17 +34,17 @@ export default function TotalSbomsStoredTile() {
   });
 
   return (
-    <NxLoadWrapper retryHandler={() => load()} loading={loading} error={errorMessage}>
-      <NxTile id="total-sboms-stored-tile" className="sbom-manager-total-sboms-stored-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Total SBOMs Stored</NxH2>
-            <NxTooltip title="Each application version counts toward the total SBOMs Analyzed.">
-              <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-total-sboms-stored-tile__info-icon" />
-            </NxTooltip>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="total-sboms-stored-tile" className="sbom-manager-total-sboms-stored-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>Total SBOMs Stored</NxH2>
+          <NxTooltip title="Each application version counts toward the total SBOMs Analyzed.">
+            <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-total-sboms-stored-tile__info-icon" />
+          </NxTooltip>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={() => load()} loading={loading} error={loadError}>
           <div className="sbom-manager-total-sboms-stored-tile__total" data-testid="total-sboms-stored-tile-total">
             <span>{formatNumberLocale(total)}</span>
             <span>(all time)</span>
@@ -90,8 +85,8 @@ export default function TotalSbomsStoredTile() {
               </div>
             </div>
           </div>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

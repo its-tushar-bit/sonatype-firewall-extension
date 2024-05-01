@@ -13,7 +13,7 @@ const REDUCER_NAME = 'totalSbomsStoredTile';
 
 export const initialState = {
   loading: true,
-  errorMessage: null,
+  loadError: null,
   total: null,
   threshold: null,
 };
@@ -25,7 +25,7 @@ const loadTotalSbomsStoredRequested = (state) => {
 };
 
 const loadTotalSbomsStoredFailed = (state, { payload }) => {
-  state.errorMessage = payload.response.data;
+  state.loadError = payload;
   state.loading = false;
   state.total = null;
   state.threshold = null;
@@ -33,7 +33,7 @@ const loadTotalSbomsStoredFailed = (state, { payload }) => {
 
 const loadTotalSbomsStoredFulfilled = (state, { payload }) => {
   state.loading = false;
-  state.errorMessage = null;
+  state.loadError = null;
   state.total = payload.total;
   state.threshold = payload.threshold;
 };

@@ -776,6 +776,12 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getSbomsHistoryUrl', function () {
+    it('should return the url for getting SBOMs history', function () {
+      expect(CLMLocation.getSbomsHistoryUrl()).toBe('/api/v2/sbom/dashboard/sbomsHistoryMetrics');
+    });
+  });
+
   describe('getExportCycloneDx', function () {
     it('should return SBOM url', () => {
       expect(CLMLocation.getExportCycloneDxUrl('applicationId', 'scanId')).toBe(

@@ -4,18 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxFontAwesomeIcon,
-  NxH2,
-  NxH3,
-  NxLoadWrapper,
-  NxProgressBar,
-  NxTile,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxH2, NxH3, NxProgressBar, NxTile, NxTooltip } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { faInfoCircle, faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import './SbomReleaseStatusTile.scss';
 
@@ -56,25 +50,25 @@ export default function SbomReleaseStatusTile() {
   const doLoad = () => {};
 
   return (
-    <NxLoadWrapper retryHandler={doLoad}>
-      <NxTile id="sbom-release-status-tile" className="sbom-manager-sbom-release-status-tile">
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>SBOM Release Status</NxH2>
-            <NxH3>(all time)</NxH3>
-            <NxTooltip title="Shows breakdown of SBOMs based on the annotations completed.">
-              <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-sbom-release-status-tile__info-icon" />
-            </NxTooltip>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
+    <NxTile id="sbom-release-status-tile" className="sbom-manager-sbom-release-status-tile">
+      <NxTile.Header>
+        <NxTile.HeaderTitle>
+          <NxH2>SBOM Release Status</NxH2>
+          <NxH3>(all time)</NxH3>
+          <NxTooltip title="Shows breakdown of SBOMs based on the annotations completed.">
+            <NxFontAwesomeIcon icon={faInfoCircle} className="sbom-manager-sbom-release-status-tile__info-icon" />
+          </NxTooltip>
+        </NxTile.HeaderTitle>
+      </NxTile.Header>
+      <NxTile.Content>
+        <LoadWrapper retryHandler={doLoad} error={null}>
           <div className="sbom-manager-sbom-release-status-tile__progress-bars">
             <SbomRelaseStatusProgressBar sbomCount={20} status="Not Started" />
             <SbomRelaseStatusProgressBar sbomCount={20} status="Partially Annotated" />
             <SbomRelaseStatusProgressBar sbomCount={20} status="Release Ready" />
           </div>
-        </NxTile.Content>
-      </NxTile>
-    </NxLoadWrapper>
+        </LoadWrapper>
+      </NxTile.Content>
+    </NxTile>
   );
 }

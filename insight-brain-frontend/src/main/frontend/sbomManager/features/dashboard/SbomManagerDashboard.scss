@@ -12,7 +12,7 @@
     'vulnerabilities-by-threat-level high-priority-vulnerabilities' min-content
     'sbom-release-status sbom-release-status' min-content
     'recently-imported-sboms recently-imported-sboms' min-content
-    / 50% 50%;
+    / 50% 1fr;
   max-width: 1200px;
 
   .nx-tile {

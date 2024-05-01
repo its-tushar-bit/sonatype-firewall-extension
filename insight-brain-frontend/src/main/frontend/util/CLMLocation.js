@@ -1426,6 +1426,8 @@ export const getPrioritiesPageTableData = (applicationId, scanId) =>
 
 export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsAnalyzed`;
 
+export const getSbomsHistoryUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsHistoryMetrics`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

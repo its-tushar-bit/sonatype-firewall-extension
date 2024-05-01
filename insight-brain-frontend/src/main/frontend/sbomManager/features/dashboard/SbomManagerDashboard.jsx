@@ -13,7 +13,7 @@ import {
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import TotalSbomsStoredTile from './totalSbomsStoredTile/TotalSbomsStoredTile';
-// import ApplicationsHistoryTile from './applicationsHistoryTile/ApplicationsHistoryTile';
+import ApplicationsHistoryTile from './applicationsHistoryTile/ApplicationsHistoryTile';
 // import VulnerabilitiesByThreatLevelTile from './vulnerabilitiesByThreatLevelTile/VulnerabilitiesByThreatLevelTile';
 // import HighPriorityVulnerabilitiesTile from './highPriorityVulnerabilitiesTile/HighPriorityVulnerabilitiesTile';
 // import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
@@ -41,12 +41,12 @@ export default function SbomManagerDashboard() {
           </NxPageTitle>
           <div className="sbom-manager-dashboard-tiles">
             <TotalSbomsStoredTile />
+            <ApplicationsHistoryTile />
             {/*
               CLM-30199
               Incomplete dashboard tiles are hidden
               until they are implemented.
 
-              <ApplicationsHistoryTile />
               <VulnerabilitiesByThreatLevelTile />
               <HighPriorityVulnerabilitiesTile />
               <SbomReleaseStatusTile />

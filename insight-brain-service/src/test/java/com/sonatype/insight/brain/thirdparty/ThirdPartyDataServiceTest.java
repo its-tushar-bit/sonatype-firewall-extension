@@ -834,8 +834,7 @@ public class ThirdPartyDataServiceTest
     tpVuln1.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
-    ThirdPartyCoordinateSecurity tpVuln2 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2, "CVE-2022-38013", "description1", "link1",
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2, "CVE-2022-38013", "description1", "link1",
             1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
             "advisories1", "SBOM");
 

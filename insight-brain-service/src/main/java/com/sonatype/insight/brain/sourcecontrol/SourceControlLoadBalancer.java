@@ -156,11 +156,10 @@ public class SourceControlLoadBalancer
   }
 
   private boolean tryGetMaintenanceLock() {
-    return TenantThreadLocal.runAsGlobal(() -> perpetualLockManager.tryAcquireLock(
+    return perpetualLockManager.tryAcquireLock(
         SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK,
         SOURCE_CONTROL_MAINTENANCE_CATEGORY,
         getInstanceId(),
-        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS)
-    );
+        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
   }
 }

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -39,10 +40,9 @@ import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
-import com.sonatype.insight.IdentificationSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
@@ -81,7 +81,7 @@ import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.SpdxNoAssertionLicense;
 import org.spdx.library.model.license.SpdxNoneLicense;
 
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 
 public class SpdxResultHandler
     extends SbomResultHandler
@@ -135,13 +135,14 @@ public class SpdxResultHandler
       final ThirdPartyFile thirdPartyFile,
       final List<ProjectScanItem> moduleDependencies) throws InvalidSPDXAnalysisException
   {
-    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(contentPath));
+    String thirdPartyIdentificationSource =
+        getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       String rootPackageId = collectFilteredMetadata(spdxDocument, targetBom);
       Map<String, String> componentRefs = new HashMap<>();
-      processComponents(
-          spdxDocument, targetBom, componentRefs, rootPackageId, identificationSource, thirdPartyFile, tx);
+      processComponents(spdxDocument, targetBom, componentRefs, rootPackageId, thirdPartyIdentificationSource,
+          thirdPartyFile, tx);
       tx.commit();
     }
     processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
@@ -152,7 +153,7 @@ public class SpdxResultHandler
       final Bom targetBom,
       final Map<String, String> componentRefs,
       final String rootPackageId,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final ThirdPartyFile thirdPartyFile,
       final TransactionContext tx) throws InvalidSPDXAnalysisException
   {
@@ -161,8 +162,8 @@ public class SpdxResultHandler
       Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
       for (ModelObject item : items) {
         SpdxPackage spdxPackage = (SpdxPackage) item;
-        processSpdxPackage(spdxPackage, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents,
-            componentRefs, rootPackageId, tx);
+        processSpdxPackage(spdxPackage, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
+            resolvedComponents, componentRefs, rootPackageId, tx);
       }
     }
   }
@@ -179,7 +180,7 @@ public class SpdxResultHandler
       final SpdxPackage spdxPackage,
       final String thirdPartyFileId,
       final Bom targetBom,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final Set<ComponentIdentifier> resolvedComponents,
       final Map<String, String> componentRefs,
       final String rootPackageId,
@@ -197,7 +198,7 @@ public class SpdxResultHandler
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
-              saveComponent(thirdPartyFileId, identificationSource, spdxPackage, resolvedComponent, tx);
+              saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, spdxPackage, resolvedComponent, tx);
           if (StringUtils.isNotBlank(spdxPackage.getId())) {
             componentRefs.put(spdxPackage.getId(), coordinateId);
           }
@@ -217,7 +218,7 @@ public class SpdxResultHandler
 
   private String saveComponent(
       final String thirdPartyFileId,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final SpdxPackage spdxPackage,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final TransactionContext tx) throws InvalidSPDXAnalysisException, JsonProcessingException
@@ -234,7 +235,7 @@ public class SpdxResultHandler
     }
 
     String hash = getOrCreateFakeHash(component, componentIdentifier);
-    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, thirdPartyIdentificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     if (component.getCpe() != null) {
@@ -664,16 +665,17 @@ public class SpdxResultHandler
 
   @VisibleForTesting
   @Override
-  String determineIdentificationSource(final String contentPath) {
+  String determineThirdPartyIdentificationSource(final String contentPath) {
     String fileName = StringUtils.contains(contentPath, "/") ?
         StringUtils.substringAfterLast(contentPath, "/") : contentPath;
-    String identificationSource = RegExUtils.removePattern(fileName, "\\.(?i)spdx\\.(xml|json)(?i)$");
-    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "spdx.xml") ||
-        StringUtils.endsWithIgnoreCase(identificationSource, "spdx.json")) {
+    String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName, "\\.(?i)spdx\\.(xml|json)(?i)$");
+    if (StringUtils.isBlank(thirdPartyIdentificationSource) ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.xml") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json")) {
       return "Third-Party";
     }
     else {
-      return identificationSource;
+      return thirdPartyIdentificationSource;
     }
   }
 

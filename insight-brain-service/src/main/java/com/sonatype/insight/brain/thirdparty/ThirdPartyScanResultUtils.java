@@ -34,7 +34,7 @@ public class ThirdPartyScanResultUtils
 
   public static final int REFID_MAX_LENGTH = 255;
 
-  public static final int IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
+  public static final int THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
   
   public static final int PURL_MAX_LENGTH = 1000;
 
@@ -108,8 +108,8 @@ public class ThirdPartyScanResultUtils
     return StringUtils.truncate(refId, REFID_MAX_LENGTH);
   }
 
-  public static String getTruncatedIdentificationSource(String identificationSource) {
-    return StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH);
+  public static String getTruncatedThirdPartyIdentificationSource(String source) {
+    return StringUtils.truncate(source, THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH);
   }
 
   public static String getTruncatedPurl(String purl) {

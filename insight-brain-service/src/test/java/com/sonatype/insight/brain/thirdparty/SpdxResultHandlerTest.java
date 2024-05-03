@@ -17,21 +17,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
 
@@ -418,14 +418,14 @@ public class SpdxResultHandlerTest
   }
 
   @Test
-  public void testDetermineIdentificationSource() {
-    assertThat(spdxResultHandler.determineIdentificationSource("abcd.spdx.xml")).isEqualTo("abcd");
-    assertThat(spdxResultHandler.determineIdentificationSource("ABCD123.SPDX.XmL")).isEqualTo("ABCD123");
-    assertThat(spdxResultHandler.determineIdentificationSource("sub/dir/abcd.spdx.xml")).isEqualTo("abcd");
-    assertThat(spdxResultHandler.determineIdentificationSource("ABCD-SPDX.json")).isEqualTo("Third-Party");
-    assertThat(spdxResultHandler.determineIdentificationSource("abcdspdx.xml")).isEqualTo("Third-Party");
-    assertThat(spdxResultHandler.determineIdentificationSource("")).isEqualTo("Third-Party");
-    assertThat(spdxResultHandler.determineIdentificationSource(null)).isEqualTo("Third-Party");
+  public void testDetermineThirdPartyIdentificationSource() {
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("abcd.spdx.xml")).isEqualTo("abcd");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("ABCD123.SPDX.XmL")).isEqualTo("ABCD123");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("sub/dir/abcd.spdx.xml")).isEqualTo("abcd");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("ABCD-SPDX.json")).isEqualTo("Third-Party");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("abcdspdx.xml")).isEqualTo("Third-Party");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource("")).isEqualTo("Third-Party");
+    assertThat(spdxResultHandler.determineThirdPartyIdentificationSource(null)).isEqualTo("Third-Party");
   }
 
   @Test

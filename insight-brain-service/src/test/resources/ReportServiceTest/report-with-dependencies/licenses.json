@@ -1,0 +1,42 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Identity.Client.Extensions.Msal",
+        "version" : "2.23.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "00603c85922bf35d8edd",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1659649523043,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Identity.Client.Extensions.Msal"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.23.0"
+      } ],
+      "name" : "Microsoft.Identity.Client.Extensions.Msal"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

@@ -71,6 +71,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "identification_sources")
   private String identificationSources;
 
+  @Column(name = "dependency_type")
+  private String dependencyType;
+
   @Override
   public String getId() {
     return id;
@@ -159,5 +162,22 @@ public class ThirdPartyFileCoordinate
 
   public void setIdentificationSources(String identificationSources) {
     this.identificationSources = identificationSources;
+  }
+
+  public void addIdentificationSource(String identificationSource) {
+    if (this.identificationSources == null) {
+      setIdentificationSources(identificationSource);
+    }
+    else if (!this.identificationSources.contains(identificationSource)) {
+      setIdentificationSources(this.identificationSources + "," + identificationSource);
+    }
+  }
+
+  public String getDependencyType() {
+    return dependencyType;
+  }
+
+  public void setDependencyType(String dependencyType) {
+    this.dependencyType = dependencyType;
   }
 }

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -85,6 +86,9 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  @Inject
+  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
@@ -536,6 +540,9 @@ public class ThirdPartyDataServiceTest
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
+    thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyCoordinateSecurityList).hasSize(7);
@@ -621,6 +628,12 @@ public class ThirdPartyDataServiceTest
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
+    thirdPartyFileCoordinate1 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate1.getId());
+    assertThat(thirdPartyFileCoordinate1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyFileCoordinate2 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate2.getId());
+    assertThat(thirdPartyFileCoordinate2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyCoordinateSecurityList).hasSize(6);
@@ -667,6 +680,9 @@ public class ThirdPartyDataServiceTest
             .toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
     List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
@@ -788,6 +804,83 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link3");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations3");
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(9d);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_VerifyComponentIdentificationSourceAndDependencyType()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.IdentityModel.JsonWebTokens", "6.25.1",
+            "0e3da21fd80b9853692d", "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.25.1");
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
+        tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.IdentityModel.Protocols", "6.25.1",
+            "c795e78734c2860bb627", "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate3 =
+        tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.Extensions.Options", "5.0.0",
+            "d98bcd35050378773586", "pkg:nuget/Microsoft.Extensions.Options@5.0.0");
+
+    ThirdPartyCoordinateSecurity tpVuln1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1, "CVE-2024-21319", "description", null, 0f,
+            null, null);
+    tpVuln1.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln1);
+
+    ThirdPartyCoordinateSecurity tpVuln2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2, "CVE-2022-38013", "description1", "link1",
+            1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
+            "advisories1");
+    tpVuln2.setIdentificationSources("SBOM");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln2);
+
+    tempEntity.createSbomMetadata("appId", "1", file);
+
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    thirdPartyFileCoordinate1 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate1.getId());
+    assertThat(thirdPartyFileCoordinate1.getDependencyType()).isEqualTo("T");
+    assertThat(thirdPartyFileCoordinate1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyFileCoordinate2 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate2.getId());
+    assertThat(thirdPartyFileCoordinate2.getDependencyType()).isEqualTo("D");
+    assertThat(thirdPartyFileCoordinate2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyFileCoordinate3 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate3.getId());
+    assertThat(thirdPartyFileCoordinate3.getDependencyType()).isNull();
+    assertThat(thirdPartyFileCoordinate3.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate1.getId());
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(1);
+
+    thirdPartyCoordinateSecurityList =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate2.getId());
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(1);
+
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate1.getId(),
+            "CVE-2024-21319");
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate2.getId(),
+            "CVE-2022-38013");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();

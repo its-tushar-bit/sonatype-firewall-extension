@@ -90,11 +90,11 @@ import org.spdx.library.model.license.InvalidLicenseStringException;
 import org.spdx.library.model.license.LicenseInfoFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRefId;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
 
 public class SbomResultHandler
@@ -178,13 +178,14 @@ public class SbomResultHandler
       final ThirdPartyFile thirdPartyFile,
       final List<ProjectScanItem> dependencyGraph)
   {
-    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(contentPath));
+    String thirdPartyIdentificationSource =
+        getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       targetBom.setMetadata(getFilteredMetadata(sourceBom));
 
       Map<String, String> componentRefs = new HashMap<>();
-      processComponents(sourceBom, targetBom, componentRefs, identificationSource, thirdPartyFile, tx);
+      processComponents(sourceBom, targetBom, componentRefs, thirdPartyIdentificationSource, thirdPartyFile, tx);
       processVulnerabilities(sourceBom, targetBom, componentRefs, tx);
       tx.commit();
     }
@@ -195,7 +196,7 @@ public class SbomResultHandler
       final Bom sourceBom,
       final Bom targetBom,
       final Map<String, String> componentRefs,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final ThirdPartyFile thirdPartyFile,
       final TransactionContext tx)
   {
@@ -203,8 +204,8 @@ public class SbomResultHandler
       String specVersion = sourceBom.getSpecVersion();
       Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
       for (Component component : sourceBom.getComponents()) {
-        processComponent(component, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents,
-            componentRefs, specVersion, tx);
+        processComponent(component, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
+            resolvedComponents, componentRefs, specVersion, tx);
       }
     }
   }
@@ -263,16 +264,17 @@ public class SbomResultHandler
   }
 
   //visible for testing
-  String determineIdentificationSource(final String contentPath) {
+  String determineThirdPartyIdentificationSource(final String contentPath) {
     String fileName = StringUtils.contains(contentPath, "/") ?
         StringUtils.substringAfterLast(contentPath, "/") : contentPath;
-    String identificationSource = RegExUtils.removePattern(fileName, "-(?i)bom\\.(xml|json)(?i)$");
-    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "bom.xml") ||
-        StringUtils.endsWithIgnoreCase(identificationSource, "bom.json")) {
+    String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName, "-(?i)bom\\.(xml|json)(?i)$");
+    if (StringUtils.isBlank(thirdPartyIdentificationSource) ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "bom.xml") ||
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "bom.json")) {
       return "Third-Party";
     }
     else {
-      return identificationSource;
+      return thirdPartyIdentificationSource;
     }
   }
 
@@ -280,7 +282,7 @@ public class SbomResultHandler
       final Component sourceComponent,
       final String thirdPartyFileId,
       final Bom targetBom,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final Set<ComponentIdentifier> resolvedComponents,
       final Map<String, String> componentRefs,
       final String schemaVersion,
@@ -298,8 +300,8 @@ public class SbomResultHandler
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
-              saveComponent(thirdPartyFileId, identificationSource, sourceComponent, resolvedComponent, schemaVersion,
-                  tx);
+              saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, sourceComponent, resolvedComponent,
+                  schemaVersion, tx);
           if (StringUtils.isNotBlank(sourceComponent.getBomRef())) {
             componentRefs.put(sourceComponent.getBomRef(), coordinateId);
           }
@@ -475,7 +477,7 @@ public class SbomResultHandler
 
   private String saveComponent(
       final String thirdPartyFileId,
-      final String identificationSource,
+      final String thirdPartyIdentificationSource,
       final Component sourceComponent,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
       final String schemaVersion,
@@ -492,7 +494,7 @@ public class SbomResultHandler
     }
 
     String hash = getOrCreateFakeHash(component, componentIdentifier);
-    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, identificationSource,
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(hash, thirdPartyIdentificationSource,
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     fileCoordinate.setCpe(component.getCpe());

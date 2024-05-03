@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
+import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -98,6 +99,8 @@ public class ThirdPartyDataService
   public static final String FIELD_LICENSE_NAME = "name";
 
   public static final String FIELD_LICENSE_URL = "url";
+
+  public static final int MAX_RECURSION_DEPTH = 100000;
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
@@ -441,18 +444,27 @@ public class ThirdPartyDataService
         JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME)).buf);
     ContainerNode<?> licensesJsonData =
         JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME)).buf);
+    ContainerNode<?> dependenciesJsonData =
+        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME)).buf);
 
-    mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData);
+    Map<ComponentIdentifier, String> componentDependencyTypeMap = new HashMap<>();
+    // populate component dependency type map by walking dependency tree if dependency data is not present in bom.json
+    if (bomJsonData.get("dependencyDataIncluded") != null &&
+        !bomJsonData.get("dependencyDataIncluded").booleanValue()) {
+      populateComponentDependencyTypeMap(dependenciesJsonData, componentDependencyTypeMap);
+    }
+    mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
+        componentDependencyTypeMap);
     indexSbomForSearch(sbomMetadata);
   }
 
-  @VisibleForTesting
-  void mergeSonatypeDataWithSbomData(
+  private void mergeSonatypeDataWithSbomData(
       ThirdPartySbomMetadata sbomMetadata,
       String scanId,
       ContainerNode<?> bomJsonData,
       ContainerNode<?> securityJsonData,
-      ContainerNode<?> licensesJsonData)
+      ContainerNode<?> licensesJsonData,
+      Map<ComponentIdentifier, String> componentDependencyTypeMap)
   {
     Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults = readSonatypeSecurityResults(securityJsonData);
     Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
@@ -485,6 +497,14 @@ public class ThirdPartyDataService
             bomComponentIdentifier, scanId);
         continue;
       }
+      // use directDependency if present in bom, if not, only then walk tree
+      if (bomNode.get("directDependency") != null) {
+        sbomComponent.setDependencyType(bomNode.get("directDependency").booleanValue() ? "D" : "T");
+      }
+      else {
+        updateComponentDependencyType(sbomComponent, componentDependencyTypeMap);
+      }
+      updateComponentIdentifiedAsSonatype(sbomComponent);
       mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent);
       mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
     }
@@ -494,6 +514,53 @@ public class ThirdPartyDataService
   private void makeSbomActive(final ThirdPartySbomMetadata sbomMetadata) {
     sbomMetadata.setStatus(SbomStatus.ACTIVE.toString());
     thirdPartySbomMetadataDAO.update(sbomMetadata);
+  }
+
+  private void updateComponentIdentifiedAsSonatype(final ThirdPartyFileCoordinate sbomComponent) {
+    sbomComponent.addIdentificationSource(IdentificationSource.SONATYPE.getId());
+    thirdPartyFileCoordinateDAO.update(sbomComponent);
+  }
+
+  private void updateComponentDependencyType(
+      final ThirdPartyFileCoordinate sbomComponent,
+      Map<ComponentIdentifier, String> componentDependencyTypeMap)
+  {
+    ComponentIdentifier sbomComponentIdentifier =
+        ComponentIdentifierAdapter.toComponentIdentifier(sbomComponent.getPackageUrl());
+    sbomComponent.setDependencyType(componentDependencyTypeMap.get(sbomComponentIdentifier));
+  }
+
+  private void populateComponentDependencyTypeMap(
+      ContainerNode<?> dependenciesJsonData,
+      Map<ComponentIdentifier, String> componentDependencyTypeMap) throws IOException
+  {
+    if (dependenciesJsonData == null) {
+      return;
+    }
+    JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
+    if (!dependencyTreeNode.isMissingNode()) {
+      DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
+      if (tree == null) {
+        return;
+      }
+      walkTreeAndPopulateDirectDependencyType(Collections.singletonList(tree), componentDependencyTypeMap, 0);
+    }
+  }
+
+  private void walkTreeAndPopulateDirectDependencyType(
+      List<DependencyNode> children,
+      Map<ComponentIdentifier, String> componentDependencyTypeMap,
+      int recursionDepth)
+  {
+    for (DependencyNode child : children) {
+      componentDependencyTypeMap.putIfAbsent(child.getComponentIdentifier(), child.isDirect() ? "D" : "T");
+      if (++recursionDepth <= MAX_RECURSION_DEPTH) {
+        walkTreeAndPopulateDirectDependencyType(child.getChildren(), componentDependencyTypeMap, recursionDepth);
+      }
+      else {
+        log.warn("Dependency tree depth exceeded {}, skipping child dependencies", recursionDepth);
+      }
+    }
   }
 
   private void mergeSecurityData(

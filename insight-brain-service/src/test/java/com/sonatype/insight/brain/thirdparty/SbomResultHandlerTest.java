@@ -73,10 +73,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.IDENTIFICATION_SOURCE_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.LINK_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.NAME_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PURL_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -151,7 +151,7 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
-            .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)))
+            .isEqualTo(StringUtils.truncate(identificationSource, THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH)))
         .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
             SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
@@ -169,7 +169,7 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
-        .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)));
+        .isEqualTo(StringUtils.truncate(identificationSource, THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH)));
   }
 
   @Test
@@ -1544,19 +1544,19 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testDetermineIdentificationSource() {
-    assertThat(sbomResultHandler.determineIdentificationSource("abcd-bom.xml")).isEqualTo("abcd");
-    assertThat(sbomResultHandler.determineIdentificationSource("ABCD123-BOM.XmL")).isEqualTo("ABCD123");
-    assertThat(sbomResultHandler.determineIdentificationSource("sub/dir/abcd-bom.xml")).isEqualTo("abcd");
+  public void testDetermineSource() {
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("abcd-bom.xml")).isEqualTo("abcd");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("ABCD123-BOM.XmL")).isEqualTo("ABCD123");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("sub/dir/abcd-bom.xml")).isEqualTo("abcd");
 
-    assertThat(sbomResultHandler.determineIdentificationSource("ABCD-SBOM.xml")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("abcdbom.xml")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("bom.xml")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("BOM.XML")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("-bom.xml")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("sub/dir/bom.xml")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource("")).isEqualTo("Third-Party");
-    assertThat(sbomResultHandler.determineIdentificationSource(null)).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("ABCD-SBOM.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("abcdbom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("BOM.XML")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("-bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("sub/dir/bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource("")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineThirdPartyIdentificationSource(null)).isEqualTo("Third-Party");
   }
 
   @Test

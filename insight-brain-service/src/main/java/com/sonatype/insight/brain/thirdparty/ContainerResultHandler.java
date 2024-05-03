@@ -44,8 +44,8 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
-import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
+import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,7 +191,7 @@ public class ContainerResultHandler
   }
 
   @Override
-  String determineIdentificationSource(final String contentPath) {
+  String determineThirdPartyIdentificationSource(final String contentPath) {
     return SONATYPE_CONTAINER;
   }
 

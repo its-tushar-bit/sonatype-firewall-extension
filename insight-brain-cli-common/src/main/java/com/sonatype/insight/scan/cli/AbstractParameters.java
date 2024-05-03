@@ -180,14 +180,23 @@ public abstract class AbstractParameters
   }
 
   public String getApplicationId() {
+    if (this.applicationId != null) {
+      return applicationId.trim();
+    }
     return applicationId;
   }
 
   public String getOrganizationId() {
+    if (this.organizationId != null) {
+      return organizationId.trim();
+    }
     return organizationId;
   }
 
   public String getServerUrl() {
+    if (this.serverUrl != null) {
+      return this.serverUrl.trim();
+    }
     return serverUrl;
   }
 

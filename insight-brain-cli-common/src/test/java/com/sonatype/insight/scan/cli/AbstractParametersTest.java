@@ -39,6 +39,75 @@ public class AbstractParametersTest
   }
 
   @Test
+  public void testGetApplicationId() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-i", "test");
+
+    assertThat(testParameters.getApplicationId()).isEqualTo("test");
+  }
+
+  @Test
+  public void testGetApplicationId_ApplicationIdIsTrimmed() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-i", "  test  ");
+
+    assertThat(testParameters.getApplicationId()).isEqualTo("test");
+  }
+
+  @Test
+  public void testGetApplicationId_ApplicationIdIsNull() {
+    TestParameters testParameters = new TestParameters();
+
+    assertThat(testParameters.getApplicationId()).isNull();
+  }
+
+  @Test
+  public void testGetOrganizationId() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-O", "test");
+
+    assertThat(testParameters.getOrganizationId()).isEqualTo("test");
+  }
+
+  @Test
+  public void testGetOrganizationId_OrganizationIdIsTrimmed() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-O", "  test  ");
+
+    assertThat(testParameters.getOrganizationId()).isEqualTo("test");
+  }
+
+  @Test
+  public void testGetOrganizationId_OrganizationIdIsNull() {
+    TestParameters testParameters = new TestParameters();
+
+    assertThat(testParameters.getOrganizationId()).isNull();
+  }
+
+  @Test
+  public void testGetServerUrl() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-s", "http://localhost:8070");
+
+    assertThat(testParameters.getServerUrl()).isEqualTo("http://localhost:8070");
+  }
+
+  @Test
+  public void testGetServerUrl_serverUrlIsTrimmed() {
+    TestParameters testParameters = new TestParameters();
+    testParameters.parse("-s", "  http://localhost:8070  ");
+
+    assertThat(testParameters.getServerUrl()).isEqualTo("http://localhost:8070");
+  }
+
+  @Test
+  public void testGetServerUrl_serverUrlIsNull() {
+    TestParameters testParameters = new TestParameters();
+
+    assertThat(testParameters.getServerUrl()).isNull();
+  }
+
+  @Test
   public void testParse_SystemPropertiesWithCommaSeparatedValues() {
     TestParameters params = new TestParameters();
     params.parse("-D", "key1=value1a, value1b", "-D", "key2=value2");

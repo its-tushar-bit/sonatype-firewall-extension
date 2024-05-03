@@ -62,11 +62,18 @@ public class SbomMetadataBuilder
     this.specVersion = RandomStringUtils.random(10, true, true);
     //this.status = SbomStatus.ACTIVE.toString();
     this.status = "ACTIVE";
-    this.metadataJson = RandomStringUtils.random(50, true, true);
+    this.metadataJson = buildMetadataJson();
   }
 
   public static SbomMetadataBuilder newSbomMetadataBuilder(DAOFactory daoFactory) {
     return new SbomMetadataBuilder(daoFactory);
+  }
+
+  public static SbomMetadataBuilder newSbomSPDXMetadataBuilder(DAOFactory daoFactory) {
+    SbomMetadataBuilder sbomMetaDataBuilderWithSPDX = new SbomMetadataBuilder(daoFactory);
+    sbomMetaDataBuilderWithSPDX.metadataJson = buildSPDXMetadataJson();
+    System.out.println(sbomMetaDataBuilderWithSPDX.metadataJson);
+    return sbomMetaDataBuilderWithSPDX;
   }
 
   public SbomMetadataBuilder withCreatedAt(Date createdAt) {
@@ -119,6 +126,16 @@ public class SbomMetadataBuilder
     return this;
   }
 
+  public SbomMetadataBuilder withThirdPartyFileId(String thirdPartyFileId) {
+    this.thirdPartyFileId = thirdPartyFileId;
+    return this;
+  }
+
+  public SbomMetadataBuilder withSpecVersion(String specVersion) {
+    this.specVersion = specVersion;
+    return this;
+  }
+
   public ThirdPartySbomMetadata build() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
         thirdPartyFileId, applicationId, sbomVersion, filename, serialNumber, spec, specFormat, specVersion, status,
@@ -127,5 +144,32 @@ public class SbomMetadataBuilder
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
     return thirdPartySbomMetadata;
+  }
+
+  private String buildMetadataJson() {
+    String json =
+            "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Author\",\"name\":\"John Doe\"," +
+                "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":\"Manufacturer\"," +
+                "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\"," +
+                "\"name\":\"Jane Doe\",\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
+                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\"," +
+                "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"Jane Doe\"," +
+                "\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
+                "\"url\":\"example.com,example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\"," +
+                "\"name\":\"Tool\",\"version\":\"1.0-RELEASE\"}]}";
+
+    return json;
+  }
+
+  private static String buildSPDXMetadataJson() {
+    String json =
+            "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Person\",\"name\":\"John Doe\"," +
+                "\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
+                "{\"type\":\"Organization\",\"name\":\"Example Organization\",\"email\":\"example@example.com\"}," +
+                "{\"type\":\"Organization\",\"name\":\"Example Organization\"}]," +
+                "\"tools\":[{\"name\":\"Sonatype IQ Server\",\"version\":\"1.175.0-SNAPSHOT\"}]}";
+    return json;
   }
 }

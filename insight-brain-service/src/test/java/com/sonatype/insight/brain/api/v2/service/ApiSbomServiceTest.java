@@ -11,9 +11,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -593,6 +591,16 @@ public class ApiSbomServiceTest
       assertThat(apiSbomStatusDTO.isError).isTrue();
       assertThat(apiSbomStatusDTO.errorMessage).isNotEmpty();
     }
+  }
+
+  @Test
+  public void testGetSbomMetadataNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getSbomComponents(application.getId(), "fake-version"))
+        .withMessage(String.format("Cannot find version %s for application with ID %s.",
+            "fake-version", application.getId()));
   }
 
   private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {

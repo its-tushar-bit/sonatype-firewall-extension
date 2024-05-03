@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.components;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+import com.codahale.metrics.annotation.Timed;
+
+@Named
+@Timed
+@Singleton
+@Path(SbomComponentsResource.RESOURCE_BASE_PATH)
+public class SbomComponentsResource
+{
+  public static final String RESOURCE_BASE_PATH = "rest/sbom";
+
+  public static final String SBOMS_APPLICATIONS_PATH = "/applications";
+
+  static final String SBOMS_APPLICATION_PATH = SBOMS_APPLICATIONS_PATH + "/{applicationId}";
+
+  static final String SBOM_VERSIONS_PATH = SBOMS_APPLICATION_PATH + "/versions";
+
+  public static final String SBOM_VERSION_PATH = SBOM_VERSIONS_PATH + "/{version}";
+
+  public static final String SBOM_METADATA_PATH = SBOM_VERSION_PATH + "/sbomMetadata";
+
+  private final SbomComponentsService service;
+
+  @Inject
+  public SbomComponentsResource(SbomComponentsService sbomComponentsService) {
+    this.service = sbomComponentsService;
+  }
+
+  @GET
+  @Path(SBOM_METADATA_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public BomPageMetadataDTO getBomPageMetadata(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("version") String sbomVersion)
+  {
+    return service.getBomPageMetadata(applicationId, sbomVersion);
+  }
+}

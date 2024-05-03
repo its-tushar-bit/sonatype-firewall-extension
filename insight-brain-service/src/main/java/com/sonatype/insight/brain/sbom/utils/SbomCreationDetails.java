@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.BadRequestException;
 
 public class SbomCreationDetails
 {
@@ -20,6 +22,13 @@ public class SbomCreationDetails
   public enum CreatorType
   {
     Author, Manufacturer, Supplier, Person, Organization;
+
+    public static CreatorType parseCreatorType(String type) {
+      return Arrays.stream(CreatorType.values())
+          .filter(creator -> creator.name().equalsIgnoreCase(type))
+          .findFirst()
+          .orElseThrow(() -> new BadRequestException("Invalid creator type: " + type));
+    }
   }
 
   public static class Creator

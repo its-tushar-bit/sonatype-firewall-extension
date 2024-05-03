@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.time.LocalDate;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -104,8 +105,8 @@ public class ThirdPartySbomMetadataDAO
   }
 
   /**
-   * This allows service-layer code to create a SearchIndexChanges for insert or update at the appropriate times.
-   * It also implements the search index change for deletions.
+   * This allows service-layer code to create a SearchIndexChanges for insert or update at the appropriate times. It
+   * also implements the search index change for deletions.
    */
   @Override
   public SearchIndexChange newSearchIndexChange(ThirdPartySbomMetadata sbomMetadata) {

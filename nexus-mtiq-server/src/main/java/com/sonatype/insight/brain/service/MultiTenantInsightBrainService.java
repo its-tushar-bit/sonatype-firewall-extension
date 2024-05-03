@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.git.MultiTenantDefaultBranchMonitorExecutor;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.metrics.micrometer.MeterRegistryProvider;
 import com.sonatype.insight.brain.micrometer.MultiTenantMeterRegistryProvider;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
@@ -92,6 +91,7 @@ import com.google.inject.util.Providers;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
@@ -354,10 +354,10 @@ public class MultiTenantInsightBrainService
 
         bind(SourceControlSshValidator.class).to(MtiqSourceControlSshValidator.class);
 
-        bind(MeterRegistryProvider.class).to(MultiTenantMeterRegistryProvider.class);
-
         bind(ActiveRequestCounterFilter.class).to(MultiTenantActiveRequestCounterFilter.class);
-        
+
+        bind(MeterRegistry.class).toProvider(MultiTenantMeterRegistryProvider.class);
+
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {
           bind(EncryptionKeyStore.class).to(DefaultEncryptionKeyStore.class).in(Singleton.class);

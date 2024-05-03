@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
@@ -48,6 +50,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import io.dropwizard.lifecycle.Managed;
+import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +74,7 @@ public class PolicyEvaluateService
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
-  private final PolicyEvaluationThreadPoolExecutor executor;
+  private final ExecutorService executor;
 
   private final ScanHandler scanHandler;
 
@@ -84,6 +87,8 @@ public class PolicyEvaluateService
   private final InsightWork insightWork;
 
   private final TelemetryUtils telemetryUtils;
+
+  private final PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics;
 
   public boolean disablePollingIntervalForTesting = false;
 
@@ -99,7 +104,8 @@ public class PolicyEvaluateService
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
       TelemetryUtils telemetryUtils,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -111,13 +117,21 @@ public class PolicyEvaluateService
     this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
     this.telemetryUtils = telemetryUtils;
-
-    executor = new PolicyEvaluationThreadPoolExecutor();
+    this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
+    this.executor = buildExecutorService();
     shutdownHandler.add(executor, 2);
   }
 
+  private ExecutorService buildExecutorService() {
+    final ExecutorService executor = new PolicyEvaluationThreadPoolExecutor();
+    policyEvaluateServiceMetrics.registerPolicyEvaluationExecutor(executor);
+    policyEvaluateServiceMetrics.registerGaugePolicyEvaluationThreadUtilization(
+        PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE);
+    return executor;
+  }
+
   // Visible for testing
-  PolicyEvaluationThreadPoolExecutor getExecutor() {
+  ExecutorService getExecutor() {
     return executor;
   }
 
@@ -219,7 +233,7 @@ public class PolicyEvaluateService
    * @param stage {@link Stage}
    * @return PolicyEvaluationReceipt
    * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
-   * 
+   *
    * @since 1.69
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -351,7 +365,7 @@ public class PolicyEvaluateService
    *
    * @param applicationPublicId public shared id
    * @param statusId id from status, normally gotten from {@link PolicyEvaluationReceipt}
-   * 
+   *
    * @since 1.69
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -428,6 +442,8 @@ public class PolicyEvaluateService
           "Policy evaluation task (appPublicId {}, stageTypeId {}, statusId {}) waited in queue for {} ms.",
           app.getPublicId(), stage.getStageTypeId(), statusId, System.currentTimeMillis() - taskCreateTime);
 
+      Sample sample = policyEvaluateServiceMetrics.emitStartPolicyEvaluation();
+
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
@@ -473,8 +489,10 @@ public class PolicyEvaluateService
         AuditData.get()
             .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       }
+
       persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
       persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+      policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
     }
   }
 

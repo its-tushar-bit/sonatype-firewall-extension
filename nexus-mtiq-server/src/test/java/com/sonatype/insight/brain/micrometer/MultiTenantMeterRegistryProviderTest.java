@@ -17,9 +17,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantMeterRegistryProviderTest
 {
-  private final MultiTenantMeterRegistryProvider underTest = new MultiTenantMeterRegistryProvider();
-
   private final MultiTenantInsightConfig config = new MultiTenantInsightConfig();
+
+  private final MultiTenantMeterRegistryProvider underTest = new MultiTenantMeterRegistryProvider(config);
 
   @Test
   public void testProvideMeterRegistry_regularFlow() {
@@ -32,7 +32,8 @@ public class MultiTenantMeterRegistryProviderTest
     statsdMetricsConfig.setMetricsTeam("mtiq");
     config.setStatsdMetricsConfig(statsdMetricsConfig);
 
-    MeterRegistry meterRegistry = underTest.provideMeterRegistry(config);
+    MeterRegistry meterRegistry = underTest.get();
+
     CompositeMeterRegistry compositeMeterRegistry = (CompositeMeterRegistry) meterRegistry;
 
     assertThat(meterRegistry)
@@ -45,7 +46,9 @@ public class MultiTenantMeterRegistryProviderTest
 
   @Test
   public void testProvideMeterRegistry_isNotConfigured() {
-    MeterRegistry meterRegistry = underTest.provideMeterRegistry(config);
+    config.setStatsdMetricsConfig(null);
+
+    MeterRegistry meterRegistry = underTest.get();
 
     assertThat(meterRegistry).isNull();
   }
@@ -57,7 +60,7 @@ public class MultiTenantMeterRegistryProviderTest
 
     config.setStatsdMetricsConfig(statsdMetricsConfig);
 
-    MeterRegistry meterRegistry = underTest.provideMeterRegistry(config);
+    MeterRegistry meterRegistry = underTest.get();
 
     assertThat(meterRegistry).isNull();
   }

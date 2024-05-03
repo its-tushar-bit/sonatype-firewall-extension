@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -444,8 +445,9 @@ public class ThirdPartyDataService
         JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME)).buf);
     ContainerNode<?> licensesJsonData =
         JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME)).buf);
+    final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
     ContainerNode<?> dependenciesJsonData =
-        JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME)).buf);
+        dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
 
     Map<ComponentIdentifier, String> componentDependencyTypeMap = new HashMap<>();
     // populate component dependency type map by walking dependency tree if dependency data is not present in bom.json

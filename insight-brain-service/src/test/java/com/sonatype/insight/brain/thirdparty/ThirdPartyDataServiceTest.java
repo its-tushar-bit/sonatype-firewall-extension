@@ -628,11 +628,8 @@ public class ThirdPartyDataServiceTest
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
-    thirdPartyFileCoordinate1 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate1.getId());
-    assertThat(thirdPartyFileCoordinate1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
-
-    thirdPartyFileCoordinate2 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate2.getId());
-    assertThat(thirdPartyFileCoordinate2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
@@ -840,9 +837,7 @@ public class ThirdPartyDataServiceTest
     ThirdPartyCoordinateSecurity tpVuln2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2, "CVE-2022-38013", "description1", "link1",
             1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
-            "advisories1");
-    tpVuln2.setIdentificationSources("SBOM");
-    thirdPartyCoordinateSecurityDAO.update(tpVuln2);
+            "advisories1", "SBOM");
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
@@ -875,7 +870,7 @@ public class ThirdPartyDataServiceTest
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate1.getId(),
             "CVE-2024-21319");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description");
-    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
 
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate2.getId(),

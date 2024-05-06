@@ -526,7 +526,7 @@ public class SastPullRequestCommentingServiceTest
     pullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, COMMIT_HASH);
 
     // Then: a new comment is created with text showing the total number of findings
-    final String expectedContentPattern = "Sonatype found \\*\\*3 total\\*\\* issues introduced by this PR\\. " +
+    final String expectedContentPattern = "Sonatype found \\*\\*3 total\\*\\* issues active in this branch\\. " +
         "\\[Click here]\\(.+\\) to view the full SAST report\\.";
     final ArgumentCaptor<String> contentArgumentCaptor = ArgumentCaptor.forClass(String.class);
     verify(gitApiClient).createPullRequestComment(anyInt(), contentArgumentCaptor.capture());
@@ -568,7 +568,7 @@ public class SastPullRequestCommentingServiceTest
 
     // Then: a new comment is created with text showing the number of critical findings + total number of findings
     final String expectedContentPattern = "Sonatype found \\*\\*1 critical\\*\\* issue out of \\*\\*4 total\\*\\* " +
-        "issues introduced by this PR\\. \\[Click here]\\(.+\\) to view the full SAST report\\.";
+        "issues active in this branch\\. \\[Click here]\\(.+\\) to view the full SAST report\\.";
     final ArgumentCaptor<String> contentArgumentCaptor = ArgumentCaptor.forClass(String.class);
     verify(gitApiClient).createPullRequestComment(anyInt(), contentArgumentCaptor.capture());
     final String actualContent = contentArgumentCaptor.getValue();
@@ -611,7 +611,7 @@ public class SastPullRequestCommentingServiceTest
     pullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, COMMIT_HASH);
 
     // Then: a new comment is created with text showing that there were no findings
-    final String expectedContentPattern = "Sonatype found \\*\\*0 issues\\*\\* introduced by this PR\\. " +
+    final String expectedContentPattern = "Sonatype found \\*\\*0 issues\\*\\* active in this branch\\. " +
         "\\[Click here]\\(.+\\) to view the full SAST report\\.";
     final ArgumentCaptor<String> contentArgumentCaptor = ArgumentCaptor.forClass(String.class);
     verify(gitApiClient).updatePullRequestComment(anyInt(), anyInt(), anyInt(), contentArgumentCaptor.capture());

@@ -362,7 +362,7 @@ public class SastPullRequestCommentingService
     else {
       commentText.append(String.format("**%d total** %s", numTotalFindings, numTotalFindings == 1 ? issue : issues));
     }
-    commentText.append(" introduced by this PR. ")
+    commentText.append(" active in this branch. ")
         .append(viewReport);
 
     return commentText.toString();

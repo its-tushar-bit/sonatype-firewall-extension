@@ -165,7 +165,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_privateRepoUncheckedException() throws Exception {
+  public void testValidateSourceControlConfig_privateRepoException() throws Exception {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo("*/target");
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
@@ -180,8 +180,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isFalse();
-    assertThat(result.getRepoPrivate().getMessage())
-        .isEqualTo("Unable to connect to repo: java.io.IOException: Unauthorized");
+    assertThat(result.getRepoPrivate().getMessage()).isEqualTo("Unable to determine if repository is private.");
     assertThat(result.getTokenPermissions().isValid()).isFalse();
     assertThat(result.getTokenPermissions().getMessage()).isEqualTo("Invalid permissions");
   }
@@ -238,8 +237,11 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
     // and SSH has an error
     assertThat(result.getSshConfiguration().isValid()).isFalse();
-    assertThat(result.getSshConfiguration().getMessage()).contains("check that your SSH keys are configured");
-    assertThat(result.getSshConfiguration().getMessage()).contains("git error");
+    // The error message should not contain the low level exception message - in this case "git error".
+    // See https://sonatype.atlassian.net/browse/CLM-29901.
+    assertThat(result.getSshConfiguration().getMessage())
+        .isEqualTo("Unable to clone a repository using SSH, check that "
+            + "your SSH keys are configured properly and available to IQ.");
   }
 
   @Test
@@ -347,7 +349,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     // and clone fails with a non-git Exception
     GitApi mockApi = mock(NativeGitApi.class);
     when(gitApiFactory.createGitApi(any(GitRepositoryInfo.class))).thenReturn(mockApi);
-    when(mockApi.cloneOrPullRepository(any(File.class), anyString())).thenThrow(new NullPointerException("error"));
+    when(mockApi.cloneOrPullRepository(any(File.class), anyString())).thenThrow(new NullPointerException("some error"));
 
     // when we try to validate
     ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
@@ -360,7 +362,11 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
     // and SSH has an error
     assertThat(result.getSshConfiguration().isValid()).isFalse();
-    assertThat(result.getSshConfiguration().getMessage()).contains("Unable to clone a repository using SSH:");
+    // The error message should not contain the low level exception message - in this case "some error".
+    // See https://sonatype.atlassian.net/browse/CLM-29901.
+    assertThat(result.getSshConfiguration().getMessage())
+        .isEqualTo("Unable to clone a repository using SSH, check that "
+            + "your SSH keys are configured properly and available to IQ.");
   }
 
   @Test
@@ -395,7 +401,11 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
     // and SSH has an error
     assertThat(result.getSshConfiguration().isValid()).isFalse();
-    assertThat(result.getSshConfiguration().getMessage()).contains("Illegal Argument");
+    // The error message should not contain the low level exception message - in this case "Illegal Argument".
+    // See https://sonatype.atlassian.net/browse/CLM-29901.
+    assertThat(result.getSshConfiguration().getMessage())
+        .isEqualTo("Unable to clone a repository using SSH, check that "
+            + "your SSH keys are configured properly and available to IQ.");
   }
 
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {

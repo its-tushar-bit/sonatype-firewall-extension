@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
-import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.iq.manager.RepositorySyncCommand;
 import com.sonatype.nexus.iq.manager.RepositorySyncExecutor;
@@ -29,12 +27,16 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Validates the Source Control config for a given application
  */
 public class ApiCompositeSourceControlConfigValidatorService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiCompositeSourceControlConfigValidatorService.class);
+
   private final SourceControlUtils sourceControlUtils;
 
   private final GitClientFactory gitClientFactory;
@@ -87,19 +89,22 @@ public class ApiCompositeSourceControlConfigValidatorService
         result.setRepoPrivate(new ValidationResult(true));
       }
     }
-    catch (UncheckedIOException e) {
-      result.setRepoPrivate(new ValidationResult(false, "Unable to connect to repo: " + e.getMessage()));
-    }
     catch (Exception e) {
-      result.setRepoPrivate(new ValidationResult(false, "Unable to determine if repo is private: " + e.getMessage()));
+      // Don't propagate the exception message because it may contain server details that can help an attacker mount an
+      // attack. See https://sonatype.atlassian.net/browse/CLM-29901.
+      log.debug("Unable to determine if repository is private for app ID {}: {}", applicationId, e.getMessage(), e);
+      result.setRepoPrivate(new ValidationResult(false, "Unable to determine if repository is private."));
     }
 
     try {
       GitApiClient gitApiClient = gitClientFactory.createApiClient(gitInfo);
       result.setTokenPermissions(gitApiClient.validateTokenPermissions());
     }
-    catch (IOException e) {
-      result.setTokenPermissions(new ValidationResult(false, "Unable to test permissions: " + e.getMessage()));
+    catch (Exception e) {
+      // Don't propagate the exception message because it may contain server details that can help an attacker mount an
+      // attack. See https://sonatype.atlassian.net/browse/CLM-29901.
+      log.debug("Unable to test permissions for app ID {}: {}", applicationId, e.getMessage(), e);
+      result.setTokenPermissions(new ValidationResult(false, "Unable to test permissions."));
     }
 
     if (Boolean.FALSE.equals(disableSshForFunctionalTest)) {
@@ -141,7 +146,11 @@ public class ApiCompositeSourceControlConfigValidatorService
       }
     }
     catch (IllegalArgumentException e) {
-      result.setSshConfiguration(new ValidationResult(false, e.getMessage()));
+      // Don't propagate the exception message because it may contain server details that can help an attacker mount an
+      // attack. See https://sonatype.atlassian.net/browse/CLM-29901.
+      log.debug("Source control SSH config validation for app ID {} failed: {}", applicationId, e.getMessage(), e);
+      result.setSshConfiguration(new ValidationResult(false, "Unable to clone a repository using SSH, check that "
+          + "your SSH keys are configured properly and available to IQ."));
       return;
     }
 
@@ -153,14 +162,12 @@ public class ApiCompositeSourceControlConfigValidatorService
       new RepositorySyncExecutor().execute(syncCommand);
       result.setSshConfiguration(new ValidationResult(true));
     }
-    catch (GitException e) {
-      result.setSshConfiguration(new ValidationResult(false, "Unable to clone a repository using SSH, check that " +
-          "your SSH keys are configured properly and available to IQ. Full error: " +
-          e.getMessage()));
-    }
     catch (Exception e) {
-      result.setSshConfiguration(new ValidationResult(false,
-          "Unable to clone a repository using SSH: " + e.getMessage()));
+      // Don't propagate the exception message because it may contain server details that can help an attacker mount an
+      // attack. See https://sonatype.atlassian.net/browse/CLM-29901.
+      log.debug("Source control SSH config validation for app ID {} failed: {}", applicationId, e.getMessage(), e);
+      result.setSshConfiguration(new ValidationResult(false, "Unable to clone a repository using SSH, check that " +
+          "your SSH keys are configured properly and available to IQ."));
     }
   }
 }

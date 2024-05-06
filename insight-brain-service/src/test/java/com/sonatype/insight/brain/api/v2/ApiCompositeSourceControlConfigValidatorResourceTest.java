@@ -68,15 +68,18 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
   @Test
   public void testValidateSourceControlConfig_UnexpectedException() throws Exception {
     Application appWithBrokenToken = tempEntity.newApplicationWithParent();
-    // do not encrypt the password
     tempEntity
-        .newSourceControl(appWithBrokenToken.getId(), VALID_URL, null, "UNENCRYPTED", null, null, true, null, null);
+        .newSourceControl(appWithBrokenToken.getId(), VALID_URL, null, null /* token */, null, null, true, null, null);
 
-    // retrieving the GitRepositoryInfo will throw an exception
+    // Retrieving the GitRepositoryInfo will throw a NullPointerException because the token is null.
     final HttpResponse response = restRequest()
         .parameter(appWithBrokenToken.getId())
         .get();
-    assertResponseStatus(500, response);
+    assertResponseStatus(200, response);
+    ConfigurationValidationResult configurationValidationResult = response.getBody(ConfigurationValidationResult.class);
+    assertThat(configurationValidationResult.getTokenPermissions().isValid()).isFalse();
+    assertThat(configurationValidationResult.getTokenPermissions().getMessage())
+        .isEqualTo("Unable to test permissions.");
   }
 
   private String encrypt(String password) {

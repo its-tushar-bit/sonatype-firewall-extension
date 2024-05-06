@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -35,7 +36,6 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.util.CollectionUtils;
-import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.License;
@@ -94,7 +94,7 @@ public class CycloneDxToCycloneDxExporterTest extends AbstractSbomExporterTest
   private ThirdPartyFile thirdPartyFile;
 
   @Before
-  public void init() throws SbomExportException, GeneratorException {
+  public void init() throws SbomExportException {
     tempEntity.newApplicationWithParent(APP_ID);
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToCycloneDxExporter(

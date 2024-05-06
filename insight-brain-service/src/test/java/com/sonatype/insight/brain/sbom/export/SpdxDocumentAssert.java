@@ -101,7 +101,7 @@ public class SpdxDocumentAssert
       SbomSpdxUtils.validateDocument(this.sbomFormat, actual);
       return this;
     }
-    catch (UnsupportedSbomException | InvalidSPDXAnalysisException e) {
+    catch (UnsupportedSbomException e) {
       throw assertionError(shouldNotHaveThrown(e));
     }
   }

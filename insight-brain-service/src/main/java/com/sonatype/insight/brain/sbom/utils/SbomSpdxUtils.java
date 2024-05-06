@@ -93,7 +93,7 @@ public final class SbomSpdxUtils
   }
 
   public static void validateDocument(SbomFormat format, SpdxDocument spdxDocument)
-      throws UnsupportedSbomException, InvalidSPDXAnalysisException
+      throws UnsupportedSbomException
   {
     if (format != null) {
       try {

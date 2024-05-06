@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -21,7 +23,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
-import org.jsoup.UncheckedIOException;
 import org.junit.After;
 import org.junit.Test;
 

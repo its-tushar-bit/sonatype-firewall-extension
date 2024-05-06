@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,7 +29,6 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
-import org.jsoup.UncheckedIOException;
 import org.junit.After;
 import org.junit.Test;
 

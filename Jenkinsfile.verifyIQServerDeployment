@@ -8,7 +8,7 @@
 properties([
     parameters([
         string(name: 'version', defaultValue: '',description: 'The version number for the product to check for.'),
-        choice(name: 'iqInstance', choices: ['https://test.iq.sonatype.dev', 'https://iq.sonatype.dev'],
+        choice(name: 'iqInstance', choices: ['https://test.iq.sonatype.dev', 'https://selfhosted.iq.sonatype.dev', "https://sonatype.sonatype.app/platform"],
             description: 'IQ Server to check deployment on.')
     ])
 ])

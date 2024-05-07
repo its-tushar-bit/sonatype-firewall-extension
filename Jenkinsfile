@@ -378,9 +378,6 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
         }
         finally {
-          if (jdk == 'Java 8' && stageName == 'Unit and Integration Tests - Java 8 A') {
-            sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains("master"))
-          }
           captureResultsAndCleanup()
         }
       }

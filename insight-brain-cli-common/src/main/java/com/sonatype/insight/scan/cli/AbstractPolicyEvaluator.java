@@ -122,6 +122,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     config.setServerUrl(params.getServerUrl());
     config.setProxy(params.getProxy());
     config.setProxyAuth(SimpleAuthentication.parse(params.getProxyUser()));
+    String nonProxyHostsSystemProperty = System.getProperty("http.nonProxyHosts");
+    if (nonProxyHostsSystemProperty != null && nonProxyHostsSystemProperty.length() != 0) {
+      List<String> nonProxyHosts = Arrays.asList(nonProxyHostsSystemProperty.split(","));
+      config.setProxyExcludeHosts(nonProxyHosts);
+    }
     config.setServerAuth(SimpleAuthentication.parse(params.getServerUser()));
     return config;
   }

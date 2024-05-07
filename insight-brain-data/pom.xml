@@ -251,18 +251,6 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <reuseForks>true</reuseForks>
-          <!-- 0.5C means 0.5 x number-of-CPUs:
-                8 CPUs -> 4 forks
-               16 CPUs -> 8 forks
-           -->
-          <forkCount>0.5C</forkCount>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>

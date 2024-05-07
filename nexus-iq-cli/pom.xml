@@ -263,44 +263,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- We run the tests using maven-failsafe-plugin because we want to use the artifact jar, not the classes. -->
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <skip>false</skip>
-          <includes>
-            <include>**/*Test.*</include>
-          </includes>
-          <trimStackTrace>false</trimStackTrace>
-          <reuseForks>true</reuseForks>
-          <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-          <!-- 0.5C means 0.5 x number-of-CPUs:
-                8 CPUs -> 4 forks
-               16 CPUs -> 8 forks
-           -->
-          <forkCount>0.5C</forkCount>
-          <argLine>@{argLine} -Xmx1536m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
-          <systemPropertyVariables>
-            <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
-            <test.forkId>#${surefire.forkNumber}</test.forkId>
-          </systemPropertyVariables>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 </project>

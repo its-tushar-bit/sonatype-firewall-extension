@@ -7,6 +7,8 @@
 
 configureBranchJob()
 make(
+    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge with "--threads 8" and there was no difference.
+    //agentLabel: 'iq-large'
     deployBranch: 'main',
     useEventSpy: false,
     javaVersion: 'OpenJDK 17',
@@ -280,6 +282,7 @@ Map<String, Closure> getParallelTests() {
 
 Map<String, Closure> createGebTests() {
   return ['Geb Tests': {
+    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge and there was no difference.
     node(InsightConstants.AGENT_LABEL) {
       stage('Geb Tests') {
         try {
@@ -305,7 +308,7 @@ Map<String, Closure> createFunctionalTests(
   String mavenModule = 'insight-brain-java-functional-test'
 ) {
   return ["${stageName}": {
-    node(InsightConstants.AGENT_LABEL) {
+    node('iq-large') {
       stage(stageName) {
         try {
           withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
@@ -337,6 +340,8 @@ Map<String, Closure> createFunctionalTests(
 
 Map<String, Closure> createFrontendTests(String stageName) {
   return ["${stageName}": {
+    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge, there was a small difference (~2 mins),
+    // but this stage is still faster then other parallel stages without using larger EC2 instances.
     node(InsightConstants.AGENT_LABEL){
       stage(stageName) {
         try {
@@ -358,7 +363,7 @@ Map<String, Closure> createFrontendTests(String stageName) {
 
 Map<String, Closure> createUnitTests(String stageName, String jdk, String regex) {
   return ["${stageName}": {
-    node(InsightConstants.AGENT_LABEL){
+    node('iq-large'){
       stage(stageName) {
         try {
           copyRepo()
@@ -385,7 +390,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
 
 Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
   return ["${stageName}": {
-    node(InsightConstants.AGENT_LABEL){
+    node('iq-large'){
       stage(stageName) {
         try {
           copyRepo()

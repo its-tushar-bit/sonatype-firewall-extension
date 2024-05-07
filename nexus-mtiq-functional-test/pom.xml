@@ -40,11 +40,11 @@
           <trimStackTrace>false</trimStackTrace>
           <skip>false</skip>
           <skipITs>${skip.functional.tests}</skipITs>
-
-          <!--
-               Starting a separate JVM for each test class is both slow and problematic when it comes to generating
-               run timestamps for use as applitools batch ids, so reuse the same JVM.
-          -->
+          <!-- 0.38C means 0.38 x number-of-CPUs:
+                8 CPUs -> 3 forks
+               16 CPUs -> 6 forks
+           -->
+          <forkCount>0.38C</forkCount>
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <systemPropertyVariables>
@@ -53,6 +53,8 @@
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
             <selenide.timeout>${selenide.timeout}</selenide.timeout>
             <browser>chrome</browser>
+            <!-- Used by the test MTIQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>
         </configuration>
         <executions>

@@ -62,6 +62,16 @@ public class ReportClientTest
   }
 
   @Test
+  public void testLinkToPrioritiesReport() {
+    final String appId = "app-id";
+    final String scanId = "scan-id";
+    final ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
+    final UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl())
+        .path(UserInterfaceLinksHelper.PRIORITIES_PATH);
+    assertThat(reportClient.linkToPrioritiesReport()).isEqualTo(uriBuilder.build(appId, scanId).toString());
+  }
+
+  @Test
   public void testDownloadBundle() throws Exception {
     tempEntity.newApplicationWithParent(applicationPublicId);
 

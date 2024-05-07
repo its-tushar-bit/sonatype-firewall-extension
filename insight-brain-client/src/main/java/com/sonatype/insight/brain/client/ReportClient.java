@@ -37,6 +37,10 @@ public final class ReportClient
     return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", appId, "report", scanId);
   }
 
+  public String linkToPrioritiesReport() {
+    return UrlUtils.appendUrlPaths(serverUrl, "development/priorities", appId, scanId);
+  }
+
   /**
    * Download the self-contained ZIP bundle of the specified report for use by 3rd-party integrators like HP Fortify.
    *

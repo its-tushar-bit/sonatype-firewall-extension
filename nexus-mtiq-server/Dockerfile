@@ -14,7 +14,7 @@
 
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
-FROM $SONATYPE_PRIVATE_REGISTRY/eclipse-temurin:11-jre
+FROM $SONATYPE_PRIVATE_REGISTRY/eclipse-temurin:17-jre
 
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
@@ -38,6 +38,13 @@ EXPOSE 8071
 WORKDIR /opt/sonatype/nexus-iq-server
 
 ENTRYPOINT ["java", \
+             "--add-opens=java.base/java.lang=ALL-UNNAMED", \
+             "--add-opens=java.base/java.util=ALL-UNNAMED", \
+             "--add-opens=java.base/java.security=ALL-UNNAMED", \
+             "--add-opens=java.base/sun.security.rsa=ALL-UNNAMED", \
+             "--add-opens=java.base/sun.security.x509=ALL-UNNAMED", \
+             "--add-opens=java.base/sun.security.util=ALL-UNNAMED", \
+             "--add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED", \
              "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
              "-javaagent:/opt/datadog/dd-java-agent.jar", \
              "-XX:+AlwaysPreTouch", \

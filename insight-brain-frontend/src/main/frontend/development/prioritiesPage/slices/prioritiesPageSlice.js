@@ -7,8 +7,9 @@
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getPrioritiesPageTableData, getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
+import { getPrioritiesPageTableData, getReportMetadataUrl, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { isNil, keys } from 'ramda';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
@@ -109,6 +110,65 @@ const loadMetadata = createAsyncThunk(
   }
 );
 
+const loadRecommendations = createAsyncThunk(
+  `${PRIORITIES_PAGE_REDUCER_NAME}/loadRecommendations`,
+  (requestData, { rejectWithValue }) => {
+    return axios
+      .get(getVersionGraphUrl(requestData))
+      .then(({ data }) => {
+        return {
+          [requestData.hash]: { remediation: data.remediation },
+        };
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const loadRecommendationsRequested = (state, { meta }) => {
+  return {
+    ...state,
+    recommendations: {
+      ...state.recommendations,
+      [meta.arg.hash]: { loading: true, error: null, remediation: null },
+    },
+  };
+};
+
+const loadRecommendationsFulfilled = (state, { payload }) => {
+  const hash = keys(payload)[0];
+  return {
+    ...state,
+    recommendations: {
+      ...state.recommendations,
+      [hash]: { loading: false, error: null, ...payload[hash] },
+    },
+  };
+};
+
+const loadRecommendationsFailed = (state, { payload, meta }) => {
+  return {
+    ...state,
+    recommendations: {
+      ...state.recommendations,
+      [meta.arg.hash]: { loading: false, error: Messages.getHttpErrorMessage(payload), remediation: null },
+    },
+  };
+};
+
+export const checkIfLoadRecommendationsNeeded = (requestData) => (dispatch, getState) => {
+  const state = getState();
+  const { recommendations } = selectPrioritiesPageSlice(state);
+  const { hash } = requestData;
+
+  if (!isNil(recommendations[hash]?.remediation)) {
+    return Promise.resolve({
+      [hash]: recommendations[hash],
+    });
+  }
+
+  return dispatch(loadRecommendations(requestData));
+};
+
 const setPage = (state, { payload }) => {
   return {
     ...state,
@@ -128,6 +188,9 @@ const prioritiesPageSlice = createSlice({
     [loadMetadata.pending]: loadMetadataRequested,
     [loadMetadata.fulfilled]: loadMetadataFulfilled,
     [loadMetadata.rejected]: loadMetadataFailed,
+    [loadRecommendations.pending]: loadRecommendationsRequested,
+    [loadRecommendations.fulfilled]: loadRecommendationsFulfilled,
+    [loadRecommendations.rejected]: loadRecommendationsFailed,
   },
 });
 
@@ -140,6 +203,7 @@ function initialState() {
     metadata: null,
     loadingMetadata: false,
     loadErrorMetaData: null,
+    recommendations: {},
     pageSize: TABLE_PAGE_SIZE,
     pageCount: 1,
     page: 1,
@@ -153,4 +217,6 @@ export const actions = {
   ...prioritiesPageSlice.actions,
   loadTableData,
   loadMetadata,
+  loadRecommendations,
+  checkIfLoadRecommendationsNeeded,
 };

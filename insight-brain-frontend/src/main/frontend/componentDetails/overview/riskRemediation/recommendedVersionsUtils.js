@@ -175,3 +175,47 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
 
   return suggestedRemediations;
 };
+
+export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageId) => {
+  if (remediation && remediation.versionChanges?.length > 0) {
+    const nonViolatingDependencySuggestion = find(
+      propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES),
+      remediation.versionChanges
+    );
+    const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), remediation.versionChanges);
+    const nonFailingDependencySuggestion = find(
+      propEq('type', NEXT_NON_FAILING_DEPENDENCIES),
+      remediation.versionChanges
+    );
+    const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
+
+    if (nonViolatingDependencySuggestion) {
+      return createSuggestedRemediation(nonViolatingDependencySuggestion, actualVersion, stageId);
+    }
+
+    if (
+      shouldDisplayWithoutDependenciesRemediation(
+        nonViolatingDependencySuggestion,
+        nonViolatingSuggestion,
+        actualVersion
+      )
+    ) {
+      return createSuggestedRemediation(nonViolatingSuggestion, actualVersion, stageId);
+    }
+
+    if (nonFailingDependencySuggestion) {
+      return createSuggestedRemediation(nonFailingDependencySuggestion, actualVersion, stageId);
+    }
+
+    if (
+      shouldDisplayWithoutDependenciesRemediation(nonFailingDependencySuggestion, nonFailingSuggestion, actualVersion)
+    ) {
+      return createSuggestedRemediation(nonFailingSuggestion, actualVersion, stageId);
+    }
+  }
+
+  return {
+    id: 'no-versions-available',
+    text: 'No recommended versions are available for the current component',
+  };
+};

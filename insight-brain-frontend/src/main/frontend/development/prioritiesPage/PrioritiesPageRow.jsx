@@ -4,9 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
-import { NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
+import React, { useEffect, useMemo } from 'react';
+import { NxLoadWrapper, NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
+import { useDispatch, useSelector } from 'react-redux';
+import { actions } from './slices/prioritiesPageSlice';
+import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { getRemediationsPrioritiesPage } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
 
 const dependencyTypeMap = {
@@ -17,6 +23,14 @@ const dependencyTypeMap = {
 };
 
 export default function PrioritiesPageRow({ component, onClick }) {
+  const dispatch = useDispatch();
+
+  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
+  const {
+    recommendations,
+    metadata: { stageId },
+  } = useSelector(selectPrioritiesPageSlice);
+
   const {
     displayName,
     dependencyType,
@@ -26,9 +40,51 @@ export default function PrioritiesPageRow({ component, onClick }) {
     highestThreatPolicyName,
     highestThreatPolicyConstraintName,
     securityReachable,
+    componentIdentifier,
+    componentHash,
+    pathName,
   } = component;
 
   const policyAction = action === 'none' ? null : action;
+  const formattedDependencyType = dependencyTypeMap[dependencyType];
+  const actualVersion = componentIdentifier?.coordinates?.version;
+
+  const requestData = {
+    clientType: 'ci',
+    ownerType: 'application',
+    ownerId: publicAppId,
+    matchState: 'exact',
+    proprietary: 'false',
+    identificationSource: 'Sonatype',
+    componentIdentifier: componentIdentifier ? stringifyComponentIdentifier(componentIdentifier, 'exact') : null,
+    hash: componentHash,
+    scanId,
+    pathName,
+    displayName,
+    stageId,
+    dependencyType: formattedDependencyType,
+  };
+
+  const { loading, error, remediation } = recommendations[componentHash] || {};
+
+  const recommendation = useMemo(() => getRemediationsPrioritiesPage(remediation, actualVersion, stageId), [
+    remediation,
+    actualVersion,
+  ]);
+
+  const recommendationText =
+    !recommendation?.version || actualVersion === recommendation?.version
+      ? null
+      : `Upgrade to ${recommendation.version}`;
+  const recommendationSubtext = !recommendation?.text ? '' : recommendation.text;
+
+  const doLoad = () => {
+    dispatch(actions.checkIfLoadRecommendationsNeeded(requestData));
+  };
+
+  useEffect(() => {
+    doLoad();
+  }, []);
 
   return (
     <NxTable.Row isClickable onClick={onClick}>
@@ -37,7 +93,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
         <div className="iq-priorities-page-components">
           <div className="iq-priorities-page-components__component">
             <span data-testid="dependency-type">
-              <DependencyIndicator type={dependencyTypeMap[dependencyType]} />
+              <DependencyIndicator type={formattedDependencyType} />
             </span>
             {displayName}
           </div>
@@ -69,10 +125,10 @@ export default function PrioritiesPageRow({ component, onClick }) {
       </NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-remediation">
-          <div className="iq-priorities-page-remediation__upgrade">Upgrade to 1.11.0</div>
-          <div className="iq-priorities-page-remediation__upgrade-desc">
-            Next version with no policy violations for this component and its dependencies
-          </div>
+          <NxLoadWrapper loading={loading} error={error} retryHandler={doLoad}>
+            <div className="iq-priorities-page-remediation__upgrade">{recommendationText}</div>
+            <div className="iq-priorities-page-remediation__upgrade-desc">{recommendationSubtext}</div>
+          </NxLoadWrapper>
         </div>
       </NxTable.Cell>
       <NxTable.Cell chevron />

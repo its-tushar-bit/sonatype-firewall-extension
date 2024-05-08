@@ -25,12 +25,45 @@ const mockResponsePage2 = generateMockResponseByPage(2);
 describe('PrioritiesPageTable', () => {
   let renderComponent, stateGoSpy, axiosMock;
 
+  const metadata = {
+    reportTime: 1702041439230,
+    reportTitle: 'Build Report',
+    application: {
+      name: 'TestApp',
+      nameLowercaseNoWhitespace: 'testapp',
+      id: 'a03a6722af3f47fc8b7de86c78176de5',
+      publicId: 'TestApp',
+      publicIdLowercase: 'testapp',
+    },
+    stageId: 'build',
+    commitHash: null,
+    initiator: 'admin',
+    scanTriggerType: 'Continuous Integration',
+    totalRisk: 138,
+    forMonitoring: false,
+    reevaluation: false,
+  };
+
   const defaultPreloadedState = {
     router: {
       currentParams: {
         publicAppId,
         scanId,
       },
+    },
+    prioritiesPage: {
+      metadata,
+      topPrioritiesData: null,
+      additionalPrioritiesData: null,
+      loadingTableData: false,
+      loadErrorTableData: null,
+      loadingMetadata: false,
+      loadErrorMetaData: null,
+      recommendations: {},
+      pageSize: 10,
+      pageCount: 1,
+      page: 1,
+      total: null,
     },
   };
 
@@ -286,9 +319,9 @@ describe('PrioritiesPageTable', () => {
 
       fireEvent.click(nextPageBtn);
 
-      expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[1].params).toEqual({ pageSize: 10, page: 2 });
+      expect(axiosMock.history.get.length).toBe(15);
+      expect(axiosMock.history.get[14].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+      expect(axiosMock.history.get[14].params).toEqual({ pageSize: 10, page: 2 });
 
       await screen.findByRole('table');
       pagination = await screen.findByRole('navigation');
@@ -298,9 +331,9 @@ describe('PrioritiesPageTable', () => {
 
       fireEvent.click(prevPageBtn);
 
-      expect(axiosMock.history.get.length).toBe(3);
-      expect(axiosMock.history.get[2].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[2].params).toEqual({ pageSize: 10, page: 1 });
+      expect(axiosMock.history.get.length).toBe(26);
+      expect(axiosMock.history.get[25].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+      expect(axiosMock.history.get[25].params).toEqual({ pageSize: 10, page: 1 });
     });
 
     it('correct data when page is changed', async () => {

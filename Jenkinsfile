@@ -117,13 +117,12 @@ void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
   boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_mtiq'))
-  boolean fastBuildEnabledByDefault = !isDeployBranch(env, 'main')
 
   List params = [
-      booleanParam(defaultValue: fastBuildEnabledByDefault,
+      booleanParam(defaultValue: true,
           description: 'If checked will skip Slow Tests.',
           name: 'fastBuild'),
-      booleanParam(defaultValue: !isFastBuild(),
+      booleanParam(defaultValue: true,
           description: 'If checked will enable Applitools EyesCheck.',
           name: 'applitoolsEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
@@ -536,7 +535,7 @@ boolean isSASTEnabled() {
 }
 
 boolean isFastBuild() {
-  return params.fastBuild
+  return !isDeployBranch(env, 'main') && params.fastBuild
 }
 
 boolean shouldRunPolicyEvaluation() {

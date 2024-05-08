@@ -384,6 +384,22 @@ public class Auth0ManagementAPITest
   }
 
   @Test
+  public void testCreateUser_Auth0Error() throws Exception {
+    String email = "user@company.com";
+    String connectionName = "connection-id";
+    String firstName = "John";
+    String lastName = "Smith";
+    mockAuth0UsersEntity();
+    mockAuth0CreateUserRequest();
+    mockAuth0ListUsersRequest();
+    when(createUserMockRequest.execute()).thenThrow(new Auth0Exception("remote error"));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName))
+        .withMessageContaining("remote error");
+  }
+
+  @Test
   public void testDeleteUser_validateEmail_Empty() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> auth0ManagementAPI.deleteUserByEmail("", "connection-name"))

@@ -62,12 +62,22 @@ public class MultiTenantUserService
   public void inviteUser(final MtiqUserDTO user) {
     TenantMetadata tenantMetadata = getTenantMetadata();
 
-    multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
-        user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
-        tenantMetadata.getConnectionId());
-    log.debug("user created on Auth0 service successfully");
-    samlUserDAO.upsertByUsername(MtiqUserDTO.samlUserFromMtiqUser(user));
-    log.info("Auth0 user created successfully");
+    try {
+      multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
+          user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
+          tenantMetadata.getConnectionId());
+      log.debug("user created on Auth0 successfully");
+
+      samlUserDAO.upsertByUsername(MtiqUserDTO.samlUserFromMtiqUser(user));
+      log.info("user created successfully");
+    }
+    catch (Exception e) {
+      log.error("User creation or update failed for username: {}, auth0 applicationId:{}, connectionId: {}",
+          user.getUsername(),
+          tenantMetadata.getApplicationId(),
+          tenantMetadata.getConnectionId());
+      throw e;
+    }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -76,12 +86,22 @@ public class MultiTenantUserService
     validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, username);
     TenantMetadata tenantMetadata = getTenantMetadata();
 
-    log.debug("Deleting Auth0 user");
-    multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
+    try {
+      multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
+      log.debug("user deleted on Auth0 successfully");
 
-    SamlUser samlUser = samlUserDAO.getByUsername(username);
-    if (samlUser != null) {
-      deleteUser(samlUser);
+      SamlUser samlUser = samlUserDAO.getByUsername(username);
+      if (samlUser != null) {
+        deleteUser(samlUser);
+      }
+      log.info("user deleted successfully");
+    }
+    catch (Exception e) {
+      log.error("User deletion failed for username: {}, auth0 applicationId:{},  connectionId: {}",
+          username,
+          tenantMetadata.getApplicationId(),
+          tenantMetadata.getConnectionId());
+      throw e;
     }
   }
 

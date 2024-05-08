@@ -125,7 +125,7 @@ void configureBranchJob() {
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
           name: 'mtiqImagePushEnabled'),
-      booleanParam(defaultValue: true,
+      booleanParam(defaultValue: false,
                 description: 'If checked will enable SAST analysis on Evaluate Policy step',
                 name: 'sastAnalysisEnabled')
       ]
@@ -496,7 +496,7 @@ void runSastOnJars() {
     sh "tar -xvzf ${f.path} -C ./bundle-jars"
   }
 
-  def bundleFiles = findFiles(glob: '**/bundle-jars/nexus-iq-*SNAPSHOT.jar')
+  def bundleFiles = findFiles(glob: '**/bundle-jars/nexus-iq-*.jar')
   def sastFileParams = []
 
   bundleFiles.each { f ->
@@ -517,8 +517,8 @@ void runSastOnJars() {
  * @return true if enabled
  */
 boolean isSASTEnabled() {
-  // if the params value isn't set (or hasn't been added to the job yet), default to true
-  return params.sastAnalysisEnabled ?: true
+  // if the params value isn't set (or hasn't been added to the job yet), default to false
+  return params.sastAnalysisEnabled ?: false
 }
 
 boolean isFastBuild() {

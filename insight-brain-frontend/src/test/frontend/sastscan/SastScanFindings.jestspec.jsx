@@ -78,6 +78,30 @@ describe('SastScanFindings', () => {
     expect(screen.getAllByRole('row').length).toEqual(2);
   });
 
+  it('sorts by threat when threat header is clicked', () => {
+    const highFinding = generateFinding('HIGH');
+    const mediumFinding = generateFinding('MEDIUM');
+    renderComponent([highFinding, mediumFinding]);
+
+    const threatsColumnHeader = screen.getByRole('columnheader', { name: /threats/i });
+    expect(screen.getByRole('columnheader', { name: /threats/i })).toHaveAttribute('aria-sort', 'descending');
+
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent(highFinding.ruleName);
+    expect(screen.getAllByRole('row')[2]).toHaveTextContent(mediumFinding.ruleName);
+
+    fireEvent.click(threatsColumnHeader);
+    expect(screen.getByRole('columnheader', { name: /threats/i })).toHaveAttribute('aria-sort', 'ascending');
+
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent(mediumFinding.ruleName);
+    expect(screen.getAllByRole('row')[2]).toHaveTextContent(highFinding.ruleName);
+
+    fireEvent.click(threatsColumnHeader);
+    expect(screen.getByRole('columnheader', { name: /threats/i })).toHaveAttribute('aria-sort', 'descending');
+
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent(highFinding.ruleName);
+    expect(screen.getAllByRole('row')[2]).toHaveTextContent(mediumFinding.ruleName);
+  });
+
   function renderComponent(findings, sastPullRequestURL) {
     return render(<SastScanFindings findings={findings} sastPullRequestURL={sastPullRequestURL} />);
   }

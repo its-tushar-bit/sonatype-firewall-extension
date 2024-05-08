@@ -101,12 +101,14 @@ export default function SastScanFindings({ findings, sastPullRequestURL }) {
     setSortDir(newSortDir);
 
     const sortedRows = [...rows].sort((a, b) => {
-      if (newSortDir === 'asc') {
-        return severities[a.severity] - severities[b.severity];
-      }
-      return severities[b.severity] - severities[a.severity];
-    });
+      const severity1 = a.severity.toUpperCase();
+      const severity2 = b.severity.toUpperCase();
 
+      if (newSortDir === 'asc') {
+        return severities[severity1] - severities[severity2];
+      }
+      return severities[severity2] - severities[severity1];
+    });
     setRows(sortedRows);
   }
 

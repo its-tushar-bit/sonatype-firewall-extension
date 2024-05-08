@@ -122,9 +122,6 @@ void configureBranchJob() {
       booleanParam(defaultValue: true,
           description: 'If checked will skip Slow Tests.',
           name: 'fastBuild'),
-      booleanParam(defaultValue: true,
-          description: 'If checked will enable Applitools EyesCheck.',
-          name: 'applitoolsEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
           name: 'mtiqImagePushEnabled'),
@@ -370,7 +367,7 @@ Map<String, Closure> createFunctionalTests(
               mavenOptions += ' -Drun-functional-tests=docker'
               mavenOptions += " -Dbrowser=chrome"
               mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
-              mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
+              mavenOptions += " -DapplitoolsEnabled=true"
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
               mavenOptions += " -DdetectTestEntityLeaks"
               mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
@@ -512,16 +509,6 @@ void runSastOnJars() {
     runSafely "java -Xmx6g -Dspring.profiles.active=local_dev -jar ./sast-cli-dist/sast-cli.jar sast --include-packages=com.sonatype -a insight-brain --source . --host https://sonatype.sonatype.app/platform -u $IQ_USERNAME --password $IQ_PASSWORD ${sastFileParams.join(' ')}"
   }
   echo "Successfully ran SAST analysis on insight-brain bundle jars"
-}
-
-/**
- * Check to see if the Eyes Check should be enabled.  Defaults to true for the 'main' and any branch that ends in '_ui'
- * Can be overridden if a parameter has been defined and specified for the job.
- * @return true if enabled
- */
-boolean isEyesEnabled() {
-  // if the params value isn't set (or hasn't been added to the job yet), default to true
-  return params.applitoolsEnabled ?: true
 }
 
 /**

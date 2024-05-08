@@ -103,8 +103,7 @@ public class EyesWatcher
     try {
       // End visual testing. Validate visual correctness.
       if (eyes.getIsOpen()) {
-        // only fail the build if on main
-        eyes.close(isMain());
+        eyes.close(true);
       }
     }
     finally {
@@ -165,10 +164,6 @@ public class EyesWatcher
     }
 
     return settings;
-  }
-
-  private static boolean isMain() {
-    return "main".equals(localBranchName);
   }
 
   public static File screenshot(String destFilename) {

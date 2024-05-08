@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -20,6 +19,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentVersionsServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * @since 1.47
@@ -39,7 +41,16 @@ public class ApiComponentVersionsResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<String> getComponentVersions(final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifier) {
+  @Operation(description = "Use this method to retrieve all known versions of a component.")
+  @ApiResponse(responseCode = "200",
+      description = "Known versions of the component are returned in a string array of ascending order.",
+      useReturnTypeSchema = true)
+
+  public List<String> getComponentVersions(
+      @Parameter(description = "Possible values: Component identifier or packageURL (pURL) identifier in the " +
+          "correct format. Use a-name for JavaScript components.")
+      final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifier)
+  {
     return componentVersionsService.getComponentVersions(componentOrPurlIdentifier);
   }
 }

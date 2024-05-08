@@ -28,10 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantSecurityConfigurationResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   @Test
   public void shouldUpdateSecurityConfigurationForATenant() throws Exception {
     String tenantSlug = generateTestTenantName();
@@ -58,19 +54,11 @@ public class TenantSecurityConfigurationResourceTest
   }
 
   private HttpRequest updateSecurityConfiguration(String tenant) throws Exception {
-    HttpRequest request;
-
-    if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
-          .parameter(tenant)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    else {
-      request = restRequest();
-    }
+    HttpRequest request = adminRestRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
+        .parameter(tenant)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
 
     String xml = getEncodedIdPMetadataXml();
-
     SecurityConfigurationDTO securityConfiguration = new SecurityConfigurationDTO();
     securityConfiguration.setBase64IdentityProviderXml(xml);
     securityConfiguration.setSamlConfiguration(new ApiSamlConfigurationDTO());

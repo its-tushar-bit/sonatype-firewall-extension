@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
@@ -20,10 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantSchemaResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   @Test
   public void shouldGetTenantSchemaVersions() throws Exception {
     String tenantSlug = generateTestTenantName();
@@ -93,12 +86,8 @@ public class TenantSchemaResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
-  private HttpRequest callSchemaEndpoint(String tenant) throws Exception {
-    if (tenant != null) {
-      return restRequest(ADMIN_TENANT_SCHEMA_PATH)
-          .parameter(tenant)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    return restRequest();
+  private HttpRequest callSchemaEndpoint(String tenant) {
+    return adminRestRequest(ADMIN_TENANT_SCHEMA_PATH)
+          .parameter(tenant);
   }
 }

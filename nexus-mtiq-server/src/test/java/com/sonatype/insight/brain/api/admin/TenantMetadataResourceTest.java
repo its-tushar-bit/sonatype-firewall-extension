@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
@@ -17,7 +14,6 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest
 
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_METADATA_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,24 +71,10 @@ public class TenantMetadataResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
-  private HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   private HttpRequest updateTenantMetadata(String tenant, final TenantMetadataDTO metadata) throws Exception {
-    HttpRequest request;
-
-    ObjectMapper objectMapper = new ObjectMapper();
-    if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_METADATA_PATH)
-          .parameter(tenant)
-          .body(objectMapper.writeValueAsString(metadata))
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    else {
-      request = restRequest();
-    }
-    return request;
+    return adminRestRequest(ADMIN_TENANT_METADATA_PATH)
+        .parameter(tenant)
+        .body(objectMapper.writeValueAsString(metadata));
   }
 
   private void assertMetadataResult(TenantMetadata tenantMetadata1, TenantMetadata tenantMetadata2) {

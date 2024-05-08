@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
@@ -20,10 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantLicenseResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   @Test
   public void shouldUpdateLicense() throws Exception {
     String tenantSlug = generateTestTenantName();
@@ -49,18 +42,9 @@ public class TenantLicenseResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
-  private HttpRequest updateLicense(String tenant) throws Exception {
-    HttpRequest request;
-
-    if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_LICENSE_PATH)
-          .parameter(tenant)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    else {
-      request = restRequest();
-    }
-    request.part("file", "sonatype.lic", new byte[1]);
-    return request;
+  private HttpRequest updateLicense(String tenant) {
+    return adminRestRequest(ADMIN_TENANT_LICENSE_PATH)
+        .parameter(tenant)
+        .part("file", "sonatype.lic", new byte[1]);
   }
 }

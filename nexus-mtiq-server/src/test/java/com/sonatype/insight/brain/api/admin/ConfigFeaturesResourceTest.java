@@ -9,14 +9,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
@@ -34,10 +32,6 @@ public class ConfigFeaturesResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
 
   private TemporaryEntity privateGlobalTemporaryEntity;
 
@@ -104,6 +98,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
           SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
+          SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.getId(),
       }
   )).toArray(String[]::new);
 
@@ -305,12 +300,6 @@ public class ConfigFeaturesResourceTest
     assertThat(response.getBodyText()).isEqualTo(String.format("Tenant %s does not exist", notTenantSlug));
   }
 
-  private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) throws Exception {
-    return restRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
-        .parameter(tenantSlug)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-  }
-
   @Test
   public void testEnableFeature_saasLifecycleScmEnabled_asTenant() throws Exception {
     testAsTestTenant(tenant -> {
@@ -340,5 +329,10 @@ public class ConfigFeaturesResourceTest
     String[] features = response.getBody(String[].class);
 
     assertThat(features).doesNotContain(SAAS_LIFECYCLE_SCM_ENABLED);
+  }
+
+  private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) {
+    return adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
+        .parameter(tenantSlug);
   }
 }

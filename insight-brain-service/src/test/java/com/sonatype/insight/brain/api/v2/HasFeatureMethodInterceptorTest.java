@@ -25,6 +25,8 @@ public class HasFeatureMethodInterceptorTest
 
   private HasFeatureMethodInterceptor interceptor;
 
+  private TestClassWithClassAnnotation testClassWithClassAnnotation = new TestClassWithClassAnnotation();
+
   @HasFeature(SystemConfigurationPropertyFeature.CODE_INSIGHTS)
   public String stubMethod(String arg0) {
     return arg0;
@@ -56,5 +58,37 @@ public class HasFeatureMethodInterceptorTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> interceptor.invoke(invoc))
         .withMessage("Feature not supported.");
+  }
+
+  @Test
+  public void testInvoke_withClassAnnotation_Pass() throws Throwable {
+    when(invoc.getMethod()).thenReturn(
+        testClassWithClassAnnotation.getClass().getMethod("stubMethodWithoutAnnotation", String.class));
+    when(invoc.proceed()).thenReturn("test");
+
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.CODE_INSIGHTS.isEnabled()).isTrue();
+
+    assertThat(interceptor.invoke(invoc)).isEqualTo("test");
+  }
+
+  @Test
+  public void testInvoke_withClassAnnotation_FailWithException() throws Throwable {
+    when(invoc.getMethod()).thenReturn(
+        testClassWithClassAnnotation.getClass().getMethod("stubMethodWithoutAnnotation", String.class));
+
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(false);
+    assertThat(SystemConfigurationPropertyFeature.CODE_INSIGHTS.isEnabled()).isFalse();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> interceptor.invoke(invoc))
+        .withMessage("Feature not supported.");
+  }
+
+  @HasFeature(SystemConfigurationPropertyFeature.CODE_INSIGHTS)
+  private class TestClassWithClassAnnotation
+  {
+    public String stubMethodWithoutAnnotation(String arg0) {
+      return arg0;
+    }
   }
 }

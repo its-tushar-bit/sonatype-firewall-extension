@@ -13,12 +13,10 @@ import java.lang.annotation.Target;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 /**
- * Marks a method requiring feature flag checks.
- *
- * @since saas-next
+ * Marks a method or class as requiring feature flag checks.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface HasFeature
 {
   /**

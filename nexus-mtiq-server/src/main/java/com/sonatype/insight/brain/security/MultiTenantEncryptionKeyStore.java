@@ -91,6 +91,12 @@ public class MultiTenantEncryptionKeyStore
     log.debug("Getting tenant {} encryption key {} from AWS.", tenantUtil.getTenantSlugForSynchronization(),
         encryptionKeyName);
 
+    if (encryptionKeyName == null) {
+      log.error(
+          String.format("Tenant %s encryption key name not found.", tenantUtil.getTenantSlugForSynchronization()));
+      return;
+    }
+
     String encryptionKey;
     try {
       encryptionKey = awsSecretsManagerClient.getSecret(encryptionKeyName);
@@ -101,7 +107,7 @@ public class MultiTenantEncryptionKeyStore
     }
 
     if (Strings.isEmpty(encryptionKey)) {
-      log.error(String.format("Tenant %s encryption null or empty.", tenantUtil.getTenantSlugForSynchronization()));
+      log.error(String.format("Tenant %s encryption key null or empty.", tenantUtil.getTenantSlugForSynchronization()));
     }
     else {
       tenantKeyStore.set(encryptionKey);

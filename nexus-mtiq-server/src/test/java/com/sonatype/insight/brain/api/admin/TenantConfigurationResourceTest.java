@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.api.admin;
 
 import java.util.Collections;
 import java.util.Map;
-import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -30,10 +28,6 @@ public class TenantConfigurationResourceTest
   @Before
   public void before() {
     dao = lookup(SystemConfigurationPropertyDAO.class);
-  }
-
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
   }
 
   @Test
@@ -226,12 +220,8 @@ public class TenantConfigurationResourceTest
     assertThat(response.getBodyText()).isEqualTo("Property forceBaseUrl is not configurable.");
   }
 
-  private HttpRequest callConfigurationEndpoint(String tenant) throws Exception {
-    if (tenant != null) {
-      return restRequest(ADMIN_CONFIG_PATH)
-          .parameter(tenant)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    return restRequest();
+  private HttpRequest callConfigurationEndpoint(String tenant) {
+    return adminRestRequest(ADMIN_CONFIG_PATH)
+        .parameter(tenant);
   }
 }

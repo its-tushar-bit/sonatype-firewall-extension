@@ -187,7 +187,7 @@ public abstract class AbstractBaseIntegrationTest
   @Rule(order = 2) // after DatabaseContainerRule
   public TestProductLicenseRule testProductLicenseRule = new TestProductLicenseRule(databaseContainerRule);
 
-  private static boolean productlicenseWasUninstalled;
+  protected static boolean productlicenseWasUninstalled;
 
   protected static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
@@ -368,7 +368,7 @@ public abstract class AbstractBaseIntegrationTest
     if (testCLMServer != null) {
       testCLMServer.getHdsServer().reset();
       if (installLicense) {
-        installLicense();
+        installLicenseOnCleanup();
       }
 
       if (isTestIqServerRunning()) {
@@ -589,6 +589,10 @@ public abstract class AbstractBaseIntegrationTest
       savedLicenseFingerprint = licenseFingerprinter.calculate();
     }
     licenseFingerprinter.setDummyLicenseFingerprint(licenseFingerprint);
+    installLicense();
+  }
+
+  protected void installLicenseOnCleanup() throws Exception {
     installLicense();
   }
 

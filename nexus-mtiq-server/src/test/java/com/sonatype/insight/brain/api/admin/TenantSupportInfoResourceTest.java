@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
@@ -20,10 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantSupportInfoResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   @Test
   public void shouldSend200_GetSupportInfo() throws Exception {
     String tenantSlug = generateTestTenantName();
@@ -52,12 +45,8 @@ public class TenantSupportInfoResourceTest
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
-  private HttpRequest getSupportInfoZip(String tenant) throws Exception {
-    if (tenant != null) {
-      return restRequest(ADMIN_SUPPORT_INFO_PATH)
-          .parameter(tenant)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-    }
-    return restRequest();
+  private HttpRequest getSupportInfoZip(String tenant) {
+    return adminRestRequest(ADMIN_SUPPORT_INFO_PATH)
+        .parameter(tenant);
   }
 }

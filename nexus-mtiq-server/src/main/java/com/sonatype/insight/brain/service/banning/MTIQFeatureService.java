@@ -47,13 +47,6 @@ public class MTIQFeatureService
   private static final Logger log = LoggerFactory.getLogger(MTIQFeatureService.class);
 
   /**
-   * This is the list of features that are _allowed_ to be enabled in MTIQ but doesn't necessarily mean all these things
-   * _will_ be enabled, that depends on the license itself. Another way to think about it is these are an additional
-   * filter that is applied on top of the license. We decided to go with a list of "enabled" rather than "disabled"
-   * features so that any new features don't automatically get released in MTIQ.
-   */
-
-  /**
    * This is the list of features that are always enabled in MTIQ.
    */
   private static final List<SystemConfigurationPropertyFeature> MTIQ_ENABLED_FEATURES = Arrays.asList(
@@ -84,8 +77,7 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
       SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
-      SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
-      LicensedFeature.ADVANCED_LEGAL_PACK
+      SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS
   );
 
   private final ApiConfigFeaturesService service;

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.service.legal.report.ApplicationAttribu
 import com.sonatype.insight.brain.api.v2.service.legal.report.LegalCustomReportParameters;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -53,6 +54,7 @@ import org.glassfish.jersey.server.ContainerRequest;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
+@HasFeature(SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED)
 public class ApiLegalReportResourceV2
 {
   public static final String APPLICATION_PATH = "application/{applicationId}";

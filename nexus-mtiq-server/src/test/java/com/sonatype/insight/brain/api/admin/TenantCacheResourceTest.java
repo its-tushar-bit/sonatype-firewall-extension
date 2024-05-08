@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.AdminApiPaths;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -27,15 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantCacheResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
   private OrganizationDAO organizationDAO;
 
   private RoleDAO roleDAO;
 
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
+  private final ObjectMapper mapper =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Before
   public void before() {
@@ -96,10 +90,9 @@ public class TenantCacheResourceTest
     return mapper.readValue(response.getBodyText(), TestCacheStatistics.class);
   }
 
-  private HttpRequest requestTenantStatistics(final String tenantSlug) throws Exception {
-    return restRequest(AdminApiPaths.ADMIN_TENANT_CACHE_PATH)
-        .parameter(tenantSlug)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
+  private HttpRequest requestTenantStatistics(final String tenantSlug) {
+    return adminRestRequest(AdminApiPaths.ADMIN_TENANT_CACHE_PATH)
+        .parameter(tenantSlug);
   }
 
   private static class TestCacheStatistics

@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.ws.rs.core.HttpHeaders;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -143,13 +140,8 @@ public class MtiqApiSourceControlResourceTest
     assertThat(response.getBodyText()).contains(message);
   }
 
-  private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) throws Exception {
+  private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) {
     return adminRestRequest(ADMIN_TENANT_CONFIG_FEATURES_PATH)
-        .parameter(tenantSlug)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
-  }
-
-  protected HttpRequest adminRestRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
+        .parameter(tenantSlug);
   }
 }

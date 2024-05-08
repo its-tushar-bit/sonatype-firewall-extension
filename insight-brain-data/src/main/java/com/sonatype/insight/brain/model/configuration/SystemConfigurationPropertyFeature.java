@@ -183,13 +183,26 @@ public enum SystemConfigurationPropertyFeature
    */
   SAAS_PRE_REGISTER_ALL_TENANTS(SystemConfigurationProperty.SAAS_PRE_REGISTER_ALL_TENANTS, true),
 
-  SBOM_MANAGER(SystemConfigurationProperty.SBOM_MANAGER, false),
+  /**
+   * Self-Hosted: ALP is not feature flagged for self-hosted, so it must always return true for self-hosted.
+   * SaaS: SAAS_ALP_ENABLED is disabled by default.
+   */
+  SAAS_ALP_ENABLED(SystemConfigurationProperty.SAAS_ALP_ENABLED, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      if (tenantUtil.isSingleTenant()) {
+        return true;
+      }
+      return super.isEnabled(tx);
+    }
+  },
 
+  SBOM_MANAGER(SystemConfigurationProperty.SBOM_MANAGER, false),
   DEVELOPMENT_DASHBOARD_METRIC_COLLECTION(
       SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
       true
   ),
-
   PRIORITIZED_FINDINGS_REPORT(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";

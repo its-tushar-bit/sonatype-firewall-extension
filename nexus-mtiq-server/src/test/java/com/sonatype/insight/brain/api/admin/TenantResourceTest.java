@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.api.admin;
 
 import java.util.List;
-import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
@@ -21,10 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.adminRequest().path("api/").path(path);
-  }
-
   @Test
   public void getAllTenants_shouldReturnTenantsList() throws Exception {
     String tenant1Slug = generateTestTenantName();
@@ -41,9 +35,8 @@ public class TenantResourceTest
     assertThat(tenantsList).contains(tenant1Slug, tenant2Slug);
   }
 
-  private HttpRequest getAllTenantsNames() throws Exception {
-    return restRequest(ADMIN_PATH + TenantResource.LIST_TENANTS)
-        .query("tenant=global")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
+  private HttpRequest getAllTenantsNames() {
+    return adminRestRequest(ADMIN_PATH + TenantResource.LIST_TENANTS)
+        .query("tenant=global");
   }
 }

@@ -16,8 +16,7 @@ import org.apache.shiro.aop.MethodInvocation;
 /**
  * AOP-based method interceptor to evaluate {@link HasFeature} annotations used to enforce feature flag checks.
  * Example use: @HasFeature(SystemConfigurationPropertyFeature.CODE_INSIGHTS)
- *
- * @since saas-next
+ * Can be used on method or class declarations, intended for resource classes
  */
 public class HasFeatureMethodInterceptor
     extends AnnotationMethodInterceptor
@@ -36,7 +35,12 @@ public class HasFeatureMethodInterceptor
 
   @Override
   protected HasFeature getAnnotation(MethodInvocation methodInvocation) {
-    return (HasFeature) super.getAnnotation(methodInvocation);
+    HasFeature feature = (HasFeature) super.getAnnotation(methodInvocation);
+    if (feature != null) {
+      return feature;
+    }
+    Class<?> clazz = methodInvocation.getMethod().getDeclaringClass();
+    return clazz.getDeclaredAnnotation(HasFeature.class);
   }
 
   @Override
@@ -47,6 +51,10 @@ public class HasFeatureMethodInterceptor
   }
 
   private void assertHasFeature(HasFeature annotation) throws NotFoundException {
+    if (annotation == null) {
+      // No feature flag to check
+      return;
+    }
     SystemConfigurationPropertyFeature feature = annotation.value();
     if (!feature.isEnabled()) {
       throw new NotFoundException("Feature not supported.");

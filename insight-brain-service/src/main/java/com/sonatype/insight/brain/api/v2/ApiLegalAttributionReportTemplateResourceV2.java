@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.legal.AttributionReportService;
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -31,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
+@HasFeature(SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED)
 public class ApiLegalAttributionReportTemplateResourceV2
 {
   public static final String REPORT_TEMPLATE_PATH = "report-template/";

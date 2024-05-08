@@ -5,11 +5,7 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import javax.ws.rs.core.HttpHeaders;
-
-import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
@@ -23,11 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantProvisioningResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.adminRequest().path("api/").path(ADMIN_TENANT_PROVISIONING_PATH);
-  }
-
   @Test
   public void shouldProvisionTenant() throws Exception {
     HttpResponse response = provisionTenant(generateTestTenantName());
@@ -101,11 +92,8 @@ public class TenantProvisioningResourceTest
 
   public HttpResponse deleteTenant(String tenantName) throws Exception {
     setTenantSlug(tenantName);
-    return adminRequest()
-        .path("api/")
-        .path(ADMIN_TENANT_PROVISIONING_PATH)
+    return adminRestRequest(ADMIN_TENANT_PROVISIONING_PATH)
         .parameter(tenantName)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt())
         .delete();
   }
 }

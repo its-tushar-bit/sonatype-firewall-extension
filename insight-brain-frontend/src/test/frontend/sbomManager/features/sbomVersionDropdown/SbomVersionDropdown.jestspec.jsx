@@ -12,13 +12,13 @@ describe('SbomVersionDropdown', () => {
   const publicAppId = 'app123';
   const sbomVersion = '1.0-SNAPSHOT';
   const propsSingleSbom = {
-    publicApplicationId: publicAppId,
-    allSbomVersions: [sbomVersion],
+    publicAppId: publicAppId,
+    sbomVersions: [sbomVersion],
     currentSbomVersion: sbomVersion,
   };
   const propsMultSboms = {
-    publicApplicationId: publicAppId,
-    allSbomVersions: ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT'],
+    publicAppId: publicAppId,
+    sbomVersions: ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT'],
     currentSbomVersion: sbomVersion,
   };
   const renderDropdown = (props) => render(<SbomVersionDropdown {...props} />);

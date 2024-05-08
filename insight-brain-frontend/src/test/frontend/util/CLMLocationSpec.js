@@ -1485,4 +1485,13 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getAllApplicationSbomVersions(applicationId)).toBe(expectedURL);
     });
   });
+
+  describe('getSbomMetadata', () => {
+    it('should return the correct URL with the given parameters', () => {
+      const applicationId = 'abc123';
+      const version = 'def246';
+      const expectedURL = `/rest/sbom/applications/${applicationId}/versions/${version}/sbomMetadata`;
+      expect(clmLocation.getSbomMetadataUrl(applicationId, version)).toBe(expectedURL);
+    });
+  });
 });

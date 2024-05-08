@@ -5,74 +5,131 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { always } from 'ramda';
-import { getApplicationSummaryUrl, getAllApplicationSbomVersions } from 'MainRoot/util/CLMLocation';
+import { always, omit } from 'ramda';
+import { getApplicationSummaryUrl, getAllApplicationSbomVersions, getSbomMetadataUrl } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
 
+export const sbomMetadataInitialState = {
+  author: [],
+  manufacturer: [],
+  supplier: [],
+  person: [],
+  organization: [],
+  specification: null,
+  specVersion: null,
+  fileFormat: null,
+  createdAt: null,
+};
+
 export const initialState = {
-  loading: false,
+  publicAppId: null,
+
+  // internal-application-id
+  loadingInternalAppId: true,
   errorInternalAppId: null,
   internalAppId: null,
-  publicAppId: null,
+  applicationName: null,
+
+  // sbom-versions
+  loadingSbomVersions: true,
   errorSbomVersions: null,
   sbomVersions: null,
+
+  // sbom-metadata
+  loadingSbomMetadata: true,
+  errorSbomMetadata: null,
+  sbomMetadata: { ...sbomMetadataInitialState },
+  scanId: null,
 };
 
-const loadInternalApplicationIdRequested = (state) => {
-  state.loading = true;
+// internal-application-id
+const loadInternalAppIdRequested = (state) => {
+  state.loadingInternalAppId = true;
   state.errorInternalAppId = null;
+  state.applicationName = null;
 };
 
-const loadInternalApplicationIdFailed = (state, { payload }) => {
+const loadInternalAppIdFulfilled = (state, { payload }) => {
+  state.loadingInternalAppId = false;
+  state.errorInternalAppId = null;
+  state.internalAppId = payload.id;
+  state.applicationName = payload.name;
+};
+
+const loadInternalAppIdFailed = (state, { payload }) => {
+  state.loadingInternalAppId = false;
   state.errorInternalAppId = payload.response.data;
-  state.loading = false;
   state.internalAppId = null;
   state.publicAppId = null;
 };
 
-const loadInternalApplicationIdFulfilled = (state, { payload }) => {
-  state.loading = false;
-  state.errorInternalAppId = null;
-  state.internalAppId = payload.id;
-};
+const loadInternalAppId = createAsyncThunk(
+  `${REDUCER_NAME}/loadInternalAppId`,
+  async (publicApplicationId, { rejectWithValue }) =>
+    axios
+      .get(getApplicationSummaryUrl(publicApplicationId))
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err))
+);
 
+// sbom-versions
 const loadApplicationSbomVersionsRequested = (state) => {
-  state.loading = true;
+  state.loadingSbomVersions = true;
   state.errorSbomVersions = null;
 };
 
-const loadApplicationSbomVersionsFailed = (state, { payload }) => {
-  state.errorSbomVersions = payload;
-  state.sbomVersions = null;
-  state.loading = false;
-};
-
 const loadApplicationSbomVersionsFulfilled = (state, { payload }) => {
-  state.loading = false;
+  state.loadingSbomVersions = false;
   state.errorSbomVersions = null;
   state.sbomVersions = payload;
 };
 
-const loadInternalApplicationId = createAsyncThunk(
-  `${REDUCER_NAME}/loadInternalApplicationId`,
-  async (publicApplicationId, { rejectWithValue }) => {
-    return axios
-      .get(getApplicationSummaryUrl(publicApplicationId))
-      .then((response) => response.data)
-      .catch((err) => rejectWithValue(err));
-  }
-);
+const loadApplicationSbomVersionsFailed = (state, { payload }) => {
+  state.loadingSbomVersions = false;
+  state.errorSbomVersions = payload;
+  state.sbomVersions = null;
+};
 
 const loadApplicationSbomVersions = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicationSbomVersions`,
-  async (internalApplicationId, { rejectWithValue }) => {
-    return axios
+  async (internalApplicationId, { rejectWithValue }) =>
+    axios
       .get(getAllApplicationSbomVersions(internalApplicationId))
       .then((response) => response.data)
-      .catch((err) => rejectWithValue(err));
-  }
+      .catch((err) => rejectWithValue(err))
+);
+
+// sbom-metadata
+const loadSbomMetadataRequested = (state) => {
+  state.loadingSbomMetadata = true;
+  state.errorSbomMetadata = null;
+  state.sbomMetadata = { ...sbomMetadataInitialState };
+  state.scanId = null;
+};
+
+const loadSbomMetadataFailed = (state, { payload }) => {
+  state.loadingSbomMetadata = false;
+  state.errorSbomMetadata = payload;
+  state.sbomMetadata = { ...sbomMetadataInitialState };
+  state.scanId = null;
+};
+
+const loadSbomMetadataFulfilled = (state, { payload }) => {
+  state.loadingSbomMetadata = false;
+  state.errorSbomMetadata = null;
+  state.sbomMetadata = { ...sbomMetadataInitialState, ...omit(['scanId'], payload) };
+  state.scanId = payload.scanId;
+};
+
+const loadSbomMetadata = createAsyncThunk(
+  `${REDUCER_NAME}/loadSbomMetadata`,
+  async ({ internalAppId, version }, { rejectWithValue }) =>
+    axios
+      .get(getSbomMetadataUrl(internalAppId, version))
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err))
 );
 
 const billsOfMaterialsPageSlice = createSlice({
@@ -84,20 +141,24 @@ const billsOfMaterialsPageSlice = createSlice({
     },
   },
   extraReducers: {
-    [loadInternalApplicationId.pending]: loadInternalApplicationIdRequested,
-    [loadInternalApplicationId.fulfilled]: loadInternalApplicationIdFulfilled,
-    [loadInternalApplicationId.rejected]: loadInternalApplicationIdFailed,
+    [loadInternalAppId.pending]: loadInternalAppIdRequested,
+    [loadInternalAppId.fulfilled]: loadInternalAppIdFulfilled,
+    [loadInternalAppId.rejected]: loadInternalAppIdFailed,
     [loadApplicationSbomVersions.pending]: loadApplicationSbomVersionsRequested,
     [loadApplicationSbomVersions.fulfilled]: loadApplicationSbomVersionsFulfilled,
     [loadApplicationSbomVersions.rejected]: loadApplicationSbomVersionsFailed,
+    [loadSbomMetadata.pending]: loadSbomMetadataRequested,
+    [loadSbomMetadata.fulfilled]: loadSbomMetadataFulfilled,
+    [loadSbomMetadata.rejected]: loadSbomMetadataFailed,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
 
 export const actions = {
   ...billsOfMaterialsPageSlice.actions,
-  loadInternalApplicationId,
+  loadInternalAppId,
   loadApplicationSbomVersions,
+  loadSbomMetadata,
 };
 
 export default billsOfMaterialsPageSlice.reducer;

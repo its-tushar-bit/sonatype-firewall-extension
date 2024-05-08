@@ -9,8 +9,8 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
 export default function SbomVersionDropdown(props) {
-  const { publicApplicationId, allSbomVersions, currentSbomVersion } = props;
-  const allSbomVersionsExeceptCurrentOne = allSbomVersions.filter((sbomVersion) => sbomVersion !== currentSbomVersion);
+  const { publicAppId, sbomVersions, currentSbomVersion } = props;
+  const sbomVersionsExceptCurrent = sbomVersions.filter((sbomVersion) => sbomVersion !== currentSbomVersion);
   const [isOpen, onToggleCollapse] = useToggle(false);
   const uiRouterState = useRouterState();
 
@@ -25,11 +25,11 @@ export default function SbomVersionDropdown(props) {
       isOpen={isOpen}
       onToggleCollapse={onToggleCollapse}
     >
-      {allSbomVersionsExeceptCurrentOne.length > 0 ? (
-        allSbomVersionsExeceptCurrentOne.map((sbomVersion) => (
+      {sbomVersionsExceptCurrent.length > 0 ? (
+        sbomVersionsExceptCurrent.map((sbomVersion) => (
           <a
             href={uiRouterState.href('sbomManager.management.view.bom', {
-              applicationPublicId: publicApplicationId,
+              applicationPublicId: publicAppId,
               versionId: sbomVersion,
             })}
             className="nx-dropdown-button"
@@ -48,7 +48,7 @@ export default function SbomVersionDropdown(props) {
 }
 
 SbomVersionDropdown.propTypes = {
-  publicApplicationId: PropTypes.string.isRequired,
-  allSbomVersions: PropTypes.array.isRequired,
+  publicAppId: PropTypes.string.isRequired,
+  sbomVersions: PropTypes.array.isRequired,
   currentSbomVersion: PropTypes.string.isRequired,
 };

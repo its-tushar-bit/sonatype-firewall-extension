@@ -86,7 +86,6 @@ export default function SbomsTile() {
               <NxTable.Cell>
                 <NxTooltip
                   title={sbom.applicationVersion}
-                  isName
                   className="sbom-manager-owner-summary-sboms-tile-table__version-link-tooltip"
                 >
                   <NxTextLink

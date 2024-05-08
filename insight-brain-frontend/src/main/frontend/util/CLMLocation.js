@@ -1421,6 +1421,9 @@ export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
 export const getAllApplicationSbomVersions = (applicationId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;
 
+export const getSbomMetadataUrl = (applicationId, version) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/sbomMetadata`;
+
 export const getPrioritiesPageTableData = (applicationId, scanId) =>
   uriTemplate`/api/experimental/priorities/${applicationId}/${scanId}`;
 

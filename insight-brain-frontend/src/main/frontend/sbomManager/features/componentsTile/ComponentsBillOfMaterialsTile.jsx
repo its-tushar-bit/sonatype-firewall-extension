@@ -5,15 +5,16 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import * as PropTypes from 'prop-types';
 import {
-  NxTile,
   NxH2,
-  NxTable,
-  NxOverflowTooltip,
-  NxSmallThreatCounter,
   NxLoadWrapper,
+  NxSmallThreatCounter,
+  NxTable,
+  NxTile,
   NxTooltip,
 } from '@sonatype/react-shared-components';
+
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import {
   selectComponentsSbomsResults,
@@ -22,12 +23,11 @@ import {
   selectSortDir,
 } from './componentsBillOfMaterialsSelectors.js';
 import { actions } from './componentsBillOfMaterialsSlice.js';
-import * as PropTypes from 'prop-types';
 
 import './componentsBillOfMaterialsTile.scss';
 
 export default function ComponentsBillOfMaterialsTile(props) {
-  const { internalAppId, sbomVersion, isInternalAppIdLoading } = props;
+  const { isInternalAppIdLoading, internalAppId, sbomVersion } = props;
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadSbomTableData({ internalAppId, sbomVersion }));
 
@@ -57,7 +57,6 @@ export default function ComponentsBillOfMaterialsTile(props) {
                 <NxTooltip
                   title={component.displayName}
                   className="sbom-manager-bills-of-materials-tile-table__tooltip"
-                  isName
                 >
                   <span className="sbom-manager-bills-of-materials-tile-table__display-name">
                     {component.displayName}
@@ -77,7 +76,6 @@ export default function ComponentsBillOfMaterialsTile(props) {
                 <NxTooltip
                   title={getLicenseList(component.licenses)}
                   className="sbom-manager-bills-of-materials-tile-table__tooltip"
-                  isName
                 >
                   <span className="sbom-manager-bills-of-materials-tile-table__licenses">
                     {getLicenseList(component.licenses)}
@@ -119,7 +117,7 @@ export default function ComponentsBillOfMaterialsTile(props) {
 }
 
 ComponentsBillOfMaterialsTile.propTypes = {
+  isInternalAppIdLoading: PropTypes.bool.isRequired,
   internalAppId: PropTypes.string,
   sbomVersion: PropTypes.string,
-  isInternalAppIdLoading: PropTypes.bool,
 };

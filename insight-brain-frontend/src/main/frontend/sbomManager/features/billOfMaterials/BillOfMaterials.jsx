@@ -5,54 +5,52 @@
  */
 
 import React, { useEffect } from 'react';
-import {
-  NxButton,
-  NxButtonBar,
-  NxFontAwesomeIcon,
-  NxH1,
-  NxPageTitle,
-  NxThreatIndicator,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxButtonBar, NxFontAwesomeIcon, NxH1, NxPageTitle } from '@sonatype/react-shared-components';
+import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
+
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import ComponentsBillOfMaterialsTile from 'MainRoot/sbomManager/features/componentsTile/ComponentsBillOfMaterialsTile';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
-import LoadWrapper from 'MainRoot/react/LoadWrapper';
-
+import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { faDownload } from '@fortawesome/pro-solid-svg-icons';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
+import { selectBillOfMaterialsPage } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
+import { formatDate } from 'MainRoot/util/dateUtils';
+
 import { actions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
-import {
-  selectInternalApplicationId,
-  selectInternalApplicationIdError,
-  selectInternalApplicationIdIsLoading,
-  selectSbomVersions,
-  selectErrorSbomVersions,
-} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 
 export default function BillOfMaterials() {
   const dispatch = useDispatch();
-  const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
-  const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
-  const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
-  const routerParams = useSelector(selectRouterCurrentParams);
-  const isInternalAppIdLoading = useSelector(selectInternalApplicationIdIsLoading);
-  const internalAppIdError = useSelector(selectInternalApplicationIdError);
-  const internalAppId = useSelector(selectInternalApplicationId);
+  const {
+    loadingInternalAppId,
+    loadingSbomVersions,
+    loadingSbomMetadata,
+    errorInternalAppId,
+    errorSbomVersions,
+    errorSbomMetadata,
+    internalAppId,
+    applicationName,
+    sbomVersions,
+    sbomMetadata,
+  } = useSelector(selectBillOfMaterialsPage);
 
-  const publicApplicationId = routerParams.applicationPublicId;
+  const loadingProductFeatures = useSelector(selectLoadingFeatures);
+  const errorProductFeatures = useSelector(selectLoadErrorFeatures);
+  const errorNoSbomManagerEnabled = useSelector(selectNoSbomManagerEnabledError);
+
+  const routerParams = useSelector(selectRouterCurrentParams);
+
+  const publicAppId = routerParams.applicationPublicId;
   const currentSbomVersion = routerParams.versionId;
-  const allSbomVersions = useSelector(selectSbomVersions);
-  const errorSbomVersionsDropdown = useSelector(selectErrorSbomVersions);
 
   const doLoad = () => {
-    dispatch(actions.setPublicAppId(publicApplicationId));
-    dispatch(actions.loadInternalApplicationId(publicApplicationId));
+    dispatch(actions.setPublicAppId(publicAppId));
+    dispatch(actions.loadInternalAppId(publicAppId));
   };
 
   useEffect(() => {
@@ -60,25 +58,31 @@ export default function BillOfMaterials() {
   }, []);
 
   useEffect(() => {
-    if (internalAppId) dispatch(actions.loadApplicationSbomVersions(internalAppId));
+    if (internalAppId) {
+      dispatch(actions.loadApplicationSbomVersions(internalAppId));
+      dispatch(
+        actions.loadSbomMetadata({
+          internalAppId,
+          version: currentSbomVersion,
+        })
+      );
+    }
   }, [internalAppId]);
 
+  const loadError =
+    errorProductFeatures || errorNoSbomManagerEnabled || errorInternalAppId || errorSbomVersions || errorSbomMetadata;
+  const isLoading = loadingProductFeatures || loadingInternalAppId || loadingSbomVersions || loadingSbomMetadata;
+
   return (
-    <div id="sbom-manager-bom">
-      <LoadWrapper
-        retryHandler={() => doLoad()}
-        loading={isProductFeaturesLoading || isInternalAppIdLoading}
-        error={
-          errorLoadingProductFeatures || noSbomManagerEnabledError || internalAppIdError || errorSbomVersionsDropdown
-        }
-      >
+    <div id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
+      <LoadWrapper retryHandler={() => doLoad()} loading={isLoading} error={loadError}>
         <NxPageTitle>
-          <NxH1>Bill Of Materials</NxH1>
+          <NxH1>{applicationName}</NxH1>
           <NxButtonBar>
-            {allSbomVersions && (
+            {sbomVersions && (
               <SbomVersionDropdown
-                publicApplicationId={publicApplicationId}
-                allSbomVersions={allSbomVersions}
+                publicAppId={publicAppId}
+                sbomVersions={sbomVersions}
                 currentSbomVersion={currentSbomVersion}
               />
             )}
@@ -90,23 +94,22 @@ export default function BillOfMaterials() {
               <span>Download</span>
             </NxButton>
           </NxButtonBar>
-          <NxPageTitle.Tags>
-            <NxThreatIndicator threatLevelCategory="critical" presentational />
-            <span>Critical</span>
-            <NxThreatIndicator threatLevelCategory="severe" presentational />
-            <span>High</span>
-            <NxThreatIndicator threatLevelCategory="moderate" presentational />
-            <span>Medium</span>
-            <NxThreatIndicator threatLevelCategory="low" presentational />
-            <span>Low</span>
-            <NxThreatIndicator threatLevelCategory="none" presentational />
-            <span>None</span>
-          </NxPageTitle.Tags>
+          <NxPageTitle.Description>
+            <div className="sbom-manager-bill-of-materials-page__sub-header">
+              <div
+                className="sbom-manager-bill-of-materials-page__sub-header__item"
+                data-testid="bill-of-materials-page-sbom-imported-date"
+              >
+                <strong>Imported:</strong>
+                <span>{formatDate(sbomMetadata.createdAt)}</span>
+              </div>
+            </div>
+          </NxPageTitle.Description>
         </NxPageTitle>
         <ComponentsBillOfMaterialsTile
+          isInternalAppIdLoading={loadingInternalAppId}
           internalAppId={internalAppId}
           sbomVersion={currentSbomVersion}
-          isInternalAppIdLoading={isInternalAppIdLoading}
         />
       </LoadWrapper>
     </div>

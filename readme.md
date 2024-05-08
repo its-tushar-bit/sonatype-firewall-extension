@@ -87,6 +87,9 @@ The server is deployed from the `insight-brain-service` directory - see the [`RE
 
 ## Running Tests ##
 
+**Running fast tests only**: We categorize tests as "slow" when they average over 100ms per test case. To run only
+the fast tests locally you can pass `-DexcludedGroups=SlowTest`
+
 **Prerequisite**: some tests use Docker to connect to an external service (e.g. a PostgreSQL database). To run all tests successfully, you will need to [install Docker Engine](https://docs.docker.com/install/). Alternatively, you can skip the Docker tests by setting the property `docker.optional` to `true` in your Maven `settings.xml`.
 
 Add `-D skip-functional-test` to the `mvn` invocation to skip just the expensive functional tests but still run other

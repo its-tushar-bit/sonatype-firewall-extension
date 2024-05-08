@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
@@ -42,11 +43,13 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Category(SlowTest.class)
 public class InsightConfigurationFactoryTest
 {
   private static final List<Class<?>> CONSOLE_FILE_SYSLOG_CLASSES = Arrays

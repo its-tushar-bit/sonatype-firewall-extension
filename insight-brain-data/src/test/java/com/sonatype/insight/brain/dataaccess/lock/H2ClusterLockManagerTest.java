@@ -8,14 +8,17 @@ package com.sonatype.insight.brain.dataaccess.lock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Category(SlowTest.class)
 public class H2ClusterLockManagerTest
     extends AbstractClusterLockManagerTest
 {

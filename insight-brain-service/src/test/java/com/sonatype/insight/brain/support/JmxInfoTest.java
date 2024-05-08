@@ -16,12 +16,16 @@ import java.util.TreeMap;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class JmxInfoTest
     extends InjectedTest
 {

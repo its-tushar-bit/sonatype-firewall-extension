@@ -14,6 +14,8 @@ import java.util.Map;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import com.github.javafaker.Faker;
 import com.github.javafaker.Internet;
 import com.github.javafaker.Name;
@@ -22,6 +24,7 @@ import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -38,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Category(SlowTest.class)
 public class KeycloakServerUtilTest
 {
   @ClassRule

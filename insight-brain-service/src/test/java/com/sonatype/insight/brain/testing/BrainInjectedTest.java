@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing;
 
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
@@ -27,6 +28,7 @@ import org.eclipse.sisu.space.SpaceModule;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.junit.experimental.categories.Category;
 
 /**
  * Handles creation of the four data store classes for tests. The {@link DatabaseContainerRule} is a junit rule
@@ -37,6 +39,7 @@ import org.junit.Rule;
  * <B>IMPORTANT</B> - If you override {@link #configure(Binder)}, make sure to call `super.configure(binder)` to get
  * database support
  */
+@Category(SlowTest.class)
 public abstract class BrainInjectedTest
     extends InjectedTest
 {

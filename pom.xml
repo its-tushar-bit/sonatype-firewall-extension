@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>46</version>
+    <version>47</version>
     <relativePath />
   </parent>
 
@@ -1511,7 +1511,7 @@
          The libraries implicated in this exception are guice, openjpa and some of the testing/assertion libraries
 
          Note that mockito may use reflection to access non-public fields/methods when creating mocks/spies.
-         For each of these cases, where reflective access is needed, we need to add the module/package containing the 
+         For each of these cases, where reflective access is needed, we need to add the module/package containing the
          target classes we want to mock/spy below.
          If we don't do this you'll likely see
          "IllegalAccessException ReflectionMemberAccessor cannot access a member of class X ..."

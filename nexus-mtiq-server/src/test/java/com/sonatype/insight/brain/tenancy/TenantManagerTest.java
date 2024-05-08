@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.service.TenantLifecycle;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -34,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class TenantManagerTest
     extends AbstractMultiTenantDatabaseTest
 {

@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import hudson.plugins.git.GitChangeSet
+import hudson.scm.ChangeLogSet
+import hudson.scm.ChangeLogSet.Entry
 
 configureBranchJob()
 make(
@@ -11,7 +14,8 @@ make(
     useEventSpy: false,
     javaVersion: 'OpenJDK 17',
     mavenVersion: 'Maven 3.9.x',
-    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
+    mavenSettingsFile: 'private-settings-build-cache',
+    mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
@@ -26,6 +30,14 @@ make(
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
+
+      String saveBuildCacheOptions = addBuildCacheOptions(mavenCommon.get('mavenOptions') as String)
+      if (!isFastBuild()) {
+        saveBuildCacheOptions += " -DskipTests"
+      }
+      mavenCommon.put('mavenOptions', saveBuildCacheOptions)
+
+
       withSonatypeDockerRegistry() {
         withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
           runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
@@ -44,27 +56,29 @@ make(
     githubProjectUrl: 'git@github.com:sonatype/insight-brain.git',
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
-        nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
-          iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
-          //Test files inside the maven modules are excluded from the scan
-          iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
-          failBuildOnNetworkError: true
+        if (shouldRunPolicyEvaluation()) {
+          nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
+              iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+              //Test files inside the maven modules are excluded from the scan
+              iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
+              failBuildOnNetworkError: true
 
-        if (isSASTEnabled()) {
-          runSastScan()
-        }
+          if (isSASTEnabled()) {
+            runSastScan()
+          }
 
-        if (stage == 'release') {
-          build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
-                parameters: [
-                  string(name: 'applicationId', value: 'insight-brain'),
-                  string(name: 'applicationName', value: 'Nexus Lifecycle'),
-                  string(name: 'applicationVersion', value: params.version)
-                ]
-          )
-          copyArtifacts filter: "*insight-brain-${params.version}*.html",
-                        projectName: 'bnr/lifecycle-for-sonatype/generate-attribution-report'
-        }
+          if (stage == 'release') {
+            build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
+                  parameters: [
+                    string(name: 'applicationId', value: 'insight-brain'),
+                    string(name: 'applicationName', value: 'Nexus Lifecycle'),
+                    string(name: 'applicationVersion', value: params.version)
+                  ]
+              )
+              copyArtifacts filter: "*insight-brain-${params.version}*.html",
+                  projectName: 'bnr/lifecycle-for-sonatype/generate-attribution-report'
+            }
+          }
     },
     distFiles: [
       includes: [
@@ -93,16 +107,23 @@ make(
 )
 
 void postBuild() {
-  pushDockerImageIfDeployBranch()
-  pushMTIQDockerImage()
+  if (!isFastBuild()) {
+    pushDockerImageIfDeployBranch()
+    pushMTIQDockerImage()
+  }
 }
 
 void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
   boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_mtiq'))
+  boolean fastBuildEnabledByDefault = !isDeployBranch(env, 'main')
+
   List params = [
-      booleanParam(defaultValue: true,
+      booleanParam(defaultValue: fastBuildEnabledByDefault,
+          description: 'If checked will skip Slow Tests.',
+          name: 'fastBuild'),
+      booleanParam(defaultValue: !isFastBuild(),
           description: 'If checked will enable Applitools EyesCheck.',
           name: 'applitoolsEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
@@ -126,7 +147,8 @@ void configureBranchJob() {
         stringParam(name: 'nextVersion',
             description: 'The next SNAPSHOT version to use after the release. Optional as will be automatically be ' +
                 'calculated if left blank.'),
-        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/master-snapshot', description: 'The snapshot build to release from.')
+        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/master-snapshot',
+            description: 'The snapshot build to release from.')
     ]
   }
   properties([
@@ -152,7 +174,8 @@ void pushDockerImageIfDeployBranch() {
 
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
+            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
+                "IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
             runSafely "docker push ${fullImage}"
@@ -221,7 +244,8 @@ void pushMTIQDockerImage() {
         String imageName = 'mtiq/server'
         String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
 
-        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag ${imageName}:${imageVersion} ."
+        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag " +
+            "${imageName}:${imageVersion} ."
         runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
 
         // Push for all `main` builds as well as any enabled branches by name or build parameter
@@ -239,19 +263,51 @@ void pushMTIQDockerImage() {
     def isSuccess = currentBuild.currentResult == 'SUCCESS'
     if (isMainBuild && isSuccess) {
       build('job': '/insight/MTIQ/bump-mtiq-version',
-          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
+          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
+              env.GIT_COMMIT) ],
           wait: false,
           propagate: false)
     }
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
-  buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
-  // archive things for the parallel blocks which will copy
-  // these artifacts to different agents for each parallel block
-  runSafely 'zip --symlinks -q -r workspace.zip .'
-  archiveArtifacts(artifacts: 'workspace.zip', fingerprint: false)
-  parallel(getParallelTests())
+  if (isFastBuild()) {
+    echo "fastBuild enabled - skipping slow tests"
+    String mavenOptions = mavenCommon.get('mavenOptions')
+    mavenOptions += " -DexcludedGroups=SlowTest"
+    mavenOptions += " -Dskip-functional-test"
+    mavenCommon.put('mavenOptions', mavenOptions)
+    buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+  }
+  else {
+    echo "fastBuild disabled - Running all tests"
+    buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+    // archive things for the parallel blocks which will copy
+    // these artifacts to different agents for each parallel block
+    runSafely 'zip --symlinks -q -r workspace.zip .'
+    archiveArtifacts(artifacts: 'workspace.zip', fingerprint: false)
+    parallel(getParallelTests())
+  }
+}
+
+private String addBuildCacheOptions(String mavenOptions) {
+  // Main is configured to overwrite any interim cached builds (i.e. main always wins)
+  if (isDeployBranch(env, 'main')) {
+    mavenOptions += ' -Dmaven.build.cache.remote.save.final=true'
+  }
+
+  // Main is configured to full build. This means main will not use cached builds but will produce and save cached
+  // builds (essentially a main build will refresh the cache)
+  if (!isFastBuild()) {
+    mavenOptions += ' -Dmaven.build.cache.skipCache=true'
+  }
+
+  mavenOptions += ' -Dmaven.build.cache.remote.enabled=true'
+  mavenOptions += ' -Dmaven.build.cache.remote.url=https://repo.sonatype.com/repository/insight-brain-build-cache'
+  mavenOptions += ' -Dmaven.build.cache.remote.server.id=insight-brain-build-cache'
+  mavenOptions += " -Dmaven.build.cache.remote.save.enabled=true"
+
+  return mavenOptions
 }
 
 Map<String, Closure> getParallelTests() {
@@ -477,4 +533,27 @@ boolean isEyesEnabled() {
 boolean isSASTEnabled() {
   // if the params value isn't set (or hasn't been added to the job yet), default to true
   return params.sastAnalysisEnabled ?: true
+}
+
+boolean isFastBuild() {
+  return params.fastBuild
+}
+
+boolean shouldRunPolicyEvaluation() {
+  return !isFastBuild() || hasDependenciesChanged()
+}
+
+boolean hasDependenciesChanged() {
+  return currentBuild.changeSets?.find() { ChangeLogSet<? extends Entry> changeSet ->
+    changeSet.items.find() { GitChangeSet item ->
+      item.getAffectedPaths().find() { String path ->
+        if (!path.contains('/test/data/') &&
+            (path.contains('pom.xml')
+            || path.contains('package.json')
+            || path.contains('yarn.lock'))) {
+          return true
+        }
+      }
+    }
+  }
 }

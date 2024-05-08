@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -36,6 +37,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -45,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class MultiTenantTelemetrySenderLicenseFingerprintTest
     extends AbstractMultiTenantTest
 {

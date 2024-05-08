@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +58,7 @@ public class UserScopeEventProcessingSuspensionRuleTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testOnEventProcessingError_suspensionExpires() throws InterruptedException {
     UserScopeEventProcessingSuspensionRule eventProcessingSuspensionRule = new UserScopeEventProcessingSuspensionRule()
         .setDefaultSuspensionTimeForTesting(1);

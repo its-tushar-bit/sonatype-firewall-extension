@@ -93,7 +93,7 @@ public class PolicyThreatsAdapterTest
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
 
-    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true, 
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true,
         false, Action.ID_FAIL);
     PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true,
         false, Action.ID_FAIL);
@@ -109,7 +109,7 @@ public class PolicyThreatsAdapterTest
 
     assertPolicyThreats(threats, violations);
   }
-  
+
   @Test
   public void testCreatePolicyThreats_LegacyViolation() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
@@ -119,7 +119,7 @@ public class PolicyThreatsAdapterTest
         true, Action.ID_FAIL);
     PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
         true, Action.ID_FAIL);
-    
+
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
     PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);

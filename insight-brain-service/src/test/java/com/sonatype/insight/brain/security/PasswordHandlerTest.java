@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.test.InjectedTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class PasswordHandlerTest
     extends InjectedTest
 {

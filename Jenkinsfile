@@ -279,8 +279,11 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
     String mavenOptions = mavenCommon.get('mavenOptions')
     mavenOptions += " -DexcludedGroups=SlowTest"
     mavenOptions += " -Dskip-functional-test"
+    mavenOptions += " -Djasmine.tests.skip=true"
     mavenCommon.put('mavenOptions', mavenOptions)
     buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+    archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
+    collectTestResults(['**/target/*-reports/*.xml'])
   }
   else {
     echo "fastBuild disabled - Running all tests"

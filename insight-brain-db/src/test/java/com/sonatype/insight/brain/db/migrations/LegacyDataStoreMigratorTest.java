@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.db.migrations;
 
 import java.io.File;
 import java.util.zip.ZipFile;
-
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
@@ -24,6 +24,7 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
+@Category(SlowTest.class)
 public class LegacyDataStoreMigratorTest
     extends AbstractDatabaseTest
 {

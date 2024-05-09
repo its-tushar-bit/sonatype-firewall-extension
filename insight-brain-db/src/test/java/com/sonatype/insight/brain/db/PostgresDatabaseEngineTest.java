@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.db;
 import java.sql.Connection;
 import java.util.SortedMap;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class PostgresDatabaseEngineTest
     extends AbstractDatabaseTest
 {

@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.support;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @since 1.27
  */
+@Category(SlowTest.class)
 public class DbDiagnosticsTest
     extends AbstractDatabaseTest
 {

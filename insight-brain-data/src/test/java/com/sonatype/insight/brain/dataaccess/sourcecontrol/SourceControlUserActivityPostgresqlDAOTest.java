@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class SourceControlUserActivityPostgresqlDAOTest
     extends SourceControlUserActivityDAOTest
 {

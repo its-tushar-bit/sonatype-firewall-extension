@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.configuration.ldap;
 
 import java.util.Hashtable;
-
 import javax.naming.AuthenticationException;
 import javax.naming.AuthenticationNotSupportedException;
 import javax.naming.Context;
@@ -14,18 +13,21 @@ import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
 import com.sonatype.insight.brain.SslSettings;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * This may sound silly, but this test actually tests test LDAP server.
  */
+@Category(SlowTest.class)
 public class EmbeddedLdapServerTest
 {
   private static final String AUTH_CRAMMD5 = "CRAM-MD5";

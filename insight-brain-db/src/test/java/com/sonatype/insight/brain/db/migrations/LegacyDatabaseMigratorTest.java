@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.db.migrations;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class LegacyDatabaseMigratorTest
     extends AbstractDatabaseMigratorTest
 {

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
@@ -36,11 +37,13 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Category(SlowTest.class)
 public class ExportEmbeddedDatabaseCommandTest
     extends AbstractDatabaseTest
 {

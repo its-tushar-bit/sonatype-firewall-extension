@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.git;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class PullRequestPollingSchedulerTest
     extends VerifiableLoggingTestBase
 {

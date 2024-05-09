@@ -31,12 +31,19 @@ make(
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
 
-      String saveBuildCacheOptions = addBuildCacheOptions(mavenCommon.get('mavenOptions') as String)
-      if (!isFastBuild()) {
-        saveBuildCacheOptions += " -DskipTests"
+      /*
+        Main is configured not to use the cache. We also skip tests on main because it runs the tests in parallel stages
+        which requires copying the workspace. With cache enabled its actually faster to run the compilation and tests
+        in a single stage.
+       */
+      String mavenOptions = mavenCommon.get('mavenOptions')
+      if (isFastBuild()) {
+        mavenOptions = addBuildCacheOptions(mavenOptions)
       }
-      mavenCommon.put('mavenOptions', saveBuildCacheOptions)
-
+      else {
+        mavenOptions += " -DskipTests"
+      }
+      mavenCommon.put('mavenOptions', mavenOptions)
 
       withSonatypeDockerRegistry() {
         withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
@@ -287,17 +294,6 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
 }
 
 private String addBuildCacheOptions(String mavenOptions) {
-  // Main is configured to overwrite any interim cached builds (i.e. main always wins)
-  if (isDeployBranch(env, 'main')) {
-    mavenOptions += ' -Dmaven.build.cache.remote.save.final=true'
-  }
-
-  // Main is configured to full build. This means main will not use cached builds but will produce and save cached
-  // builds (essentially a main build will refresh the cache)
-  if (!isFastBuild()) {
-    mavenOptions += ' -Dmaven.build.cache.skipCache=true'
-  }
-
   mavenOptions += ' -Dmaven.build.cache.remote.enabled=true'
   mavenOptions += ' -Dmaven.build.cache.remote.url=https://repo.sonatype.com/repository/insight-brain-build-cache'
   mavenOptions += ' -Dmaven.build.cache.remote.server.id=insight-brain-build-cache'

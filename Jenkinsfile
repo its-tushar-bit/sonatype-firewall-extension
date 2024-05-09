@@ -25,6 +25,7 @@ make(
         List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
         issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
         issues.addAll(getIssuesByFixVersion('INT', fixVersion))
+        issues.addAll(getIssuesByFixVersion('NEXUS', fixVersion))
         replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },

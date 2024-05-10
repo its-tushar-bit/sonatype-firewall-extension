@@ -264,7 +264,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     developerDashboardGraphTooltip().shouldBe(visible);
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(null, false, false);
   }
 
   @Test
@@ -280,7 +280,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     developerDashboardGraphTooltip().shouldBe(visible);
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(null, false, false);
   }
 
   @Test
@@ -296,7 +296,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     developerDashboardGraphTooltip().shouldBe(visible);
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(null, false, false);
   }
 
   @Test

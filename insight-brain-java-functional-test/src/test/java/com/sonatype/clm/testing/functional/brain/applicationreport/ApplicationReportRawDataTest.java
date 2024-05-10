@@ -133,7 +133,7 @@ public class ApplicationReportRawDataTest
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Declared: Non-Standard, Public Domain, XPP-1.1.1 Observed: XPP-1.2"));
 
-    eyesWatcher.eyesCheck("Test Raw Data License Tooltip");
+    eyesWatcher.eyesCheck("Test Raw Data License Tooltip", false, false);
   }
 
   @Test

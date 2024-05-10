@@ -566,7 +566,7 @@ public class SuccessMetricsChartsTest
     componentsInMostApplications.get(0)
         .shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4"));
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(null, false, false);
 
     componentsInMostApplications.get(1)
         .shouldHave(text("short : name : 0.6")).hover();

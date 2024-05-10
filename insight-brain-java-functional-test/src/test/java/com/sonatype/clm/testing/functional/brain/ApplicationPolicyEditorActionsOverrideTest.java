@@ -298,7 +298,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     NxTooltip tooltip = new NxTooltip();
     tooltip.shouldBe(visible).shouldHave(text("Policy Actions are overridden"));
 
-    eyesWatcher.eyesCheck("owner summary view with overridden policies");
+    eyesWatcher.eyesCheck("owner summary view with overridden policies", false, false);
   }
 
   @Test

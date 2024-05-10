@@ -480,7 +480,7 @@ public class ApplicationReportTest
     // We need to ensure by visual tests that the ellipsis is shown, there is no way
     // to see if the ellipsis is applied by looking to the HTML, attributes or innerText,
     // the text look the same with or without ellipsis to selenium/selenide accessors.
-    eyesWatcher.eyesCheck("Showing ellipsis in overflown policy names.");
+    eyesWatcher.eyesCheck("Showing ellipsis in overflown policy names.", false, false);
   }
 
   @Test

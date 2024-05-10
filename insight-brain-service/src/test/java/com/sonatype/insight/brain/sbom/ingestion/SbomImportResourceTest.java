@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
@@ -135,6 +136,8 @@ public class SbomImportResourceTest
 
   @Test
   public void testImportDetectedSbom_Success() throws Exception {
+    mockHdsReportDownload();
+
     URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     HttpResponse responseDetect = restRequest()
@@ -156,11 +159,15 @@ public class SbomImportResourceTest
     assertThat(responseCommitBody.statusUrl).isNotEmpty();
     assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
 
-    // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
-    policyEvaluationHelper.awaitEvaluationFinished(application.getId(), getStatusId(responseCommitBody.statusUrl));
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), getStatusId(responseCommitBody.statusUrl));
   }
 
   private String getStatusId(String statusUrl) {
     return statusUrl.substring(statusUrl.lastIndexOf("/") + 1);
+  }
+
+  private void mockHdsReportDownload() {
+    URL resourceUrl = ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir);
+    hdsRespondWith(resourceUrl).atUri("rest/application/analysis/SCAN-ID");
   }
 }

@@ -11,8 +11,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
@@ -469,6 +470,8 @@ public class ApiSbomServiceTest
 
   @Test
   public void testImportSbom_ValidFile_SPDX() throws IOException {
+    mockHdsForImportWithDelayedReportDownload(50);
+
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
@@ -480,13 +483,14 @@ public class ApiSbomServiceTest
       assertThat(ticketDTO.statusUrl).isNotEmpty()
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
-      // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
-      policyEvaluationHelper.awaitEvaluationFinished(app.getId(), ticketDTO.requestId);
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
     }
   }
 
   @Test
   public void testImportSbom_ValidFile_CycloneDX() throws IOException {
+    mockHdsForImportWithDelayedReportDownload(50);
+
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
@@ -498,8 +502,7 @@ public class ApiSbomServiceTest
       assertThat(ticketDTO.statusUrl).isNotEmpty()
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
-      // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
-      policyEvaluationHelper.awaitEvaluationFinished(app.getId(), ticketDTO.requestId);
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
     }
   }
 

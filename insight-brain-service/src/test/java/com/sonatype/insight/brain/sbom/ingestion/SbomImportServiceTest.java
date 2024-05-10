@@ -10,39 +10,55 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
+import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
 
 public class SbomImportServiceTest
     extends AbstractComponentTest
 {
+  @Mock
+  private HdsClient mockHdsClient;
+
   @Inject
   private SbomImportService sbomImportService;
 
@@ -56,6 +72,12 @@ public class SbomImportServiceTest
   private PolicyEvaluationHelper policyEvaluationHelper;
 
   private Application application;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    super.configure(binder);
+  }
 
   @Before
   public void before() {
@@ -152,7 +174,9 @@ public class SbomImportServiceTest
   }
 
   @Test
-  public void testImportDetectedSbom_Success() {
+  public void testImportDetectedSbom_Success() throws IOException, URISyntaxException {
+    mockHdsReportDownload();
+
     InputStream sbom = SbomImportServiceTest.class
         .getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
     String fileName = UUID.randomUUID().toString().replace("-", "");
@@ -171,8 +195,7 @@ public class SbomImportServiceTest
         .startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");
     assertThat(Files.exists(tempFile.toPath())).isFalse();
 
-    // TODO: The policy evaluation fails here, when it should succeed. Needs fixing.
-    policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);
+    policyEvaluationHelper.awaitEvaluationCompleted(application.getId(), status.requestId);
   }
 
   @Test
@@ -218,6 +241,17 @@ public class SbomImportServiceTest
         PaymentRequiredException.class,
         () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0])));
     productLicense.reset();
+  }
+
+  private void mockHdsReportDownload() throws IOException, URISyntaxException {
+    final File reportZip =
+        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir).toURI()).toFile();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("scanId");
+    when(mockHdsClient.put(any(), eq(ScanReceipt.class), eq("clientUserAgent"), eq(HDS_PATH), any(File.class), any()))
+        .thenReturn(scanReceipt);
+    when(mockHdsClient.get(any(Retry.class), eq(InputStream.class), anyString(), isNull(), anyString()))
+        .thenReturn(Files.newInputStream(reportZip.toPath()));
   }
 
   private void assertTempSbomFile(String requestId, boolean success) {

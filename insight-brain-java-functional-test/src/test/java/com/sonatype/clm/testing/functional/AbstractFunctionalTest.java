@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
+import com.sonatype.clm.testing.functional.utils.SeleniumTestContainer;
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -74,6 +75,7 @@ import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -194,6 +196,10 @@ public abstract class AbstractFunctionalTest
 
       testCLMServer.start();
       reverseProxyServer.start();
+
+      if ("docker".equals(System.getProperty("run-functional-tests"))) {
+        SeleniumTestContainer.start();
+      }
 
       Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";

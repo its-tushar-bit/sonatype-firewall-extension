@@ -244,8 +244,16 @@
           <reuseForks>false</reuseForks>
           <useUnlimitedThreads>false</useUnlimitedThreads>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-          <forkCount>1</forkCount>
+          <!-- 0.5C means 0.5 x number-of-CPUs:
+                8 CPUs -> 4 forks
+               16 CPUs -> 8 forks
+           -->
+          <forkCount>0.5C</forkCount>
           <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test MTIQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+          </systemPropertyVariables>
           <!--
               insight-brain-service-[version]-server.jar!/META-INF/kie/*/kie.conf
               can conflict with kie.conf files in other dependencies

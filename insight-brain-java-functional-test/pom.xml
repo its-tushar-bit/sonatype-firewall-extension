@@ -40,19 +40,21 @@
           <trimStackTrace>false</trimStackTrace>
           <skip>false</skip>
           <skipITs>${skip.functional.tests}</skipITs>
-
-          <!--
-               Starting a separate JVM for each test class is both slow and problematic when it comes to generating
-               run timestamps for use as applitools batch ids, so reuse the same JVM.
-          -->
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+          <!-- 0.25C means 0.25 x number-of-CPUs:
+                8 CPUs -> 2 forks
+               16 CPUs -> 4 forks
+           -->
+          <forkCount>0.25C</forkCount>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
             <selenide.browserSize>1400x1050</selenide.browserSize>
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
             <selenide.timeout>${selenide.timeout}</selenide.timeout>
             <browser>chrome</browser>
+            <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>
         </configuration>
         <executions>
@@ -263,56 +265,12 @@
             <configuration>
               <argLine>@{argLine} -Duser.timezone=UTC</argLine>
               <systemPropertyVariables>
-                <remote>http://${host}:${port}/wd/hub</remote>
+                <docker.image>${docker.image}</docker.image>
                 <applitoolsLogFileName>
                   ${project.parent.basedir}/test-group-${test.group}-docker.log
                 </applitoolsLogFileName>
               </systemPropertyVariables>
             </configuration>
-          </plugin>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>0.31.0</version>
-            <configuration>
-              <skip>${skip.functional.tests}</skip>
-              <images>
-                <image>
-                  <name>${docker.image.registry}selenium/${docker.image}</name>
-                  <run>
-                    <ports>
-                      <port>+host:port:4444</port>
-                    </ports>
-                    <volumes>
-                      <bind>
-                        <volume>/dev/shm:/dev/shm</volume>
-                      </bind>
-                    </volumes>
-                    <log>
-                      <file>test-group-${test.group}-docker.log</file>
-                    </log>
-                  </run>
-                </image>
-              </images>
-              <removeMode>all</removeMode>
-            </configuration>
-            <executions>
-              <execution>
-                <id>start-integration-test</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>start</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>stop-integration-test</id>
-                <phase>post-integration-test</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>remove</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>

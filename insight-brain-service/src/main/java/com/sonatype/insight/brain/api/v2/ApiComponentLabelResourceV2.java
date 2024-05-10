@@ -19,6 +19,9 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * Provides publicly available component label actions.
@@ -42,10 +45,16 @@ public class ApiComponentLabelResourceV2
    */
   @POST
   @Audited(AuditEvent.ASSIGN_COMPONENT_LABEL)
+  @Operation(description = "Use this method to assign an existing label to a component.")
+  @ApiResponse(responseCode = "204", description = "Component label assigned successfully.")
   public void setComponentLabel(
+      @Parameter(description = "Possible values: application or organization")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Possible values : applicationId or organizationId")
       @PathParam("internalOwnerId") final String internalOwnerId,
+      @Parameter(description = "Enter the SHA1 hash of the component.")
       @PathParam("componentHash") final String componentHash,
+      @Parameter(description = "Enter the label name to assign to this component.")
       @PathParam("labelName") final String labelName)
   {
     apiComponentLabelService.setComponentLabel(ownerType, internalOwnerId, componentHash, labelName);
@@ -56,10 +65,16 @@ public class ApiComponentLabelResourceV2
    */
   @DELETE
   @Audited(AuditEvent.REMOVE_COMPONENT_LABEL)
+  @Operation(description = "Use this method to un-assign a label from a component.")
+  @ApiResponse(responseCode = "204", description = "Label un-assigned from component successfully.")
   public void deleteComponentLabel(
+      @Parameter(description = "Possible values: application or organization")
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Possible values : applicationId or organizationId")
       @PathParam("internalOwnerId") final String internalOwnerId,
+      @Parameter(description = "Enter the SHA1 hash of the component.")
       @PathParam("componentHash") final String componentHash,
+      @Parameter(description = "Enter the label name to un-assign from this component.")
       @PathParam("labelName") final String labelName)
   {
     apiComponentLabelService.deleteComponentLabel(ownerType, internalOwnerId, componentHash, labelName);

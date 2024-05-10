@@ -40,8 +40,8 @@ export default function PrioritiesPageHeader() {
     <NxPageTitle.Headings>
       <NxH1>{appName} - Priorities</NxH1>
       <NxPageTitle.Description className="iq-priorities-page-desc">
-        <TriggerText triggerText={triggerText} />
         <div className="iq-priorities-page-desc-details">
+          <TriggerText triggerText={triggerText} />
           <Timestamp formattedDate={formattedDate} />
           <Commit commitHash={commitHash} />
           <Stage stageName={stageName} />
@@ -77,9 +77,9 @@ function TriggerText({ triggerText }) {
   return (
     <>
       {triggerText && (
-        <div>
-          <strong>Triggered by </strong> {triggerText}
-        </div>
+        <span>
+          <span className="iq-priorities-page-desc-title">Triggered by </span> {triggerText}
+        </span>
       )}
     </>
   );
@@ -90,7 +90,7 @@ function Timestamp({ formattedDate }) {
     <>
       {formattedDate && (
         <span>
-          <strong>On </strong> {formattedDate}
+          <span className="iq-priorities-page-desc-title">On </span> {formattedDate}
         </span>
       )}
     </>
@@ -116,7 +116,7 @@ function Commit({ commitHash }) {
     <>
       {commitHash && (
         <span>
-          <strong>Commit </strong>
+          <span className="iq-priorities-page-desc-title">Commit </span>
           <NxCode className="iq-priorities-page-commit">{commitHash?.substring(0, 7)}</NxCode>
           <NxTooltip title={<TooltipTitle copySuccess={copySuccess} />}>
             <NxFontAwesomeIcon className="iq-priorities-page-copy-commit-btn" icon={faCopy} onClick={copyToClipboard} />
@@ -132,7 +132,7 @@ function Stage({ stageName }) {
     <>
       {stageName && (
         <span>
-          <strong>Stage </strong> {stageName}
+          <span className="iq-priorities-page-desc-title">Stage </span> {stageName}
         </span>
       )}
     </>

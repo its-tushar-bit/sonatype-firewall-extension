@@ -18,9 +18,9 @@ const NUM_OF_RESULTS_TOP_PRIORITIES = 3;
 const NUM_OF_RESULTS_ADDITIONAL_PRIORITIES = 20;
 const PAGE_SIZE = 10;
 
-const mockData = generateMockData();
-const mockResponsePage1 = generateMockResponseByPage(1);
-const mockResponsePage2 = generateMockResponseByPage(2);
+const mockData = generateMockData(NUM_OF_RESULTS_TOP_PRIORITIES, NUM_OF_RESULTS_ADDITIONAL_PRIORITIES);
+const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+const mockResponsePage2 = generateMockResponseByPage(2, mockData);
 
 describe('PrioritiesPageTable', () => {
   let renderComponent, stateGoSpy, axiosMock;
@@ -184,27 +184,85 @@ describe('PrioritiesPageTable', () => {
     expect(tooltip).toBeInTheDocument();
   });
 
-  describe('accordions', () => {
-    it('renders 2 open accordions with title "Top Priorities" and "All Other Findings"', async () => {
+  describe('Top X Priorities Accordion', () => {
+    it('renders "Top X Priorities" based on number of top priorities', async () => {
+      const numOfTopPriorities = 2;
+      const numOfAdditionalPriorities = 0;
+      const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
+      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+      axiosMock
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+        .reply(200, mockResponsePage1);
+
       renderComponent();
 
       const table = await screen.findByRole('table');
       expect(table).toBeInTheDocument();
 
       const accordions = screen.getAllByRole('group');
-      expect(accordions).toHaveLength(2);
-
       const topPrioritiesAccordion = accordions[0];
-      const allFindingsAccordion = accordions[1];
 
-      expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'true');
-      expect(allFindingsAccordion).toHaveAttribute('aria-expanded', 'true');
-
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(/top priorities/i);
-      expect(within(allFindingsAccordion).getByRole('button')).toHaveAccessibleName(/all other findings/i);
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(
+        `Top ${numOfTopPriorities} Priorities`
+      );
     });
 
-    it('"Top Priorities" accordion when clicked hides the priority rows', async () => {
+    it('renders "Top Priorities" if number of top priorities 0', async () => {
+      const numOfTopPriorities = 0;
+      const numOfAdditionalPriorities = 10;
+      const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
+      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+      axiosMock
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+        .reply(200, mockResponsePage1);
+
+      renderComponent();
+
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
+
+      const accordions = screen.getAllByRole('group');
+      const topPrioritiesAccordion = accordions[0];
+
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
+    });
+
+    it('renders "Top Priority" if number of top priorities is 1', async () => {
+      const numOfTopPriorities = 1;
+      const numOfAdditionalPriorities = 10;
+      const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
+      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+      axiosMock
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+        .reply(200, mockResponsePage1);
+
+      renderComponent();
+
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
+
+      const accordions = screen.getAllByRole('group');
+      const topPrioritiesAccordion = accordions[0];
+
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priority`);
+    });
+
+    it('renders an open accordion with title "Top Priorities"', async () => {
+      renderComponent();
+
+      const table = await screen.findByRole('table');
+      expect(table).toBeInTheDocument();
+
+      const topPrioritiesAccordion = screen.getByRole('group');
+
+      expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'true');
+
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(
+        `Top ${NUM_OF_RESULTS_TOP_PRIORITIES} Priorities`
+      );
+    });
+
+    it('hides the priority rows when clicked on accordion', async () => {
       renderComponent();
 
       const table = await screen.findByRole('table');
@@ -235,36 +293,48 @@ describe('PrioritiesPageTable', () => {
       expect(rows.length).toBe(16);
     });
 
-    it('"All Findings" accordion when clicked hides the all findings rows', async () => {
+    it('hides the accordion when not on first page', async () => {
       renderComponent();
 
       const table = await screen.findByRole('table');
       expect(table).toBeInTheDocument();
 
-      let rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(16);
+      let pagination = await screen.findByRole('navigation');
+      expect(within(pagination).getAllByRole('button').length).toBe(3);
 
-      const accordions = screen.getAllByRole('group');
+      expect(screen.getByRole('group')).toBeInTheDocument();
 
-      const allFindingsAccordion = accordions[1];
-      const allFindingsAccordionTitle = within(allFindingsAccordion).getByRole('button');
+      const nextPageBtn = within(pagination).getByRole('button', { name: /goto next page/i });
+      expect(nextPageBtn).toBeInTheDocument();
 
-      expect(allFindingsAccordion).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(nextPageBtn);
 
-      fireEvent.click(allFindingsAccordionTitle);
+      await screen.findByRole('table');
 
-      expect(allFindingsAccordion).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('group')).not.toBeInTheDocument();
 
-      rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(6);
+      pagination = await screen.findByRole('navigation');
 
-      fireEvent.click(allFindingsAccordionTitle);
+      const prevPageBtn = within(pagination).getByRole('button', { name: /goto previous page/i });
+      expect(prevPageBtn).toBeInTheDocument();
 
-      expect(allFindingsAccordion).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(prevPageBtn);
 
-      rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(16);
+      await screen.findByRole('table');
+
+      expect(screen.getByRole('group')).toBeInTheDocument();
     });
+  });
+
+  it('renders a "Remaining Findings" row ', async () => {
+    renderComponent();
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    //table header row + top priorities header row + priority rows
+    const remainingFindingsRowNumber = 1 + 1 + NUM_OF_RESULTS_TOP_PRIORITIES;
+    expect(within(table).getAllByRole('row')[remainingFindingsRowNumber]).toHaveTextContent(/remaining findings/i);
   });
 
   it('renders rows that when clicked navigates to component details page - violations section', async () => {
@@ -331,9 +401,9 @@ describe('PrioritiesPageTable', () => {
 
       fireEvent.click(prevPageBtn);
 
-      expect(axiosMock.history.get.length).toBe(26);
-      expect(axiosMock.history.get[25].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[25].params).toEqual({ pageSize: 10, page: 1 });
+      expect(axiosMock.history.get.length).toBe(23);
+      expect(axiosMock.history.get[22].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
+      expect(axiosMock.history.get[22].params).toEqual({ pageSize: 10, page: 1 });
     });
 
     it('correct data when page is changed', async () => {
@@ -373,6 +443,10 @@ describe('PrioritiesPageTable', () => {
 });
 
 async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
+  if (priorityType === 'topPriorities' && page !== 1) {
+    return;
+  }
+
   const mockResponse = page === 1 ? mockResponsePage1 : mockResponsePage2;
 
   const {
@@ -401,9 +475,10 @@ async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
     /*
      * for top priority rows, skip table header and "top priorities" accordion row
      * for additional priority rows, skip table header, top priority accordion and data rows,
-     * and all other findings accordion row
+     * and remaining findings header row
      */
-    const row = rows[i + (priorityType === 'topPriorities' ? 2 : 6)];
+    const row = rows[i + 2 + (page === 1 && priorityType === 'additionalPriorities' ? 4 : 0)];
+
     const cells = within(row).getAllByRole('cell');
 
     const priorityCell = cells[0];
@@ -415,9 +490,9 @@ async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
     /*
      * for additional priority rows skip top priority data rows,
      */
-    expect(screen.getAllByTestId('dependency-type')[i + (priorityType === 'topPriorities' ? 0 : 3)]).toHaveTextContent(
-      dependencyType.substring(0, 1)
-    );
+    expect(
+      screen.getAllByTestId('dependency-type')[i + (priorityType === 'topPriorities' || page === 2 ? 0 : 3)]
+    ).toHaveTextContent(dependencyType.substring(0, 1));
 
     if (securityReachable) {
       expect(componentCell).toHaveTextContent('Security-Reachable');
@@ -439,7 +514,7 @@ async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
   }
 }
 
-function generateMockData() {
+function generateMockData(numOfTopPriorities, numOfAdditionalPriorities) {
   const topPriorities = [];
   const additionalPriorities = [];
 
@@ -459,11 +534,11 @@ function generateMockData() {
     });
   };
 
-  for (let i = 1; i <= NUM_OF_RESULTS_TOP_PRIORITIES; i++) {
+  for (let i = 1; i <= numOfTopPriorities; i++) {
     createEntry(topPriorities, i);
   }
 
-  for (let i = NUM_OF_RESULTS_TOP_PRIORITIES + 1; i <= NUM_OF_RESULTS_ADDITIONAL_PRIORITIES; i++) {
+  for (let i = numOfTopPriorities + 1; i <= numOfAdditionalPriorities; i++) {
     createEntry(additionalPriorities, i);
   }
 
@@ -473,7 +548,7 @@ function generateMockData() {
   };
 }
 
-function generateMockResponseByPage(page) {
+function generateMockResponseByPage(page, mockData) {
   const { topPriorities, additionalPriorities } = mockData;
 
   return {

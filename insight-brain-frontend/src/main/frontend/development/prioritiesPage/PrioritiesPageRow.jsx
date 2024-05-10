@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { NxLoadWrapper, NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxLoadingSpinner, NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './slices/prioritiesPageSlice';
@@ -91,13 +91,13 @@ export default function PrioritiesPageRow({ component, onClick }) {
       <NxTable.Cell className="iq-priorities-page-priority">{priority}</NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-components">
-          <div className="iq-priorities-page-components__component">
-            <span data-testid="dependency-type">
-              <DependencyIndicator type={formattedDependencyType} />
-            </span>
-            {displayName}
-          </div>
+          <div className="iq-priorities-page-components__component">{displayName}</div>
           <div className="iq-priorities-page-components__detail">
+            <span data-testid="dependency-type">
+              {formattedDependencyType === dependencyTypeMap.Unknown ? null : (
+                <DependencyIndicator type={formattedDependencyType} />
+              )}
+            </span>
             {securityReachable ? (
               <NxTag className="iq-priorities-page-components__detail-tag">Security-Reachable</NxTag>
             ) : null}
@@ -125,16 +125,42 @@ export default function PrioritiesPageRow({ component, onClick }) {
       </NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-remediation">
-          <NxLoadWrapper loading={loading} error={error} retryHandler={doLoad}>
-            <div className="iq-priorities-page-remediation__upgrade">{recommendationText}</div>
-            <div className="iq-priorities-page-remediation__upgrade-desc">{recommendationSubtext}</div>
-          </NxLoadWrapper>
+          <Recommendation
+            loading={loading}
+            error={error}
+            recommendationText={recommendationText}
+            recommendationSubtext={recommendationSubtext}
+          />
         </div>
       </NxTable.Cell>
       <NxTable.Cell chevron />
     </NxTable.Row>
   );
 }
+
+function Recommendation({ loading, error, recommendationText, recommendationSubtext }) {
+  if (loading) {
+    return <NxLoadingSpinner />;
+  }
+
+  if (error) {
+    return <span>N/A</span>;
+  }
+
+  return (
+    <>
+      <div className="iq-priorities-page-remediation__upgrade">{recommendationText}</div>
+      <div className="iq-priorities-page-remediation__upgrade-desc">{recommendationSubtext}</div>
+    </>
+  );
+}
+
+Recommendation.propTypes = {
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  recommendationText: PropTypes.string,
+  recommendationSubtext: PropTypes.string,
+};
 
 PrioritiesPageRow.propTypes = {
   component: PropTypes.shape({

@@ -21,10 +21,10 @@ import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export default function PrioritiesPageTable() {
   const [showPriorityFindings, toggleShowPriorityFindings] = useToggle(true);
-  const [showAllFindings, toggleShowAllFindings] = useToggle(true);
 
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadTableData());
@@ -38,6 +38,19 @@ export default function PrioritiesPageTable() {
     pageCount,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
+  const isFirstPage = page === 1;
+
+  const getTopPrioritiesLabel = () => {
+    if (isNilOrEmpty(topPrioritiesData)) {
+      return 'Top Priorities';
+    }
+
+    if (topPrioritiesData.length === 1) {
+      return 'Top Priority';
+    }
+
+    return `Top ${topPrioritiesData.length} Priorities`;
+  };
 
   const setPage = (page) => dispatch(actions.setPage(page));
 
@@ -65,26 +78,26 @@ export default function PrioritiesPageTable() {
             </NxTable.Row>
           </NxTable.Head>
           <NxTable.Body isLoading={loadingTableData} retryHandler={doLoad} error={loadErrorTableData}>
+            {isFirstPage && (
+              <>
+                <NxTable.Row>
+                  <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
+                    <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
+                      <NxAccordion.Header>
+                        <NxAccordion.Title>{getTopPrioritiesLabel()}</NxAccordion.Title>
+                      </NxAccordion.Header>
+                    </NxAccordion>
+                  </NxTable.Cell>
+                </NxTable.Row>
+                {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
+              </>
+            )}
             <NxTable.Row>
-              <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
-                <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
-                  <NxAccordion.Header>
-                    <NxAccordion.Title>Top Priorities</NxAccordion.Title>
-                  </NxAccordion.Header>
-                </NxAccordion>
+              <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
+                Remaining Findings
               </NxTable.Cell>
             </NxTable.Row>
-            {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
-            <NxTable.Row>
-              <NxTable.Cell className="iq-priorities-page-all-findings-toggle" colSpan={5}>
-                <NxAccordion open={showAllFindings} onToggle={toggleShowAllFindings}>
-                  <NxAccordion.Header>
-                    <NxAccordion.Title>All Other Findings</NxAccordion.Title>
-                  </NxAccordion.Header>
-                </NxAccordion>
-              </NxTable.Cell>
-            </NxTable.Row>
-            {showAllFindings && <DataRows dataset={additionalPrioritiesData} />}
+            <DataRows dataset={additionalPrioritiesData} />
           </NxTable.Body>
         </NxTable>
         {additionalPrioritiesData && (

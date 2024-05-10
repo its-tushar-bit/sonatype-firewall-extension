@@ -8,6 +8,7 @@ import React from 'react';
 import {
   NxH1,
   NxInfoAlert,
+  NxLoadWrapper,
   NxP,
   NxPageMain,
   NxPageTitle,
@@ -26,57 +27,74 @@ import IssueTracking from './sections/IssueTracking';
 import Ide from './sections/Ide';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { SECTIONS } from 'MainRoot/development/developmentDashboard/sections';
-import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsDeveloperDashboardEnabled,
+  selectProductFeaturesSlice,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+
+const tabStates = [
+  {
+    state: `integrations.${SECTIONS.OVERVIEW}`,
+    ndx: 0,
+    tabName: 'Overview',
+    dataAnalyticsId: 'sonatype-developer-nav-tab-overview',
+  },
+  {
+    state: `integrations.${SECTIONS.CICD}`,
+    ndx: 1,
+    tabName: 'CI/CD Integrations',
+    dataAnalyticsId: 'sonatype-developer-nav-tab-cicd',
+  },
+  {
+    state: `integrations.${SECTIONS.SCM}`,
+    ndx: 2,
+    tabName: 'SCM Integrations',
+    dataAnalyticsId: 'sonatype-developer-nav-tab-scm',
+  },
+  {
+    state: `integrations.${SECTIONS.ISSUE_TRACKING}`,
+    tabName: 'Issue Tracking Integrations',
+    ndx: 3,
+    dataAnalyticsId: 'sonatype-developer-nav-tab-issue-tracking',
+  },
+  {
+    state: `integrations.${SECTIONS.IDE}`,
+    ndx: 4,
+    tabName: 'IDE Integrations',
+    dataAnalyticsId: 'sonatype-developer-nav-tab-ide',
+  },
+];
 
 export default function SonatypeDeveloperPage() {
-  const tabStates = [
-    {
-      state: `integrations.${SECTIONS.OVERVIEW}`,
-      ndx: 0,
-      tabName: 'Overview',
-      dataAnalyticsId: 'sonatype-developer-nav-tab-overview',
-    },
-    {
-      state: `integrations.${SECTIONS.CICD}`,
-      ndx: 1,
-      tabName: 'CI/CD Integrations',
-      dataAnalyticsId: 'sonatype-developer-nav-tab-cicd',
-    },
-    {
-      state: `integrations.${SECTIONS.SCM}`,
-      ndx: 2,
-      tabName: 'SCM Integrations',
-      dataAnalyticsId: 'sonatype-developer-nav-tab-scm',
-    },
-    {
-      state: `integrations.${SECTIONS.ISSUE_TRACKING}`,
-      tabName: 'Issue Tracking Integrations',
-      ndx: 3,
-      dataAnalyticsId: 'sonatype-developer-nav-tab-issue-tracking',
-    },
-    {
-      state: `integrations.${SECTIONS.IDE}`,
-      ndx: 4,
-      tabName: 'IDE Integrations',
-      dataAnalyticsId: 'sonatype-developer-nav-tab-ide',
-    },
-  ];
-
-  const currentRouteName = useSelector(selectCurrentRouteName);
-  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
-
-  const activeTabId = tabStates.find(({ state }) => state === currentRouteName)?.ndx || 0;
   const dispatch = useDispatch();
 
-  const setTab = (index) => dispatch(stateGo(tabStates.find(({ ndx }) => ndx === index)?.state));
+  const { loading, loadError } = useSelector(selectProductFeaturesSlice);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
-  if (!isDeveloperDashboardEnabled) {
-    return <LicenseLockScreen />;
-  }
+  const doLoad = () => dispatch(actions.fetchProductFeaturesIfNeeded());
 
   return (
     <NxPageMain>
+      <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+        {isDeveloperDashboardEnabled ? <SonatypeDeveloperPageContents /> : <LicenseLockScreen />}
+      </NxLoadWrapper>
+    </NxPageMain>
+  );
+}
+
+function SonatypeDeveloperPageContents() {
+  const dispatch = useDispatch();
+
+  const currentRouteName = useSelector(selectCurrentRouteName);
+
+  const activeTabId = tabStates.find(({ state }) => state === currentRouteName)?.ndx || 0;
+
+  const setTab = (index) => dispatch(stateGo(tabStates.find(({ ndx }) => ndx === index)?.state));
+
+  return (
+    <>
       <NxInfoAlert className="iq-integrations-page-top-level-alert">
         Sonatype Development is available for free in the <strong>Product Preview Program (PPP)</strong>. Innovate with
         us by submitting your feedback to{' '}
@@ -123,6 +141,6 @@ export default function SonatypeDeveloperPage() {
           </NxTabPanel>
         </NxTabs>
       </div>
-    </NxPageMain>
+    </>
   );
 }

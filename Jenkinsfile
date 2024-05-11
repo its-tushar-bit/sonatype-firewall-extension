@@ -285,8 +285,19 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
     mavenOptions += " -Djasmine.tests.skip=true"
     mavenCommon.put('mavenOptions', mavenOptions)
     buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
-    archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
-    collectTestResults(['**/target/*-reports/*.xml'])
+    //If nothing has changed in the build then tests won't re-run meaning there won't be any test reports
+    try {
+      archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
+      collectTestResults(['**/target/*-reports/*.xml'])
+    }
+    catch (Exception e) {
+      if (e.toString().contains("No artifacts found that match the file pattern")) {
+        echo "No test results found: " + e.toString()
+      }
+      else {
+        throw e
+      }
+    }
   }
   else {
     echo "fastBuild disabled - Running all tests"

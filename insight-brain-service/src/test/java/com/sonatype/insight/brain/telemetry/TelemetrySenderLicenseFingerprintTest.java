@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Map;
-
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -14,7 +12,9 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * Special test for {@link TelemetrySender} to check that the license fingerprint is added as the `X-CLM-Token` header
@@ -34,7 +34,9 @@ public class TelemetrySenderLicenseFingerprintTest
     telemetrySender.send(telemetryDataSend);
 
     String licenseFingerprint = getLicenseFingerprint();
-    Map<String, String> headers = hdsMockServer.getCapturedRequestHttpHeaders(TelemetrySender.RESOURCE_PATH);
-    assertThat(headers).containsEntry("X-CLM-Token", licenseFingerprint);
+    // Telemetry is sent async, so we have to await for this assertion to succeed.
+    await().atMost(5, SECONDS)
+        .untilAsserted(() -> assertThat(hdsMockServer.getCapturedRequestHttpHeaders(TelemetrySender.RESOURCE_PATH))
+            .containsEntry("X-CLM-Token", licenseFingerprint));
   }
 }

@@ -16,8 +16,8 @@ describe('DeveloperConfigurationModal', () => {
   });
 
   const mockTabs = [
-    createTabConfiguration('tab1', <div>Content for tab1</div>),
-    createTabConfiguration('tab2', <div>Content for tab2</div>),
+    createTabConfiguration('tab1', 'tab1-analytics-id', <div>Content for tab1</div>),
+    createTabConfiguration('tab2', 'tab2-analytics-id', <div>Content for tab2</div>),
   ];
 
   it('renders modal when showModal is true', () => {

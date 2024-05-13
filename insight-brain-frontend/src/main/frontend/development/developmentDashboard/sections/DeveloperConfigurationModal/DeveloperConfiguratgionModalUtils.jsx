@@ -11,8 +11,9 @@ import BambooWizard from 'MainRoot/development/developmentDashboard/sections/CiC
 import JenkinsWizard from 'MainRoot/development/developmentDashboard/sections/CiCdWizards/Jenkins/JenkinsWizard';
 import GitlabWizard from 'MainRoot/development/developmentDashboard/sections/CiCdWizards/GitLab/GitlabWizard';
 
-export const createTabConfiguration = (name, component) => ({
+export const createTabConfiguration = (name, analyticsId, component) => ({
   name,
+  analyticsId,
   component,
 });
 
@@ -22,6 +23,7 @@ export const createScmTabs = (applicationPublicId) => {
   return scmProviders.map((provider) => {
     return createTabConfiguration(
       provider,
+      `sonatype-developer-scm-configuration-wizard-tab-${provider}`,
       <ScmWizard applicationPublicId={applicationPublicId} scmProvider={provider} />
     );
   });
@@ -31,16 +33,23 @@ export const createCiCdTabs = (applicationPublicId, organizationId) => {
   return [
     createTabConfiguration(
       'Jenkins',
+      'sonatype-developer-cicd-configuration-wizard-tab-jenkins',
       <JenkinsWizard iqOrganization={organizationId} iqApplication={applicationPublicId} />
     ),
     createTabConfiguration(
       'Azure',
+      'sonatype-developer-cicd-configuration-wizard-tab-azure',
       <AzureWizard iqOrganization={organizationId} iqApplication={applicationPublicId} />
     ),
     createTabConfiguration(
       'Bamboo',
+      'sonatype-developer-cicd-configuration-wizard-tab-bamboo',
       <BambooWizard iqOrganization={organizationId} iqApplication={applicationPublicId} />
     ),
-    createTabConfiguration('GitLab CLI', <GitlabWizard iqApplication={applicationPublicId} />),
+    createTabConfiguration(
+      'GitLab CLI',
+      'sonatype-developer-cicd-configuration-wizard-tab-gitlab-cli',
+      <GitlabWizard iqApplication={applicationPublicId} />
+    ),
   ];
 };

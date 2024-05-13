@@ -98,7 +98,13 @@ export default function AppIntegrationsAndRiskTable() {
           </NxTable.Row>
           <NxTable.Row isFilterHeader>
             <NxTable.Cell>
-              <NxFilterInput searchIcon placeholder="Search by name" onChange={onFilterNameChange} value={nameFilter} />
+              <NxFilterInput
+                data-analytics-id="sonatype-development-dashboard-overview-app-integration-table-search-input-box"
+                searchIcon
+                placeholder="Search by name"
+                onChange={onFilterNameChange}
+                value={nameFilter}
+              />
             </NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>
             <NxTable.Cell></NxTable.Cell>
@@ -143,7 +149,8 @@ export default function AppIntegrationsAndRiskTable() {
                       <>
                         {' '}
                         <NxButton
-                          id="iq-developer-app-integrations-cicd-configure-button"
+                          data-analytics-id="iq-developer-app-integrations-cicd-configure-button"
+                          className="iq-developer-app-integrations-cicd-configure-button"
                           onClick={() => setModalDetails('cicd', applicationPublicId)}
                           variant="tertiary"
                         >
@@ -165,7 +172,8 @@ export default function AppIntegrationsAndRiskTable() {
                     ) : (
                       <>
                         <NxButton
-                          id="iq-developer-app-integrations-scm-configure-button"
+                          data-analytics-id="iq-developer-app-integrations-scm-configure-button"
+                          className="iq-developer-app-integrations-scm-configure-button"
                           onClick={() => setModalDetails('scm', applicationPublicId)}
                           variant="tertiary"
                         >
@@ -261,7 +269,12 @@ function SastReportCell(props) {
 
   return (
     <div className="iq-developer-dashboard-sast-cell-container">
-      <NxTextLink href={sastScanReportHref}>View</NxTextLink>
+      <NxTextLink
+        data-analytics-id="sonatype-development-app-integration-dashboard-view-link-clicked"
+        href={sastScanReportHref}
+      >
+        View
+      </NxTextLink>
       <span>{moment(lastSastReportTime).fromNow()}</span>
     </div>
   );

@@ -30,7 +30,12 @@ export default function AutomatedSourceControlFeedbackCard() {
         </NxCard.Text>
       </NxCard.Content>
       <NxCard.Footer>
-        <NxTextLink href={scmHref}>Learn more about our SCM integrations</NxTextLink>
+        <NxTextLink
+          data-analytics-id="sonatype-development-dashboard-overview-scm-feedback-tile-learn-more-link"
+          href={scmHref}
+        >
+          Learn more about our SCM integrations
+        </NxTextLink>
       </NxCard.Footer>
     </NxCard>
   );

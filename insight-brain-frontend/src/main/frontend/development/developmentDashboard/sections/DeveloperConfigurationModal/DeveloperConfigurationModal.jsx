@@ -29,7 +29,11 @@ export default function DeveloperConfigurationModal({ title, tabs, showModal, on
             <NxTabs activeTab={activeTabId} onTabSelect={setActiveTabId}>
               <NxTabList>
                 {tabs.map((tab, index) => (
-                  <NxTab key={index} className="iq-integrations-developer-configuration-tab">
+                  <NxTab
+                    data-analytics-id={tab.analyticsId}
+                    key={index}
+                    className="iq-integrations-developer-configuration-tab"
+                  >
                     {tab.name}
                   </NxTab>
                 ))}

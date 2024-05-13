@@ -116,7 +116,7 @@ Examples:
 
 - vulnerabilitySearchReducerSpec.js - Jasmine test
 - roleEditorPermissionListSpec.jsx - Jasmine test
-- classybrew.factory.spec.js - Jasmine test
+- fuzzy.filter.spec.js - Jasmine test
 - AddWaiverPage.jestspec.jsx - Jest test
 - waiverActions.jestspec.js - Jest test
 

@@ -3,31 +3,33 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
+import ClassyBrew from 'MainRoot/dashboard/utils/classybrew.factory';
 
 describe('classybrew.factory.spec', function () {
-  var ClassyBrew, brew;
+  let brew;
+  let classyBrew;
+  let originalClassyBrewDef;
 
-  beforeEach(
-    angular.mock.module(dashboardUtilsModule.name, function ($provide) {
-      $provide.value('$window', {
-        classyBrew: function () {
-          this.colorSchemes = {};
-          this.setColorCode = jasmine.createSpy();
-          this.getColors = jasmine.createSpy();
-          this.getColorInRange = jasmine.createSpy();
-          this.setSeries = jasmine.createSpy();
-          this.setNumClasses = jasmine.createSpy();
-          this.classify = jasmine.createSpy();
-        },
-      });
-    })
-  );
+  beforeEach(() => {
+    originalClassyBrewDef = window.classyBrew;
 
-  beforeEach(inject(function (_ClassyBrew_) {
-    ClassyBrew = _ClassyBrew_;
-    brew = ClassyBrew.create([1, 2, 3]);
-  }));
+    window.classyBrew = jest.fn().mockReturnValue({
+      colorSchemes: {},
+      setColorCode: jest.fn(),
+      getColors: jest.fn(),
+      getColorInRange: jest.fn(),
+      setSeries: jest.fn(),
+      setNumClasses: jest.fn(),
+      classify: jest.fn(),
+    });
+
+    classyBrew = ClassyBrew(window);
+    brew = classyBrew.create([1, 2, 3]);
+  });
+
+  afterEach(() => {
+    window.classyBrew = originalClassyBrewDef;
+  });
 
   it('sets up the Sonatype color scheme', function () {
     expect(brew.colorSchemes.SonatypeBlues).toBeDefined();
@@ -58,18 +60,18 @@ describe('classybrew.factory.spec', function () {
     expect(brew.getColor(0)).toBe('rgb(247,251,255)');
     expect(brew.getColorInRange).not.toHaveBeenCalled();
 
-    brew.getColorInRange.and.returnValue('color');
+    brew.getColorInRange.mockReturnValue('color');
     expect(brew.getColor(1)).toBe('color');
     expect(brew.getColorInRange).toHaveBeenCalledWith(1);
   });
 
   it('call setNumClasses with 7, if length is more than 7', function () {
-    brew = ClassyBrew.create([1, 2, 3, 4, 5, 6, 7, 8]);
+    brew = classyBrew.create([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(brew.setNumClasses).toHaveBeenCalledWith(7);
   });
 
   it('call setNumClasses with length of series, if length is less than 7', function () {
-    brew = ClassyBrew.create([1, 2, 3, 4, 5, 6]);
+    brew = classyBrew.create([1, 2, 3, 4, 5, 6]);
     expect(brew.setNumClasses).toHaveBeenCalledWith(6);
   });
 
@@ -78,8 +80,8 @@ describe('classybrew.factory.spec', function () {
   });
 
   function setUpColors(theBrew, colors) {
-    theBrew.getColors.and.returnValue(colors);
-    theBrew.getColorInRange.and.callFake(function (score) {
+    theBrew.getColors.mockReturnValue(colors);
+    theBrew.getColorInRange.mockImplementation(function (score) {
       return colors[score - 1];
     });
   }

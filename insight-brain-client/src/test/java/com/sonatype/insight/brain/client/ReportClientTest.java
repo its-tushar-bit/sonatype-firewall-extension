@@ -67,7 +67,7 @@ public class ReportClientTest
     final String scanId = "scan-id";
     final ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     final UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl())
-        .path(UserInterfaceLinksHelper.PRIORITIES_PATH);
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(UserInterfaceLinksHelper.PRIORITIES_PATH);
     assertThat(reportClient.linkToPrioritiesReport()).isEqualTo(uriBuilder.build(appId, scanId).toString());
   }
 

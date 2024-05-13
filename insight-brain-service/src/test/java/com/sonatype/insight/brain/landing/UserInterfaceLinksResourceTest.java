@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.POLICY_VIOLATION_REPORT_PATH;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH;
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -293,6 +294,19 @@ public class UserInterfaceLinksResourceTest
     assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repositories/quarantinedComponent/token");
     HttpResponse response = get(UserInterfaceLinksHelper.QUARANTINED_COMPONENT_REPORT_PATH, "token");
     assertRedirect(response, "assets/index.html#/repositories/quarantinedComponent/token");
+  }
+
+  @Test
+  public void testLinkToPrioritiesReport() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+    final String appPublicId = application.getPublicId();
+    final HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(PRIORITIES_PATH)
+        .parameter(appPublicId, "scan-id")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "assets/index.html#/development/priorities/" + appPublicId + "/scan-id");
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(

@@ -283,6 +283,22 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, token);
   }
 
+  @GET
+  @Path(PRIORITIES_PATH)
+  public Response linkToPrioritiesReport(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
+  {
+    return linkToPrioritiesReportRedirect(applicationPublicId, scanId);
+  }
+
+  private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
+    final UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(PRIORITIES_PATH);
+
+    return redirect(uriBuilder, applicationPublicId, scanId);
+  }
+
   private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
     if (source == null) {
       return;

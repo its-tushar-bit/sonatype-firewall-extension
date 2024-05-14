@@ -49,7 +49,8 @@ make(
       mavenCommon.put('mavenOptions', mavenOptions)
 
       withSonatypeDockerRegistry() {
-        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                 "TESTCONTAINERS_RYUK_DISABLED=true"]) {
           runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
         }
       }

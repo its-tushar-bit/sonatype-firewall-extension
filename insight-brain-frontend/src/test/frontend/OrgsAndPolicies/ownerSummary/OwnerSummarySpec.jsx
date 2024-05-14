@@ -148,6 +148,16 @@ describe('OwnerSummary', () => {
 
       expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
+      expect(await screen.queryByRole('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+    });
+
+    it('does render the Actions button if SBOM Manager disabled', async () => {
+      preloadedState.orgsAndPolicies.ownerSideNav = { displayedOrganization: { synthetic: false } };
+      renderComponent(preloadedState);
+
+      expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
+      expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
+      expect(await screen.findByTestId('owner-summary-action-dropdown-container')).toBeInTheDocument();
     });
   });
 
@@ -322,6 +332,7 @@ describe('OwnerSummary', () => {
       expect(await screen.findByRole('heading', { name: 'SBOMs' })).toBeVisible();
       expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
       expect(await screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
+      expect(await screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
     });
 
     it('false, and shows error when the SBOM Manager license is disabled', async () => {

@@ -55,6 +55,8 @@ public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_STATE = "current";
 
+  static final String DEFAULT_SBOM_SPECIFICATION = "cyclonedx1.5";
+
   public static final String SBOMS_APPLICATIONS_PATH = "/applications";
 
   static final String SBOMS_APPLICATION_PATH = SBOMS_APPLICATIONS_PATH + "/{applicationId}";
@@ -121,6 +123,10 @@ public class ApiSbomResource
       @Parameter(description = "The state of the sbom version. Allowed values [original|current]. default = current")
       @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
 
+      @Parameter(description = "Target specification of the sbom. Allowed values [cyclonedx1.5|spdx2.3]. " +
+          "default = cyclonedx1.5")
+      @DefaultValue(DEFAULT_SBOM_SPECIFICATION) @QueryParam("specification") String targetSpecification,
+
       @Parameter(in = ParameterIn.HEADER, name = "Accept", description = "Output format(json/xml) of the sbom. " +
           "Changing the output format only applicable when downloading the current form of the SBOM. " +
           "The original sbom will always return in the original form that it was ingested. " +
@@ -129,7 +135,7 @@ public class ApiSbomResource
           "Allowed values {'application/json'|'application/xml'}. default = null")
       @HeaderParam(HttpHeaders.ACCEPT) String acceptMediaType)
   {
-    return apiSbomService.getSbomVersion(applicationId, version, sbomState);
+    return apiSbomService.getSbomVersion(applicationId, version, sbomState, targetSpecification, acceptMediaType);
   }
 
   @Operation(summary = "Gets a paginated list of SBOMs for an application",

@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -42,6 +41,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -64,6 +66,8 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +104,8 @@ public class ApiSbomService
 
   private final ProductLicense productLicense;
 
+  private final SbomExporterProvider sbomExporterProvider;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
@@ -111,7 +117,8 @@ public class ApiSbomService
       final PolicyEvaluateService policyEvaluateService,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final SbomMetadataUtils sbomMetadataUtils,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final SbomExporterProvider sbomExporterProvider)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -123,6 +130,7 @@ public class ApiSbomService
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.productLicense = productLicense;
+    this.sbomExporterProvider = sbomExporterProvider;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -146,26 +154,57 @@ public class ApiSbomService
   public Response getSbomVersion(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String version,
-      String sbomState)
+      String requestedSbomState,
+      String targetSpecification,
+      String acceptType)
   {
-    if (!sbomState.equals(SBOM_STATE_CURRENT) && !sbomState.equals(SBOM_STATE_ORIGINAL)) {
-      throw new BadRequestException("Invalid sbom state " + sbomState);
+    if (!requestedSbomState.equals(SBOM_STATE_CURRENT) && !requestedSbomState.equals(SBOM_STATE_ORIGINAL)) {
+      throw new BadRequestException("Invalid sbom state " + requestedSbomState);
     }
+    if (requestedSbomState.equals(SBOM_STATE_ORIGINAL)) {
+      return getOriginalSbom(applicationId, version);
+    }
+    targetSpecification = StringUtils.lowerCase(targetSpecification);
+    acceptType = StringUtils.lowerCase(acceptType);
+    validateRequestParams(targetSpecification, acceptType);
+    return buildCurrentSbom(applicationId, version, targetSpecification, acceptType);
+  }
 
-    if (sbomState.equals(SBOM_STATE_CURRENT)) {
-      throw new BadRequestException("Retrieving the current state of the sbom is not supported yet.");
-    }
+  private Response buildCurrentSbom(
+      final String applicationId,
+      final String version,
+      final String targetSpecification,
+      final String acceptType)
+  {
+    final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
+    SbomExportParams params = SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
+        .withExportSpecification(ExportSpecification.getSpecificationForRequest(targetSpecification))
+        .withTargetFormat(SbomFormat.forMimeType(acceptType));
 
-    final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, SbomStatus.ACTIVE.name());
-    if (thirdPartySbomMetadata == null) {
-      throw new NotFoundException(String.format(cannotFindVersionError, version, applicationId));
+    String content = sbomExporterProvider.get(params).export();
+    content = content != null ? content : "";
+    String fileName = getExportFileName(applicationId, version, SbomFormat.forMimeType(acceptType).toString());
+    return Response.ok(content.getBytes(StandardCharsets.UTF_8), acceptType)
+        .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
+        .build();
+  }
+
+  private void validateRequestParams(final String targetSpecification, final String acceptMediaType) {
+    if (ExportSpecification.getSpecificationForRequest(targetSpecification) == null) {
+      throw new BadRequestException(
+          String.format("requested output specification %s not supported", targetSpecification));
     }
+    if (SbomFormat.forMimeType(acceptMediaType) == null) {
+      throw new BadRequestException(
+          String.format("requested output format %s not supported", acceptMediaType));
+    }
+  }
+
+  private Response getOriginalSbom(final String applicationId, final String version) {
+    final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
 
     MediaType type;
-    String fileName =
-        applicationDAO.getById(applicationId).getName() + "_" + version + "." +
-            thirdPartySbomMetadata.getSpecFormat();
+    String fileName = getExportFileName(applicationId, version, thirdPartySbomMetadata.getSpecFormat());
     if (thirdPartySbomMetadata.getSpecFormat().equals(SbomFormat.JSON.toString())) {
       type = MediaType.APPLICATION_JSON_TYPE;
     }
@@ -186,9 +225,28 @@ public class ApiSbomService
       log.debug("File not found for sbom metadata with application id {}, version {}, filename {}", applicationId,
           version, thirdPartySbomMetadata.getFilename(), e);
       throw new InternalServerException(
-          String.format("Internal server error trying to retrieve the %s sbom for application %s version %s", sbomState,
+          String.format("Internal server error trying to retrieve the original sbom for application %s version %s",
               applicationId, version));
     }
+  }
+
+  @NotNull
+  private String getExportFileName(
+      final String applicationId,
+      final String version,
+      final String targetFormat)
+  {
+    return applicationDAO.getById(applicationId).getName() + "_" + version + "." + targetFormat;
+  }
+
+  @NotNull
+  private ThirdPartySbomMetadata findSbomMetadataRecord(final String applicationId, final String version) {
+    final ThirdPartySbomMetadata thirdPartySbomMetadata =
+        dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, SbomStatus.ACTIVE.name());
+    if (thirdPartySbomMetadata == null) {
+      throw new NotFoundException(String.format(cannotFindVersionError, version, applicationId));
+    }
+    return thirdPartySbomMetadata;
   }
 
   @Authorize(permission = Permission.READ)

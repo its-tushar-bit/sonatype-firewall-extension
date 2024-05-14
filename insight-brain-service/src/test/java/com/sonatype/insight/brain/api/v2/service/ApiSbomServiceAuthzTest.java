@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -63,13 +62,13 @@ public class ApiSbomServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSbomVersion_Unauthenticated() {
-    apiSbomService.getSbomVersion(DUMMY_APP_ID, DUMMY_APP_VERSION, ApiSbomService.SBOM_STATE_ORIGINAL);
+    apiSbomService.getSbomVersion(DUMMY_APP_ID, DUMMY_APP_VERSION, ApiSbomService.SBOM_STATE_ORIGINAL, "", "");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSbomVersion_Unauthorized() {
     login();
-    apiSbomService.getSbomVersion(app.getId(), DUMMY_APP_VERSION, ApiSbomService.SBOM_STATE_ORIGINAL);
+    apiSbomService.getSbomVersion(app.getId(), DUMMY_APP_VERSION, ApiSbomService.SBOM_STATE_ORIGINAL, "", "");
   }
 
   @Test
@@ -79,7 +78,8 @@ public class ApiSbomServiceAuthzTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
-            () -> apiSbomService.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_ORIGINAL))
+            () -> apiSbomService.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_ORIGINAL, "",
+                ""))
         .withMessage("Cannot find version some-version for application with ID " + app.getId() + ".");
   }
 

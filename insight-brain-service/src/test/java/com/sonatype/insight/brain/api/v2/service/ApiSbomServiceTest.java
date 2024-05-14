@@ -8,14 +8,15 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -38,24 +39,33 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
-import com.sonatype.insight.brain.utils.SbomTestsHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
+import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_ATTRIBS;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.readFileToString;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.setupScenarioWithMetadataComponentSecurityLicenseAndVex;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFilter;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +74,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 
 public class ApiSbomServiceTest
     extends AbstractComponentTest
@@ -88,21 +99,30 @@ public class ApiSbomServiceTest
   @Mock
   private HdsClient mockHdsClient;
 
+  @Mock
+  private BaseUrl mockBaseUrl;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
     super.configure(binder);
   }
 
+  @Before
+  public void before() {
+    lenient().when(mockBaseUrl.get()).thenReturn("http://localhost:8070/");
+  }
+
   @Test
-  public void testDeleteSbomVersion() throws IOException {
+  public void testDeleteSbomVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Path fileInWorkDirPath =
-        SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
-            getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"));
+    Path zippedBom = mockOriginalSbom(this.getClass(), "third-party-simple-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withFilename(fileInWorkDirPath.getFileName().toString())
+        .withFilename(zippedBom.getFileName().toString())
         .build();
 
     service.deleteSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
@@ -111,7 +131,7 @@ public class ApiSbomServiceTest
         dao.getByApplicationIdAndSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
 
     assertThat(retrievedSbomMetadata).isNull();
-    assertThat(fileInWorkDirPath).doesNotExist();
+    assertThat(zippedBom).doesNotExist();
   }
 
   @Test
@@ -125,18 +145,11 @@ public class ApiSbomServiceTest
   }
 
   @Test
-  public void testGetSbomVersion_CuerrentStateNotSupported() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(
-            () -> service.getSbomVersion("invalidAppId", "invalidSbomVersion", ApiSbomService.SBOM_STATE_CURRENT))
-        .withMessage("Retrieving the current state of the sbom is not supported yet.");
-  }
-
-  @Test
   public void testGetSbomVersion_UnsupportedState() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> service.getSbomVersion("invalidAppId", "invalidSbomVersion", "dummyState"))
+            () -> service.getSbomVersion("invalidAppId", "invalidSbomVersion", "dummyState", "cyclonedx1.5",
+                "application/xml"))
         .withMessage("Invalid sbom state dummyState");
   }
 
@@ -147,21 +160,19 @@ public class ApiSbomServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> service.getSbomVersion(sbomMetadata.getApplicationId(), "invalidVersion",
-                ApiSbomService.SBOM_STATE_ORIGINAL))
+                ApiSbomService.SBOM_STATE_ORIGINAL, "spdx2.3", "application/xml"))
         .withMessage(
             "Cannot find version invalidVersion for application with ID " + sbomMetadata.getApplicationId() + ".");
   }
 
   @Test
-  public void testGetSbomVersion_FindOnlyActiveSboms_Xml() throws IOException {
+  public void testGetSbomVersion_Original_Xml() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Path fileInWorkDirPath =
-        SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
-            getClass().getResource(
-                "/" + getClass().getSimpleName() + "/cb4e10e0f3a94fd98bee955b53f9474c7343830902282944835.xml.gz"));
+    Path zippedBom = mockOriginalSbom(this.getClass(), "third-party-simple-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withFilename(fileInWorkDirPath.getFileName().toString())
+        .withFilename(zippedBom.getFileName().toString())
         .withStatus(SbomStatus.ACTIVE.name())
         .build();
 
@@ -171,25 +182,20 @@ public class ApiSbomServiceTest
         .build();
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
-        ApiSbomService.SBOM_STATE_ORIGINAL);
-    String expectedContent = FileUtils.readFileToString(
-        new File(getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml").getPath()),
-        StandardCharsets.UTF_8);
-    expectedContent = expectedContent.replaceAll("\r\n", "\n");
+        ApiSbomService.SBOM_STATE_ORIGINAL, "cyclonedx1.5", "application/xml");
     String actualContent = new String((byte[]) response.getEntity());
-    assertThat(expectedContent).isEqualTo(actualContent);
+    XmlAssert.assertThat(actualContent).and(expectedContentIn("third-party-simple-bom.xml"))
+        .areIdentical();
   }
 
   @Test
-  public void testGetSbomVersion_FindOnlyActiveSboms_Json() throws IOException {
+  public void testGetSbomVersion_Original_Json() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Path fileInWorkDirPath =
-        SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
-            getClass().getResource(
-                "/" + getClass().getSimpleName() + "/668bbb2087354637b030de2bc1a3faf76935110932971722768.json.gz"));
+    Path zippedBom = mockOriginalSbom(this.getClass(), "spdx.json",
+        insightWork.getSbomDir(app.getId()).toPath());
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withFilename(fileInWorkDirPath.getFileName().toString())
+        .withFilename(zippedBom.getFileName().toString())
         .withStatus(SbomStatus.ACTIVE.name())
         .build();
 
@@ -199,13 +205,123 @@ public class ApiSbomServiceTest
         .build();
 
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
-        ApiSbomService.SBOM_STATE_ORIGINAL);
-    String expectedContent = FileUtils.readFileToString(
-        new File(getClass().getResource("/" + getClass().getSimpleName() + "/spdx.json").getPath()),
-        StandardCharsets.UTF_8);
-    expectedContent = expectedContent.replaceAll("\r\n", "\n");
+        ApiSbomService.SBOM_STATE_ORIGINAL, "", "");
     String actualContent = new String((byte[]) response.getEntity());
-    assertThat(expectedContent).isEqualTo(actualContent);
+    assertThatJson(actualContent).isEqualTo(expectedContentIn("spdx.json"));
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_CycloneDxToCycloneDx_Xml() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-cyclonedx-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
+        "CycloneDx", "1.5", SbomFormat.XML);
+
+    Response response =
+        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
+            "cyclonedx1.5", MediaType.APPLICATION_XML);
+
+    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
+
+    assertContentHeader(response, app, sbomVersion, ".xml");
+    String sbomContent = new String((byte []) response.getEntity());
+    XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
+        .withNodeFilter(cycloneDxIgnoreNodesFilter())
+        .withAttributeFilter(attr -> !CYCLONEDX_IGNORE_ATTRIBS.contains(attr.getName()))
+        .ignoreWhitespace()
+        .areIdentical();
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_CycloneDxToCycloneDx_Json() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-cyclonedx-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
+        "CycloneDx", "1.5", SbomFormat.XML);
+
+    Response response =
+        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
+            "cyclonedx1.5", MediaType.APPLICATION_JSON);
+
+    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+
+    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
+
+    String sbomContent = new String((byte []) response.getEntity());
+    assertContentHeader(response, app, sbomVersion, ".json");
+    assertThatJson(sbomContent)
+        .isEqualTo(expectedContentIn("sboms/valid-cyclonedx-result-bom.json"));
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_SpdxToSpdx_Xml() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-spdx-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
+        "SPDX", "2.3", SbomFormat.XML);
+
+    Response response =
+        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
+            "spdx2.3", MediaType.APPLICATION_XML);
+
+    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
+
+    String sbomContent = new String((byte[]) response.getEntity());
+    assertContentHeader(response, app, sbomVersion, ".xml");
+    XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-spdx-result-bom.xml"))
+        .withNodeFilter(spdxDxIgnoreNodesFilter())
+        .ignoreWhitespace()
+        .areIdentical();
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_SpdxToSpdx_Json() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-spdx-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
+        "SPDX", "2.3", SbomFormat.XML);
+
+    Response response =
+        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
+            "spdx2.3", MediaType.APPLICATION_JSON);
+
+    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
+
+    String sbomContent = new String((byte []) response.getEntity());
+    assertContentHeader(response, app, sbomVersion, ".json");
+    assertThatJson(sbomContent)
+        .isEqualTo(expectedContentIn("sboms/valid-spdx-result-bom.json"));
+  }
+
+  @Test
+  public void testGetSbomVersion_InvalidTargetSpecification() {
+    Application app = tempEntity.newApplicationWithParent();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT,
+            "invalid-spec", MediaType.APPLICATION_JSON))
+        .withMessage("requested output specification invalid-spec not supported");
+  }
+
+  @Test
+  public void testGetSbomVersion_InvalidExportFormat() {
+    Application app = tempEntity.newApplicationWithParent();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT, "spdx2.3",
+            MediaType.APPLICATION_SVG_XML))
+        .withMessage("requested output format application/svg+xml not supported");
   }
 
   @Test
@@ -217,7 +333,7 @@ public class ApiSbomServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
-                ApiSbomService.SBOM_STATE_ORIGINAL))
+                ApiSbomService.SBOM_STATE_ORIGINAL, "", ""))
         .withMessage(
             "Cannot find version " + sbomMetadata.getSbomVersion() + " for application with ID " +
                 sbomMetadata.getApplicationId() + ".");
@@ -404,7 +520,7 @@ public class ApiSbomServiceTest
           assertThat(component.getVersion()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.VERSION));
           assertThat(component.getPackageUrl()).isEqualTo(null);
           assertThat(component.getDisplayName()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID)
-                  + ":" + componentIdentifier1.get(ComponentIdentifier.VERSION));
+              + ":" + componentIdentifier1.get(ComponentIdentifier.VERSION));
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
           assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
@@ -627,5 +743,20 @@ public class ApiSbomServiceTest
     doThrow(new RuntimeException("Test error")).when(mockHdsClient).get(any(Retry.class), eq(InputStream.class),
         eq("rest/application/analysis/{scanId}"),
         isNull(), eq("SCAN-ID"));
+  }
+
+  private static void assertContentHeader(
+      final Response response,
+      final Application app,
+      final String sbomVersion,
+      final String x)
+  {
+    String contentHeader = response.getHeaderString("Content-Disposition");
+    String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
+    assertThat(actualFilename).isEqualTo(app.getName() + "_" + sbomVersion + x);
+  }
+
+  private String expectedContentIn(String fileName) throws Exception {
+    return readFileToString(this.getClass(), fileName);
   }
 }

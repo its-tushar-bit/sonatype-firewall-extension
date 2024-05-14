@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.scan.file.SbomFormat;
+
+import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
@@ -27,6 +30,9 @@ public class SbomExportParams
   public enum ExportSpecification
   {
     DEFAULT("1.5", CYCLONEDX), CYCLONEDX_15("1.5", CYCLONEDX), SPDX_23("2.3", SPDX);
+
+    private static final Map<String, ExportSpecification> SUPPORTED_EXPORT_SPECIFICATIONS =
+        ImmutableMap.of("cyclonedx1.5", CYCLONEDX_15, "spdx2.3", SPDX_23);
 
     private final String version;
 
@@ -43,6 +49,10 @@ public class SbomExportParams
 
     public SbomSpecification getSpecification() {
       return specification;
+    }
+
+    public static ExportSpecification getSpecificationForRequest(String requestSpecification) {
+      return SUPPORTED_EXPORT_SPECIFICATIONS.get(requestSpecification);
     }
   }
 

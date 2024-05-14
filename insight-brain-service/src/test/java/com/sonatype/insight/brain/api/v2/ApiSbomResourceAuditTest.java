@@ -25,13 +25,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
-import com.sonatype.insight.brain.utils.SbomTestsHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -55,12 +55,12 @@ public class ApiSbomResourceAuditTest
   @Test
   public void testDeleteSbomVersion_Authorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    Path fileInWorkDirPath =
-        SbomTestsHelper.createTestFileForSbomMetadata(insightWork.getSbomDir(app.getId()),
-            getClass().getResource("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"));
+    Path zippedBom = mockOriginalSbom(this.getClass(), "third-party-simple-bom.xml",
+        insightWork.getSbomDir(app.getId()).toPath());
+
     ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withFilename(fileInWorkDirPath.getFileName().toString())
+        .withFilename(zippedBom.getFileName().toString())
         .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)

@@ -1,0 +1,56 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "${json-unit.ignore}",
+    "creators" : [ "${json-unit.ignore}" ]
+  },
+  "name" : "${json-unit.ignore}",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "${json-unit.ignore}",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-apache-axis-1.0",
+    "copyrightText" : "",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : true,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "licenseInfoFromFiles" : [ "Apache-2.0", "MIT" ],
+    "name" : "apache:axis",
+    "versionInfo" : "1.0"
+  }, {
+    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1",
+    "copyrightText" : "",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : true,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_SBOMTests",
+    "versionInfo" : "4daddd64a281411cb9ba2e6eabe12fa1"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1"
+  } ]
+}

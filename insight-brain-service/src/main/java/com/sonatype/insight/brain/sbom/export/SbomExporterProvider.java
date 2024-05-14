@@ -12,6 +12,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
@@ -50,8 +51,8 @@ public class SbomExporterProvider
     if (SPDX.equals(inputSpec) && SPDX.equals(outputSpec)) {
       return spdxToSpdxExporterProvider.get();
     }
-
     //TODO other providers
-    return null;
+    throw new BadRequestException(
+        String.format("Exporting from existing %s sbom to a %s specification is not supported", inputSpec, outputSpec));
   }
 }

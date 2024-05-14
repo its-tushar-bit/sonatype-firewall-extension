@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -88,6 +90,8 @@ public class CycloneDxToCycloneDxExporter extends AbstractSbomExporter
   private Bom generateCurrentSbom() {
     Bom bom = SbomCycloneDxUtils.parseContentNoValidation(getOriginalSbomContentAsString());
     bom.setMetadata(generateNewBomMetadata());
+    //every new generation of a CycloneDx document should have a unique serial number
+    bom.setSerialNumber("urn:uuid:" + UUID.randomUUID());
     List<ThirdPartyFileCoordinate> sonatypeComponents = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(
         exportParams.sbomMetadata.getThirdPartyFileId());
     List<Vulnerability> bomVulnerabilitiesList = bom.getVulnerabilities();
@@ -196,10 +200,16 @@ public class CycloneDxToCycloneDxExporter extends AbstractSbomExporter
   private Rating updateVulnerabilityRatingWithSonatypeData(Rating bomRating, ThirdPartyCoordinateSecurity
       sonatypeVulnerability)
   {
-    Severity bomSeverity = Severity.fromString(sonatypeVulnerability.getSeverityDescription().toLowerCase());
-    Method bomMethod = Method.fromString(sonatypeVulnerability.getRatingMethod().toLowerCase());
-    bomRating.setSeverity(bomSeverity == null ? Severity.UNKNOWN : bomSeverity);
-    bomRating.setMethod(bomMethod == null ? Method.OTHER : bomMethod);
+    Severity bomSeverity = null;
+    if (StringUtils.isNotBlank(sonatypeVulnerability.getSeverityDescription())) {
+      bomSeverity = Severity.fromString(sonatypeVulnerability.getSeverityDescription().toLowerCase());
+    }
+    bomRating.setSeverity(bomSeverity != null ? bomSeverity : Severity.UNKNOWN);
+    Method bomMethod = null;
+    if (StringUtils.isNotBlank(sonatypeVulnerability.getRatingMethod())) {
+      bomMethod = Method.fromString(sonatypeVulnerability.getRatingMethod().toLowerCase());
+    }
+    bomRating.setMethod(bomMethod != null ? bomMethod : Method.OTHER);
     bomRating.setScore(sonatypeVulnerability.getSeverity());
     bomRating.setVector(sonatypeVulnerability.getAttackVector());
     bomRating.setSource(createVulnerabilitySourceWithSonatypeData(sonatypeVulnerability));
@@ -226,7 +236,9 @@ public class CycloneDxToCycloneDxExporter extends AbstractSbomExporter
       ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
   {
     bomVulnerability.setDescription(sonatypeVulnerability.getDescription());
-    bomVulnerability.setCwes(Collections.singletonList(Integer.valueOf(sonatypeVulnerability.getCwes())));
+    if (StringUtils.isNotBlank(sonatypeVulnerability.getCwes())) {
+      bomVulnerability.setCwes(Collections.singletonList(Integer.valueOf(sonatypeVulnerability.getCwes())));
+    }
     bomVulnerability.setSource(createVulnerabilitySourceWithSonatypeData(sonatypeVulnerability));
     bomVulnerability.setRatings(Collections.singletonList(
         updateVulnerabilityRatingWithSonatypeData(new Rating(), sonatypeVulnerability)));
@@ -327,7 +339,9 @@ public class CycloneDxToCycloneDxExporter extends AbstractSbomExporter
     bomAnalysis.setFirstIssued(sonatypeVexInformation.getCreatedAt());
     bomAnalysis.setLastUpdated(sonatypeVexInformation.getUpdatedAt());
     if (CollectionUtils.isEmpty(bomAnalysis.getResponses())) {
-      bomAnalysis.setResponses(Collections.singletonList(Response.fromString(sonatypeVexInformation.getResponse())));
+      if (StringUtils.isNotBlank(sonatypeVexInformation.getResponse())) {
+        bomAnalysis.setResponses(Collections.singletonList(Response.fromString(sonatypeVexInformation.getResponse())));
+      }
     }
     else {
       Optional<Response> bomResponseFound = bomAnalysis.getResponses().stream().filter(

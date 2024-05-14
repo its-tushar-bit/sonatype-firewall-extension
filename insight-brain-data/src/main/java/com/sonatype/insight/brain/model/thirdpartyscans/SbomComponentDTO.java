@@ -33,6 +33,8 @@ public class SbomComponentDTO
 
   private String version;
 
+  private String dependencyType;
+
   private ComponentIdentifier componentIdentifier;
 
   private String displayName;
@@ -68,21 +70,23 @@ public class SbomComponentDTO
       displayName = name + ":" + version;
     }
 
-    String licensesJson = (String) array[4];
-    if (StringUtils.isNotBlank(licensesJson)) {
-      try {
-        licenses = JsonUtils.parse(licensesJson, LICENSE_TYPE_REFERENCE);
+    if ( array.length > 4 ) {
+      String licensesJson = (String) array[4];
+      if (StringUtils.isNotBlank(licensesJson)) {
+        try {
+          licenses = JsonUtils.parse(licensesJson, LICENSE_TYPE_REFERENCE);
+        }
+        catch (IOException e) {
+          log.error("Error parsing licenses from {}", licensesJson, e);
+        }
       }
-      catch (IOException e) {
-        log.error("Error parsing licenses from {}", licensesJson, e);
-      }
-    }
 
-    vulnerabilitySeverityNoneCount = longToInt(array[5]);
-    vulnerabilitySeverityLowCount = longToInt(array[6]);
-    vulnerabilitySeverityMediumCount = longToInt(array[7]);
-    vulnerabilitySeverityHighCount = longToInt(array[8]);
-    vulnerabilitySeverityCriticalCount = longToInt(array[9]);
+      vulnerabilitySeverityNoneCount = longToInt(array[5]);
+      vulnerabilitySeverityLowCount = longToInt(array[6]);
+      vulnerabilitySeverityMediumCount = longToInt(array[7]);
+      vulnerabilitySeverityHighCount = longToInt(array[8]);
+      vulnerabilitySeverityCriticalCount = longToInt(array[9]);
+    }
   }
 
   public String getHash() {
@@ -131,6 +135,14 @@ public class SbomComponentDTO
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getDependencyType() {
+    return dependencyType;
+  }
+
+  public void setDependencyType(final String dependencyType) {
+    this.dependencyType = dependencyType;
   }
 
   public Set<License> getLicenses() {

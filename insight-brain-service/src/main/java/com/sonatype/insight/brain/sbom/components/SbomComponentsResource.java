@@ -14,6 +14,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -37,11 +39,25 @@ public class SbomComponentsResource
 
   public static final String SBOM_METADATA_PATH = SBOM_VERSION_PATH + "/sbomMetadata";
 
+  public static final String COMPONENT_DETAILS_PATH = SBOM_VERSION_PATH + "/components/{componentHash}";
+
   private final SbomComponentsService service;
 
   @Inject
   public SbomComponentsResource(SbomComponentsService sbomComponentsService) {
     this.service = sbomComponentsService;
+  }
+
+  @GET
+  @Path(COMPONENT_DETAILS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Audited(AuditEvent.VIEW_SBOM_COMPONENT_DETAILS)
+  public CDPSbomComponentDetailsDTO getComponentsDetails(@PathParam("applicationId") String applicationId,
+                                                         @PathParam("version") String sbomVersion,
+                                                         @PathParam("componentHash") String componentHash)
+  {
+    return service.getSbomComponentDetails(applicationId, sbomVersion, componentHash);
   }
 
   @GET

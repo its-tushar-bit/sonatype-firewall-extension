@@ -200,6 +200,55 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  public void testGetBySbomMetadataIdAndComponentHash() {
+    Organization organization1 = tempEntity.newOrganization("org1");
+    Application application = tempEntity.newApplication(organization1.getId());
+    final ThirdPartyFile thirdPartyFileA = tempEntity.newThirdPartyFile();
+    final ThirdPartySbomMetadata thirdPartySbomMetadataA =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileA.getId(), application.getId(), "ACTIVE",
+            thirdPartyFileA.getFilename());
+    final ThirdPartyFileCoordinate coordinateA =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFileA, "s1", "f1", "n1", "v1");
+
+    final ThirdPartyFile thirdPartyFileB = tempEntity.newThirdPartyFile();
+    final ThirdPartySbomMetadata thirdPartySbomMetadataB =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileB.getId(), application.getId(), "ACTIVE",
+            thirdPartyFileB.getFilename());
+    final ThirdPartyFileCoordinate coordinateB =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFileB, "s2", "f2", "n2", "v2");
+
+    final ThirdPartyFile thirdPartyFileC = tempEntity.newThirdPartyFile();
+    final ThirdPartySbomMetadata thirdPartySbomMetadataC =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFileC.getId(), application.getId(), "ACTIVE",
+            thirdPartyFileC.getFilename());
+    final ThirdPartyFileCoordinate coordinateC =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFileC, "s3", "f3", "n3", "v3");
+
+    List<ThirdPartyFileCoordinate> actualA =
+        thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
+            coordinateA.getHash());
+
+    List<ThirdPartyFileCoordinate> actualB =
+        thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataB.getId(),
+            coordinateB.getHash());
+
+    assertThat(actualA).isNotEmpty();
+    assertThat(actualA.size()).isOne();
+    assertThat(actualA.get(0)).usingRecursiveComparison().isEqualTo(coordinateA);
+    assertThat(actualB).isNotEmpty();
+    assertThat(actualB.size()).isOne();
+    assertThat(actualB.get(0)).usingRecursiveComparison().isEqualTo(coordinateB);
+    assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
+        "anyHash")).isEmpty();
+    assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash("anySbomId",
+        coordinateA.getHash())).isEmpty();
+    assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
+        coordinateC.getHash())).isEmpty();
+    assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataC.getId(),
+        coordinateC.getHash()).size()).isOne();
+  }
+
+  @Test
   @PostgresTest
   public void testGetSbomApplicationVulnerabilities() {
     Organization organization1 = tempEntity.newOrganization("org1");

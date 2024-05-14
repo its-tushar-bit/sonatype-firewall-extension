@@ -5,25 +5,212 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
-import java.util.Arrays;
 import javax.inject.Inject;
+import java.util.Arrays;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class SbomComponentsServiceTest
     extends AbstractComponentTest
 {
   @Inject
   private SbomComponentsService service;
+
+  private Application app;
+
+  private Organization org;
+
+  @Before
+  public void before() {
+    org = tempEntity.newOrganization();
+    app = tempEntity.newApplicationWithParent(org);
+  }
+
+  @Test
+  public void testGetSbomComponentDetails() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    ThirdPartyFileCoordinate componentA =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+            "pkg:f1/group/n1@v1?type=jar");
+    ThirdPartyFileCoordinate componentB =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
+            "pkg:f2/group/n2@v2?type=jar");
+    ThirdPartyCoordinateSecurity vulnerabilityA =
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
+            "cwes1", "m1", "r1", "ad1", "SBOM");
+    ThirdPartyCoordinateSecurity vulnerabilityB =
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
+            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
+    ThirdPartyCoordinateSecurity vulnerabilityC =
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
+            "cwes3", "m3", "r3", "ad3", "Sonatype");
+    ThirdPartyCoordinateSecurity vulnerabilityD =
+        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve1", "d1", "l1", 6, "f1", "v1", "cvs1", "sd1",
+            "cwes1", "m1", "r1", "ad1", "SBOM");
+    ThirdPartyCoordinateSecurity vulnerabilityE =
+        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
+            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
+
+    ThirdPartyVulnerabilityExploitabilityExchange vexA =
+        tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityA, "cve1", "resolved",
+            "code_not_reachable", "response", "details");
+    ThirdPartyVulnerabilityExploitabilityExchange vexB =
+        tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityB, "cve2", "resolved",
+            "code_not_reachable", "response", "details");
+    ThirdPartyVulnerabilityExploitabilityExchange vexE =
+        tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved",
+            "code_not_reachable", "response", "details");
+
+    CDPSbomComponentDetailsDTO actualA =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentA.getHash());
+
+    CDPSbomComponentDetailsDTO actualB =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentB.getHash());
+
+    assertSbomComponentDetailsDTO(actualA, componentA, sbomMetadata);
+    assertComponentSummary(actualA, 9, 1, 1, 1);
+    assertThat(actualA.getDisclosedVulnerabilities()).hasSize(2);
+    assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(0), vulnerabilityA, vexA.getState(),
+        vexA.getJustification(), vexA.getDetail());
+    assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(1), vulnerabilityB, vexB.getState(),
+        vexB.getJustification(), vexB.getDetail());
+    assertThat(actualA.getSonatypeIdentifiedVulnerabilities()).hasSize(1);
+    assertVulnerabilities(actualA.getSonatypeIdentifiedVulnerabilities().get(0), vulnerabilityC, null, null, null);
+
+    assertSbomComponentDetailsDTO(actualB, componentB, sbomMetadata);
+    assertComponentSummary(actualB, 7, 1, 1, 0);
+    assertThat(actualB.getDisclosedVulnerabilities()).hasSize(2);
+    assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(0), vulnerabilityD, null, null, null);
+    assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(1), vulnerabilityE, vexE.getState(),
+        vexE.getJustification(), vexE.getDetail());
+    assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_AppNotFound() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+
+    assertThrows( "Could not find application with id anyApp" ,
+        NotFoundException.class,
+        () -> service.getSbomComponentDetails("anyApp", sbomMetadata.getSbomVersion(), component.getHash()));
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_SbomVersionNotFound() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+
+    assertThrows( "Could not find SBOM version anySbomVersion for application " + app.getId(),
+        NotFoundException.class,
+        () -> service.getSbomComponentDetails(app.getId(), "anySbomVersion", component.getHash()));
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_ComponentHashNotFound() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+
+    assertThrows( "Could not find component by hash anyHash",
+        NotFoundException.class,
+        () -> service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), "anyHash"));
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_NoVulnerabilities() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+            "pkg:f1/group/n1@v1?type=jar");
+    CDPSbomComponentDetailsDTO actual =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), component.getHash());
+    assertSbomComponentDetailsDTO(actual, component, sbomMetadata);
+    assertThat(actual.getVulnerabilitySummary().getHighestCvssScore()).isZero();
+    assertThat(actual.getVulnerabilitySummary().getVerifiedVulnerabilitiesCount()).isZero();
+    assertThat(actual.getVulnerabilitySummary().getUnverifiedVulnerabilitiesCount()).isZero();
+    assertThat(actual.getDisclosedVulnerabilities()).isEmpty();
+    assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+  }
+
+  private void assertSbomComponentDetailsDTO(
+      CDPSbomComponentDetailsDTO actual,
+      ThirdPartyFileCoordinate component,
+      ThirdPartySbomMetadata sbom)
+  {
+    assertThat(actual).isNotNull();
+    assertThat(actual.getName()).isEqualTo(component.getName());
+    assertThat(actual.getHash()).isEqualTo(component.getHash());
+    assertThat(actual.getVersion()).isEqualTo(component.getVersion());
+    assertThat(actual.getPackageUrl()).isEqualTo(component.getPackageUrl());
+    assertThat(actual.getComponentIdentifier()).isNotNull();
+    assertThat(actual.getComponentIdentifier().getFormat()).isEqualTo(component.getFormat());
+    assertThat(actual.getMetadata()).isNotNull();
+    assertThat(actual.getMetadata().getApplicationName()).isEqualTo(app.getName());
+    assertThat(actual.getMetadata().getOrganizationName()).isEqualTo(org.getName());
+    assertThat(actual.getMetadata().getSbomCreationTime()).isEqualTo(sbom.getCreatedAt());
+  }
+
+  private void assertComponentSummary(
+      CDPSbomComponentDetailsDTO actual,
+      double highestCvssScore,
+      int verified,
+      int unverified,
+      int sonatypeIdentified)
+  {
+    assertThat(actual.getVulnerabilitySummary()).isNotNull();
+    assertThat(actual.getVulnerabilitySummary().getHighestCvssScore()).isEqualTo(highestCvssScore);
+    assertThat(actual.getVulnerabilitySummary().getVerifiedVulnerabilitiesCount()).isEqualTo(verified);
+    assertThat(actual.getVulnerabilitySummary().getUnverifiedVulnerabilitiesCount()).isEqualTo(unverified);
+    assertThat(actual.getVulnerabilitySummary().getSonatypeIdentifiedVulnerabilitiesCount()).isEqualTo(
+        sonatypeIdentified);
+  }
+
+  private void assertVulnerabilities(
+      VulnerabilityDetailsDTO actual,
+      ThirdPartyCoordinateSecurity vulnerability,
+      String vexState,
+      String vexJustification,
+      String vexDetail)
+  {
+    assertThat(actual.getCvssScore()).isEqualTo(vulnerability.getSeverity());
+    assertThat(actual.getIssue()).isEqualTo(vulnerability.getRefId());
+    assertThat(actual.getAnalysisStatus()).isEqualTo(vexState);
+    assertThat(actual.getJustification()).isEqualTo(vexJustification);
+    assertThat(actual.getDetails()).isEqualTo(vexDetail);
+  }
 
   @Test
   @PostgresTest

@@ -136,6 +136,26 @@ public class ThirdPartyFileCoordinateDAO
     return getList(tx, sQuery, sbomMetadataId);
   }
 
+  public List<ThirdPartyFileCoordinate> getBySbomMetadataIdAndComponentHash(
+      String sbomMetadataId,
+      String componentHash)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getBySbomMetadataIdAndComponentHash(tx, sbomMetadataId, componentHash);
+    }
+  }
+
+  public List<ThirdPartyFileCoordinate> getBySbomMetadataIdAndComponentHash(TransactionContext tx,
+                                                                            String sbomMetadataId,
+                                                                            String componentHash)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity, ThirdPartySbomMetadata sbomMetadata" +
+        " WHERE sbomMetadata.id = ?1 AND entity.thirdPartyFileId = sbomMetadata.thirdPartyFileId" +
+        " AND entity.hash = ?2";
+
+    return getList(tx, sQuery, sbomMetadataId, componentHash);
+  }
+
   @SuppressWarnings("unchecked")
   public List<SbomComponentDTO> getSbomComponentsByThirdPartyFileId(String thirdPartyFileId) {
     String sQuery = "" + //

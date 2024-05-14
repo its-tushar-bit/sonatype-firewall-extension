@@ -11,11 +11,14 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
@@ -264,6 +267,87 @@ public class ThirdPartyFileCoordinateDAO
           .collect(Collectors.toList());
 
       result.setResults(dtos);
+      return result;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public BomPageSbomSummaryDTO getSbomVunerabilitySummaryForComponents(
+      String applicationId,
+      String version)
+  {
+    String sQuery = "" + //
+        "SELECT COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) as none," + //
+        " COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) as low," + //
+        " COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) as medium," + //
+        " COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) as high," + //
+        " COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) as critical," + //
+        " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" +
+        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" +
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        " ON fc.third_party_file_id = sm.third_party_file_id" + //
+        " LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
+        " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        " WHERE sm.application_id = ?10" + //
+        " AND sm.sbom_version = ?11";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(),LOW.getStartScoreRange(),
+          LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
+          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), applicationId, version);
+
+      Object[] result = (Object[]) query.getSingleResult();
+
+      return new BomPageSbomSummaryDTO(result);
+    }
+  }
+
+  public SbomDependencyTypeDTO getSbomDependencyTypeSummaryForComponents(
+      String applicationId,
+      String version)
+  {
+    String sQuery = "" + //
+        "SELECT COUNT(CASE WHEN (fc.dependency_type = 'D') THEN 1 END) as direct," + //
+        "   COUNT(CASE WHEN (fc.dependency_type = 'T') THEN 1 END) as transitive," + //
+        "   COUNT(CASE WHEN (fc.dependency_type is null) THEN 1 END) as unknown" + //
+        "  FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        "  JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "  ON fc.third_party_file_id = sm.third_party_file_id" + //
+        "  WHERE sm.application_id = ?1" + //
+        "  AND sm.sbom_version = ?2";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
+
+      Object[] result = (Object[]) query.getSingleResult();
+
+      return new SbomDependencyTypeDTO(result);
+    }
+    catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  public long getNumberOfComponentsForSbom(
+      String applicationId,
+      String version)
+  {
+    String sQuery = "" + //
+        "SELECT COUNT(fc.file_coordinate_id)" + //
+        "  FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        "  JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "  ON fc.third_party_file_id = sm.third_party_file_id" + //
+        "  WHERE sm.application_id = ?1" + //
+        "  AND sm.sbom_version = ?2";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, applicationId, version);
+
+      long result = (long) query.getSingleResult();
+
       return result;
     }
   }

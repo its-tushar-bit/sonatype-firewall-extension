@@ -25,23 +25,32 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.component.DependencyType;
+
 import com.sonatype.insight.brain.sbom.SbomDependencyType;
+
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
+
 import com.sonatype.insight.json.store.JsonUtils;
+
 import com.sonatype.insight.brain.audit.AuditData;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -70,19 +79,19 @@ public class SbomComponentsService
   public SbomComponentsService(
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
-      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ThirdPartyScanDAO thirdPartyScanDAO,
+      final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO,
-      final ThirdPartyScanDAO thirdPartyScanDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
-    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.vexDAO = vexDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -310,6 +319,36 @@ public class SbomComponentsService
         createdAt,
         sbomMetadataDTO.scanId
     );
+  }
+
+  @Authorize(permission = Permission.READ)
+  public BomPageSbomSummaryDTO getSbomSummaryForComponents(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String version)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = thirdPartySbomMetadataDAO
+        .getByApplicationIdAndSbomVersion(applicationId, version);
+    if (thirdPartySbomMetadata == null) {
+      throw new NotFoundException(
+          String.format("Cannot find version %s for application with ID %s.", version, applicationId));
+    }
+    long componentCount = thirdPartyFileCoordinateDAO.getNumberOfComponentsForSbom(applicationId, version);
+    // return null values for no components
+    if (componentCount <= 0) {
+      BomPageSbomSummaryDTO noComponentsbomPageSbomSummaryDTO = new BomPageSbomSummaryDTO();
+      noComponentsbomPageSbomSummaryDTO.setAllValuesToNull();
+      return noComponentsbomPageSbomSummaryDTO;
+    }
+    BomPageSbomSummaryDTO bomPageSbomSummaryDTO = thirdPartyFileCoordinateDAO
+        .getSbomVunerabilitySummaryForComponents(applicationId, version);
+    SbomDependencyTypeDTO sbomDependencyTypeDTO = thirdPartyFileCoordinateDAO
+        .getSbomDependencyTypeSummaryForComponents(applicationId, version);
+    if (sbomDependencyTypeDTO == null || bomPageSbomSummaryDTO == null) {
+      throw new NotFoundException(
+          String.format("Cannot find version %s for application with ID %s.", version, applicationId));
+    }
+    bomPageSbomSummaryDTO.setDependencyType(sbomDependencyTypeDTO);
+    return bomPageSbomSummaryDTO;
   }
 
   private String getDependencyType(String code) {

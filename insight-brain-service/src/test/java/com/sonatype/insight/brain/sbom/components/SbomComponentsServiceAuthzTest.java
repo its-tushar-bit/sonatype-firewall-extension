@@ -93,4 +93,23 @@ public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
     grantReadPermission(app.getId());
     service.getBomPageMetadata(app.getId(), DUMMY_APP_VERSION);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSbomSummaryForComponents_Unauthenticated() {
+    service.getSbomSummaryForComponents(DUMMY_APP_ID, DUMMY_APP_VERSION);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSbomSummaryForComponents_Unauthorized() {
+    Application app = tempEntity.newApplicationWithParent();
+    login();
+    service.getSbomSummaryForComponents(app.getId(), DUMMY_APP_VERSION);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetSbomSummaryForComponents_Authorized() {
+    Application app = tempEntity.newApplicationWithParent();
+    grantReadPermission(app.getId());
+    service.getSbomSummaryForComponents(app.getId(), DUMMY_APP_VERSION);
+  }
 }

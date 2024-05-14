@@ -18,7 +18,9 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -579,5 +581,109 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses()).isNullOrEmpty();
         });
+  }
+
+  @Test
+  public void testGetSbomDependencyTypeSummaryForComponents() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1", "D");
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1", "T");
+
+    SbomDependencyTypeDTO sbomDependencyTypeDTO = thirdPartyFileCoordinateDAO.getSbomDependencyTypeSummaryForComponents(
+        app.getId(), sbomMetadata.getSbomVersion());
+    assertThat(sbomDependencyTypeDTO.getDirect()).isEqualTo(1L);
+    assertThat(sbomDependencyTypeDTO.getTransitive()).isEqualTo(1L);
+    assertThat(sbomDependencyTypeDTO.getUnspecified()).isEqualTo(0L);
+  }
+
+  @Test
+  public void testGetSbomVunerabilitySummaryForComponents_noCoordinateSecurity() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+
+    BomPageSbomSummaryDTO result = thirdPartyFileCoordinateDAO.getSbomVunerabilitySummaryForComponents(
+        app.getId(), sbomMetadata.getSbomVersion());
+
+    assertThat(result.getAnnotatedPercentage()).isEqualTo(null);
+    assertThat(result.getNone()).isEqualTo(0L);
+    assertThat(result.getLow()).isEqualTo(0L);
+    assertThat(result.getHigh()).isEqualTo(0L);
+    assertThat(result.getMedium()).isEqualTo(0L);
+    assertThat(result.getCritical()).isEqualTo(0L);
+  }
+
+  @Test
+  public void testGetNumberOfComponentsForSbom() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+        "s", "SPDX", "n1", "v1", "h1", "u1");
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+        "s", "SPDX", "n1", "v1", "h2", "u1");
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+        "s", "SPDX", "n1", "v1", "h3", "u1");
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+        "s", "SPDX", "n1", "v1", "h4", "u1");
+
+    long result = thirdPartyFileCoordinateDAO.getNumberOfComponentsForSbom(app.getId(), sbomMetadata.getSbomVersion());
+
+    assertThat(result).isEqualTo(4L);
+  }
+
+  @Test
+  public void testGetSbomVunerabilitySummaryForComponents() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r1", "d1", "l1", 5.5, "sd1", "f1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r3", "d3", "l3", 3.5, "sd3", "f3");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
+        "r1", "s1", "j1", "r1", "d1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
+        "r1", "s1", "j1", "r1", "d1");
+
+    BomPageSbomSummaryDTO result = thirdPartyFileCoordinateDAO.getSbomVunerabilitySummaryForComponents(
+        app.getId(), sbomMetadata.getSbomVersion());
+
+    assertThat(result.getAnnotatedPercentage()).isEqualTo(66.7);
+    assertThat(result.getNone()).isEqualTo(0L);
+    assertThat(result.getLow()).isEqualTo(1L);
+    assertThat(result.getHigh()).isEqualTo(1L);
+    assertThat(result.getMedium()).isEqualTo(1L);
+    assertThat(result.getCritical()).isEqualTo(0L);
   }
 }

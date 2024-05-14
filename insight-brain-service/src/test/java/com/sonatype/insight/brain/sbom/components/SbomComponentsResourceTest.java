@@ -12,6 +12,8 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -23,6 +25,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.sbom.components.SbomComponentsResource.SBOM_SUMMARY_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomComponentsResourceTest extends AbstractResourceTest
@@ -30,6 +33,9 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
   private Application app;
 
   private Organization org;
+
+  private static final String SUMMARY_RESOURCE_PATH =
+      SbomComponentsResource.RESOURCE_BASE_PATH + SBOM_SUMMARY_PATH;
 
   @Before
   public void before() throws Exception {
@@ -153,5 +159,107 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(spdxResultDto.fileFormat).isEqualTo(sbomSPDXMetadata.getSpecFormat());
     assertThat(spdxResultDto.specification).isEqualTo(sbomSPDXMetadata.getSpec());
     assertThat(spdxResultDto.specVersion).isEqualTo(sbomSPDXMetadata.getSpecVersion());
+  }
+
+  @Test
+  public void testGetSbomSummaryForComponentsNotFound() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    HttpResponse response = restRequest()
+        .path(SUMMARY_RESOURCE_PATH)
+        .parameter(app.getId(), "fake-version")
+        .get();
+
+    assertResponseStatus(Status.NOT_FOUND.getStatusCode(), response);
+    assertThat(response.getBodyText())
+        .isEqualTo(String.format("Cannot find version %s for application with ID %s.", "fake-version", app.getId()));
+  }
+
+  @Test
+  public void testGetSbomSummaryForComponents() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r1", "d1", "l1", 5.5, "sd1", "f1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+            "r3", "d3", "l3", 3.5, "sd3", "f3");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
+            "r1", "s1", "j1", "r1", "d1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
+            "r1", "s1", "j1", "r1", "d1");
+    HttpResponse response = restRequest()
+        .path(SUMMARY_RESOURCE_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    BomPageSbomSummaryDTO resultDto = response.getBody(BomPageSbomSummaryDTO.class);
+    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
+    assertThat(resultDto.getLow()).isEqualTo(1);
+    assertThat(resultDto.getHigh()).isEqualTo(1);
+    assertThat(resultDto.getMedium()).isEqualTo(1);
+    assertThat(resultDto.getCritical()).isEqualTo(0);
+    assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetSbomSummaryForComponents_DepedencyType() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1", "D");
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1", "T");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
+            "r1", "d1", "l1", 5.5, "sd1", "f1");
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
+            "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
+            "r3", "d3", "l3", 3.5, "sd3", "f3");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
+            "r1", "d1", "l1", 5.5, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
+            "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
+            "r3", "d3", "l3", 3.5, "sd3", "f3");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
+            "r1", "s1", "j1", "r1", "d1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
+            "r1", "s1", "j1", "r1", "d1");
+    HttpResponse response = restRequest()
+        .path(SUMMARY_RESOURCE_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    BomPageSbomSummaryDTO resultDto = response.getBody(BomPageSbomSummaryDTO.class);
+    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(33.3);
+    assertThat(resultDto.getLow()).isEqualTo(2);
+    assertThat(resultDto.getHigh()).isEqualTo(2);
+    assertThat(resultDto.getMedium()).isEqualTo(2);
+    assertThat(resultDto.getCritical()).isEqualTo(0);
+    assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(0);
+    assertThat(resultDto.getDependencyType().getDirect()).isEqualTo(1);
+    assertThat(resultDto.getDependencyType().getTransitive()).isEqualTo(1);
   }
 }

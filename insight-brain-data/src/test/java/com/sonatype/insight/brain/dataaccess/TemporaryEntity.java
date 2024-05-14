@@ -3812,6 +3812,25 @@ public class TemporaryEntity
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileId,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String dependencyType)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setDependencyType(dependencyType);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       ThirdPartyFile thirdPartyFile,
       String source,
       String format,

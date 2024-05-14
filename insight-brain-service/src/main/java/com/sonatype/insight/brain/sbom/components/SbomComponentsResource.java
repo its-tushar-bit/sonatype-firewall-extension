@@ -14,12 +14,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Named
 @Timed
@@ -38,6 +40,8 @@ public class SbomComponentsResource
   public static final String SBOM_VERSION_PATH = SBOM_VERSIONS_PATH + "/{version}";
 
   public static final String SBOM_METADATA_PATH = SBOM_VERSION_PATH + "/sbomMetadata";
+
+  static final String SBOM_SUMMARY_PATH = SBOM_VERSION_PATH + "/summary";
 
   public static final String COMPONENT_DETAILS_PATH = SBOM_VERSION_PATH + "/components/{componentHash}";
 
@@ -69,5 +73,19 @@ public class SbomComponentsResource
       @PathParam("version") String sbomVersion)
   {
     return service.getBomPageMetadata(applicationId, sbomVersion);
+  }
+
+  @GET
+  @Path(SBOM_SUMMARY_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public BomPageSbomSummaryDTO getSbomSummary(
+      @Parameter(description = "The internal id of the application",
+          required = true) @PathParam("applicationId") String applicationId,
+
+      @Parameter(description = "URL Encoded version value of the sbom to query its summary",
+          required = true) @PathParam("version") String version)
+  {
+    return service.getSbomSummaryForComponents(applicationId, version);
   }
 }

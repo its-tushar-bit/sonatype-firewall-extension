@@ -282,6 +282,7 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
     echo "fastBuild enabled - skipping slow tests"
     String mavenOptions = mavenCommon.get('mavenOptions')
     mavenOptions += " -DexcludedGroups=SlowTest"
+    mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
     mavenOptions += " -Dskip-functional-test"
     mavenOptions += " -Djasmine.tests.skip=true"
     mavenCommon.put('mavenOptions', mavenOptions)

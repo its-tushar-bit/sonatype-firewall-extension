@@ -275,7 +275,7 @@ public class SbomComponentsServiceTest
         "r1", "s1", "j1", "r1", "d1");
 
     BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
-    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.0);
+    assertThat(resultDto.getAnnotatedPercentage()).isEqualTo(66.7);
     assertThat(resultDto.getLow()).isEqualTo(1);
     assertThat(resultDto.getHigh()).isEqualTo(1);
     assertThat(resultDto.getMedium()).isEqualTo(1);

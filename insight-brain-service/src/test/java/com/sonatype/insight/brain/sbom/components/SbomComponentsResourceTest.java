@@ -34,9 +34,6 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
 
   private Organization org;
 
-  private static final String SUMMARY_RESOURCE_PATH =
-      SbomComponentsResource.RESOURCE_BASE_PATH + SBOM_SUMMARY_PATH;
-
   @Before
   public void before() throws Exception {
     org = tempEntity.newOrganization();
@@ -165,7 +162,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
   public void testGetSbomSummaryForComponentsNotFound() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     HttpResponse response = restRequest()
-        .path(SUMMARY_RESOURCE_PATH)
+        .path(SBOM_SUMMARY_PATH)
         .parameter(app.getId(), "fake-version")
         .get();
 
@@ -199,7 +196,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
             "r1", "s1", "j1", "r1", "d1");
     HttpResponse response = restRequest()
-        .path(SUMMARY_RESOURCE_PATH)
+        .path(SBOM_SUMMARY_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
         .get();
 
@@ -247,7 +244,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
             "r1", "s1", "j1", "r1", "d1");
     HttpResponse response = restRequest()
-        .path(SUMMARY_RESOURCE_PATH)
+        .path(SBOM_SUMMARY_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
         .get();
 

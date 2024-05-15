@@ -12,11 +12,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,6 +30,8 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -43,6 +47,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -70,6 +75,9 @@ public class ApiSbomResource
   static final String SBOM_IMPORT_PATH = "/import";
 
   public static final String SBOM_STATUS_PATH = SBOMS_APPLICATION_PATH + "/status/{importRequestId}";
+
+  public static final String SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH =
+      SBOM_VERSION_PATH + "/vulnerability/{refId}/analysis";
 
   private final ApiSbomService apiSbomService;
 
@@ -260,5 +268,36 @@ public class ApiSbomResource
   )
   {
     return apiSbomService.getImportStatus(applicationId, importRequestId);
+  }
+
+  @Operation(summary = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
+      tags = {"sbom"},
+      description = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "Vulnerability analysis annotation updated successfully",
+              content = @Content(mediaType = "application/json")),
+          @ApiResponse(responseCode = "404", description = "Target vulnerability not found")
+      })
+
+  @PUT
+  @Path(SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @Audited(AuditEvent.UPDATE_SBOM_VULNERABILITY_ANALYSIS)
+  public VulnerabilityAnalysis saveVulnerabilityAnalysis(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "The version for a specific SBOM where the vulnerability " +
+          "is present", required = true)
+      @PathParam("version") String sbomVersion,
+      @Parameter(description = "The vulnerability id of a vulnerability", required = true)
+      @PathParam("refId") String refId,
+      @RequestBody(description = "Vulnerability analysis details with component information", required = true)
+      ApiSbomVulnerabilityAnalysisRequestDTO apiSbomVulnerabilityAnalysisRequestDto)
+  {
+    // TODO: Save VEX annotation service method
+    return null;
   }
 }

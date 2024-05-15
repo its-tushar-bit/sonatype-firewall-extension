@@ -122,7 +122,7 @@ public class ApplicationHelper
 
   public void validateNewApplication(final Application application) {
     Integer appLimit = productLicense.getMaxApplications();
-    if (appLimit != null && applicationDAO.getAll().size() >= appLimit) {
+    if (appLimit != null && (appLimit == 0 || applicationDAO.getCount() >= appLimit)) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
     }
 

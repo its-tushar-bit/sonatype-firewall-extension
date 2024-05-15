@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tag.TagService;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
@@ -50,6 +52,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 
@@ -64,6 +67,9 @@ public class ApiApplicationServiceTest
 
   @Inject
   private MembershipMappingDAO membershipMappingDAO;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -245,6 +251,33 @@ public class ApiApplicationServiceTest
     assertThat(actualAttributes.getRealApplicationId()).isEqualTo(app.getId());
     assertThat(actualAttributes.getApplicationName()).isEqualTo(updatedApp.name);
     assertThat(actualAttributes.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_UPDATE);
+  }
+
+  @Test
+  public void testAddApplication_LicenseLimit() {
+    testProductLicense.setMaxApplications(0);
+
+    Organization org = tempEntity.newOrganization();
+
+    ApiApplicationDTO app1 = new ApiApplicationDTO();
+    app1.publicId = "app1";
+    app1.name = "app1";
+    app1.organizationId = org.getId();;
+    assertThatExceptionOfType(PaymentRequiredException.class)
+        .isThrownBy(() -> applicationService.addApplication(app1));
+
+    testProductLicense.setMaxApplications(1);
+    assertThatCode(() -> applicationService.addApplication(app1)).doesNotThrowAnyException();
+
+    ApiApplicationDTO app2 = new ApiApplicationDTO();
+    app2.publicId = "app2";
+    app2.name = "app2";
+    app2.organizationId = org.getId();;
+    assertThatExceptionOfType(PaymentRequiredException.class)
+        .isThrownBy(() -> applicationService.addApplication(app2));
+
+    testProductLicense.setMaxApplications(2);
+    assertThatCode(() -> applicationService.addApplication(app2)).doesNotThrowAnyException();
   }
 
   private void assertApiApplicationCategoriesListDTO(

@@ -105,6 +105,7 @@ CREATE TABLE vulnerability_exploitability (
   detail TEXT,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
+  last_updated_by VARCHAR(255),
   CONSTRAINT vulnerability_exploitability_pk PRIMARY KEY (vulnerability_exploitability_id),
   CONSTRAINT vulnerability_exploitability_coordinate_security_fk FOREIGN KEY (coordinate_security_id)
       REFERENCES coordinate_security (coordinate_security_id)

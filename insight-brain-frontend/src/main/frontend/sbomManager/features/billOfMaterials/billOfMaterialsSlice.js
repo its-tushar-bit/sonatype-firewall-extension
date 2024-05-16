@@ -5,13 +5,18 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { always, omit } from 'ramda';
-import { getApplicationSummaryUrl, getAllApplicationSbomVersions, getSbomMetadataUrl } from 'MainRoot/util/CLMLocation';
+import { always, omit, pick, pickBy, compose, complement, isNil } from 'ramda';
+import {
+  getApplicationSummaryUrl,
+  getAllApplicationSbomVersions,
+  getSbomMetadataUrl,
+  getSbomSummaryUrl,
+} from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'billOfMaterialsPage';
 
-export const sbomMetadataInitialState = {
+export const sbomMetadataInitialState = Object.freeze({
   author: [],
   manufacturer: [],
   supplier: [],
@@ -21,7 +26,20 @@ export const sbomMetadataInitialState = {
   specVersion: null,
   fileFormat: null,
   createdAt: null,
-};
+});
+
+export const vulnerabilitiesSummaryInitialState = Object.freeze({
+  critical: 0,
+  high: 0,
+  medium: 0,
+  low: 0,
+});
+
+export const componentSummaryInitialState = Object.freeze({
+  direct: 0,
+  transitive: 0,
+  unspecified: 0,
+});
 
 export const initialState = {
   publicAppId: null,
@@ -42,6 +60,13 @@ export const initialState = {
   errorSbomMetadata: null,
   sbomMetadata: { ...sbomMetadataInitialState },
   scanId: null,
+
+  // sbom-summary
+  loadingSbomSummary: true,
+  errorSbomSummary: null,
+  componentSummary: { ...componentSummaryInitialState },
+  vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+  annotatedVulnerabilitesPercentage: null,
 };
 
 // internal-application-id
@@ -132,6 +157,46 @@ const loadSbomMetadata = createAsyncThunk(
       .catch((err) => rejectWithValue(err))
 );
 
+// sbom-summary
+const loadSbomSummaryRequested = (state) => {
+  state.loadingSbomSummary = true;
+  state.errorSbomSummary = null;
+  state.componentSummary = { ...componentSummaryInitialState };
+  state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
+  state.annotatedVulnerabilitesPercentage = null;
+};
+
+const loadSbomSummaryFailed = (state, { payload }) => {
+  state.loadingSbomSummary = false;
+  state.errorSbomSummary = payload;
+  state.componentSummary = { ...componentSummaryInitialState };
+  state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
+  state.annotatedVulnerabilitesPercentage = null;
+};
+
+const loadSbomSummaryFulfilled = (state, { payload }) => {
+  state.loadingSbomSummary = false;
+  state.errorSbomSummary = null;
+  state.componentSummary = {
+    ...componentSummaryInitialState,
+    ...pickBy(complement(isNil))(payload.dependencyType),
+  };
+  state.vulnerabilitiesSummary = {
+    ...vulnerabilitiesSummaryInitialState,
+    ...compose(pick(Object.keys(vulnerabilitiesSummaryInitialState)), pickBy(complement(isNil)))(payload),
+  };
+  state.annotatedVulnerabilitesPercentage = payload.annotatedPercentage;
+};
+
+const loadSbomSummary = createAsyncThunk(
+  `${REDUCER_NAME}/loadSbomSummary`,
+  async ({ internalAppId, version }, { rejectWithValue }) =>
+    axios
+      .get(getSbomSummaryUrl(internalAppId, version))
+      .then((response) => response.data)
+      .catch((err) => rejectWithValue(err))
+);
+
 const billsOfMaterialsPageSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -150,6 +215,9 @@ const billsOfMaterialsPageSlice = createSlice({
     [loadSbomMetadata.pending]: loadSbomMetadataRequested,
     [loadSbomMetadata.fulfilled]: loadSbomMetadataFulfilled,
     [loadSbomMetadata.rejected]: loadSbomMetadataFailed,
+    [loadSbomSummary.pending]: loadSbomSummaryRequested,
+    [loadSbomSummary.fulfilled]: loadSbomSummaryFulfilled,
+    [loadSbomSummary.rejected]: loadSbomSummaryFailed,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
@@ -159,6 +227,7 @@ export const actions = {
   loadInternalAppId,
   loadApplicationSbomVersions,
   loadSbomMetadata,
+  loadSbomSummary,
 };
 
 export default billsOfMaterialsPageSlice.reducer;

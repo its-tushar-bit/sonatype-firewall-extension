@@ -1424,6 +1424,9 @@ export const getAllApplicationSbomVersions = (applicationId) =>
 export const getSbomMetadataUrl = (applicationId, version) =>
   uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/sbomMetadata`;
 
+export const getSbomSummaryUrl = (applicationId, version) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/summary`;
+
 export const getPrioritiesPageTableData = (applicationId, scanId) =>
   uriTemplate`/api/experimental/priorities/${applicationId}/${scanId}`;
 

@@ -20,6 +20,19 @@ const sbomMetadataInitialState = {
   createdAt: null,
 };
 
+const vulnerabilitiesSummaryInitialState = Object.freeze({
+  critical: 0,
+  high: 0,
+  medium: 0,
+  low: 0,
+});
+
+const componentSummaryInitialState = Object.freeze({
+  direct: 0,
+  transitive: 0,
+  unspecified: 0,
+});
+
 describe('billOfMaterialsPage reducers have the correct state when the following reducer is dispatched', function () {
   it('billOfMaterialsPage/setPublicAppId', () => {
     const state = {
@@ -230,6 +243,100 @@ describe('billOfMaterialsPage reducers have the correct state when the following
       expect(newState.errorSbomMetadata).toBe(null);
       expect(newState.sbomMetadata).toEqual(omit(['scanId'], payload));
       expect(newState.scanId).toBe('scan-id');
+    });
+  });
+
+  describe('billOfMaterialsPage/loadSbomSummary', function () {
+    it('/pending', () => {
+      const state = {
+        loadingSbomSummary: true,
+        errorSbomSummary: null,
+        componentSummary: { ...componentSummaryInitialState },
+        vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        annotatedVulnerabilitesPercentage: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadSbomSummary/pending',
+      });
+
+      expect(newState.loadingSbomSummary).toBe(true);
+      expect(newState.errorSbomSummary).toBe(null);
+      expect(newState.componentSummary).toEqual(componentSummaryInitialState);
+      expect(newState.vulnerabilitiesSummary).toEqual(vulnerabilitiesSummaryInitialState);
+      expect(newState.annotatedVulnerabilitesPercentage).toBe(null);
+    });
+
+    it('/rejected', () => {
+      const state = {
+        loadingSbomSummary: true,
+        errorSbomSummary: null,
+        componentSummary: { ...componentSummaryInitialState },
+        vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        annotatedVulnerabilitesPercentage: null,
+      };
+
+      const payload = {
+        response: {
+          data: 'Error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadSbomSummary/rejected',
+        payload: payload,
+      });
+
+      expect(newState.loadingSbomSummary).toBe(false);
+      expect(newState.errorSbomSummary).toBe(payload);
+      expect(newState.componentSummary).toEqual(componentSummaryInitialState);
+      expect(newState.vulnerabilitiesSummary).toEqual(vulnerabilitiesSummaryInitialState);
+      expect(newState.annotatedVulnerabilitesPercentage).toBe(null);
+    });
+
+    it('/fulfilled', () => {
+      const state = {
+        loadingSbomSummary: true,
+        errorSbomSummary: null,
+        componentSummary: { ...componentSummaryInitialState },
+        vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        annotatedVulnerabilitesPercentage: null,
+      };
+
+      const payload = {
+        applicationVersion: '123',
+        none: 123,
+        low: 1,
+        medium: 2,
+        high: 3,
+        critical: 4,
+        dependencyType: {
+          direct: 5,
+          transitive: 6,
+          unspecified: 7,
+        },
+        annotatedPercentage: 50,
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsPage/loadSbomSummary/fulfilled',
+        payload: payload,
+      });
+
+      expect(newState.loadingSbomSummary).toBe(false);
+      expect(newState.errorSbomSummary).toBe(null);
+      expect(newState.componentSummary).toEqual({
+        direct: 5,
+        transitive: 6,
+        unspecified: 7,
+      });
+      expect(newState.vulnerabilitiesSummary).toEqual({
+        low: 1,
+        medium: 2,
+        high: 3,
+        critical: 4,
+      });
+      expect(newState.annotatedVulnerabilitesPercentage).toBe(50);
     });
   });
 

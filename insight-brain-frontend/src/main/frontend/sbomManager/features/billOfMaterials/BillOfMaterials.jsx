@@ -10,6 +10,7 @@ import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
 import ComponentsBillOfMaterialsTile from 'MainRoot/sbomManager/features/componentsTile/ComponentsBillOfMaterialsTile';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
 import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
@@ -30,13 +31,18 @@ export default function BillOfMaterials() {
     loadingInternalAppId,
     loadingSbomVersions,
     loadingSbomMetadata,
+    loadingSbomSummary,
     errorInternalAppId,
     errorSbomVersions,
     errorSbomMetadata,
+    errorSbomSummary,
     internalAppId,
     applicationName,
     sbomVersions,
     sbomMetadata,
+    componentSummary,
+    vulnerabilitiesSummary,
+    annotatedVulnerabilitesPercentage,
   } = useSelector(selectBillOfMaterialsPage);
 
   const loadingProductFeatures = useSelector(selectLoadingFeatures);
@@ -60,18 +66,24 @@ export default function BillOfMaterials() {
   useEffect(() => {
     if (internalAppId) {
       dispatch(actions.loadApplicationSbomVersions(internalAppId));
-      dispatch(
-        actions.loadSbomMetadata({
-          internalAppId,
-          version: currentSbomVersion,
-        })
-      );
+      const params = {
+        internalAppId,
+        version: currentSbomVersion,
+      };
+      dispatch(actions.loadSbomMetadata(params));
+      dispatch(actions.loadSbomSummary(params));
     }
   }, [internalAppId]);
 
   const loadError =
-    errorProductFeatures || errorNoSbomManagerEnabled || errorInternalAppId || errorSbomVersions || errorSbomMetadata;
-  const isLoading = loadingProductFeatures || loadingInternalAppId || loadingSbomVersions || loadingSbomMetadata;
+    errorProductFeatures ||
+    errorNoSbomManagerEnabled ||
+    errorInternalAppId ||
+    errorSbomVersions ||
+    errorSbomMetadata ||
+    errorSbomSummary;
+  const isLoading =
+    loadingProductFeatures || loadingInternalAppId || loadingSbomVersions || loadingSbomMetadata || loadingSbomSummary;
 
   return (
     <div id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
@@ -106,6 +118,11 @@ export default function BillOfMaterials() {
             </div>
           </NxPageTitle.Description>
         </NxPageTitle>
+        <SummaryTile
+          annotatedVulnerabilitesPercentage={annotatedVulnerabilitesPercentage}
+          componentSummary={componentSummary}
+          vulnerabilitiesSummary={vulnerabilitiesSummary}
+        />
         <ComponentsBillOfMaterialsTile
           isInternalAppIdLoading={loadingInternalAppId}
           internalAppId={internalAppId}

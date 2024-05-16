@@ -60,6 +60,8 @@ export default function OwnerSummary() {
   const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
+  // loading is false when the page is already loaded. entityId may be set to null before doLoad is called.
+  const loadingOwnerSummaryAndEntityId = loading || !entityId;
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
 
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
@@ -73,7 +75,7 @@ export default function OwnerSummary() {
   return isSyntheticOrg ? (
     <InsufficientPermissionOwnerHierarchyTree />
   ) : (
-    <NxLoadWrapper loading={loading} error={error} retryHandler={doLoad}>
+    <NxLoadWrapper loading={loadingOwnerSummaryAndEntityId} error={error} retryHandler={doLoad}>
       <div id="owner-summary">
         <NxPageTitle className="iq-page-title">
           <NxH1>

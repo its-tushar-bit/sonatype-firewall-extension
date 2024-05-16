@@ -107,6 +107,11 @@ describe('orgsAndPoliciesSelectors', () => {
       mockState.router.currentState.name = 'management.view.repository_manager';
       expect(selectEntityId(mockState)).toBe('repoManagerId');
     });
+
+    it('returns null', () => {
+      mockState.router.currentState.name = 'management.view';
+      expect(selectEntityId(mockState)).toBe(null);
+    });
   });
 
   describe('selectPoliciesByOwner', () => {

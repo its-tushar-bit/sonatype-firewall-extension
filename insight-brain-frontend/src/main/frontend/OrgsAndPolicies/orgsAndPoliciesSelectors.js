@@ -94,7 +94,7 @@ export const selectEntityId = createSelector(
     if (isRepositoryContainer) return repositoryContainerId;
     if (isRepositoryManager) return repositoryManagerId;
     if (isRepository) return repositoryId;
-    return 'global';
+    return null;
   }
 );
 

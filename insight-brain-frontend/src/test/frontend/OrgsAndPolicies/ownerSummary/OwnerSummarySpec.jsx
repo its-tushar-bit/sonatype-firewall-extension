@@ -353,4 +353,29 @@ describe('OwnerSummary', () => {
       expect(errorMessage).toBeVisible();
     });
   });
+
+  it('stays in the loading state when there is a route change and OwnerSummary is already loaded', () => {
+    preloadedState = {
+      router: {
+        currentState: {
+          name: 'management.view',
+          url: '/view',
+          data: {
+            title: 'Management',
+          },
+        },
+        currentParams: {
+          '#': null,
+        },
+      },
+      orgsAndPolicies: {
+        ownerSummary: {
+          loading: false,
+        },
+      },
+    };
+
+    renderComponent(preloadedState);
+    expect(screen.getByText('Loading…')).toBeVisible();
+  });
 });

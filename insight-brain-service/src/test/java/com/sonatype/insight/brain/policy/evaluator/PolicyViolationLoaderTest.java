@@ -93,8 +93,8 @@ public class PolicyViolationLoaderTest
   @Test
   public void testGetViolations_FilterByApplications_WithLimit() {
     try {
-      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
-          2);
+      configurationService.setConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 2);
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
       Application app1 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
@@ -143,7 +143,7 @@ public class PolicyViolationLoaderTest
       assertThat(appStageView.getFilteredViolations()).hasSize(2);
     }
     finally {
-      configurationService.deleteConfigurationNoAuthz(
+      configurationService.deleteConfigurationInDatabaseNoAuthz(
           SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);

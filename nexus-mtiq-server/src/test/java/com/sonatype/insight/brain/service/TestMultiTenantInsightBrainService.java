@@ -383,7 +383,7 @@ public class TestMultiTenantInsightBrainService
   private void setHdsUrl(InsightConfig config) {
     config.setHdsUrl(testHdsUrl);
     ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, testHdsUrl);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL, testHdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 

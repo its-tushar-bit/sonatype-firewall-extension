@@ -79,7 +79,8 @@ public class CLMLicenseManagerDatabaseTest
   @Before
   public void resetHdsServer() {
     hdsMockServer.reset();
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsMockServer.getHttpUrl());
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
+        hdsMockServer.getHttpUrl());
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 

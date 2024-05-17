@@ -59,7 +59,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
   public void testSendOwnerMaintenanceTelemetry_typeADD() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     // Given
@@ -78,7 +78,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
   public void testSendOwnerMaintenanceTelemetry_typeUPDATE() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     // Given
@@ -98,7 +98,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
     // Toggle advanced reporting to make sure values are being obfuscated accordingly
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     // Given
@@ -118,7 +118,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
     // Toggle advanced reporting to make sure values are being obfuscated accordingly
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     // Given

@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -154,9 +153,9 @@ public class SimpleConfigurationMigratorTest
         "http://unknownhost");
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.CDN_URL)).isEqualTo(
         insightConfig.getCdnUrl());
-    verify(mockConfigurationService).setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL,
+    verify(mockConfigurationService).setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
         insightConfig.getHdsUrl());
-    verify(mockConfigurationService).setConfigurationNoAuthz(SystemConfigurationProperty.CDN_URL,
+    verify(mockConfigurationService).setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.CDN_URL,
         insightConfig.getCdnUrl());
     verify(mockConfigurationService).applyConfigurationToClients(Sets.newHashSet(SystemConfigurationProperty.CDN_URL));
     verifyNoInteractions(mockConfigFeaturesService);

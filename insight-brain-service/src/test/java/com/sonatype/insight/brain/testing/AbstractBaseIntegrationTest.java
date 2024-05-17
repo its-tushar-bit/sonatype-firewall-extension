@@ -762,14 +762,14 @@ public abstract class AbstractBaseIntegrationTest
 
   protected void setProperties(Map<String, Object> properties) {
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(properties);
+    service.setConfigurationInDatabaseNoAuthz(properties);
     service.applyConfigurationToClients(properties.keySet());
   }
 
   public void resetProperties(String... propertyNames) {
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     if (service != null) {
-      service.deleteConfigurationNoAuthz(propertyNames);
+      service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
       service.applyConfigurationToClients(propertyNames);
     }
   }
@@ -779,7 +779,7 @@ public abstract class AbstractBaseIntegrationTest
     dto.url = "http://url";
     ApiJiraConfigurationService jiraConfigurationService =
         getCLMServer().getInstance(ApiJiraConfigurationService.class);
-    jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
+    jiraConfigurationService.setConfigurationInDatabaseNoAuthz(JsonUtils.asTree(dto));
     jiraConfigurationService.applyJiraConfigurationToClients();
   }
 }

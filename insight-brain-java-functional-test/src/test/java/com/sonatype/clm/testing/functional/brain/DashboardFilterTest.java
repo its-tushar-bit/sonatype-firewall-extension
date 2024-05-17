@@ -1917,7 +1917,5 @@ public class DashboardFilterTest
     configurationService.setConfigurationNoAuthz(
         SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
         needsAcknowledgementOfInitialDashboardFilter);
-    configurationService.applyConfigurationToClients(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER);
   }
 }

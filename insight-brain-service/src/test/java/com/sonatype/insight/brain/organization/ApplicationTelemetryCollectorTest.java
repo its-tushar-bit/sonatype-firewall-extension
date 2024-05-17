@@ -76,7 +76,7 @@ public class ApplicationTelemetryCollectorTest
     // Toggle advanced reporting to make sure values are being obfuscated accordingly
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     Application app1 = tempEntity.newApplication(org.getId());

@@ -237,7 +237,7 @@ public class ApplicationSummaryServiceTest
     // Toggle advanced reporting to make sure values are being obfuscated accordingly
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created

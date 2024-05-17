@@ -32,7 +32,7 @@ public class ConfigurationTest
 
   @Test
   public void testConfigurationChanged_OtherProperty() {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
         AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
 
     configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.BASE_URL));
@@ -42,7 +42,7 @@ public class ConfigurationTest
 
   @Test
   public void testConfigurationChanged() {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
         AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
 
     configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE));
@@ -59,7 +59,7 @@ public class ConfigurationTest
 
   @Test
   public void testGetMatcherConfiguration_DisableConanNamespaceMatching_True() {
-    configurationService.setConfigurationNoAuthz(
+    configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
     configurationService.applyConfigurationToClients(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING);

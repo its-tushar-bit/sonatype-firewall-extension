@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
@@ -79,10 +81,14 @@ public class ApiConfigurationServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Inject
+  private TestConfigurationListener spyTestConfigurationListener;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(ConfigurationListener.class).toInstance(mockConfigurationListener);
+    binder.bind(TestConfigurationListener.class).toInstance(spy(new TestConfigurationListener()));
     super.configure(binder);
   }
 
@@ -1638,6 +1644,30 @@ public class ApiConfigurationServiceTest
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
   }
 
+  @Test
+  public void testSetConfigurationNoAuthz() {
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, "https://someNewHdsUrl.com/");
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo("https://someNewHdsUrl.com/");
+    verify(spyTestConfigurationListener).configurationChanged(
+        Collections.singleton(SystemConfigurationProperty.HDS_URL));
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
+        Collections.singletonMap("properties", SystemConfigurationProperty.HDS_URL));
+  }
+
+  @Test
+  public void testDeleteConfigurationNoAuthz() {
+    dao.set(SystemConfigurationProperty.HDS_URL, "http://someHdsUrl/");
+
+    service.deleteConfigurationNoAuthz(Collections.singleton(SystemConfigurationProperty.HDS_URL));
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
+    verify(spyTestConfigurationListener).configurationChanged(
+        Collections.singleton(SystemConfigurationProperty.HDS_URL));
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
+        Collections.singletonMap("properties", SystemConfigurationProperty.HDS_URL));
+  }
+
   private void assertMinAndMax(String name, int min, int max) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.setConfigurationNoAuthz(name, min - 1))
@@ -1651,5 +1681,16 @@ public class ApiConfigurationServiceTest
     service.setConfigurationNoAuthz(name, max);
     assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
+  }
+
+  @Named
+  @Singleton
+  private static class TestConfigurationListener
+      implements ConfigurationListener
+  {
+    @Override
+    public void configurationChanged(final Set<String> propertyNames) {
+      // no-op
+    }
   }
 }

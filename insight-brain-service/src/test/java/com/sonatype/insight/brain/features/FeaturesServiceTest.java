@@ -76,12 +76,14 @@ public class FeaturesServiceTest
   public void testGetFeatures_WithoutAllowExternalLinks() {
     when(productLicense.isValid()).thenReturn(true);
     try {
-      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false);
+      configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
+          false);
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
       assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
     }
     finally {
-      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+      configurationService.deleteConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
     }
   }

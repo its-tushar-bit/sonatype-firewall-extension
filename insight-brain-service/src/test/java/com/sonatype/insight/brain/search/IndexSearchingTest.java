@@ -163,7 +163,8 @@ public class IndexSearchingTest
   }
 
   private void setHdsUrl() {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsMockServer.getHttpUrl());
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
+        hdsMockServer.getHttpUrl());
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 

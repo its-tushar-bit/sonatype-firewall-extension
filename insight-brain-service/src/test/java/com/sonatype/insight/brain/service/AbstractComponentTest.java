@@ -154,7 +154,7 @@ public class AbstractComponentTest
     Map<String, Object> properties = new HashMap<>();
     properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
     properties.put(SystemConfigurationProperty.FORCE_BASE_URL, forceBaseUrl);
-    service.setConfigurationNoAuthz(properties);
+    service.setConfigurationInDatabaseNoAuthz(properties);
     service.applyConfigurationToClients(properties.keySet());
   }
 
@@ -162,21 +162,21 @@ public class AbstractComponentTest
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames =
         ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
-    service.deleteConfigurationNoAuthz(propertyNames);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
   public void resetAccessAllowlist() {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ACCESS_ALLOWLIST);
-    service.deleteConfigurationNoAuthz(propertyNames);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
   public void resetApiAccessAllowList() {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
-    service.deleteConfigurationNoAuthz(propertyNames);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
@@ -276,13 +276,13 @@ public class AbstractComponentTest
     dto.url = "http://url";
     dto.customFields = customFields;
     ApiJiraConfigurationService jiraConfigurationService = lookup(ApiJiraConfigurationService.class);
-    jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
+    jiraConfigurationService.setConfigurationInDatabaseNoAuthz(JsonUtils.asTree(dto));
     jiraConfigurationService.applyJiraConfigurationToClients();
   }
 
   public void setHdsUrl(String hdsUrl) {
     ApiConfigurationService configurationService = lookup(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 

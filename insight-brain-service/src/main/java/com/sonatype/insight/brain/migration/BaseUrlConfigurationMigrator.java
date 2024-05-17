@@ -75,7 +75,7 @@ public class BaseUrlConfigurationMigrator
         properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
         properties.put(SystemConfigurationProperty.FORCE_BASE_URL, forceBaseUrl);
         try {
-          configurationService.setConfigurationNoAuthz(tx, properties);
+          configurationService.setConfigurationInDatabaseNoAuthz(tx, properties);
         }
         catch (BadRequestException e) {
           log.warn("The current base URL configuration is invalid and cannot be migrated.", e);

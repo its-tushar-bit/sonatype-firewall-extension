@@ -105,7 +105,7 @@ public abstract class AbstractHdsClientTest
 
   public void setBaseUrl(String baseUrl) {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
-    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
     service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
   }
 
@@ -113,17 +113,18 @@ public abstract class AbstractHdsClientTest
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames =
         ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
-    service.deleteConfigurationNoAuthz(propertyNames);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
   public void setHdsUrl(String hdsUrl) {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
   private void setUserAgentSuffix(String userAgentSuffix) {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.USER_AGENT_SUFFIX, userAgentSuffix);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.USER_AGENT_SUFFIX,
+        userAgentSuffix);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.USER_AGENT_SUFFIX);
   }
 }

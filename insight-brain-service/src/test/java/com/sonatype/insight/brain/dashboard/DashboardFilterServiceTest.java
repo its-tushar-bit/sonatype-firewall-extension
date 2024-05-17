@@ -697,7 +697,7 @@ public class DashboardFilterServiceTest
   }
 
   private void setNeedsAcknowledgementOfInitialDashboardFilter(Boolean needsAcknowledgementOfInitialDashboardFilter) {
-    configurationService.setConfigurationNoAuthz(
+    configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
         needsAcknowledgementOfInitialDashboardFilter);
     configurationService.applyConfigurationToClients(

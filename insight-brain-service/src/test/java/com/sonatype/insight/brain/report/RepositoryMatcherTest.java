@@ -222,13 +222,13 @@ public class RepositoryMatcherTest
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     if (email != null) {
-      apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL,
-          email);
+      apiConfigurationService.setConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
       apiConfigurationService.applyConfigurationToClients(
           SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL);
     }
     String baseUrl = "http://baseUrl/";
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
     artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
@@ -637,7 +637,7 @@ public class RepositoryMatcherTest
     String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
     String sha256b = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942";
     Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
-    apiConfigurationService.setConfigurationNoAuthz(
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     artifactoryConnectionDAO.delete(artifactoryConnection);
@@ -681,10 +681,10 @@ public class RepositoryMatcherTest
   @Test
   public void testIdentify_Aql_withComponentLimit() throws Exception {
     Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
-    apiConfigurationService.setConfigurationNoAuthz(
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
     String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
     artifactoryConnectionDAO.delete(artifactoryConnection);
@@ -717,7 +717,7 @@ public class RepositoryMatcherTest
 
   @Test
   public void testIdentify_checksum_withComponentLimit() throws Exception {
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
     artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection =
@@ -739,7 +739,7 @@ public class RepositoryMatcherTest
 
   @Test
   public void testIdentify_withComponentLimit_zero() throws Exception {
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0);
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
 
     Map<ComponentIdentifier, ObjectNode> sha256Matches =
@@ -764,7 +764,7 @@ public class RepositoryMatcherTest
   @Test
   public void testIdentify_Aql_withRepositoryList() throws Exception {
     Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
-    apiConfigurationService.setConfigurationNoAuthz(
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
@@ -797,7 +797,7 @@ public class RepositoryMatcherTest
   @Test
   public void testIdentify_Checksum_withRepositoryList() throws Exception {
     String repos = "repo1,repo2";
-    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
+    apiConfigurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection =

@@ -91,7 +91,7 @@ public class SourceControlConfigurationMigrator
           if (pullRequestMonitoringIntervalSeconds != null) {
             objectNode.put("pullRequestMonitoringIntervalSeconds", pullRequestMonitoringIntervalSeconds);
           }
-          sourceControlConfigurationService.setConfigurationNoAuthz(tx, objectNode);
+          sourceControlConfigurationService.setConfigurationInDatabaseNoAuthz(tx, objectNode);
         }
         catch (BadRequestException e) {
           log.warn("The current source control or branch monitoring configuration is invalid and cannot be migrated.",

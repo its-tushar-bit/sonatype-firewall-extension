@@ -867,7 +867,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("Apache-2.0"));
     mockHdsGetComponentDetails(hdsComponentDetails);
 
-    configurationService.setConfigurationNoAuthz(ALP_OBSERVED_LICENSE_DETECTION_ENABLED, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(ALP_OBSERVED_LICENSE_DETECTION_ENABLED, false);
     configuration.configurationChanged(Collections.singleton(ALP_OBSERVED_LICENSE_DETECTION_ENABLED));
 
     ComponentMultiLicenses licenses = componentInfoService.getMultiLicensesNoAuth(OwnerType.APPLICATION,

@@ -76,7 +76,7 @@ public class InternalRestApiAuthcTest
   @Test
   public void testSessionCookieSufficientWhenCsrfProtectionDisabled() throws Exception {
     ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.CSRF_PROTECTION, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.CSRF_PROTECTION, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.CSRF_PROTECTION);
 
     HttpResponse response = login();

@@ -68,7 +68,7 @@ public class JiraConfigurationMigrator
       tx.begin();
       if (config != null) {
         try {
-          jiraConfigurationService.setConfigurationNoAuthz(tx, JsonUtils.asTree(config));
+          jiraConfigurationService.setConfigurationInDatabaseNoAuthz(tx, JsonUtils.asTree(config));
         }
         catch (BadRequestException e) {
           log.warn("The current JIRA configuration is invalid and cannot be migrated.", e);

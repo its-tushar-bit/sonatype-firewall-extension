@@ -103,6 +103,5 @@ public class ExternalLinkTest
         testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         externalHyperlinksAllowed);
-    configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
   }
 }

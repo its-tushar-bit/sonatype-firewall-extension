@@ -158,7 +158,7 @@ public class SimpleConfigurationMigrator
       }
       else {
         try {
-          configurationService.setConfigurationNoAuthz(key, value);
+          configurationService.setConfigurationInDatabaseNoAuthz(key, value);
           migratedProperties.add(key);
         }
         catch (BadRequestException e) {

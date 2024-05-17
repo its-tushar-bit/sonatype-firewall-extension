@@ -85,18 +85,22 @@ public class ApiJiraConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(JsonNode jsonNode) {
     setConfigurationNoAuthz(jsonNode);
-    updateAllClusterNodesFromConfiguration();
   }
 
   public void setConfigurationNoAuthz(JsonNode jsonNode) {
+    setConfigurationInDatabaseNoAuthz(jsonNode);
+    updateAllClusterNodesFromConfiguration();
+  }
+
+  public void setConfigurationInDatabaseNoAuthz(JsonNode jsonNode) {
     try (TransactionContext tx = jiraConfigurationDAO.createTransactionContext()) {
       tx.begin();
-      setConfigurationNoAuthz(tx, jsonNode);
+      setConfigurationInDatabaseNoAuthz(tx, jsonNode);
       tx.commit();
     }
   }
 
-  public void setConfigurationNoAuthz(TransactionContext tx, JsonNode jsonNode) {
+  public void setConfigurationInDatabaseNoAuthz(TransactionContext tx, JsonNode jsonNode) {
     JiraConfiguration config = createOrUpdateJiraConfiguration(jsonNode);
     auditConfiguration(config);
     jiraConfigurationDAO.set(tx, config);
@@ -105,9 +109,17 @@ public class ApiJiraConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration() {
     JiraConfiguration config = jiraConfigurationDAO.getNotNull();
+    deleteConfigurationNoAuthz(config);
+  }
+
+  private void deleteConfigurationNoAuthz(JiraConfiguration config) {
+    deleteConfigurationInDatabaseNoAuthz(config);
+    updateAllClusterNodesFromConfiguration();
+  }
+
+  private void deleteConfigurationInDatabaseNoAuthz(JiraConfiguration config) {
     auditConfiguration(config);
     jiraConfigurationDAO.delete();
-    updateAllClusterNodesFromConfiguration();
   }
 
   private ApiJiraConfigurationDTO convertToDTO(JiraConfiguration config) {

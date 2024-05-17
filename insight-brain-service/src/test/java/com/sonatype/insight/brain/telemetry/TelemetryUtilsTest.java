@@ -224,7 +224,7 @@ public class TelemetryUtilsTest
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsEnabled_doesNotObfuscate() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";
@@ -236,7 +236,7 @@ public class TelemetryUtilsTest
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsDisabled() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";
@@ -248,7 +248,7 @@ public class TelemetryUtilsTest
   public void testIncludeRealOwnerId_obfuscatesValueIfAdvancedReportingDisabled() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";
@@ -262,7 +262,7 @@ public class TelemetryUtilsTest
   public void testIncludeRealOwnerId() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";
@@ -276,7 +276,7 @@ public class TelemetryUtilsTest
   public void testIncludeRealApplicationId_obfuscatesValueIfAdvancedReportingDisabled() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";
@@ -290,7 +290,7 @@ public class TelemetryUtilsTest
   public void testIncludeRealApplicationId() {
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationNoAuthz(properties);
+    configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
     String potentialApplicationId = "potentialApplicationId";

@@ -42,7 +42,7 @@ public class InvalidRequestFilterTest
   @Test
   public void testBackslashEnabled() throws Exception {
     ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH);
 
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
@@ -52,7 +52,7 @@ public class InvalidRequestFilterTest
   @Test
   public void testNonAsciiEnabled() throws Exception {
     ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
@@ -61,7 +61,7 @@ public class InvalidRequestFilterTest
   @Test
   public void testNonAsciiDisabled() throws Exception {
     ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
@@ -70,7 +70,7 @@ public class InvalidRequestFilterTest
   @Test
   public void testSemicolonEnabled() throws Exception {
     ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH);
 
     HttpResponse response = restRequest().path("any/thing/;after-backslash").get();

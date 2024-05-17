@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -377,8 +375,6 @@ public class Configuration
 
   public void setAntiCsrfEnabled(boolean antiCsrfEnabled) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.CSRF_PROTECTION, antiCsrfEnabled);
-    configurationService.updateAllClusterNodesFromConfiguration(
-        Collections.singleton(SystemConfigurationProperty.CSRF_PROTECTION));
   }
 
   public String getUserAgentSuffix() {
@@ -395,8 +391,6 @@ public class Configuration
 
   public void setBlockSemicolon(boolean blockSemicolon) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, blockSemicolon);
-    configurationService.updateAllClusterNodesFromConfiguration(
-        Collections.singleton(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH));
   }
 
   public boolean isBlockBackslash() {
@@ -405,8 +399,6 @@ public class Configuration
 
   public void setBlockBackslash(boolean blockBackslash) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, blockBackslash);
-    configurationService.updateAllClusterNodesFromConfiguration(
-        Collections.singleton(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH));
   }
 
   public boolean isBlockNonAscii() {
@@ -415,8 +407,6 @@ public class Configuration
 
   public void setBlockNonAscii(boolean blockNonAscii) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, blockNonAscii);
-    configurationService.updateAllClusterNodesFromConfiguration(
-        Collections.singleton(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH));
   }
 
   public ProxyServerConfiguration getProxyServerConfiguration() {
@@ -450,8 +440,6 @@ public class Configuration
   public void setALPObservedLicenseDetectionEnabled(boolean enableObservedLicenseDetection) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         enableObservedLicenseDetection);
-    configurationService.updateAllClusterNodesFromConfiguration(
-        Collections.singleton(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED));
   }
 
   public int getReleaseGraphCacheSize() {

@@ -131,7 +131,7 @@ public class TestInsightBrainServiceRule
 
   public void setHdsUrl() {
     ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
 
     // refresh license details from the new HDS
@@ -148,7 +148,7 @@ public class TestInsightBrainServiceRule
 
   public void setCspEnabled(boolean cspEnabled) {
     ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.CSP_ENABLED, cspEnabled);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.CSP_ENABLED, cspEnabled);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.CSP_ENABLED);
   }
 

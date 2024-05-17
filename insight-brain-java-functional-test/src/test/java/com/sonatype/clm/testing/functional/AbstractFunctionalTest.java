@@ -276,14 +276,12 @@ public abstract class AbstractFunctionalTest
   public static void setBaseUrl(String baseUrl) {
     ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
     service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
-    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
   }
 
   public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
     ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
     service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
         enableDefaultPasswordWarning);
-    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
   }
 
   private static void initMocks() {

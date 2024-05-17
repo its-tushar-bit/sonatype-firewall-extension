@@ -494,7 +494,8 @@ public class SearchServiceTest
       tempEntity.newMembershipMapping(oneMoreApplication.getId(), nonGlobalReadRole.getId(),
           userPrincipal.getUsername());
 
-      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2);
+      configurationService.setConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2);
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
       indexService.createSearchIndex();
 
@@ -505,7 +506,8 @@ public class SearchServiceTest
               "and consider updating Advanced Search configuration to support larger queries.");
     }
     finally {
-      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
+      configurationService.deleteConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
     }
   }
@@ -588,8 +590,8 @@ public class SearchServiceTest
         components.get(1).componentName);
 
     try {
-      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
-          ";");
+      configurationService.setConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";");
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
       stream = (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
@@ -599,7 +601,8 @@ public class SearchServiceTest
       assertThat(export.get(0).split(";")).hasSize(16);
     }
     finally {
-      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
+      configurationService.deleteConfigurationInDatabaseNoAuthz(
+          SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
     }

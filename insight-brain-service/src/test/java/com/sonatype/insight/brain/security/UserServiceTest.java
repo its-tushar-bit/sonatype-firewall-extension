@@ -376,7 +376,8 @@ public class UserServiceTest
   public void testShouldDisplayDefaultPasswordWarning_DisabledByConfig() {
     assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
 
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
 
     assertThat(userService.shouldDisplayDefaultPasswordWarning()).isFalse();

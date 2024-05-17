@@ -76,18 +76,22 @@ public class ApiSourceControlConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(JsonNode jsonNode) {
     setConfigurationNoAuthz(jsonNode);
-    updateAllClusterNodesFromConfiguration();
   }
 
   public void setConfigurationNoAuthz(JsonNode jsonNode) {
+    setConfigurationInDatabaseNoAuthz(jsonNode);
+    updateAllClusterNodesFromConfiguration();
+  }
+
+  public void setConfigurationInDatabaseNoAuthz(JsonNode jsonNode) {
     try (TransactionContext tx = sourceControlConfigurationDAO.createTransactionContext()) {
       tx.begin();
-      setConfigurationNoAuthz(tx, jsonNode);
+      setConfigurationInDatabaseNoAuthz(tx, jsonNode);
       tx.commit();
     }
   }
 
-  public void setConfigurationNoAuthz(TransactionContext tx, JsonNode jsonNode) {
+  public void setConfigurationInDatabaseNoAuthz(TransactionContext tx, JsonNode jsonNode) {
     SourceControlConfiguration config = resolveSourceControlConfiguration(jsonNode);
     auditConfiguration(config);
     sourceControlConfigurationDAO.set(tx, config);
@@ -96,9 +100,17 @@ public class ApiSourceControlConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration() {
     SourceControlConfiguration config = sourceControlConfigurationDAO.getNotNull();
+    deleteConfigurationNoAuthz(config);
+  }
+
+  private void deleteConfigurationNoAuthz(SourceControlConfiguration config) {
+    deleteConfigurationInDatabaseNoAuthz(config);
+    updateAllClusterNodesFromConfiguration();
+  }
+
+  private void deleteConfigurationInDatabaseNoAuthz(SourceControlConfiguration config) {
     auditConfiguration(config);
     sourceControlConfigurationDAO.delete();
-    updateAllClusterNodesFromConfiguration();
   }
 
   private ApiSourceControlConfigurationDTO convertToDTO(SourceControlConfiguration config) {

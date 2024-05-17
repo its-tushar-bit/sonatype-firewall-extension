@@ -266,7 +266,7 @@ public class SupportServiceTest
   }
 
   private File createPopulatedZip(final boolean noLimit, final List<SupportFile> filesToAdd) throws Exception {
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 1L);
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 1L);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
     final File workDir = tempDir.newFolder("populateZipTest");
     final String prefix = "prefix";

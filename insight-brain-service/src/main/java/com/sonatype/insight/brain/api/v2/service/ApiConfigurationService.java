@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -181,22 +180,39 @@ public class ApiConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(Map<String, Object> properties) {
     setConfigurationNoAuthz(properties);
-    updateAllClusterNodesFromConfiguration(properties.keySet());
   }
 
   public void setConfigurationNoAuthz(String propertyName, Object propertyValue) {
     setConfigurationNoAuthz(Collections.singletonMap(propertyName, propertyValue));
   }
 
+  /**
+   * This method (and its overloads) are intended to update configuration properties in the database, apply
+   * configuration changes to clients, and propagate configuration changes to other nodes all without needing authz.
+   */
   public void setConfigurationNoAuthz(Map<String, Object> properties) {
+    setConfigurationInDatabaseNoAuthz(properties);
+    updateAllClusterNodesFromConfiguration(properties.keySet());
+  }
+
+  public void setConfigurationInDatabaseNoAuthz(String propertyName, Object propertyValue) {
+    setConfigurationInDatabaseNoAuthz(Collections.singletonMap(propertyName, propertyValue));
+  }
+
+  public void setConfigurationInDatabaseNoAuthz(Map<String, Object> properties) {
     try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       tx.begin();
-      setConfigurationNoAuthz(tx, properties);
+      setConfigurationInDatabaseNoAuthz(tx, properties);
       tx.commit();
     }
   }
 
-  public void setConfigurationNoAuthz(TransactionContext tx, Map<String, Object> properties) {
+  /**
+   * This method (and its overloads) are only intended to update configuration properties in the database without
+   * needing authz. They do not apply any client configuration changes or propagate changes to other nodes. This is
+   * useful for migrators and tests.
+   */
+  public void setConfigurationInDatabaseNoAuthz(TransactionContext tx, Map<String, Object> properties) {
     if (CollectionUtils.isEmpty(properties)) {
       throw new BadRequestException(NO_PROPERTIES_ERROR_MSG);
     }
@@ -217,22 +233,26 @@ public class ApiConfigurationService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration(Set<String> propertyNames) {
     deleteConfigurationNoAuthz(propertyNames);
-    updateAllClusterNodesFromConfiguration(propertyNames);
-  }
-
-  public void deleteConfigurationNoAuthz(String... propertyNames) {
-    deleteConfigurationNoAuthz(Sets.newHashSet(propertyNames));
   }
 
   public void deleteConfigurationNoAuthz(Set<String> propertyNames) {
+    deleteConfigurationInDatabaseNoAuthz(propertyNames);
+    updateAllClusterNodesFromConfiguration(propertyNames);
+  }
+
+  public void deleteConfigurationInDatabaseNoAuthz(String... propertyNames) {
+    deleteConfigurationInDatabaseNoAuthz(Sets.newHashSet(propertyNames));
+  }
+
+  public void deleteConfigurationInDatabaseNoAuthz(Set<String> propertyNames) {
     try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
       tx.begin();
-      deleteConfigurationNoAuthz(tx, propertyNames);
+      deleteConfigurationInDatabaseNoAuthz(tx, propertyNames);
       tx.commit();
     }
   }
 
-  public void deleteConfigurationNoAuthz(TransactionContext tx, Set<String> propertyNames) {
+  public void deleteConfigurationInDatabaseNoAuthz(TransactionContext tx, Set<String> propertyNames) {
     if (CollectionUtils.isEmpty(propertyNames)) {
       throw new BadRequestException(NO_PROPERTIES_ERROR_MSG);
     }

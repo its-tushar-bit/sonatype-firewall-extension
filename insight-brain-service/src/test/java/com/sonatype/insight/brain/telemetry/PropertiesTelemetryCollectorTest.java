@@ -45,7 +45,7 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ReturnsConfiguredReportTimeout() {
     int configuredTimeout = 600;
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
         configuredTimeout);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS);
     TelemetryData telemetryData = telemetryCollector.collectData();

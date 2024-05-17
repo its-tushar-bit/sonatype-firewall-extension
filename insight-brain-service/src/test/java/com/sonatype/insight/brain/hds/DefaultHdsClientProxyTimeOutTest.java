@@ -114,7 +114,8 @@ public class DefaultHdsClientProxyTimeOutTest
     proxyServerConfigurationService.applyProxyServerConfigurationToClients();
 
     config = new InsightConfig();
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, "https://www.example.com/");
+    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
+        "https://www.example.com/");
     // Need to use the DAO since the service doesn't allow connect timeout to be below 5
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, "1");
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
@@ -131,7 +132,7 @@ public class DefaultHdsClientProxyTimeOutTest
   @After
   public void exit() {
     nonResponsiveServerThread.interrupt();
-    configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL,
+    configurationService.deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);

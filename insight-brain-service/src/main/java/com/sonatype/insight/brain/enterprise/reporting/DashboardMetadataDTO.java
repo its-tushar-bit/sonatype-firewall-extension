@@ -25,6 +25,8 @@ public class DashboardMetadataDTO
 
   public boolean spotlight;
 
+  public String dashboardPath;
+
   public DashboardMetadataDTO() {
     //for jackson;
   }
@@ -36,7 +38,8 @@ public class DashboardMetadataDTO
                               final String accessButtonText,
                               final String previewImage,
                               final Integer priority,
-                              final boolean spotlight)
+                              final boolean spotlight,
+                              final String dashboardPath)
   {
     this.dashboardId = dashboardId;
     this.title = title;
@@ -46,5 +49,6 @@ public class DashboardMetadataDTO
     this.previewImage = previewImage;
     this.priority = priority;
     this.spotlight = spotlight;
+    this.dashboardPath = dashboardPath;
   }
 }

@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { prop } from 'ramda';
+import { LookerEmbedSDK } from '@looker/embed-sdk';
+
+import {
+  selectBaseUrl,
+  selectSelectedDashboard,
+} from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
+import {
+  getEnterpriseReportingAcquireEmbedSessionUrl,
+  getEnterpriseReportingGenerateEmbedTokensUrl,
+} from 'MainRoot/util/CLMLocation';
+
+export default function useLookerDashboard(iframeContainerId = '#dashboard') {
+  const baseUrl = useSelector(selectBaseUrl);
+  const selectedDashboard = useSelector(selectSelectedDashboard);
+  const [iframeError, setIframeError] = useState(false);
+
+  const tokens = useRef({});
+
+  const acquireEmbedSession = async () =>
+    axios
+      .get(getEnterpriseReportingAcquireEmbedSessionUrl(selectedDashboard.dashboardId))
+      .then(prop('data'))
+      .then((data) => {
+        tokens.current = data;
+        return data;
+      });
+  const generateEmbedTokens = async () =>
+    axios
+      .put(getEnterpriseReportingGenerateEmbedTokensUrl(), {
+        api_token: tokens.current.api_token,
+        navigation_token: tokens.current.navigation_token,
+        session_reference_token: tokens.current.session_reference_token,
+      })
+      .then(prop('data'))
+      .then((data) => {
+        tokens.current = data;
+        return data;
+      });
+  const embedDashboard = async () => {
+    try {
+      setIframeError(false);
+      await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
+        .appendTo(iframeContainerId)
+        .build()
+        .connect();
+    } catch (error) {
+      setIframeError(true);
+    }
+  };
+
+  useEffect(() => {
+    if (baseUrl && selectedDashboard) {
+      LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
+      embedDashboard();
+    }
+  }, [baseUrl, selectedDashboard]);
+
+  return { iframeError };
+}

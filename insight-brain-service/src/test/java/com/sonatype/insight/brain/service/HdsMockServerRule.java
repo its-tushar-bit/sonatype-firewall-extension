@@ -79,6 +79,10 @@ public class HdsMockServerRule
     return hdsMockServer.getCapturedRequestHttpHeaders(uri);
   }
 
+  public String getCapturedRequestBody(String uri) {
+    return hdsMockServer.getCapturedRequestBody(uri);
+  }
+
   public void reset() {
     hdsMockServer.reset();
     log.info("Reset HDS mock on port {}", port);

@@ -27,6 +27,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -48,10 +51,14 @@ import com.sonatype.insight.brain.utils.ResettableExpiringMemoizingSupplier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.JsonUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDataMap;
@@ -76,6 +83,10 @@ public class EnterpriseReportingService
 
   public static final String ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH =
       ENTERPRISE_REPORTING_BASE_PATH + "/dashboards";
+
+  static final String ACQUIRE_EMBED_SESSION_URL_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/acquireEmbedSession";
+
+  static final String GENERATE_EMBED_TOKENS_URL_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/generateEmbedTokens";
 
   public static final String ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/icons";
 
@@ -159,17 +170,74 @@ public class EnterpriseReportingService
         Duration.ofHours(1));
   }
 
-  public SSOEmbedUrlDTO createSSOEmbedUrl(final DashboardRequestDTO dashboardRequestDTO) {
-    AuditData.get().setLookerDashboard(dashboardRequestDTO);
-    validate(dashboardRequestDTO);
-    SSOEmbedUrlRequest ssoEmbedUrlRequest = createSSOEmbedUrlRequest(dashboardRequestDTO.dashboard);
-    SSOEmbedUrlDTO ssoEmbedUrlDTO = getSSOEmbedUrlDTO(ssoEmbedUrlRequest);
-    ssoEmbedUrlDTO.baseUrl = getEnterpriseReportingConfigDTOBaseUrl();
-    return ssoEmbedUrlDTO;
-  }
-
   public DashboardMetadataListDTO getDashboardMetadata() {
     return dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
+  }
+
+  public EmbedCookielessSessionAcquire acquireEmbedSession(
+      String dashboardId,
+      String hostWithProtocol,
+      String clientUserAgent)
+  {
+    AuditData.get().setLookerDashboard(dashboardId);
+    validate(dashboardId);
+    HttpEntity entity;
+    try {
+      entity = new StringEntity(
+          JsonUtils.toJson(createSSOEmbedUrlRequest(dashboardId, hostWithProtocol)), ContentType.APPLICATION_JSON);
+    }
+    catch (IOException e) {
+      throw new BadRequestException(e);
+    }
+
+    return hdsClient.post(EmbedCookielessSessionAcquire.class, ACQUIRE_EMBED_SESSION_URL_PATH, entity,
+        clientUserAgent);
+  }
+
+  public EmbedCookielessSessionGenerateTokensResponse generateEmbedTokens(
+      EmbedCookielessSessionGenerateTokens embedCookielessSessionGenerateTokens,
+      String clientUserAgent)
+  {
+    validateRequiredParameters(embedCookielessSessionGenerateTokens);
+    HttpEntity entity;
+    try {
+      entity = new StringEntity(
+          JsonUtils.toJson(embedCookielessSessionGenerateTokens), ContentType.APPLICATION_JSON);
+    }
+    catch (IOException e) {
+      throw new BadRequestException(e);
+    }
+    return hdsClient.put(EmbedCookielessSessionGenerateTokensResponse.class, GENERATE_EMBED_TOKENS_URL_PATH, entity,
+        clientUserAgent);
+  }
+
+  private void validateRequiredParameters(final EmbedCookielessSessionGenerateTokens dto) {
+    if (dto == null) {
+      log.debug("Required dto is null");
+      throw new BadRequestException("Required dto is null");
+    }
+
+    if (StringUtils.isBlank(dto.getNavigationToken())) {
+      log.debug("Bad data in request navigation token is null or empty");
+      throw new BadRequestException("Navigation token is null or empty");
+    }
+
+    if (StringUtils.isBlank(dto.getApiToken())) {
+      log.debug("Bad data in request api token is null or empty");
+      throw new BadRequestException("Api token is null or empty");
+    }
+
+    if (StringUtils.isBlank(dto.getSessionReferenceToken())) {
+      log.debug("Bad data in request session reference token is null or empty");
+      throw new BadRequestException("Session reference token is null or empty");
+    }
+  }
+
+  private void validate(final String dashboardId) {
+    if (StringUtils.isBlank(dashboardId)) {
+      log.debug("Bad data in request dashboard is null or empty");
+      throw new BadRequestException("Dashboard is null or empty");
+    }
   }
 
   public byte[] getIcon(final String iconName) {
@@ -177,14 +245,7 @@ public class EnterpriseReportingService
     return iconGetter.apply(currentDashboardsVersionSupplier.get()).apply(iconName).get();
   }
 
-  private void validate(final DashboardRequestDTO dashboardRequestDTO) {
-    if (dashboardRequestDTO == null || StringUtils.isBlank(dashboardRequestDTO.dashboard)) {
-      log.debug("Bad data in request dashboard is null or empty");
-      throw new BadRequestException("Dashboard is null or empty");
-    }
-  }
-
-  private SSOEmbedUrlRequest createSSOEmbedUrlRequest(final String lookerDashboard) {
+  private SSOEmbedUrlRequest createSSOEmbedUrlRequest(final String lookerDashboard, final String embedDomain) {
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     if (userPrincipal == null) {
       // At a minimum the user needs to be logged into access looker. see CLM-27812
@@ -208,7 +269,8 @@ public class EnterpriseReportingService
         userLastName,
         lookerDashboard,
         userPermissions,
-        applicationIds
+        applicationIds,
+        embedDomain
     );
   }
 
@@ -235,12 +297,6 @@ public class EnterpriseReportingService
 
   private SamlUser getSamlUser(final String username) {
     return samlUserDAO.getByUsernameNotNull(username);
-  }
-
-  private SSOEmbedUrlDTO getSSOEmbedUrlDTO(final SSOEmbedUrlRequest ssoEmbedUrlRequest) {
-    log.debug("Submitting Enterprise Reporting SSOEmbedUrl request {} for dashboard {}", ssoEmbedUrlRequest.requestId,
-        ssoEmbedUrlRequest.dashboardKey);
-    return hdsClient.post(SSOEmbedUrlDTO.class, ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH, ssoEmbedUrlRequest);
   }
 
   public String getEnterpriseReportingConfigDTOBaseUrl() {
@@ -345,7 +401,7 @@ public class EnterpriseReportingService
     return TASK_NAME;
   }
 
-  public void clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests() {
+  void clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests() {
     if (enterpriseReportingConfigDTOBaseUrlSupplier != null &&
         enterpriseReportingConfigDTOBaseUrlSupplier.get() != null) {
       enterpriseReportingConfigDTOBaseUrlSupplier.get().reset();

@@ -23,6 +23,8 @@ public class SSOEmbedUrlRequest
 
   public Set<String> applicationIds;
 
+  public String embedDomain;
+
   public SSOEmbedUrlRequest() {
     //for jackson
   }
@@ -34,7 +36,8 @@ public class SSOEmbedUrlRequest
       String userLastName,
       String dashboardKey,
       Set<String> userPermissions,
-      Set<String> applicationIds)
+      Set<String> applicationIds,
+      String embedDomain)
   {
     this.requestId = requestId;
     this.usernameAndRealm = usernameAndRealm;
@@ -43,5 +46,6 @@ public class SSOEmbedUrlRequest
     this.dashboardKey = dashboardKey;
     this.userPermissions = userPermissions;
     this.applicationIds = applicationIds;
+    this.embedDomain = embedDomain;
   }
 }

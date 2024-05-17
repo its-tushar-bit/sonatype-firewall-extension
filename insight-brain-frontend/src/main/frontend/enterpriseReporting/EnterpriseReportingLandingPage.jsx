@@ -24,6 +24,7 @@ import {
   selectLoading,
 } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
+import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import {
   selectDataInsightsLicenseError,
   selectLoadingFeatures,
@@ -38,7 +39,10 @@ export default function EnterpriseReportingLandingPage() {
   const apiError = useSelector(selectError);
   const licenseError = useSelector(selectDataInsightsLicenseError);
   const error = licenseError || apiError;
-  const load = () => dispatch(actions.load());
+  const load = () => {
+    dispatch(dashboardActions.reset());
+    dispatch(actions.load());
+  };
 
   useEffect(() => {
     load();

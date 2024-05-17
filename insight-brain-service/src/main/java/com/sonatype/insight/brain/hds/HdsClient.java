@@ -481,6 +481,12 @@ public class HdsClient
     post(retryCreator.apply(path), path, httpEntity, clientUserAgent);
   }
 
+  public <T> T post(Class<T> clazz, String path, HttpEntity httpEntity, String clientUserAgent) {
+    HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
+    cloudReq.setEntity(httpEntity);
+    return execute(retryCreator.apply(path), cloudReq, clazz);
+  }
+
   public void post(Retry retry, String path, HttpEntity httpEntity, String clientUserAgent) {
     HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
     cloudReq.setEntity(httpEntity);
@@ -565,6 +571,12 @@ public class HdsClient
   {
     return put(retryCreator.apply(path), analytics, clazz, clientUserAgent, path, uploadFile, queryParams,
         uriParams);
+  }
+
+  public <T> T put(Class<T> clazz, String path, HttpEntity httpEntity, String clientUserAgent) {
+    HttpPut cloudReq = createPutRequest(buildUri(path), null, clientUserAgent);
+    cloudReq.setEntity(httpEntity);
+    return execute(retryCreator.apply(path), cloudReq, clazz);
   }
 
   public <T> T put(

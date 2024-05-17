@@ -5,20 +5,18 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getEnterpriseReportingEmbedUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingBaseUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { prop } from 'ramda';
-import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
-import { selectSelectedDashboard } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
+import { always, prop } from 'ramda';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'enterpriseReportingDashboard';
 
 export const initialState = {
-  loading: false,
+  loading: true,
   loadError: null,
-  embedUrlData: null,
-  selectedDashboard: { dashboardId: null },
+  baseUrl: null,
+  selectedDashboard: null,
 };
 
 function loadRequested(state) {
@@ -27,7 +25,9 @@ function loadRequested(state) {
 }
 
 const loadFulfilled = (state, { payload }) => {
-  state.embedUrlData = payload;
+  if (payload) {
+    state.baseUrl = new URL(payload).host;
+  }
   state.loading = false;
 };
 
@@ -36,20 +36,26 @@ function loadFailed(state, { payload }) {
   state.loadError = Messages.getHttpErrorMessage(payload);
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue, dispatch }) => {
-  const state = getState();
-  const selectedDashboard = selectSelectedDashboard(state);
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
   return dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded())
-    .then(() => axios.post(getEnterpriseReportingEmbedUrl(), { dashboard: selectedDashboard.dashboardId }))
+    .then(() => axios.get(getEnterpriseReportingBaseUrl()))
     .then(prop('data'))
     .catch(rejectWithValue);
 });
+
+const setSelectedDashboard = (state, { payload }) => {
+  state.selectedDashboard = {
+    dashboardId: payload.dashboardId,
+    dashboardPath: payload.dashboardPath?.replace('dashboards/', ''),
+  };
+};
 
 const enterpriseReportingDashboardSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    setSelectedDashboard: pathSet(['selectedDashboard', 'dashboardId']),
+    setSelectedDashboard,
+    reset: always(initialState),
   },
   extraReducers: {
     [load.pending]: loadRequested,

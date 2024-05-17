@@ -34,9 +34,15 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQ
   return urlWithPath;
 }
 
-export const getEnterpriseReportingEmbedUrl = () => uriTemplate`/rest/enterpriseReporting/ssoEmbedUrl`;
+export const getEnterpriseReportingBaseUrl = () => uriTemplate`/rest/enterpriseReporting/getBaseUrl`;
 
 export const getEnterpriseReportingDashboardsUrl = () => uriTemplate`/rest/enterpriseReporting/dashboards`;
+
+export const getEnterpriseReportingAcquireEmbedSessionUrl = (dashboardId) =>
+  uriTemplate`/rest/enterpriseReporting/acquireEmbedSession?dashboardId=${dashboardId}`;
+
+export const getEnterpriseReportingGenerateEmbedTokensUrl = () =>
+  uriTemplate`/rest/enterpriseReporting/generateEmbedTokens`;
 
 export const getEnterpriseReportingIconUrl = (iconName) =>
   uriTemplate`/rest/enterpriseReporting/dashboard/icons/${iconName}`;

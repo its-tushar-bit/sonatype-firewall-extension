@@ -16,17 +16,20 @@ import org.junit.Test;
 public class EnterpriseReportingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  final String clientUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testCreateSSOEmbedUrl_UnAuthenticated() {
-    enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("rolling-recap"));
+  public void testAcquireEmbedSession_UnAuthenticated() {
+    enterpriseReportingService.acquireEmbedSession("rolling-recap", "http://localhost:8080", clientUserAgent);
   }
 
   @Test(expected = BadRequestException.class)
-  public void testCreateSSOEmbedUrl_UnAuthorized() {
+  public void testAcquireEmbedSession_UnAuthorized() {
     login();
-    enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO(null));
+    enterpriseReportingService.acquireEmbedSession(null, "http://localhost:8080", clientUserAgent);
   }
 }

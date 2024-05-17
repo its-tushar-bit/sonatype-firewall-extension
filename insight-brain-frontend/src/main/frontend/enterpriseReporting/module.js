@@ -33,6 +33,15 @@ function routes($stateProvider) {
     .state('enterpriseReportingDashboard', {
       url: '/enterpriseReportingDashboard',
       component: 'enterpriseReportingDashboardPage',
+      redirectTo: function (transition) {
+        const injector = transition.injector();
+        const $ngRedux = injector.get('$ngRedux');
+        const state = $ngRedux.getState();
+        if (!state?.enterpriseReportingDashboard?.selectedDashboard?.dashboardId) {
+          return 'enterpriseReporting';
+        }
+        return null;
+      },
       data: {
         title: 'Enterprise Reporting Dashboard',
         authenticationRequired: true,

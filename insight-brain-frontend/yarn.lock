@@ -1694,10 +1694,10 @@
     debug "^2.2.0"
     es6-promise "^4.2.8"
 
-"@looker/embed-sdk@^1.8.4":
-  version "1.8.4"
-  resolved "https://repo.sonatype.com/repository/npm-all/@looker/embed-sdk/-/embed-sdk-1.8.4.tgz#73846536f94651678da72122e038ef58d897b726"
-  integrity sha512-Zjx7B+fzZJryCc/jcg+boUsa3KCU3hlvcTJuSuPbswmnhNO6rqfYUAuh2xUgk8PKVXrjwiLgD/ZMByQ4Mt+Xow==
+"@looker/embed-sdk@^1.8.5":
+  version "1.8.5"
+  resolved "https://repo.sonatype.com/repository/npm-all/@looker/embed-sdk/-/embed-sdk-1.8.5.tgz#7f754e64f0b5c87af67dc263e173119d656dc234"
+  integrity sha512-Eu3AgAKTzH9TTaI/CL6keQw6D3XQNLVyAvbM8H3MDlkWhI0RAKrvoS1brdrlYaoFhNLeSMF0Wjl9wHFNbkz2aw==
   dependencies:
     "@looker/chatty" "^2.3.2"
 

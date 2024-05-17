@@ -139,11 +139,11 @@ public class EnterpriseReportingLandingPageTest
 
   private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlight() {
     return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1", "feature 2"),
-        "button text", "rolling-recap.svg", 1, true);
+        "button text", "rolling-recap.svg", 1, true, "dashboards/rolling_recap::rolling_recap");
   }
 
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
     return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3", "feature 4"),
-        "button text 2", "rolling-recap.svg", 2, false);
+        "button text 2", "rolling-recap.svg", 2, false, "dashboards/rolling_recap::rolling_recap");
   }
 }

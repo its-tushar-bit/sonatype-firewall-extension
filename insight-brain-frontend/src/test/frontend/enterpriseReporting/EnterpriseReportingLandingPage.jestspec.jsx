@@ -8,6 +8,7 @@ import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
 import { getEnterpriseReportingDashboardsUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 import { screen } from '@testing-library/dom';
+import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 
 describe('EnterpriseReportingDashboardPage', () => {
   let axiosMock, renderPage;
@@ -117,5 +118,12 @@ describe('EnterpriseReportingDashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.getByText('An error occurred loading data. Data Insights feature not supported')).toBeVisible();
+  });
+
+  it('resets dashboard state on loading', () => {
+    const resetSpy = jest.spyOn(dashboardActions, 'reset');
+    renderPage();
+
+    expect(resetSpy).toHaveBeenCalled();
   });
 });

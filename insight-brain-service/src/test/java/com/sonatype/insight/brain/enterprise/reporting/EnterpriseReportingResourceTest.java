@@ -10,17 +10,19 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.jaxrs.JsonUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class EnterpriseReportingResourceTest
@@ -33,48 +35,9 @@ public class EnterpriseReportingResourceTest
         .clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests();
   }
 
-  @Before
-  public void init() {
-    hdsMockServer.respondWith("{\"baseUrl\":null}").atUri("rest/enterpriseReporting/config");
-  }
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(EnterpriseReportingResource.RESOURCE_PATH);
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_LookerError() throws Exception {
-    hdsMockServer.respondWith("error").andStatus(409).atUri("rest/enterpriseReporting/ssoEmbedUrl");
-    HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
-        .body(new DashboardRequestDTO("rolling_recap")).post();
-    assertResponseStatus(409, response);
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_Success() throws Exception {
-    String username = "admin";
-    //Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
-    final Organization organization = tempEntity.newOrganization("Test Org");
-    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
-    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
-    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
-    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
-    tempEntity.newMembershipMapping(application.getId(), SYSTEM_ADMIN_ROLE_ID, username);
-    tempEntity.newMembershipMapping(application2.getId(), SYSTEM_ADMIN_ROLE_ID, username);
-    tempEntity.newMembershipMapping(application3.getId(), SYSTEM_ADMIN_ROLE_ID, username);
-    tempEntity.newMembershipMapping(application4.getId(), SYSTEM_ADMIN_ROLE_ID, username);
-
-    String lookerSSOUrl = "looker.someurl.com";
-    hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/enterpriseReporting/ssoEmbedUrl");
-    DashboardRequestDTO dashboardRequestDTO =
-        new DashboardRequestDTO("rolling_recap");
-
-    HttpResponse response = restRequest().path(EnterpriseReportingResource.SSO_EMBED_URL_PATH)
-        .body(dashboardRequestDTO).post();
-    assertResponseStatus(200, response);
-    String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":null}";
-    assertThat(response.getBodyText()).contains(expectedResponse);
   }
 
   @Test
@@ -112,6 +75,107 @@ public class EnterpriseReportingResourceTest
   @Test
   public void testGetIcon_400_BadRequest() throws Exception {
     assertTestGetIcon(400, "..\\fake-icon-name.svg");
+  }
+
+  @Test
+  public void testAcquireEmbedSession_Success() throws Exception {
+    EmbedCookielessSessionAcquire expectedResponse =
+        new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
+            "sessionTokenResponse", 600);
+    hdsMockServer.respondWith(expectedResponse).atUri("rest/enterpriseReporting/acquireEmbedSession");
+
+    HttpResponse response =
+        restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION).query("dashboardId", "dashboardIdParam")
+            .get();
+    assertResponseStatus(200, response);
+    EmbedCookielessSessionAcquire embedSessionResponse =
+        response.getBody(EmbedCookielessSessionAcquire.class);
+    assertThat(embedSessionResponse).isNotNull();
+
+    assertThat(embedSessionResponse.getAuthenticationToken()).isEqualTo("authTokenResponse");
+    assertThat(embedSessionResponse.getAuthenticationTokenTtl()).isEqualTo(300);
+    assertThat(embedSessionResponse.getNavigationToken()).isEqualTo("navTokenResponse");
+    assertThat(embedSessionResponse.getNavigationTokenTtl()).isEqualTo(400);
+    assertThat(embedSessionResponse.getApiToken()).isEqualTo("apiTokenResponse");
+    assertThat(embedSessionResponse.getApiTokenTtl()).isEqualTo(500);
+    assertThat(embedSessionResponse.getSessionReferenceToken()).isEqualTo("sessionTokenResponse");
+    assertThat(embedSessionResponse.getSessionReferenceTokenTtl()).isEqualTo(600);
+
+    // Verify that the domain sent to HDS was truncated to exclude the final separator
+    String requestBody = hdsMockServer.getCapturedRequestBody("rest/enterpriseReporting/acquireEmbedSession");
+    SSOEmbedUrlRequest requestSentToHds = JsonUtils.parse(requestBody, new TypeReference<SSOEmbedUrlRequest>() { });
+    assertThat(requestSentToHds.embedDomain).doesNotEndWith("/");
+    assertThat(requestSentToHds.embedDomain + "/").isEqualTo(getRestBaseUrl());
+  }
+
+  @Test
+  public void testGetBaseUrl_Success() throws Exception {
+    EnterpriseReportingConfigDTO config = new EnterpriseReportingConfigDTO("https://looker.example.com");
+    hdsMockServer.respondWith(config).atUri("rest/enterpriseReporting/config");
+
+    HttpResponse response =
+        restRequest().path(EnterpriseReportingResource.GET_BASE_URL)
+            .get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).isNotNull();
+    assertThat(response.getBodyText()).isEqualTo(config.baseUrl);
+  }
+
+  @Test
+  public void testAcquireEmbedSession_BadRequest_missingParameters() throws Exception {
+    EmbedCookielessSessionAcquire expectedResponse =
+        new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
+            "sessionTokenResponse", 600);
+    hdsMockServer.respondWith(expectedResponse).atUri("rest/enterpriseReporting/acquireEmbedSession");
+
+    HttpResponse response =
+        restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION).get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Dashboard is null or empty");
+  }
+
+  @Test
+  public void testGenerateEmbedTokens_Success() throws Exception {
+    EmbedCookielessSessionGenerateTokensResponse expectedResponse =
+        new EmbedCookielessSessionGenerateTokensResponse("navToken", 200, "apiToken", 300, "sessionRefTokenResponse",
+            400);
+    hdsMockServer.respondWith(expectedResponse).atUri("rest/enterpriseReporting/generateEmbedTokens");
+
+    EmbedCookielessSessionGenerateTokens tokenRequestDto =
+        new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", "oldSessionToken");
+    HttpResponse response =
+        restRequest().path(EnterpriseReportingResource.GENERATE_EMBED_TOKENS).body(tokenRequestDto).put();
+    assertResponseStatus(200, response);
+    EmbedCookielessSessionGenerateTokensResponse embedSessionResponse =
+        response.getBody(EmbedCookielessSessionGenerateTokensResponse.class);
+    assertThat(embedSessionResponse).isNotNull();
+
+    assertThat(embedSessionResponse.getNavigationToken()).isEqualTo("navToken");
+    assertThat(embedSessionResponse.getNavigationTokenTtl()).isEqualTo(200);
+    assertThat(embedSessionResponse.getApiToken()).isEqualTo("apiToken");
+    assertThat(embedSessionResponse.getApiTokenTtl()).isEqualTo(300);
+    assertThat(embedSessionResponse.getSessionReferenceToken()).isEqualTo("sessionRefTokenResponse");
+    assertThat(embedSessionResponse.getSessionReferenceTokenTtl()).isEqualTo(400);
+  }
+
+  @Test
+  public void testGenerateEmbedTokens_BadRequest_MissingParameters() throws Exception {
+    EmbedCookielessSessionGenerateTokens tokenRequestDto =
+        new EmbedCookielessSessionGenerateTokens(null, "apiToken", "oldSessionToken");
+    HttpResponse response =
+        restRequest().path(EnterpriseReportingResource.GENERATE_EMBED_TOKENS).body(tokenRequestDto).put();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Navigation token is null or empty");
+
+    tokenRequestDto = new EmbedCookielessSessionGenerateTokens("navToken", null, "oldSessionToken");
+    response = restRequest().path(EnterpriseReportingResource.GENERATE_EMBED_TOKENS).body(tokenRequestDto).put();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Api token is null or empty");
+
+    tokenRequestDto = new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", null);
+    response = restRequest().path(EnterpriseReportingResource.GENERATE_EMBED_TOKENS).body(tokenRequestDto).put();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Session reference token is null or empty");
   }
 
   private void assertTestGetIcon(int expectedStatus, String iconName) throws Exception {

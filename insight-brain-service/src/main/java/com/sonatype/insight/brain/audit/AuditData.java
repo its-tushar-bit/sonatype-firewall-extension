@@ -12,7 +12,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.enterprise.reporting.DashboardRequestDTO;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -455,9 +454,9 @@ public abstract class AuditData
     return this;
   }
 
-  public AuditData setLookerDashboard(final DashboardRequestDTO dashboardRequestDTO) {
-    if (dashboardRequestDTO != null) {
-      setData("dashboard", dashboardRequestDTO.dashboard);
+  public AuditData setLookerDashboard(final String dashboardId) {
+    if (dashboardId != null) {
+      setData("dashboard", dashboardId);
     }
     return this;
   }

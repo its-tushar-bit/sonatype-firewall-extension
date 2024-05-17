@@ -14,52 +14,45 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -99,9 +92,6 @@ public class EnterpriseReportingServiceTest
   @Inject
   private InsightWork insightWork;
 
-  @Captor
-  private ArgumentCaptor<SSOEmbedUrlRequest> ssoEmbedUrlRequestArgumentCaptor;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
@@ -111,69 +101,6 @@ public class EnterpriseReportingServiceTest
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_FeatureEnabled_InternalRealm() {
-    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(
-        new User("username", "password", "firstName", "lastName", "email"));
-    createSSOEmbedUrl_FeatureEnabled(InternalRealm.ID, "firstName", "lastName");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_FeatureEnabled_SamlRealm() {
-    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", SamlRealm.ID));
-    when(mockSamlUserDAO.getByUsernameNotNull("username")).thenReturn(
-        new SamlUser("username", "firstName", "lastName", "email", Collections.emptySet()));
-    createSSOEmbedUrl_FeatureEnabled(SamlRealm.ID, "firstName", "lastName");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_FeatureEnabled_OtherRealm() {
-    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", "other"));
-    createSSOEmbedUrl_FeatureEnabled("other", "displayName", "");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_MissingDashboardKey() {
-    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO(null)))
-        .isInstanceOf(BadRequestException.class).hasMessage("Dashboard is null or empty");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_HdsBadRequest() {
-    when(mockHdsClient.post(any(), anyString(), any()))
-        .thenThrow(new BadRequestException("Bad request"));
-    when(mockCurrentUser.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-
-    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
-        .isInstanceOf(BadRequestException.class).hasMessage("Bad request");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_HdsNotFound() {
-    when(mockHdsClient.post(any(), anyString(), any()))
-        .thenThrow(new NotFoundException("Not found"));
-    when(mockCurrentUser.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-
-    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
-        .isInstanceOf(NotFoundException.class).hasMessage("Not found");
-  }
-
-  @Test
-  public void testCreateSSOEmbedUrl_LookerError() {
-    String hdsError = "Error with Looker";
-    when(mockHdsClient.post(any(), anyString(), any()))
-        .thenThrow(new ConflictException(hdsError));
-    when(mockCurrentUser.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-
-    assertThatThrownBy(() -> enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test")))
-        .isInstanceOf(ConflictException.class)
-        .hasMessage(hdsError);
   }
 
   @Test
@@ -312,7 +239,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         firstIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -343,7 +271,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         firstIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
@@ -356,7 +285,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         secondIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     DashboardMetadataListDTO dashboardMetadataListDTO =
         new DashboardMetadataListDTO(Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO));
@@ -389,7 +319,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         firstIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -422,7 +353,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         firstIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
@@ -451,7 +383,8 @@ public class EnterpriseReportingServiceTest
         RandomStringUtils.random(8),
         secondIconImageFileName,
         1,
-        false
+        false,
+        "dashboards/rolling_recap::rolling_recap"
     );
     DashboardMetadataListDTO secondDashboardMetadataListDTO =
         new DashboardMetadataListDTO(Collections.singletonList(secondDashboardMetadataDTO));
@@ -469,51 +402,6 @@ public class EnterpriseReportingServiceTest
     assertDashboardIconImage(secondIconBytes, secondIconImageFileName);
   }
 
-  private void createSSOEmbedUrl_FeatureEnabled(
-      String realmId,
-      String expectedUserFirstName,
-      String expectedUserLastName)
-  {
-    String expectedUrl = "looker.url.com";
-    String expectedBaseUrl = "base.looker.com";
-    String expectedUsernameAndRealm = "username@" + realmId;
-    when(mockHdsClient.post(any(), anyString(), any()))
-        .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(mockHdsClient.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH))
-        .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
-    final Set<String> permissionsForUserPrincipalMock = mockGetPermissionsForUserPrincipal();
-    final Set<String> applicationIdsForUserMock = mockGetApplicationIdsForUser();
-
-    when(mockHdsClient.post(any(), anyString(), any())).thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(mockMembershipMappingService.getPermissionsForUserPrincipal(any(), any()))
-        .thenReturn(permissionsForUserPrincipalMock);
-    when(mockMembershipMappingService.getApplicationIdsForUser(any(), any()))
-        .thenReturn(applicationIdsForUserMock);
-    SSOEmbedUrlDTO result = enterpriseReportingService.createSSOEmbedUrl(new DashboardRequestDTO("test"));
-
-    verify(mockHdsClient).post(eq(SSOEmbedUrlDTO.class), eq(ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH),
-        ssoEmbedUrlRequestArgumentCaptor.capture());
-    SSOEmbedUrlRequest actual = ssoEmbedUrlRequestArgumentCaptor.getValue();
-    assertThat(actual).isNotNull();
-    assertThat(actual.userPermissions).containsExactlyInAnyOrderElementsOf(permissionsForUserPrincipalMock);
-    assertThat(actual.applicationIds).containsExactlyInAnyOrderElementsOf(applicationIdsForUserMock);
-    assertThat(actual.userFirstName).isEqualTo(expectedUserFirstName);
-    assertThat(actual.userLastName).isEqualTo(expectedUserLastName);
-    assertThat(actual.usernameAndRealm).isEqualTo(expectedUsernameAndRealm);
-    assertThat(result).isNotNull();
-    assertThat(result.url).isEqualTo(expectedUrl);
-    assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
-  }
-
-  private static Set<String> mockGetPermissionsForUserPrincipal() {
-    return new HashSet<>(Arrays.asList(Permission.EDIT_ROLES.getDisplayName(),
-        Permission.WAIVE_POLICY_VIOLATIONS.getDisplayName()));
-  }
-
-  private static Set<String> mockGetApplicationIdsForUser() {
-    return new HashSet<>(Arrays.asList("appId1", "appId2"));
-  }
-
   private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
     return new DashboardMetadataListDTO(Arrays.asList(generateLookerDashboardMetadata(),
         generateLookerDashboardMetadata(), generateLookerDashboardMetadata()));
@@ -522,7 +410,8 @@ public class EnterpriseReportingServiceTest
   private static DashboardMetadataDTO generateLookerDashboardMetadata() {
     return new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8),
         RandomStringUtils.random(8), Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8), RandomStringUtils.random(8), 1, false);
+        RandomStringUtils.random(8), RandomStringUtils.random(8), 1, false,
+        "dashboards/rolling_recap::rolling_recap");
   }
 
   private void assertDashboardIconImage(
@@ -542,7 +431,8 @@ public class EnterpriseReportingServiceTest
     String iconName = "icon-1.png";
     DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
         new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8), RandomStringUtils.random(8),
-            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName, 1, false)));
+            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName,
+            1, false, "dashboards/rolling_recap::rolling_recap")));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
@@ -598,7 +488,8 @@ public class EnterpriseReportingServiceTest
     String iconName = "icon-1.png";
     DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
         new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8), RandomStringUtils.random(8),
-            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName, 1, false)));
+            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName,
+            1, false, "dashboards/rolling_recap::rolling_recap")));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
@@ -633,6 +524,86 @@ public class EnterpriseReportingServiceTest
   public void testDisallowConcurrentExecution() {
     assertThat(
         JobBuilder.newJob(EnterpriseReportingService.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testAcquireEmbedSession_Success() {
+    // Mock user queries to mock that a user has logged in
+    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(
+        new User("username", "password", "firstName", "lastName", "email"));
+
+    EmbedCookielessSessionAcquire expectedResponse =
+        new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
+            "sessionTokenResponse", 600);
+    when(mockHdsClient.post(eq(EmbedCookielessSessionAcquire.class), anyString(), any(), anyString())).thenReturn(
+        expectedResponse);
+
+    EmbedCookielessSessionAcquire sessionAcquireResult =
+        enterpriseReportingService.acquireEmbedSession("dashboardId", "http://sonatype.sonatype.sonatype.com",
+            "Mozilla/:::::");
+    assertThat(sessionAcquireResult).isNotNull();
+
+    assertThat(sessionAcquireResult.getAuthenticationToken()).isEqualTo("authTokenResponse");
+    assertThat(sessionAcquireResult.getAuthenticationTokenTtl()).isEqualTo(300);
+    assertThat(sessionAcquireResult.getNavigationToken()).isEqualTo("navTokenResponse");
+    assertThat(sessionAcquireResult.getNavigationTokenTtl()).isEqualTo(400);
+    assertThat(sessionAcquireResult.getApiToken()).isEqualTo("apiTokenResponse");
+    assertThat(sessionAcquireResult.getApiTokenTtl()).isEqualTo(500);
+    assertThat(sessionAcquireResult.getSessionReferenceToken()).isEqualTo("sessionTokenResponse");
+    assertThat(sessionAcquireResult.getSessionReferenceTokenTtl()).isEqualTo(600);
+  }
+
+  @Test
+  public void testAcquireEmbedSession_BadRequest_missingParameters() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            enterpriseReportingService.acquireEmbedSession(null, "http://sonatype.sonatype.sonatype.com",
+                "Mozilla/:::::"))
+        .withMessage("Dashboard is null or empty");
+  }
+
+  @Test
+  public void testGenerateEmbedTokens_Success() throws Exception {
+    EmbedCookielessSessionGenerateTokensResponse expectedResponse =
+        new EmbedCookielessSessionGenerateTokensResponse("navToken", 200, "apiToken", 300,
+            "sessionRefTokenResponse",            400);
+    when(mockHdsClient.put(eq(EmbedCookielessSessionGenerateTokensResponse.class), anyString(), any(),
+        anyString())).thenReturn(
+        expectedResponse);
+
+    EmbedCookielessSessionGenerateTokens tokenRequestDto =
+        new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", "oldSessionToken");
+    EmbedCookielessSessionGenerateTokensResponse embedSessionResponse =
+        enterpriseReportingService.generateEmbedTokens(tokenRequestDto, "Mozilla/:::::");
+    assertThat(embedSessionResponse).isNotNull();
+
+    assertThat(embedSessionResponse.getNavigationToken()).isEqualTo("navToken");
+    assertThat(embedSessionResponse.getNavigationTokenTtl()).isEqualTo(200);
+    assertThat(embedSessionResponse.getApiToken()).isEqualTo("apiToken");
+    assertThat(embedSessionResponse.getApiTokenTtl()).isEqualTo(300);
+    assertThat(embedSessionResponse.getSessionReferenceToken()).isEqualTo("sessionRefTokenResponse");
+    assertThat(embedSessionResponse.getSessionReferenceTokenTtl()).isEqualTo(400);
+  }
+
+  @Test
+  public void testGenerateEmbedTokens_BadRequest_MissingParameters() throws Exception {
+    final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoNav =
+        new EmbedCookielessSessionGenerateTokens(null, "apiToken", "oldSessionToken");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoNav, "Mozilla/:::::"))
+        .withMessage("Navigation token is null or empty");
+
+    final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoApi =
+        new EmbedCookielessSessionGenerateTokens("navToken", null, "oldSessionToken");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoApi, "Mozilla/:::::"))
+        .withMessage("Api token is null or empty");
+
+    final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoSessionRef =
+        new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", null);
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoSessionRef, "Mozilla/:::::"))
+        .withMessage("Session reference token is null or empty");
   }
 
   private void verifyScheduledTaskVersionCache(Integer latestVersion) {

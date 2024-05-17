@@ -17,7 +17,7 @@ export default function EnterpriseReportCard(props) {
 
   const dispatch = useDispatch();
   const navigateToEnterpriseReportingDashboard = () => {
-    setSelectedDashboard(dashboard.dashboardId);
+    setSelectedDashboard(dashboard);
     dispatch(stateGo('enterpriseReportingDashboard'));
   };
 

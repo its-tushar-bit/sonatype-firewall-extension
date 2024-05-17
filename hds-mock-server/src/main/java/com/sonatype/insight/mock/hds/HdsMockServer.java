@@ -15,7 +15,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
+import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,9 +68,12 @@ public class HdsMockServer
 
   private Map<String, Map<String, String>> capturedRequestHttpHeadersByUri = new HashMap<>();
 
+  private Map<String, String> capturedRequestBodyByUri = new HashMap<>();
+
   public void reset() {
     responses.clear();
     capturedRequestHttpHeadersByUri.clear();
+    capturedRequestBodyByUri.clear();
   }
 
   public Map<String, String> getCapturedRequestHttpHeaders(String uri) {
@@ -78,6 +81,13 @@ public class HdsMockServer
       uri = "/" + uri;
     }
     return capturedRequestHttpHeadersByUri.get(uri);
+  }
+
+  public String getCapturedRequestBody(String uri) {
+    if (!uri.startsWith("/")) {
+      uri = "/" + uri;
+    }
+    return capturedRequestBodyByUri.get(uri);
   }
 
   public HdsMockResponse respondWith(Object body) {
@@ -276,11 +286,27 @@ public class HdsMockServer
       capturedRequestHttpHeadersByUri.put(request.getRequestURI(), httpHeaders);
     }
 
+    private void captureRequestHttpBody(HttpServletRequest request) {
+      boolean isPostRequestWithJsonContent =
+          "POST".equalsIgnoreCase(request.getMethod()) && request.getContentType() != null
+              && request.getContentType().contains("application/json");
+      if (isPostRequestWithJsonContent) {
+        try {
+          String bodyAsString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+          capturedRequestBodyByUri.put(request.getRequestURI(), bodyAsString);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
     {
       captureRequestHttpHeaders(request);
+      captureRequestHttpBody(request);
 
       String uri = request.getRequestURI();
       String uriWithParams = uri;

@@ -8,10 +8,7 @@ import reducer from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingD
 describe('enterpriseReportingDashboardReducer', () => {
   let initialState;
 
-  const fakeData = {
-    url: 'http://looker.com/embed',
-    baseUrl: 'http://looker.com/',
-  };
+  const baseUrl = 'http://looker.com/';
 
   beforeEach(() => {
     const dummyAction = { type: 'DUMMY_ACTION' };
@@ -20,10 +17,10 @@ describe('enterpriseReportingDashboardReducer', () => {
 
   describe('initial state', () => {
     it('has default field values', function () {
-      expect(initialState.loading).toBeFalsy();
+      expect(initialState.loading).toBe(true);
       expect(initialState.loadError).toBeNull();
-      expect(initialState.embedUrlData).toBeNull();
-      expect(initialState.selectedDashboard.dashboardId).toBeNull();
+      expect(initialState.baseUrl).toBeNull();
+      expect(initialState.selectedDashboard).toBeNull();
     });
   });
 
@@ -36,6 +33,18 @@ describe('enterpriseReportingDashboardReducer', () => {
 
       const newState = reducer(state, action);
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('enterpriseReportingDashboard/reset', () => {
+    it('returns initial state', function () {
+      const state = Object.freeze({ foo: 'bar' });
+      const action = {
+        type: 'enterpriseReportingDashboard/reset',
+      };
+
+      const newState = reducer(state, action);
+      expect(newState).toBe(initialState);
     });
   });
 
@@ -53,13 +62,11 @@ describe('enterpriseReportingDashboardReducer', () => {
       const oldState = {};
       const newState = reducer(oldState, {
         type: 'enterpriseReportingDashboard/load/fulfilled',
-        payload: fakeData,
+        payload: baseUrl,
       });
 
       expect(newState).toEqual({
-        embedUrlData: {
-          ...fakeData,
-        },
+        baseUrl: 'looker.com',
         loading: false,
       });
     });
@@ -84,9 +91,12 @@ describe('enterpriseReportingDashboardReducer', () => {
     it('should save the selected report dashboard id to the state', () => {
       const newState = reducer(initialState, {
         type: 'enterpriseReportingDashboard/setSelectedDashboard',
-        payload: 'rolling-recap',
+        payload: { dashboardId: 'dashboardId', dashboardPath: 'dashboards/dashboardPath' },
       });
-      expect(newState.selectedDashboard.dashboardId).toEqual('rolling-recap');
+      expect(newState.selectedDashboard).toEqual({
+        dashboardId: 'dashboardId',
+        dashboardPath: 'dashboardPath',
+      });
     });
   });
 });

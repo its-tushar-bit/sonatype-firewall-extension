@@ -1422,7 +1422,8 @@ export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applica
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;
 
 export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
-  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
+  // TODO pageSize will be properly implemented at CLM-30022
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components?pageSize=10000`;
 
 export const getAllApplicationSbomVersions = (applicationId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;

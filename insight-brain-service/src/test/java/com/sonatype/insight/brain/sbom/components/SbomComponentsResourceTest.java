@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import java.util.Arrays;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
@@ -17,8 +19,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -221,10 +223,10 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
         .build();
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "D");
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "T");
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
             "r1", "d1", "l1", 5.5, "sd1", "f1");

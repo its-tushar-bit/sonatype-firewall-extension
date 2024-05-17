@@ -1471,7 +1471,8 @@ describe('CLMLocation.js', function () {
     it('should return the correct URL with the given parameters', () => {
       const applicationId = 'abc123';
       const sbomVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
+      // TODO pageSize will be properly implemented at CLM-30022
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components?pageSize=10000`;
 
       expect(clmLocation.getBillsOfMaterialsComponents(applicationId, sbomVersion)).toBe(expectedURL);
     });

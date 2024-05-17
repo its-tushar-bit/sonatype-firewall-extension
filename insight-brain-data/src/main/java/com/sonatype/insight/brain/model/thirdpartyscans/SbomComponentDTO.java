@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -51,6 +53,8 @@ public class SbomComponentDTO
 
   private int vulnerabilitySeverityCriticalCount;
 
+  private double percentageAnnotated;
+
   public SbomComponentDTO() {
     // for Jackson
   }
@@ -80,12 +84,17 @@ public class SbomComponentDTO
           log.error("Error parsing licenses from {}", licensesJson, e);
         }
       }
-
       vulnerabilitySeverityNoneCount = longToInt(array[5]);
       vulnerabilitySeverityLowCount = longToInt(array[6]);
       vulnerabilitySeverityMediumCount = longToInt(array[7]);
       vulnerabilitySeverityHighCount = longToInt(array[8]);
       vulnerabilitySeverityCriticalCount = longToInt(array[9]);
+      percentageAnnotated = bigDecimalToDouble(array[10]);
+
+      String dependencyTypeValue = (String) array[11];
+      if (StringUtils.isNotBlank(dependencyTypeValue)) {
+        dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
+      }
     }
   }
 
@@ -193,7 +202,15 @@ public class SbomComponentDTO
     this.vulnerabilitySeverityCriticalCount = vulnerabilitySeverityCriticalCount;
   }
 
+  public double getPercentageAnnotated() {
+    return percentageAnnotated;
+  }
+
   private int longToInt(Object number) {
     return ((Long) number).intValue();
+  }
+
+  private double bigDecimalToDouble(Object number) {
+    return  number == null ? 0.0 : ((BigDecimal) number).doubleValue();
   }
 }

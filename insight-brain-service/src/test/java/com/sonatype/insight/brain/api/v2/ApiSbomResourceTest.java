@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -26,18 +27,21 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -251,24 +255,130 @@ public class ApiSbomResourceTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
     PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "source",
-        packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(), "hash",
-        packageUrlIdentifier.getPackageUrl());
+    ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "source", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
+        "hash", packageUrlIdentifier.getPackageUrl());
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate, "refId", "description", "link",
+        CvssV3Severity.NONE.getStartScoreRange(), CvssV3Severity.NONE.getDisplayName(), "fix");
 
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .query("vulnerabilityThreatLevels", CvssV3Severity.NONE)
+        .query("dependencyTypes", ThirdPartyDependencyType.UNSPECIFIED)
+        .query("sortBy", SbomComponentSortableField.VULNERABILITIES)
+        .query("asc", true)
+        .query("page", 1)
+        .query("pageSize", "3")
         .get();
 
     assertResponseStatus(200, response);
-    SbomComponentDTO[] result = response.getBody(SbomComponentDTO[].class);
+    SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
 
-    assertThat(result)
-        .hasOnlyOneElementSatisfying(component -> {
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .singleElement()
+        .satisfies(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier.getPackageUrl());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isOne();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+        });
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_SuccessfulWithDefaultValues() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata =
+        SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).withApplicationId(app.getId()).build();
+
+    int totalCountOfComponents = 51;
+
+    for (int i = 0; i < totalCountOfComponents; i++) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p" + i, "v" + i);
+      PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+      ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+          "source", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
+          "hash" + i, packageUrlIdentifier.getPackageUrl());
+
+      CvssV3Severity cvssV3Severity;
+      if (i < 10) {
+        cvssV3Severity = CvssV3Severity.NONE;
+      }
+      else if (i < 20) {
+        cvssV3Severity = CvssV3Severity.LOW;
+      }
+      else if (i < 30) {
+        cvssV3Severity = CvssV3Severity.MEDIUM;
+      }
+      else if (i < 40) {
+        cvssV3Severity = CvssV3Severity.HIGH;
+      }
+      else {
+        // 40 until 50, that's 11 records using this severity
+        cvssV3Severity = CvssV3Severity.CRITICAL;
+      }
+
+      tempEntity.newThirdPartyCoordinateSecurity(coordinate, "refId" + i, "description" + i, "link" + i,
+          cvssV3Severity.getStartScoreRange(), cvssV3Severity.getDisplayName(), "fix" + i);
+    }
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion()).get();
+
+    assertResponseStatus(200, response);
+    SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(totalCountOfComponents);
+    assertThat(result.getResults()).hasSize(totalCountOfComponents - 1);
+
+    assertThat(result.getResults().subList(0, 11))
+        .allSatisfy(component -> {
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isOne();
+        });
+
+    assertThat(result.getResults().subList(11, 21))
+        .allSatisfy(component -> {
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isOne();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+        });
+
+    assertThat(result.getResults().subList(21, 31))
+        .allSatisfy(component -> {
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isOne();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+        });
+
+    assertThat(result.getResults().subList(31, 41))
+        .allSatisfy(component -> {
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityLowCount()).isOne();
+          assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
+          assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+        });
+
+    assertThat(result.getResults().subList(41, totalCountOfComponents - 1))
+        .allSatisfy(component -> {
+          assertThat(component.getVulnerabilitySeverityNoneCount()).isOne();
           assertThat(component.getVulnerabilitySeverityLowCount()).isZero();
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
@@ -283,6 +393,10 @@ public class ApiSbomResourceTest
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
         .parameter(app.getId(), "fake-version")
+        .query("sortBy", SbomComponentSortableField.VULNERABILITIES)
+        .query("asc", true)
+        .query("page", 1)
+        .query("pageSize", "3")
         .get();
 
     assertResponseStatus(Status.NOT_FOUND.getStatusCode(), response);
@@ -301,10 +415,19 @@ public class ApiSbomResourceTest
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .query("sortBy", SbomComponentSortableField.VULNERABILITIES)
+        .query("asc", true)
+        .query("page", 1)
+        .query("pageSize", "3")
         .get();
 
     assertResponseStatus(200, response);
-    assertThat(response.getBody(SbomComponentDTO[].class)).isEmpty();
+
+    SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isZero();
+    assertThat(result.getResults()).isEmpty();
   }
 
   @Test

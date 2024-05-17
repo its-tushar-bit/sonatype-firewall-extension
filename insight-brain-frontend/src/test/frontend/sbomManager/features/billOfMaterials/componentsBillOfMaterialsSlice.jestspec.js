@@ -6,58 +6,61 @@
 
 import reducer from 'MainRoot/sbomManager/features/componentsTile/componentsBillOfMaterialsSlice';
 
-const componentResults = [
-  {
-    hash: '12345',
-    packageUrl: 'pkg:a',
-    componentIdentifier: {
-      format: 'maven',
-      coordinates: {
-        artifactId: 'foo',
-        extension: 'foo',
-        groupId: 'foo',
-        version: '1',
+const componentResults = {
+  totalResultsCount: 2,
+  results: [
+    {
+      hash: '12345',
+      packageUrl: 'pkg:a',
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'foo',
+          extension: 'foo',
+          groupId: 'foo',
+          version: '1',
+        },
       },
+      displayName: 'a1',
+      licenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      vulnerabilitySeverityNoneCount: 0,
+      vulnerabilitySeverityLowCount: 1,
+      vulnerabilitySeverityMediumCount: 2,
+      vulnerabilitySeverityHighCount: 3,
+      vulnerabilitySeverityCriticalCount: 4,
     },
-    displayName: 'a1',
-    licenses: [
-      {
-        licenseId: 'Apache-2.0',
-        licenseName: 'Apache-2.0',
+    {
+      hash: '67890',
+      packageUrl: 'pkg:z',
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'bar',
+          extension: 'bar',
+          groupId: 'bar',
+          version: '2',
+        },
       },
-    ],
-    vulnerabilitySeverityNoneCount: 0,
-    vulnerabilitySeverityLowCount: 1,
-    vulnerabilitySeverityMediumCount: 2,
-    vulnerabilitySeverityHighCount: 3,
-    vulnerabilitySeverityCriticalCount: 4,
-  },
-  {
-    hash: '67890',
-    packageUrl: 'pkg:z',
-    componentIdentifier: {
-      format: 'maven',
-      coordinates: {
-        artifactId: 'bar',
-        extension: 'bar',
-        groupId: 'bar',
-        version: '2',
-      },
+      displayName: 'z2',
+      licenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      vulnerabilitySeverityNoneCount: 0,
+      vulnerabilitySeverityLowCount: 5,
+      vulnerabilitySeverityMediumCount: 6,
+      vulnerabilitySeverityHighCount: 7,
+      vulnerabilitySeverityCriticalCount: 8,
     },
-    displayName: 'z2',
-    licenses: [
-      {
-        licenseId: 'Apache-2.0',
-        licenseName: 'Apache-2.0',
-      },
-    ],
-    vulnerabilitySeverityNoneCount: 0,
-    vulnerabilitySeverityLowCount: 5,
-    vulnerabilitySeverityMediumCount: 6,
-    vulnerabilitySeverityHighCount: 7,
-    vulnerabilitySeverityCriticalCount: 8,
-  },
-];
+  ],
+};
 
 describe('componentsBillOfMaterialsTile reducers have the correct state when the following reducer is dispatched', function () {
   describe('componentsBillOfMaterialsTile/loadSbomTableData', function () {
@@ -124,7 +127,7 @@ describe('componentsBillOfMaterialsTile reducers have the correct state when the
         applicationId: null,
       };
 
-      const payload = [componentResults[0]];
+      const payload = { ...componentResults, results: [componentResults.results[0]] };
 
       const newState = reducer(state, {
         type: 'componentsBillOfMaterialsTile/loadSbomTableData/fulfilled',
@@ -140,7 +143,7 @@ describe('componentsBillOfMaterialsTile reducers have the correct state when the
   it('componentsBillOfMaterialsTile/toggleSortDir', () => {
     const state = {
       sortDir: 'asc',
-      results: [componentResults[0]],
+      results: [componentResults.results[0]],
     };
 
     const newState = reducer(state, {
@@ -153,7 +156,7 @@ describe('componentsBillOfMaterialsTile reducers have the correct state when the
   it('componentsBillOfMaterialsTile/sortResults', () => {
     const state = {
       sortDir: 'desc',
-      results: componentResults,
+      results: componentResults.results,
     };
 
     const newState = reducer(state, {

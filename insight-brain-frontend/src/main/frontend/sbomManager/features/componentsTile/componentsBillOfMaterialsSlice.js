@@ -49,7 +49,7 @@ const loadSbomTableDataFailed = (state, { payload }) => {
 };
 
 const loadSbomTableDataFulfilled = (state, { payload }) => {
-  state.results = payload;
+  state.results = payload.results;
   state.loading = false;
   sortResults(state);
 };

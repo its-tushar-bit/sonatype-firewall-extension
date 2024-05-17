@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import moment from 'moment';
 import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
 import { screen } from '@testing-library/dom';
@@ -45,6 +46,8 @@ describe('BillOfMaterials page', () => {
     unspecified: null,
   });
 
+  const createdAt = moment(new Date('2024-01-12T20:11:22.000+00:00')).format('YYYY-MM-DD HH:mm:ss');
+
   const sbomMetadataResponsePayload = {
     author: ['Alice', 'Bob'],
     manufacturer: ['Orange'],
@@ -54,7 +57,7 @@ describe('BillOfMaterials page', () => {
     specification: 'SPDX',
     specVersion: '2.3',
     fileFormat: 'json',
-    createdAt: '2024-01-12T20:11:22Z',
+    createdAt: createdAt,
     scanId: 'scan-id',
   };
 
@@ -162,7 +165,7 @@ describe('BillOfMaterials page', () => {
     expect(screen.getByRole('heading', { name: /Alice/ })).toBeVisible();
 
     const sbomImportedDate = screen.getByTestId('bill-of-materials-page-sbom-imported-date');
-    expect(sbomImportedDate).toHaveTextContent('Imported:2024-01-12 20:11:22 UTC+00:00');
+    expect(sbomImportedDate).toHaveTextContent(`Imported:${createdAt}`);
 
     expect(screen.getByRole('button', { name: 'Download' })).toBeVisible();
     expect(screen.getByText('Components')).toBeVisible();

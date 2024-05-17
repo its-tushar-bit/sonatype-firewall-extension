@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
@@ -28,6 +30,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -36,7 +40,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
@@ -54,6 +58,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -256,23 +261,34 @@ public class ApiSbomService
       int pageSize,
       int page)
   {
+    validatePagination(pageSize, page);
+    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, pageSize, page);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public SbomComponentListDTO getSbomComponents(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String version,
+      Set<CvssV3Severity> vulnerabilityThreatLevels,
+      Set<ThirdPartyDependencyType> dependencyTypes,
+      SbomComponentSortableField sortBy,
+      boolean asc,
+      int pageSize,
+      int page)
+  {
+    validatePagination(pageSize, page);
+    ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
+    return thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
+        vulnerabilityThreatLevels, dependencyTypes, sortBy, asc, pageSize, page);
+  }
+
+  private void validatePagination(int pageSize, int page) {
     if (pageSize < 1) {
       throw new BadRequestException("pageSize must not be less than one!");
     }
     if (page < 1) {
       throw new BadRequestException("page index must not be less than one!");
     }
-    return thirdPartyFileCoordinateDAO.getSbomApplicationVulnerabilities(applicationId, sortByDate, pageSize, page);
-  }
-
-  @Authorize(permission = Permission.READ)
-  public List<SbomComponentDTO> getSbomComponents(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      String version)
-  {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
-    return thirdPartyFileCoordinateDAO
-        .getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
   }
 
   private ThirdPartySbomMetadata getThirdPartySbomMetadataNotNull(String applicationId, String version) {

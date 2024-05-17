@@ -141,6 +141,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -3819,13 +3820,13 @@ public class TemporaryEntity
       String version,
       String hash,
       String packageUrl,
-      String dependencyType)
+      ThirdPartyDependencyType dependencyType)
   {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
-    fileCoordinate.setDependencyType(dependencyType);
+    fileCoordinate.setDependencyType(dependencyType.getValue());
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

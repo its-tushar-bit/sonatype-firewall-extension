@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,10 +37,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequest
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -175,7 +180,8 @@ public class ApiSbomResource
     return apiSbomService.getSbomMetadataSummaryForApplication(applicationId, sortByDate, pageSize, page);
   }
 
-  @Operation(summary = "Gets the components found in a specific sbom version", tags = {"sbom"},
+  @Operation(summary = "Gets the components found in a specific sbom version",
+      tags = {"sbom"},
       description = "Lists the components in a specific sbom version with data about vulnerabilities and licenses",
       responses = {
           @ApiResponse(responseCode = "200", description = "List of components in the sbom",
@@ -186,14 +192,33 @@ public class ApiSbomResource
   @Path(SBOM_COMPONENTS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<SbomComponentDTO> getSbomComponents(
-      @Parameter(description = "The internal id of the application",
-          required = true) @PathParam("applicationId") String applicationId,
+  public SbomComponentListDTO getSbomComponents(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
 
-      @Parameter(description = "URL Encoded version value of the sbom to query its components",
-          required = true) @PathParam("version") String version)
+      @Parameter(description = "URL Encoded version value of the sbom to query its components", required = true)
+      @PathParam("version") String version,
+
+      @Parameter(description = "If provided, filter components by the given threat level on their vulnerabilities")
+      @QueryParam("vulnerabilityThreatLevels") Set<CvssV3Severity> vulnerabilityThreatLevels,
+
+      @Parameter(description = "If provided, filter components by the given dependency types")
+      @QueryParam("dependencyTypes") Set<ThirdPartyDependencyType> dependencyTypes,
+
+      @Parameter(description = "Criteria to sort the results. default = VULNERABILITIES")
+      @DefaultValue("VULNERABILITIES") @QueryParam("sortBy") SbomComponentSortableField sortBy,
+
+      @Parameter(description = "Order mode ASC=true or DESC=false. default = false")
+      @DefaultValue("false") @QueryParam("asc") boolean asc,
+
+      @Parameter(description = "Current page number. default = 1")
+      @DefaultValue("1") @QueryParam("page") int page,
+
+      @Parameter(description = "Number of items to return by page. default = 50")
+      @DefaultValue("50") @QueryParam("pageSize") int pageSize)
   {
-    return apiSbomService.getSbomComponents(applicationId, version);
+    return apiSbomService.getSbomComponents(applicationId, version, vulnerabilityThreatLevels, dependencyTypes, sortBy,
+        asc, pageSize, page);
   }
 
   @Operation(summary = "Gets a list of sbom versions by application id",

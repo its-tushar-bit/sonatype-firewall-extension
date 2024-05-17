@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
-import javax.inject.Inject;
 import java.util.Arrays;
 
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -16,11 +18,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -332,10 +334,10 @@ public class SbomComponentsServiceTest
         .build();
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "D");
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "T");
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
             "r1", "d1", "l1", 5.5, "sd1", "f1");

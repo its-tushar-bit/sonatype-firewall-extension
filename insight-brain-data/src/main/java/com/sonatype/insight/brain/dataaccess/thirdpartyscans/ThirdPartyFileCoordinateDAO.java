@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,11 +19,16 @@ import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
@@ -160,7 +169,17 @@ public class ThirdPartyFileCoordinateDAO
   }
 
   @SuppressWarnings("unchecked")
-  public List<SbomComponentDTO> getSbomComponentsByThirdPartyFileId(String thirdPartyFileId) {
+  public SbomComponentListDTO getSbomComponentsByThirdPartyFileId(
+      String thirdPartyFileId,
+      Set<CvssV3Severity> vulnerabilityThreatLevels,
+      Set<ThirdPartyDependencyType> dependencyTypes,
+      SbomComponentSortableField sortBy,
+      boolean asc,
+      int pageSize,
+      int page)
+  {
+    Map<Integer, String> dependencyTypesParams = new LinkedHashMap<>();
+
     String sQuery = "" + //
         "SELECT fc.hash," + //
         "       fc.package_url," + //
@@ -171,7 +190,11 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS severity_low," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) AS severity_medium," + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS severity_high," + //
-        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical" + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical, " + //
+        "       ROUND(COUNT(ve) * 100.0 / GREATEST(COUNT(cs), 1), 1) as percentage, " + //
+        "       fc.dependency_type," + //
+        "       COUNT(*) OVER() AS full_count" + //
+
         " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
         "    ON cs.file_coordinate_id = fc.file_coordinate_id" + //
@@ -182,17 +205,34 @@ public class ThirdPartyFileCoordinateDAO
         "         WHERE cl.file_coordinate_id = fc.file_coordinate_id" + //
         "         GROUP BY cl.file_coordinate_id) lic" + //
         "    ON lic.file_coordinate_id = fc.file_coordinate_id" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability ve" + //
+        "    ON cs.coordinate_security_id = ve.coordinate_security_id" + //
         " WHERE fc.third_party_file_id = ?10" + //
-        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json";
+        generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, 11) + //
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type " + //
+        generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
+        generateOrderBySortFieldSelected(sortBy, asc);
+
+    int offset = (page - 1) * pageSize;
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, NONE.getStartScoreRange(), LOW.getStartScoreRange(),
-          LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
-          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), thirdPartyFileId);
+      javax.persistence.Query paginationQuery =
+          createPaginationQueryWithScoreRangeParams(thirdPartyFileId, pageSize, sQuery, offset, tx);
+      dependencyTypesParams.forEach(paginationQuery::setParameter);
 
-      return ((Stream<Object[]>) query.getResultStream())
+      SbomComponentListDTO result = new SbomComponentListDTO();
+
+      List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
+          .peek(array -> {
+            if (result.getTotalResultsCount() == 0) {
+              result.setTotalResultsCount(((Long) array[12]).intValue());
+            }
+          })
           .map(SbomComponentDTO::new)
           .collect(Collectors.toList());
+
+      result.setResults(dtos);
+      return result;
     }
   }
 
@@ -244,17 +284,8 @@ public class ThirdPartyFileCoordinateDAO
     ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
-      paginationQuery.setParameter(1, NONE.getStartScoreRange());
-      paginationQuery.setParameter(2, LOW.getStartScoreRange());
-      paginationQuery.setParameter(3, LOW.getEndScoreRange());
-      paginationQuery.setParameter(4, MEDIUM.getStartScoreRange());
-      paginationQuery.setParameter(5, MEDIUM.getEndScoreRange());
-      paginationQuery.setParameter(6, HIGH.getStartScoreRange());
-      paginationQuery.setParameter(7, HIGH.getEndScoreRange());
-      paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
-      paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
-      paginationQuery.setParameter(10, applicationId);
+      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
+          applicationId, pageSize, sQuery, offset, tx);
       paginationQuery.setParameter(11, "ACTIVE");
 
       List<ThirdPartySbomMetadataSummaryDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
@@ -271,7 +302,6 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  @SuppressWarnings("unchecked")
   public BomPageSbomSummaryDTO getSbomVunerabilitySummaryForComponents(
       String applicationId,
       String version)
@@ -350,5 +380,116 @@ public class ThirdPartyFileCoordinateDAO
 
       return result;
     }
+  }
+
+  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+      final String searchParam,
+      final int pageSize,
+      final String sQuery,
+      final int offset,
+      final TransactionContext tx)
+  {
+    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, NONE.getStartScoreRange());
+    paginationQuery.setParameter(2, LOW.getStartScoreRange());
+    paginationQuery.setParameter(3, LOW.getEndScoreRange());
+    paginationQuery.setParameter(4, MEDIUM.getStartScoreRange());
+    paginationQuery.setParameter(5, MEDIUM.getEndScoreRange());
+    paginationQuery.setParameter(6, HIGH.getStartScoreRange());
+    paginationQuery.setParameter(7, HIGH.getEndScoreRange());
+    paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
+    paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
+    paginationQuery.setParameter(10, searchParam);
+    return paginationQuery;
+  }
+
+  private String generateOrderBySortFieldSelected(SbomComponentSortableField sortBy, boolean asc) {
+    if (sortBy == null) {
+      return "";
+    }
+    String query;
+    String order = asc ? "ASC" : "DESC";
+    String tieBreaker =
+        ", fc.name " + order + ", fc.version " + order + ", fc.package_url " + order + ", fc.hash " + order;
+    switch (sortBy) {
+      case TYPE:
+        query = " ORDER BY fc.dependency_type " + order + tieBreaker;
+        break;
+      case PERCENTAGE_ANNOTATED:
+        query = " ORDER BY percentage " + order + tieBreaker;
+        break;
+      case VULNERABILITIES:
+      default:
+        query = " ORDER BY severity_critical " + order +
+            " , severity_high " + order +
+            " , severity_medium " + order +
+            " , severity_low " + order +
+            tieBreaker;
+    }
+    return query;
+  }
+
+  private String generateHavingByDependencyTypes(
+      Set<ThirdPartyDependencyType> dependencyTypes,
+      Map<Integer, String> params,
+      int index)
+  {
+    if (CollectionUtils.isNotEmpty(dependencyTypes)) {
+      String query = " AND (";
+
+      for (ThirdPartyDependencyType dependencyType : dependencyTypes) {
+        switch (dependencyType) {
+          case DIRECT:
+            query += "fc.dependency_type = ?" + index + " OR ";
+            params.put(index++, ThirdPartyDependencyType.DIRECT.getValue());
+            break;
+          case TRANSITIVE:
+            query += "fc.dependency_type = ?" + index + " OR ";
+            params.put(index++, ThirdPartyDependencyType.TRANSITIVE.getValue());
+            break;
+          case UNSPECIFIED:
+            query += "fc.dependency_type IS NULL OR ";
+            break;
+          default:
+            query += "";
+        }
+      }
+
+      return StringUtils.removeEnd(query, "OR ") + ")";
+    }
+
+    return "";
+  }
+
+  private String generateHavingByVulnerabilityThreatLevels(Set<CvssV3Severity> vulnerabilityThreatLevels) {
+    if (CollectionUtils.isNotEmpty(vulnerabilityThreatLevels)) {
+      String query = " HAVING ";
+
+      for (CvssV3Severity vulnerabilityThreatLevel : vulnerabilityThreatLevels) {
+        switch (vulnerabilityThreatLevel) {
+          case NONE:
+            query += "COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) > 0 OR ";
+            break;
+          case LOW:
+            query += "COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) > 0 OR ";
+            break;
+          case MEDIUM:
+            query += "COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) > 0 OR ";
+            break;
+          case HIGH:
+            query += "COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) > 0 OR ";
+            break;
+          case CRITICAL:
+            query += "COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) > 0 OR ";
+            break;
+          default:
+            query += "";
+        }
+      }
+
+      return StringUtils.removeEnd(query, "OR ");
+    }
+
+    return "";
   }
 }

@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -32,9 +33,13 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThirdPartyFileCoordinateDAOTest
@@ -334,10 +339,12 @@ public class ThirdPartyFileCoordinateDAOTest
         .withApplicationId(application.getId())
         .build();
 
-    List<SbomComponentDTO> results =
-        thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO
+        .getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null, null, null, true, 1, 2);
 
-    assertThat(results).isEmpty();
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isZero();
+    assertThat(result.getResults()).isEmpty();
   }
 
   @Test
@@ -359,16 +366,20 @@ public class ThirdPartyFileCoordinateDAOTest
         "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
         "h2", packageUrlIdentifier2.getPackageUrl());
 
-    List<SbomComponentDTO> results =
-        thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO
+        .getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null, null, null, true, 2, 1);
 
-    assertThat(results).isNotEmpty();
-    assertThat(results)
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+    assertThat(dtos)
+        .hasSize(2)
         .extracting(SbomComponentDTO::getHash)
         .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash());
 
-    assertSbomComponentEmpty(componentIdentifier1, packageUrlIdentifier1, coordinate1, results);
-    assertSbomComponentEmpty(componentIdentifier2, packageUrlIdentifier2, coordinate2, results);
+    assertSbomComponentEmpty(componentIdentifier1, packageUrlIdentifier1, coordinate1, dtos);
+    assertSbomComponentEmpty(componentIdentifier2, packageUrlIdentifier2, coordinate2, dtos);
   }
 
   @Test
@@ -392,18 +403,22 @@ public class ThirdPartyFileCoordinateDAOTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
-    List<SbomComponentDTO> results =
-        thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO
+        .getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null, null, null, true, 2, 1);
 
-    assertThat(results).isNotEmpty();
-    assertThat(results)
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos)
+        .hasSize(2)
         .extracting(SbomComponentDTO::getHash)
         .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash());
 
-    assertSbomComponentEmpty(componentIdentifier1, packageUrlIdentifier1, coordinate1, results);
+    assertSbomComponentEmpty(componentIdentifier1, packageUrlIdentifier1, coordinate1, dtos);
 
-    assertThat(results)
-        .filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
+    assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
           assertThat(component.getDisplayName())
@@ -414,9 +429,11 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(License::getLicenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(License::getLicenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
         });
   }
 
@@ -452,16 +469,21 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
         "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
         "h1", packageUrlIdentifier1.getPackageUrl());
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "cve-1", "description1", "link1",
-        CvssV3Severity.CRITICAL.getEndScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "fix1");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "cve-2", "description2", "link2", CvssV3Severity.CRITICAL.getEndScoreRange(),
+        CvssV3Severity.CRITICAL.getDisplayName(), "fix1");
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity1);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
     PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
     ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
         "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
         "h2", packageUrlIdentifier2.getPackageUrl());
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-2", "description2", "link2",
-        CvssV3Severity.NONE.getStartScoreRange(), CvssV3Severity.NONE.getDisplayName(), "fix2");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity2 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+        "cve-2", "description2", "link2", CvssV3Severity.NONE.getStartScoreRange(),
+        CvssV3Severity.NONE.getDisplayName(), "fix2");
     tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-3", "description3", "link3",
         CvssV3Severity.LOW.getStartScoreRange() + 0.2f, CvssV3Severity.LOW.getDisplayName(), "fix3");
     tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-4", "description4", "link4",
@@ -472,19 +494,27 @@ public class ThirdPartyFileCoordinateDAOTest
         CvssV3Severity.HIGH.getEndScoreRange() - 0.1f, CvssV3Severity.HIGH.getDisplayName(), "fix6");
     tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "cve-7", "description7", "link7",
         CvssV3Severity.CRITICAL.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "fix7");
+
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
+
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
-    List<SbomComponentDTO> results =
-        thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, null, true, 2, 1);
 
-    assertThat(results).isNotEmpty();
-    assertThat(results)
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(2);
+    assertThat(dtos.get(1).getPercentageAnnotated()).isEqualTo(16.7);
+    assertThat(dtos)
         .extracting(SbomComponentDTO::getHash)
         .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash());
 
-    assertThat(results)
-        .filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
+    assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate1.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier1.getPackageUrl());
           assertThat(component.getDisplayName())
@@ -497,8 +527,7 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getLicenses()).isNullOrEmpty();
         });
 
-    assertThat(results)
-        .filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
+    assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
         .allSatisfy(component -> {
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
           assertThat(component.getDisplayName())
@@ -509,10 +538,390 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isEqualTo(2);
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isOne();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(License::getLicenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(License::getLicenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
         });
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByVulnerabilities() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl());
+
+    insertThirdPartyCoordinateSecurity(coordinate1, CvssV3Severity.CRITICAL, 0f, "cv1");
+    insertThirdPartyCoordinateSecurity(coordinate1, CvssV3Severity.CRITICAL, 0f, "cv1-1");
+    insertThirdPartyCoordinateSecurity(coordinate1, CvssV3Severity.CRITICAL, 0f, "cv1-2");
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl());
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1-1");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1-2");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.HIGH, 1f, "cv2");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.HIGH, 1f, "cv2-1");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.MEDIUM, 1f, "cv3");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.LOW, 1f, "cv4");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.NONE, 0f, "cv5");
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    ThirdPartyFileCoordinate coordinate3 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl());
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.CRITICAL, 1f, "cv1");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.CRITICAL, 1f, "cv1-1");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.CRITICAL, 1f, "cv1-2");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.HIGH, 1f, "cv2");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.HIGH, 1f, "cv2-1");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.MEDIUM, 1f, "cv3");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.MEDIUM, 1f, "cv3-1");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.LOW, 1f, "cv4");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.NONE, 0f, "cv5");
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, SbomComponentSortableField.VULNERABILITIES, false, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(3);
+    assertThat(dtos.get(0).getHash()).isEqualTo("h3");
+    assertThat(dtos.get(1).getHash()).isEqualTo("h2");
+    assertThat(dtos.get(2).getHash()).isEqualTo("h1");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByPercentage() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), DIRECT);
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        insertThirdPartyCoordinateSecurity(coordinate1, CvssV3Severity.CRITICAL, 0f, "cv1");
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), TRANSITIVE);
+    ThirdPartyCoordinateSecurity coordinateSecurity2 =
+        insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1-1");
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    ThirdPartyFileCoordinate coordinate3 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), DIRECT);
+    ThirdPartyCoordinateSecurity coordinateSecurity3 =
+        insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.LOW, 1f, "cv1");
+    ThirdPartyCoordinateSecurity coordinateSecurity4 =
+        insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.NONE, 0f, "cv2");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.NONE, 0f, "cv3");
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity4);
+    insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity3);
+
+    ComponentIdentifier componentIdentifierWithoutVex = ComponentIdentifier.createNpmCoordinates("p4", "v4");
+    PackageUrlIdentifier packageUrlIdentifierWithoutVex =
+        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifierWithoutVex);
+    ThirdPartyFileCoordinate coordinateWithoutVex =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s4",
+            packageUrlIdentifierWithoutVex.getFormat(), packageUrlIdentifierWithoutVex.getName(),
+            packageUrlIdentifierWithoutVex.getVersion(), "h4", packageUrlIdentifierWithoutVex.getPackageUrl(), DIRECT);
+    insertThirdPartyCoordinateSecurity(coordinateWithoutVex, CvssV3Severity.LOW, 1f, "cv1");
+
+    ComponentIdentifier componentIdentifierWithoutVulnerabilities =
+        ComponentIdentifier.createNpmCoordinates("p5", "v5");
+    PackageUrlIdentifier packageUrlIdentifierWithoutVulnerabilities =
+        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifierWithoutVulnerabilities);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s5",
+        packageUrlIdentifierWithoutVulnerabilities.getFormat(), packageUrlIdentifierWithoutVulnerabilities.getName(),
+        packageUrlIdentifierWithoutVulnerabilities.getVersion(), "h5",
+        packageUrlIdentifierWithoutVulnerabilities.getPackageUrl(), DIRECT);
+
+    // Percentages in descending order
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, SbomComponentSortableField.PERCENTAGE_ANNOTATED, false, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(5);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(5);
+    assertThat(dtos.get(0).getName()).isEqualTo("p1");
+    assertThat(dtos.get(0).getPercentageAnnotated()).isEqualTo(100.0);
+    assertThat(dtos.get(1).getName()).isEqualTo("p3");
+    assertThat(dtos.get(1).getPercentageAnnotated()).isEqualTo(66.7);
+    assertThat(dtos.get(2).getName()).isEqualTo("p2");
+    assertThat(dtos.get(2).getPercentageAnnotated()).isEqualTo(50.0);
+    // component p5 goes before p4 even when both percentages are 0 as the name gets sorted first when descending
+    assertThat(dtos.get(3).getName()).isEqualTo("p5");
+    assertThat(dtos.get(3).getPercentageAnnotated()).isEqualTo(0);
+    assertThat(dtos.get(4).getName()).isEqualTo("p4");
+    assertThat(dtos.get(4).getPercentageAnnotated()).isEqualTo(0);
+
+    // Percentages in ascending order
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
+        null, SbomComponentSortableField.PERCENTAGE_ANNOTATED, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(5);
+
+    dtos = result.getResults();
+
+    assertThat(dtos).hasSize(5);
+    // component p4 goes before p5 even when both percentages are 0 as the name gets sorted first when ascending
+    assertThat(dtos.get(0).getName()).isEqualTo("p4");
+    assertThat(dtos.get(0).getPercentageAnnotated()).isEqualTo(0);
+    assertThat(dtos.get(1).getName()).isEqualTo("p5");
+    assertThat(dtos.get(1).getPercentageAnnotated()).isEqualTo(0);
+    assertThat(dtos.get(2).getName()).isEqualTo("p2");
+    assertThat(dtos.get(2).getPercentageAnnotated()).isEqualTo(50.0);
+    assertThat(dtos.get(3).getName()).isEqualTo("p3");
+    assertThat(dtos.get(3).getPercentageAnnotated()).isEqualTo(66.7);
+    assertThat(dtos.get(4).getName()).isEqualTo("p1");
+    assertThat(dtos.get(4).getPercentageAnnotated()).isEqualTo(100.0);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByType() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", packageUrlIdentifier1.getFormat(),
+        packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(), "h1",
+        packageUrlIdentifier1.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), TRANSITIVE);
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1");
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 1f, "cv1-1");
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    ThirdPartyFileCoordinate coordinate3 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), DIRECT);
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.LOW, 1f, "cv4");
+    insertThirdPartyCoordinateSecurity(coordinate3, CvssV3Severity.NONE, 0f, "cv5");
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, SbomComponentSortableField.TYPE, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
+
+    List<SbomComponentDTO> dtos = result.getResults();
+
+    assertThat(dtos).hasSize(3);
+    assertThat(dtos.get(0).getHash()).isEqualTo("h1");
+    assertThat(dtos.get(1).getHash()).isEqualTo("h3");
+    assertThat(dtos.get(2).getHash()).isEqualTo("h2");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_Pagination() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, SbomComponentSortableField.TYPE, true, 1, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    assertThat(result.getResults())
+        .hasSize(1)
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate2.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null, SbomComponentSortableField.TYPE, true, 1, 2);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    assertThat(result.getResults())
+        .hasSize(1)
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate1.getHash());
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_FilterByVulnerabilityThreatLevels() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl());
+    insertThirdPartyCoordinateSecurity(coordinate1, CvssV3Severity.LOW, 1f, "cv1");
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl());
+    insertThirdPartyCoordinateSecurity(coordinate2, CvssV3Severity.CRITICAL, 0f, "cv2");
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), Collections.singleton(CvssV3Severity.LOW), null, null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate1.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), Collections.singleton(CvssV3Severity.CRITICAL), null, null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate2.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
+        Sets.newHashSet(CvssV3Severity.LOW, CvssV3Severity.CRITICAL), null, null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash());
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_FilterByDependencyTypes() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("p3", "v3");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    ThirdPartyFileCoordinate coordinate3 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, Collections.singleton(DIRECT), null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate2.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
+        Collections.singleton(TRANSITIVE), null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate1.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
+        Collections.singleton(UNSPECIFIED), null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactly(coordinate3.getHash());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
+        Sets.newHashSet(DIRECT, TRANSITIVE, UNSPECIFIED), null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
+
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getHash)
+        .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash(), coordinate3.getHash());
+  }
+
+  private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
+        "state", "justification", "response", "detail");
+  }
+
+  private ThirdPartyCoordinateSecurity insertThirdPartyCoordinateSecurity(
+      ThirdPartyFileCoordinate coordinate, CvssV3Severity severity,
+      float range, String refId)
+  {
+    return tempEntity.newThirdPartyCoordinateSecurity(coordinate, refId, "description", "link",
+        severity.getStartScoreRange() + range, severity.getDisplayName(), "fix");
   }
 
   private void assertThirdPartyCoordinateFile(
@@ -593,9 +1002,9 @@ public class ThirdPartyFileCoordinateDAOTest
         .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
         .build();
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "D");
+        "s", "SPDX", "n1", "v1", "h1", "u1", DIRECT);
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", "T");
+        "s", "SPDX", "n1", "v1", "h1", "u1", TRANSITIVE);
 
     SbomDependencyTypeDTO sbomDependencyTypeDTO = thirdPartyFileCoordinateDAO.getSbomDependencyTypeSummaryForComponents(
         app.getId(), sbomMetadata.getSbomVersion());

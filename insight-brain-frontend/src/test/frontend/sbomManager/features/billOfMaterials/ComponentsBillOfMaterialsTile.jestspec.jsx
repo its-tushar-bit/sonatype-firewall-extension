@@ -34,58 +34,61 @@ describe('ComponentsBillofMaterialsTile', () => {
       },
     };
 
-    axiosMock.onGet(getBillsOfMaterialsComponents(internalAppId, sbomVersion)).reply(200, [
-      {
-        hash: '12345',
-        packageUrl: 'pkg:a',
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'foo',
-            extension: 'foo',
-            groupId: 'foo',
-            version: '1',
+    axiosMock.onGet(getBillsOfMaterialsComponents(internalAppId, sbomVersion)).reply(200, {
+      totalResultsCount: 2,
+      results: [
+        {
+          hash: '12345',
+          packageUrl: 'pkg:a',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'foo',
+              extension: 'foo',
+              groupId: 'foo',
+              version: '1',
+            },
           },
+          displayName: 'a1',
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+            },
+          ],
+          vulnerabilitySeverityNoneCount: 0,
+          vulnerabilitySeverityLowCount: 1,
+          vulnerabilitySeverityMediumCount: 2,
+          vulnerabilitySeverityHighCount: 3,
+          vulnerabilitySeverityCriticalCount: 4,
         },
-        displayName: 'a1',
-        licenses: [
-          {
-            licenseId: 'Apache-2.0',
-            licenseName: 'Apache-2.0',
+        {
+          hash: '67890',
+          packageUrl: 'pkg:z',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'bar',
+              extension: 'bar',
+              groupId: 'bar',
+              version: '2',
+            },
           },
-        ],
-        vulnerabilitySeverityNoneCount: 0,
-        vulnerabilitySeverityLowCount: 1,
-        vulnerabilitySeverityMediumCount: 2,
-        vulnerabilitySeverityHighCount: 3,
-        vulnerabilitySeverityCriticalCount: 4,
-      },
-      {
-        hash: '67890',
-        packageUrl: 'pkg:z',
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'bar',
-            extension: 'bar',
-            groupId: 'bar',
-            version: '2',
-          },
+          displayName: 'z2',
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+            },
+          ],
+          vulnerabilitySeverityNoneCount: 0,
+          vulnerabilitySeverityLowCount: 5,
+          vulnerabilitySeverityMediumCount: 6,
+          vulnerabilitySeverityHighCount: 7,
+          vulnerabilitySeverityCriticalCount: 8,
         },
-        displayName: 'z2',
-        licenses: [
-          {
-            licenseId: 'Apache-2.0',
-            licenseName: 'Apache-2.0',
-          },
-        ],
-        vulnerabilitySeverityNoneCount: 0,
-        vulnerabilitySeverityLowCount: 5,
-        vulnerabilitySeverityMediumCount: 6,
-        vulnerabilitySeverityHighCount: 7,
-        vulnerabilitySeverityCriticalCount: 8,
-      },
-    ]);
+      ],
+    });
   });
 
   it("renders it's title", async () => {

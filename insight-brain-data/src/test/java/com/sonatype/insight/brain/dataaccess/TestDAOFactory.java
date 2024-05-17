@@ -528,10 +528,16 @@ public class TestDAOFactory
     RepositoryConnectionDAO repositoryConnectionDAO = createRepositoryConnectionDAO();
     SourceControlOrganizationImportEventDAO scmEventDAO = createSourceControlOrganizationImportEventDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
+    OrganizationAncestorDAO organizationAncestorDAO = createOrganizationAncestorDAO();
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
-        scmEventDAO, proprietaryConfigDAO, clusterLockManager);
+        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, clusterLockManager);
+  }
+
+  @Override
+  public OrganizationAncestorDAO createOrganizationAncestorDAO() {
+    return new OrganizationAncestorDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override
@@ -595,8 +601,6 @@ public class TestDAOFactory
   public PolicyDAO createPolicyDAO() {
     PolicyInternalDAO policyInternalDAO = createPolicyInternalDAO();
     OwnerDAO ownerDAO = createOwnerDAO();
-    PolicyTagDAO policyTagDAO = createPolicyTagDAO();
-    ApplicationTagDAO appTagDAO = createApplicationTagDAO();
 
     Provider<RoleDAO> roleDAOProvider = this::createRoleDAO;
     UserNotificationValidator userNotificationValidator = new UserNotificationValidator();
@@ -609,7 +613,7 @@ public class TestDAOFactory
             webhookNotificationValidator);
     PolicyValidator policyValidator = new PolicyValidator(constraintValidator, notificationsValidator);
 
-    return new PolicyDAO(policyInternalDAO, ownerDAO, policyTagDAO, appTagDAO, policyValidator);
+    return new PolicyDAO(policyInternalDAO, ownerDAO, policyValidator);
   }
 
   @Override

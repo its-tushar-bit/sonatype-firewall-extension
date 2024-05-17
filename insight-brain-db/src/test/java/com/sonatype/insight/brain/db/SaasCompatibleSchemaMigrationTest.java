@@ -42,7 +42,7 @@ public class SaasCompatibleSchemaMigrationTest
     File schemaDir = new File("src/main/resources/db/" + schema);
     for (File file : schemaDir.listFiles()) {
       String filename = file.getName();
-      if (filename.startsWith("schema_incremental_")) {
+      if (filename.startsWith("schema_incremental_") && filename.endsWith(".sql")) {
         if (getVersion(filename) >= schemaCutoff) {
           assertThat(isSaasCompatible(file))
               .as("Schema file %s/%s is annotated as SaaS Compatible.  " +

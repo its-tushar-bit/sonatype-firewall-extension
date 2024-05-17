@@ -239,6 +239,8 @@ public interface DAOFactory
 
   OrganizationDAO createOrganizationDAO();
 
+  OrganizationAncestorDAO createOrganizationAncestorDAO();
+
   OwnerDAO createOwnerDAO();
 
   PerpetualLockDAO createPerpetualLockDAO();

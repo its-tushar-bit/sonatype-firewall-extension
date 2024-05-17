@@ -207,17 +207,10 @@ public class OrganizationService
   }
 
   private void fillAllParentOrgs(final Owner owner, Map<String, Organization> parentOrgs) {
-    if (owner == null || owner.getParentOwnerId() == null) {
-      return;
-    }
+    Collection<Organization> parents = organizationDAO.getAllParentOrganizations(owner.getId(), owner.getType());
 
-    String parentOrgId = owner.getParentOwnerId();
-
-    while (parentOrgId != null) {
-      if (parentOrgs.containsKey(parentOrgId)) {
-        break;
-      }
-      parentOrgId = parentOrgs.computeIfAbsent(parentOrgId, organizationDAO::getById).getParentOwnerId();
+    for (Organization parent : parents) {
+      parentOrgs.put(parent.getId(), parent);
     }
   }
 

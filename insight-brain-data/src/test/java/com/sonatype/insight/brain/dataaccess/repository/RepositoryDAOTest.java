@@ -772,4 +772,36 @@ public class RepositoryDAOTest
         repository1.getId());
     assertThat(dao.getByRepositoryIdAndManagerId(repositoryManager2.getId(), repository1.getId())).isNull();
   }
+
+  @Test
+  public void testGetByAncestorId() {
+    assertThat(dao.getByAncestorId(Organization.ROOT_ORGANIZATION_ID))
+        .extracting(Repository::getId)
+        .containsExactlyInAnyOrder(repository.getId());
+
+    assertThat(dao.getByAncestorId(tempEntity.newOrganization().getId())).isEmpty();
+
+    RepositoryManager repoMan1 = tempEntity.newRepositoryManager();
+    Repository repo11 = tempEntity.newRepository(repoMan1);
+    Repository repo12 = tempEntity.newRepository(repoMan1);
+
+    RepositoryManager repoMan2 = tempEntity.newRepositoryManager();
+    Repository repo21 = tempEntity.newRepository(repoMan2);
+    Repository repo22 = tempEntity.newRepository(repoMan2);
+
+    assertThat(dao.getByAncestorId(Organization.ROOT_ORGANIZATION_ID))
+        .extracting(Repository::getId)
+        .containsExactlyInAnyOrder(repository.getId(), repo11.getId(), repo12.getId(), repo21.getId(), repo22.getId());
+
+    assertThat(dao.getByAncestorId(repoMan1.getId()))
+        .extracting(Repository::getId)
+        .containsExactlyInAnyOrder(repo11.getId(), repo12.getId());
+
+    assertThat(dao.getByAncestorId(repoMan2.getId()))
+        .extracting(Repository::getId)
+        .containsExactlyInAnyOrder(repo21.getId(), repo22.getId());
+
+    // querying directly by repo id should not return that repo nor anything else
+    assertThat(dao.getByAncestorId(repo11.getId())).isEmpty();
+  }
 }

@@ -5,15 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -53,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
@@ -247,66 +251,122 @@ public class OwnerDAO
     return getById(owner.getParentOwnerId());
   }
 
-  public Iterable<Owner> walkHierarchy(Owner owner) {
-    return () -> new OwnerIterator(null, owner);
+  /**
+   * NOTE: if your goal is ultimately to obtain instances of some other owner-related entity, such as policies,
+   * this method is probably not the most effective choice. Instead, consider joining against the OwnerAncestor view
+   * when querying the database in order to get entities related to a given owner and all of its ancestors at the
+   * same time.
+   */
+  public Iterable<Owner> walkHierarchy(final Owner owner) {
+    if (owner == null) {
+      return Collections.emptyList();
+    }
+    else if (owner.getParentOwnerId() == null) {
+      return Collections.singletonList(owner);
+    }
+    else {
+      // Return an iterable that will initially return the passed-in owner and then call walkHierarchy on that
+      // owner's parent lazily, only if needed
+      return () -> {
+        return new Iterator<Owner>() {
+          private boolean returnedImmediateOwner = false;
+
+          private Iterator<Owner> parentIterator;
+
+          @Override
+          public boolean hasNext() {
+            return !returnedImmediateOwner || getParentIterator().hasNext();
+          }
+
+          @Override
+          public Owner next() {
+            if (!returnedImmediateOwner) {
+              returnedImmediateOwner = true;
+              return owner;
+            }
+            else {
+              return getParentIterator().next();
+            }
+          }
+
+          private Iterator<Owner> getParentIterator() {
+            if (parentIterator == null) {
+              parentIterator = walkHierarchy(owner.getParentOwnerId(), owner.getType().getParentType()).iterator();
+            }
+
+            return parentIterator;
+          }
+        };
+      };
+    }
   }
 
   public Iterable<Owner> walkHierarchy(final String ownerId) {
-    return () -> new OwnerIterator(null, ownerId);
+    return walkHierarchy(ownerId, null);
   }
 
-  public Iterable<Owner> walkHierarchy(TransactionContext tx, final String ownerId) {
-    if (tx == null) {
-      throw new IllegalArgumentException();
-    }
-    return () -> new OwnerIterator(tx, ownerId);
+  public Iterable<Owner> walkHierarchy(final String ownerId, final OwnerType type) {
+    return walkHierarchy(null, ownerId, type);
   }
 
-  private class OwnerIterator
-      implements Iterator<Owner>
-  {
-    private final TransactionContext tx;
+  public Iterable<Owner> walkHierarchy(final TransactionContext tx, final String ownerId) {
+    return walkHierarchy(tx, ownerId, null);
+  }
 
-    private String nextOwnerId;
+  /**
+   * @param type the type of the owner whose ancestors are being queried. Can be left null if unknown, or specified
+   * if known in order to optimize the number of queries performed
+   */
+  public Iterable<Owner> walkHierarchy(final TransactionContext tx, final String ownerId, final OwnerType type) {
+    // We use Stream for its laziness, but Stream itself cannot be iterated multiple times, so we must wrap its
+    // construction in this Iterable that, if its iterator() method were called multiple times, would repeat this
+    // logic
+    return () -> {
+      boolean fetchApp = type == null || type == OwnerType.APPLICATION;
+      boolean fetchRepo = type == null || type == OwnerType.REPOSITORY;
+      boolean fetchRepoManager = type == null || type == OwnerType.REPOSITORY || type == OwnerType.REPOSITORY_MANAGER;
 
-    private Owner nextOwner;
+      // also will be included in the result if a repo manager is fetched
+      boolean fetchRepoContainerSeparately = RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(ownerId);
 
-    OwnerIterator(TransactionContext tx, final String startOwnerId) {
-      this.tx = tx;
-      nextOwnerId = startOwnerId;
-    }
-
-    OwnerIterator(TransactionContext tx, Owner startOwner) {
-      this.tx = tx;
-      nextOwner = startOwner;
-    }
-
-    @Override
-    public boolean hasNext() {
-      if (nextOwner == null) {
-        if (nextOwnerId != null) {
-          nextOwner = (tx != null) ? getById(tx, nextOwnerId) : getById(nextOwnerId);
-          nextOwnerId = null;
-        }
+      // Because the returned list will contain objects of multiple different types, we have to fetch them in multiple
+      // JPA queries. Note that due to the limitations of TransactionContext (it is not thread-safe) we cannot do these
+      // queries concurrently
+      Stream.Builder<Stream<Owner>> hierarchyBuilder = Stream.builder();
+      if (fetchApp) {
+        hierarchyBuilder.accept(lazy(() -> tx == null ? appDAO.getById(ownerId) : appDAO.getById(tx, ownerId)));
       }
-      return nextOwner != null;
-    }
-
-    @Override
-    public Owner next() {
-      if (!hasNext()) {
-        throw new NoSuchElementException();
+      if (fetchRepo) {
+        hierarchyBuilder.accept(lazy(() -> tx == null ? repoDAO.getById(ownerId) : repoDAO.getById(tx, ownerId)));
       }
-      Owner current = nextOwner;
-      nextOwnerId = nextOwner.getParentOwnerId();
-      nextOwner = null;
-      return current;
-    }
+      if (fetchRepoManager) {
+        Supplier<RepositoryManager> repoManagerSupplier = () -> tx == null ?
+            repoManagerDAO.getByIdOrRepositoryId(ownerId) :
+            repoManagerDAO.getByIdOrRepositoryId(tx, ownerId);
 
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
+        hierarchyBuilder.accept(
+            lazy(repoManagerSupplier)
+                .filter(Objects::nonNull)
+                // NOTE: we avoid doing a separate database lookup for the RepositoryContainer - we know that if
+                // a repo manager is an ancestor then a RepositoryContainer is as well.
+                .flatMap(repoManager -> Stream.of(repoManager, RepositoryContainer.SINGLETON))
+        );
+      }
+      if (fetchRepoContainerSeparately) {
+        hierarchyBuilder.accept(Stream.of(RepositoryContainer.SINGLETON));
+      }
+
+      Supplier<Stream<Organization>> parentOrgSupplier = () -> tx == null ?
+          orgDAO.getAllParentOrganizations(ownerId, type).stream() :
+          orgDAO.getAllParentOrganizations(tx, ownerId, type).stream();
+
+      hierarchyBuilder.accept(lazy(parentOrgSupplier).flatMap(Function.identity()).map(Owner.class::cast));
+
+      return hierarchyBuilder.build()
+          .flatMap(Function.identity())
+          .filter(Objects::nonNull)
+          .iterator();
+    };
   }
 
   /**
@@ -316,16 +376,43 @@ public class OwnerDAO
    * @param owner Organization | Application | Repository | Repository Manager | Repository Container
    * @return List of owners
    */
-  public List<Owner> walkChildren(Owner owner) {
-    TransactionContext tx = appDAO.createTransactionContext();
-    List<Owner> ownersFound = new ArrayList<>();
-    Deque<Owner> ownerDeque = new ArrayDeque<>(getChildOwners(tx, owner));
-    while (!ownerDeque.isEmpty()) {
-      Owner child = ownerDeque.removeFirst();
-      ownersFound.add(child);
-      ownerDeque.addAll(getChildOwners(tx, child));
+  public List<Owner> walkChildren(final TransactionContext tx, final Owner owner) {
+    OwnerType type = owner.getType();
+    String ownerId = owner.getId();
+    boolean isRootOrg = type == OwnerType.ORGANIZATION && Organization.ROOT_ORGANIZATION_ID.equals(ownerId);
+    boolean fetchApp = type == OwnerType.ORGANIZATION;
+    boolean fetchRepo = type == OwnerType.ORGANIZATION || type == OwnerType.REPOSITORY_CONTAINER ||
+        type == OwnerType.REPOSITORY_MANAGER;
+    boolean fetchRepoManager = isRootOrg || type == OwnerType.REPOSITORY_CONTAINER;
+    boolean fetchRepoContainer = isRootOrg;
+
+    // Because the returned list will contain objects of multiple different types, we have to fetch them in multiple
+    // JPA queries
+    List<Owner> children = orgDAO.getAllChildOrganizations(tx, ownerId).stream()
+        // the first org is the owner that was queried, so skip it
+        .skip(1)
+        .collect(Collectors.toCollection(ArrayList::new));
+
+    if (fetchRepoContainer && isRootOrg) {
+      children.add(RepositoryContainer.SINGLETON);
     }
-    return ownersFound;
+    if (fetchRepoManager) {
+      children.addAll(repoManagerDAO.getAll(tx));
+    }
+    if (fetchRepo) {
+      children.addAll(repoDAO.getByAncestorId(tx, ownerId));
+    }
+    if (fetchApp) {
+      children.addAll(appDAO.getByAncestorId(tx, ownerId));
+    }
+
+    return children;
+  }
+
+  public List<Owner> walkChildren(final Owner owner) {
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      return walkChildren(tx, owner);
+    }
   }
 
   public void cascadeDelete(TransactionContext tx, Owner owner) {
@@ -460,5 +547,12 @@ public class OwnerDAO
   public List<String> getOwnerIds(String ownerId) {
     Owner owner = getById(ownerId);
     return getOwnerIds(owner);
+  }
+
+  /**
+   * Converts a Supplier into a Stream which will only invoke the underlying logic if it is needed
+   */
+  private static <T> Stream<T> lazy(Supplier<T> supplier) {
+    return Stream.of(supplier).map(Supplier::get);
   }
 }

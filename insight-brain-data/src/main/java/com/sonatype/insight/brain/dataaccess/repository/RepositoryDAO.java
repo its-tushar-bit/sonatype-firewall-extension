@@ -76,6 +76,19 @@ public class RepositoryDAO
     }
   }
 
+  public List<Repository> getByAncestorId(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByAncestorId(tx, ownerId);
+    }
+  }
+
+  public List<Repository> getByAncestorId(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT repo FROM Repository repo, RepositoryAncestor ra " +
+        "WHERE ra.ancestorId = ?1 AND ra.id = repo.id AND ra.id <> ra.ancestorId";
+
+    return getList(tx, sQuery, ownerId);
+  }
+
   public List<Repository> getByRepositoryManagerId(TransactionContext tx, String repositoryManagerId) {
     String sQuery = "SELECT entity FROM Repository entity" + //
         " WHERE entity.repositoryManagerId=?1";

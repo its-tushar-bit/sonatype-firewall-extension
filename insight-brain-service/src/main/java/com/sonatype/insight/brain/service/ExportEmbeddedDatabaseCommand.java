@@ -168,6 +168,9 @@ public class ExportEmbeddedDatabaseCommand
             if (sql.startsWith("CREATE USER ")) {
               continue;
             }
+            else if (sql.startsWith("CREATE FORCE VIEW ")) {
+              sql = sql.replace("CREATE FORCE VIEW", "CREATE VIEW");
+            }
             else if (sql.startsWith("CREATE SCHEMA ")) {
               sql = sql.replace(" AUTHORIZATION SA", "");
               sql = sql.replace(" IF NOT EXISTS", "");

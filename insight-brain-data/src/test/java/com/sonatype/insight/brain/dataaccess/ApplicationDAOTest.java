@@ -1266,6 +1266,50 @@ public class ApplicationDAOTest
         .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app21.getId(), app22.getId());
   }
 
+  @Test
+  public void testGetByAncestorId() {
+    assertThat(applicationDAO.getByAncestorId(ROOT_ORGANIZATION_ID))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(application.getId());
+
+    assertThat(applicationDAO.getByAncestorId(tempEntity.newOrganization().getId())).isEmpty();
+
+    Organization org1 = tempEntity.newOrganization("org-1");
+    Application app11 = tempEntity.newApplication(org1.getId());
+    Application app12 = tempEntity.newApplication(org1.getId());
+
+    Organization org11 = tempEntity.newOrganization("org-1-1", org1);
+    Application app111 = tempEntity.newApplication(org11.getId());
+    Application app112 = tempEntity.newApplication(org11.getId());
+
+    Organization org2 = tempEntity.newOrganization("org-2");
+    Application app21 = tempEntity.newApplication(org2.getId());
+    Application app22 = tempEntity.newApplication(org2.getId());
+
+    assertThat(applicationDAO.getByAncestorId(ROOT_ORGANIZATION_ID))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(
+            application.getId(),
+            app11.getId(), app12.getId(),
+            app111.getId(), app112.getId(),
+            app21.getId(), app22.getId());
+
+    assertThat(applicationDAO.getByAncestorId(org1.getId()))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app111.getId(), app112.getId());
+
+    assertThat(applicationDAO.getByAncestorId(org11.getId()))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app111.getId(), app112.getId());
+
+    assertThat(applicationDAO.getByAncestorId(org2.getId()))
+        .extracting(Application::getId)
+        .containsExactlyInAnyOrder(app21.getId(), app22.getId());
+
+    // querying directly by app id should not return that app nor anything else
+    assertThat(applicationDAO.getByAncestorId(app11.getId())).isEmpty();
+  }
+
   private void validateApplication(Application actualApp, Application expectedApp) {
     assertThat(actualApp.getName()).isEqualTo(expectedApp.getName());
     assertThat(actualApp.getContactInternalName()).isEqualTo(expectedApp.getContactInternalName());

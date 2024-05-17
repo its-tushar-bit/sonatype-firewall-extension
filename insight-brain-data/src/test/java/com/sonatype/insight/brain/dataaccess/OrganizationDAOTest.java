@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -37,9 +38,11 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -77,6 +80,7 @@ import org.junit.rules.TemporaryFolder;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class OrganizationDAOTest extends NameableDAOTest<Organization>
 {
@@ -125,6 +129,8 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   private VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO;
 
+  private OrganizationAncestorDAO orgAncestorDAO;
+
   private OrganizationDAO dao;
 
   @Before
@@ -152,6 +158,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     vulnerabilityCustomCweDAO = daoFactory.createVulnerabilityCustomCweDAO();
     vulnerabilityCustomCvssVectorDAO = daoFactory.createVulnerabilityCustomCvssVectorDAO();
     vulnerabilityCustomCvssSeverityDAO = daoFactory.createVulnerabilityCustomCvssSeverityDAO();
+    orgAncestorDAO = daoFactory.createOrganizationAncestorDAO();
     dao = daoFactory.createOrganizationDAO();
   }
 
@@ -308,6 +315,23 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   }
 
   @Test
+  public void testInsert_OrganizationAncestorRecords() {
+    Organization parentOrg = tempEntity.newOrganization("Test Parent Org");
+    organization = new Organization();
+    organization.setName("testName");
+    organization.setParentOrganizationId(parentOrg.getId());
+
+    dao.insert(organization);
+
+    assertThat(orgAncestorDAO.getByOrganizationId(organization.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(organization.getId(), organization.getId(), 0),
+            tuple(organization.getId(), parentOrg.getId(), 1),
+            tuple(organization.getId(), Organization.ROOT_ORGANIZATION_ID, 2));
+  }
+
+  @Test
   public void testUpdate_RootOrgsParentOrganizationIdIsForcedToNull() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
     organization.setParentOrganizationId("dummyOrg");
@@ -353,6 +377,81 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
       organization.setName(originalName);
       dao.update(organization);
     }
+  }
+
+  @Test
+  public void testUpdate_OrganizationAncestorRecords() {
+    Organization parentOrg1 = tempEntity.newOrganization("Test Parent Org 1");
+    Organization parentOrg2 = tempEntity.newOrganization("Test Parent Org 2");
+
+    organization = new Organization();
+    organization.setName("testName");
+    organization.setParentOrganizationId(parentOrg1.getId());
+    dao.insert(organization);
+
+    Organization sibling = tempEntity.newOrganization(parentOrg1);
+    Organization childOrg1 = tempEntity.newOrganization(organization);
+    Organization childOrg2 = tempEntity.newOrganization(organization);
+    Organization grandchildOrg = tempEntity.newOrganization(childOrg1);
+
+    organization.setParentOrganizationId(parentOrg2.getId());
+    dao.update(organization);
+
+    assertThat(orgAncestorDAO.getByOrganizationId(organization.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(organization.getId(), organization.getId(), 0),
+            tuple(organization.getId(), parentOrg2.getId(), 1),
+            tuple(organization.getId(), Organization.ROOT_ORGANIZATION_ID, 2));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(childOrg1.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(childOrg1.getId(), childOrg1.getId(), 0),
+            tuple(childOrg1.getId(), organization.getId(), 1),
+            tuple(childOrg1.getId(), parentOrg2.getId(), 2),
+            tuple(childOrg1.getId(), Organization.ROOT_ORGANIZATION_ID, 3));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(childOrg2.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(childOrg2.getId(), childOrg2.getId(), 0),
+            tuple(childOrg2.getId(), organization.getId(), 1),
+            tuple(childOrg2.getId(), parentOrg2.getId(), 2),
+            tuple(childOrg2.getId(), Organization.ROOT_ORGANIZATION_ID, 3));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(grandchildOrg.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(grandchildOrg.getId(), grandchildOrg.getId(), 0),
+            tuple(grandchildOrg.getId(), childOrg1.getId(), 1),
+            tuple(grandchildOrg.getId(), organization.getId(), 2),
+            tuple(grandchildOrg.getId(), parentOrg2.getId(), 3),
+            tuple(grandchildOrg.getId(), Organization.ROOT_ORGANIZATION_ID, 4));
+
+    // Other org ancestors should be unchanged
+    assertThat(orgAncestorDAO.getByOrganizationId(sibling.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(sibling.getId(), sibling.getId(), 0),
+            tuple(sibling.getId(), parentOrg1.getId(), 1),
+            tuple(sibling.getId(), Organization.ROOT_ORGANIZATION_ID, 2));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(parentOrg1.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(parentOrg1.getId(), parentOrg1.getId(), 0),
+            tuple(parentOrg1.getId(), Organization.ROOT_ORGANIZATION_ID, 1));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(parentOrg2.getId()))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(
+            tuple(parentOrg2.getId(), parentOrg2.getId(), 0),
+            tuple(parentOrg2.getId(), Organization.ROOT_ORGANIZATION_ID, 1));
+
+    assertThat(orgAncestorDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID))
+        .extracting("organizationId", "ancestorId", "ancestorDistance")
+        .contains(tuple(Organization.ROOT_ORGANIZATION_ID, Organization.ROOT_ORGANIZATION_ID, 0));
   }
 
   @Test
@@ -747,5 +846,155 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(organization);
     assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(organization.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToOrganizationAncestor() {
+    Organization parent = tempEntity.newOrganization();
+    Organization child = tempEntity.newOrganization("child", parent);
+    String childId = child.getId();
+
+    assertThat(orgAncestorDAO.getByOrganizationId(childId)).hasSize(3);
+
+    dao.delete(child);
+
+    assertThat(orgAncestorDAO.getByOrganizationId(childId)).isEmpty();
+  }
+
+  @Test
+  public void testGetAllParentOrganizations() {
+    assertThat(dao.getAllParentOrganizations(application.getId(), OwnerType.APPLICATION))
+        .extracting(Organization::getId)
+        .containsExactly(organization.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(organization.getId(), OwnerType.ORGANIZATION))
+        .extracting(Organization::getId)
+        .containsExactly(organization.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(ROOT_ORGANIZATION_ID, OwnerType.ORGANIZATION))
+        .extracting(Organization::getId)
+        .containsExactly(ROOT_ORGANIZATION_ID);
+
+    Organization org1 = tempEntity.newOrganization("org-1");
+    Application app11 = tempEntity.newApplication(org1.getId());
+
+    Organization org11 = tempEntity.newOrganization("org-1-1", org1);
+    Application app111 = tempEntity.newApplication(org11.getId());
+
+    Organization org2 = tempEntity.newOrganization("org-2");
+    Application app21 = tempEntity.newApplication(org2.getId());
+
+    assertThat(dao.getAllParentOrganizations(org1.getId(), OwnerType.ORGANIZATION))
+        .extracting(Organization::getId)
+        .containsExactly(org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app11.getId(), OwnerType.APPLICATION))
+        .extracting(Organization::getId)
+        .containsExactly(org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(org11.getId(), OwnerType.ORGANIZATION))
+        .extracting(Organization::getId)
+        .containsExactly(org11.getId(), org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app111.getId(), OwnerType.APPLICATION))
+        .extracting(Organization::getId)
+        .containsExactly(org11.getId(), org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(org2.getId(), OwnerType.ORGANIZATION))
+        .extracting(Organization::getId)
+        .containsExactly(org2.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app21.getId(), OwnerType.APPLICATION))
+        .extracting(Organization::getId)
+        .containsExactly(org2.getId(), ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testGetAllParentOrganizations_NullOwnerType() {
+    // the OwnerType parameter is optional and can be left null if unknown (performance is worse this way though)
+    assertThat(dao.getAllParentOrganizations(application.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(organization.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(organization.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(organization.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(ROOT_ORGANIZATION_ID, null))
+        .extracting(Organization::getId)
+        .containsExactly(ROOT_ORGANIZATION_ID);
+
+    Organization org1 = tempEntity.newOrganization("org-1");
+    Application app11 = tempEntity.newApplication(org1.getId());
+
+    Organization org11 = tempEntity.newOrganization("org-1-1", org1);
+    Application app111 = tempEntity.newApplication(org11.getId());
+
+    Organization org2 = tempEntity.newOrganization("org-2");
+    Application app21 = tempEntity.newApplication(org2.getId());
+
+    assertThat(dao.getAllParentOrganizations(org1.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app11.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(org11.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org11.getId(), org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app111.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org11.getId(), org1.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(org2.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org2.getId(), ROOT_ORGANIZATION_ID);
+
+    assertThat(dao.getAllParentOrganizations(app21.getId(), null))
+        .extracting(Organization::getId)
+        .containsExactly(org2.getId(), ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testGetAllChildOrganizations() {
+    assertThat(dao.getAllChildOrganizations(application.getId())).isEmpty();
+
+    assertThat(dao.getAllChildOrganizations(organization.getId()))
+        .extracting(Organization::getId)
+        .containsExactly(organization.getId());
+
+    assertThat(dao.getAllChildOrganizations(ROOT_ORGANIZATION_ID))
+        .extracting(Organization::getId)
+        .containsExactly(ROOT_ORGANIZATION_ID, organization.getId());
+
+    Organization org1 = tempEntity.newOrganization("org-1");
+    tempEntity.newApplication(org1.getId());
+
+    Organization org11 = tempEntity.newOrganization("org-1-1", org1);
+    tempEntity.newApplication(org1.getId());
+
+    Organization org2 = tempEntity.newOrganization("org-2");
+    tempEntity.newApplication(org2.getId());
+
+    assertThat(dao.getAllChildOrganizations(org1.getId()))
+        .extracting(Organization::getId)
+        .containsExactly(org1.getId(), org11.getId());
+
+    assertThat(dao.getAllChildOrganizations(org11.getId()))
+        .extracting(Organization::getId)
+        .containsExactly(org11.getId());
+
+    List<String> childOrgIds = dao.getAllChildOrganizations(ROOT_ORGANIZATION_ID).stream()
+        .map(Organization::getId)
+        .collect(Collectors.toList());
+
+    // NOTE: the relative ordering of organization, org1, and org2 in the returned list is an impl detail
+    assertThat(childOrgIds).hasSize(5);
+    assertThat(childOrgIds).startsWith(ROOT_ORGANIZATION_ID);
+    assertThat(childOrgIds.subList(1, 4)).containsExactlyInAnyOrder(organization.getId(), org1.getId(), org2.getId());
+    assertThat(childOrgIds).endsWith(org11.getId());
   }
 }

@@ -14,6 +14,14 @@
     <class>com.sonatype.insight.brain.model.ApplicationCountHistory</class>
     <class>com.sonatype.insight.brain.model.Nameable</class>
     <class>com.sonatype.insight.brain.model.Organization</class>
+    <class>com.sonatype.insight.brain.model.OrganizationAncestor</class>
+    <class>com.sonatype.insight.brain.model.ApplicationAncestor</class>
+    <class>com.sonatype.insight.brain.model.RepositoryAncestor</class>
+    <class>com.sonatype.insight.brain.model.RepositoryManagerAncestor</class>
+    <class>com.sonatype.insight.brain.model.RepositoryContainerAncestor</class>
+    <class>com.sonatype.insight.brain.model.OwnerAncestor</class>
+    <class>com.sonatype.insight.brain.model.Ancestor</class>
+    <class>com.sonatype.insight.brain.model.AncestorView</class>
     <class>com.sonatype.insight.brain.model.MigrationTracker</class>
     <class>com.sonatype.insight.brain.model.SearchIndexChange</class>
     <class>com.sonatype.insight.brain.model.component.HashComponentIdentifier</class>

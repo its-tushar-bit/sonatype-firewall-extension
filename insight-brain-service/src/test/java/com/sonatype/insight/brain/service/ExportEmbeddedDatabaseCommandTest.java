@@ -166,7 +166,7 @@ public class ExportEmbeddedDatabaseCommandTest
       for (String schemaName : actualTablesBySchema.keySet()) {
         Map<String, List<TableRow>> actualRowsByTable = actualTablesBySchema.get(schemaName);
         Map<String, List<TableRow>> expectedRowsByTable = expectedTablesBySchema.get(schemaName);
-        assertThat(actualRowsByTable.keySet()).isEqualTo(actualRowsByTable.keySet());
+        assertThat(actualRowsByTable).as(schemaName).containsOnlyKeys(expectedRowsByTable.keySet());
         for (String tableName : actualRowsByTable.keySet()) {
           List<TableRow> actualRows = actualRowsByTable.get(tableName);
           List<TableRow> expectedRows = expectedRowsByTable.get(tableName);
@@ -215,7 +215,7 @@ public class ExportEmbeddedDatabaseCommandTest
       while (schemas.next()) {
         String schemaName = schemas.getString(1);
         tablesBySchema.put(schemaName, new HashMap<>());
-        try (ResultSet tables = metadata.getTables(null, schemaName, null, new String[]{"TABLE"})) {
+        try (ResultSet tables = metadata.getTables(null, schemaName, null, new String[]{"TABLE", "VIEW"})) {
           while (tables.next()) {
             String tableName = tables.getString(3);
             List<TableRow> tableRows = new ArrayList<>();

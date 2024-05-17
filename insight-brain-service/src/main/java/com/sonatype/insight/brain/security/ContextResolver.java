@@ -128,7 +128,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
-      return resolveContextIdsForOwner(app.getOrganizationId());
+      return resolveContextIdsForOwner(app.getOrganizationId(), OwnerType.ORGANIZATION);
     }
   };
 
@@ -167,7 +167,7 @@ class ContextResolver
       if (parentId == null) {
         parentId = Organization.ROOT_ORGANIZATION_ID;
       }
-      return resolveContextIdsForOwner(parentId);
+      return resolveContextIdsForOwner(parentId, OwnerType.ORGANIZATION);
     }
   };
 
@@ -183,11 +183,11 @@ class ContextResolver
         // New repository
         if (repository.getRepositoryManagerId() != null) {
           // Existing repository manager
-          return resolveContextIdsForOwner(repository.getRepositoryManagerId());
+          return resolveContextIdsForOwner(repository.getRepositoryManagerId(), OwnerType.REPOSITORY_MANAGER);
         }
         else {
           // New repository manager
-          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+          return resolveContextIdsForOwner(RepositoryContainer.SINGLETON);
         }
       }
     }
@@ -212,7 +212,7 @@ class ContextResolver
       }
       else {
         // New repositoryManager
-        return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        return resolveContextIdsForOwner(RepositoryContainer.SINGLETON);
       }
     }
   };
@@ -248,13 +248,18 @@ class ContextResolver
     if (owner.getParentOwnerId() == null) {
       return Arrays.asList(owner.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
     }
-    return Iterables.concat(Arrays.asList(owner.getId(), owner.getParentOwnerId()),
-        Iterables.transform(ownerDAO.walkHierarchy(owner.getParentOwnerId()), PARENT_ID_FUNCTION));
+    return Iterables.concat(
+        Arrays.asList(owner.getId(), owner.getParentOwnerId()),
+        Iterables.transform(
+            ownerDAO.walkHierarchy(owner.getParentOwnerId(), owner.getType().getParentType()),
+            PARENT_ID_FUNCTION
+        )
+    );
   }
 
-  private Iterable<String> resolveContextIdsForOwner(final String ownerId) {
+  private Iterable<String> resolveContextIdsForOwner(final String ownerId, OwnerType ownerType) {
     // Get an Iterable<Owner> and transform it to Iterable<owner Id>
-    Iterable<String> ownerIdIterable = Iterables.transform(ownerDAO.walkHierarchy(ownerId),
+    Iterable<String> ownerIdIterable = Iterables.transform(ownerDAO.walkHierarchy(ownerId, ownerType),
         new Function<Owner, String>()
         {
           @Override
@@ -359,7 +364,7 @@ class ContextResolver
         case GLOBAL:
           return GLOBAL_CONTEXT;
         case REPOSITORY_CONTAINER:
-          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+          return resolveContextIdsForOwner(RepositoryContainer.SINGLETON);
         default:
           throw new IllegalArgumentException("Unknown owner type " + type);
       }

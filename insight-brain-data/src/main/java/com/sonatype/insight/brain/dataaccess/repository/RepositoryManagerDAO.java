@@ -162,4 +162,25 @@ public class RepositoryManagerDAO
       return getByName(tx, name);
     }
   }
+
+  /**
+   * @return the RepositoryManager that either has the specified id or is the parent of a repository with that id
+   */
+  public RepositoryManager getByIdOrRepositoryId(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdOrRepositoryId(tx, ownerId);
+    }
+  }
+
+  public RepositoryManager getByIdOrRepositoryId(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT repoManager FROM RepositoryManager repoManager, OwnerAncestor oa " +
+        "WHERE repoManager.id = oa.ancestorId AND " +
+        "( " +
+        "  oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
+        "  OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
+        ") " +
+        "AND oa.id = ?1";
+
+    return get(tx, sQuery, ownerId);
+  }
 }

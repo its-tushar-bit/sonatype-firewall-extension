@@ -466,6 +466,10 @@ public class DashboardApplicationsTest
     }
 
     refresh();
+
+    // if the filter sidebar is opened before this it will close itself once loading completes
+    DashboardPage.applicationsView().results().shouldBe(visible);
+
     showLowRiskViolations();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.applicationsView().paginationButtons().shouldHaveSize(2);
@@ -485,6 +489,7 @@ public class DashboardApplicationsTest
     table.lastApplication().totalRisk().shouldBe(text("10"));
 
     refresh();
+    DashboardPage.applicationsView().results().shouldBe(visible);
     DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(3, 7);

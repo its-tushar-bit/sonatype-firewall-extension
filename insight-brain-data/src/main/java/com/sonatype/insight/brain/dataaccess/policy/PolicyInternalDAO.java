@@ -75,6 +75,57 @@ public class PolicyInternalDAO
     }
   }
 
+  List<PolicyInternal> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    String sQuery =
+        "SELECT policy " +
+        "FROM PolicyInternal policy, OwnerAncestor oa " +
+        "WHERE oa.id = ?1 AND oa.ancestorId = policy.ownerId " +
+        "AND (" +
+        "  (" +
+        //   if owner is an application, policies attached to parent orgs only apply if the app has all
+        //   of the tags that the policy has
+        "    oa.ownerType = com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
+        "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
+        "      SELECT policyTag " +
+        "      FROM PolicyTag policyTag " +
+        "      WHERE policyTag.policyId = policy.id " +
+        "      AND policyTag.tagId NOT IN (" +
+        "        SELECT appTag.tagId " +
+        "        FROM ApplicationTag appTag " +
+        "        WHERE appTag.applicationId = oa.id" +
+        "      )" +
+        "    )" +
+        "  ) " +
+        "  OR " +
+        "  (" +
+        //   if owner is a repo, policies attached to parent orgs only apply if the policy has no tags
+        "    ( " +
+        //     JPQL doesn't seem to support doing this with an IN clause
+        "      oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
+        "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
+        "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER " +
+        "    ) " +
+        "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
+        "      SELECT policyTag " +
+        "      FROM PolicyTag policyTag " +
+        "      WHERE policyTag.policyId = policy.id" +
+        "    )" +
+        "  ) " +
+        // include all ancestor policies when type not app or repo
+        "  OR (" +
+        "    oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
+        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY" +
+        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER" +
+        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER" +
+        "  ) " +
+        // include all policies attached directly to the queried owner
+        "  OR oa.id = oa.ancestorId" +
+        ") " +
+        "ORDER BY oa.ancestorDistance";
+
+    return getList(tx, sQuery, ownerId);
+  }
+
   List<PolicyInternal> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);

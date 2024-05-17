@@ -241,7 +241,7 @@ public class LegacyDataStoreMigrator
     return new DefaultResourceLoader().getResource(scriptName);
   }
 
-  private void updateLegacyDatabaseSchemaVersion(
+  void updateLegacyDatabaseSchemaVersion(
       DataSource dataSource,
       String dataStoreId,
       String databaseSchema,

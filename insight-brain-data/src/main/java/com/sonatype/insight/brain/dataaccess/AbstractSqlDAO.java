@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.UUID;
-
 import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -43,7 +42,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   private String newUUID() {
-    return UUID.randomUUID().toString().replace("-", "");
+    return IdUtil.newUUID();
   }
 
   @Override

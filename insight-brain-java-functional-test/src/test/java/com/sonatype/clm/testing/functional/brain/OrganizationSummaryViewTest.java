@@ -600,6 +600,10 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    // for some reason the nav pills aren't always scrolled consistently, affecting the applitools screeshot.
+    // This should help
+    OwnerSummaryPage.summaryTile().appCategoriesButton().click();
+
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(hidden);
 
     tile.shouldBe(hidden);

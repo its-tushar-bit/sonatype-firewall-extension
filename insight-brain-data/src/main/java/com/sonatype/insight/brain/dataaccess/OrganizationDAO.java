@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -29,6 +30,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OrganizationAncestor;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
@@ -73,6 +76,8 @@ public class OrganizationDAO
 
   private final ProprietaryConfigDAO proprietaryConfigDAO;
 
+  private final OrganizationAncestorDAO organizationAncestorDAO;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -90,6 +95,7 @@ public class OrganizationDAO
       final RepositoryConnectionDAO repositoryConnectionDAO,
       final SourceControlOrganizationImportEventDAO scmEventDAO,
       final ProprietaryConfigDAO proprietaryConfigDAO,
+      final OrganizationAncestorDAO organizationAncestorDAO,
       final ClusterLockManager clusterLockManager)
   {
     super(operationalDataStore, searchIndexManager);
@@ -104,6 +110,7 @@ public class OrganizationDAO
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.scmEventDAO = scmEventDAO;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
+    this.organizationAncestorDAO = organizationAncestorDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -158,6 +165,7 @@ public class OrganizationDAO
     }
 
     super.insert(tx, organization);
+    insertOrganizationAncestors(tx, organization);
   }
 
   @Override
@@ -174,12 +182,20 @@ public class OrganizationDAO
         throw new BadRequestException("Parent organization id cant be null.");
       }
     }
+
     Organization existingOrganization = getByName(tx, organization.getName());
+    String oldParentId = existingOrganization == null ? null : existingOrganization.getParentOwnerId();
+
     if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
     super.update(tx, organization);
+
+    if (!Objects.equals(oldParentId, organization.getParentOwnerId())) {
+      updateOrganizationAncestors(tx, organization);
+    }
+
   }
 
   @Override
@@ -257,6 +273,10 @@ public class OrganizationDAO
       scmEventDAO.delete(tx, importEvent);
     }
 
+    for (OrganizationAncestor orgAncestor : organizationAncestorDAO.getByOrganizationId(tx, organization.getId())) {
+      organizationAncestorDAO.delete(tx, orgAncestor);
+    }
+
     super.delete(tx, organization);
 
     long duration = System.currentTimeMillis() - start;
@@ -281,5 +301,79 @@ public class OrganizationDAO
   @Override
   protected SearchIndexChange newSearchIndexChange(Organization entity) {
     return new SearchIndexChange(ChangeType.ORGANIZATION, entity.getId());
+  }
+
+  /**
+   * @param ownerType if known, specify the OwnerType here for improved performance.
+   * @return all organization ancestors of the specified owner, in order from the bottom up. If the specified owner
+   * is itself an organization, it is included in the returned collection.
+   */
+  public List<Organization> getAllParentOrganizations(TransactionContext tx, String ownerId, OwnerType ownerType) {
+    String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
+        "WHERE org.id = oa.ancestorId AND oa.id = ?1 " +
+        "AND oa.ancestorType = com.sonatype.insight.brain.model.OwnerType.ORGANIZATION " +
+        (ownerType == null ? "" : "AND oa.ownerType = ?2 ") +
+        "ORDER BY oa.ancestorDistance";
+
+    if (ownerType == null) {
+      return getList(tx, sQuery, ownerId);
+    }
+    else {
+      return getList(tx, sQuery, ownerId, ownerType);
+    }
+  }
+
+  public List<Organization> getAllParentOrganizations(String ownerId, OwnerType ownerType) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllParentOrganizations(tx, ownerId, ownerType);
+    }
+  }
+
+  /**
+   * @return all organization descendants of the specified owner, in order from the top down. If the specified owner
+   * is itself an organization, it is included in the returned collection. The relative order of returned organizations
+   * that are at the same level in the tree is unspecified, but all organizations at a given level will be returned
+   * before organizations from a lower level.
+   */
+  public List<Organization> getAllChildOrganizations(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT org FROM Organization org, OrganizationAncestor oa " +
+        "WHERE org.id = oa.organizationId AND oa.ancestorId = ?1 " +
+        "ORDER BY oa.ancestorDistance";
+
+    return getList(tx, sQuery, ownerId);
+  }
+
+  public List<Organization> getAllChildOrganizations(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllChildOrganizations(tx, ownerId);
+    }
+  }
+
+  private void insertOrganizationAncestors(TransactionContext tx, Organization org) {
+    String orgId = org.getId();
+    int i = 0;
+    Organization current = org;
+
+    while (current != null) {
+      organizationAncestorDAO.insert(tx, new OrganizationAncestor(orgId, current.getId(), i));
+
+      current = current.getParentOwnerId() == null ? null : getById(tx, current.getParentOwnerId());
+      i++;
+    }
+  }
+
+  /**
+   * @param org an Organization that has had its parent id updated and which needs its (and its
+   * children's) OrganizationAncestors updated to match
+   */
+  private void updateOrganizationAncestors(TransactionContext tx, Organization organization) {
+    for (Organization org : getAllChildOrganizations(tx, organization.getId())) {
+      List<OrganizationAncestor> orgAncestors = organizationAncestorDAO.getByOrganizationId(tx, org.getId());
+      for (OrganizationAncestor orgAncestor : orgAncestors) {
+        organizationAncestorDAO.delete(orgAncestor);
+      }
+
+      insertOrganizationAncestors(tx, org);
+    }
   }
 }

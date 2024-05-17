@@ -220,4 +220,18 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
       assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
     }
   }
+
+  @Test
+  public void testGetByIdOrRepositoryId() {
+    RepositoryManager repoMan1 = tempEntity.newRepositoryManager();
+    Repository repo11 = tempEntity.newRepository(repoMan1);
+
+    assertThat(dao.getByIdOrRepositoryId(repositoryManager.getId()).getId()).isEqualTo(repositoryManager.getId());
+    assertThat(dao.getByIdOrRepositoryId(repository.getId()).getId()).isEqualTo(repositoryManager.getId());
+
+    assertThat(dao.getByIdOrRepositoryId(repoMan1.getId()).getId()).isEqualTo(repoMan1.getId());
+    assertThat(dao.getByIdOrRepositoryId(repo11.getId()).getId()).isEqualTo(repoMan1.getId());
+
+    assertThat(dao.getByIdOrRepositoryId("ROOT_ORGANIZATION_ID")).isNull();
+  }
 }

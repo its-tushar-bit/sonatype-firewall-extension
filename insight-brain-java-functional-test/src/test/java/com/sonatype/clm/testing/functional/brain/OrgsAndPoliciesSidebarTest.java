@@ -166,15 +166,8 @@ public class OrgsAndPoliciesSidebarTest
     OrgsAndPoliciesSidebar.OwnerItem firstChildOrg = orgsAndPoliciesSidebar.getOrganizationLink(0);
     firstChildOrg.click();
 
-    SelenideElement organizationsButton = orgsAndPoliciesSidebar.getApplicationPlusIcon();
-    assertThat(organizationsButton).isNotNull();
-    assertThat(organizationsButton.is(visible)).isTrue();
-    assertThat(organizationsButton.isEnabled()).isTrue();
-    organizationsButton.click();
-    SelenideElement applicationsButton = orgsAndPoliciesSidebar.getImportApplicationsButton();
-    assertThat(applicationsButton.is(visible)).isTrue();
-    assertThat(applicationsButton.isEnabled()).isTrue();
-    applicationsButton.click();
+    orgsAndPoliciesSidebar.getApplicationPlusIcon().shouldBe(visible).shouldBe(enabled).click();
+    orgsAndPoliciesSidebar.getImportApplicationsButton().shouldBe(visible).shouldBe(enabled).click();
 
     waitUntilUrl(ScmOnboardingPage.url(parentOrg.getId()));
   }

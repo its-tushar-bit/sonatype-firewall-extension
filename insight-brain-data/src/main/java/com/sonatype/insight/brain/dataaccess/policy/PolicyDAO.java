@@ -5,27 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
-import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyValidator;
-import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -39,24 +32,16 @@ public class PolicyDAO
 
   private final OwnerDAO ownerDAO;
 
-  private final PolicyTagDAO policyTagDAO;
-
-  private final ApplicationTagDAO appTagDAO;
-
   private final PolicyValidator policyValidator;
 
   @Inject
   public PolicyDAO(
       final PolicyInternalDAO policyInternalDAO,
       final OwnerDAO ownerDAO,
-      final PolicyTagDAO policyTagDAO,
-      final ApplicationTagDAO appTagDAO,
       final PolicyValidator policyValidator)
   {
     this.policyInternalDAO = policyInternalDAO;
     this.ownerDAO = ownerDAO;
-    this.policyTagDAO = policyTagDAO;
-    this.appTagDAO = appTagDAO;
     this.policyValidator = policyValidator;
   }
 
@@ -233,35 +218,7 @@ public class PolicyDAO
   }
 
   public List<Policy> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
-    List<Policy> result = new ArrayList<>();
-
-    Set<String> tagIds = new HashSet<>();
-    Owner owner = ownerDAO.getById(tx, ownerId);
-    if (owner != null && OwnerType.APPLICATION.equals(owner.getType())) {
-      // ownerId is an app id
-      for (ApplicationTag appTag : appTagDAO.getByApplicationId(tx, ownerId)) {
-        tagIds.add(appTag.getTagId());
-      }
-      result.addAll(getByOwnerId(tx, ownerId));
-      ownerId = owner.getParentOwnerId();
-    }
-
-    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      List<Policy> orgPolicies = getByOwnerId(tx, currentOwner.getId());
-      switch (owner.getType()) {
-        case ORGANIZATION:
-          result.addAll(orgPolicies);
-          break;
-        default:
-          for (Policy orgPolicy : orgPolicies) {
-            if (policyTagDAO.isPolicyApplicable(tx, orgPolicy.getId(), tagIds)) {
-              result.add(orgPolicy);
-            }
-          }
-          break;
-      }
-    }
-    return result;
+    return PolicyInternal.toPolicies(policyInternalDAO.getApplicableByOwnerIdWithHierarchy(tx, ownerId));
   }
 
   private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final Policy policy)

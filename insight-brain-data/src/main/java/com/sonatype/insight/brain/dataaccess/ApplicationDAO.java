@@ -255,6 +255,19 @@ public class ApplicationDAO
     }
   }
 
+  public List<Application> getByAncestorId(String organizationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByAncestorId(tx, organizationId);
+    }
+  }
+
+  public List<Application> getByAncestorId(TransactionContext tx, String organizationId) {
+    String sQuery = "SELECT app FROM Application app, ApplicationAncestor aa " +
+        "WHERE aa.ancestorId = ?1 AND aa.id = app.id AND aa.id <> aa.ancestorId";
+
+    return getList(tx, sQuery, organizationId);
+  }
+
   public List<Application> getByIdsAndTagIds(Set<String> applicationIds, Set<String> tagIds) {
     String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //

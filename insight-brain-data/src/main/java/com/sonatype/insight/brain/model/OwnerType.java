@@ -29,4 +29,20 @@ public enum OwnerType
 
     return valueOf(name.toUpperCase(Locale.ENGLISH));
   }
+
+  /**
+   * @return the OwnerType that the parent of an owner of `this` type would be expected to have
+   */
+  public OwnerType getParentType() {
+    switch (this) {
+      case GLOBAL:
+        return GLOBAL;
+      case REPOSITORY:
+        return REPOSITORY_MANAGER;
+      case REPOSITORY_MANAGER:
+        return REPOSITORY_CONTAINER;
+      default:
+        return ORGANIZATION;
+    }
+  }
 }

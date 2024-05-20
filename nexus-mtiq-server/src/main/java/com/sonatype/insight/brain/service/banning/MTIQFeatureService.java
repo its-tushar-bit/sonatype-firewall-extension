@@ -32,6 +32,7 @@ import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenant;
 
@@ -96,7 +97,7 @@ public class MTIQFeatureService
 
   @Override
   public Set<Feature> getFeatures() {
-    Set<Feature> features = getBaseFeatures();
+    Set<Feature> features = super.getFeatures();
 
     features.remove(SINGLE_TENANT);
     features.add(MULTI_TENANT);
@@ -106,8 +107,13 @@ public class MTIQFeatureService
     return features;
   }
 
-  Set<Feature> getBaseFeatures() {
-    return super.getFeatures();
+  @Override
+  protected void removeDisabledFeatures(Set<Feature> features) {
+    super.removeDisabledFeatures(features);
+
+    if (features.contains(LicensedFeature.ADVANCED_LEGAL_PACK) && !features.contains(SAAS_ALP_ENABLED)) {
+      features.remove(LicensedFeature.ADVANCED_LEGAL_PACK);
+    }
   }
 
   public void enableFeature(String feature) {

@@ -9,20 +9,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.features.NonLicensedFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,102 +35,80 @@ import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
-import static com.sonatype.insight.license.model.LicensedFeature.*;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MTIQFeatureServiceTest
+    extends AbstractMultiTenantBaseIntegrationTest
 {
-  @Mock
   ProductLicense productLicense;
 
   @Mock
   Configuration configuration;
 
   @Mock
-  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
-  @Mock
   ApiConfigFeaturesService service;
 
-  @Mock
+  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   MTIQFeatureService underTest;
 
   @Captor
   ArgumentCaptor<String> propertyKeyCaptor;
 
-  private TenantUtil tenantUtil = new TenantUtil();
-
   @Before
   public void setup() {
-    tenantUtil.setGlobalTenant();
-    underTest = new TestableMTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
-    when(systemConfigurationPropertyDAO.getByName(any(),
-        eq(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getPropertyName()))).thenReturn(
-        new SystemConfigurationProperty());
-    when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(mock(TransactionContext.class));
-    SystemConfigurationPropertyFeature.injectDependencies(systemConfigurationPropertyDAO);
+    systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+    productLicense = lookup(ProductLicense.class);
+    underTest = new MTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
   }
 
   @Test
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(23)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
-
-    List<String> flagsSet = propertyKeyCaptor.getAllValues();
-
-    assertThat(flagsSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
+    verify(service, times(22)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
+    assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
 
   @Test
   public void testRegister_setsUserConfig() {
     underTest.register();
-
-    verify(systemConfigurationPropertyDAO).set(PROPERTY_ENABLED, "false");
-    verify(systemConfigurationPropertyDAO).set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "true");
-    verify(systemConfigurationPropertyDAO).set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, "false");
+    assertThat(systemConfigurationPropertyDAO.getByName(PROPERTY_ENABLED).getValue()).isEqualTo("false");
+    assertThat(systemConfigurationPropertyDAO.getByName(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED).getValue())
+        .isEqualTo("true");
+    assertThat(systemConfigurationPropertyDAO.getByName(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS).getValue())
+        .isEqualTo("false");
   }
 
   @Test
-  public void testGetFeatures_onlyIncludesAllowedLicenseFeatures() {
+  public void testGetFeatures_onlyIncludesAllowedFeatures() {
     Set<Feature> features = underTest.getFeatures();
 
-    Feature[] expectedFeatures = concat(ImmutableSet.of(
-            MULTI_TENANT,
-            DASHBOARD,
-            SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED,
-            HYGIENE,
-            WEBHOOKS_FOR_REPOSITORIES,
-            FIREWALL,
-            BREAKING_CHANGE,
-            EXTERNAL_DATABASE,
-            FIREWALL_AUTO_UNQUARANTINE,
-            ADVANCED_RECOMMENDATION_STRATEGIES,
-            NODE_CLUSTERING,
-            POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
-            QUALITY,
-            RELEASE_INTEGRITY,
-            RM_STAGING_INTEGRATION,
-            SAML_USER_TOKENS,
-            WEBHOOKS_FOR_APPLICATIONS,
-            SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION).stream(),
+    Feature[] expectedFeatures = getFeatureSet();
 
-        //Add all licensed Features
-        stream(LicensedFeature.values())
-            .filter(f -> !f.equals(DATA_INSIGHTS)))
-        .collect(toSet()).toArray(new Feature[]{});
+    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
+  }
 
+  @Test
+  public void testGetFeatures_includes_ADVANCED_LEGAL_PACK_with_SAAS_ALP_ENABLED() {
+    SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.setEnabled(true);
+
+    Feature[] expectedFeatures = Stream.of(
+        stream(getFeatureSet()),
+        Stream.of(
+            LicensedFeature.ADVANCED_LEGAL_PACK,
+            SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED
+        )
+    ).flatMap(i -> i).collect(toSet()).toArray(new Feature[]{});
+
+    Set<Feature> features = underTest.getFeatures();
     assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
   }
 
@@ -142,7 +119,7 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testEnableFeature() {
-    String featureName = FIREWALL.getId();
+    String featureName = LicensedFeature.FIREWALL.getId();
 
     underTest.enableFeature(featureName);
 
@@ -160,7 +137,7 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testDisableFeature() {
-    String featureName = FIREWALL.getId();
+    String featureName = LicensedFeature.FIREWALL.getId();
 
     underTest.disableFeature(featureName);
 
@@ -194,56 +171,55 @@ public class MTIQFeatureServiceTest
   }
 
   private String[] getDisabledSystemConfigurationPropertyFeatures() {
+    List<SystemConfigurationPropertyFeature> enabledFeatures =
+        Arrays.asList(getEnabledSystemConfigurationPropertyFeatures());
+
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.PR_COMMENTING))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.PR_LINE_COMMENTING))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION))
-        .filter(f -> !f.equals(SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION))
+        .filter(f -> !enabledFeatures.contains(f))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }
 
-  /**
-   * The super class to MTIQFeatureService (FeatureService) has a getFeatures call that ultimately calls out to a DAO
-   * needing database access. That is not needed for this test and FeatureService is tested elsewhere so this impl is
-   * used to mock out the call to super.getFeatures().
-   */
-  private static class TestableMTIQFeatureService
-      extends MTIQFeatureService
-  {
-    public TestableMTIQFeatureService(
-        ProductLicense productLicense,
-        Configuration configuration,
-        SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-        ApiConfigFeaturesService service)
-    {
-      super(productLicense, configuration, systemConfigurationPropertyDAO, service);
-    }
+  private SystemConfigurationPropertyFeature[] getEnabledSystemConfigurationPropertyFeatures() {
+    return Stream.of(
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION,
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED,
+        SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
+        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION,
+        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED,
+        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING,
+        SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
+        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION,
+        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
+        SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
+        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED,
+        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT,
+        SystemConfigurationPropertyFeature.PR_COMMENTING,
+        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING,
+        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED,
+        SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED,
+        SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS,
+        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION
+    ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
+  }
 
-    @Override
-    Set<Feature> getBaseFeatures() {
-      Set<Feature> features = stream(LicensedFeature.values())
-          .collect(toSet());
-
-      features.add(SINGLE_TENANT);
-      features.add(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED);
-      features.add(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION);
-
-      return features;
-    }
+  private Feature[] getFeatureSet() {
+    return Stream.of(
+        Stream.of(MULTI_TENANT),
+        Stream.of(getEnabledSystemConfigurationPropertyFeatures()),
+        stream(LicensedFeature.values())
+            .filter(f -> !f.equals(LicensedFeature.ADVANCED_LEGAL_PACK))
+            .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
+            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD))
+            .filter(f -> !f.equals(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))
+            .filter(f -> !f.equals(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK))
+            .filter(f -> !f.equals(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING))
+            .filter(f -> !f.equals(LicensedFeature.SAML_USER_TOKENS))
+            .filter(f -> !f.equals(LicensedFeature.SBOM_MANAGER))
+            .filter(f -> !f.equals(LicensedFeature.SCM_UX_IMPROVEMENTS)),
+        stream(NonLicensedFeature.values())
+            .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
+        ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});
   }
 }

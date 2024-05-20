@@ -93,7 +93,7 @@ public class FeaturesService
     }
   }
 
-  private void removeDisabledFeatures(Set<Feature> features) {
+  protected void removeDisabledFeatures(Set<Feature> features) {
     if (systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DASHBOARD_DISABLED) != null) {
       features.remove(LicensedFeature.DASHBOARD);
     }

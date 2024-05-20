@@ -4,5 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
 
 export const selectBillOfMaterialsPage = prop('billOfMaterialsPage');
+export const selectInternalAppId = createSelector(selectBillOfMaterialsPage, prop('internalAppId'));

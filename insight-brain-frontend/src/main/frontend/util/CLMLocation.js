@@ -1425,6 +1425,12 @@ export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
   // TODO pageSize will be properly implemented at CLM-30022
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components?pageSize=10000`;
 
+export const getSbomComponentDetailsUrl = (applicationId, sbomVersion, componentHash) =>
+  uriTemplate`/rest/sbom/applications/${applicationId}/versions/${sbomVersion}/components/${componentHash}`;
+
+export const getSbomComponentDependencyTreeUrl = (componentHash) =>
+  uriTemplate`/api/v2/sbom/components/${componentHash}`;
+
 export const getAllApplicationSbomVersions = (applicationId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;
 

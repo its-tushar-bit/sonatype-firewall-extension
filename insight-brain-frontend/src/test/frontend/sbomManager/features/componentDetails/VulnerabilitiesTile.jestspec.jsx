@@ -1,0 +1,167 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { render, within } from 'TestRoot/SpecUtil';
+import { screen } from '@testing-library/dom';
+import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
+
+describe('Vulnerabilities Tile', () => {
+  let renderPage;
+  const disclosedVulnerabilities = [
+    {
+      cvssScore: 4,
+      issue: 'CVE-2019-10247',
+      analysisStatus: null,
+      justification: null,
+      details: null,
+      verified: true,
+    },
+    {
+      cvssScore: 2,
+      issue: 'CVE-2019-11358',
+      analysisStatus: 'resolved',
+      justification: 'protected_by_mitigating_control',
+      details:
+        'Automated dataflow analysis and manual code review indicates that the vulnerable code was removed and replaced.',
+      verified: false,
+    },
+    {
+      cvssScore: 6,
+      issue: 'CVE-2022-38752',
+      analysisStatus: 'resolved_with_pedigree',
+      justification: 'requires_dependency',
+      details: 'CVE-2022-38752 for zookeeper-sbom/pkg:maven/io.fabric8.jube/war@2.2.0?type=war',
+      verified: true,
+    },
+  ];
+
+  const sonatypeIdentifiedVulnerabilities = [
+    {
+      cvssScore: 10,
+      issue: 'CVE-2021-41182',
+      analysisStatus: null,
+      justification: null,
+      details: null,
+      verified: false,
+    },
+    {
+      cvssScore: 8,
+      issue: 'CVE-2021-41183',
+      analysisStatus: null,
+      justification: null,
+      details: null,
+      verified: false,
+    },
+  ];
+
+  beforeEach(() => {
+    renderPage = (isDisclosedVulnerabilities, vulnerabilities) =>
+      render(
+        <VulnerabilitiesTile
+          isDisclosedVulnerabilities={isDisclosedVulnerabilities}
+          vulnerabilities={vulnerabilities}
+        />
+      );
+  });
+
+  it('Renders Disclosed Vulnerabilities table', async () => {
+    renderPage(true, disclosedVulnerabilities);
+    expect(await screen.findByText('Disclosed Vulnerabilities')).toBeVisible();
+    expect(screen.getByText('Existing vulnerabilities disclosed by the originator of this SBOM.')).toBeVisible();
+
+    const tableRows = await screen.findAllByRole('row');
+    expect(tableRows.length).toBe(4); // Including the header
+
+    const headersRow = tableRows[0];
+    let rowCells = within(headersRow).getAllByRole('columnheader');
+    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
+    expect(rowCells[1]).toHaveTextContent('ISSUE');
+    expect(rowCells[2]).toHaveTextContent('VERIFIED STATUS');
+    expect(rowCells[3]).toHaveTextContent('ANALYSIS STATUS');
+    expect(rowCells[4]).toHaveTextContent('JUSTIFICATION');
+    expect(rowCells[5]).toHaveTextContent('ACTION');
+
+    const firstRow = tableRows[1];
+    rowCells = within(firstRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('4');
+    expect(rowCells[1]).toHaveTextContent('CVE-2019-10247');
+    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
+    expect(rowCells[3]).toHaveTextContent('Unannotated');
+    expect(rowCells[4]).toHaveTextContent('');
+
+    const secondRow = tableRows[2];
+    rowCells = within(secondRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('2');
+    expect(rowCells[1]).toHaveTextContent('CVE-2019-11358');
+    expect(rowCells[2]).toHaveTextContent('Unverified');
+    expect(rowCells[3]).toHaveTextContent('Resolved');
+    expect(rowCells[4]).toHaveTextContent('Protected by mitigating control');
+
+    const thirdRow = tableRows[3];
+    rowCells = within(thirdRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('6');
+    expect(rowCells[1]).toHaveTextContent('CVE-2022-38752');
+    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
+    expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
+    expect(rowCells[4]).toHaveTextContent('Requires dependency');
+  });
+
+  it('Renders Additional Sonatype Identified Vulnerabilities table', async () => {
+    renderPage(false, sonatypeIdentifiedVulnerabilities);
+    expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+    expect(
+      screen.getByText('Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.')
+    ).toBeVisible();
+
+    const tableRows = await screen.findAllByRole('row');
+    expect(tableRows.length).toBe(3); // Including the header
+
+    const headersRow = tableRows[0];
+    let rowCells = within(headersRow).getAllByRole('columnheader');
+    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
+    expect(rowCells[1]).toHaveTextContent('ISSUE');
+    expect(rowCells[2]).toHaveTextContent('ANALYSIS STATUS');
+    expect(rowCells[3]).toHaveTextContent('JUSTIFICATION');
+    expect(rowCells[4]).toHaveTextContent('ACTION');
+
+    const firstRow = tableRows[1];
+    rowCells = within(firstRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('10');
+    expect(rowCells[1]).toHaveTextContent('CVE-2021-41182');
+    expect(rowCells[2]).toHaveTextContent('Unannotated');
+    expect(rowCells[3]).toHaveTextContent('');
+
+    const secondRow = tableRows[2];
+    rowCells = within(secondRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('8');
+    expect(rowCells[1]).toHaveTextContent('CVE-2021-41183');
+    expect(rowCells[2]).toHaveTextContent('Unannotated');
+    expect(rowCells[3]).toHaveTextContent('');
+  });
+
+  it('Renders Additional Sonatype Identified Vulnerabilities table empty with empty message displayed', async () => {
+    renderPage(false, []);
+    expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+    expect(
+      screen.getByText('Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.')
+    ).toBeVisible();
+
+    const tableRows = await screen.findAllByRole('row');
+    expect(tableRows.length).toBe(2); // Including the header
+
+    const headersRow = tableRows[0];
+    let rowCells = within(headersRow).getAllByRole('columnheader');
+    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
+    expect(rowCells[1]).toHaveTextContent('ISSUE');
+    expect(rowCells[2]).toHaveTextContent('ANALYSIS STATUS');
+    expect(rowCells[3]).toHaveTextContent('JUSTIFICATION');
+    expect(rowCells[4]).toHaveTextContent('ACTION');
+
+    const firstRow = tableRows[1];
+    rowCells = within(firstRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('No vulnerabilities found');
+  });
+});

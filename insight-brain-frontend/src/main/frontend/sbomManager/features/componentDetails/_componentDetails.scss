@@ -4,14 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-sbom-manager-dashboard {
-  display: contents;
+.sbom-copy-icon {
+  cursor: pointer;
 }
 
-bill-of-materials {
-  display: contents;
+.nx-tag.sbom-nx-tag {
+  max-width: 100%;
 }
 
-sbom-manager-component-details {
-  display: contents;
+.sbom-component-details {
+  height: 100%;
+  overflow-y: auto;
 }

@@ -69,10 +69,8 @@ describe('ComponentDetailsReportInfo', () => {
     const reportTime = 1234562;
     const component = getMountedComponent({ reportTitle, reportTime });
     expect(component).toIncludeText(formattedTimestamp);
-
     const componentWithoutTitle = getMountedComponent({ reportTitle: null, reportTime });
     expect(componentWithoutTitle).not.toIncludeText(formattedTimestamp);
-
     const componentWithoutTime = getMountedComponent({ reportTime: null, reportTitle });
     expect(componentWithoutTime).not.toIncludeText(formattedTimestamp);
   });

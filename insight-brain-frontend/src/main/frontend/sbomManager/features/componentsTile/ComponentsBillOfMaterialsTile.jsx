@@ -9,8 +9,10 @@ import * as PropTypes from 'prop-types';
 import {
   NxH2,
   NxLoadWrapper,
+  NxOverflowTooltip,
   NxSmallThreatCounter,
   NxTable,
+  NxTextLink,
   NxTile,
   NxTooltip,
 } from '@sonatype/react-shared-components';
@@ -23,13 +25,26 @@ import {
   selectSortDir,
 } from './componentsBillOfMaterialsSelectors.js';
 import { actions } from './componentsBillOfMaterialsSlice.js';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import './componentsBillOfMaterialsTile.scss';
 
 export default function ComponentsBillOfMaterialsTile(props) {
-  const { isInternalAppIdLoading, internalAppId, sbomVersion } = props;
+  const routerParams = useSelector(selectRouterCurrentParams);
+  const { internalAppId, sbomVersion, isInternalAppIdLoading } = props;
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadSbomTableData({ internalAppId, sbomVersion }));
+  const uiRouterState = useRouterState();
+  const componentDetailsState = 'sbomManager.component';
+  const componentDetailsHref = (componentHash) => {
+    const { applicationPublicId, versionId } = routerParams;
+    return uiRouterState.href(componentDetailsState, {
+      applicationPublicId,
+      sbomVersion: versionId,
+      componentHash,
+    });
+  };
 
   useEffect(() => {
     if (internalAppId) doLoad();
@@ -54,14 +69,13 @@ export default function ComponentsBillOfMaterialsTile(props) {
           {componentsTableData.map((component) => (
             <NxTable.Row key={component.hash}>
               <NxTable.Cell>
-                <NxTooltip
-                  title={component.displayName}
-                  className="sbom-manager-bills-of-materials-tile-table__tooltip"
-                >
-                  <span className="sbom-manager-bills-of-materials-tile-table__display-name">
-                    {component.displayName}
-                  </span>
-                </NxTooltip>
+                <NxOverflowTooltip>
+                  <div className="nx-truncate-ellipsis bom-component-display-name">
+                    <NxTextLink id="sbom-component-details-link" href={componentDetailsHref(component.hash)}>
+                      {component.displayName}
+                    </NxTextLink>
+                  </div>
+                </NxOverflowTooltip>
               </NxTable.Cell>
               <NxTable.Cell>
                 <NxSmallThreatCounter

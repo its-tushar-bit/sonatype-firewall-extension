@@ -9,11 +9,13 @@ import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillO
 import viewTemplate from 'MainRoot/owner.manager/state/owner.manager.view.html';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
+import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
   .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$ngRedux', '$state']))
   .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
+  .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -80,6 +82,14 @@ function routes($stateProvider) {
         title: 'SBOM Manager - Bill Of Materials',
         authenticationRequired: true,
         noSidebar: true,
+      },
+    })
+    .state('sbomManager.component', {
+      url: '/application/{applicationPublicId}/bom/{sbomVersion}/{componentHash}/overview',
+      component: 'sbomManagerComponentDetails',
+      data: {
+        title: 'SBOM Manager - Component Details',
+        authenticationRequired: true,
       },
     });
 
